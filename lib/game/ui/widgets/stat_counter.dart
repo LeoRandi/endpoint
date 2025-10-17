@@ -7,8 +7,9 @@ class StatCounter extends StatelessWidget {
   final int min;
   final int max;
   final int step;
-  final bool enabled;
-  final String? hintText; // texto gris opcional al lado del label
+  final bool incEnabled; // ⬅️ habilitación independiente
+  final bool decEnabled; // ⬅️ habilitación independiente
+  final String? hintText;
   final ValueChanged<int> onChanged;
 
   const StatCounter({
@@ -19,14 +20,15 @@ class StatCounter extends StatelessWidget {
     this.min = 0,
     this.max = 999,
     this.step = 1,
-    this.enabled = true,
+    this.incEnabled = true,
+    this.decEnabled = true,
     this.hintText,
   });
 
   @override
   Widget build(BuildContext context) {
-    final canDec = enabled && (value - step >= min);
-    final canInc = enabled && (value + step <= max);
+    final canDec = decEnabled && (value - step >= min);
+    final canInc = incEnabled && (value + step <= max);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -43,10 +45,7 @@ class StatCounter extends StatelessWidget {
               children: [
                 Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
                 if (hintText != null)
-                  Text(
-                    hintText!,
-                    style: TextStyle(color: Theme.of(context).hintColor),
-                  ),
+                  Text(hintText!, style: TextStyle(color: Theme.of(context).hintColor)),
               ],
             ),
           ),

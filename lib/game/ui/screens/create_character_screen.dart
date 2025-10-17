@@ -49,13 +49,26 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
 
   bool get _overBudget => _poolLeft < 0;
 
-  void _setAttack(int v) => setState(() => _attack = v.clamp(minStat, maxStat));
-  void _setDefense(int v) => setState(() => _defense = v.clamp(minStat, maxStat));
-  void _setSpeed(int v) => setState(() => _speed = v.clamp(minStat, maxStat));
-  void _setConstitution(int v) => setState(() => _constitution = v.clamp(minStat, maxStat));
+  void _applyChange({
+    required int current,
+    required int proposed,
+    required void Function(int v) setter,
+  }) {
+    // Si intenta subir y no hay puntos, ignora
+    if (proposed > current) {
+      final delta = proposed - current;
+      if (_poolLeft - delta < 0) return; // excede pool → bloquear
+    }
+    setState(() => setter(proposed.clamp(minStat, maxStat)));
+  }
 
-  bool _canInc(int current) => _poolLeft > 0 && current < maxStat;
-  bool _canDec(int current) => current > minStat;
+  void _setAttack(int v)       => _applyChange(current: _attack,       proposed: v, setter: (x) => _attack = x);
+  void _setDefense(int v)      => _applyChange(current: _defense,      proposed: v, setter: (x) => _defense = x);
+  void _setSpeed(int v)        => _applyChange(current: _speed,        proposed: v, setter: (x) => _speed = x);
+  void _setConstitution(int v) => _applyChange(current: _constitution, proposed: v, setter: (x) => _constitution = x);
+
+  bool _incEnabled(int current) => _poolLeft > 0 && current < maxStat;
+  bool _decEnabled(int current) => current > minStat;
 
   @override
   Widget build(BuildContext context) {
@@ -90,29 +103,6 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                         ),
                       ),
 
-                      // Pool de puntos
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Theme.of(context).colorScheme.outline),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              'Puntos disponibles: ${_poolLeft.clamp(0, poolMax)} / $poolMax',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: _overBudget ? Theme.of(context).colorScheme.error : null,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
                       // Nombre
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -136,83 +126,115 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                       ),
                       _StatsGrid(
                         children: [
-                          // Attack
                           StatCounter(
                             label: 'Ataque',
                             value: _attack,
                             min: minStat,
                             max: maxStat,
-                            onChanged: (v) => _setAttack(v),
-                            enabled: _canInc(_attack) || _canDec(_attack),
+                            onChanged: _setAttack,
+                            incEnabled: _incEnabled(_attack),
+                            decEnabled: _decEnabled(_attack),
                           ),
-
-                          // Defense
                           StatCounter(
                             label: 'Defensa',
                             value: _defense,
                             min: minStat,
                             max: maxStat,
-                            onChanged: (v) => _setDefense(v),
-                            enabled: _canInc(_defense) || _canDec(_defense),
+                            onChanged: _setDefense,
+                            incEnabled: _incEnabled(_defense),
+                            decEnabled: _decEnabled(_defense),
                           ),
-
-                          // Speed
                           StatCounter(
                             label: 'Velocidad',
                             value: _speed,
                             min: minStat,
                             max: maxStat,
-                            onChanged: (v) => _setSpeed(v),
-                            enabled: _canInc(_speed) || _canDec(_speed),
+                            onChanged: _setSpeed,
+                            incEnabled: _incEnabled(_speed),
+                            decEnabled: _decEnabled(_speed),
                           ),
-
-                          // Constitution (con hint de HP)
                           StatCounter(
                             label: 'Constitución',
                             value: _constitution,
                             min: minStat,
                             max: maxStat,
-                            onChanged: (v) => _setConstitution(v),
-                            enabled: _canInc(_constitution) || _canDec(_constitution),
+                            onChanged: _setConstitution,
+                            incEnabled: _incEnabled(_constitution),
+                            decEnabled: _decEnabled(_constitution),
                             hintText: '→ HP Máx: ${_maxHpFromCon(_constitution)}',
                           ),
-
-                          // Flow (solo visible)
                           StatCounter(
                             label: 'Flow',
                             value: _flow,
                             min: minStat,
                             max: maxStat,
                             onChanged: (_) {},
-                            enabled: false, // deshabilitado
+                            incEnabled: false,
+                            decEnabled: false,
                             hintText: '(no editable)',
                           ),
+
                         ],
                       ),
 
-                      const SizedBox(height: 16),
-
-                      // Ir a la batalla (deshabilitar si over budget)
-                      SizedBox(
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _overBudget
-                              ? null
-                              : () {
-                                  // Por ahora sin navegar. Solo feedback.
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Ir a la batalla — por implementar')),
-                                  );
-                                },
-                          child: const Text('Ir a la batalla'),
-                        ),
-                      ),
+                      // (El contador y el botón ahora están fijos abajo)
+                      const SizedBox(height: 100), // respiro para que no tape el footer al hacer scroll
                     ],
                   ),
                 ),
               ),
             );
           },
+        ),
+      ),
+      // ✅ Footer sticky con puntos + botón
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container
+        (
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Puntos disponibles
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'Puntos disponibles: ${_poolLeft.clamp(0, poolMax)} / $poolMax',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: _overBudget ? Theme.of(context).colorScheme.error : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Botón Ir a la batalla
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _overBudget
+                      ? null
+                      : () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Ir a la batalla — por implementar')),
+                          );
+                        },
+                  child: const Text('Ir a la batalla'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
