@@ -12,7 +12,7 @@ dependencies:
   iconsax: ^0.0.8
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  path_provider: ^2.1.4   # (móvil/desktop; web lo ignora)
+  path_provider: ^2.1.4
 
 dev_dependencies:
   flutter_test:

@@ -11,11 +11,19 @@ class CreateCharacterScreen extends StatefulWidget {
 class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
   final _nameCtrl = TextEditingController(text: 'Héroe');
 
-  // Stats base alineados con tu dominio: maxHp, attack, defense, speed
-  int _maxHp = 30;
-  int _attack = 8;
-  int _defense = 3;
-  int _speed = 5;
+  // Reglas
+  static const int minStat = 2;
+  static const int maxStat = 8;
+  static const int poolMax = 10;
+
+  // Stats seleccionables (empiezan en 2)
+  int _attack = minStat;
+  int _defense = minStat;
+  int _speed = minStat;
+  int _constitution = minStat;
+
+  // Flow: visible pero no editable (también empieza en 2)
+  final int _flow = minStat;
 
   @override
   void dispose() {
@@ -23,9 +31,31 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
     super.dispose();
   }
 
+  // Responsive helpers
   double _titleSize(BoxConstraints c) => (c.maxWidth * 0.05).clamp(22.0, 38.0);
   double _sectionTitleSize(BoxConstraints c) => (c.maxWidth * 0.035).clamp(16.0, 22.0);
   double _panelWidth(BoxConstraints c) => (c.maxWidth * 0.9).clamp(300.0, 780.0);
+
+  // Cálculos
+  int get _baseSum => minStat * 4; // 4 stats editables: atk/def/spd/con
+  int get _currentSum => _attack + _defense + _speed + _constitution;
+  int get _spent => _currentSum - _baseSum; // puntos gastados de la pool
+  int get _poolLeft => poolMax - _spent;
+
+  int _maxHpFromCon(int con) {
+    // maxHp = (con * 3) + (con/3) [entero]
+    return (con * 3) + (con ~/ 3);
+  }
+
+  bool get _overBudget => _poolLeft < 0;
+
+  void _setAttack(int v) => setState(() => _attack = v.clamp(minStat, maxStat));
+  void _setDefense(int v) => setState(() => _defense = v.clamp(minStat, maxStat));
+  void _setSpeed(int v) => setState(() => _speed = v.clamp(minStat, maxStat));
+  void _setConstitution(int v) => setState(() => _constitution = v.clamp(minStat, maxStat));
+
+  bool _canInc(int current) => _poolLeft > 0 && current < maxStat;
+  bool _canDec(int current) => current > minStat;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +76,7 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Título grande centrado
+                      // Título
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Text(
@@ -60,7 +90,30 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                         ),
                       ),
 
-                      // Selector de nombre
+                      // Pool de puntos
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Theme.of(context).colorScheme.outline),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              'Puntos disponibles: ${_poolLeft.clamp(0, poolMax)} / $poolMax',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: _overBudget ? Theme.of(context).colorScheme.error : null,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Nombre
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text('Nombre', style: TextStyle(fontSize: sectionSize, fontWeight: FontWeight.w600)),
@@ -75,55 +128,82 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                       ),
 
                       const SizedBox(height: 8),
-                      // Selector de stats
+
+                      // Atributos
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text('Atributos', style: TextStyle(fontSize: sectionSize, fontWeight: FontWeight.w600)),
                       ),
                       _StatsGrid(
                         children: [
-                          StatCounter(
-                            label: 'HP Máx',
-                            value: _maxHp,
-                            onChanged: (v) => setState(() => _maxHp = v.clamp(10, 999)),
-                            step: 5, // HP sube/baja de 5 en 5
-                            min: 10,
-                            max: 999,
-                          ),
+                          // Attack
                           StatCounter(
                             label: 'Ataque',
                             value: _attack,
-                            onChanged: (v) => setState(() => _attack = v.clamp(1, 99)),
-                            min: 1,
-                            max: 99,
+                            min: minStat,
+                            max: maxStat,
+                            onChanged: (v) => _setAttack(v),
+                            enabled: _canInc(_attack) || _canDec(_attack),
                           ),
+
+                          // Defense
                           StatCounter(
                             label: 'Defensa',
                             value: _defense,
-                            onChanged: (v) => setState(() => _defense = v.clamp(0, 99)),
-                            min: 0,
-                            max: 99,
+                            min: minStat,
+                            max: maxStat,
+                            onChanged: (v) => _setDefense(v),
+                            enabled: _canInc(_defense) || _canDec(_defense),
                           ),
+
+                          // Speed
                           StatCounter(
                             label: 'Velocidad',
                             value: _speed,
-                            onChanged: (v) => setState(() => _speed = v.clamp(1, 99)),
-                            min: 1,
-                            max: 99,
+                            min: minStat,
+                            max: maxStat,
+                            onChanged: (v) => _setSpeed(v),
+                            enabled: _canInc(_speed) || _canDec(_speed),
+                          ),
+
+                          // Constitution (con hint de HP)
+                          StatCounter(
+                            label: 'Constitución',
+                            value: _constitution,
+                            min: minStat,
+                            max: maxStat,
+                            onChanged: (v) => _setConstitution(v),
+                            enabled: _canInc(_constitution) || _canDec(_constitution),
+                            hintText: '→ HP Máx: ${_maxHpFromCon(_constitution)}',
+                          ),
+
+                          // Flow (solo visible)
+                          StatCounter(
+                            label: 'Flow',
+                            value: _flow,
+                            min: minStat,
+                            max: maxStat,
+                            onChanged: (_) {},
+                            enabled: false, // deshabilitado
+                            hintText: '(no editable)',
                           ),
                         ],
                       ),
 
                       const SizedBox(height: 16),
-                      // Botón "Ir a la batalla" (sin funcionalidad de momento)
+
+                      // Ir a la batalla (deshabilitar si over budget)
                       SizedBox(
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Ir a la batalla — por implementar')),
-                            );
-                          },
+                          onPressed: _overBudget
+                              ? null
+                              : () {
+                                  // Por ahora sin navegar. Solo feedback.
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Ir a la batalla — por implementar')),
+                                  );
+                                },
                           child: const Text('Ir a la batalla'),
                         ),
                       ),
