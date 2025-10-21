@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import '../widgets/stat_counter.dart';
 
+import '../../services/save_service.dart';
+import '../../data/save_data.dart';
+import '../../domain/player.dart';
+import '../../domain/stats.dart';
+import '../../domain/floor_grid.dart';
+import 'floor_screen.dart';
+
+
 class CreateCharacterScreen extends StatefulWidget {
   const CreateCharacterScreen({super.key});
 
@@ -224,12 +232,39 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _overBudget
-                      ? null
-                      : () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Ir a la batalla — por implementar')),
+                    ? null
+                    : () async {
+                        final name = _nameCtrl.text.trim().isEmpty ? 'Héroe' : _nameCtrl.text.trim();
+                        final maxHp = SaveData.hpFromCon(_constitution);
+
+                        final save = SaveData(
+                          version: 1,
+                          playerName: name,
+                          level: 1,
+                          hp: maxHp,
+                          maxHp: maxHp,
+                          attack: _attack,
+                          defense: _defense,
+                          speed: _speed,
+                          constitution: _constitution,
+                          flow: 2,
+                        );
+                        await SaveService.save(save);
+
+                        final player = Player(
+                          name: name,
+                          stats: Stats(maxHp: maxHp, attack: _attack, defense: _defense, speed: _speed),
+                        );
+
+                        if (context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => FloorScreen(player: player, grid: FloorGrid.sampleRoom()),
+                            ),
                           );
-                        },
+                        }
+                      },
+
                   child: const Text('Ir a la batalla'),
                 ),
               ),

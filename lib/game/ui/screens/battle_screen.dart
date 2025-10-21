@@ -8,7 +8,8 @@ import '../widgets/message_log.dart';
 import '../widgets/action_buttons.dart';
 
 class BattleScreen extends StatefulWidget {
-  const BattleScreen({super.key});
+  final Player player;
+  const BattleScreen({super.key, required this.player});
 
   @override
   State<BattleScreen> createState() => _BattleScreenState();
@@ -22,7 +23,7 @@ class _BattleScreenState extends State<BattleScreen> {
   @override
   void initState() {
     super.initState();
-    final party = Party(players: [Player.basic(name: 'Héroe')]);
+    final party = Party(players: [widget.player]);
     final foes = [Enemy.basic(name: 'Slime')];
     state = BattleState.fromParties(party: party, enemies: foes);
     engine = CombatEngine(state: state, onLog: controller.add);
@@ -40,7 +41,6 @@ class _BattleScreenState extends State<BattleScreen> {
   }
 
   void _finishBattle() {
-    // Vuelve a la pantalla de inicio
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
@@ -48,7 +48,6 @@ class _BattleScreenState extends State<BattleScreen> {
   Widget build(BuildContext context) {
     final outcome = state.outcome;
 
-    // Mostrar stats de la primera unidad viva si existe; si no, “—”
     String heroLine() {
       final alive = state.party.players.where((p) => p.isAlive).toList();
       if (alive.isEmpty) return 'Héroe: —';

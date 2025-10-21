@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'create_character_screen.dart';
 import '../../services/save_service.dart';
-import '../../data/save_data.dart';
+import '../../domain/player.dart';
+import '../../domain/stats.dart';
+import '../../domain/floor_grid.dart';
+import 'floor_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -66,16 +69,34 @@ class HomeScreen extends StatelessWidget {
                           child: OutlinedButton(
                             onPressed: () {
                               final save = SaveService.load();
-                              final has = save != null;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    has
-                                        ? 'Cargando: ${save.playerName} (Nv.${save.level}) HP ${save.hp}'
-                                        : 'No hay guardado',
+                              if (save == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('No hay guardado')),
+                                );
+                                return;
+                              }
+
+                              final player = Player(
+                                name: save.playerName,
+                                stats: Stats(
+                                  maxHp: save.maxHp,
+                                  attack: save.attack,
+                                  defense: save.defense,
+                                  speed: save.speed,
+                                ),
+                              );
+                              // Si quieres restaurar HP actual:
+                              player.currentHp = save.hp.clamp(0, save.maxHp);
+
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => FloorScreen(
+                                    player: player,
+                                    grid: FloorGrid.sampleRoom(),
                                   ),
                                 ),
                               );
+
                             },
                             child: const Text('Continuar'),
                           ),
