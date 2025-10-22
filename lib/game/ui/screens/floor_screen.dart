@@ -34,6 +34,35 @@ class _FloorScreenState extends State<FloorScreen> {
         CellType.empty => '·',
       };
 
+  IconData _iconFor(CellType t) {
+    switch (t) {
+      case CellType.player: return Icons.person;       // jugador
+      case CellType.wall:   return Icons.crop_square;  // pared
+      case CellType.enemy:  return Icons.dangerous;    // enemigo
+      case CellType.empty:  return Icons.circle;       // punto mínimo (se verá transparente)
+    }
+  }
+
+  Color _bgPastelFor(BuildContext ctx, CellType t) {
+    final cs = Theme.of(ctx).colorScheme;
+    switch (t) {
+      case CellType.wall:   return cs.outlineVariant.withOpacity(0.18);
+      case CellType.enemy:  return Colors.redAccent.withOpacity(0.16);
+      case CellType.player: return Colors.lightBlueAccent.withOpacity(0.18);
+      case CellType.empty:  return Colors.transparent;
+    }
+  }
+
+  Color _strongColorFor(BuildContext ctx, CellType t) {
+    final cs = Theme.of(ctx).colorScheme;
+    switch (t) {
+      case CellType.wall:   return cs.outline;          // gris fuerte
+      case CellType.enemy:  return Colors.redAccent;    // rojo fuerte
+      case CellType.player: return Colors.lightBlue;    // azul fuerte
+      case CellType.empty:  return cs.outline;          // casi no se verá
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
 
@@ -85,16 +114,51 @@ class _FloorScreenState extends State<FloorScreen> {
               if (pr != -1) break;
             }
 
-            // Posición del centro del jugador en coords del child (content)
+            // Dimensiones del contenido renderizado (incluido el outerMargin)
+            final contentW = gridW + outerMargin * 2;
+            final contentH = gridH + outerMargin * 2;
+
+            // Centro del jugador en coords del child (content)
             double playerCx, playerCy;
             if (pr >= 0 && pc >= 0) {
               playerCx = outerMargin + framePad + pc * (tile + gap) + tile / 2;
               playerCy = outerMargin + framePad + pr * (tile + gap) + tile / 2;
             } else {
-              // fallback: centro del grid
-              playerCx = outerMargin + framePad + gridW / 2 - framePad;
-              playerCy = outerMargin + framePad + gridH / 2 - framePad;
+              playerCx = contentW / 2;
+              playerCy = contentH / 2;
             }
+
+            // Escala inicial: ajusta a viewport y acércate un poco (sin exceder límites)
+            final fitScaleW = (c.maxWidth / contentW);
+            final fitScaleH = (c.maxHeight / contentH);
+            final fitScale  = math.min(fitScaleW, fitScaleH);
+            final initialScale = (fitScale * 1.4).clamp(_minScale, _maxScale); // 1.4x sobre “fit”
+
+            // Queremos: playerCenter*scale + (tx,ty) = viewportCenter
+            double tx = (c.maxWidth  / 2) - playerCx * initialScale;
+            double ty = (c.maxHeight / 2) - playerCy * initialScale;
+
+            // Clamp para que el contenido completo permanezca dentro del viewport
+            double minTx = c.maxWidth  - contentW * initialScale;
+            double maxTx = 0.0;
+            double minTy = c.maxHeight - contentH * initialScale;
+            double maxTy = 0.0;
+            tx = tx.clamp(minTx, maxTx);
+            ty = ty.clamp(minTy, maxTy);
+
+            // Aplicar una única vez tras el primer frame
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final m = _tc.value;
+              final isIdentity = m.storage[0] == 1.0 && m.storage[5] == 1.0 && m.storage[12] == 0.0 && m.storage[13] == 0.0;
+              if (isIdentity) {
+                _tc.value = Matrix4.identity()
+                  ..translate(tx, ty)
+                  ..scale(initialScale);
+                _scale = initialScale;
+                setState(() {});
+              }
+            });
+
 
             // Construcción de celdas con colores pastel
             Color cellBg(CellType t) {
@@ -128,13 +192,16 @@ class _FloorScreenState extends State<FloorScreen> {
                   width: tile,
                   height: tile,
                   decoration: BoxDecoration(
-                    color: cellBg(t),
+                    color: _bgPastelFor(context, t),
                     border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(radius),
+                    borderRadius: BorderRadius.circular(radius), // radius calculado como antes
                   ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(cellEmoji(t), textAlign: TextAlign.center),
+                  child: Center(
+                    child: Icon(
+                      _iconFor(t),
+                      size: tile * 0.6,                  // escala estable en mobile/web
+                      color: _strongColorFor(context, t) // color sólido
+                    ),
                   ),
                 ));
                 if (c2 < cols - 1) children.add(const SizedBox(width: gap));
@@ -165,24 +232,22 @@ class _FloorScreenState extends State<FloorScreen> {
             );
 
             // Auto-zoom y centrado en el jugador la primera vez
-            // (1) escala inicial agradable
-            const double initialScale = 1.6;
-            // (2) centro del viewport (área del body)
-            final viewportCx = c.maxWidth / 2;
-            final viewportCy = c.maxHeight / 2;
-            // (3) offset tal que: playerCenter*scale + offset = viewportCenter
-            final tx = viewportCx - playerCx * initialScale;
-            final ty = viewportCy - playerCy * initialScale;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // setImmediate (no animamos aquí para mantenerlo simple)
-              if (_tc.value.storage[0] == 1.0 && _tc.value.storage[5] == 1.0) {
-                _tc.value = Matrix4.identity()
-                  ..translate(tx, ty)
-                  ..scale(initialScale);
-                _scale = initialScale;
-                setState(() {});
-              }
-            });
+            // (1) centro del viewport (área del body)
+            // final viewportCx = c.maxWidth / 2;
+            // final viewportCy = c.maxHeight / 2;
+            // (2) offset tal que: playerCenter*scale + offset = viewportCenter
+            // final tx = viewportCx - playerCx * initialScale;
+            // final ty = viewportCy - playerCy * initialScale;
+            // WidgetsBinding.instance.addPostFrameCallback((_) {
+            //   // setImmediate (no animamos aquí para mantenerlo simple)
+            //   if (_tc.value.storage[0] == 1.0 && _tc.value.storage[5] == 1.0) {
+            //     _tc.value = Matrix4.identity()
+            //       ..translate(tx, ty)
+            //       ..scale(initialScale);
+            //     _scale = initialScale;
+            //     setState(() {});
+            //   }
+            // });
 
             return Focus(
               autofocus: true,
