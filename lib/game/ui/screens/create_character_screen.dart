@@ -288,11 +288,6 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                           // 4) Generar grid con la seed
                           final grid = FloorGrid.fromGenerator(opts, seed: seed);
 
-                          // (Opcional) feedback rápido
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Seed $seed  | rooms: $roomDensity  | enemies: $enemyDensity')),
-                          );
-
                           // 5) Navegar
                           Navigator.of(context).push(
                             MaterialPageRoute(

@@ -105,6 +105,18 @@ class GridGenerator {
       }
     }
 
+    // 2.5) Intrusiones hacia dentro (paredes dentro del cuarto)
+    _intrudeEdgesInward(
+      g,
+      rooms,
+      rng,
+      // Profundidad máxima: mitad del mínimo permitido de habitación
+      maxDepthCap: ( (o.minRoomW < o.minRoomH ? o.minRoomW : o.minRoomH) ~/ 2 ).clamp(1, 6),
+      triesPerRoom: 4,
+      widenChance: 0.25, // ensancha 1 celda a lados a veces
+    );
+
+
     // 3) Conectar habitaciones con pasillos 1-celda (L recto H+V u V+H)
     //    Hacemos un MST simple por distancia-Manhattan entre centros.
     final centers = rooms.map((r) => r.center).toList();
@@ -134,11 +146,14 @@ class GridGenerator {
       widenChance: 0.1,  // ensancha 1 celda a lados a veces
     );
 
-    // 4) Colocar jugador (1) en el centro de la primera habitación.
-    final start = rooms.first.center;
+    // 3.9) Eliminar islas: conservar solo suelo conectado a alguna habitación
+    _removeIslands(g, rooms);
+
+    // 4) Colocar jugador en la primera habitación (busca suelo válido)
+    final start = _findStartInRoom(g, rooms.first);
     g[start.y][start.x] = tilePlayer;
 
-    // 5) Calcular casillas de suelo y poblar enemigos (3) según densidad.
+    // 5) Poblar enemigos en suelo con radio seguro >= 4 del jugador
     final floorCells = <_Pt>[];
     for (int y = 0; y < o.height; y++) {
       for (int x = 0; x < o.width; x++) {
@@ -147,6 +162,15 @@ class GridGenerator {
     }
 
     final enemyCount = max(0, (floorCells.length * o.enemyDensity).round());
+
+    // filtra por distancia Manhattan >= 4
+    floorCells.removeWhere((p) => _manhattan(p.x, p.y, start.x, start.y) < 4);
+    floorCells.shuffle(rng);
+
+    for (int i = 0; i < min(enemyCount, floorCells.length); i++) {
+      final p = floorCells[i];
+      g[p.y][p.x] = tileEnemy;
+    }
 
     // Evitar colocar enemigo donde hay jugador
     floorCells.removeWhere((p) => p.x == start.x && p.y == start.y);
@@ -171,6 +195,73 @@ class GridGenerator {
   }
 
   // ——————————————————————— helpers ———————————————————————
+
+  static int _manhattan(int x1, int y1, int x2, int y2) =>
+      (x1 - x2).abs() + (y1 - y2).abs();
+
+  /// Mantiene solo suelo conectado a ALGUNA habitación (4-direcciones).
+  static void _removeIslands(List<List<int>> g, List<_Room> rooms) {
+    if (rooms.isEmpty) return;
+    final h = g.length, w = g.first.length;
+    final vis = List.generate(h, (_) => List<bool>.filled(w, false));
+    final q = <_Pt>[];
+
+    bool inBounds(int x, int y) => x >= 0 && x < w && y >= 0 && y < h;
+
+    // Semillas: todo suelo dentro de cada habitación
+    for (final r in rooms) {
+      for (int y = r.y; y < r.y + r.h; y++) {
+        for (int x = r.x; x < r.x + r.w; x++) {
+          if (g[y][x] == tileFloor && !vis[y][x]) {
+            vis[y][x] = true;
+            q.add(_Pt(x, y));
+          }
+        }
+      }
+    }
+
+    // BFS sobre suelo
+    const dirs = [ [1,0], [-1,0], [0,1], [0,-1] ];
+    int qi = 0;
+    while (qi < q.length) {
+      final p = q[qi++];
+      for (final d in dirs) {
+        final nx = p.x + d[0], ny = p.y + d[1];
+        if (!inBounds(nx, ny)) continue;
+        if (vis[ny][nx]) continue;
+        if (g[ny][nx] != tileFloor) continue;
+        vis[ny][nx] = true;
+        q.add(_Pt(nx, ny));
+      }
+    }
+
+    // Todo suelo no visitado -> pared
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        if (g[y][x] == tileFloor && !vis[y][x]) {
+          g[y][x] = tileWall;
+        }
+      }
+    }
+  }
+
+  /// Busca un suelo dentro de la habitación (centro preferido)
+  static _Pt _findStartInRoom(List<List<int>> g, _Room r) {
+    final cx = r.x + r.w ~/ 2;
+    final cy = r.y + r.h ~/ 2;
+    if (g[cy][cx] == tileFloor) return _Pt(cx, cy);
+
+    // fallback: primer suelo que encuentre en la sala
+    for (int y = r.y; y < r.y + r.h; y++) {
+      for (int x = r.x; x < r.x + r.w; x++) {
+        if (g[y][x] == tileFloor) return _Pt(x, y);
+      }
+    }
+    // si no hay, abre el centro
+    g[cy][cx] = tileFloor;
+    return _Pt(cx, cy);
+  }
+
 
   static void _irregularizeEdgesStrict(
     List<List<int>> g,
@@ -219,6 +310,7 @@ class GridGenerator {
       for (int t = 0; t < triesPerRoom; t++) {
         // Elige un lado del cuarto y un punto de ese borde (evita esquinas)
         final side = rng.nextInt(4);
+        // ignore: unused_local_variable
         int bx, by, dx, dy, span;
         switch (side) {
           case 0: // top → hacia arriba
@@ -296,6 +388,104 @@ class GridGenerator {
       }
     }
   }
+
+  static void _intrudeEdgesInward(
+    List<List<int>> g,
+    List<_Room> rooms,
+    Random rng, {
+    required int maxDepthCap,
+    int triesPerRoom = 3,
+    double widenChance = 0.25,
+  }) {
+    if (rooms.isEmpty) return;
+    final h = g.length;
+    final w = g.first.length;
+
+    bool inBounds(int x, int y) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2;
+
+    // Convierte (x,y) en pared si es suelo y está en bounds.
+    bool wallify(int x, int y) {
+      if (!inBounds(x, y)) return false;
+      if (g[y][x] != tileFloor) return false;
+      g[y][x] = tileWall;
+      return true;
+    }
+
+    for (final r in rooms) {
+      // Profundidad máxima por habitación (no invadir más de la mitad del lado menor real)
+      final roomDepthCap = ((r.w < r.h ? r.w : r.h) ~/ 2);
+      final maxDepth = (roomDepthCap < maxDepthCap ? roomDepthCap : maxDepthCap).clamp(1, 6);
+
+      if (maxDepth <= 0) continue;
+
+      for (int t = 0; t < triesPerRoom; t++) {
+        // Elige un lado del cuarto y un punto (evita esquinas)
+        final side = rng.nextInt(4);
+        int bx, by, dx, dy;
+        switch (side) {
+          case 0: // top → intruye hacia abajo
+            if (r.w < 3) continue;
+            bx = r.x + 1 + rng.nextInt(r.w - 2);
+            by = r.y;
+            dx = 0; dy = 1;
+            break;
+          case 1: // right → intruye hacia izquierda
+            if (r.h < 3) continue;
+            bx = r.x + r.w - 1;
+            by = r.y + 1 + rng.nextInt(r.h - 2);
+            dx = -1; dy = 0;
+            break;
+          case 2: // bottom → intruye hacia arriba
+            if (r.w < 3) continue;
+            bx = r.x + 1 + rng.nextInt(r.w - 2);
+            by = r.y + r.h - 1;
+            dx = 0; dy = -1;
+            break;
+          default: // left → intruye hacia derecha
+            if (r.h < 3) continue;
+            bx = r.x;
+            by = r.y + 1 + rng.nextInt(r.h - 2);
+            dx = 1; dy = 0;
+        }
+
+        // Longitud aleatoria [1..maxDepth], sin llegar al centro.
+        final len = 1 + rng.nextInt(maxDepth);
+
+        // Tallar pared hacia dentro, manteniendo continuidad; no toca bordes exteriores.
+        for (int d = 0; d < len; d++) {
+          final x = bx + dx * d;
+          final y = by + dy * d;
+          if (!inBounds(x, y)) break;
+
+          // Solo convierte suelo del propio cuarto; si ya no hay suelo, detén
+          if (g[y][x] != tileFloor) break;
+
+          // Asegura que queda al menos 1 celda de paso al lado opuesto:
+          // (no invadas el último anillo interior)
+          final distToOpposite =
+              (dx.abs() == 1) ? (dx > 0 ? (r.x + r.w - 1) - x : x - r.x)
+                              : (dy > 0 ? (r.y + r.h - 1) - y : y - r.y);
+          if (distToOpposite <= 1) break;
+
+          if (!wallify(x, y)) break;
+
+          // Ensanchar 1 celda perpendicularmente a veces (mini pilar)
+          if (rng.nextDouble() < widenChance) {
+            if (dx == 0) {
+              // intrusión vertical → ensancha izquierda/derecha
+              wallify(x - 1, y);
+              wallify(x + 1, y);
+            } else {
+              // intrusión horizontal → ensancha arriba/abajo
+              wallify(x, y - 1);
+              wallify(x, y + 1);
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   static void _irregularizeEdges(
     List<List<int>> g,
