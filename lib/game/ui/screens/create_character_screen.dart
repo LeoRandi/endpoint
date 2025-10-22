@@ -7,6 +7,10 @@ import '../../domain/player.dart';
 import '../../domain/stats.dart';
 import '../../domain/floor_grid.dart';
 import 'floor_screen.dart';
+import '../../services/grid_generator_service.dart';
+
+import 'dart:math' as math;
+
 
 
 class CreateCharacterScreen extends StatefulWidget {
@@ -257,9 +261,42 @@ class _CreateCharacterScreenState extends State<CreateCharacterScreen> {
                         );
 
                         if (context.mounted) {
+                          // 1) Seed reproducible
+                          final seed = DateTime.now().millisecondsSinceEpoch & 0x7fffffff;
+                          final rng = math.Random(seed);
+
+                          // 2) Densidades controladas
+                          double randRange(double a, double b) => a + rng.nextDouble() * (b - a);
+                          // redondeo ligero para evitar sorpresas de coma flotante al depurar
+                          double tidy(double x) => double.parse(x.toStringAsFixed(3));
+
+                          final roomDensity = tidy(randRange(0.25, 0.45));
+                          final enemyDensity = tidy(randRange(0.05, 0.125));
+
+                          // 3) Opciones de generación con esas densidades
+                          final opts = GridGenOptions(
+                            width: 33,
+                            height: 25,
+                            roomDensity: roomDensity,
+                            enemyDensity: enemyDensity,
+                            minRoomW: 4,
+                            minRoomH: 5,
+                            maxAspectRatio: 4.0,
+                            roomPlacementTries: 300,
+                          );
+
+                          // 4) Generar grid con la seed
+                          final grid = FloorGrid.fromGenerator(opts, seed: seed);
+
+                          // (Opcional) feedback rápido
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Seed $seed  | rooms: $roomDensity  | enemies: $enemyDensity')),
+                          );
+
+                          // 5) Navegar
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => FloorScreen(player: player, grid: FloorGrid.sampleRoom()),
+                              builder: (_) => FloorScreen(player: player, grid: grid),
                             ),
                           );
                         }
