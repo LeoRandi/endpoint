@@ -21,25 +21,22 @@ class _FloorScreenState extends State<FloorScreen> {
   static const double _minScale = 0.5;
   static const double _maxScale = 6.0;
 
-  void _applyScale(double s) {
-    _scale = s.clamp(_minScale, _maxScale);
-    _tc.value = Matrix4.identity()..scale(_scale);
-    setState(() {});
+  IconData? _iconFor(CellType t) {
+    switch (t) {
+      case CellType.player: return Icons.person;     // jugador
+      case CellType.wall:   return Icons.stop;       // cuadrado/rectángulo relleno
+      case CellType.enemy:  return Icons.dangerous;  // enemigo
+      case CellType.empty:  return null;             // sin icono
+    }
   }
 
-  String _cellEmoji(CellType t) => switch (t) {
-        CellType.player => '🗡️',
-        CellType.wall => '🧱',
-        CellType.enemy => '💀',
-        CellType.empty => '·',
-      };
-
-  IconData _iconFor(CellType t) {
+  Color _strongColorFor(BuildContext ctx, CellType t) {
+    final cs = Theme.of(ctx).colorScheme;
     switch (t) {
-      case CellType.player: return Icons.person;       // jugador
-      case CellType.wall:   return Icons.crop_square;  // pared
-      case CellType.enemy:  return Icons.dangerous;    // enemigo
-      case CellType.empty:  return Icons.circle;       // punto mínimo (se verá transparente)
+      case CellType.wall:   return cs.outline;       // gris fuerte
+      case CellType.enemy:  return Colors.redAccent; // rojo fuerte
+      case CellType.player: return Colors.lightBlue; // azul fuerte
+      case CellType.empty:  return Colors.transparent;
     }
   }
 
@@ -50,16 +47,6 @@ class _FloorScreenState extends State<FloorScreen> {
       case CellType.enemy:  return Colors.redAccent.withOpacity(0.16);
       case CellType.player: return Colors.lightBlueAccent.withOpacity(0.18);
       case CellType.empty:  return Colors.transparent;
-    }
-  }
-
-  Color _strongColorFor(BuildContext ctx, CellType t) {
-    final cs = Theme.of(ctx).colorScheme;
-    switch (t) {
-      case CellType.wall:   return cs.outline;          // gris fuerte
-      case CellType.enemy:  return Colors.redAccent;    // rojo fuerte
-      case CellType.player: return Colors.lightBlue;    // azul fuerte
-      case CellType.empty:  return cs.outline;          // casi no se verá
     }
   }
   
@@ -84,7 +71,6 @@ class _FloorScreenState extends State<FloorScreen> {
             const double outerMargin = 12;
             const double framePad = 8;
             const double gap = 4;
-            const double minTile = 14; // evita círculos por borderRadius
 
             // Área disponible (resta márgenes exteriores)
             final availW = (c.maxWidth - outerMargin * 2).clamp(0, double.infinity);
@@ -96,8 +82,7 @@ class _FloorScreenState extends State<FloorScreen> {
               (availH - framePad * 2 - gap * (rows - 1)) / rows,
             );
             if (!tile.isFinite) tile = 0;
-            tile = tile.floorToDouble();
-            if (tile < minTile) tile = minTile;
+            tile = tile.floorToDouble(); // que QUEPA
 
             // Tamaño final del grid (tiles + gaps + padding)
             final gridW = (tile * cols) + gap * (cols - 1) + framePad * 2;
@@ -127,24 +112,48 @@ class _FloorScreenState extends State<FloorScreen> {
               playerCx = contentW / 2;
               playerCy = contentH / 2;
             }
-
-            // Escala inicial: ajusta a viewport y acércate un poco (sin exceder límites)
+            
+            // Escala base para encajar todo
             final fitScaleW = (c.maxWidth / contentW);
             final fitScaleH = (c.maxHeight / contentH);
-            final fitScale  = math.min(fitScaleW, fitScaleH);
-            final initialScale = (fitScale * 1.4).clamp(_minScale, _maxScale); // 1.4x sobre “fit”
+            final fitScale  = math.min(fitScaleW, fitScaleH).clamp(_minScale, _maxScale);
+
+            // Queremos que la celda se “vea” (sin romper layout)
+            const desiredTilePx = 18.0;
+            final needForTile   = tile > 0 ? (desiredTilePx / tile) : 1.0;
+
+            // ⚠️ Asegura que en VERTICAL el contenido llene el viewport (2% de margen)
+            final needFillY = (c.maxHeight / contentH) * 1.02;
+
+            // Boost suave
+            const boost = 1.2;
+
+            // Escala inicial final: quepa + se vea + llene vertical
+            final initialScale = math.max(
+              math.max(fitScale * boost, needForTile),
+              needFillY,
+            ).clamp(_minScale, _maxScale).toDouble();
+
 
             // Queremos: playerCenter*scale + (tx,ty) = viewportCenter
             double tx = (c.maxWidth  / 2) - playerCx * initialScale;
             double ty = (c.maxHeight / 2) - playerCy * initialScale;
 
             // Clamp para que el contenido completo permanezca dentro del viewport
-            double minTx = c.maxWidth  - contentW * initialScale;
-            double maxTx = 0.0;
-            double minTy = c.maxHeight - contentH * initialScale;
-            double maxTy = 0.0;
-            tx = tx.clamp(minTx, maxTx);
-            ty = ty.clamp(minTy, maxTy);
+            tx = _clampOffset(
+              desired: tx,
+              viewport: c.maxWidth,
+              content: contentW,
+              scale: initialScale,
+            );
+            ty = _clampOffset(
+              desired: ty,
+              viewport: c.maxHeight,
+              content: contentH,
+              scale: initialScale,
+            );
+
+
 
             // Aplicar una única vez tras el primer frame
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -159,51 +168,33 @@ class _FloorScreenState extends State<FloorScreen> {
               }
             });
 
-
-            // Construcción de celdas con colores pastel
-            Color cellBg(CellType t) {
-              final base = Theme.of(context).colorScheme;
-              switch (t) {
-                case CellType.wall:
-                  return base.outlineVariant.withOpacity(0.18); // gris suave
-                case CellType.enemy:
-                  return Colors.redAccent.withOpacity(0.16);
-                case CellType.player:
-                  return Colors.lightBlueAccent.withOpacity(0.18);
-                case CellType.empty:
-                  return Colors.transparent;
-              }
-            }
-
-            String cellEmoji(CellType t) => switch (t) {
-                  CellType.player => '🗡️',
-                  CellType.wall   => '🧱',
-                  CellType.enemy  => '💀',
-                  CellType.empty  => '·',
-                };
-
             final radius = math.min(6.0, tile / 4);
 
             Widget buildRow(int r) {
               final children = <Widget>[];
               for (var c2 = 0; c2 < cols; c2++) {
                 final t = widget.grid.cell(r, c2);
+                final icon = _iconFor(t);
+
                 children.add(Container(
                   width: tile,
                   height: tile,
                   decoration: BoxDecoration(
                     color: _bgPastelFor(context, t),
                     border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(radius), // radius calculado como antes
+                    borderRadius: BorderRadius.circular(radius),
                   ),
-                  child: Center(
-                    child: Icon(
-                      _iconFor(t),
-                      size: tile * 0.6,                  // escala estable en mobile/web
-                      color: _strongColorFor(context, t) // color sólido
-                    ),
-                  ),
+                  child: icon == null
+                      ? const SizedBox.shrink()
+                      : Center(
+                          child: Icon(
+                            icon,
+                            size: tile * 0.6,
+                            color: _strongColorFor(context, t),
+                          ),
+                        ),
                 ));
+
                 if (c2 < cols - 1) children.add(const SizedBox(width: gap));
               }
               return Row(mainAxisSize: MainAxisSize.min, children: children);
@@ -261,12 +252,18 @@ class _FloorScreenState extends State<FloorScreen> {
                 onPointerSignal: (PointerSignalEvent sig) {
                   if (!_zHeld || sig is! PointerScrollEvent) return;
                   final factor = math.pow(1.0018, -sig.scrollDelta.dy);
-                  final newScale = (_scale * factor).clamp(_minScale, _maxScale);
-                  // mantenemos el centro actual; simple
+                  final newScale = (_scale * factor).clamp(_minScale, _maxScale).toDouble();
+
+                  // Mantén la traslación actual; solo cambia la escala
+                  final m = _tc.value.clone();
+                  final curTx = m.storage[12];
+                  final curTy = m.storage[13];
+
                   _tc.value = Matrix4.identity()
-                    ..translate(tx, ty)
-                    ..scale(newScale as double);
-                  _scale = newScale.toDouble();
+                    ..translate(curTx, curTy)
+                    ..scale(newScale);
+
+                  _scale = newScale;
                   setState(() {});
                 },
                 child: InteractiveViewer(
@@ -343,4 +340,22 @@ class _FloorScreenState extends State<FloorScreen> {
       ),
     );
   }
+
+  double _clampOffset({
+    required double desired,   // tx o ty que quieres (centrado en jugador)
+    required double viewport,  // ancho o alto del viewport
+    required double content,   // ancho o alto del contenido (contentW/H)
+    required double scale,
+  }) {
+    final span = viewport - content * scale; // si >= 0, el contenido cabe
+    if (span >= 0) {
+      // contenido más pequeño: rango permitido [0 .. span] (izq alineado .. dcha alineado)
+      return desired.clamp(0.0, span);
+    } else {
+      // contenido más grande: rango permitido [span .. 0] (totalmente a la dcha .. izq)
+      return desired.clamp(span, 0.0);
+    }
+  }
+
+
 }
