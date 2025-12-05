@@ -1,5 +1,3 @@
-import "_imports.dart";
-
 class BattlerClassSkill {
   final String name;
   final String description;

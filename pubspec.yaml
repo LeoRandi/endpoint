@@ -23,6 +23,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/icons/
+    - assets/images/slots/
     - assets/sprites/
   fonts:
     - family: Pixeboy

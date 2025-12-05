@@ -36,16 +36,10 @@ class _EndpointStartState extends State<EndpointStart> {
       body: BattleStationPage(
         {
           BattlerSide.ally: [
-            Battler('Hero', 100, 50, 20, 'assets/sprites/image_1.png',
-                BattlerSide.ally),
-            Battler(
-                'Mage', 80, 50, 30, 'assets/sprites/image_1.png', BattlerSide.ally),
+            Battler.hero(),
           ],
           BattlerSide.enemy: [
-            Battler('Goblin', 50, 50, 10, 'assets/sprites/image_1.png',
-                BattlerSide.enemy),
-            Battler('Orc', 120, 50, 15, 'assets/sprites/image_1.png',
-                BattlerSide.enemy),
+            Battler.goblin(),
           ],
         },
       ),
