@@ -15,14 +15,14 @@ class BattlerStatsWidget extends StatelessWidget {
           children: [
             TextWidget.medium(battler?.name ?? "???"), // name,
             Image.asset(
-              battler?.mainClassIconPath ?? "assets/images/slots/slot.png",
-              height: 32,
-              width: 32,
+              battler?.mainClassIconPath ?? "assets/images/slots/empty_slot.png",
+              height: 16,
+              width: 16,
             ), // class,
             Image.asset(
-              battler?.subClassIconPath ?? "assets/images/slots/slot.png",
-              height: 32,
-              width: 32,
+              battler?.subClassIconPath ?? "assets/images/slots/empty_slot.png",
+              height: 16,
+              width: 16,
             ), // subclass,
           ],
         ),
@@ -63,7 +63,6 @@ class BattlerStatsWidget extends StatelessWidget {
                     "0"),
           ],
         ),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -95,13 +94,15 @@ class BattlerStatsWidget extends StatelessWidget {
                 // luck,
                 imagePath: BattlerStatsType.luck
                     .getStatIconPath(BattlerStatsType.luck),
-                statValue: battler
-                        ?.stats.calculatedStats[BattlerStatsType.luck]
+                statValue: battler?.stats.calculatedStats[BattlerStatsType.luck]
                         ?.toString() ??
                     "0"),
           ],
         ),
-        const SeparatorFiori(),
+        Container(
+          height: 1,
+          color: Colors.black,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -123,10 +124,9 @@ class BattlerStatsWidget extends StatelessWidget {
                     "0"),
             BattlerStatWidget(
                 // axe,
-                imagePath: BattlerStatsType.axe
-                    .getStatIconPath(BattlerStatsType.axe),
-                statValue: battler
-                        ?.stats.calculatedStats[BattlerStatsType.axe]
+                imagePath:
+                    BattlerStatsType.axe.getStatIconPath(BattlerStatsType.axe),
+                statValue: battler?.stats.calculatedStats[BattlerStatsType.axe]
                         ?.toString() ??
                     "0"),
             BattlerStatWidget(
@@ -168,10 +168,9 @@ class BattlerStatsWidget extends StatelessWidget {
                     "0"),
             BattlerStatWidget(
                 // bow,
-                imagePath: BattlerStatsType.bow
-                    .getStatIconPath(BattlerStatsType.bow),
-                statValue: battler
-                        ?.stats.calculatedStats[BattlerStatsType.bow]
+                imagePath:
+                    BattlerStatsType.bow.getStatIconPath(BattlerStatsType.bow),
+                statValue: battler?.stats.calculatedStats[BattlerStatsType.bow]
                         ?.toString() ??
                     "0"),
           ],

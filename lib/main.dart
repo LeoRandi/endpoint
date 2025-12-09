@@ -33,15 +33,17 @@ class _EndpointStartState extends State<EndpointStart> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BattleStationPage(
-        {
-          BattlerSide.ally: [
-            Battler.hero(),
-          ],
-          BattlerSide.enemy: [
-            Battler.goblin(),
-          ],
-        },
+      body: SafeArea(
+        child: BattleStationPage(
+          {
+            BattlerSide.ally: [
+              Battler.hero(),
+            ],
+            BattlerSide.enemy: [
+              Battler.goblin(),
+            ],
+          },
+        ),
       ),
     );
   }

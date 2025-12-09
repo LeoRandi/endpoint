@@ -2,7 +2,7 @@ import '_imports.dart';
 
 class BattleStationPage extends StatefulWidget {
   late final BattleStationFieldProvider provider;
-  BattleStationPage(Map<BattlerSide, List<Battler>> battlers, {super.key}){
+  BattleStationPage(Map<BattlerSide, List<Battler>> battlers, {super.key}) {
     provider = BattleStationFieldProvider(battlers);
   }
 
@@ -11,7 +11,6 @@ class BattleStationPage extends StatefulWidget {
 }
 
 class _BattleStationPageState extends State<BattleStationPage> {
-
   @override
   void initState() {
     super.initState();
@@ -21,19 +20,16 @@ class _BattleStationPageState extends State<BattleStationPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        BattleStationBattlerAppBar(widget.provider.battlers.allyBattlers.selectedBattler),
+        BattleStationBattlerAppBar(
+            widget.provider.battlers.allyBattlers.selectedBattler),
         Expanded(
           child: BattleStationField(widget.provider),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: BattleStationButtons(
-            widget.provider,
-            refresh: () => setState(() {}),
-          ),
+        BattleStationButtons(
+          widget.provider,
+          refresh: () => setState(() {}),
         ),
       ],
     );
   }
 }
-

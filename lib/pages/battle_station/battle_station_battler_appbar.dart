@@ -16,13 +16,16 @@ class BattleStationBattlerAppBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(
-              width: MediaQuery.of(context).size.width * 0.4,
+              width: MediaQuery.of(context).size.width * 0.39,
               child: BattlerStatsWidget(battler: battler),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             Image.asset(battler?.imagePath ?? "assets/sprites/unknown.png", width: 48, height: 48),
-            const SizedBox(width: 8),
-            HpBar(currentHp: battler?.health ?? 0, maxHp: battler?.maxHealth ?? 1)
+            const SizedBox(width: 4),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.39,
+              child: HpBar(currentHp: battler?.health ?? 0, maxHp: battler?.maxHealth ?? 1),
+            ),
           ],
         ),
       ),

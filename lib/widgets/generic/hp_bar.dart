@@ -12,7 +12,7 @@ class HpBar extends StatelessWidget {
     return Stack(
       children: [
         Container(
-          width: 100,
+            width: MediaQuery.of(context).size.width * 0.9,
           height: 20,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.black),
@@ -20,7 +20,7 @@ class HpBar extends StatelessWidget {
           ),
         ),
         Container(
-          width: 100 * hpPercentage,
+          width: MediaQuery.of(context).size.width * 0.9 * hpPercentage,
           height: 20,
           decoration: const BoxDecoration(
             color: Colors.green,
