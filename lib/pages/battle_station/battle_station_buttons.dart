@@ -21,59 +21,64 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
       alignment: Alignment.bottomCenter,
       color: Colors.green,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0) + const EdgeInsets.only(bottom: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0) +
+            const EdgeInsets.only(bottom: 8.0),
         child: Column(
           children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(Colors.greenAccent),
-          ),
-          onPressed: () {
-            widget.battleStationFieldProvider.cast(10);
-            widget.refresh();
-          },
-          child: TextWidget.medium('Cost 10 Mana'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.greenAccent),
+                  ),
+                  onPressed: () {
+                    widget.battleStationFieldProvider.mapIndex = 1;
+                    widget.refresh();
+                  },
+                  child: TextWidget.medium('Cost 10 Mana'),
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.redAccent),
+                  ),
+                  onPressed: () {
+                    widget.battleStationFieldProvider.mapIndex = 2;
+                    widget.refresh();
+                  },
+                  child: TextWidget.medium('Cost 20 Mana'),
+                ),
+              ],
             ),
-            ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(Colors.redAccent),
-          ),
-          onPressed: () {
-            widget.battleStationFieldProvider.cast(20);
-            widget.refresh();
-          },
-          child: TextWidget.medium('Cost 20 Mana'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.blueAccent),
+                  ),
+                  onPressed: () {
+                    widget.battleStationFieldProvider.mapIndex = 3;
+                    widget.refresh();
+                  },
+                  child: TextWidget.medium('Cost 30 Mana'),
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.yellowAccent),
+                  ),
+                  onPressed: () {
+                    widget.battleStationFieldProvider.mapIndex = 4;
+                    widget.refresh();
+                  },
+                  child: TextWidget.medium('Cost 40 Mana'),
+                ),
+              ],
             ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(Colors.blueAccent),
-          ),
-          onPressed: () {
-            widget.battleStationFieldProvider.cast(30);
-            widget.refresh();
-          },
-          child: TextWidget.medium('Cost 30 Mana'),
-            ),
-            ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(Colors.yellowAccent),
-          ),
-          onPressed: () {
-            widget.battleStationFieldProvider.cast(40);
-            widget.refresh();
-          },
-          child: TextWidget.medium('Cost 40 Mana'),
-            ),
-          ],
-        ),
           ],
         ),
       ),
