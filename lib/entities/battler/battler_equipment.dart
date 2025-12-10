@@ -10,7 +10,8 @@ enum BattlerEquipmentType {
 enum BattlerEquipmentLayout{
   humanlike(1),
   beastlike(2),
-  ghostlike(3);
+  ghostlike(3),
+  unkown(-1);
   
   final int id;
   

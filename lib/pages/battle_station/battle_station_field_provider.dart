@@ -13,21 +13,27 @@ class BattleStationFieldProvider {
   );
 
   Widget getBattleField() {
-    final grid = getGrid();
+    final tileGrid = getTileGrid();
+    final battlerGrid = SetBattlersOnStage.getBattlersOnStageTLvsBR(battlers, tileGrid);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        for (int y = 0; y < grid.height; y++)
+        for (int y = 0; y < tileGrid.height; y++)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (int x = 0; x < grid.width; x++)
+              for (int x = 0; x < tileGrid.width; x++)
                 SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: Image.asset(grid.tileAt(x, y).imagePath),
+                  width: 24,
+                  height: 24,
+                  child: Stack(
+                    children: [
+                      Image.asset(tileGrid.tileAt(x, y).imagePath),
+                      battlerGrid.getBattlerImage(x, y),
+                    ]
+                  )
                 ),
             ],
           ),
@@ -35,20 +41,20 @@ class BattleStationFieldProvider {
     );
   }
 
-  TileGrid getGrid() {
+  TileGrid getTileGrid() {
     switch (mapIndex) {
       case 0:
-        return MapGenerator.generateEmpty(16, 16);
+        return MapGeneratorBuilders.generateEmpty(12, 12);
       case 1:
-        return MapGenerator.generateRandomMap(16, 16);
+        return MapGeneratorBuilders.generateRandomMap(12, 12);
       case 2:
-        return MapGenerator.generateSquareWallsMap(16, 16);
+        return MapGeneratorBuilders.generateSquareWallsMap(12, 12);
       case 3:
-        return MapGenerator.generateSquareWallsMapWithChasms(16, 16);
+        return MapGeneratorBuilders.generateSquareWallsMapWithChasms(12, 12);
       case 4:
-        return MapGenerator.generateChasmFilledWithPathSquares(16, 16);
+        return MapGeneratorBuilders.generateChasmWithBigPathChunks(12, 12);
       default:
-        return MapGenerator.generateEmpty(16, 16);
+        return MapGeneratorBuilders.generateEmpty(12, 12);
     }
   }
 }
