@@ -73,3 +73,74 @@ class BattlerStats {
     required this.rawStats,
   });
 }
+
+extension BattlerStatsMap on Map<BattlerStatsType, int>{
+  static Map<BattlerStatsType, int> baseStats(){
+    return <BattlerStatsType, int>{
+        BattlerStatsType.health: 0,
+        BattlerStatsType.mana: 0,
+        BattlerStatsType.strength: 0,
+        BattlerStatsType.magic: 0,
+        BattlerStatsType.luck: 0,
+        BattlerStatsType.speed: 0,
+        BattlerStatsType.defense: 0,
+        BattlerStatsType.magicDefense: 0,
+        BattlerStatsType.dodge: 0,
+        BattlerStatsType.magicDodge: 0,
+        BattlerStatsType.axe: 0,
+        BattlerStatsType.bow: 0,
+        BattlerStatsType.sword: 0,
+        BattlerStatsType.dagger: 0,
+        BattlerStatsType.hammer: 0,
+        BattlerStatsType.unarmed: 0,
+        BattlerStatsType.spear: 0,
+        BattlerStatsType.shield: 0
+      };
+  }
+
+  static Map<BattlerStatsType, int> baseHuman(){
+    return <BattlerStatsType, int>{
+        BattlerStatsType.health: 30,
+        BattlerStatsType.mana: 20,
+        BattlerStatsType.strength: 1,
+        BattlerStatsType.magic: 1,
+        BattlerStatsType.luck: 0,
+        BattlerStatsType.speed: 3,
+        BattlerStatsType.defense: 0,
+        BattlerStatsType.magicDefense: 0,
+        BattlerStatsType.dodge: 0,
+        BattlerStatsType.magicDodge: 0,
+        BattlerStatsType.axe: 0,
+        BattlerStatsType.bow: 0,
+        BattlerStatsType.sword: 0,
+        BattlerStatsType.dagger: 0,
+        BattlerStatsType.hammer: 0,
+        BattlerStatsType.unarmed: 0,
+        BattlerStatsType.spear: 0,
+        BattlerStatsType.shield: 0
+      };
+  }
+
+  static Map<BattlerStatsType, int> baseGoblin(){
+    return <BattlerStatsType, int>{
+        BattlerStatsType.health: 20,
+        BattlerStatsType.mana: 10,
+        BattlerStatsType.strength: 0,
+        BattlerStatsType.magic: 0,
+        BattlerStatsType.luck: 0,
+        BattlerStatsType.speed: 4,
+        BattlerStatsType.defense: 0,
+        BattlerStatsType.magicDefense: 0,
+        BattlerStatsType.dodge: 0,
+        BattlerStatsType.magicDodge: 0,
+        BattlerStatsType.axe: 0,
+        BattlerStatsType.bow: 0,
+        BattlerStatsType.sword: 0,
+        BattlerStatsType.dagger: 1,
+        BattlerStatsType.hammer: 0,
+        BattlerStatsType.unarmed: 1,
+        BattlerStatsType.spear: 0,
+        BattlerStatsType.shield: 1
+      };
+  }
+}

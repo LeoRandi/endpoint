@@ -21,7 +21,7 @@ class _BattleStationPageState extends State<BattleStationPage> {
     return Column(
       children: [
         BattleStationBattlerAppBar(
-            widget.provider.battlers.allyBattlers.selectedBattler),
+            widget.provider.battlers.allyBattlers.first),
         Expanded(
           child: BattleStationField(widget.provider),
         ),

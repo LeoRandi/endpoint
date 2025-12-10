@@ -24,7 +24,12 @@ class BattleStationBattlerAppBar extends StatelessWidget {
             const SizedBox(width: 4),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.39,
-              child: HpBar(currentHp: battler?.health ?? 0, maxHp: battler?.maxHealth ?? 1),
+              child: Column(
+                children: [
+                  HpBar(currentHp: battler?.health ?? 0, maxHp: battler?.maxHealth ?? 1),
+                  BattlerEquipmentWidgetRow(battler: battler),
+                ],
+              ),
             ),
           ],
         ),

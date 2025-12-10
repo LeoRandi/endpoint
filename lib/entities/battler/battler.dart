@@ -25,9 +25,10 @@ class Battler {
       required this.side,
       required this.stats,
       required this.equipmentLayout,
-      this.equipmentList = const [],
+      List<BattlerEquipment>? equipmentList,
       this.mainClass,
-      this.subClass}) {
+      this.subClass})
+      : equipmentList = equipmentList ?? List.filled(8, BattlerEquipment.empty()) {
     maxHealth = stats.calculatedStats[BattlerStatsType.health] ?? 0;
     health = maxHealth;
   }
@@ -71,26 +72,7 @@ class Battler {
       name: "Hero",
       side: BattlerSide.ally,
       equipmentLayout: BattlerEquipmentLayout.humanlike,
-      stats: BattlerStats(rawStats: <BattlerStatsType, int>{
-        BattlerStatsType.health: 30,
-        BattlerStatsType.mana: 15,
-        BattlerStatsType.strength: 1,
-        BattlerStatsType.magic: 1,
-        BattlerStatsType.luck: 0,
-        BattlerStatsType.speed: 3,
-        BattlerStatsType.defense: 0,
-        BattlerStatsType.magicDefense: 0,
-        BattlerStatsType.dodge: 0,
-        BattlerStatsType.magicDodge: 0,
-        BattlerStatsType.axe: 0,
-        BattlerStatsType.bow: 0,
-        BattlerStatsType.sword: 0,
-        BattlerStatsType.dagger: 0,
-        BattlerStatsType.hammer: 0,
-        BattlerStatsType.unarmed: 0,
-        BattlerStatsType.spear: 0,
-        BattlerStatsType.shield: 0
-      }),
+      stats: BattlerStats(rawStats: BattlerStatsMap.baseHuman()),
     );
   }
 
@@ -100,55 +82,17 @@ class Battler {
       name: "Goblin",
       side: BattlerSide.enemy,
       equipmentLayout: BattlerEquipmentLayout.humanlike,
-      stats: BattlerStats(rawStats: <BattlerStatsType, int>{
-        BattlerStatsType.health: 20,
-        BattlerStatsType.mana: 15,
-        BattlerStatsType.strength: 2,
-        BattlerStatsType.magic: 0,
-        BattlerStatsType.luck: 0,
-        BattlerStatsType.speed: 4,
-        BattlerStatsType.defense: 0,
-        BattlerStatsType.magicDefense: 0,
-        BattlerStatsType.dodge: 3,
-        BattlerStatsType.magicDodge: 0,
-        BattlerStatsType.axe: 0,
-        BattlerStatsType.bow: 0,
-        BattlerStatsType.sword: 0,
-        BattlerStatsType.dagger: 1,
-        BattlerStatsType.hammer: 0,
-        BattlerStatsType.unarmed: 0,
-        BattlerStatsType.spear: 0,
-        BattlerStatsType.shield: 1
-      }),
+      stats: BattlerStats(rawStats: BattlerStatsMap.baseGoblin()),
     );
   }
-  
+
   static Battler voidBattler() {
     return Battler(
       imagePath: 'assets/images/void.png',
       name: "",
       side: BattlerSide.unkown,
       equipmentLayout: BattlerEquipmentLayout.unkown,
-      stats: BattlerStats(rawStats: <BattlerStatsType, int>{
-        BattlerStatsType.health: 0,
-        BattlerStatsType.mana: 0,
-        BattlerStatsType.strength: 0,
-        BattlerStatsType.magic: 0,
-        BattlerStatsType.luck: 0,
-        BattlerStatsType.speed: 0,
-        BattlerStatsType.defense: 0,
-        BattlerStatsType.magicDefense: 0,
-        BattlerStatsType.dodge: 0,
-        BattlerStatsType.magicDodge: 0,
-        BattlerStatsType.axe: 0,
-        BattlerStatsType.bow: 0,
-        BattlerStatsType.sword: 0,
-        BattlerStatsType.dagger: 0,
-        BattlerStatsType.hammer: 0,
-        BattlerStatsType.unarmed: 0,
-        BattlerStatsType.spear: 0,
-        BattlerStatsType.shield: 0
-      }),
+      stats: BattlerStats(rawStats: BattlerStatsMap.baseStats()),
     );
   }
 }
