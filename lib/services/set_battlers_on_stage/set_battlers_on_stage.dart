@@ -3,187 +3,220 @@ import "_imports.dart";
 enum MapCorner { topLeft, topRight, bottomLeft, bottomRight }
 
 class SetBattlersOnStage {
+  static final Random _random = Random();
+
   static BattlerGrid getBattlersOnStageCalc(
       Map<BattlerSide, List<Battler>> battlers, TileGrid tileGrid) {
-    List<Battler> battlersEmptyList =
-        List.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
+    final battlersEmptyList =
+        List<Battler>.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
 
-    final allyCorner = SetBattlersOnStage.chooseBestStartingCorner(tileGrid);
+    final allyCorner = chooseBestStartingCorner(tileGrid);
+    final enemyCorner = chooseEnemyCorner(tileGrid, allyCorner);
 
-    final enemyCorner =
-        SetBattlersOnStage.chooseEnemyCorner(tileGrid, allyCorner);
-
-    return setBattlersOnStage(allyCorner, enemyCorner, battlersEmptyList,
-        battlers.allyBattlers, battlers.enemyBattlers, tileGrid);
+    return setBattlersOnStage(
+      allyCorner,
+      enemyCorner,
+      battlersEmptyList,
+      battlers.allyBattlers,
+      battlers.enemyBattlers,
+      tileGrid,
+    );
   }
 
   static BattlerGrid getBattlersOnStageTLvsBR(
       Map<BattlerSide, List<Battler>> battlers, TileGrid tileGrid) {
-    List<Battler> battlersEmptyList =
-        List.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
+    final battlersEmptyList =
+        List<Battler>.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
 
     return setBattlersOnStage(
-        MapCorner.topLeft,
-        MapCorner.bottomRight,
-        battlersEmptyList,
-        battlers.allyBattlers,
-        battlers.enemyBattlers,
-        tileGrid);
+      MapCorner.topLeft,
+      MapCorner.bottomRight,
+      battlersEmptyList,
+      battlers.allyBattlers,
+      battlers.enemyBattlers,
+      tileGrid,
+    );
   }
 
   static BattlerGrid getBattlersOnStageBLvsTR(
       Map<BattlerSide, List<Battler>> battlers, TileGrid tileGrid) {
-    List<Battler> battlersEmptyList =
-        List.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
+    final battlersEmptyList =
+        List<Battler>.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
 
     return setBattlersOnStage(
-        MapCorner.bottomLeft,
-        MapCorner.topRight,
-        battlersEmptyList,
-        battlers.allyBattlers,
-        battlers.enemyBattlers,
-        tileGrid);
+      MapCorner.bottomLeft,
+      MapCorner.topRight,
+      battlersEmptyList,
+      battlers.allyBattlers,
+      battlers.enemyBattlers,
+      tileGrid,
+    );
   }
 
   static BattlerGrid setBattlersOnStage(
-      MapCorner allyCorner,
-      MapCorner enemyCorner,
-      List<Battler> battlersEmptyList,
-      List<Battler> allyBattlersList,
-      List<Battler> enemyBattlersList,
-      TileGrid tileGrid,
-      {int offset = 1}) {
-    switch (allyCorner) {
+    MapCorner allyCorner,
+    MapCorner enemyCorner,
+    List<Battler> battlersEmptyList,
+    List<Battler> allyBattlersList,
+    List<Battler> enemyBattlersList,
+    TileGrid tileGrid, {
+    int offset = 1,
+  }) {
+    final okAllies = _fillCornerSmart(
+      battlersEmptyList,
+      allyBattlersList,
+      tileGrid,
+      corner: allyCorner,
+      offset: offset,
+    );
+
+    final okEnemies = _fillCornerSmart(
+      battlersEmptyList,
+      enemyBattlersList,
+      tileGrid,
+      corner: enemyCorner,
+      offset: offset,
+    );
+
+    // TODO: Devolver mensaje de error si no sale bien
+    // if (!okAllies || !okEnemies) {
+    //   return 
+    // }
+
+    return BattlerGrid(tileGrid.width, tileGrid.height, battlersEmptyList);
+  }
+
+
+  // ------------------------------------------------------------
+  //  RANDOM CORNER FILL
+  // ------------------------------------------------------------
+
+  /// Fills a "square-ish" area in [corner] with [battlers],
+  /// trying to put them as close as possible to the area's center.
+  /// Never silently drops battlers:
+  /// - If area has no slots for a specific battler, tries the whole map.
+  /// - If still impossible, returns false.
+  static bool _fillCornerSmart(
+    
+    List<Battler> battlersEmptyList,
+    List<Battler> battlersList,
+    TileGrid grid, {
+    required MapCorner corner,
+    int offset = 1,
+    double areaFactor = 2.0,
+  }) {
+    if (battlersList.isEmpty) return true;
+
+    final battlerCount = battlersList.length;
+    final desiredCells = max(1, (battlerCount * areaFactor).ceil());
+    final side = max(1, sqrt(desiredCells).ceil());
+
+    // 1) Spawn rectangle for that corner (logical target area)
+    final rect = _cornerRect(grid, corner, side, offset);
+
+    // Center of that area (can be fractional, we use it only for distance)
+    final cx = (rect.left + rect.right - 1) / 2.0;
+    final cy = (rect.top + rect.bottom - 1) / 2.0;
+
+    // 2) Collect ALL walkable+empty tiles on the map
+    final candidates = <Point<int>>[];
+    for (int y = 0; y < grid.height; y++) {
+      for (int x = 0; x < grid.width; x++) {
+        if (!grid.tileAt(x, y).isWalkable) continue;
+        final idx = y * grid.width + x;
+        if (battlersEmptyList[idx].name.isNotEmpty) continue; // already occupied
+        candidates.add(Point(x, y));
+      }
+    }
+
+    if (candidates.isEmpty) {
+      // No place at all for anyone
+      return false;
+    }
+
+    // 3) Shuffle for tie-breaking randomness, then sort by distance to area center
+    candidates.shuffle(_random);
+    candidates.sort((a, b) {
+      final da = (a.x - cx) * (a.x - cx) + (a.y - cy) * (a.y - cy);
+      final db = (b.x - cx) * (b.x - cx) + (b.y - cy) * (b.y - cy);
+      return da.compareTo(db);
+    });
+
+    // 4) Place each battler on the nearest still-free candidate
+    for (final battler in battlersList) {
+      bool placed = false;
+
+      for (final p in candidates) {
+        final idx = p.y * grid.width + p.x;
+
+        // Re-check: other battlers may have occupied this since we built the list
+        if (battlersEmptyList[idx].name.isNotEmpty) continue;
+
+        // walkable is guaranteed by earlier check, but being defensive is cheap:
+        if (!grid.tileAt(p.x, p.y).isWalkable) continue;
+
+        battlersEmptyList[idx] = battler;
+        placed = true;
+        break;
+      }
+
+      if (!placed) {
+        // There is literally no free tile left in the map for this battler
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+
+  static _Rect _cornerRect(
+    TileGrid grid,
+    MapCorner corner,
+    int side,
+    int offset,
+  ) {
+    final w = grid.width;
+    final h = grid.height;
+
+    switch (corner) {
       case MapCorner.topLeft:
-        _fillTopLeftCorner(battlersEmptyList, allyBattlersList, tileGrid,
-            offset: offset);
-        break;
+        final left = offset;
+        final top = offset;
+        final right = min(w, left + side);
+        final bottom = min(h, top + side);
+        return _Rect(left, top, right, bottom);
+
       case MapCorner.topRight:
-        _fillTopRightCorner(battlersEmptyList, allyBattlersList, tileGrid,
-            offset: offset);
-        break;
+        final right = w - offset;
+        final left = max(0, right - side);
+        final top = offset;
+        final bottom = min(h, top + side);
+        return _Rect(left, top, right, bottom);
+
       case MapCorner.bottomLeft:
-        _fillBottomLeftCorner(battlersEmptyList, allyBattlersList, tileGrid,
-            offset: offset);
-        break;
+        final left = offset;
+        final bottom = h - offset;
+        final top = max(0, bottom - side);
+        final right = min(w, left + side);
+        return _Rect(left, top, right, bottom);
+
       case MapCorner.bottomRight:
-        _fillBottomRightCorner(battlersEmptyList, allyBattlersList, tileGrid,
-            offset: offset);
-        break;
-    }
-
-    switch (enemyCorner) {
-      case MapCorner.topLeft:
-        _fillTopLeftCorner(battlersEmptyList, enemyBattlersList, tileGrid,
-            offset: offset);
-        break;
-      case MapCorner.topRight:
-        _fillTopRightCorner(battlersEmptyList, enemyBattlersList, tileGrid,
-            offset: offset);
-        break;
-      case MapCorner.bottomLeft:
-        _fillBottomLeftCorner(battlersEmptyList, enemyBattlersList, tileGrid,
-            offset: offset);
-        break;
-      case MapCorner.bottomRight:
-        _fillBottomRightCorner(battlersEmptyList, enemyBattlersList, tileGrid,
-            offset: offset);
-        break;
-    }
-
-    final battlerGrid =
-        BattlerGrid(tileGrid.width, tileGrid.height, battlersEmptyList);
-    return battlerGrid;
-  }
-
-  static void _fillTopLeftCorner(List<Battler> battlersEmptyList,
-      List<Battler> battlersList, TileGrid tileGrid,
-      {int offset = 0}) {
-    Battler? currentBattler = battlersList.firstOrNull;
-
-    for (int y = 0 + offset; y < tileGrid.height; y++) {
-      // vertical
-      if (currentBattler == null) break;
-      for (int x = 0 + offset; x < tileGrid.width; x++) {
-        // horizontal
-        if (tileGrid.tileAt(y, x).isWalkable &&
-            battlersEmptyList[y * tileGrid.width + x].name.isEmpty) { // si es void tendrá un name como ""
-          battlersEmptyList[y * tileGrid.width + x] = battlersList.getNext(currentBattler) ;
-          if (currentBattler == battlersList.lastOrNull) break;
-        }
-      }
-      if (currentBattler == battlersList.lastOrNull) break;
+        final right = w - offset;
+        final bottom = h - offset;
+        final left = max(0, right - side);
+        final top = max(0, bottom - side);
+        return _Rect(left, top, right, bottom);
     }
   }
 
-  static void _fillBottomRightCorner(List<Battler> battlersEmptyList,
-      List<Battler> battlersList, TileGrid tileGrid,
-      {int offset = 0}) {
-    Battler? currentBattler = battlersList.firstOrNull;
+  // ------------------------------------------------------------
+  //  CORNER-CHOOSING LOGIC
+  // ------------------------------------------------------------
 
-    for (int y = tileGrid.height - 1 - offset; y >= 0; y--) {
-      // vertical
-      if (currentBattler == null) break;
-      for (int x = tileGrid.width - 1 - offset; x >= 0; x--) {
-        // horizontal
-        if (tileGrid.tileAt(y, x).isWalkable &&
-            battlersEmptyList[y * tileGrid.width + x].name.isEmpty) { // si es void tendrá un name como ""
-          battlersEmptyList[y * tileGrid.width + x] = battlersList.getNext(currentBattler) ;
-          if (currentBattler == battlersList.lastOrNull) break;
-        }
-      }
-      if (currentBattler == battlersList.lastOrNull) break;
-      currentBattler = battlersList.getNext(currentBattler);
-    }
-  }
-
-  static void _fillBottomLeftCorner(List<Battler> battlersEmptyList,
-      List<Battler> battlersList, TileGrid tileGrid,
-      {int offset = 0}) {
-    Battler? currentBattler = battlersList.firstOrNull;
-
-    for (int y = tileGrid.height - 1 - offset; y >= 0; y--) {
-      // vertical
-      if (currentBattler == null) break;
-      for (int x = 0 + offset; x < tileGrid.width; x++) {
-        // horizontal
-        if (tileGrid.tileAt(y, x).isWalkable &&
-            battlersEmptyList[y * tileGrid.width + x].name.isEmpty) { // si es void tendrá un name como ""
-          battlersEmptyList[y * tileGrid.width + x] = battlersList.getNext(currentBattler) ;
-          if (currentBattler == battlersList.lastOrNull) break;
-        }
-      }
-      if (currentBattler == battlersList.lastOrNull) break;
-      currentBattler = battlersList.getNext(currentBattler);
-    }
-  }
-
-  static void _fillTopRightCorner(List<Battler> battlersEmptyList,
-      List<Battler> battlersList, TileGrid tileGrid,
-      {int offset = 0}) {
-    Battler? currentBattler = battlersList.firstOrNull;
-
-    for (int y = 0 + offset; y < tileGrid.height; y++) {
-      // vertical
-      if (currentBattler == null) break;
-      for (int x = tileGrid.width - 1 - offset; x >= 0; x--) {
-        // horizontal
-        if (tileGrid.tileAt(y, x).isWalkable &&
-            battlersEmptyList[y * tileGrid.width + x].name.isEmpty) { // si es void tendrá un name como ""
-          battlersEmptyList[y * tileGrid.width + x] = battlersList.getNext(currentBattler) ;
-          if (currentBattler == battlersList.lastOrNull) break;
-        }
-      }
-      if (currentBattler == battlersList.lastOrNull) break;
-      currentBattler = battlersList.getNext(currentBattler);
-    }
-  }
-
-  /// Choose the corner with the highest number of walkable tiles.
   static MapCorner chooseBestStartingCorner(TileGrid grid) {
     final counts = _walkablesPerCorner(grid);
 
-    // If everything is blocked, just default to top-left.
     if (counts.values.every((c) => c == 0)) {
       return MapCorner.topLeft;
     }
@@ -201,14 +234,9 @@ class SetBattlersOnStage {
     return best;
   }
 
-  /// Choose a corner for enemies:
-  /// - as far as possible from [allyCorner]
-  /// - but still with walkable tiles
-  /// - fallback to [allyCorner] if nothing else is usable
   static MapCorner chooseEnemyCorner(TileGrid grid, MapCorner allyCorner) {
     final counts = _walkablesPerCorner(grid);
 
-    // If no corner has walkables, just put them together (degenerate case).
     if (counts.values.every((c) => c == 0)) {
       return allyCorner;
     }
@@ -223,14 +251,13 @@ class SetBattlersOnStage {
       if (corner == allyCorner) continue;
 
       final count = counts[corner] ?? 0;
-      if (count == 0) continue; // this corner is basically unusable
+      if (count == 0) continue;
 
       final pos = _cornerCoord(corner);
       final dx = pos.x - allyPos.x;
       final dy = pos.y - allyPos.y;
       final dist2 = dx * dx + dy * dy;
 
-      // Prefer farthest corner; tie-breaker = more walkables
       if (dist2 > bestDist2 || (dist2 == bestDist2 && count > bestCount)) {
         best = corner;
         bestDist2 = dist2;
@@ -238,11 +265,9 @@ class SetBattlersOnStage {
       }
     }
 
-    // If no other corner has walkables, fallback to ally corner.
     return best ?? allyCorner;
   }
 
-  /// Count walkable tiles inside each quadrant.
   static Map<MapCorner, int> _walkablesPerCorner(TileGrid grid) {
     final midX = grid.width ~/ 2;
     final midY = grid.height ~/ 2;
@@ -257,19 +282,15 @@ class SetBattlersOnStage {
       return c;
     }
 
-    final counts = <MapCorner, int>{
+    return <MapCorner, int>{
       MapCorner.topLeft: countWalkables(0, 0, midX, midY),
       MapCorner.topRight: countWalkables(midX, 0, grid.width, midY),
       MapCorner.bottomLeft: countWalkables(0, midY, midX, grid.height),
       MapCorner.bottomRight:
           countWalkables(midX, midY, grid.width, grid.height),
     };
-
-    return counts;
   }
 
-  /// Logical coordinates of each corner in a 2x2 "corner space"
-  /// (used only for "farther/closer" comparison).
   static Point<int> _cornerCoord(MapCorner c) {
     switch (c) {
       case MapCorner.topLeft:
@@ -283,3 +304,12 @@ class SetBattlersOnStage {
     }
   }
 }
+
+  // Small struct for a rectangle
+  class _Rect {
+    final int left;
+    final int top;
+    final int right;  // exclusive
+    final int bottom; // exclusive
+    const _Rect(this.left, this.top, this.right, this.bottom);
+  }
