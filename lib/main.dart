@@ -38,15 +38,15 @@ class _EndpointStartState extends State<EndpointStart> {
           {
             BattlerSide.ally: [
               Battler.hero(),
-              Battler.hero(),
-              Battler.hero(),
-              Battler.hero(),
+              Battler.heroMage(),
+              Battler.heroCleric(),
+              Battler.heroRogue(),
             ],
             BattlerSide.enemy: [
               Battler.goblin(),
-              Battler.goblin(),
-              Battler.goblin(),
-              Battler.goblin(),
+              Battler.goblinTank(),
+              Battler.goblinArcher(),
+              Battler.trashGoblin(),
             ],
           },
         ),

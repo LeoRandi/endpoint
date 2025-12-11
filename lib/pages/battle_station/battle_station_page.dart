@@ -18,19 +18,31 @@ class _BattleStationPageState extends State<BattleStationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = widget.provider;
+
     return Column(
       children: [
-        BattleStationBattlerAppBar(widget.provider.battlers.allyBattlers.first),
+        ValueListenableBuilder<Battler?>(
+          valueListenable: provider.selectedBattlerNotifier,
+          builder: (context, battler, _) {
+            return BattleStationBattlerAppBar(battler);
+          },
+        ),
         Expanded(
           child: BattleStationField(widget.provider),
         ),
-        SizedBox(
-          height: (MediaQuery.of(context).size.width ~/ 8).floor().toDouble(),
-          child: BattlerEquipmentWidgetRow(
-              battler: widget.provider.battlers.allyBattlers.first),
+        ValueListenableBuilder<Battler?>(
+          valueListenable: provider.selectedBattlerNotifier,
+          builder: (context, battler, _) {
+            return SizedBox(
+              height:
+                  (MediaQuery.of(context).size.width ~/ 8).floor().toDouble(),
+              child: BattlerEquipmentWidgetRow(battler: battler),
+            );
+          },
         ),
         BattleStationButtons(
-          widget.provider,
+          provider,
           refresh: () => setState(() {}),
         ),
       ],

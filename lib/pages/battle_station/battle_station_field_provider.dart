@@ -4,18 +4,22 @@ class BattleStationFieldProvider {
   final Map<BattlerSide, List<Battler>> battlers;
   int mapIndex = 0;
 
-  // TODO: hacer biomas específicos que limiten los tipos de tile del mapa a generar
-  // final MapBiome mapBiome;
+  // selected battler state
+  final ValueNotifier<Battler?> selectedBattlerNotifier;
 
-  BattleStationFieldProvider(
-    this.battlers,
-    // this.mapBiome,
-  );
+  BattleStationFieldProvider(this.battlers)
+      : selectedBattlerNotifier = ValueNotifier<Battler?>(
+          battlers.selectedBattler, //initial value
+        );
+
+  void setSelectedBattler(Battler? battler) {
+    selectedBattlerNotifier.value = battler;
+  }
 
   Widget getBattleField() {
     final tileGrid = getTileGrid();
     final battlerGrid =
-        SetBattlersOnStage.getBattlersOnStageTLvsBR(battlers, tileGrid);
+        SetBattlersOnStage.getBattlersOnStageCalc(battlers, tileGrid);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -26,13 +30,17 @@ class BattleStationFieldProvider {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               for (int x = 0; x < tileGrid.width; x++)
-                SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Stack(children: [
-                      Image.asset(tileGrid.tileAt(x, y).imagePath),
-                      battlerGrid.getBattlerImage(x, y),
-                    ])),
+                BattleStationCell(
+                  tile: tileGrid.tileAt(x, y),
+                  battler: battlerGrid.battlerAt(x, y),
+                  size: 24,
+                  onTap: () {
+                    final b = battlerGrid.battlerAt(x, y);
+                    if (b.name.isNotEmpty) {
+                      setSelectedBattler(b); 
+                    }
+                  },
+                ),
             ],
           ),
       ],

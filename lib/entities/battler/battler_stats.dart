@@ -139,4 +139,14 @@ extension BattlerStatsMap on Map<BattlerStatsType, int> {
       BattlerStatsType.shield: 1
     };
   }
+
+  Map<BattlerStatsType, int> copyWith({
+    List<(BattlerStatsType, int)> changes = const [],
+  }) {
+    final statMap = Map<BattlerStatsType, int>.from(this);
+    for (final change in changes) {
+      statMap[change.$1] = change.$2;
+    }
+    return statMap;
+  }
 }
