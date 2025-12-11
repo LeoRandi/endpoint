@@ -68,7 +68,7 @@ class Battler {
 
   static Battler hero() {
     return Battler(
-      imagePath: 'assets/sprites/image_1.png',
+      imagePath: 'assets/sprites/base_dude.png',
       name: "Hero",
       side: BattlerSide.ally,
       equipmentLayout: BattlerEquipmentLayout.humanlike,
@@ -78,7 +78,7 @@ class Battler {
 
   static Battler goblin() {
     return Battler(
-      imagePath: 'assets/sprites/image_1.png',
+      imagePath: 'assets/sprites/base_green_dude.png',
       name: "Goblin",
       side: BattlerSide.enemy,
       equipmentLayout: BattlerEquipmentLayout.humanlike,
