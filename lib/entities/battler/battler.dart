@@ -8,6 +8,7 @@ class Battler {
   final BattlerEquipmentLayout equipmentLayout;
   final String imagePath;
   final String name;
+  final int id;
   late int maxHealth;
   late int health;
   bool isSelected = false;
@@ -40,6 +41,7 @@ class Battler {
 
   Battler(
       {required this.name,
+      required this.id,
       required this.imagePath,
       required this.side,
       required this.stats,

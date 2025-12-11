@@ -1,0 +1,1034 @@
+import '_imports.dart';
+
+// Si ya tienes este typedef en otro lado, elimina uno de los dos.
+typedef Grid = List<GridObject?>;
+
+enum MapCorner { topLeft, topRight, bottomLeft, bottomRight }
+
+class GridPopulator {
+  // ---------- RANDOM UTIL ----------
+  static final Random _random = Random();
+
+  // ------------------------------------------------------------
+  //  SPAWN DE BATTLERS EN EL GRID (USANDO GridObject)
+  // ------------------------------------------------------------
+
+  /// Coloca aliados y enemigos automáticamente según densidad de tiles walkable.
+  /// Devuelve true si TODOS los battlers han podido colocarse.
+  static bool populateBattlersAutoCorners(
+    Grid grid,
+    int width,
+    int height,
+    Map<BattlerSide, List<Battler>> battlers, {
+    int offset = 1,
+    double areaFactor = 2.0,
+  }) {
+    final allyCorner = chooseBestStartingCorner(grid, width, height);
+    final enemyCorner = chooseEnemyCorner(grid, width, height, allyCorner);
+
+    final okAllies = _fillCornerSmartOnGrid(
+      grid,
+      width,
+      height,
+      battlers.allyBattlers,
+      corner: allyCorner,
+      offset: offset,
+      areaFactor: areaFactor,
+    );
+
+    final okEnemies = _fillCornerSmartOnGrid(
+      grid,
+      width,
+      height,
+      battlers.enemyBattlers,
+      corner: enemyCorner,
+      offset: offset,
+      areaFactor: areaFactor,
+    );
+
+    return okAllies && okEnemies;
+  }
+
+  /// Variante explícita: aliados TL, enemigos BR.
+  static bool populateBattlersTLvsBR(
+    Grid grid,
+    int width,
+    int height,
+    Map<BattlerSide, List<Battler>> battlers, {
+    int offset = 1,
+    double areaFactor = 2.0,
+  }) {
+    final okAllies = _fillCornerSmartOnGrid(
+      grid,
+      width,
+      height,
+      battlers.allyBattlers,
+      corner: MapCorner.topLeft,
+      offset: offset,
+      areaFactor: areaFactor,
+    );
+
+    final okEnemies = _fillCornerSmartOnGrid(
+      grid,
+      width,
+      height,
+      battlers.enemyBattlers,
+      corner: MapCorner.bottomRight,
+      offset: offset,
+      areaFactor: areaFactor,
+    );
+
+    return okAllies && okEnemies;
+  }
+
+  /// Variante explícita: aliados BL, enemigos TR.
+  static bool populateBattlersBLvsTR(
+    Grid grid,
+    int width,
+    int height,
+    Map<BattlerSide, List<Battler>> battlers, {
+    int offset = 1,
+    double areaFactor = 2.0,
+  }) {
+    final okAllies = _fillCornerSmartOnGrid(
+      grid,
+      width,
+      height,
+      battlers.allyBattlers,
+      corner: MapCorner.bottomLeft,
+      offset: offset,
+      areaFactor: areaFactor,
+    );
+
+    final okEnemies = _fillCornerSmartOnGrid(
+      grid,
+      width,
+      height,
+      battlers.enemyBattlers,
+      corner: MapCorner.topRight,
+      offset: offset,
+      areaFactor: areaFactor,
+    );
+
+    return okAllies && okEnemies;
+  }
+
+  /// Coloca battlers cerca del [corner], priorizando:
+  /// 1) tiles PATH antes que RIVER
+  /// 2) tiles dentro de la región "square-ish" antes que fuera
+  /// 3) tiles más cercanos al centro de la región
+  ///
+  /// Devuelve false si algún battler no ha podido colocarse.
+  static bool _fillCornerSmartOnGrid(
+    Grid grid,
+    int width,
+    int height,
+    List<Battler> battlersList, {
+    required MapCorner corner,
+    int offset = 1,
+    double areaFactor = 2.0,
+  }) {
+    if (battlersList.isEmpty) return true;
+
+    final battlerCount = battlersList.length;
+    final desiredCells = max(1, (battlerCount * areaFactor).ceil());
+    final side = max(1, sqrt(desiredCells).ceil());
+
+    // 1) Área target para ese corner
+    final rect = _cornerRect(width, height, corner, side, offset);
+
+    // Centro de la región (para calcular distancias)
+    final cx = (rect.left + rect.right - 1) / 2.0;
+    final cy = (rect.top + rect.bottom - 1) / 2.0;
+
+    // 2) Candidatos separados por región / global y PATH / RIVER
+    final regionPath = <Point<int>>[];
+    final regionRiver = <Point<int>>[];
+    final globalPath = <Point<int>>[];
+    final globalRiver = <Point<int>>[];
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final tile = grid.tileAt(x, y, width);
+        if (tile == null || !tile.isWalkable) continue;
+
+        // ya hay battler aquí?
+        if (grid.hasBattlerAt(x, y, width)) continue;
+
+        final p = Point(x, y);
+        final inRegion = x >= rect.left &&
+            x < rect.right &&
+            y >= rect.top &&
+            y < rect.bottom;
+
+        final tileType = tile.tileType;
+
+        if (tileType == TileType.path) {
+          globalPath.add(p);
+          if (inRegion) regionPath.add(p);
+        } else if (tileType == TileType.river) {
+          globalRiver.add(p);
+          if (inRegion) regionRiver.add(p);
+        }
+      }
+    }
+
+    if (regionPath.isEmpty &&
+        regionRiver.isEmpty &&
+        globalPath.isEmpty &&
+        globalRiver.isEmpty) {
+      // No hay ni un solo tile walkable libre
+      return false;
+    }
+
+    void sortByDistance(List<Point<int>> list) {
+      list.shuffle(_random);
+      list.sort((a, b) {
+        final da = (a.x - cx) * (a.x - cx) + (a.y - cy) * (a.y - cy);
+        final db = (b.x - cx) * (b.x - cx) + (b.y - cy) * (b.y - cy);
+        return da.compareTo(db);
+      });
+    }
+
+    // 3) Ordenamos todos por distancia al centro
+    sortByDistance(regionPath);
+    sortByDistance(regionRiver);
+    sortByDistance(globalPath);
+    sortByDistance(globalRiver);
+
+    bool placeFromList(Battler battler, List<Point<int>> list) {
+      for (final p in list) {
+        if (grid.hasBattlerAt(p.x, p.y, width)) continue;
+
+        final tile = grid.tileAt(p.x, p.y, width);
+        if (tile == null || !tile.isWalkable) continue;
+
+        final i = idx(p.x, p.y, width);
+        final go = grid[i] ?? GridObject(p.x, p.y, {});
+        grid[i] = go;
+
+        go.objects[depthTileBase] = BattlerObject(
+          p.x,
+          p.y,
+          depthTileBase,
+          battler.id, 
+          battler,
+        );
+
+        return true;
+      }
+      return false;
+    }
+
+    // 4) Intentamos colocar cada battler con la prioridad:
+    //   region PATH → region RIVER → global PATH → global RIVER
+    for (final battler in battlersList) {
+      if (placeFromList(battler, regionPath)) continue;
+      if (placeFromList(battler, regionRiver)) continue;
+      if (placeFromList(battler, globalPath)) continue;
+      if (placeFromList(battler, globalRiver)) continue;
+
+      // No hay hueco válido para este battler
+      return false;
+    }
+
+    return true;
+  }
+
+  // ------------------------------------------------------------
+  //  CORNER-CHOOSING LOGIC (SOBRE GridObject)
+  // ------------------------------------------------------------
+
+  static MapCorner chooseBestStartingCorner(
+      Grid grid, int width, int height) {
+    final counts = _walkablesPerCorner(grid, width, height);
+
+    if (counts.values.every((c) => c == 0)) {
+      return MapCorner.topLeft;
+    }
+
+    MapCorner best = MapCorner.topLeft;
+    int bestCount = counts[best]!;
+
+    counts.forEach((corner, count) {
+      if (count > bestCount) {
+        best = corner;
+        bestCount = count;
+      }
+    });
+
+    return best;
+  }
+
+  static MapCorner chooseEnemyCorner(
+      Grid grid, int width, int height, MapCorner allyCorner) {
+    final counts = _walkablesPerCorner(grid, width, height);
+
+    if (counts.values.every((c) => c == 0)) {
+      return allyCorner;
+    }
+
+    final allyPos = _cornerCoord(allyCorner);
+
+    MapCorner? best;
+    int bestDist2 = -1;
+    int bestCount = -1;
+
+    for (final corner in MapCorner.values) {
+      if (corner == allyCorner) continue;
+
+      final count = counts[corner] ?? 0;
+      if (count == 0) continue;
+
+      final pos = _cornerCoord(corner);
+      final dx = pos.x - allyPos.x;
+      final dy = pos.y - allyPos.y;
+      final dist2 = dx * dx + dy * dy;
+
+      if (dist2 > bestDist2 || (dist2 == bestDist2 && count > bestCount)) {
+        best = corner;
+        bestDist2 = dist2;
+        bestCount = count;
+      }
+    }
+
+    return best ?? allyCorner;
+  }
+
+  static Map<MapCorner, int> _walkablesPerCorner(
+      Grid grid, int width, int height) {
+    final midX = width ~/ 2;
+    final midY = height ~/ 2;
+
+    int countWalkables(int x0, int y0, int x1, int y1) {
+      int c = 0;
+      for (int y = y0; y < y1; y++) {
+        for (int x = x0; x < x1; x++) {
+          if (grid.isWalkableAt(x, y, width)) c++;
+        }
+      }
+      return c;
+    }
+
+    return <MapCorner, int>{
+      MapCorner.topLeft: countWalkables(0, 0, midX, midY),
+      MapCorner.topRight: countWalkables(midX, 0, width, midY),
+      MapCorner.bottomLeft: countWalkables(0, midY, midX, height),
+      MapCorner.bottomRight: countWalkables(midX, midY, width, height),
+    };
+  }
+
+  static Point<int> _cornerCoord(MapCorner c) {
+    switch (c) {
+      case MapCorner.topLeft:
+        return const Point(0, 0);
+      case MapCorner.topRight:
+        return const Point(1, 0);
+      case MapCorner.bottomLeft:
+        return const Point(0, 1);
+      case MapCorner.bottomRight:
+        return const Point(1, 1);
+    }
+  }
+
+  static _Rect _cornerRect(
+    int width,
+    int height,
+    MapCorner corner,
+    int side,
+    int offset,
+  ) {
+    switch (corner) {
+      case MapCorner.topLeft:
+        final left = offset;
+        final top = offset;
+        final right = min(width, left + side);
+        final bottom = min(height, top + side);
+        return _Rect(left, top, right, bottom);
+
+      case MapCorner.topRight:
+        final right = width - offset;
+        final left = max(0, right - side);
+        final top = offset;
+        final bottom = min(height, top + side);
+        return _Rect(left, top, right, bottom);
+
+      case MapCorner.bottomLeft:
+        final left = offset;
+        final bottom = height - offset;
+        final top = max(0, bottom - side);
+        final right = min(width, left + side);
+        return _Rect(left, top, right, bottom);
+
+      case MapCorner.bottomRight:
+        final right = width - offset;
+        final bottom = height - offset;
+        final left = max(0, right - side);
+        final top = max(0, bottom - side);
+        return _Rect(left, top, right, bottom);
+    }
+  }
+
+  // ------------------------------------------------------------
+  //  GENERADORES DE TILES (TRABAJAN SOBRE List<TileType>)
+  // ------------------------------------------------------------
+
+  /// Region-based chunk generator.
+  /// Grows irregular blobs of [chunkType] with at least [minChunkSize] tiles.
+  ///
+  /// - Works only over [baseType] tiles.
+  /// - Tries up to [attempts] starting points.
+  /// - Each blob size is between [minChunkSize] and [maxChunkSize] (inclusive),
+  ///   but only painted if it reaches at least [minChunkSize].
+  static void addTypeRegionChunks(
+    List<TileType> types,
+    int width,
+    int height,
+    Random random, {
+    TileType chunkType = TileType.wall,
+    TileType baseType = TileType.path,
+    int minChunkSize = 4,
+    int maxChunkSize = 8,
+    int attempts = 30,
+  }) {
+    if (minChunkSize < 1) minChunkSize = 1;
+    if (maxChunkSize < minChunkSize) maxChunkSize = minChunkSize;
+
+    final totalTiles = width * height;
+
+    for (int attempt = 0; attempt < attempts; attempt++) {
+      // 1) pick seed
+      int startIndex = -1;
+
+      for (int i = 0; i < 50; i++) {
+        final candidate = random.nextInt(totalTiles);
+        if (types[candidate] != baseType) continue;
+
+        final startX = candidate % width;
+        final startY = candidate ~/ width;
+
+        // don't start next to existing chunkType
+        if (GridPopulatorHelpers.hasAdjacentChunkOfType(
+            startX, startY, width, height, types, chunkType)) {
+          continue;
+        }
+
+        startIndex = candidate;
+        break;
+      }
+
+      if (startIndex == -1) {
+        // no valid seed found this attempt
+        continue;
+      }
+
+      final startX = startIndex % width;
+      final startY = startIndex ~/ width;
+
+      // 2) grow region
+      final targetSize = minChunkSize +
+          (maxChunkSize > minChunkSize
+              ? random.nextInt(maxChunkSize - minChunkSize + 1)
+              : 0);
+
+      final region = <int>{startIndex};
+      final regionCells = <Point<int>>[Point(startX, startY)];
+
+      // prevent infinite loops on crowded maps
+      int stagnation = 0;
+      const int maxStagnation = 200;
+
+      while (region.length < targetSize && stagnation < maxStagnation) {
+        // pick random existing cell as origin for growth
+        final origin = regionCells[random.nextInt(regionCells.length)];
+        final originX = origin.x;
+        final originY = origin.y;
+
+        const dirs = [
+          Point(1, 0),
+          Point(-1, 0),
+          Point(0, 1),
+          Point(0, -1),
+        ];
+
+        // choose random direction
+        final dir = dirs[random.nextInt(dirs.length)];
+        final targetX = originX + dir.x;
+        final targetY = originY + dir.y;
+
+        if (targetX < 0 ||
+            targetY < 0 ||
+            targetX >= width ||
+            targetY >= height) {
+          stagnation++;
+          continue;
+        }
+
+        final targetIndex =
+            GridPopulatorHelpers.index(targetX, targetY, width);
+
+        // must be baseType to grow into
+        if (types[targetIndex] != baseType) {
+          stagnation++;
+          continue;
+        }
+
+        // don't re-add same cell
+        if (region.contains(targetIndex)) {
+          stagnation++;
+          continue;
+        }
+
+        // don't grow next to other already-painted chunks
+        if (GridPopulatorHelpers.hasAdjacentChunkOfType(
+            targetX, targetY, width, height, types, chunkType)) {
+          stagnation++;
+          continue;
+        }
+
+        // success: add to region
+        region.add(targetIndex);
+        regionCells.add(Point(targetX, targetY));
+        stagnation = 0; // reset stagnation when we make progress
+      }
+
+      // 3) paint only if big enough
+      if (region.length >= minChunkSize) {
+        for (final idx in region) {
+          types[idx] = chunkType;
+        }
+      }
+    }
+  }
+
+  /// Carves a single river across the map.
+  ///
+  /// - [riverType]: the tile type used for the river (default: TileType.river)
+  /// - [erodedTypes]: which tile types can be overwritten by the river
+  ///   (default: [TileType.path])
+  /// - [maxRiverWidth]: maximum vertical/horizontal thickness of the river
+  /// - [vertical]: if true, river goes top->bottom; otherwise left->right
+  static void addRiver(
+    List<TileType> types,
+    int width,
+    int height,
+    Random random, {
+    TileType riverType = TileType.river,
+    List<TileType>? erodedTypes,
+    int maxRiverWidth = 2,
+    bool vertical = false,
+  }) {
+    // Safety
+    if (maxRiverWidth < 1) maxRiverWidth = 1;
+
+    final erodable = (erodedTypes ?? const [TileType.path]).toSet();
+
+    if (vertical) {
+      _carveVerticalRiver(
+        types,
+        width,
+        height,
+        random,
+        riverType,
+        erodable,
+        maxRiverWidth,
+      );
+    } else {
+      _carveHorizontalRiver(
+        types,
+        width,
+        height,
+        random,
+        riverType,
+        erodable,
+        maxRiverWidth,
+      );
+    }
+  }
+
+  static void _carveHorizontalRiver(
+    List<TileType> types,
+    int width,
+    int height,
+    Random random,
+    TileType riverType,
+    Set<TileType> erodable,
+    int maxRiverWidth,
+  ) {
+    // Start row
+    int y = random.nextInt(height);
+
+    for (int x = 0; x < width; x++) {
+      // Random width between 1 and maxRiverWidth
+      final currentWidth =
+          1 + random.nextInt(maxRiverWidth); // [1, maxRiverWidth]
+      final half = currentWidth ~/ 2;
+
+      // Paint river vertically around (x, y)
+      for (int yy = y - half; yy <= y + half; yy++) {
+        if (yy < 0 || yy >= height) continue;
+        final i = GridPopulatorHelpers.index(x, yy, width);
+        if (erodable.contains(types[i])) {
+          types[i] = riverType;
+        }
+      }
+
+      // Small random drift up/down to make the river meander only if the river is wider than 1
+      if (currentWidth > 1) {
+        final roll = random.nextDouble();
+        if (roll < 0.33) {
+          // go up
+          if (y > 0) y--;
+        } else if (roll > 0.66) {
+          // go down
+          if (y < height - 1) y++;
+        }
+      }
+    }
+  }
+
+  static void _carveVerticalRiver(
+    List<TileType> types,
+    int width,
+    int height,
+    Random random,
+    TileType riverType,
+    Set<TileType> erodable,
+    int maxRiverWidth,
+  ) {
+    // Start column
+    int x = random.nextInt(width);
+
+    for (int y = 0; y < height; y++) {
+      final currentWidth =
+          1 + random.nextInt(maxRiverWidth); // [1, maxRiverWidth]
+      final half = currentWidth ~/ 2;
+
+      // Paint river horizontally around (x, y)
+      for (int xx = x - half; xx <= x + half; xx++) {
+        if (xx < 0 || xx >= width) continue;
+        final i = GridPopulatorHelpers.index(xx, y, width);
+        if (erodable.contains(types[i])) {
+          types[i] = riverType;
+        }
+      }
+
+      // Small random drift left/right to make the river meander only if the river is wider than 1
+      if (currentWidth > 1) {
+        final roll = random.nextDouble();
+        if (roll < 0.33) {
+          // go left
+          if (x > 0) x--;
+        } else if (roll > 0.66) {
+          // go right
+          if (x < width - 1) x++;
+        }
+      }
+    }
+  }
+
+  /// Add 2x2 wall chunks on top of paths.
+  /// Only uses cells that are currently `TileType.path`.
+  static void addTypeSquares(
+    List<TileType> types,
+    int width,
+    int height,
+    Random random, {
+    double chunkProbability = 0.25, // density of chunks
+    TileType tileType = TileType.wall,
+    TileType baseType = TileType.path,
+  }) {
+    // All possible top-left coords for 2x2 chunks
+    final candidates = <Point<int>>[];
+    for (int y = 0; y < height - 1; y++) {
+      for (int x = 0; x < width - 1; x++) {
+        candidates.add(Point(x, y));
+      }
+    }
+
+    // Shuffle so placement is random
+    candidates.shuffle(random);
+
+    for (final p in candidates) {
+      final x = p.x;
+      final y = p.y;
+
+      // Chance to even try a chunk here
+      if (random.nextDouble() > chunkProbability) continue;
+
+      if (!GridPopulatorHelpers.canPlaceTypeChunkAtType(
+          x, y, width, height, types,
+          chunkTileType: tileType, baseTileType: baseType)) continue;
+
+      GridPopulatorHelpers.placeTypeChunkAt(x, y, width, height, types,
+          tileType: tileType);
+    }
+  }
+
+  /// Chunks generator.
+  /// Modifies existing types, only touching tiles that are currently `path`.
+  static void addTypeChunks(
+      List<TileType> types, int width, int height, Random random,
+      {double baseChunkChance = 0.05,
+      double neighborBonus = 0.40,
+      double maxChunkChance = 0.8,
+      TileType chunkType = TileType.wall,
+      TileType baseType = TileType.path}) {
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final i = GridPopulatorHelpers.index(x, y, width);
+
+        // If tile is not path, leave it alone (e.g. chasm/river already placed)
+        if (types[i] != baseType) continue;
+
+        double chunkChance = baseChunkChance;
+
+        // If neighbors are chunkType, increase the chance → clumps
+        if (x > 0 &&
+            types[GridPopulatorHelpers.index(x - 1, y, width)] == chunkType) {
+          chunkChance += neighborBonus;
+        }
+        if (y > 0 &&
+            types[GridPopulatorHelpers.index(x, y - 1, width)] == chunkType) {
+          chunkChance += neighborBonus;
+        }
+
+        if (chunkChance > maxChunkChance) chunkChance = maxChunkChance;
+
+        final isWall = random.nextDouble() < chunkChance;
+        if (isWall) {
+          types[i] = chunkType;
+        }
+      }
+    }
+  }
+
+  /// Completely random map (for all tile types).
+  static void fillCompletelyRandom(
+    List<TileType> types,
+    int width,
+    int height,
+    Random random,
+  ) {
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final i = GridPopulatorHelpers.index(x, y, width);
+        types[i] = TileType.values[random.nextInt(TileType.values.length)];
+      }
+    }
+  }
+}
+
+// ------------------------------------------------------------
+//  HELPERS DE GridPopulator
+// ------------------------------------------------------------
+
+extension GridPopulatorHelpers on GridPopulator {
+  static int index(int x, int y, int width) => y * width + x;
+
+  /// Create a base list of TileType to be used by generators.
+  static List<TileType> createBaseTypes(
+    int width,
+    int height, {
+    TileType fill = TileType.path,
+  }) {
+    return List<TileType>.filled(width * height, fill);
+  }
+
+  /// Construye un Grid (List<GridObject?>) a partir de una lista de TileType.
+  static Grid buildGridObjects(int width, int height, List<TileType> types) {
+    final grid = List<GridObject?>.filled(width * height, null);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final i = index(x, y, width);
+        final type = types[i];
+
+        final tile = TileObject.fromType(type, x, y, i);
+
+        grid[i] = GridObject(
+          x,
+          y,
+          {tile.z: tile},
+        );
+      }
+    }
+
+    return grid;
+  }
+
+  /// Devuelve true si alrededor de (x,y) hay algún tile del tipo [chunkType]
+  /// en el anillo de radio 1 (8 direcciones).
+  static bool hasAdjacentChunkOfType(
+    int x,
+    int y,
+    int width,
+    int height,
+    List<TileType> types,
+    TileType chunkType,
+  ) {
+    for (int yy = y - 1; yy <= y + 1; yy++) {
+      for (int xx = x - 1; xx <= x + 1; xx++) {
+        if (xx < 0 || yy < 0 || xx >= width || yy >= height) continue;
+        if (xx == x && yy == y) continue;
+
+        final i = index(xx, yy, width);
+        if (types[i] == chunkType) return true;
+      }
+    }
+    return false;
+  }
+
+  /// Check if we can place a 2x2 wall chunk at (x,y) without touching another chunk.
+  static bool canPlaceTypeChunkAtType(
+      int x, int y, int width, int height, List<TileType> types,
+      {required TileType chunkTileType, required TileType baseTileType}) {
+    // 1) 2x2 area must be all baseType
+    for (int yy = y; yy <= y + 1; yy++) {
+      for (int xx = x; xx <= x + 1; xx++) {
+        if (types[index(xx, yy, width)] != baseTileType) return false;
+      }
+    }
+
+    // 2) No chunks in the 1-tile ring around the 2x2 area
+    for (int yy = y - 1; yy <= y + 2; yy++) {
+      for (int xx = x - 1; xx <= x + 2; xx++) {
+        if (xx < 0 || yy < 0 || xx >= width || yy >= height) continue;
+
+        final insideChunk =
+            (xx >= x && xx <= x + 1 && yy >= y && yy <= y + 1);
+        if (insideChunk) continue;
+
+        if (types[index(xx, yy, width)] == chunkTileType) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /// Actually place the 2x2 chunk.
+  static void placeTypeChunkAt(
+      int x, int y, int width, int height, List<TileType> types,
+      {required TileType tileType}) {
+    for (int yy = y; yy <= y + 1; yy++) {
+      for (int xx = x; xx <= x + 1; xx++) {
+        types[index(xx, yy, width)] = tileType;
+      }
+    }
+  }
+}
+
+// Small rect struct
+class _Rect {
+  final int left;
+  final int top;
+  final int right; // exclusive
+  final int bottom; // exclusive
+  const _Rect(this.left, this.top, this.right, this.bottom);
+}
+
+// ------------------------------------------------------------
+//  BUILDERS: devuelven Grid ya con TileObject en sus capas
+// ------------------------------------------------------------
+
+extension GridPopulatorBuilders on GridPopulator {
+  // GENERATE EMPTY
+  static Grid generateEmptyGrid(int height, int width) {
+    final types =
+        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE RANDOM
+  static Grid generateRandomGrid(int height, int width) {
+    final random = Random();
+    final types =
+        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+
+    GridPopulator.fillCompletelyRandom(types, width, height, random);
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE SQUARE WALLS
+  static Grid generateSquareWallsGrid(int height, int width) {
+    final random = Random();
+    final types =
+        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+
+    GridPopulator.addTypeSquares(types, width, height, random);
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE SQUARE WALLS WITH CHASMS
+  static Grid generateSquareWallsGridWithChasms(int height, int width) {
+    final random = Random();
+    final types =
+        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+
+    GridPopulator.addTypeChunks(
+      types,
+      width,
+      height,
+      random,
+      chunkType: TileType.chasm,
+    );
+
+    GridPopulator.addTypeSquares(types, width, height, random);
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE CHASM FILLED WITH PATH CHUNKS
+  static Grid generateChasmFilledWithPathChunksGrid(int height, int width) {
+    final random = Random();
+    final types = GridPopulatorHelpers.createBaseTypes(
+      width,
+      height,
+      fill: TileType.chasm,
+    );
+
+    GridPopulator.addTypeChunks(
+      types,
+      width,
+      height,
+      random,
+      chunkType: TileType.path,
+      baseType: TileType.chasm,
+    );
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE CHASM FILLED WITH PATH SQUARES
+  static Grid generateChasmFilledWithPathSquaresGrid(int height, int width) {
+    final random = Random();
+    final types = GridPopulatorHelpers.createBaseTypes(
+      width,
+      height,
+      fill: TileType.chasm,
+    );
+
+    GridPopulator.addTypeSquares(
+      types,
+      width,
+      height,
+      random,
+      tileType: TileType.path,
+      baseType: TileType.chasm,
+    );
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE PATH MAP WITH HORIZONTAL RIVER
+  static Grid generatePathGridWithHorizontalRiver(int height, int width) {
+    final random = Random();
+    final types =
+        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+
+    GridPopulator.addRiver(
+      types,
+      width,
+      height,
+      random,
+      riverType: TileType.river,
+      erodedTypes: [TileType.path],
+      maxRiverWidth: 2,
+      vertical: false, // horizontal
+    );
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE PATH MAP WITH VERTICAL RIVER + WALL SQUARES
+  static Grid generatePathGridWithVRiverAndChasmSquares(
+      int height, int width) {
+    final random = Random();
+    final types =
+        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+
+    GridPopulator.addRiver(
+      types,
+      width,
+      height,
+      random,
+      riverType: TileType.river,
+      erodedTypes: [TileType.path],
+      maxRiverWidth: 2,
+      vertical: true, // vertical
+    );
+
+    GridPopulator.addTypeSquares(types, width, height, random);
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE SQUARES, CHASMS, AND RIVER
+  static Grid generateSquaresChasmsAndRiverGrid(int height, int width) {
+    final random = Random();
+    final types =
+        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+
+    // First: put some chasm chunks over paths
+    GridPopulator.addTypeChunks(
+      types,
+      width,
+      height,
+      random,
+      chunkType: TileType.chasm,
+      baseType: TileType.path,
+    );
+
+    // Then: square walls over remaining paths
+    GridPopulator.addTypeSquares(
+      types,
+      width,
+      height,
+      random,
+      tileType: TileType.wall,
+      baseType: TileType.path,
+    );
+
+    // Finally: river goes through path *and* chasm, but not walls
+    GridPopulator.addRiver(
+      types,
+      width,
+      height,
+      random,
+      riverType: TileType.river,
+      erodedTypes: [TileType.path, TileType.chasm],
+      maxRiverWidth: 3,
+      vertical: true, // top -> bottom
+    );
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+
+  // GENERATE CHASM WITH BIG REGION PATH CHUNKS
+  static Grid generateChasmWithBigPathChunksGrid(int height, int width) {
+    final random = Random();
+    final types = GridPopulatorHelpers.createBaseTypes(
+      width,
+      height,
+      fill: TileType.chasm,
+    );
+
+    GridPopulator.addTypeRegionChunks(
+      types,
+      width,
+      height,
+      random,
+      chunkType: TileType.path,
+      baseType: TileType.chasm,
+      minChunkSize: 4,
+      maxChunkSize: 8,
+      attempts: 30,
+    );
+
+    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+  }
+}

@@ -1,3 +1,12 @@
+
+int idx(int x, int y, int width){
+  return y * width + x;
+}
+
+bool depthOutOfBounds(int depth) {
+  return depth < -1 || depth > 2; //only accepts depths between -1 and 2
+}
+
 //================================================================================
 // DateTIme
 //================================================================================

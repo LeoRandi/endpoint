@@ -1,3 +1,3 @@
-export "map_generator.dart";
-export 'map_generator_builders.dart';
-export 'map_generator_helpers.dart';
+export 'grid_populator.dart';
+export 'grid_populator_builders.dart';
+export 'grid_populator_helpers.dart';

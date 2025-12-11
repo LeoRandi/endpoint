@@ -1,4 +1,4 @@
-import 'package:endpoint/entities/base_object.dart';
+import 'package:endpoint/entities/objects/base_object.dart';
 
 enum TileType {
   path,

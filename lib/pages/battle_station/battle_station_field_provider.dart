@@ -60,18 +60,18 @@ class BattleStationFieldProvider {
   TileGrid getTileGrid() {
     switch (mapIndex) {
       case 0:
-        return MapGeneratorBuilders.generateEmpty(12, 12);
+        return GridPopulatorBuilders.generateEmpty(12, 12);
       case 1:
-        return MapGeneratorBuilders.generateRandomMap(12, 12);
+        return GridPopulatorBuilders.generateRandomMap(12, 12);
       case 2:
-        return MapGeneratorBuilders.generatePathMapWithHorizontalRiver(12, 12);
+        return GridPopulatorBuilders.generatePathMapWithHorizontalRiver(12, 12);
       case 3:
-        return MapGeneratorBuilders.generatePathMapWithVRiverAndChasmSquares(
+        return GridPopulatorBuilders.generatePathMapWithVRiverAndChasmSquares(
             12, 12);
       case 4:
-        return MapGeneratorBuilders.generateChasmWithBigPathChunks(12, 12);
+        return GridPopulatorBuilders.generateChasmWithBigPathChunks(12, 12);
       default:
-        return MapGeneratorBuilders.generateEmpty(12, 12);
+        return GridPopulatorBuilders.generateEmpty(12, 12);
     }
   }
 }
