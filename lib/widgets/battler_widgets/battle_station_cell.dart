@@ -1,7 +1,7 @@
 import '_imports.dart';
 
 class BattleStationCell extends StatelessWidget {
-  final Tile tile;
+  final TileObject tile;
   final Battler battler;
   final double size;
   final VoidCallback? onTap;
