@@ -348,7 +348,7 @@ class Battler {
 
 extension BattlerList on List<Battler> {
   Battler? get selectedBattler {
-    return firstWhere2((battler) => battler.isSelected);
+    return firstWhere((battler) => battler.isSelected, orElse: () => first);
   }
 }
 

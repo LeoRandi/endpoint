@@ -6,15 +6,25 @@ class BattleStationFieldProvider {
 
   // selected battler state
   final ValueNotifier<Battler?> selectedBattlerNotifier;
+  
+  // selected battler state
+  final ValueNotifier<Battler?> playingBattlerNotifier;
 
   BattleStationFieldProvider(this.battlers)
       : selectedBattlerNotifier = ValueNotifier<Battler?>(
-          battlers.selectedBattler, //initial value
+          null, //initial value
+        ),
+        playingBattlerNotifier = ValueNotifier<Battler?>(
+          null, //initial value
         );
 
   void setSelectedBattler(Battler? battler) {
     selectedBattlerNotifier.value = battler;
   }
+
+  void setPlayingBattler(Battler? battler) {
+    playingBattlerNotifier.value = battler;
+  }  
 
   Widget getBattleField() {
     final tileGrid = getTileGrid();

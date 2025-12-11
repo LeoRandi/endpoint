@@ -32,7 +32,7 @@ class _BattleStationPageState extends State<BattleStationPage> {
           child: BattleStationField(widget.provider),
         ),
         ValueListenableBuilder<Battler?>(
-          valueListenable: provider.selectedBattlerNotifier,
+          valueListenable: provider.playingBattlerNotifier,
           builder: (context, battler, _) {
             return SizedBox(
               height:
