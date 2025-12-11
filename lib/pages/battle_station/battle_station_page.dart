@@ -20,10 +20,14 @@ class _BattleStationPageState extends State<BattleStationPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        BattleStationBattlerAppBar(
-            widget.provider.battlers.allyBattlers.first),
+        BattleStationBattlerAppBar(widget.provider.battlers.allyBattlers.first),
         Expanded(
           child: BattleStationField(widget.provider),
+        ),
+        SizedBox(
+          height: (MediaQuery.of(context).size.width ~/ 8).floor().toDouble(),
+          child: BattlerEquipmentWidgetRow(
+              battler: widget.provider.battlers.allyBattlers.first),
         ),
         BattleStationButtons(
           widget.provider,

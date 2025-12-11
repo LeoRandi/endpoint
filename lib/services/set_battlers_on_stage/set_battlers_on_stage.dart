@@ -7,8 +7,8 @@ class SetBattlersOnStage {
 
   static BattlerGrid getBattlersOnStageCalc(
       Map<BattlerSide, List<Battler>> battlers, TileGrid tileGrid) {
-    final battlersEmptyList =
-        List<Battler>.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
+    final battlersEmptyList = List<Battler>.filled(
+        tileGrid.width * tileGrid.height, Battler.voidBattler());
 
     final allyCorner = chooseBestStartingCorner(tileGrid);
     final enemyCorner = chooseEnemyCorner(tileGrid, allyCorner);
@@ -25,8 +25,8 @@ class SetBattlersOnStage {
 
   static BattlerGrid getBattlersOnStageTLvsBR(
       Map<BattlerSide, List<Battler>> battlers, TileGrid tileGrid) {
-    final battlersEmptyList =
-        List<Battler>.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
+    final battlersEmptyList = List<Battler>.filled(
+        tileGrid.width * tileGrid.height, Battler.voidBattler());
 
     return setBattlersOnStage(
       MapCorner.topLeft,
@@ -40,8 +40,8 @@ class SetBattlersOnStage {
 
   static BattlerGrid getBattlersOnStageBLvsTR(
       Map<BattlerSide, List<Battler>> battlers, TileGrid tileGrid) {
-    final battlersEmptyList =
-        List<Battler>.filled(tileGrid.width * tileGrid.height, Battler.voidBattler());
+    final battlersEmptyList = List<Battler>.filled(
+        tileGrid.width * tileGrid.height, Battler.voidBattler());
 
     return setBattlersOnStage(
       MapCorner.bottomLeft,
@@ -80,12 +80,11 @@ class SetBattlersOnStage {
 
     // TODO: Devolver mensaje de error si no sale bien
     // if (!okAllies || !okEnemies) {
-    //   return 
+    //   return
     // }
 
     return BattlerGrid(tileGrid.width, tileGrid.height, battlersEmptyList);
   }
-
 
   // ------------------------------------------------------------
   //  RANDOM CORNER FILL
@@ -97,7 +96,6 @@ class SetBattlersOnStage {
   /// - If area has no slots for a specific battler, tries the whole map.
   /// - If still impossible, returns false.
   static bool _fillCornerSmart(
-    
     List<Battler> battlersEmptyList,
     List<Battler> battlersList,
     TileGrid grid, {
@@ -114,61 +112,93 @@ class SetBattlersOnStage {
     // 1) Spawn rectangle for that corner (logical target area)
     final rect = _cornerRect(grid, corner, side, offset);
 
-    // Center of that area (can be fractional, we use it only for distance)
+    // Center of that area (only for distance computation)
     final cx = (rect.left + rect.right - 1) / 2.0;
     final cy = (rect.top + rect.bottom - 1) / 2.0;
 
-    // 2) Collect ALL walkable+empty tiles on the map
-    final candidates = <Point<int>>[];
+    // 2) Collect candidates, separated by region/global and path/river
+    final regionPath = <Point<int>>[];
+    final regionRiver = <Point<int>>[];
+    final globalPath = <Point<int>>[];
+    final globalRiver = <Point<int>>[];
+
     for (int y = 0; y < grid.height; y++) {
       for (int x = 0; x < grid.width; x++) {
-        if (!grid.tileAt(x, y).isWalkable) continue;
+        final tile = grid.tileAt(x, y);
+        if (!tile.isWalkable) continue;
+
         final idx = y * grid.width + x;
-        if (battlersEmptyList[idx].name.isNotEmpty) continue; // already occupied
-        candidates.add(Point(x, y));
+        if (battlersEmptyList[idx].name.isNotEmpty)
+          continue; // already occupied
+
+        final p = Point(x, y);
+        final inRegion = x >= rect.left &&
+            x < rect.right &&
+            y >= rect.top &&
+            y < rect.bottom;
+
+        final tileType = tile.tileType; // or tile.type
+
+        if (tileType == TileType.path) {
+          globalPath.add(p);
+          if (inRegion) regionPath.add(p);
+        } else if (tileType == TileType.river) {
+          globalRiver.add(p);
+          if (inRegion) regionRiver.add(p);
+        }
       }
     }
 
-    if (candidates.isEmpty) {
-      // No place at all for anyone
+    // If there are literally no candidates of any kind, we cannot place anyone.
+    if (regionPath.isEmpty &&
+        regionRiver.isEmpty &&
+        globalPath.isEmpty &&
+        globalRiver.isEmpty) {
       return false;
     }
 
-    // 3) Shuffle for tie-breaking randomness, then sort by distance to area center
-    candidates.shuffle(_random);
-    candidates.sort((a, b) {
-      final da = (a.x - cx) * (a.x - cx) + (a.y - cy) * (a.y - cy);
-      final db = (b.x - cx) * (b.x - cx) + (b.y - cy) * (b.y - cy);
-      return da.compareTo(db);
-    });
+    void sortByDistance(List<Point<int>> list) {
+      list.shuffle(_random);
+      list.sort((a, b) {
+        final da = (a.x - cx) * (a.x - cx) + (a.y - cy) * (a.y - cy);
+        final db = (b.x - cx) * (b.x - cx) + (b.y - cy) * (b.y - cy);
+        return da.compareTo(db);
+      });
+    }
 
-    // 4) Place each battler on the nearest still-free candidate
-    for (final battler in battlersList) {
-      bool placed = false;
+    // 3) Sort all groups by distance to the region center
+    sortByDistance(regionPath);
+    sortByDistance(regionRiver);
+    sortByDistance(globalPath);
+    sortByDistance(globalRiver);
 
-      for (final p in candidates) {
+    bool placeFromList(Battler battler, List<Point<int>> list) {
+      for (final p in list) {
         final idx = p.y * grid.width + p.x;
 
-        // Re-check: other battlers may have occupied this since we built the list
+        // Re-check: since we built these lists, other battlers may have used this tile
         if (battlersEmptyList[idx].name.isNotEmpty) continue;
-
-        // walkable is guaranteed by earlier check, but being defensive is cheap:
         if (!grid.tileAt(p.x, p.y).isWalkable) continue;
 
         battlersEmptyList[idx] = battler;
-        placed = true;
-        break;
+        return true;
       }
+      return false;
+    }
 
-      if (!placed) {
-        // There is literally no free tile left in the map for this battler
-        return false;
-      }
+    // 4) Place each battler with the required priority cascade
+    for (final battler in battlersList) {
+      if (placeFromList(battler, regionPath)) continue;
+      if (placeFromList(battler, regionRiver)) continue;
+      if (placeFromList(battler, globalPath)) continue;
+      if (placeFromList(battler, globalRiver)) continue;
+
+      // No valid tile at all for this battler
+      return false;
     }
 
     return true;
   }
-
 
   static _Rect _cornerRect(
     TileGrid grid,
@@ -305,11 +335,11 @@ class SetBattlersOnStage {
   }
 }
 
-  // Small struct for a rectangle
-  class _Rect {
-    final int left;
-    final int top;
-    final int right;  // exclusive
-    final int bottom; // exclusive
-    const _Rect(this.left, this.top, this.right, this.bottom);
-  }
+// Small struct for a rectangle
+class _Rect {
+  final int left;
+  final int top;
+  final int right; // exclusive
+  final int bottom; // exclusive
+  const _Rect(this.left, this.top, this.right, this.bottom);
+}

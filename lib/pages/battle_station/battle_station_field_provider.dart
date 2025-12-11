@@ -14,7 +14,8 @@ class BattleStationFieldProvider {
 
   Widget getBattleField() {
     final tileGrid = getTileGrid();
-    final battlerGrid = SetBattlersOnStage.getBattlersOnStageTLvsBR(battlers, tileGrid);
+    final battlerGrid =
+        SetBattlersOnStage.getBattlersOnStageTLvsBR(battlers, tileGrid);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -26,15 +27,12 @@ class BattleStationFieldProvider {
             children: [
               for (int x = 0; x < tileGrid.width; x++)
                 SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Stack(
-                    children: [
+                    width: 24,
+                    height: 24,
+                    child: Stack(children: [
                       Image.asset(tileGrid.tileAt(x, y).imagePath),
                       battlerGrid.getBattlerImage(x, y),
-                    ]
-                  )
-                ),
+                    ])),
             ],
           ),
       ],
@@ -48,9 +46,10 @@ class BattleStationFieldProvider {
       case 1:
         return MapGeneratorBuilders.generateRandomMap(12, 12);
       case 2:
-        return MapGeneratorBuilders.generateSquareWallsMap(12, 12);
+        return MapGeneratorBuilders.generatePathMapWithHorizontalRiver(12, 12);
       case 3:
-        return MapGeneratorBuilders.generateSquareWallsMapWithChasms(12, 12);
+        return MapGeneratorBuilders.generatePathMapWithVRiverAndChasmSquares(
+            12, 12);
       case 4:
         return MapGeneratorBuilders.generateChasmWithBigPathChunks(12, 12);
       default:

@@ -15,6 +15,25 @@ class Battler {
   List<BattlerEquipment> equipmentList;
   bool get isAlive => health > 0;
 
+  Map<BattlerStatsType, int> get calculatedStats {
+    final baseStats = Map<BattlerStatsType, int>.from(stats.rawStats);
+    final layout = equipmentLayout.layout; // expected type per slot
+
+    // Safety: in case something rare happens and sizes don't match
+    final int slots = min(equipmentList.length, layout.length);
+
+    for (int i = 0; i < slots; i++) {
+      final equipment = equipmentList[i];
+      if (!equipmentLayout.isValidAtSlot(i, equipment)) continue;
+
+      equipment.bonus.forEach((statType, bonusValue) {
+        baseStats[statType] = (baseStats[statType] ?? 0) + bonusValue;
+      });
+    }
+
+    return baseStats;
+  }
+
   void select() {
     isSelected = true;
   }
@@ -28,13 +47,54 @@ class Battler {
       List<BattlerEquipment>? equipmentList,
       this.mainClass,
       this.subClass})
-      : equipmentList = equipmentList ?? List.filled(8, BattlerEquipment.empty()) {
-    maxHealth = stats.calculatedStats[BattlerStatsType.health] ?? 0;
+      : equipmentList =
+            equipmentList ?? List.filled(8, BattlerEquipment.empty()) {
+    maxHealth = calculatedStats[BattlerStatsType.health] ?? 0;
     health = maxHealth;
   }
 
   int getStat(BattlerStatsType statType) {
-    return stats.calculatedStats[statType] ?? 0;
+    return calculatedStats[statType] ?? 0;
+  }
+
+  bool addEquipment(BattlerEquipment equipment) {
+    final layout = equipmentLayout.layout;
+
+    // Safety in case something weird happens with lengths
+    final int slots = min(equipmentList.length, layout.length);
+
+    int? fallbackConsumableIndex;
+
+    for (int i = 0; i < slots; i++) {
+      final BattlerEquipmentType expectedType = layout[i];
+      final BattlerEquipment current = equipmentList[i];
+
+      // Consider the slot free if it's an "empty" equipment
+      final bool isFree = current.name.isEmpty;
+
+      if (!isFree) continue;
+
+      // Perfect match: free slot whose type matches the equipment type
+      if (expectedType == equipment.type) {
+        equipmentList[i] = equipment;
+        return true;
+      }
+
+      // Store first free consumable slot as fallback
+      if (fallbackConsumableIndex == null &&
+          expectedType == BattlerEquipmentType.consumable) {
+        fallbackConsumableIndex = i;
+      }
+    }
+
+    // No matching type free slots; try a free consumable slot
+    if (fallbackConsumableIndex != null) {
+      equipmentList[fallbackConsumableIndex] = equipment;
+      return true;
+    }
+
+    // No space anywhere
+    return false;
   }
 
   int getRealDamage(int damage, DamageType damageType) {
@@ -67,23 +127,43 @@ class Battler {
   String? get subClassIconPath => subClass?.iconPath;
 
   static Battler hero() {
-    return Battler(
+    final hero = Battler(
       imagePath: 'assets/sprites/base_dude.png',
       name: "Hero",
       side: BattlerSide.ally,
       equipmentLayout: BattlerEquipmentLayout.humanlike,
-      stats: BattlerStats(rawStats: BattlerStatsMap.baseHuman()),
+      stats: BattlerStats(
+        rawStats: BattlerStatsMap.baseHuman(),
+      ),
     );
+
+    hero.addEquipment(BattlerEquipment(
+        name: "placeholder axe",
+        type: BattlerEquipmentType.weapon,
+        bonus: {BattlerStatsType.axe: 1},
+        description: "A basic axe for testing.",
+        imagePath: 'assets/images/icons/icon_axe.png'));
+
+    return hero;
   }
 
   static Battler goblin() {
-    return Battler(
+    final goblin = Battler(
       imagePath: 'assets/sprites/base_green_dude.png',
       name: "Goblin",
       side: BattlerSide.enemy,
       equipmentLayout: BattlerEquipmentLayout.humanlike,
       stats: BattlerStats(rawStats: BattlerStatsMap.baseGoblin()),
     );
+
+    goblin.addEquipment(BattlerEquipment(
+        name: "placeholder dagger",
+        type: BattlerEquipmentType.weapon,
+        bonus: {BattlerStatsType.dagger: 1},
+        description: "A basic dagger for testing.",
+        imagePath: 'assets/images/icons/icon_dagger.png'));
+
+    return goblin;
   }
 
   static Battler voidBattler() {

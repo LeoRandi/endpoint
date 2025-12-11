@@ -38,7 +38,8 @@ class MapGenerator {
         final startY = candidate ~/ width;
 
         // don't start next to existing chunkType
-        if (MapGeneratorHelpers.hasAdjacentChunkOfType(startX, startY, width, height, types, chunkType)) {
+        if (MapGeneratorHelpers.hasAdjacentChunkOfType(
+            startX, startY, width, height, types, chunkType)) {
           continue;
         }
 
@@ -85,7 +86,10 @@ class MapGenerator {
         final targetX = originX + dir.x;
         final targetY = originY + dir.y;
 
-        if (targetX < 0 || targetY < 0 || targetX >= width || targetY >= height) {
+        if (targetX < 0 ||
+            targetY < 0 ||
+            targetX >= width ||
+            targetY >= height) {
           stagnation++;
           continue;
         }
@@ -105,7 +109,8 @@ class MapGenerator {
         }
 
         // don't grow next to other already-painted chunks
-        if (MapGeneratorHelpers.hasAdjacentChunkOfType(targetX, targetY, width, height, types, chunkType)) {
+        if (MapGeneratorHelpers.hasAdjacentChunkOfType(
+            targetX, targetY, width, height, types, chunkType)) {
           stagnation++;
           continue;
         }
@@ -280,10 +285,12 @@ class MapGenerator {
       // Chance to even try a chunk here
       if (random.nextDouble() > chunkProbability) continue;
 
-      if (!MapGeneratorHelpers.canPlaceTypeChunkAtType(x, y, width, height, types,
+      if (!MapGeneratorHelpers.canPlaceTypeChunkAtType(
+          x, y, width, height, types,
           chunkTileType: tileType, baseTileType: baseType)) continue;
 
-      MapGeneratorHelpers.placeTypeChunkAt(x, y, width, height, types, tileType: tileType);
+      MapGeneratorHelpers.placeTypeChunkAt(x, y, width, height, types,
+          tileType: tileType);
     }
   }
 
@@ -306,10 +313,12 @@ class MapGenerator {
         double chunkChance = baseChunkChance;
 
         // If neighbors are chunkType, increase the chance → clumps
-        if (x > 0 && types[MapGeneratorHelpers.index(x - 1, y, width)] == chunkType) {
+        if (x > 0 &&
+            types[MapGeneratorHelpers.index(x - 1, y, width)] == chunkType) {
           chunkChance += neighborBonus;
         }
-        if (y > 0 && types[MapGeneratorHelpers.index(x, y - 1, width)] == chunkType) {
+        if (y > 0 &&
+            types[MapGeneratorHelpers.index(x, y - 1, width)] == chunkType) {
           chunkChance += neighborBonus;
         }
 
@@ -337,5 +346,4 @@ class MapGenerator {
       }
     }
   }
-
 }

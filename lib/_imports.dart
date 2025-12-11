@@ -4,4 +4,5 @@ export 'widgets/_exports.dart';
 export 'utils/_exports.dart';
 export 'services/_exports.dart';
 export 'package:flutter/material.dart';
+export 'dart:math';
 export "_exports.dart";

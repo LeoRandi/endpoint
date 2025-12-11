@@ -16,18 +16,22 @@ class BattleStationBattlerAppBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(
-              width: MediaQuery.of(context).size.width * 0.39,
+              width: min(MediaQuery.of(context).size.width * 0.39,
+                  140), // Cálculo específico para mantener tamaño constante
               child: BattlerStatsWidget(battler: battler),
             ),
             const SizedBox(width: 4),
-            Image.asset(battler?.imagePath ?? "assets/sprites/unknown.png", width: 48, height: 48),
+            Image.asset(battler?.imagePath ?? "assets/sprites/unknown.png",
+                width: 48, height: 48),
             const SizedBox(width: 4),
             SizedBox(
-              width: MediaQuery.of(context).size.width * 0.39,
+              width: min(MediaQuery.of(context).size.width * 0.39, 140),
               child: Column(
                 children: [
-                  HpBar(currentHp: battler?.health ?? 0, maxHp: battler?.maxHealth ?? 1),
-                  BattlerEquipmentWidgetRow(battler: battler),
+                  HpBar(
+                      currentHp: battler?.health ?? 0,
+                      maxHp: battler?.maxHealth ?? 1),
+                  BattlerEquipmentWidgetColumns(battler: battler),
                 ],
               ),
             ),
@@ -36,5 +40,4 @@ class BattleStationBattlerAppBar extends StatelessWidget {
       ),
     );
   }
-
 }

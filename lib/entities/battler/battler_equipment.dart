@@ -20,23 +20,23 @@ enum BattlerEquipmentType {
   }
 }
 
-enum BattlerEquipmentLayout{
+enum BattlerEquipmentLayout {
   humanlike(1),
   beastlike(2),
   ghostlike(3),
   fourArms(4),
   unkown(-1);
-  
+
   final int id;
-  
+
   const BattlerEquipmentLayout(this.id);
-  
+
   List<BattlerEquipmentType> get layout {
-    switch(id) {
-      case 1:   // humanlike
+    switch (id) {
+      case 1: // humanlike
         return [
-          BattlerEquipmentType.weapon,  //mainhand
-          BattlerEquipmentType.weapon,  //offhand
+          BattlerEquipmentType.weapon, //mainhand
+          BattlerEquipmentType.weapon, //offhand
           BattlerEquipmentType.armor,
           BattlerEquipmentType.accessory,
           BattlerEquipmentType.accessory,
@@ -44,10 +44,10 @@ enum BattlerEquipmentLayout{
           BattlerEquipmentType.consumable,
           BattlerEquipmentType.consumable,
         ];
-      case 2:   // beastlike
+      case 2: // beastlike
         return [
           BattlerEquipmentType.weapon,
-          BattlerEquipmentType.weapon,  //offhand
+          BattlerEquipmentType.weapon, //offhand
           BattlerEquipmentType.armor,
           BattlerEquipmentType.accessory,
           BattlerEquipmentType.accessory,
@@ -55,10 +55,10 @@ enum BattlerEquipmentLayout{
           BattlerEquipmentType.accessory,
           BattlerEquipmentType.consumable,
         ];
-      case 3:   // ghostlike
+      case 3: // ghostlike
         return [
-          BattlerEquipmentType.weapon,  //mainhand
-          BattlerEquipmentType.weapon,  //offhand
+          BattlerEquipmentType.weapon, //mainhand
+          BattlerEquipmentType.weapon, //offhand
           BattlerEquipmentType.accessory,
           BattlerEquipmentType.accessory,
           BattlerEquipmentType.accessory,
@@ -66,12 +66,12 @@ enum BattlerEquipmentLayout{
           BattlerEquipmentType.consumable,
           BattlerEquipmentType.consumable,
         ];
-      case 4:   // 4-arms
+      case 4: // 4-arms
         return [
-          BattlerEquipmentType.weapon,  //mainhand
-          BattlerEquipmentType.weapon,  //offhand
-          BattlerEquipmentType.weapon,  //offhand
-          BattlerEquipmentType.weapon,  //offhand
+          BattlerEquipmentType.weapon, //mainhand
+          BattlerEquipmentType.weapon, //offhand
+          BattlerEquipmentType.weapon, //offhand
+          BattlerEquipmentType.weapon, //offhand
           BattlerEquipmentType.accessory,
           BattlerEquipmentType.accessory,
           BattlerEquipmentType.accessory,
@@ -80,7 +80,13 @@ enum BattlerEquipmentLayout{
       default:
         return [];
     }
-  } 
+  }
+
+  bool isValidAtSlot(int index, BattlerEquipment equipment) {
+    final layout = this.layout;
+    if (index < 0 || index >= layout.length) return false;
+    return layout[index] == equipment.type;
+  }
 }
 
 class BattlerEquipment {
@@ -89,7 +95,7 @@ class BattlerEquipment {
   final Map<BattlerStatsType, int> bonus;
   final String description;
   final String imagePath;
-  bool isDisabled = false;  
+  bool isDisabled = false;
 
   BattlerEquipment({
     required this.name,
@@ -103,17 +109,17 @@ class BattlerEquipment {
     return BattlerEquipment(
       name: "",
       type: BattlerEquipmentType.weapon,
-      bonus: BattlerStatsMap.baseStats(),
+      bonus: {},
       description: "",
       imagePath: "assets/images/void.png",
     );
   }
 
-  void disable(){
+  void disable() {
     isDisabled = true;
   }
 
-  void repair(){
+  void repair() {
     isDisabled = false;
   }
 }

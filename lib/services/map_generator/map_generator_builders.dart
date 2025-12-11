@@ -90,6 +90,29 @@ extension MapGeneratorBuilders on MapGenerator {
     return MapGeneratorHelpers.buildGrid(width, height, types);
   }
 
+  // GENERATE PATH MAP WITH HORIZONTAL RIVER
+  static TileGrid generatePathMapWithVRiverAndChasmSquares(
+      int height, int width) {
+    final random = Random();
+    final types =
+        MapGeneratorHelpers.createBaseTypes(width, height, fill: TileType.path);
+
+    MapGenerator.addRiver(
+      types,
+      width,
+      height,
+      random,
+      riverType: TileType.river,
+      erodedTypes: [TileType.path],
+      maxRiverWidth: 2,
+      vertical: true, // horizontal
+    );
+
+    MapGenerator.addTypeSquares(types, width, height, random);
+
+    return MapGeneratorHelpers.buildGrid(width, height, types);
+  }
+
   // GENERATE SQUARES, CHASMS, AND RIVER
   static TileGrid generateSquaresChasmsAndRiver(int height, int width) {
     final random = Random();
