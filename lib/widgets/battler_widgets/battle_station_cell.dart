@@ -1,36 +1,27 @@
 import '_imports.dart';
 
 class BattleStationCell extends StatelessWidget {
-  final TileObject tile;
-  final Battler battler;
-  final double size;
+  final GridObject gridObject;
+  final int size;
   final VoidCallback? onTap;
 
   const BattleStationCell({
     Key? key,
-    required this.tile,
-    required this.battler,
+    required this.gridObject,
     this.size = 24,
     this.onTap,
   }) : super(key: key);
 
-  bool get hasBattler => battler.name.isNotEmpty; // or battler.isVoid == false
+  bool get hasBattler => gridObject.objects[depthTileBase] is BattlerObject;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: hasBattler ? onTap : null,
       child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
-          children: [
-            Image.asset(tile.imagePath),
-            if (hasBattler) Image.asset(battler.imagePath), 
-            // ^ adapt this line to however you build the battler sprite:
-            // e.g. Image.asset(battler.imagePath) or a method on BattlerGrid.
-          ],
-        ),
+        width: size.toDouble(),
+        height: size.toDouble(),
+        child: gridObject.getGridObjectWidget(size),
       ),
     );
   }

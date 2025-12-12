@@ -1,8 +1,5 @@
 import '_imports.dart';
 
-// Si ya tienes este typedef en otro lado, elimina uno de los dos.
-typedef Grid = List<GridObject?>;
-
 enum MapCorner { topLeft, topRight, bottomLeft, bottomRight }
 
 class GridPopulator {
@@ -207,13 +204,17 @@ class GridPopulator {
         final go = grid[i] ?? GridObject(p.x, p.y, {});
         grid[i] = go;
 
-        go.objects[depthTileBase] = BattlerObject(
+        final newBattler = BattlerObject(
           p.x,
           p.y,
           depthTileBase,
-          battler.id, 
+          global.battlerObjectManager.nextId(), 
           battler,
         );
+
+        global.battlerObjectManager.models.add(newBattler);
+
+        go.objects[depthTileBase] = newBattler;
 
         return true;
       }
@@ -719,107 +720,6 @@ class GridPopulator {
   }
 }
 
-// ------------------------------------------------------------
-//  HELPERS DE GridPopulator
-// ------------------------------------------------------------
-
-extension GridPopulatorHelpers on GridPopulator {
-  static int index(int x, int y, int width) => y * width + x;
-
-  /// Create a base list of TileType to be used by generators.
-  static List<TileType> createBaseTypes(
-    int width,
-    int height, {
-    TileType fill = TileType.path,
-  }) {
-    return List<TileType>.filled(width * height, fill);
-  }
-
-  /// Construye un Grid (List<GridObject?>) a partir de una lista de TileType.
-  static Grid buildGridObjects(int width, int height, List<TileType> types) {
-    final grid = List<GridObject?>.filled(width * height, null);
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final i = index(x, y, width);
-        final type = types[i];
-
-        final tile = TileObject.fromType(type, x, y, i);
-
-        grid[i] = GridObject(
-          x,
-          y,
-          {tile.z: tile},
-        );
-      }
-    }
-
-    return grid;
-  }
-
-  /// Devuelve true si alrededor de (x,y) hay algún tile del tipo [chunkType]
-  /// en el anillo de radio 1 (8 direcciones).
-  static bool hasAdjacentChunkOfType(
-    int x,
-    int y,
-    int width,
-    int height,
-    List<TileType> types,
-    TileType chunkType,
-  ) {
-    for (int yy = y - 1; yy <= y + 1; yy++) {
-      for (int xx = x - 1; xx <= x + 1; xx++) {
-        if (xx < 0 || yy < 0 || xx >= width || yy >= height) continue;
-        if (xx == x && yy == y) continue;
-
-        final i = index(xx, yy, width);
-        if (types[i] == chunkType) return true;
-      }
-    }
-    return false;
-  }
-
-  /// Check if we can place a 2x2 wall chunk at (x,y) without touching another chunk.
-  static bool canPlaceTypeChunkAtType(
-      int x, int y, int width, int height, List<TileType> types,
-      {required TileType chunkTileType, required TileType baseTileType}) {
-    // 1) 2x2 area must be all baseType
-    for (int yy = y; yy <= y + 1; yy++) {
-      for (int xx = x; xx <= x + 1; xx++) {
-        if (types[index(xx, yy, width)] != baseTileType) return false;
-      }
-    }
-
-    // 2) No chunks in the 1-tile ring around the 2x2 area
-    for (int yy = y - 1; yy <= y + 2; yy++) {
-      for (int xx = x - 1; xx <= x + 2; xx++) {
-        if (xx < 0 || yy < 0 || xx >= width || yy >= height) continue;
-
-        final insideChunk =
-            (xx >= x && xx <= x + 1 && yy >= y && yy <= y + 1);
-        if (insideChunk) continue;
-
-        if (types[index(xx, yy, width)] == chunkTileType) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  /// Actually place the 2x2 chunk.
-  static void placeTypeChunkAt(
-      int x, int y, int width, int height, List<TileType> types,
-      {required TileType tileType}) {
-    for (int yy = y; yy <= y + 1; yy++) {
-      for (int xx = x; xx <= x + 1; xx++) {
-        types[index(xx, yy, width)] = tileType;
-      }
-    }
-  }
-}
-
 // Small rect struct
 class _Rect {
   final int left;
@@ -827,208 +727,4 @@ class _Rect {
   final int right; // exclusive
   final int bottom; // exclusive
   const _Rect(this.left, this.top, this.right, this.bottom);
-}
-
-// ------------------------------------------------------------
-//  BUILDERS: devuelven Grid ya con TileObject en sus capas
-// ------------------------------------------------------------
-
-extension GridPopulatorBuilders on GridPopulator {
-  // GENERATE EMPTY
-  static Grid generateEmptyGrid(int height, int width) {
-    final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE RANDOM
-  static Grid generateRandomGrid(int height, int width) {
-    final random = Random();
-    final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-
-    GridPopulator.fillCompletelyRandom(types, width, height, random);
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE SQUARE WALLS
-  static Grid generateSquareWallsGrid(int height, int width) {
-    final random = Random();
-    final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-
-    GridPopulator.addTypeSquares(types, width, height, random);
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE SQUARE WALLS WITH CHASMS
-  static Grid generateSquareWallsGridWithChasms(int height, int width) {
-    final random = Random();
-    final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-
-    GridPopulator.addTypeChunks(
-      types,
-      width,
-      height,
-      random,
-      chunkType: TileType.chasm,
-    );
-
-    GridPopulator.addTypeSquares(types, width, height, random);
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE CHASM FILLED WITH PATH CHUNKS
-  static Grid generateChasmFilledWithPathChunksGrid(int height, int width) {
-    final random = Random();
-    final types = GridPopulatorHelpers.createBaseTypes(
-      width,
-      height,
-      fill: TileType.chasm,
-    );
-
-    GridPopulator.addTypeChunks(
-      types,
-      width,
-      height,
-      random,
-      chunkType: TileType.path,
-      baseType: TileType.chasm,
-    );
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE CHASM FILLED WITH PATH SQUARES
-  static Grid generateChasmFilledWithPathSquaresGrid(int height, int width) {
-    final random = Random();
-    final types = GridPopulatorHelpers.createBaseTypes(
-      width,
-      height,
-      fill: TileType.chasm,
-    );
-
-    GridPopulator.addTypeSquares(
-      types,
-      width,
-      height,
-      random,
-      tileType: TileType.path,
-      baseType: TileType.chasm,
-    );
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE PATH MAP WITH HORIZONTAL RIVER
-  static Grid generatePathGridWithHorizontalRiver(int height, int width) {
-    final random = Random();
-    final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-
-    GridPopulator.addRiver(
-      types,
-      width,
-      height,
-      random,
-      riverType: TileType.river,
-      erodedTypes: [TileType.path],
-      maxRiverWidth: 2,
-      vertical: false, // horizontal
-    );
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE PATH MAP WITH VERTICAL RIVER + WALL SQUARES
-  static Grid generatePathGridWithVRiverAndChasmSquares(
-      int height, int width) {
-    final random = Random();
-    final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-
-    GridPopulator.addRiver(
-      types,
-      width,
-      height,
-      random,
-      riverType: TileType.river,
-      erodedTypes: [TileType.path],
-      maxRiverWidth: 2,
-      vertical: true, // vertical
-    );
-
-    GridPopulator.addTypeSquares(types, width, height, random);
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE SQUARES, CHASMS, AND RIVER
-  static Grid generateSquaresChasmsAndRiverGrid(int height, int width) {
-    final random = Random();
-    final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-
-    // First: put some chasm chunks over paths
-    GridPopulator.addTypeChunks(
-      types,
-      width,
-      height,
-      random,
-      chunkType: TileType.chasm,
-      baseType: TileType.path,
-    );
-
-    // Then: square walls over remaining paths
-    GridPopulator.addTypeSquares(
-      types,
-      width,
-      height,
-      random,
-      tileType: TileType.wall,
-      baseType: TileType.path,
-    );
-
-    // Finally: river goes through path *and* chasm, but not walls
-    GridPopulator.addRiver(
-      types,
-      width,
-      height,
-      random,
-      riverType: TileType.river,
-      erodedTypes: [TileType.path, TileType.chasm],
-      maxRiverWidth: 3,
-      vertical: true, // top -> bottom
-    );
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
-
-  // GENERATE CHASM WITH BIG REGION PATH CHUNKS
-  static Grid generateChasmWithBigPathChunksGrid(int height, int width) {
-    final random = Random();
-    final types = GridPopulatorHelpers.createBaseTypes(
-      width,
-      height,
-      fill: TileType.chasm,
-    );
-
-    GridPopulator.addTypeRegionChunks(
-      types,
-      width,
-      height,
-      random,
-      chunkType: TileType.path,
-      baseType: TileType.chasm,
-      minChunkSize: 4,
-      maxChunkSize: 8,
-      attempts: 30,
-    );
-
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
-  }
 }

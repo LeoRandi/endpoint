@@ -1,5 +1,6 @@
 import "_imports.dart";
 
+
 // ------------------------------------------------------------
 //  HELPERS DE GridPopulator
 // ------------------------------------------------------------
@@ -25,7 +26,7 @@ extension GridPopulatorHelpers on GridPopulator {
         final i = index(x, y, width);
         final type = types[i];
 
-        final tile = TileObject.fromType(type, x, y, i);
+        final tile = TileObject.fromType(type, x, y);
 
         grid[i] = GridObject(
           x,
@@ -99,13 +100,4 @@ extension GridPopulatorHelpers on GridPopulator {
       }
     }
   }
-}
-
-// Small rect struct
-class _Rect {
-  final int left;
-  final int top;
-  final int right; // exclusive
-  final int bottom; // exclusive
-  const _Rect(this.left, this.top, this.right, this.bottom);
 }

@@ -1,12 +1,11 @@
 import '../_imports.dart';
 
-class BaseObject{
+class BaseObject {
   int x;
   int y;
   int z;
-  int id; // if <0 means the object is null or unusable
 
-  BaseObject(this.x, this.y, this.z, this.id);
+  BaseObject(this.x, this.y, this.z);
 }
 
 class GridObject {
@@ -16,17 +15,46 @@ class GridObject {
 
   GridObject(this.x, this.y, this.objects);
 
+  Widget getGridObjectWidget(int width) {
+    final tile = getHighestTile();
+    return tile != null
+        ? Stack(
+            children: [
+              Image.asset(tile.imagePath),
+              if (tile.z < depthTileBase &&
+                  objects[depthTileBase] is BattlerObject)
+                Image.asset(
+                    (objects[depthTileBase] as BattlerObject).battler.imagePath)
+            ],
+          )
+        : SizedBox();
+  }
+
+  TileObject? getHighestTile() {
+    TileObject? highest;
+    int? highestZ;
+
+    for (final obj in this.objects.values) {
+      if (obj is! TileObject) continue;
+
+      if (highestZ == null || obj.z > highestZ) {
+        highestZ = obj.z;
+        highest = obj;
+      }
+    }
+
+    return highest;
+  }
 }
 
-extension GridObjectList on List<GridObject>{
+extension GridObjectList on List<GridObject> {
   List<BaseObject> getLayer(int depth) {
-    if(depthOutOfBounds(depth))
-      return [];
-    
+    if (depthOutOfBounds(depth)) return [];
+
     final layerList = <BaseObject>[];
 
-    for(final gridObject in this) {
-      if(gridObject.objects.containsKey(depth)) {
+    for (final gridObject in this) {
+      if (gridObject.objects.containsKey(depth)) {
         layerList.add(gridObject.objects[depth]!);
       }
     }
@@ -35,10 +63,9 @@ extension GridObjectList on List<GridObject>{
   }
 
   void setLayer(int depth, List<BaseObject> objects) {
-    if(objects.length != this.length)
-      return;
+    if (objects.length != this.length) return;
 
-    for(int i = 0; i < this.length; i++) {
+    for (int i = 0; i < this.length; i++) {
       final gridObject = this[i];
       if (gridObject.objects.containsKey(depth)) {
         gridObject.objects[depth] = objects[i];
@@ -47,10 +74,10 @@ extension GridObjectList on List<GridObject>{
   }
 }
 
-const int depthTileChasm  = -1; // por si quieres distinguir
-const int depthTileGround = 0;  // path / river
-const int depthTileBase   = 1; //battler / wall
-const int depthAbove    = 2;  // capa más alta
+const int depthTileChasm = -1; // por si quieres distinguir
+const int depthTileGround = 0; // path / river
+const int depthTileBase = 1; //battler / wall
+const int depthAbove = 2; // capa más alta
 
 extension GridExtensions on Grid {
   GridObject? gridObjectAt(int x, int y, int width) {
@@ -117,7 +144,7 @@ extension GridExtensions on Grid {
     if (go == null) return false;
 
     final bo = go.objects[depthTileBase];
-    return bo is BattlerObject && bo.id >= 0;
+    return bo is BattlerObject;
   }
 
   BattlerObject? battlerObjectAt(int x, int y, int width) {

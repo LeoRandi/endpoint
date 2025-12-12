@@ -2,7 +2,7 @@ import "_imports.dart";
 
 class GlobalState {
   final _viewSelectedBattlerController = StreamController<Battler?>.broadcast();
-  final ManagerList<BaseObject> baseObjectManager = ManagerList<BaseObject>([]);
+  final ManagerList<BattlerObject> battlerObjectManager = ManagerList<BattlerObject>([]);
 
   Stream<Battler?> get viewSelectedBattlerStream =>
       _viewSelectedBattlerController.stream;
