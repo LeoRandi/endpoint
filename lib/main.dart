@@ -32,22 +32,26 @@ class EndpointStart extends StatefulWidget {
 class _EndpointStartState extends State<EndpointStart> {
   @override
   Widget build(BuildContext context) {
+    final allies = [
+      Battler.hero(),
+      Battler.heroMage(),
+      Battler.heroCleric(),
+      Battler.heroRogue(),
+    ];
+
+    final enemies = [
+      Battler.goblin(),
+      Battler.goblinTank(),
+      Battler.goblinArcher(),
+      Battler.trashGoblin(),
+    ];
+
     return Scaffold(
       body: SafeArea(
         child: BattleStationPage(
           {
-            BattlerSide.ally: [
-              Battler.hero(),
-              Battler.heroMage(),
-              Battler.heroCleric(),
-              Battler.heroRogue(),
-            ],
-            BattlerSide.enemy: [
-              Battler.goblin(),
-              Battler.goblinTank(),
-              Battler.goblinArcher(),
-              Battler.trashGoblin(),
-            ],
+            BattlerSide.ally: allies,
+            BattlerSide.enemy: enemies,
           },
         ),
       ),

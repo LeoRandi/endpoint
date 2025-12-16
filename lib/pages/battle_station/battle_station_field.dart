@@ -12,6 +12,11 @@ class BattleStationField extends StatefulWidget {
 class _BattleStationFieldState extends State<BattleStationField> {
   @override
   Widget build(BuildContext context) {
-    return widget.battleStationFieldProvider.getBattleField();
+    return widget.battleStationFieldProvider.getBattleField(
+      context,
+      rebuild: () => setState(() {
+        widget.battleStationFieldProvider.mapIndex = (widget.battleStationFieldProvider.mapIndex + 1) % 5;
+      }),
+    );
   }
 }

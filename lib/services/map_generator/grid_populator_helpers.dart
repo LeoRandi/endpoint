@@ -1,8 +1,11 @@
 import "_imports.dart";
 
-extension MapGeneratorHelpers on MapGenerator{
-    // ---------- helpers ----------
 
+// ------------------------------------------------------------
+//  HELPERS DE GridPopulator
+// ------------------------------------------------------------
+
+extension GridPopulatorHelpers on GridPopulator {
   static int index(int x, int y, int width) => y * width + x;
 
   /// Create a base list of TileType to be used by generators.
@@ -14,11 +17,27 @@ extension MapGeneratorHelpers on MapGenerator{
     return List<TileType>.filled(width * height, fill);
   }
 
-  /// Final step: build the TileGrid from types.
-  static TileGrid buildGrid(int width, int height, List<TileType> types) {
-    return TileGrid.buildFromTypes(width, height, types);
+  /// Construye un Grid (List<GridObject?>) a partir de una lista de TileType.
+  static Grid buildGridObjects(int width, int height, List<TileType> types) {
+    final grid = List<GridObject?>.filled(width * height, null);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final i = index(x, y, width);
+        final type = types[i];
+
+        final tile = TileObject.fromType(type, x, y);
+
+        grid[i] = GridObject(
+          x,
+          y,
+          {tile.z: tile},
+        );
+      }
+    }
+
+    return grid;
   }
-  
 
   /// Devuelve true si alrededor de (x,y) hay algún tile del tipo [chunkType]
   /// en el anillo de radio 1 (8 direcciones).
@@ -42,26 +61,24 @@ extension MapGeneratorHelpers on MapGenerator{
     return false;
   }
 
-  
-  // ---------- PRIVATE HELPERS FOR 2x2 WALL SQUARES ----------
-
   /// Check if we can place a 2x2 wall chunk at (x,y) without touching another chunk.
   static bool canPlaceTypeChunkAtType(
       int x, int y, int width, int height, List<TileType> types,
       {required TileType chunkTileType, required TileType baseTileType}) {
-    // 1) 2x2 area must be all paths
+    // 1) 2x2 area must be all baseType
     for (int yy = y; yy <= y + 1; yy++) {
       for (int xx = x; xx <= x + 1; xx++) {
         if (types[index(xx, yy, width)] != baseTileType) return false;
       }
     }
 
-    // 2) No walls in the 1-tile ring around the 2x2 area
+    // 2) No chunks in the 1-tile ring around the 2x2 area
     for (int yy = y - 1; yy <= y + 2; yy++) {
       for (int xx = x - 1; xx <= x + 2; xx++) {
         if (xx < 0 || yy < 0 || xx >= width || yy >= height) continue;
 
-        final insideChunk = (xx >= x && xx <= x + 1 && yy >= y && yy <= y + 1);
+        final insideChunk =
+            (xx >= x && xx <= x + 1 && yy >= y && yy <= y + 1);
         if (insideChunk) continue;
 
         if (types[index(xx, yy, width)] == chunkTileType) {
@@ -73,7 +90,7 @@ extension MapGeneratorHelpers on MapGenerator{
     return true;
   }
 
-  /// Actually place the 2x2 wall chunk.
+  /// Actually place the 2x2 chunk.
   static void placeTypeChunkAt(
       int x, int y, int width, int height, List<TileType> types,
       {required TileType tileType}) {

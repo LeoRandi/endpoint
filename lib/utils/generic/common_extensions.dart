@@ -38,6 +38,13 @@ extension ListExtensionV2<T> on List<T> {
     return false;
   }
 
+  List<T> sortByInt(int Function(T o) getInt) {
+    if (isEmpty) return this;
+    sort(
+        (a, b) => getInt(a).compareTo(getInt(b)));
+    return this;
+  }
+
   List<T> sortByText(String Function(T o) getText) {
     if (isEmpty) return this;
     sort(

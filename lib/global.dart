@@ -2,6 +2,7 @@ import "_imports.dart";
 
 class GlobalState {
   final _viewSelectedBattlerController = StreamController<Battler?>.broadcast();
+  final ManagerList<BattlerObject> battlerObjectManager = ManagerList<BattlerObject>([]);
 
   Stream<Battler?> get viewSelectedBattlerStream =>
       _viewSelectedBattlerController.stream;
@@ -12,3 +13,6 @@ class GlobalState {
 }
 
 final global = GlobalState();
+
+typedef Grid = List<GridObject?>;
+
