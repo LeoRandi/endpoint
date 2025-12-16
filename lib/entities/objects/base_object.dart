@@ -16,26 +16,55 @@ class GridObject {
   GridObject(this.x, this.y, this.objects);
 
   Widget getGridObjectWidget(int width) {
-    final tile = getHighestTile();
-    return tile != null
-        ? Stack(
-            children: [
-              Image.asset(tile.imagePath),
-              if (tile.z < depthTileBase &&
-                  objects[depthTileBase] is BattlerObject)
-                Image.asset(
-                    (objects[depthTileBase] as BattlerObject).battler.imagePath)
-            ],
-          )
-        : SizedBox();
+    final baseTile =
+        getHighestTerrainTile() ?? TileObject.chasm(x, y, depthTileChasm);
+
+    final overlay = objects[depthAbove];
+    final overlayTile = (overlay is TileObject &&
+            (overlay.tileType == TileType.distance ||
+                overlay.tileType == TileType.enemyDistance))
+        ? overlay
+        : null;
+
+    final battlerObj = objects[depthTileBase];
+
+    return Stack(
+      children: [
+        Image.asset(baseTile.imagePath),
+        if (baseTile.z < depthTileBase && battlerObj is BattlerObject)
+          Image.asset(battlerObj.battler.imagePath),
+        if (overlayTile != null) Image.asset(overlayTile.imagePath),
+      ],
+    );
   }
 
   TileObject? getHighestTile() {
     TileObject? highest;
     int? highestZ;
 
-    for (final obj in this.objects.values) {
+    for (final obj in objects.values) {
       if (obj is! TileObject) continue;
+
+      if (highestZ == null || obj.z > highestZ) {
+        highestZ = obj.z;
+        highest = obj;
+      }
+    }
+
+    return highest;
+  }
+
+  /// Highest tile excluding distance overlays.
+  TileObject? getHighestTerrainTile() {
+    TileObject? highest;
+    int? highestZ;
+
+    for (final obj in objects.values) {
+      if (obj is! TileObject) continue;
+      if (obj.tileType == TileType.distance ||
+          obj.tileType == TileType.enemyDistance) {
+        continue;
+      }
 
       if (highestZ == null || obj.z > highestZ) {
         highestZ = obj.z;
@@ -83,7 +112,16 @@ extension GridExtensions on Grid {
   GridObject? gridObjectAt(int x, int y, int width) {
     final i = idx(x, y, width);
     if (i < 0 || i >= length) return null;
-    return this[i];
+
+    final existing = this[i];
+    if (existing != null) return existing;
+
+    // Safety: a cell should never be null, but if it is, create a fallback
+    // GridObject containing a chasm tile.
+    final chasm = TileObject.chasm(x, y, depthTileChasm);
+    final fallback = GridObject(x, y, {chasm.z: chasm});
+    this[i] = fallback;
+    return fallback;
   }
 
   /// Devuelve la TileObject en la mayor profundidad z de esa casilla,

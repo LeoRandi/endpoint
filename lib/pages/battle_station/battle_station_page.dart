@@ -28,8 +28,13 @@ class _BattleStationPageState extends State<BattleStationPage> {
             return BattleStationBattlerAppBar(battler);
           },
         ),
-        Expanded(
-          child: BattleStationField(widget.provider),
+        ValueListenableBuilder<Battler?>(
+          valueListenable: provider.selectedBattlerNotifier,
+          builder: (context, battler, _) {
+            return Expanded(
+              child: BattleStationField(widget.provider),
+            );
+          },
         ),
         ValueListenableBuilder<Battler?>(
           valueListenable: provider.playingBattlerNotifier,

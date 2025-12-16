@@ -19,7 +19,7 @@ extension GridPopulatorHelpers on GridPopulator {
 
   /// Construye un Grid (List<GridObject?>) a partir de una lista de TileType.
   static Grid buildGridObjects(int width, int height, List<TileType> types) {
-    final grid = List<GridObject?>.filled(width * height, null);
+    final grid = Grid.filled(width * height, null);
 
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {

@@ -34,6 +34,7 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.greenAccent),
                   ),
                   onPressed: () {
+                    global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 1;
                     widget.refresh();
                   },
@@ -45,6 +46,7 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.redAccent),
                   ),
                   onPressed: () {
+                    global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 2;
                     widget.refresh();
                   },
@@ -61,6 +63,7 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.blueAccent),
                   ),
                   onPressed: () {
+                    global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 3;
                     widget.refresh();
                   },
@@ -72,6 +75,7 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.yellowAccent),
                   ),
                   onPressed: () {
+                    global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 4;
                     widget.refresh();
                   },

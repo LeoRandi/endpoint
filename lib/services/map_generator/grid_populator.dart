@@ -200,15 +200,14 @@ class GridPopulator {
         final tile = grid.tileAt(p.x, p.y, width);
         if (tile == null || !tile.isWalkable) continue;
 
-        final i = idx(p.x, p.y, width);
-        final go = grid[i] ?? GridObject(p.x, p.y, {});
-        grid[i] = go;
+        final go = grid.gridObjectAt(p.x, p.y, width);
+        if (go == null) continue;
 
         final newBattler = BattlerObject(
           p.x,
           p.y,
           depthTileBase,
-          global.battlerObjectManager.nextId(), 
+          global.battlerObjectManager.nextId(),
           battler,
         );
 
@@ -240,8 +239,7 @@ class GridPopulator {
   //  CORNER-CHOOSING LOGIC (SOBRE GridObject)
   // ------------------------------------------------------------
 
-  static MapCorner chooseBestStartingCorner(
-      Grid grid, int width, int height) {
+  static MapCorner chooseBestStartingCorner(Grid grid, int width, int height) {
     final counts = _walkablesPerCorner(grid, width, height);
 
     if (counts.values.every((c) => c == 0)) {
@@ -465,8 +463,7 @@ class GridPopulator {
           continue;
         }
 
-        final targetIndex =
-            GridPopulatorHelpers.index(targetX, targetY, width);
+        final targetIndex = GridPopulatorHelpers.index(targetX, targetY, width);
 
         // must be baseType to grow into
         if (types[targetIndex] != baseType) {

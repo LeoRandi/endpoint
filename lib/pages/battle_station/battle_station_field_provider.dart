@@ -23,16 +23,23 @@ class BattleStationFieldProvider {
     const int width = 12;
     const int height = 12;
 
-    final grid = getGrid(height, width);
+    bool ok = true;
 
-    final ok = GridPopulator.populateBattlersAutoCorners(
-      grid,
-      width,
-      height,
-      battlers,
-      offset: 1,
-      areaFactor: 2.0,
-    );
+    late final Grid grid;
+    if (global.gridManager.isEmpty) {
+      grid = getGrid(height, width);
+
+      ok = GridPopulator.populateBattlersAutoCorners(
+        grid,
+        width,
+        height,
+        battlers,
+        offset: 1,
+        areaFactor: 2.0,
+      );
+    } else {
+      grid = global.gridManager.models.first;
+    }
 
     if (!ok) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -60,6 +67,12 @@ class BattleStationFieldProvider {
         );
       });
     }
+
+    ok = DistanceManager.addSelectedBattlerDistance(
+        grid: grid,
+        size: 12,
+        selectedBattler: selectedBattlerNotifier.value,
+        battlers: battlers);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -95,22 +108,25 @@ class BattleStationFieldProvider {
   /// Before: TileGrid getTileGrid()
   /// Now: Grid getGrid()
   Grid getGrid(int height, int width) {
+    late final grid;
     switch (mapIndex) {
       case 0:
-        return GridPopulatorBuilders.generateEmptyGrid(height, width);
+        grid = GridPopulatorBuilders.generateEmptyGrid(height, width);
       case 1:
-        return GridPopulatorBuilders.generateRandomGrid(height, width);
+        grid = GridPopulatorBuilders.generateRandomGrid(height, width);
       case 2:
-        return GridPopulatorBuilders.generatePathGridWithHorizontalRiver(
+        grid = GridPopulatorBuilders.generatePathGridWithHorizontalRiver(
             height, width);
       case 3:
-        return GridPopulatorBuilders.generatePathGridWithVRiverAndChasmSquares(
+        grid = GridPopulatorBuilders.generatePathGridWithVRiverAndChasmSquares(
             height, width);
       case 4:
-        return GridPopulatorBuilders.generateChasmWithBigPathChunksGrid(
+        grid = GridPopulatorBuilders.generateChasmWithBigPathChunksGrid(
             height, width);
       default:
-        return GridPopulatorBuilders.generateEmptyGrid(height, width);
+        grid = GridPopulatorBuilders.generateEmptyGrid(height, width);
     }
+    global.gridManager.models.add(grid);
+    return grid;
   }
 }
