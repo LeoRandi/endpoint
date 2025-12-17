@@ -85,12 +85,7 @@ class BattleStationFieldProvider {
                     return BattleStationCell(
                       gridObject: gridObject!,
                       size: 24,
-                      onTap: () {
-                        final battlerObj = gridObject.objects[depthTileBase];
-                        if (battlerObj is BattlerObject) {
-                          setSelectedBattler(battlerObj.battler);
-                        }
-                      },
+                      onTap: () => onTapBattleStationCell(gridObject),
                     );
                   },
                 ),
@@ -98,6 +93,22 @@ class BattleStationFieldProvider {
           ),
       ],
     );
+  }
+
+  void onTapBattleStationCell(GridObject gridObject) {
+    final battlerObj = gridObject.objects[depthTileBase];
+    if (battlerObj is BattlerObject) {
+      setSelectedBattler(battlerObj.battler);
+      return;
+    }
+
+    // If no battler was tapped, clear the selection and distance overlays.
+    setSelectedBattler(null);
+    final grid = _currentGrid ??
+        (global.gridManager.isEmpty ? null : global.gridManager.models.first);
+    if (grid != null) {
+      DistanceManager.clearAllDistances(grid);
+    }
   }
 
   /// Before: TileGrid getTileGrid()

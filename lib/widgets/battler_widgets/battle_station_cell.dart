@@ -12,12 +12,10 @@ class BattleStationCell extends StatelessWidget {
     this.onTap,
   }) : super(key: key);
 
-  bool get hasBattler => gridObject.objects[depthTileBase] is BattlerObject;
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: hasBattler ? onTap : null,
+      onTap: onTap,
       child: SizedBox(
         width: size.toDouble(),
         height: size.toDouble(),
