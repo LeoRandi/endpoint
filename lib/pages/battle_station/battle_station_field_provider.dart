@@ -2,21 +2,16 @@ import '_imports.dart';
 
 class BattleStationFieldProvider {
   final Map<BattlerSide, List<Battler>> battlers;
+  final Battler? startBattler;
   int mapIndex = 0;
 
   final ValueNotifier<Battler?> selectedBattlerNotifier;
-  final ValueNotifier<Battler?> playingBattlerNotifier;
 
-  BattleStationFieldProvider(this.battlers)
-      : selectedBattlerNotifier = ValueNotifier<Battler?>(null),
-        playingBattlerNotifier = ValueNotifier<Battler?>(null);
+  BattleStationFieldProvider(this.battlers, {this.startBattler})
+      : selectedBattlerNotifier = ValueNotifier<Battler?>(null);
 
   void setSelectedBattler(Battler? battler) {
     selectedBattlerNotifier.value = battler;
-  }
-
-  void setPlayingBattler(Battler? battler) {
-    playingBattlerNotifier.value = battler;
   }
 
   Widget getBattleField(BuildContext context, {required VoidCallback rebuild}) {
@@ -108,7 +103,7 @@ class BattleStationFieldProvider {
   /// Before: TileGrid getTileGrid()
   /// Now: Grid getGrid()
   Grid getGrid(int height, int width) {
-    late final grid;
+    late final Grid grid;
     switch (mapIndex) {
       case 0:
         grid = GridPopulatorBuilders.generateEmptyGrid(height, width);

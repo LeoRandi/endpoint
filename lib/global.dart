@@ -11,6 +11,11 @@ class GlobalState {
   void setViewSelectedBattler(Battler? battler) {
     _viewSelectedBattlerController.add(battler);
   }
+  final ValueNotifier<Battler?> playingBattlerNotifier = ValueNotifier<Battler?>(null);
+
+  void setPlayingBattler(Battler? battler) {
+    playingBattlerNotifier.value = battler;
+  }
 }
 
 final global = GlobalState();

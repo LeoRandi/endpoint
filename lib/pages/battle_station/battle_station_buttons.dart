@@ -36,9 +36,12 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                   onPressed: () {
                     global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 1;
+                    global.setPlayingBattler(global.battlerObjectManager.models
+                        .firstWhere((bo) => bo.battler.side == BattlerSide.ally)
+                        .battler);
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Cost 10 Mana'),
+                  child: TextWidget.medium('Map 1 - Ally Start'),
                 ),
                 ElevatedButton(
                   style: ButtonStyle(
@@ -48,9 +51,13 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                   onPressed: () {
                     global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 2;
+                    global.setPlayingBattler(global.battlerObjectManager.models
+                        .firstWhere(
+                            (bo) => bo.battler.side == BattlerSide.enemy)
+                        .battler);
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Cost 20 Mana'),
+                  child: TextWidget.medium('Map 2 - Enemy Start'),
                 ),
               ],
             ),
@@ -65,9 +72,16 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                   onPressed: () {
                     global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 3;
+                    global.setPlayingBattler(global.battlerObjectManager.models
+                        .firstWhere(
+                            (bo) => bo.battler.side == BattlerSide.neutral,
+                            orElse: () {
+                      return global.battlerObjectManager.models.firstWhere(
+                          (bo) => bo.battler.side == BattlerSide.ally);
+                    }).battler);
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Cost 30 Mana'),
+                  child: TextWidget.medium('Map 3 - Neutral/Ally Start'),
                 ),
                 ElevatedButton(
                   style: ButtonStyle(
@@ -77,9 +91,16 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                   onPressed: () {
                     global.gridManager.models.clear();
                     widget.battleStationFieldProvider.mapIndex = 4;
+                    global.setPlayingBattler(global.battlerObjectManager.models
+                        .firstWhere(
+                            (bo) => bo.battler.side == BattlerSide.neutral,
+                            orElse: () {
+                      return global.battlerObjectManager.models.firstWhere(
+                          (bo) => bo.battler.side == BattlerSide.enemy);
+                    }).battler);
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Cost 40 Mana'),
+                  child: TextWidget.medium('Map 4 - Neutral/Enemy Start'),
                 ),
               ],
             ),

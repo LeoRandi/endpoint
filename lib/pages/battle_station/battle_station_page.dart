@@ -37,7 +37,7 @@ class _BattleStationPageState extends State<BattleStationPage> {
           },
         ),
         ValueListenableBuilder<Battler?>(
-          valueListenable: provider.playingBattlerNotifier,
+          valueListenable: global.playingBattlerNotifier,
           builder: (context, battler, _) {
             return SizedBox(
               height:
