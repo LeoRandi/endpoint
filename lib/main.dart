@@ -33,17 +33,17 @@ class _EndpointStartState extends State<EndpointStart> {
   @override
   Widget build(BuildContext context) {
     final allies = [
-      Battler.hero(),
-      Battler.heroMage(),
-      Battler.heroCleric(),
-      Battler.heroRogue(),
+      BattlerFactories.hero(),
+      BattlerFactories.heroMage(),
+      BattlerFactories.heroCleric(),
+      BattlerFactories.heroRogue(),
     ];
 
     final enemies = [
-      Battler.goblin(),
-      Battler.goblinTank(),
-      Battler.goblinArcher(),
-      Battler.trashGoblin(),
+      BattlerFactories.goblin(),
+      BattlerFactories.goblinTank(),
+      BattlerFactories.goblinArcher(),
+      BattlerFactories.trashGoblin(),
     ];
 
     return Scaffold(
