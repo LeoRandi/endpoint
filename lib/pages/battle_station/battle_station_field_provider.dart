@@ -6,6 +6,7 @@ class BattleStationFieldProvider {
   int mapIndex = 0;
 
   final ValueNotifier<Battler?> selectedBattlerNotifier;
+  Grid? _currentGrid;
 
   BattleStationFieldProvider(this.battlers, {this.startBattler})
       : selectedBattlerNotifier = ValueNotifier<Battler?>(null);
@@ -15,19 +16,16 @@ class BattleStationFieldProvider {
   }
 
   Widget getBattleField(BuildContext context, {required VoidCallback rebuild}) {
-    const int width = 12;
-    const int height = 12;
 
     bool ok = true;
 
     late final Grid grid;
     if (global.gridManager.isEmpty) {
-      grid = getGrid(height, width);
+      grid = getGrid(global.gridSize);
 
       ok = GridPopulator.populateBattlersAutoCorners(
         grid,
-        width,
-        height,
+        global.gridSize,
         battlers,
         offset: 1,
         areaFactor: 2.0,
@@ -63,9 +61,11 @@ class BattleStationFieldProvider {
       });
     }
 
+    _currentGrid = grid;
+
     ok = DistanceManager.addSelectedBattlerDistance(
         grid: grid,
-        size: 12,
+          size: 12,
         selectedBattler: selectedBattlerNotifier.value,
         battlers: battlers);
 
@@ -73,14 +73,14 @@ class BattleStationFieldProvider {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < global.gridSize; y++)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (int x = 0; x < width; x++)
+              for (int x = 0; x < global.gridSize; x++)
                 Builder(
                   builder: (_) {
-                    final gridObject = grid.gridObjectAt(x, y, width);
+                    final gridObject = grid.gridObjectAt(x, y, global.gridSize);
 
                     return BattleStationCell(
                       gridObject: gridObject!,
@@ -113,24 +113,24 @@ class BattleStationFieldProvider {
 
   /// Before: TileGrid getTileGrid()
   /// Now: Grid getGrid()
-  Grid getGrid(int height, int width) {
+  Grid getGrid(int gridSize) {
     late final Grid grid;
     switch (mapIndex) {
       case 0:
-        grid = GridPopulatorBuilders.generateEmptyGrid(height, width);
+        grid = GridPopulatorBuilders.generateEmptyGrid(gridSize);
       case 1:
-        grid = GridPopulatorBuilders.generateRandomGrid(height, width);
+        grid = GridPopulatorBuilders.generateRandomGrid(gridSize);
       case 2:
         grid = GridPopulatorBuilders.generatePathGridWithHorizontalRiver(
-            height, width);
+            gridSize);
       case 3:
         grid = GridPopulatorBuilders.generatePathGridWithVRiverAndChasmSquares(
-            height, width);
+            gridSize);
       case 4:
         grid = GridPopulatorBuilders.generateChasmWithBigPathChunksGrid(
-            height, width);
+            gridSize);
       default:
-        grid = GridPopulatorBuilders.generateEmptyGrid(height, width);
+        grid = GridPopulatorBuilders.generateEmptyGrid(gridSize);
     }
     global.gridManager.models.add(grid);
     return grid;

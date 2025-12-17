@@ -16,6 +16,8 @@ class GlobalState {
   void setPlayingBattler(Battler? battler) {
     playingBattlerNotifier.value = battler;
   }
+
+  int gridSize = 12;
 }
 
 final global = GlobalState();

@@ -6,105 +6,99 @@ import "_imports.dart";
 
 extension GridPopulatorBuilders on GridPopulator {
   // GENERATE EMPTY
-  static Grid generateEmptyGrid(int height, int width) {
+  static Grid generateEmptyGrid(int gridSize) {
     final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+        GridPopulatorHelpers.createBaseTypes(gridSize, fill: TileType.path);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE RANDOM
-  static Grid generateRandomGrid(int height, int width) {
+  static Grid generateRandomGrid(int gridSize) {
     final random = Random();
     final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+        GridPopulatorHelpers.createBaseTypes(gridSize, fill: TileType.path);
 
-    GridPopulator.fillCompletelyRandom(types, width, height, random);
+    GridPopulator.fillCompletelyRandom(types, gridSize, random);
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE SQUARE WALLS
-  static Grid generateSquareWallsGrid(int height, int width) {
+  static Grid generateSquareWallsGrid(int gridSize) {
     final random = Random();
     final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+        GridPopulatorHelpers.createBaseTypes(gridSize, fill: TileType.path);
 
-    GridPopulator.addTypeSquares(types, width, height, random);
+    GridPopulator.addTypeSquares(types, gridSize, random);
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE SQUARE WALLS WITH CHASMS
-  static Grid generateSquareWallsGridWithChasms(int height, int width) {
+  static Grid generateSquareWallsGridWithChasms(int gridSize) {
     final random = Random();
     final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+        GridPopulatorHelpers.createBaseTypes(gridSize, fill: TileType.path);
 
     GridPopulator.addTypeChunks(
       types,
-      width,
-      height,
+      gridSize,
       random,
       chunkType: TileType.chasm,
     );
 
-    GridPopulator.addTypeSquares(types, width, height, random);
+    GridPopulator.addTypeSquares(types, gridSize, random);
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE CHASM FILLED WITH PATH CHUNKS
-  static Grid generateChasmFilledWithPathChunksGrid(int height, int width) {
+  static Grid generateChasmFilledWithPathChunksGrid(int gridSize) {
     final random = Random();
     final types = GridPopulatorHelpers.createBaseTypes(
-      width,
-      height,
+      gridSize,
       fill: TileType.chasm,
     );
 
     GridPopulator.addTypeChunks(
       types,
-      width,
-      height,
+      gridSize,
       random,
       chunkType: TileType.path,
       baseType: TileType.chasm,
     );
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE CHASM FILLED WITH PATH SQUARES
-  static Grid generateChasmFilledWithPathSquaresGrid(int height, int width) {
+  static Grid generateChasmFilledWithPathSquaresGrid(int gridSize) {
     final random = Random();
     final types = GridPopulatorHelpers.createBaseTypes(
-      width,
-      height,
+      gridSize,
       fill: TileType.chasm,
     );
 
     GridPopulator.addTypeSquares(
       types,
-      width,
-      height,
+      gridSize,
       random,
       tileType: TileType.path,
       baseType: TileType.chasm,
     );
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE PATH MAP WITH HORIZONTAL RIVER
-  static Grid generatePathGridWithHorizontalRiver(int height, int width) {
+  static Grid generatePathGridWithHorizontalRiver(int gridSize) {
     final random = Random();
     final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+        GridPopulatorHelpers.createBaseTypes(gridSize, fill: TileType.path);
 
     GridPopulator.addRiver(
       types,
-      width,
-      height,
+      gridSize,
       random,
       riverType: TileType.river,
       erodedTypes: [TileType.path],
@@ -112,20 +106,19 @@ extension GridPopulatorBuilders on GridPopulator {
       vertical: false, // horizontal
     );
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE PATH MAP WITH VERTICAL RIVER + WALL SQUARES
   static Grid generatePathGridWithVRiverAndChasmSquares(
-      int height, int width) {
+      int gridSize) {
     final random = Random();
     final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+        GridPopulatorHelpers.createBaseTypes(gridSize, fill: TileType.path);
 
     GridPopulator.addRiver(
       types,
-      width,
-      height,
+      gridSize,
       random,
       riverType: TileType.river,
       erodedTypes: [TileType.path],
@@ -133,22 +126,21 @@ extension GridPopulatorBuilders on GridPopulator {
       vertical: true, // vertical
     );
 
-    GridPopulator.addTypeSquares(types, width, height, random);
+    GridPopulator.addTypeSquares(types, gridSize, random);
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE SQUARES, CHASMS, AND RIVER
-  static Grid generateSquaresChasmsAndRiverGrid(int height, int width) {
+  static Grid generateSquaresChasmsAndRiverGrid(int gridSize) {
     final random = Random();
     final types =
-        GridPopulatorHelpers.createBaseTypes(width, height, fill: TileType.path);
+        GridPopulatorHelpers.createBaseTypes(gridSize, fill: TileType.path);
 
     // First: put some chasm chunks over paths
     GridPopulator.addTypeChunks(
       types,
-      width,
-      height,
+      gridSize,
       random,
       chunkType: TileType.chasm,
       baseType: TileType.path,
@@ -157,8 +149,7 @@ extension GridPopulatorBuilders on GridPopulator {
     // Then: square walls over remaining paths
     GridPopulator.addTypeSquares(
       types,
-      width,
-      height,
+      gridSize,
       random,
       tileType: TileType.wall,
       baseType: TileType.path,
@@ -167,8 +158,7 @@ extension GridPopulatorBuilders on GridPopulator {
     // Finally: river goes through path *and* chasm, but not walls
     GridPopulator.addRiver(
       types,
-      width,
-      height,
+      gridSize,
       random,
       riverType: TileType.river,
       erodedTypes: [TileType.path, TileType.chasm],
@@ -176,22 +166,20 @@ extension GridPopulatorBuilders on GridPopulator {
       vertical: true, // top -> bottom
     );
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 
   // GENERATE CHASM WITH BIG REGION PATH CHUNKS
-  static Grid generateChasmWithBigPathChunksGrid(int height, int width) {
+  static Grid generateChasmWithBigPathChunksGrid(int gridSize) {
     final random = Random();
     final types = GridPopulatorHelpers.createBaseTypes(
-      width,
-      height,
+      gridSize,
       fill: TileType.chasm,
     );
 
     GridPopulator.addTypeRegionChunks(
       types,
-      width,
-      height,
+      gridSize,
       random,
       chunkType: TileType.path,
       baseType: TileType.chasm,
@@ -200,6 +188,6 @@ extension GridPopulatorBuilders on GridPopulator {
       attempts: 30,
     );
 
-    return GridPopulatorHelpers.buildGridObjects(width, height, types);
+    return GridPopulatorHelpers.buildGridObjects(gridSize, types);
   }
 }

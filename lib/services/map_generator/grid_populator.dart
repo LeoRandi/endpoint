@@ -14,19 +14,17 @@ class GridPopulator {
   /// Devuelve true si TODOS los battlers han podido colocarse.
   static bool populateBattlersAutoCorners(
     Grid grid,
-    int width,
-    int height,
+    int gridSize,
     Map<BattlerSide, List<Battler>> battlers, {
     int offset = 1,
     double areaFactor = 2.0,
   }) {
-    final allyCorner = chooseBestStartingCorner(grid, width, height);
-    final enemyCorner = chooseEnemyCorner(grid, width, height, allyCorner);
+    final allyCorner = chooseBestStartingCorner(grid, gridSize);
+    final enemyCorner = chooseEnemyCorner(grid, gridSize, allyCorner);
 
     final okAllies = _fillCornerSmartOnGrid(
       grid,
-      width,
-      height,
+      gridSize,
       battlers.allyBattlers,
       corner: allyCorner,
       offset: offset,
@@ -35,8 +33,7 @@ class GridPopulator {
 
     final okEnemies = _fillCornerSmartOnGrid(
       grid,
-      width,
-      height,
+      gridSize,
       battlers.enemyBattlers,
       corner: enemyCorner,
       offset: offset,
@@ -49,16 +46,14 @@ class GridPopulator {
   /// Variante explícita: aliados TL, enemigos BR.
   static bool populateBattlersTLvsBR(
     Grid grid,
-    int width,
-    int height,
+    int gridSize,
     Map<BattlerSide, List<Battler>> battlers, {
     int offset = 1,
     double areaFactor = 2.0,
   }) {
     final okAllies = _fillCornerSmartOnGrid(
       grid,
-      width,
-      height,
+      gridSize,
       battlers.allyBattlers,
       corner: MapCorner.topLeft,
       offset: offset,
@@ -67,8 +62,7 @@ class GridPopulator {
 
     final okEnemies = _fillCornerSmartOnGrid(
       grid,
-      width,
-      height,
+      gridSize,
       battlers.enemyBattlers,
       corner: MapCorner.bottomRight,
       offset: offset,
@@ -81,16 +75,14 @@ class GridPopulator {
   /// Variante explícita: aliados BL, enemigos TR.
   static bool populateBattlersBLvsTR(
     Grid grid,
-    int width,
-    int height,
+    int gridSize,
     Map<BattlerSide, List<Battler>> battlers, {
     int offset = 1,
     double areaFactor = 2.0,
   }) {
     final okAllies = _fillCornerSmartOnGrid(
       grid,
-      width,
-      height,
+      gridSize,
       battlers.allyBattlers,
       corner: MapCorner.bottomLeft,
       offset: offset,
@@ -99,8 +91,7 @@ class GridPopulator {
 
     final okEnemies = _fillCornerSmartOnGrid(
       grid,
-      width,
-      height,
+      gridSize,
       battlers.enemyBattlers,
       corner: MapCorner.topRight,
       offset: offset,
@@ -118,8 +109,7 @@ class GridPopulator {
   /// Devuelve false si algún battler no ha podido colocarse.
   static bool _fillCornerSmartOnGrid(
     Grid grid,
-    int width,
-    int height,
+    int gridSize,
     List<Battler> battlersList, {
     required MapCorner corner,
     int offset = 1,
@@ -132,7 +122,7 @@ class GridPopulator {
     final side = max(1, sqrt(desiredCells).ceil());
 
     // 1) Área target para ese corner
-    final rect = _cornerRect(width, height, corner, side, offset);
+    final rect = _cornerRect(gridSize, corner, side, offset);
 
     // Centro de la región (para calcular distancias)
     final cx = (rect.left + rect.right - 1) / 2.0;
@@ -144,13 +134,13 @@ class GridPopulator {
     final globalPath = <Point<int>>[];
     final globalRiver = <Point<int>>[];
 
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final tile = grid.tileAt(x, y, width);
+    for (int y = 0; y < gridSize; y++) {
+      for (int x = 0; x < gridSize; x++) {
+        final tile = grid.tileAt(x, y, gridSize);
         if (tile == null || !tile.isWalkable) continue;
 
         // ya hay battler aquí?
-        if (grid.hasBattlerAt(x, y, width)) continue;
+        if (grid.hasBattlerAt(x, y, gridSize)) continue;
 
         final p = Point(x, y);
         final inRegion = x >= rect.left &&
@@ -195,12 +185,12 @@ class GridPopulator {
 
     bool placeFromList(Battler battler, List<Point<int>> list) {
       for (final p in list) {
-        if (grid.hasBattlerAt(p.x, p.y, width)) continue;
+        if (grid.hasBattlerAt(p.x, p.y, gridSize)) continue;
 
-        final tile = grid.tileAt(p.x, p.y, width);
+        final tile = grid.tileAt(p.x, p.y, gridSize);
         if (tile == null || !tile.isWalkable) continue;
 
-        final go = grid.gridObjectAt(p.x, p.y, width);
+        final go = grid.gridObjectAt(p.x, p.y, gridSize);
         if (go == null) continue;
 
         final newBattler = BattlerObject(
@@ -239,8 +229,8 @@ class GridPopulator {
   //  CORNER-CHOOSING LOGIC (SOBRE GridObject)
   // ------------------------------------------------------------
 
-  static MapCorner chooseBestStartingCorner(Grid grid, int width, int height) {
-    final counts = _walkablesPerCorner(grid, width, height);
+  static MapCorner chooseBestStartingCorner(Grid grid, int gridSize) {
+    final counts = _walkablesPerCorner(grid, gridSize);
 
     if (counts.values.every((c) => c == 0)) {
       return MapCorner.topLeft;
@@ -260,8 +250,8 @@ class GridPopulator {
   }
 
   static MapCorner chooseEnemyCorner(
-      Grid grid, int width, int height, MapCorner allyCorner) {
-    final counts = _walkablesPerCorner(grid, width, height);
+      Grid grid, int gridSize, MapCorner allyCorner) {
+    final counts = _walkablesPerCorner(grid, gridSize);
 
     if (counts.values.every((c) => c == 0)) {
       return allyCorner;
@@ -295,15 +285,15 @@ class GridPopulator {
   }
 
   static Map<MapCorner, int> _walkablesPerCorner(
-      Grid grid, int width, int height) {
-    final midX = width ~/ 2;
-    final midY = height ~/ 2;
+      Grid grid, int gridSize) {
+    final midX = gridSize ~/ 2;
+    final midY = gridSize ~/ 2;
 
     int countWalkables(int x0, int y0, int x1, int y1) {
       int c = 0;
       for (int y = y0; y < y1; y++) {
         for (int x = x0; x < x1; x++) {
-          if (grid.isWalkableAt(x, y, width)) c++;
+          if (grid.isWalkableAt(x, y, gridSize)) c++;
         }
       }
       return c;
@@ -311,9 +301,9 @@ class GridPopulator {
 
     return <MapCorner, int>{
       MapCorner.topLeft: countWalkables(0, 0, midX, midY),
-      MapCorner.topRight: countWalkables(midX, 0, width, midY),
-      MapCorner.bottomLeft: countWalkables(0, midY, midX, height),
-      MapCorner.bottomRight: countWalkables(midX, midY, width, height),
+      MapCorner.topRight: countWalkables(midX, 0, gridSize, midY),
+      MapCorner.bottomLeft: countWalkables(0, midY, midX, gridSize),
+      MapCorner.bottomRight: countWalkables(midX, midY, gridSize, gridSize),
     };
   }
 
@@ -331,8 +321,7 @@ class GridPopulator {
   }
 
   static _Rect _cornerRect(
-    int width,
-    int height,
+    int gridSize,
     MapCorner corner,
     int side,
     int offset,
@@ -341,27 +330,27 @@ class GridPopulator {
       case MapCorner.topLeft:
         final left = offset;
         final top = offset;
-        final right = min(width, left + side);
-        final bottom = min(height, top + side);
+        final right = min(gridSize, left + side);
+        final bottom = min(gridSize, top + side);
         return _Rect(left, top, right, bottom);
 
       case MapCorner.topRight:
-        final right = width - offset;
+        final right = gridSize - offset;
         final left = max(0, right - side);
         final top = offset;
-        final bottom = min(height, top + side);
+        final bottom = min(gridSize, top + side);
         return _Rect(left, top, right, bottom);
 
       case MapCorner.bottomLeft:
         final left = offset;
-        final bottom = height - offset;
+        final bottom = gridSize - offset;
         final top = max(0, bottom - side);
-        final right = min(width, left + side);
+        final right = min(gridSize, left + side);
         return _Rect(left, top, right, bottom);
 
       case MapCorner.bottomRight:
-        final right = width - offset;
-        final bottom = height - offset;
+        final right = gridSize - offset;
+        final bottom = gridSize - offset;
         final left = max(0, right - side);
         final top = max(0, bottom - side);
         return _Rect(left, top, right, bottom);
@@ -381,8 +370,7 @@ class GridPopulator {
   ///   but only painted if it reaches at least [minChunkSize].
   static void addTypeRegionChunks(
     List<TileType> types,
-    int width,
-    int height,
+    int gridSize,
     Random random, {
     TileType chunkType = TileType.wall,
     TileType baseType = TileType.path,
@@ -393,7 +381,7 @@ class GridPopulator {
     if (minChunkSize < 1) minChunkSize = 1;
     if (maxChunkSize < minChunkSize) maxChunkSize = minChunkSize;
 
-    final totalTiles = width * height;
+    final totalTiles = gridSize * gridSize;
 
     for (int attempt = 0; attempt < attempts; attempt++) {
       // 1) pick seed
@@ -403,12 +391,12 @@ class GridPopulator {
         final candidate = random.nextInt(totalTiles);
         if (types[candidate] != baseType) continue;
 
-        final startX = candidate % width;
-        final startY = candidate ~/ width;
+        final startX = candidate % gridSize;
+        final startY = candidate ~/ gridSize;
 
         // don't start next to existing chunkType
         if (GridPopulatorHelpers.hasAdjacentChunkOfType(
-            startX, startY, width, height, types, chunkType)) {
+            startX, startY, gridSize, gridSize, types, chunkType)) {
           continue;
         }
 
@@ -421,8 +409,8 @@ class GridPopulator {
         continue;
       }
 
-      final startX = startIndex % width;
-      final startY = startIndex ~/ width;
+      final startX = startIndex % gridSize;
+      final startY = startIndex ~/ gridSize;
 
       // 2) grow region
       final targetSize = minChunkSize +
@@ -457,13 +445,13 @@ class GridPopulator {
 
         if (targetX < 0 ||
             targetY < 0 ||
-            targetX >= width ||
-            targetY >= height) {
+            targetX >= gridSize ||
+            targetY >= gridSize) {
           stagnation++;
           continue;
         }
 
-        final targetIndex = GridPopulatorHelpers.index(targetX, targetY, width);
+        final targetIndex = GridPopulatorHelpers.index(targetX, targetY, gridSize);
 
         // must be baseType to grow into
         if (types[targetIndex] != baseType) {
@@ -479,7 +467,7 @@ class GridPopulator {
 
         // don't grow next to other already-painted chunks
         if (GridPopulatorHelpers.hasAdjacentChunkOfType(
-            targetX, targetY, width, height, types, chunkType)) {
+            targetX, targetY, gridSize, gridSize, types, chunkType)) {
           stagnation++;
           continue;
         }
@@ -508,8 +496,7 @@ class GridPopulator {
   /// - [vertical]: if true, river goes top->bottom; otherwise left->right
   static void addRiver(
     List<TileType> types,
-    int width,
-    int height,
+    int gridSize,
     Random random, {
     TileType riverType = TileType.river,
     List<TileType>? erodedTypes,
@@ -524,8 +511,7 @@ class GridPopulator {
     if (vertical) {
       _carveVerticalRiver(
         types,
-        width,
-        height,
+        gridSize,
         random,
         riverType,
         erodable,
@@ -534,8 +520,7 @@ class GridPopulator {
     } else {
       _carveHorizontalRiver(
         types,
-        width,
-        height,
+        gridSize,
         random,
         riverType,
         erodable,
@@ -546,17 +531,16 @@ class GridPopulator {
 
   static void _carveHorizontalRiver(
     List<TileType> types,
-    int width,
-    int height,
+    int gridSize,
     Random random,
     TileType riverType,
     Set<TileType> erodable,
     int maxRiverWidth,
   ) {
     // Start row
-    int y = random.nextInt(height);
+    int y = random.nextInt(gridSize);
 
-    for (int x = 0; x < width; x++) {
+    for (int x = 0; x < gridSize; x++) {
       // Random width between 1 and maxRiverWidth
       final currentWidth =
           1 + random.nextInt(maxRiverWidth); // [1, maxRiverWidth]
@@ -564,8 +548,8 @@ class GridPopulator {
 
       // Paint river vertically around (x, y)
       for (int yy = y - half; yy <= y + half; yy++) {
-        if (yy < 0 || yy >= height) continue;
-        final i = GridPopulatorHelpers.index(x, yy, width);
+        if (yy < 0 || yy >= gridSize) continue;
+        final i = GridPopulatorHelpers.index(x, yy, gridSize);
         if (erodable.contains(types[i])) {
           types[i] = riverType;
         }
@@ -579,7 +563,7 @@ class GridPopulator {
           if (y > 0) y--;
         } else if (roll > 0.66) {
           // go down
-          if (y < height - 1) y++;
+          if (y < gridSize - 1) y++;
         }
       }
     }
@@ -587,25 +571,24 @@ class GridPopulator {
 
   static void _carveVerticalRiver(
     List<TileType> types,
-    int width,
-    int height,
+    int gridSize,
     Random random,
     TileType riverType,
     Set<TileType> erodable,
     int maxRiverWidth,
   ) {
     // Start column
-    int x = random.nextInt(width);
+    int x = random.nextInt(gridSize);
 
-    for (int y = 0; y < height; y++) {
+    for (int y = 0; y < gridSize; y++) {
       final currentWidth =
           1 + random.nextInt(maxRiverWidth); // [1, maxRiverWidth]
       final half = currentWidth ~/ 2;
 
       // Paint river horizontally around (x, y)
       for (int xx = x - half; xx <= x + half; xx++) {
-        if (xx < 0 || xx >= width) continue;
-        final i = GridPopulatorHelpers.index(xx, y, width);
+        if (xx < 0 || xx >= gridSize) continue;
+        final i = GridPopulatorHelpers.index(xx, y, gridSize);
         if (erodable.contains(types[i])) {
           types[i] = riverType;
         }
@@ -619,7 +602,7 @@ class GridPopulator {
           if (x > 0) x--;
         } else if (roll > 0.66) {
           // go right
-          if (x < width - 1) x++;
+          if (x < gridSize - 1) x++;
         }
       }
     }
@@ -629,8 +612,7 @@ class GridPopulator {
   /// Only uses cells that are currently `TileType.path`.
   static void addTypeSquares(
     List<TileType> types,
-    int width,
-    int height,
+    int gridSize,
     Random random, {
     double chunkProbability = 0.25, // density of chunks
     TileType tileType = TileType.wall,
@@ -638,8 +620,8 @@ class GridPopulator {
   }) {
     // All possible top-left coords for 2x2 chunks
     final candidates = <Point<int>>[];
-    for (int y = 0; y < height - 1; y++) {
-      for (int x = 0; x < width - 1; x++) {
+    for (int y = 0; y < gridSize - 1; y++) {
+      for (int x = 0; x < gridSize - 1; x++) {
         candidates.add(Point(x, y));
       }
     }
@@ -655,10 +637,10 @@ class GridPopulator {
       if (random.nextDouble() > chunkProbability) continue;
 
       if (!GridPopulatorHelpers.canPlaceTypeChunkAtType(
-          x, y, width, height, types,
+          x, y, gridSize, types,
           chunkTileType: tileType, baseTileType: baseType)) continue;
 
-      GridPopulatorHelpers.placeTypeChunkAt(x, y, width, height, types,
+      GridPopulatorHelpers.placeTypeChunkAt(x, y, gridSize, types,
           tileType: tileType);
     }
   }
@@ -666,15 +648,15 @@ class GridPopulator {
   /// Chunks generator.
   /// Modifies existing types, only touching tiles that are currently `path`.
   static void addTypeChunks(
-      List<TileType> types, int width, int height, Random random,
+      List<TileType> types, int gridSize, Random random,
       {double baseChunkChance = 0.05,
       double neighborBonus = 0.40,
       double maxChunkChance = 0.8,
       TileType chunkType = TileType.wall,
       TileType baseType = TileType.path}) {
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final i = GridPopulatorHelpers.index(x, y, width);
+    for (int y = 0; y < gridSize; y++) {
+      for (int x = 0; x < gridSize; x++) {
+        final i = GridPopulatorHelpers.index(x, y, gridSize);
 
         // If tile is not path, leave it alone (e.g. chasm/river already placed)
         if (types[i] != baseType) continue;
@@ -683,11 +665,11 @@ class GridPopulator {
 
         // If neighbors are chunkType, increase the chance → clumps
         if (x > 0 &&
-            types[GridPopulatorHelpers.index(x - 1, y, width)] == chunkType) {
+            types[GridPopulatorHelpers.index(x - 1, y, gridSize)] == chunkType) {
           chunkChance += neighborBonus;
         }
         if (y > 0 &&
-            types[GridPopulatorHelpers.index(x, y - 1, width)] == chunkType) {
+            types[GridPopulatorHelpers.index(x, y - 1, gridSize)] == chunkType) {
           chunkChance += neighborBonus;
         }
 
@@ -704,13 +686,12 @@ class GridPopulator {
   /// Completely random map (for all tile types).
   static void fillCompletelyRandom(
     List<TileType> types,
-    int width,
-    int height,
+    int gridSize,
     Random random,
   ) {
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final i = GridPopulatorHelpers.index(x, y, width);
+    for (int y = 0; y < gridSize; y++) {
+      for (int x = 0; x < gridSize; x++) {
+        final i = GridPopulatorHelpers.index(x, y, gridSize);
         types[i] = TileType.values[random.nextInt(TileType.values.length)];
       }
     }
