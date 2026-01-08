@@ -32,8 +32,11 @@ class EndpointStart extends StatefulWidget {
 class _EndpointStartState extends State<EndpointStart> {
   @override
   Widget build(BuildContext context) {
+    final playableHero = BattlerFactories.hero();
+    global.setPlayingBattler(playableHero);
+
     final allies = [
-      BattlerFactories.hero(),
+      playableHero,
       BattlerFactories.heroMage(),
       BattlerFactories.heroCleric(),
       BattlerFactories.heroRogue(),

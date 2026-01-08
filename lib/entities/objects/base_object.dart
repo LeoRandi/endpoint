@@ -106,7 +106,7 @@ extension GridObjectList on List<GridObject> {
 const int depthTileChasm = -1; // por si quieres distinguir
 const int depthTileGround = 0; // path / river
 const int depthTileBase = 1; //battler / wall
-const int depthAbove = 2; // capa más alta
+const int depthAbove = 2; // capa más alta para distance overlays, etc.
 
 extension GridExtensions on Grid {
   GridObject? gridObjectAt(int x, int y, int width) {
