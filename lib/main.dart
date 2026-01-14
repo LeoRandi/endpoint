@@ -1,3 +1,5 @@
+import 'package:endpoint/pages/duel_station/_imports.dart';
+
 import '_imports.dart';
 
 void main() {
@@ -32,6 +34,13 @@ class EndpointStart extends StatefulWidget {
 class _EndpointStartState extends State<EndpointStart> {
   @override
   Widget build(BuildContext context) {
+    return DuelStation();
+  }
+}
+
+class BattleStation extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     final playableHero = BattlerFactories.hero();
     global.setPlayingBattler(playableHero);
 
@@ -56,6 +65,28 @@ class _EndpointStartState extends State<EndpointStart> {
             BattlerSide.ally: allies,
             BattlerSide.enemy: enemies,
           },
+        ),
+      ),
+    );
+  }
+}
+
+class DuelStation extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final playerDeck = DeckFactories.createSamplePlayerDeck(10);
+    final enemyDeck = DeckFactories.createSampleEnemyDeck(10);
+
+    return Scaffold(
+      body: SafeArea(
+        child: DuelStationPage(
+          DuelStationProvider(
+            {
+              DuelistSide.ally: playerDeck,
+              DuelistSide.enemy: enemyDeck,
+            },
+            DuelConfigurations(maxHandSize: 5, startingHandSize: 5),
+          ),
         ),
       ),
     );
