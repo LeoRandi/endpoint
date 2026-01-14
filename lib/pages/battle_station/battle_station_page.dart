@@ -20,6 +20,10 @@ class _BattleStationPageState extends State<BattleStationPage> {
   Widget build(BuildContext context) {
     final provider = widget.provider;
 
+    provider.attachRefresh(() {
+      if (mounted) setState(() {});
+    });
+
     return Column(
       children: [
         ValueListenableBuilder<Battler?>(

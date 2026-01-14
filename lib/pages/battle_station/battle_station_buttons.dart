@@ -34,14 +34,25 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.greenAccent),
                   ),
                   onPressed: () {
-                    global.gridManager.models.clear();
-                    widget.battleStationFieldProvider.mapIndex = 1;
-                    global.setPlayingBattler(global.battlerObjectManager.models
-                        .firstWhere((bo) => bo.battler.side == BattlerSide.ally)
-                        .battler);
+                    // global.gridManager.models.clear();
+                    // widget.battleStationFieldProvider.mapIndex = 1;
+                    // global.setPlayingBattler(global.battlerObjectManager.models
+                    //     .firstWhere((bo) => bo.battler.side == BattlerSide.ally)
+                    //     .battler);
+                    // widget.refresh();
+                    final pb = global.playingBattlerNotifier.value;
+                    if(pb == null) return;
+                    final nstats = pb.stats.rawStats.copyWith(
+                      changes: [
+                        (BattlerStatsType.speed, pb.getStat(BattlerStatsType.speed) + 1),
+                      ],
+                    );
+                    global.setPlayingBattler(pb.copyWith(
+                      stats: BattlerStats(rawStats: nstats),
+                    ));
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Map 1 - Ally Start'),
+                  child: TextWidget.medium('+1 speed'),
                 ),
                 ElevatedButton(
                   style: ButtonStyle(
@@ -49,15 +60,27 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.redAccent),
                   ),
                   onPressed: () {
-                    global.gridManager.models.clear();
-                    widget.battleStationFieldProvider.mapIndex = 2;
-                    global.setPlayingBattler(global.battlerObjectManager.models
-                        .firstWhere(
-                            (bo) => bo.battler.side == BattlerSide.enemy)
-                        .battler);
+                    // global.gridManager.models.clear();
+                    // widget.battleStationFieldProvider.mapIndex = 2;
+                    // global.setPlayingBattler(global.battlerObjectManager.models
+                    //     .firstWhere(
+                    //         (bo) => bo.battler.side == BattlerSide.enemy)
+                    //     .battler);
+                    // widget.refresh();
+                    final pb = global.playingBattlerNotifier.value;
+                    if(pb == null) return;
+                    final pbspeed = pb.getStat(BattlerStatsType.speed);
+                    final nstats = pb.stats.rawStats.copyWith(
+                      changes: [
+                        (BattlerStatsType.speed, min(pbspeed - 1, 1)),
+                      ],
+                    );
+                    global.setPlayingBattler(pb.copyWith(
+                      stats: BattlerStats(rawStats: nstats),
+                    ));
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Map 2 - Enemy Start'),
+                  child: TextWidget.medium('-1 speed'),
                 ),
               ],
             ),
@@ -70,18 +93,30 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.blueAccent),
                   ),
                   onPressed: () {
-                    global.gridManager.models.clear();
-                    widget.battleStationFieldProvider.mapIndex = 3;
-                    global.setPlayingBattler(global.battlerObjectManager.models
-                        .firstWhere(
-                            (bo) => bo.battler.side == BattlerSide.neutral,
-                            orElse: () {
-                      return global.battlerObjectManager.models.firstWhere(
-                          (bo) => bo.battler.side == BattlerSide.ally);
-                    }).battler);
+                    // global.gridManager.models.clear();
+                    // widget.battleStationFieldProvider.mapIndex = 3;
+                    // global.setPlayingBattler(global.battlerObjectManager.models
+                    //     .firstWhere(
+                    //         (bo) => bo.battler.side == BattlerSide.neutral,
+                    //         orElse: () {
+                    //   return global.battlerObjectManager.models.firstWhere(
+                    //       (bo) => bo.battler.side == BattlerSide.ally);
+                    // }).battler);
+                    // widget.refresh();
+                    final pb = global.playingBattlerNotifier.value;
+                    if(pb == null) return;
+                    final pbspeed = pb.getStat(BattlerStatsType.speed);
+                    final nstats = pb.stats.rawStats.copyWith(
+                      changes: [
+                        (BattlerStatsType.speed, max(pbspeed + 10, 12)),
+                      ],
+                    );
+                    global.setPlayingBattler(pb.copyWith(
+                      stats: BattlerStats(rawStats: nstats),
+                    ));
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Map 3 - Neutral/Ally Start'),
+                  child: TextWidget.medium('Max Speed'),
                 ),
                 ElevatedButton(
                   style: ButtonStyle(
@@ -89,18 +124,30 @@ class _BattleStationButtonsState extends State<BattleStationButtons> {
                         MaterialStateProperty.all<Color>(Colors.yellowAccent),
                   ),
                   onPressed: () {
-                    global.gridManager.models.clear();
-                    widget.battleStationFieldProvider.mapIndex = 4;
-                    global.setPlayingBattler(global.battlerObjectManager.models
-                        .firstWhere(
-                            (bo) => bo.battler.side == BattlerSide.neutral,
-                            orElse: () {
-                      return global.battlerObjectManager.models.firstWhere(
-                          (bo) => bo.battler.side == BattlerSide.enemy);
-                    }).battler);
+                    // global.gridManager.models.clear();
+                    // widget.battleStationFieldProvider.mapIndex = 4;
+                    // global.setPlayingBattler(global.battlerObjectManager.models
+                    //     .firstWhere(
+                    //         (bo) => bo.battler.side == BattlerSide.neutral,
+                    //         orElse: () {
+                    //   return global.battlerObjectManager.models.firstWhere(
+                    //       (bo) => bo.battler.side == BattlerSide.enemy);
+                    // }).battler);
+                    // widget.refresh();
+                    final pb = global.playingBattlerNotifier.value;
+                    if(pb == null) return;
+                    final pbspeed = pb.getStat(BattlerStatsType.speed);
+                    final nstats = pb.stats.rawStats.copyWith(
+                      changes: [
+                        (BattlerStatsType.speed, min(pbspeed - 10, 1)),
+                      ],
+                    );
+                    global.setPlayingBattler(pb.copyWith(
+                      stats: BattlerStats(rawStats: nstats),
+                    ));
                     widget.refresh();
                   },
-                  child: TextWidget.medium('Map 4 - Neutral/Enemy Start'),
+                  child: TextWidget.medium('Min Speed'),
                 ),
               ],
             ),

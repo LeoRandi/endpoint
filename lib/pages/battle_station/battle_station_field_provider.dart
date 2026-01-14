@@ -3,20 +3,34 @@ import '_imports.dart';
 class BattleStationFieldProvider {
   final Map<BattlerSide, List<Battler>> battlers;
   final Battler? startBattler;
+  
   int mapIndex = 0;
 
   final ValueNotifier<Battler?> selectedBattlerNotifier;
+  VoidCallback? _refresh;
+
   Grid? _currentGrid;
+
+  BattlerObject? _selectedBattlerObject;
+
+  void setSelectedBattlerObject(BattlerObject? bo) {
+    _selectedBattlerObject = bo;
+    selectedBattlerNotifier.value = bo?.battler;
+  }
 
   BattleStationFieldProvider(this.battlers, {this.startBattler})
       : selectedBattlerNotifier = ValueNotifier<Battler?>(null);
+
+  void attachRefresh(VoidCallback refresh) => _refresh = refresh;
+
+  void _tick() => _refresh?.call();
+
 
   void setSelectedBattler(Battler? battler) {
     selectedBattlerNotifier.value = battler;
   }
 
   Widget getBattleField(BuildContext context, {required VoidCallback rebuild}) {
-
     bool ok = true;
 
     late final Grid grid;
@@ -65,7 +79,7 @@ class BattleStationFieldProvider {
 
     ok = DistanceManager.addSelectedBattlerDistance(
         grid: grid,
-          size: 12,
+        size: global.gridSize,
         selectedBattler: selectedBattlerNotifier.value,
         battlers: battlers);
 
@@ -95,21 +109,92 @@ class BattleStationFieldProvider {
     );
   }
 
-  void onTapBattleStationCell(GridObject gridObject) {
+  void onTapBattleStationCell(GridObject gridObject) async {
     final battlerObj = gridObject.objects[depthTileBase];
     if (battlerObj is BattlerObject) {
-      setSelectedBattler(battlerObj.battler);
+      setSelectedBattlerObject(battlerObj);
       return;
     }
 
-    // If no battler was tapped, clear the selection and distance overlays.
-    setSelectedBattler(null);
+    await moveToGrid(gridObject);
+
     final grid = _currentGrid ??
         (global.gridManager.isEmpty ? null : global.gridManager.models.first);
     if (grid != null) {
       DistanceManager.clearAllDistances(grid);
     }
   }
+
+  Future<void> moveToGrid(GridObject destinationGridObject) async {
+    final selectedBo = _selectedBattlerObject;
+    if (selectedBo == null) return;
+    
+    setSelectedBattlerObject(null);
+
+    final grid = _currentGrid ??
+        (global.gridManager.isEmpty ? null : global.gridManager.models.first);
+    if (grid == null) return;
+
+    // No moverse a una celda ocupada
+    if (destinationGridObject.objects[depthTileBase] != null) return;
+
+    // Solo si hay overlay de distancia y es el battler del jugador
+    if (destinationGridObject.objects[depthAbove] == null) return;
+
+    final isPlayerBattler =
+        selectedBo.battler.name == global.playingBattlerNotifier.value?.name;
+    if (!isPlayerBattler) return;
+
+    // Origen por coords del BattlerObject (sin escanear)
+    final originGO =
+        grid.gridObjectAt(selectedBo.x, selectedBo.y, global.gridSize);
+    if (originGO == null) return;
+
+    // Seguridad: confirmar que el objeto en origen es el mismo BattlerObject
+    final originObj = originGO.objects[depthTileBase];
+    if (!identical(originObj, selectedBo)) return;
+
+    final path = BattlerMover.calculateClosestPath(
+      grid,
+      originGO,
+      destinationGridObject,
+      global.gridSize,
+    );
+
+    DistanceManager.clearAllDistances(grid);
+    _tick();
+
+    final int maxSteps =
+    selectedBo.battler.getStat(BattlerStatsType.speed).clamp(1, 999);
+
+    final int msPerStep = (1000 / maxSteps).round().clamp(60, 500);
+
+    for (int i = 1; i < path.length; i++) {
+      final currentGO = path[i - 1];
+      final nextGO = path[i];
+
+      BattlerMover.moveToTargetGrid(
+        grid,
+        currentGO,
+        nextGO,
+        depthTileBase,
+      );
+
+
+      // El BattlerObject debería ser la misma instancia movida al nextGO
+      final moved = nextGO.objects[depthTileBase];
+      if (moved is BattlerObject && identical(moved, selectedBo)) {
+        moved.x = nextGO.x;
+        moved.y = nextGO.y;
+      } else {
+        break; // algo se desincronizó; mejor cortar
+      }
+
+      await Future.delayed(Duration(milliseconds: msPerStep));
+      _tick();
+    }
+  }
+
 
   /// Before: TileGrid getTileGrid()
   /// Now: Grid getGrid()
@@ -121,14 +206,14 @@ class BattleStationFieldProvider {
       case 1:
         grid = GridPopulatorBuilders.generateRandomGrid(gridSize);
       case 2:
-        grid = GridPopulatorBuilders.generatePathGridWithHorizontalRiver(
-            gridSize);
+        grid =
+            GridPopulatorBuilders.generatePathGridWithHorizontalRiver(gridSize);
       case 3:
         grid = GridPopulatorBuilders.generatePathGridWithVRiverAndChasmSquares(
             gridSize);
       case 4:
-        grid = GridPopulatorBuilders.generateChasmWithBigPathChunksGrid(
-            gridSize);
+        grid =
+            GridPopulatorBuilders.generateChasmWithBigPathChunksGrid(gridSize);
       default:
         grid = GridPopulatorBuilders.generateEmptyGrid(gridSize);
     }

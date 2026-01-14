@@ -142,6 +142,28 @@ class Battler {
   String? get mainClassIconPath => mainClass?.iconPath;
   String? get subClassIconPath => subClass?.iconPath;
 
+  Battler copyWith({
+    String? name,
+    String? imagePath,
+    BattlerSide? side,
+    BattlerStats? stats,
+    BattlerEquipmentLayout? equipmentLayout,
+    List<BattlerEquipment>? equipmentList,
+    BattlerClass? mainClass,
+    BattlerClass? subClass,
+  }) {
+    return Battler(
+      name: name ?? this.name,
+      imagePath: imagePath ?? this.imagePath,
+      side: side ?? this.side,
+      stats: stats ?? this.stats,
+      equipmentLayout: equipmentLayout ?? this.equipmentLayout,
+      equipmentList: equipmentList ?? this.equipmentList,
+      mainClass: mainClass ?? this.mainClass,
+      subClass: subClass ?? this.subClass,
+    );
+  }
+
 }
 
 extension BattlerList on List<Battler> {
