@@ -12,24 +12,34 @@ class _DuelStationPageState extends State<DuelStationPage> {
   @override
   void initState() {
     super.initState();
+    widget.provider.init();
   }
 
   @override
   Widget build(BuildContext context) {
-
-    widget.provider.init();
-
-    // final provider = widget.provider;
-    // provider.attachRefresh(() {
-    //   if (mounted) setState(() {});
-    // });
-
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        DuelStationHand(hand: widget.provider.getStartingHand(DuelistSide.enemy), isPlayerHand: false),
+        // Top appbar showing active battlers
+        DuelStationDuelistAppBar(
+          enemyBattler: widget.provider.getActiveBattler(DuelistSide.enemy),
+          allyBattler: widget.provider.getActiveBattler(DuelistSide.ally),
+        ),
+        // Enemy hand (below enemy appbar)
+        DuelStationHand(
+          hand: widget.provider.getStartingHand(DuelistSide.enemy),
+          isPlayerHand: false,
+        ),
 
-        DuelStationHand(hand: widget.provider.getStartingHand(DuelistSide.ally), isPlayerHand: true)
+        // Duel field (center)
+        Expanded(
+          child: DuelStationField(provider: widget.provider),
+        ),
+
+        // Ally hand (bottom)
+        DuelStationHand(
+          hand: widget.provider.getStartingHand(DuelistSide.ally),
+          isPlayerHand: true,
+        ),
       ],
     );
   }

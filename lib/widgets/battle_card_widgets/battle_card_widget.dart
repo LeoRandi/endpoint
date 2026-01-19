@@ -41,22 +41,23 @@ class BattleCardContainerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 120,
-      width: 80,
+      width: BATTLE_CARD_WIDTH,
       child: side == CardSide.front
           ? Column(
               children: [
                 Text(battleCard.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                SizedBox(height: 10),
-                Text('Attack: ${battleCard.might}'),
-                Text('Description: ${battleCard.description}'),
+                        TextStyle(fontSize: BATTLE_CARD_TITLE_FONT_SIZE, fontWeight: FontWeight.bold)),
+                SizedBox(height: BATTLE_CARD_SPACING),
+                Text('A: ${battleCard.might}', style: TextStyle(fontSize: BATTLE_CARD_ATTACK_FONT_SIZE)),
+                Text(battleCard.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: BATTLE_CARD_DESCRIPTION_FONT_SIZE)),
               ],
             )
           : Center(
-              child: Text('Card Back',
-                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+              child: Text('Back',
+                  style: TextStyle(fontSize: BATTLE_CARD_BACK_FONT_SIZE, fontStyle: FontStyle.italic)),
             ),
     );
   }

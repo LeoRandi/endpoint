@@ -17,13 +17,13 @@ class BattlerStatsWidget extends StatelessWidget {
             Image.asset(
               battler?.mainClassIconPath ??
                   "assets/images/slots/empty_slot.png",
-              height: 16,
-              width: 16,
+              height: STATS_WIDGET_CLASS_ICON_HEIGHT,
+              width: STATS_WIDGET_CLASS_ICON_WIDTH,
             ), // class,
             Image.asset(
               battler?.subClassIconPath ?? "assets/images/slots/empty_slot.png",
-              height: 16,
-              width: 16,
+              height: STATS_WIDGET_CLASS_ICON_HEIGHT,
+              width: STATS_WIDGET_CLASS_ICON_WIDTH,
             ), // subclass,
           ],
         ),
@@ -95,7 +95,7 @@ class BattlerStatsWidget extends StatelessWidget {
           ],
         ),
         Container(
-          height: 1,
+          height: BATTLER_STATS_DIVIDER_HEIGHT,
           color: Colors.black,
         ),
         Row(
@@ -182,8 +182,107 @@ class BattlerStatWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Image.asset(imagePath, height: 16, width: 16),
+        Image.asset(imagePath, height: BATTLE_CARD_STAT_ICON_HEIGHT, width: BATTLE_CARD_STAT_ICON_WIDTH),
         Text(": $statValue"),
+      ],
+    );
+  }
+}
+
+class DuelStationBattlerStatsWidget extends StatelessWidget {
+  final Battler? battler;
+
+  const DuelStationBattlerStatsWidget({Key? key, required this.battler})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final weaponStat = battler?.getEquippedWeaponStat() ?? 
+        MapEntry(BattlerStatsType.unarmed, 0);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Name and class slots
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                battler?.name ?? "???",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Image.asset(
+              battler?.mainClassIconPath ??
+                  "assets/images/slots/empty_slot.png",
+              height: APPBAR_STATS_ICON_HEIGHT,
+              width: APPBAR_STATS_ICON_WIDTH,
+            ),
+            Image.asset(
+              battler?.subClassIconPath ?? "assets/images/slots/empty_slot.png",
+              height: APPBAR_STATS_ICON_HEIGHT,
+              width: APPBAR_STATS_ICON_WIDTH,
+            ),
+          ],
+        ),
+        const SizedBox(height: STATS_WIDGET_NAME_SPACING),
+        // First row: Health, Defense, Speed
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            BattlerStatWidget(
+              imagePath: BattlerStatsType.health
+                  .getStatIconPath(BattlerStatsType.health),
+              statValue:
+                  (battler?.calculatedStats[BattlerStatsType.health] ?? 0)
+                      .toString(),
+            ),
+            BattlerStatWidget(
+              imagePath: BattlerStatsType.defense
+                  .getStatIconPath(BattlerStatsType.defense),
+              statValue:
+                  (battler?.calculatedStats[BattlerStatsType.defense] ?? 0)
+                      .toString(),
+            ),
+            BattlerStatWidget(
+              imagePath: BattlerStatsType.speed
+                  .getStatIconPath(BattlerStatsType.speed),
+              statValue: (battler?.calculatedStats[BattlerStatsType.speed] ?? 0)
+                  .toString(),
+            ),
+          ],
+        ),
+        Container(
+          height: BATTLER_STATS_DIVIDER_HEIGHT,
+          color: Colors.black,
+        ),
+        // Second row: Strength, Magic, Equipped Weapon Stat
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            BattlerStatWidget(
+              imagePath: BattlerStatsType.strength
+                  .getStatIconPath(BattlerStatsType.strength),
+              statValue:
+                  (battler?.calculatedStats[BattlerStatsType.strength] ?? 0)
+                      .toString(),
+            ),
+            BattlerStatWidget(
+              imagePath: BattlerStatsType.magic
+                  .getStatIconPath(BattlerStatsType.magic),
+              statValue: (battler?.calculatedStats[BattlerStatsType.magic] ?? 0)
+                  .toString(),
+            ),
+            BattlerStatWidget(
+              imagePath: weaponStat.key.getStatIconPath(weaponStat.key),
+              statValue: weaponStat.value.toString(),
+            ),
+          ],
+        ),
       ],
     );
   }

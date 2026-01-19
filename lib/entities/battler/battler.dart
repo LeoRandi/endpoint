@@ -113,6 +113,91 @@ class Battler {
     return false;
   }
 
+  // Get the weapon stat type used by this battler based on equipped weapons
+  // Returns equipped weapon's stat type, or unarmed if none equipped
+  // If multiple weapons equipped, returns the one with highest stat
+  // If tied, returns the first one equipped
+  MapEntry<BattlerStatsType, int> getEquippedWeaponStat() {
+    final weaponSlots = <int, BattlerEquipment>{};
+    final layout = equipmentLayout.layout;
+
+    // Collect all equipped weapons with their slot indices
+    for (int i = 0; i < min(equipmentList.length, layout.length); i++) {
+      if (layout[i] == BattlerEquipmentType.weapon &&
+          equipmentList[i].name.isNotEmpty) {
+        weaponSlots[i] = equipmentList[i];
+      }
+    }
+
+    // If no weapons equipped, return unarmed
+    if (weaponSlots.isEmpty) {
+      return MapEntry(
+          BattlerStatsType.unarmed, calculatedStats[BattlerStatsType.unarmed] ?? 0);
+    }
+
+    // Build weapon type to stat value map
+    final weaponTypeStats = <BattlerStatsType, int>{};
+    final weaponTypeOrder = <BattlerStatsType, int>{};
+
+    for (final entry in weaponSlots.entries) {
+      final equipment = entry.value;
+      int slotIndex = entry.key;
+
+      // Extract weapon type from bonus stats
+      for (final bonus in equipment.bonus.entries) {
+        final statType = bonus.key;
+        // Check if it's a weapon stat type
+        if (_isWeaponStatType(statType)) {
+          final stat = calculatedStats[statType] ?? 0;
+          if (!weaponTypeStats.containsKey(statType) || stat > weaponTypeStats[statType]!) {
+            weaponTypeStats[statType] = stat;
+            weaponTypeOrder[statType] = slotIndex;
+          }
+        }
+      }
+    }
+
+    // If no weapon stat types found in bonus, return unarmed
+    if (weaponTypeStats.isEmpty) {
+      return MapEntry(
+          BattlerStatsType.unarmed, calculatedStats[BattlerStatsType.unarmed] ?? 0);
+    }
+
+    // Find the highest stat value
+    int maxValue = weaponTypeStats.values.first;
+    for (final value in weaponTypeStats.values) {
+      if (value > maxValue) maxValue = value;
+    }
+
+    // Return the weapon type with highest stat (first one if tied)
+    BattlerStatsType resultType = BattlerStatsType.unarmed;
+    int earliestSlot = 999;
+
+    for (final entry in weaponTypeStats.entries) {
+      if (entry.value == maxValue) {
+        final slotIndex = weaponTypeOrder[entry.key] ?? 999;
+        if (slotIndex < earliestSlot) {
+          earliestSlot = slotIndex;
+          resultType = entry.key;
+        }
+      }
+    }
+
+    return MapEntry(resultType, calculatedStats[resultType] ?? 0);
+  }
+
+  // Helper to check if a stat type is a weapon type
+  bool _isWeaponStatType(BattlerStatsType type) {
+    return type == BattlerStatsType.sword ||
+        type == BattlerStatsType.spear ||
+        type == BattlerStatsType.axe ||
+        type == BattlerStatsType.hammer ||
+        type == BattlerStatsType.dagger ||
+        type == BattlerStatsType.unarmed ||
+        type == BattlerStatsType.shield ||
+        type == BattlerStatsType.bow;
+  }
+
   int getRealDamage(int damage, DamageType damageType) {
     switch (damageType) {
       case DamageType.trueDamage:
