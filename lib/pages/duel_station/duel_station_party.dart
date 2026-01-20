@@ -67,7 +67,7 @@ class _DuelStationPartyState extends State<DuelStationParty>
             children: [
               // Draw pentagon outline
               Transform.rotate(
-                angle: radianAngle, 
+                angle: radianAngle,
                 child: CustomPaint(
                   size: Size(PARTY_CONTAINER_WIDTH, PARTY_CONTAINER_HEIGHT),
                   painter: PentagonPainter(
@@ -243,7 +243,9 @@ class DuelStationBattlerSlot extends StatelessWidget {
             color: candidateData.isNotEmpty
                 ? Colors.yellow.withOpacity(0.5)
                 : (battler != null
-                    ? Colors.blue.withOpacity(0.3)
+                    ? (side == DuelistSide.ally
+                        ? Colors.blue.withOpacity(isActive ? 0.8 : 0.3)
+                        : Colors.red.withOpacity(isActive ? 0.8 : 0.3))
                     : Colors.grey.withOpacity(0.1)),
             boxShadow: isActive
                 ? [
@@ -272,13 +274,6 @@ class DuelStationBattlerSlot extends StatelessWidget {
                                 ? BATTLER_NAME_FONT_SIZE * 1.2
                                 : BATTLER_NAME_FONT_SIZE,
                             fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'HP:${battler!.health}',
-                        style: TextStyle(
-                            fontSize: isActive
-                                ? BATTLER_HP_FONT_SIZE * 1.2
-                                : BATTLER_HP_FONT_SIZE),
                       ),
                     ],
                   ),

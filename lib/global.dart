@@ -27,11 +27,11 @@ typedef Grid = List<GridObject?>;
 // ============ DUEL STATION UI CONSTANTS ============
 
 // Pentagon Party dimensions
-const double PARTY_CONTAINER_WIDTH = 150;
-const double PARTY_CONTAINER_HEIGHT = 100;
-const double PENTAGON_CENTER_X = 75;
-const double PENTAGON_CENTER_Y = 50;
-const double PENTAGON_RADIUS = 40;
+const double PARTY_CONTAINER_WIDTH = 136;
+const double PARTY_CONTAINER_HEIGHT = 90;
+const double PENTAGON_CENTER_X = 68;
+const double PENTAGON_CENTER_Y = 45;
+const double PENTAGON_RADIUS = 36;
 
 // Battler slot dimensions
 const double BATTLER_SLOT_WIDTH = 48;
@@ -58,10 +58,10 @@ const double HAND_HEIGHT = 80;
 const double HAND_CARD_OPACITY_DRAGGING = 0.5;
 
 // Drop slot dimensions
-const double DROP_SLOT_WIDTH = 80;
-const double DROP_SLOT_HEIGHT = 120;
+const double DROP_SLOT_WIDTH = 70;
+const double DROP_SLOT_HEIGHT = 104;
 const double DROP_SLOT_BORDER_WIDTH = 2;
-const double DROP_SLOT_ICON_SIZE = 30;
+const double DROP_SLOT_ICON_SIZE = 26;
 const double DROP_SLOT_ICON_SPACING = 8;
 const double DROP_SLOT_TEXT_FONT_SIZE = 12;
 
@@ -76,15 +76,15 @@ const double ACTIVE_BATTLER_BORDER_WIDTH = 3;
 const int ACTIVE_BATTLER_Z_INDEX = 10; // Higher z-index for active battler
 
 // Duel station appbar dimensions
-const double APPBAR_BATTLER_IMAGE_WIDTH = 48;
-const double APPBAR_BATTLER_IMAGE_HEIGHT = 48;
+const double APPBAR_BATTLER_IMAGE_WIDTH = 32;
+const double APPBAR_BATTLER_IMAGE_HEIGHT = 32;
 const double APPBAR_DIVIDER_WIDTH = 2;
 const double APPBAR_DIVIDER_HEIGHT = 60;
 const double APPBAR_BACKGROUND_OPACITY = 0.2;
 const double APPBAR_BORDER_RADIUS = 8;
-const double APPBAR_HORIZONTAL_PADDING = 4.0;
-const double APPBAR_VERTICAL_PADDING = 8.0;
-const double APPBAR_IMAGE_SPACING = 8;
+const double APPBAR_HORIZONTAL_PADDING = 2.0;
+const double APPBAR_VERTICAL_PADDING = 4.0;
+const double APPBAR_IMAGE_SPACING = 6;
 const int APPBAR_BACKGROUND_ALPHA = 200; // For Color.fromARGB
 
 // Duel station battler stats widget
@@ -101,4 +101,18 @@ const double BATTLE_CARD_STAT_ICON_HEIGHT = 16;
 
 // BattlerStatsWidget (full stats display)
 const double BATTLER_STATS_DIVIDER_HEIGHT = 1;
+
+// Duel Station Middle Zone dimensions
+const double MIDDLE_ZONE_HEIGHT = 60;
+const double MIDDLE_ZONE_HORIZONTAL_PADDING = 8;
+const double MIDDLE_ZONE_VERTICAL_PADDING = 6;
+const double MIDDLE_ZONE_TURN_WIDTH = 30;
+const double MIDDLE_ZONE_TURN_HEIGHT = 40;
+const double MIDDLE_ZONE_TURN_FONT_SIZE = 16;
+const double MIDDLE_ZONE_STEP_WIDTH = 40;
+const double MIDDLE_ZONE_STEP_HEIGHT = 40;
+const double MIDDLE_ZONE_STEP_FONT_SIZE = 10;
+const double MIDDLE_ZONE_BUTTON_HORIZONTAL_PADDING = 6;
+const double MIDDLE_ZONE_BUTTON_VERTICAL_PADDING = 4;
+const double MIDDLE_ZONE_BUTTON_TEXT_FONT_SIZE = 12;
 
