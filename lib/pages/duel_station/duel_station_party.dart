@@ -1,4 +1,3 @@
-import 'dart:math';
 import '_imports.dart';
 
 class DuelStationParty extends StatefulWidget {
@@ -31,7 +30,7 @@ class _DuelStationPartyState extends State<DuelStationParty>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _rotationAnimation = Tween<double>(begin: 0, end: 1).animate(
+    _rotationAnimation = Tween<double>(begin: -1, end: 0).animate(
       CurvedAnimation(parent: _rotationController, curve: Curves.easeInOut),
     );
   }
@@ -48,9 +47,6 @@ class _DuelStationPartyState extends State<DuelStationParty>
 
   @override
   Widget build(BuildContext context) {
-    // Pentagon layout positions (5 slots arranged in a pentagon)
-    final positions = _calculatePentagonPositions();
-
     return SizedBox(
       width: PARTY_CONTAINER_WIDTH,
       height: PARTY_CONTAINER_HEIGHT,
@@ -59,19 +55,20 @@ class _DuelStationPartyState extends State<DuelStationParty>
         builder: (context, child) {
           // Rotation angle: 72° per slot (360° / 5)
           // Enemy rotates counter-clockwise (negative), Ally rotates clockwise (positive)
-          final rotationAngle = _rotationAnimation.value * 72 * (widget.isEnemySide ? -1 : 1);
+          final rotationAngle =
+              _rotationAnimation.value * 72 * (widget.isEnemySide ? -1 : 1);
           final radianAngle = rotationAngle * pi / 180;
 
-          // Rotation center is at the pentagon's center point
-          final rotationOrigin = Offset(PENTAGON_CENTER_X, PENTAGON_CENTER_Y);
+          // Pentagon layout positions with rotation offset applied
+          final positions = _calculatePentagonPositions(rotationAngle);
 
-          return Transform.rotate(
-            angle: radianAngle,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Draw pentagon outline
-                CustomPaint(
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Draw pentagon outline
+              Transform.rotate(
+                angle: radianAngle, 
+                child: CustomPaint(
                   size: Size(PARTY_CONTAINER_WIDTH, PARTY_CONTAINER_HEIGHT),
                   painter: PentagonPainter(
                     color: widget.isEnemySide
@@ -80,45 +77,45 @@ class _DuelStationPartyState extends State<DuelStationParty>
                     isEnemySide: widget.isEnemySide,
                   ),
                 ),
-                // Place battler slots at pentagon positions (non-active first, so they're drawn behind)
-                for (int i = 0; i < 5; i++)
-                  if (i != DuelStationProvider.ACTIVE_BATTLER_SLOT)
-                    Positioned(
-                      left: positions[i]['x'] as double,
-                      top: positions[i]['y'] as double,
-                      child: Transform.translate(
-                        offset: Offset(-BATTLER_SLOT_OFFSET_X,
-                            -BATTLER_SLOT_OFFSET_Y), // Center the card
-                        child: DuelStationBattlerSlot(
-                          battler: _getBattlerAtSlot(i),
-                          slotIndex: i,
-                          side: widget.side,
-                          isActive: false,
-                        ),
+              ),
+              // Place battler slots at pentagon positions (non-active first, so they're drawn behind)
+              for (int i = 0; i < 5; i++)
+                if (i != DuelStationProvider.ACTIVE_BATTLER_SLOT)
+                  Positioned(
+                    left: positions[i]['x'] as double,
+                    top: positions[i]['y'] as double,
+                    child: Transform.translate(
+                      offset: Offset(-BATTLER_SLOT_OFFSET_X,
+                          -BATTLER_SLOT_OFFSET_Y), // Center the card
+                      child: DuelStationBattlerSlot(
+                        battler: _getBattlerAtSlot(i),
+                        slotIndex: i,
+                        side: widget.side,
+                        isActive: false,
                       ),
                     ),
-                // Place active battler last so it's drawn on top
-                Positioned(
-                  left: positions[DuelStationProvider.ACTIVE_BATTLER_SLOT]['x']
-                      as double,
-                  top: positions[DuelStationProvider.ACTIVE_BATTLER_SLOT]['y']
-                      as double,
-                  child: Transform.translate(
-                    offset: Offset(
-                      -BATTLER_SLOT_OFFSET_X * ACTIVE_BATTLER_SCALE,
-                      -BATTLER_SLOT_OFFSET_Y * ACTIVE_BATTLER_SCALE,
-                    ), // Center the larger card
-                    child: DuelStationBattlerSlot(
-                      battler: _getBattlerAtSlot(
-                          DuelStationProvider.ACTIVE_BATTLER_SLOT),
-                      slotIndex: DuelStationProvider.ACTIVE_BATTLER_SLOT,
-                      side: widget.side,
-                      isActive: true,
-                    ),
+                  ),
+              // Place active battler last so it's drawn on top
+              Positioned(
+                left: positions[DuelStationProvider.ACTIVE_BATTLER_SLOT]['x']
+                    as double,
+                top: positions[DuelStationProvider.ACTIVE_BATTLER_SLOT]['y']
+                    as double,
+                child: Transform.translate(
+                  offset: Offset(
+                    -BATTLER_SLOT_OFFSET_X * ACTIVE_BATTLER_SCALE,
+                    -BATTLER_SLOT_OFFSET_Y * ACTIVE_BATTLER_SCALE,
+                  ), // Center the larger card
+                  child: DuelStationBattlerSlot(
+                    battler: _getBattlerAtSlot(
+                        DuelStationProvider.ACTIVE_BATTLER_SLOT),
+                    slotIndex: DuelStationProvider.ACTIVE_BATTLER_SLOT,
+                    side: widget.side,
+                    isActive: true,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -131,18 +128,26 @@ class _DuelStationPartyState extends State<DuelStationParty>
     final activeIndex = widget.provider.getActiveBattlerSlotIndex(widget.side);
 
     // Map slot index to battler index, starting from active slot and going clockwise
-    final battlerIndex = (slotIndex - DuelStationProvider.ACTIVE_BATTLER_SLOT + activeIndex + 5) % 5;
-    return battlerIndex < widget.battlers.length ? widget.battlers[battlerIndex] : null;
+    final battlerIndex = (slotIndex -
+            DuelStationProvider.ACTIVE_BATTLER_SLOT +
+            activeIndex +
+            5) %
+        5;
+    return battlerIndex < widget.battlers.length
+        ? widget.battlers[battlerIndex]
+        : null;
   }
 
-  List<Map<String, double>> _calculatePentagonPositions() {
-    // Calculate 5 pentagon vertices dynamically
+  List<Map<String, double>> _calculatePentagonPositions(double rotationAngle) {
+    // Calculate 5 pentagon vertices dynamically, with rotation offset
     final List<Map<String, double>> positions = [];
-    final angleOffset = widget.isEnemySide
-        ? 0
-        : 180; // Flip ally pentagon by 180 degrees
+    final angleOffset =
+        widget.isEnemySide ? 0 : 180; // Flip ally pentagon by 180 degrees
+    // Add rotation angle to rotate positions (enemy CCW = negative, ally CW = positive)
+    final adjustedAngleOffset = angleOffset + rotationAngle;
+
     for (int i = 0; i < 5; i++) {
-      final angle = (i * 72 - 90 + angleOffset) *
+      final angle = (i * 72 - 90 + adjustedAngleOffset) *
           pi /
           180; // 72° per vertex, starting from top
       final x = PENTAGON_CENTER_X + PENTAGON_RADIUS * cos(angle);
@@ -166,7 +171,8 @@ class PentagonPainter extends CustomPainter {
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
-    final angleOffset = isEnemySide ? 0 : 180; // Flip ally pentagon by 180 degrees
+    final angleOffset =
+        isEnemySide ? 0 : 180; // Flip ally pentagon by 180 degrees
     final path = Path();
     for (int i = 0; i < 5; i++) {
       final angle = (i * 72 - 90 + angleOffset) * pi / 180;
@@ -185,7 +191,8 @@ class PentagonPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(PentagonPainter oldDelegate) => oldDelegate.color != color || oldDelegate.isEnemySide != isEnemySide;
+  bool shouldRepaint(PentagonPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.isEnemySide != isEnemySide;
 }
 
 class DuelStationBattlerSlot extends StatelessWidget {
@@ -204,9 +211,14 @@ class DuelStationBattlerSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final slotWidth = isActive ? BATTLER_SLOT_WIDTH * ACTIVE_BATTLER_SCALE : BATTLER_SLOT_WIDTH;
-    final slotHeight = isActive ? BATTLER_SLOT_HEIGHT * ACTIVE_BATTLER_SCALE : BATTLER_SLOT_HEIGHT;
-    final borderWidth = isActive ? ACTIVE_BATTLER_BORDER_WIDTH : BATTLER_SLOT_BORDER_WIDTH;
+    final slotWidth = isActive
+        ? BATTLER_SLOT_WIDTH * ACTIVE_BATTLER_SCALE
+        : BATTLER_SLOT_WIDTH;
+    final slotHeight = isActive
+        ? BATTLER_SLOT_HEIGHT * ACTIVE_BATTLER_SCALE
+        : BATTLER_SLOT_HEIGHT;
+    final borderWidth =
+        isActive ? ACTIVE_BATTLER_BORDER_WIDTH : BATTLER_SLOT_BORDER_WIDTH;
     final borderColor = isActive
         ? (side == DuelistSide.ally ? Colors.green : Colors.red)
         : (battler != null ? Colors.blue : Colors.grey);
@@ -216,7 +228,8 @@ class DuelStationBattlerSlot extends StatelessWidget {
         // Handle drop - this will be managed by parent provider
         print('Dropped card on slot $slotIndex for $side');
       },
-      onWillAccept: (card) => side == DuelistSide.ally, // Only ally side can accept drops
+      onWillAccept: (card) =>
+          side == DuelistSide.ally, // Only ally side can accept drops
       builder: (context, candidateData, rejectedData) {
         return Container(
           width: slotWidth,
@@ -229,11 +242,15 @@ class DuelStationBattlerSlot extends StatelessWidget {
             borderRadius: BorderRadius.circular(3),
             color: candidateData.isNotEmpty
                 ? Colors.yellow.withOpacity(0.5)
-                : (battler != null ? Colors.blue.withOpacity(0.3) : Colors.grey.withOpacity(0.1)),
+                : (battler != null
+                    ? Colors.blue.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.1)),
             boxShadow: isActive
                 ? [
                     BoxShadow(
-                      color: (side == DuelistSide.ally ? Colors.green : Colors.red).withOpacity(0.4),
+                      color:
+                          (side == DuelistSide.ally ? Colors.green : Colors.red)
+                              .withOpacity(0.4),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -250,11 +267,18 @@ class DuelStationBattlerSlot extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: isActive ? BATTLER_NAME_FONT_SIZE * 1.2 : BATTLER_NAME_FONT_SIZE, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: isActive
+                                ? BATTLER_NAME_FONT_SIZE * 1.2
+                                : BATTLER_NAME_FONT_SIZE,
+                            fontWeight: FontWeight.bold),
                       ),
                       Text(
                         'HP:${battler!.health}',
-                        style: TextStyle(fontSize: isActive ? BATTLER_HP_FONT_SIZE * 1.2 : BATTLER_HP_FONT_SIZE),
+                        style: TextStyle(
+                            fontSize: isActive
+                                ? BATTLER_HP_FONT_SIZE * 1.2
+                                : BATTLER_HP_FONT_SIZE),
                       ),
                     ],
                   ),
@@ -264,7 +288,9 @@ class DuelStationBattlerSlot extends StatelessWidget {
                     '—',
                     style: TextStyle(
                       fontSize: BATTLER_EMPTY_SLOT_FONT_SIZE,
-                      color: side == DuelistSide.ally ? Colors.grey : Colors.transparent,
+                      color: side == DuelistSide.ally
+                          ? Colors.grey
+                          : Colors.transparent,
                     ),
                   ),
                 ),
