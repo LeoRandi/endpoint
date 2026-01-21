@@ -39,8 +39,6 @@ extension DeckFactories on Hand {
     Hand deck = [
       BattleCardFactories.createSampleBattlerCard('Warrior', BattlerFactories.hero()),
       BattleCardFactories.createSampleBattlerCard('Warrior', BattlerFactories.heroMage()),
-      BattleCardFactories.createSampleBattlerCard('Warrior', BattlerFactories.heroCleric()),
-      BattleCardFactories.createSampleBattlerCard('Warrior', BattlerFactories.heroRogue()),
     ];
 
     for (int i = deck.length; i < deckSize; i++) {

@@ -1,14 +1,14 @@
 import '_imports.dart';
 
 class DuelStationMiddleZone extends StatefulWidget {
-  final Function() onRotatePressed;
-  final Function() onReadyPressed;
+  final Function()? onRotatePressed;
+  final Function()? onReadyPressed;
   final int turnNumber;
   final String currentStep;
 
   const DuelStationMiddleZone({
-    required this.onRotatePressed,
-    required this.onReadyPressed,
+    this.onRotatePressed,
+    this.onReadyPressed,
     this.turnNumber = 1,
     this.currentStep = 'startStep',
     super.key,
@@ -116,7 +116,7 @@ class _DuelStationMiddleZoneState extends State<DuelStationMiddleZone>
           ElevatedButton(
             onPressed: widget.onRotatePressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
+              backgroundColor: widget.onRotatePressed != null ? Colors.purple : Colors.grey[600],
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
                 horizontal: MIDDLE_ZONE_BUTTON_HORIZONTAL_PADDING,
@@ -133,7 +133,7 @@ class _DuelStationMiddleZoneState extends State<DuelStationMiddleZone>
           ElevatedButton(
             onPressed: widget.onReadyPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: widget.onReadyPressed != null ? Colors.green : Colors.grey[600],
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
                 horizontal: MIDDLE_ZONE_BUTTON_HORIZONTAL_PADDING,

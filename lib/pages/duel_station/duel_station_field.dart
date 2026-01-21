@@ -2,16 +2,19 @@ import '_imports.dart';
 
 class DuelStationField extends StatefulWidget {
   final DuelStationProvider provider;
+  final DuelStationStepManager stepManager;
 
-  DuelStationField({required this.provider, super.key});
+  DuelStationField({
+    required this.provider,
+    required this.stepManager,
+    super.key,
+  });
 
   @override
   State<DuelStationField> createState() => _DuelStationFieldState();
 }
 
 class _DuelStationFieldState extends State<DuelStationField> {
-  int _currentTurn = 1;
-  String _currentStep = 'cardPlayStep';
   // Global keys to access party widget states for animation
   late GlobalKey<State<DuelStationParty>> _enemyPartyKey;
   late GlobalKey<State<DuelStationParty>> _allyPartyKey;
@@ -41,13 +44,29 @@ class _DuelStationFieldState extends State<DuelStationField> {
 
     // Trigger appbar update
     setState(() {});
-    // Find the field state and call rotate
-    // This will be handled by the provider
   }
 
   void _onReadyPressed() {
-    // This will be expanded when step system is implemented
-    print('Ready button pressed');
+    if (widget.stepManager.currentStep == DuelStep.cardPlayStep) {
+      widget.stepManager.onReadyButtonPressed();
+      
+      // Continue the turn cycle through remaining steps
+      _continueTurnCycle();
+    }
+  }
+
+  Future<void> _continueTurnCycle() async {
+    // Loop through remaining steps until we get back to startStep or cardPlayStep
+    while (widget.stepManager.currentStep != DuelStep.cardPlayStep && 
+           widget.stepManager.currentStep != DuelStep.startStep) {
+      await widget.stepManager.advanceToNextStep();
+    }
+    
+    // If we're at startStep, execute start step events
+    if (widget.stepManager.currentStep == DuelStep.startStep) {
+      await widget.stepManager.executeStartStepEvents();
+      await widget.stepManager.advanceToNextStep();
+    }
   }
 
   @override
@@ -93,10 +112,10 @@ class _DuelStationFieldState extends State<DuelStationField> {
 
           // Middle zone with turn/step indicators and action buttons
           DuelStationMiddleZone(
-            turnNumber: _currentTurn,
-            currentStep: _currentStep,
-            onRotatePressed: _onRotatePressed,
-            onReadyPressed: _onReadyPressed,
+            turnNumber: widget.stepManager.turnNumber,
+            currentStep: widget.stepManager.getStepCamelCase(),
+            onRotatePressed: widget.stepManager.isRotateButtonEnabled ? _onRotatePressed : null,
+            onReadyPressed: widget.stepManager.isReadyButtonEnabled ? _onReadyPressed : null,
           ),
 
           // Ally side (bottom)
@@ -116,7 +135,7 @@ class _DuelStationFieldState extends State<DuelStationField> {
                       // Ally drop slot (droppable, left of ally party)
                       DuelStationDropSlot(
                         side: DuelistSide.ally,
-                        isEnabled: true,
+                        isEnabled: widget.stepManager.isSlotsEnabled,
                         onCardDropped: (card) {
                           // if (card is BattleCardBattler) {
                           //   // Find first empty slot in ally field
