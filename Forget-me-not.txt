@@ -14,7 +14,7 @@ El Aegir‑12 no era un sumergible cualquiera. Era un laboratorio de aguas profu
 
 Mi nombre en los informes es Ikr. Ex‑buzo militar de un país que no nombraré, ahora supongo que mercenario. He trabajado en cuevas colapsadas, estaciones en alta mar, rescates, extracciones, sabotaje, ya saben el resto. Aun así, para serles sincero, nada de eso me preparó del todo para Molniya.
 
-Yo estaba atado a mi arnés a bordo del A.N.S Odín, y un azul intenso titilaba fuera de la cabina de cristal presurizado. La luz de la superficie se desvanecía rápidamente. Habíamos pasado los dos mil metros y nos acercábamos a las coordenadas donde Aegir-12 transmitió por última vez. A más de doscientos metros, el océano deja de parecer agua. No sé si han estado, pero es solo presión y oscuridad. Imaginense como era a los dos mil metros. Mi piloto, el teniente Rowan, al cual a partir de ahora me referiré por su alias, Red , permanecía en silencio, con la mandíbula apretada y los nudillos blancos sobre los controles. No había, hay, ni habrá mejor piloto de sumergible que Rowan, pero poca gente sabe que le tenía un pánico horrible a susodicha oscuridad. Pero de algo hay que comer, supongo.
+Yo estaba atado a mi arnés a bordo del A.N.S Odín, y un azul intenso titilaba fuera de la cabina de cristal presurizado. La luz de la superficie se desvanecía rápidamente. Habíamos pasado los dos mil metros cuando nos acercábamos a las coordenadas donde Aegir-12 transmitió por última vez. A más de doscientos metros, el océano deja de parecer agua. No sé si han estado, pero es solo presión y oscuridad. Imaginense como era a los dos mil metros. Mi piloto, el teniente Rowan, al cual a partir de ahora me referiré por su alias, Red , permanecía en silencio, con la mandíbula apretada y los nudillos blancos sobre los controles. No había, hay, ni habrá mejor piloto de sumergible que Rowan, pero poca gente sabe que le tenía un pánico horrible a susodicha oscuridad. Pero de algo hay que comer, supongo.
 
 —Deberíamos estar haciéndoles ping—murmuró—. Aunque se quedaran sin energía, obtendríamos alguna señal...
 
@@ -196,8 +196,18 @@ Me deslicé, cortando la fría oscuridad, descendiendo por la fosa. Mi rodeo me 
 
 Desde ahí, al mirar arriba podía ver a lo lejos una tímida luz blanca, los focos del Odín, y la enorme sombra, mimetizada con el resto del océano, que acechaba sobre el laboratorio. Me pegué a la pared y fui subiendo poco a poco, alzando la mirada cada pocos metros para comprobar que esa criatura seguía sin prestarme ningún interés. Cuando llegué al metal presurizado de la parte inferior, viré para posicionarme delante de la ventana principal del Aegir-12.
 
-Una sola luz de emergencia arrojaba tonos rojos dentro de la estancia. Decenas de mesas llenas de ordenadores y cajas de cristal ocupaban la principal habitación de trabajo del laboratorio, la mayoría volcadas o rotas. Chispas saltaban de lo que quedaba de las luces del techo, por lo que supuse que se había producido un cortocircuito en el sistema principal. Volví a alzar la mirada, y esta vez no pude ver los faros del Odín. Cuando me centré de nuevo en el Aegir, casi me da un vuelco el corazón. Una persona estaba ahí, mirándome apoyada en el cristal. Una mujer con pinta de estar sufriendo una hipotermia aguda, los labios casi azules, y los ojos desorbitados golpeaba el cristal lentamente. No pude leerle los labios, pero pude ver alivio en sus ojos.
+Una sola luz de emergencia arrojaba tonos rojos dentro de la estancia. Decenas de mesas llenas de ordenadores y cajas de cristal ocupaban la principal habitación de trabajo del laboratorio, la mayoría volcadas o rotas. Chispas saltaban de lo que quedaba de las luces del techo, por lo que supuse que se había producido un cortocircuito en el sistema principal. Volví a alzar la mirada, y esta vez no pude ver los faros del Odín. Cuando me centré de nuevo en el Aegir, casi me dió un vuelco el corazón. Una persona estaba ahí, mirándome apoyada en el cristal. Una mujer con pinta de estar sufriendo una hipotermia aguda, los labios casi azules, y los ojos desorbitados golpeaba el cristal lentamente. No pude leerle los labios, pero creí ver cierto alivio en sus ojos.
 
+La mujer golpeaba el cristal, señalando hacia arriba. Seguí con mi mirada su dedo, directo al Odín.
+
+—Sí, sí, hemos venido a salvarte—dije sonriendo ligeramente.
+
+Señalé el Odín yo también, al tiempo que la sombra marina ocultaba ligeramente sus focos
+
+—He venido de ahí, enseguida te subo—dije, e hice algunas señas de mirar ak rededor—, solo estoy comprobando que todo en orden.
+
+Subí mi pulgar con mi mano cerrada, señal universal de ok, y me alejé del cristal, dejando a la mujer que golpeara el cristal. A mí me sonó un poco a vítores.
+ 
 Una ventaja de leerse los informes preliminares es saber si el laboratorio marino de altas profundidades al que tienes que acceder tiene una compuerta para descompresión rápida, algo increíblemente útil si en vez de un ser humano pretendes meter al laboratorio un tubo de oxígeno antes de que quién lo tenga que recibir muera asfixiado. 
 
 Este laboratorio, por suerte, sí tenía esta compuerta. Me propulsé en paralelo a la pared del laboratorio, hasta quedar casi al final del mismo. Habían dos compuertas de dos tamaños. Pulsé un botón al lado de la puerta más pequeña, apenas tan grande como para que cupiera el tubo de oxígeno, y enseguida empezó a despresurizarse la diminuta estancia al otro lado. Al cabo de un minuto ya estaba completamente llena de agua, y la esclusa gris se abrió lentamente hacia afuera. Pude ver por una pequeña ventana al otro lado de este buzón submarino como la mujer de antes me miraba introducir el tubo. Al terminar, cerré de nuevo la puerta y di un par de golpes en la puerta, esperando que ella lo hubiera oído. 
@@ -314,27 +324,27 @@ Aclaré mi garganta y los tres volvimos a Molniya.
 
 --
 
-No fue una alarma, no fue un sonido, si no más bien una resistencia repentina. Como atravesar una corriente inesperada, como si el agua se hubiera espesado de repente solo en un punto concreto del espacio.
+Fue una resistencia repentina. Como atravesar una corriente inesperada, como si el agua se hubiera espesado de repente solo en un punto concreto del espacio.
 
 Intenté corregir el rumbo, pero no llegué a hacerlo a tiempo.
 
-El impacto fue contundente. Una masa invisible me golpeó de lado, lanzándome en un giro brusco. El traje chilló en mi oído con advertencias superpuestas, y sentí cómo algo se desprendía de mi espalda con una sacudida seca.
+El impacto fue contundente. Una masa invisible me golpeó de lado, lanzándome en un giro brusco. El traje chilló en mi oído con advertencias superpuestas, y sentí cómo algo se desprendía de mi espalda con una sacudida seca y un tirón del imán del traje.
 
 El traje de repuesto.
 
 Lo vi alejarse girando lentamente, una forma blanca perdiéndose hacia abajo, tragada por la oscuridad de la fosa como una moneda arrojada a un pozo sin fondo.
 
-—¡Contacto! —grité—. ¡Red, contacto hostil!
+—¡Contacto! —grité, tras dudar un segundo—. ¡Red, contacto hostil!
 
 Mis propulsores intentaron compensar el golpe, pero dos de ellos no respondieron. El mundo giró un segundo de más. Algo enorme, imposible de definir, se desplegó frente a mí, absorbiendo la poca luz que emitía el traje, y tapando los focos del Odín y la luz de emergencia del Aegir. No había ojos, ni boca, ni extremidades. Solo una presencia, una extensión oscura plegándose sobre sí misma. Fue como si entrase en una habitación sin puertas ni ventanas, solo aquella... presión. Mis oídos empezaron a pitar mientras la estática subía.
 
 Saqué el vibro-cuchillo casi sin pensar. La herramienta, que normalmente usamos para sesgar partes metálicas en los rescates, zumbó al activarse, vibrando a una frecuencia que hizo temblar mis propios huesos. Lo hundí hacia aquella masa, esperando resistencia, carne, algo.
 
-No la hubo. Como si no estuviera
+No la hubo. Como si no estuviera.
 
 El cuchillo atravesó parte de aquella forma como si cortara humo. Donde la hoja rozó, la oscuridad se contrajo, plegándose hacia dentro con un movimiento lento, casi… cuidadoso. Como alguien bajándose una manga de un jersey, protegiendo una parte expuesta pero sin brusquedad.
 
-—Me ha atacado —dije, respirando rápido—. Repito: el objetivo es hostil.
+—Me ha atacado —dije, respirando rápido—. Repito: el contacto es hostil.
 
 No estaba seguro si Red me oía entre tanta interferencia.
 
@@ -352,13 +362,13 @@ La estática creció.
 
 Miré atrás solo un instante.
 
-La cosa no se movía.
+Aquella cosa no se movía.
 
 Simplemente estaba ahí, más compacta ahora, ocupando un volumen imposible, suspendida como si aquel punto del océano le perteneciera desde siempre.
 
 —Negativo —respondí—. Pero no pienso comprobar si cambia de idea.
 
- Mis botas magnéticas fallaron al primer intento de sujetarme al casco del Aegir‑12, y tuve que golpear el metal para fijarme. La compuerta de acceso estaba a unos metros. Me arrastré hasta dentro de la compuerta, cerré con la adrenalina aún coreando en mis oídos, y pulsé un enorme botón para comenzar la descompresión.
+Mis botas magnéticas fallaron al primer intento de sujetarme al casco del Aegir‑12, y tuve que golpear el metal para fijarme. La compuerta de acceso estaba a unos metros. Me arrastré hasta dentro de la compuerta, cerré con la adrenalina aún coreando en mis oídos, y pulsé un enorme botón para comenzar la descompresión.
 
 Dentro, la luz roja de emergencia me recibió como una herida abierta.
 
@@ -366,8 +376,7 @@ La mujer estaba allí, junto a la ventana, sujetando la máscara de oxígeno con
 
 Alzó el brazo, señalando hacia arriba. Hacia la oscuridad.
 
-Yo seguí su gesto solo un segundo, lo justo para ver la sombra deformar la luz al otro lado del cristal.
+Yo seguí su gesto solo un segundo, lo justo para ver la sombra deformar la luz al otro lado de un cristal.
 
-—Tranquila —le dije, aunque sabía que no podía oírme—. Ya casi estás fuera.
-
+—Tranquila —le dije, recuperando el aliento, aunque sabía que no podía oírme—. Ya casi estás fuera.
 
