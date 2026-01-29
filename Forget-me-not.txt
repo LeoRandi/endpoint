@@ -16,7 +16,7 @@ Mi nombre en los informes es Ikr. Ex‑buzo militar de un país que no nombraré
 
 Yo estaba atado a mi arnés a bordo del A.N.S Odín, y un azul intenso titilaba fuera de la cabina de cristal presurizado. La luz de la superficie se desvanecía rápidamente. Habíamos pasado los dos mil metros cuando nos acercábamos a las coordenadas donde Aegir-12 transmitió por última vez. A más de doscientos metros, el océano deja de parecer agua. No sé si han estado, pero es solo presión y oscuridad. Imaginense como era a los dos mil metros. Mi piloto, el teniente Rowan, al cual a partir de ahora me referiré por su alias, Red , permanecía en silencio, con la mandíbula apretada y los nudillos blancos sobre los controles. No había, hay, ni habrá mejor piloto de sumergible que Rowan, pero poca gente sabe que le tenía un pánico horrible a susodicha oscuridad. Pero de algo hay que comer, supongo.
 
-—Deberíamos estar haciéndoles ping—murmuró—. Aunque se quedaran sin energía, obtendríamos alguna señal...
+—Deberíamos estar mandándoles alguna señal de sonar—murmuró—. Aunque se quedaran sin energía, obtendríamos alguna señal...
 
 Asentí en el silencio de la nave, solo interrumpido por algún pitido recurrente. Desde mi asiento de copiloto activé una rutina básica de conexión via radio, y el "ping" que decía mi amigo se adentró delante nuestro en la oscuridad. Debieron pasar apenas un par de segundos, y de repente, una alerta se encendió en una de las pantallas conectadas al visor de mi traje.
 
@@ -112,7 +112,7 @@ Red asintió sin apartar los ojos del frente.
 
 Se volvió a hacer el silencio por un par de segundos
 
-—Comandante, perdón, Ikr—dijo él, corrigiéndose antes de que yo mismo pudiera—, el animal está a unos...—pausó un momento, mirando el mismo sensor térmico que yo— 550 metros, nos corta el paso. El protocolo es esperar, y si eso no es posible, evitar al animal todo lo que se pueda, ¿no?
+—Comandante... perdón, Ikr—dijo él, corrigiéndose antes de que yo mismo pudiera—, el animal está a unos...—pausó un momento, mirando el mismo sensor térmico que yo— 550 metros, nos corta el paso. El protocolo es esperar, y si eso no es posible, evitar al animal todo lo que se pueda, ¿no?
 
 Tardé unos segundos de más en responder.
 
@@ -402,3 +402,26 @@ Yo seguí su gesto solo un segundo, lo justo para ver la sombra deformar la luz 
 
 —Tranquila —le dije, recuperando el aliento, aunque sabía que no podía oírme—. Ya casi estás fuera.
 
+Aparté la vista de la oscuridad exterior cuando el agua empezó a desaparecer de la cabina y finalmente se abrió la puerta al interior del laboratorio. Hacía un frío aterrador cuando me aflojé el aro del casco y me lo quité. El aire era húmedo, denso, con olor a metal y sal. La piel se me heló al instante y la respiración me salió blanca.
+
+De la cabina de descompresión salía un pasillo corto hacia la izquierda, de techo bajo y paredes metálicas cubiertas de condensación. Había cables sueltos en las bandejas superiores y un panel abierto con los fusibles expuestos. El suelo de rejilla tenía charcos y pequeñas costras de hielo pegadas a los bordes. Una luz de emergencia parpadeaba al final. A los pocos metros, el pasillo desembocaba en la estancia principal.
+
+La mujer vino hacia mí a trompicones, casi arrastrando los pies, y empezó a hablarme con urgencia. Lo que decía sonaba a un idioma que no reconocí. Rápido, cortado, suplicante. Me quedé helado por una razón distinta al frío: yo hablaba ruso, inglés y un par de lenguas más por deformación profesional. En un laboratorio internacional como el Aegir-12 eso debería bastar. Pero no entendí ni una palabra.
+
+Le hice el gesto de calma con la mano, sin saber si me comprendía, y por fin tuve tiempo de mirar la sala. Era amplia y estaba llena de mesas de trabajo y módulos de instrumentación. Sobre las mesas había bandejas de muestras abiertas, frascos de vidrio, cajas de herramientas volcadas, guantes rígidos, piezas de cerámica y metal, y varias pantallas partidas. En el suelo había cristales, cables, placas levantadas y una capa fina de agua que brillaba con los chispazos intermitentes de un aparato roto. La única iluminación provenía de dos luces de emergencia encendidas, ambas a cada extremo de la pared derecha. La gran cristalera que recorría toda la pared de mi izquierda daba a la profunda oscuridad de Molniya.
+
+Algo me pareció extraño, incluso antes de verlo. El Odín había desaparecido por completo, y ni siquiera se veían sus faros.
+
+—¿Red—pregunté, pegando la boca al casco—, me recibes? ¿Dónde te has...?
+
+Ahí fue cuando entendí: La criatura se había acercado al Aegir mientras yo entraba, tanto que estaba pegada a la cristalera por completo, tapándola y envolviendo el laboratorio por completo, como la manta en un mueble viejo del ático. Sabía que era ella porque, de vez en cuando, partes de su superficie se volvían translúcidas y dejaban ver que el Odín seguía allí arriba, suspendido en la fosa. También por los pliegues lentos que recorrían su piel negra, como si el mar tuviera músculos. 
+
+Red no contestó, solo la estática. Supuse que esa bestia no solo interfería con la luz, si no también con los radares y las comunicaciones. Solo por eso no pude detectarla correctamente para evitar su golpe ahí fuera.
+
+La mujer siguió hablándome, señalándome la ventana cubierta, pero yo ya no podía apartar la vista de esa sombra pegada al cristal. Tan de cerca, y con la extraña seguridad del cristal reforzado entre nosotros, no pude evitar pensar que la bestia era, hasta cierto punto, hermosa. Pero eso ya son derivaciones mías. Lo primero y más importante para la misión que debía completar era que la ventana estaba bloqueada; Red no podría verme desde fuera.
+
+Mi mente, acelerada aún por la adrenalina del ataque violento de la criatura, buscó inmediatamente en la habitación, recorriendo con la mirada a toda velocidad las paredes y esquinas del laboratorio. La pared contraria a la cristalera estaba dividida en tres por un par de puertas selladoras gruesas. La de la izquierda estaba claramente atascada, desencajada ligeramente de su marco, y de vez en cuando algunas chispas salían de un panel de apertura al lado. Me acerqué a la otra puerta y consulté su panel. Estaba en inglés, pude entender perfectamente como abrir la puerta sin mucho problema. Dentro encontré mi esperanza, y justo lo que más temía.
+
+Era una especie de compartimento pequeño, no muy profundo, con unas cuantas herramientas de limpieza básicas, pero lo más importante: Habían dos trajes para EVAs, seguramente para inspecciones rutinarias del estado del exterior del Aegir‑12. Lo que hizo que se me estrujase un poco el corazón fue ver como el techo había cedido, dejando caer una viga, envuelta en cables y placas afiladas de metal, que había destruido por completo uno de los trajes, y roto a la altura del hombro izquierdo el otro. Apreté los dientes, por pura frustración, y cogí lo que quedaba del traje en mejor estado, incluyendo la parte del brazo, doblada irregularmente en el suelo.
+
+Salí 
