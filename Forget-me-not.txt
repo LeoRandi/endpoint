@@ -218,7 +218,7 @@ Me deslicé, cortando la fría oscuridad, descendiendo por la fosa. Mi rodeo me 
 
 Desde ahí, al mirar arriba podía ver a lo lejos una tímida luz blanca, los focos del Odín, y la enorme sombra, mimetizada con el resto del océano, que acechaba sobre el laboratorio. Me pegué a la pared y fui subiendo poco a poco, alzando la mirada cada pocos metros para comprobar que esa criatura seguía sin prestarme ningún interés. Cuando llegué al metal presurizado de la parte inferior, viré para posicionarme delante de la ventana principal del Aegir-12.
 
-Una sola luz de emergencia arrojaba tonos rojos dentro de la estancia. Decenas de mesas llenas de ordenadores y cajas de cristal ocupaban la principal habitación de trabajo del laboratorio, la mayoría volcadas o rotas. Chispas saltaban de lo que quedaba de las luces del techo, por lo que supuse que se había producido un cortocircuito en el sistema principal. Volví a alzar la mirada, y esta vez no pude ver los faros del Odín. Cuando me centré de nuevo en el Aegir, casi me dió un vuelco el corazón. Una persona estaba ahí, mirándome apoyada en el cristal. Una mujer con pinta de estar sufriendo una hipotermia aguda, los labios casi azules, y los ojos desorbitados golpeaba el cristal lentamente. No pude leerle los labios, pero creí ver cierto alivio en sus ojos.
+Una sola luz de emergencia arrojaba tonos rojos dentro de la estancia. Decenas de mesas llenas de ordenadores y cajas de cristal ocupaban la principal habitación de trabajo del laboratorio, la mayoría volcadas o rotas. Chispas saltaban de lo que quedaba de las luces del techo, por lo que supuse que se había producido un cortocircuito en el sistema principal. Volví a alzar la mirada, y esta vez no pude ver los faros del Odín. Cuando me centré de nuevo en el Aegir, casi me dió un vuelco el corazón. Una persona estaba ahí, mirándome apoyada en el cristal. Una mujer con pinta de estar sufriendo una hipotermia aguda, los labios casi azules, y los ojos desorbitados golpeaba el cristal lentamente. Llevaba una bata de laboratorio sucia y arrugada, rasgada en ciertas partes. No pude leerle los labios, pero creí ver cierto alivio en sus ojos.
 
 La mujer golpeaba el cristal, señalando hacia arriba. Seguí con mi mirada su dedo, directo al Odín.
 
@@ -408,20 +408,106 @@ De la cabina de descompresión salía un pasillo corto hacia la izquierda, de te
 
 La mujer vino hacia mí a trompicones, casi arrastrando los pies, y empezó a hablarme con urgencia. Lo que decía sonaba a un idioma que no reconocí. Rápido, cortado, suplicante. Me quedé helado por una razón distinta al frío: yo hablaba ruso, inglés y un par de lenguas más por deformación profesional. En un laboratorio internacional como el Aegir-12 eso debería bastar. Pero no entendí ni una palabra.
 
-Le hice el gesto de calma con la mano, sin saber si me comprendía, y por fin tuve tiempo de mirar la sala. Era amplia y estaba llena de mesas de trabajo y módulos de instrumentación. Sobre las mesas había bandejas de muestras abiertas, frascos de vidrio, cajas de herramientas volcadas, guantes rígidos, piezas de cerámica y metal, y varias pantallas partidas. En el suelo había cristales, cables, placas levantadas y una capa fina de agua que brillaba con los chispazos intermitentes de un aparato roto. La única iluminación provenía de dos luces de emergencia encendidas, ambas a cada extremo de la pared derecha. La gran cristalera que recorría toda la pared de mi izquierda daba a la profunda oscuridad de Molniya.
+Le hice el gesto de calma con la mano, sin saber si me comprendía, y traté de intercambiar un par de palabras en varios idiomas, pero me di por vencido a mitad de la segunda frase y simplemente lo aparté de mi mente para centrarme en mi misión. Avancé por el pasillo, esquivándola y por fin tuve tiempo de mirar la sala. Era amplia y estaba llena de mesas de trabajo y módulos de instrumentación. Sobre las mesas había bandejas de muestras abiertas y cajas de herramientas volcadas. En el suelo había cristales, cables y una capa fina de agua que brillaba con los chispazos intermitentes de un aparato roto. La única iluminación constante provenía de dos luces de emergencia encendidas, ambas a cada extremo de la pared derecha. La gran cristalera que recorría toda la pared de mi izquierda daba a la profunda oscuridad de Molniya.
 
 Algo me pareció extraño, incluso antes de verlo. El Odín había desaparecido por completo, y ni siquiera se veían sus faros.
 
 —¿Red—pregunté, pegando la boca al casco—, me recibes? ¿Dónde te has...?
 
-Ahí fue cuando entendí: La criatura se había acercado al Aegir mientras yo entraba, tanto que estaba pegada a la cristalera por completo, tapándola y envolviendo el laboratorio por completo, como la manta en un mueble viejo del ático. Sabía que era ella porque, de vez en cuando, partes de su superficie se volvían translúcidas y dejaban ver que el Odín seguía allí arriba, suspendido en la fosa. También por los pliegues lentos que recorrían su piel negra, como si el mar tuviera músculos. 
+Ahí fue cuando entendí: La criatura se había acercado al Aegir mientras yo entraba, tanto que estaba pegada a la cristalera por completo, tapándola y envolviendo el laboratorio por completo, como una manta sobre un mueble viejo del ático. Sabía que era ella porque, de vez en cuando, partes de su superficie se volvían translúcidas y dejaban ver que el Odín seguía allí arriba, suspendido en la fosa. También por los pliegues lentos que recorrían su piel negra, como si el mar tuviera músculos. 
 
 Red no contestó, solo la estática. Supuse que esa bestia no solo interfería con la luz, si no también con los radares y las comunicaciones. Solo por eso no pude detectarla correctamente para evitar su golpe ahí fuera.
 
-La mujer siguió hablándome, señalándome la ventana cubierta, pero yo ya no podía apartar la vista de esa sombra pegada al cristal. Tan de cerca, y con la extraña seguridad del cristal reforzado entre nosotros, no pude evitar pensar que la bestia era, hasta cierto punto, hermosa. Pero eso ya son derivaciones mías. Lo primero y más importante para la misión que debía completar era que la ventana estaba bloqueada; Red no podría verme desde fuera.
+La mujer siguió hablándome, señalándome la ventana cubierta, pero yo ya no podía apartar la vista de esa sombra pegada al cristal. Tan de cerca, y con la extraña seguridad del cristal reforzado entre nosotros, no pude evitar pensar que la bestia era, hasta cierto punto, hermosa. Pero eso ya son derivaciones mías. Lo primero y más importante para mi misión era que la ventana estaba bloqueada; Red no podría verme desde fuera.
 
-Mi mente, acelerada aún por la adrenalina del ataque violento de la criatura, buscó inmediatamente en la habitación, recorriendo con la mirada a toda velocidad las paredes y esquinas del laboratorio. La pared contraria a la cristalera estaba dividida en tres por un par de puertas selladoras gruesas. La de la izquierda estaba claramente atascada, desencajada ligeramente de su marco, y de vez en cuando algunas chispas salían de un panel de apertura al lado. Me acerqué a la otra puerta y consulté su panel. Estaba en inglés, pude entender perfectamente como abrir la puerta sin mucho problema. Dentro encontré mi esperanza, y justo lo que más temía.
+Mi mente, acelerada aún por la adrenalina del ataque violento de la criatura, buscó inmediatamente en la habitación, recorriendo con la mirada a toda velocidad las paredes y esquinas del laboratorio. La pared contraria a la cristalera estaba dividida en tres por un par de puertas selladoras gruesas. La de la izquierda estaba claramente atascada, desencajada ligeramente de su marco, y de vez en cuando algunas chispas salían de un panel de apertura al lado. Me acerqué a la otra puerta y consulté su panel. Estaba en inglés, pude entender perfectamente como abrir la puerta sin mucho problema. Oí un siseo al empezar a moverse, y vi como se deslizaba lateralmente a duras penas en el compartimento al que se retraía normalmente. Dentro encontré mi esperanza, y justo lo que más temía.
 
 Era una especie de compartimento pequeño, no muy profundo, con unas cuantas herramientas de limpieza básicas, pero lo más importante: Habían dos trajes para EVAs, seguramente para inspecciones rutinarias del estado del exterior del Aegir‑12. Lo que hizo que se me estrujase un poco el corazón fue ver como el techo había cedido, dejando caer una viga, envuelta en cables y placas afiladas de metal, que había destruido por completo uno de los trajes, y roto a la altura del hombro izquierdo el otro. Apreté los dientes, por pura frustración, y cogí lo que quedaba del traje en mejor estado, incluyendo la parte del brazo, doblada irregularmente en el suelo.
 
-Salí 
+Salí del compartimento, traje en ristre, y lo dejé junto con el brazo huérfano encima de una mesa cercana. 
+
+—¡Eh—grité a la mujer—, ven, te tienes que poner mi traje!
+
+No me di cuenta en su momento, pero ella debía llevar al menos unos minutos llorando en un lado de la habitación. Había dejado el tubo de oxígeno y la máscara en el suelo cubierto de condensación, y miraba de reojo, de vez en cuando, a la cristalera y la bestia en cuestión.
+
+Me quité el traje de hiperpresión en poco tiempo, debí marcar algún récord. El frío ahora había entrado en mi cuerpo por completo, llegando al hueso y subiendo por mi columna cada pocos segundos en forma de escalofrío. Debajo llevaba mi traje de neopreno, no como la mujer que apenas llevaba un par de capas de ropa. Entendí que yo no lo podía estar pasando peor, reuní fuerzas y me acerqué a ella, decidido.
+
+—Vamos, arriba—le dije, agarrándola del brazo y levantándola sin mucho esfuerzo. Se notaba su desnutrición—. ¿Quieres salir de aquí o no?
+
+Ella murmuró algo en su idioma, que sonaba parecido al griego o al latín, pero seguí sin comprender. Tampoco lo intenté demasiado, supongo. La puse frente al traje mientras ella señalaba la puerta rota, queriendo explicarme algo, y le hice repetir los pasos para ponerse mi traje. Poco a poco, se le secaron las lágrimas sobre la cara, sucia de polvo, y siguió mis instrucciones. La bestia vió a través del cristal como conseguí que terminasemos todo el proceso en algo menos de 15 minutos. Todavía tenía 20 minutos hasta que Red se retirase, así que pensé que podríamos salir a tiempo. 
+
+El brazo de mi traje en mal estado lo pegué con PetaPoco, y...
+
+--
+
+—¿PetaPoco?—se rió el hombre de la izquierda— ¿Llevaste PetaPoco a un rescate sub-2000?
+
+Su compañero le dio un golpe de codo, quitándole la sonrisa de la boca.
+
+—Eh... sí—respondí—. Es un pegamento de esos magnéticos, me ha servido de bastante en otras ocasiones.
+
+—Ya pero...ejem, bueno, es una herramienta que podrías comprar en...—me seguía dando una media sonrisa— en una esquina cualquiera, ¿no te ofrecieron equipamiento especializado, o fondos para el rescate?
+
+Dudé un segundo al contestar. Primero porque sí ofrecieron el equipamiento. Segundo porque en mi ego de buzo veterano, contesté con un "No hace falta".
+
+—No... no demasiados fondos, no—terminé por mentirles—, pero en teoría no íbamos a necesitar más que el Odín y los trajes.
+
+Los hombres se miraron en silencio, y luego volvieron sus miradas a mí, pensativos.
+
+—Puede continuar—dijo el hombre de la derecha.
+
+--
+
+El traje no duraría mucho con el PetaPoco a esta profundidad, pero otras veces ha servido para tapar agujeros en un traje, al menos por unos minutos. Esperaba no tener que usarlo más tiempo que eso. Unos minutos.
+
+La mujer debió entender que el siguiente paso era salir cuando me vió ir de vuelta en dirección a la cabina. Me agarró del brazo y soltó algunas palabras en su boca, alzando dos dedos de su mano libre.
+
+—Sí, tranquila, esta vez nos vamos los dos—dije yo, sonriéndole, supongo que tratando de tranquilizarla.
+
+Ella me señaló de vuelta la puerta, y alzó de nuevo dos dedos. Miré la puerta mientras chocaba conmigo el martillo del entendimiento, que había conseguido por fin romper la pared del lenguaje. Había dos personas más. 
+
+Se encontraron en mí la alegría y el estrés. Más supervivientes era la mejor noticia en un rescate. A menos, claro, que no tengas trajes para sacarles a todos.
+
+Mi mirada pasó de ella a la puerta y viceversa un par de veces, mientras pensaba qué debía hacer. Red hubiera seguido el protocolo, lo sé muy bien. Hubiera sacado a la mujer y luego vuelto a por los demás. Pero no había tiempo. 
+
+No tenía otra opción.
+
+Corrí hacia la puerta atascada, que abrí con ayuda de esta mujer. Empujamos con todas nuestras fuerzas la media tonelada de puerta, hasta que conseguimos que entrase a duras penas en el compartimento lateral.
+
+Delante mío fue como si hubiera vuelto la vista a la cristalera: pura oscuridad. Activé la linterna de mi traje, que actualmente llevaba la mujer, y vi como se iluminaba un pasillo ligeramente inclinado hacia abajo. Las paredes grises y vacías del laboratorio continuaban unos cuantos metros hasta que la inclinación volvía a la normalidad, y el resto del pasillo continuaba. Bajamos por el pasillo, la mujer y su linterna a mi lado, y llegamos a una zona encharcada. El olor era fuerte, y el aire parecía sobrecargado. 
+
+El primer rasgo distintivo de esta mujer se manifestó nada más llegar a la parte inferior del pasillo: una incesante e implacable fuerza le movía hacia delante, guiándome por los pasillos y salas internas del laboratorio. A mis ojos, se volvió una heroína, que a pesar del cansancio y el hambre, incluso ante la clara oportunidad de la salvase, se adentró en la oscuridad bajo la oscuridad para salvar a otros. Su fuerza limpió todas mis dudas como si me hubieran dado un sopapo. 
+
+Avanzamos sin pausa por varios pasillos, girando en un par de sitios, pero siempre bajando. Al bajar, el agua empezó a subir levemente, y pasó de ser un charco a llegarnos a las rodillas en solo unos minutos. Vi un par de cuerpos, flotando en el agua de alguna habitación, pero ni rastro de movimiento. El sonido de un motor, seguramente el que proporcionaba el poco aire que quedaba ahí abajo, era el único acompañante de nuestros sonoros intentos de abrirnos paso a través de los pasillos inundados. 
+
+Finalmente, llegamos al final del laboratorio. Mi compañera me miró, dudando un segundo, antes de acercarse al panel de acceso de la puerta del final del pasillo. Vi como la mujer fallaba algún tipo de contraseña dos veces, por sendos pitido y un par de flashes de luz roja, que hicieron retroceder la oscuridad a mi alrededor brevemente.
+
+Me pregunté como es que esta puerta, a diferencia de las que habíamos pasado desde la primera estancia del Aegir, aún tenía una fuente de energía. Mis pensamientos fueron cortados por los golpes de mi compañera en la puerta. Gritó algunas palabras en su idioma y esperó muy quieta. Iba a acercarme e intentar abrir la puerta a la fuerza, cuando oí un siseo. La puerta se deslizó sin problema a la derecha, dejando entrar agua al interior de la habitación. 
+
+Habían un montón de literas. Todas metidas en las paredes, como un búnker. Había una sola luz en mitad del techo de la estancia, que era circular. Al fondo de la habitación había un hombre de pie, al lado de un panel sobre el que tenía la mano. Era una figura alta, grande de hombros. Era completamente calvo, y al igual que a mi compañera, se le notaba en la cara el hambre y el frío. A su lado tenía otra mujer, bajita y tumbada por completo sobre una de las literas. No le pude ver bien la cara en ese momento.
+
+-- 
+
+—¿Qué había en la mesa?—interrumpió la narración el hombre de la derecha. 
+
+—Eh...¿qué?—tardé unos segundos en volver del laboratorio a la realidad.
+
+—Te pregunta por la mesa del centro de la habitación—continuó su compañero—, ¿qué había en la mesa?
+
+Dudé sobre decir la verdad. En parte quería hablar de eso con alguien. En lugar de eso les conté lo mismo que a Red.
+
+—Una caja. Como un maletín. Cerrada.
+
+Les mantuve la mirada unos segundos.
+
+—No es necesario que esconda nada, Ikr—respodió el hombre de la derecha—, los de arriba ya me han dicho que usted tendrá derecho absoluto sobre toda la información que tenemos sobre "la bestia" que usted dice. Briemman ha dicho...
+
+—Briemman está desequilibrado—espeté, cortando su frase a aquel hombre—, la caja estaba cerrada y no sé qué contenía. ¿Puedo terminar de una vez mi narración?
+
+El hombre suspiró y se rascó la barbilla, pasando su mano por el mentón con barba de dos días.
+
+—Termine, sí. Termine de una vez.
+
+--
+
+El hombre y la mujer a mi lado intercambiaron unas palabras a través de la estancia, pero yo estaba recorriendo con la mirada las hileras de camas, algunas vacías, otras fríamente ocupadas. El señor se acercó a mí, con clara ilusión y alivio en la cara, y trató de hablar conmigo. Solo entendí su nombre, porque venía en el informe, bajo el título de jefe de laboratorio: Johannes Briemman. Sigo sin saber qué idioma hablaban, pero parecía que ni siquiera entre ellos lograban comunicarse bien, por la confusión en sus caras mientras conversaban en frases cortas, cada vez más alto.
