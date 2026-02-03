@@ -1,4 +1,4 @@
-PARTE 1. REPORTE
+PARTE 1. Reporte
 
 La sala era pequeña, blanca y aburrida hasta doler. No había ventanas. Solo una mesa metálica atornillada al suelo, tres sillas y una luz demasiado fuerte colgando del techo. Yo estaba sentado en un lado de la mesa, con una mano apoyada sobre la superficie fría, la otra en un cabestrillo ligero que indicaba que en poco tiempo recuperaría el uso de mi mano derecha. Frente a mí, dos hombres con traje negro se preparaban para escucharme. No tomaban notas ni asentían. Solo miraban.
 
@@ -132,7 +132,7 @@ Otro ruido ondulado llegó al Odín, esta vez más claro. A esta distancia supim
 
 Había cierto terror en su voz. Supongo que para él era literalmente como si la oscuridad tomara la forma de un monstruo gigante. Yo le miré, tratando de sonreír, aunque he de admitir que había algo de miedo en mis ojos también.
 
-—¿Tenemos scan del laboratorio a esta distancia?—pregunté.
+—¿Tenemos escáner del laboratorio a esta distancia?—pregunté.
 
 Al fin y al cabo, por muy interesante que fuera la criatura, esta era una misión de rescate, y una urgente por lo que Red dijo a continuación.
 
@@ -605,3 +605,31 @@ Su mirada se tornó entonces a la cabina de descompresión, que quedaba fuera de
 Se hizo el silencio en la habitación. Esperaba algún tipo de condolencias, algo que humanizase a los cuerpos en traje negro que tenía delante, pero no. Me hicieron salir de la sala, y quedó cerrado mi informe.
 
 FIN DE LA PARTE 1
+
+------------------
+
+INTERLUDIO 1. Nomeolvides.
+
+Hacía mucho frío en ese pasillo. El suelo estba hecho de enormes baldosas blancas, limpias como la patena, con las que contrastaba el banco negro sobre el que me sentaba. A pesar de la tecnología, el avance humanitario, y los descubrimientos en todos los aspectos científicos, nada jamás nos evitaría totalmente la maldita burocracia. "Burrocracia" lo llamaba mi padre. Llevaba 45 minutos sentado, observando la típica máquina de agua enfrente mío. Una burbuja subió por la botella puesta boca-abajo. Recordé a la bestia por un segundo, y al informe presencial de hace un par de semanas. Me llevé la mano al hombro sin pensarlo.
+
+Una mujer de mediana edad salió de un pasillo secundario y la seguí con la mirada. Para ser un complejo super secreto, el AMC tenía todo lo que cualquier oficina de mediados de este siglo tenía: máquinas de café, tablets personales, sesiones de cigarrillo después de una reunión dura y gente con traje que te haría perder el tiempo. "Maldita burrocracia" pensé, usando la voz de mi padre en mi cabeza.
+
+Volví a encender mi neuropad, y revisé mis mensajes. En mi retina aparecieron una lista de todos últimos contactos, que no eran muchos. Me hicieron instalar el maldito cacharro en la parte posterior de mi cabeza hará ya una semana y media, poco después de mi informe. Por lo visto era necesario asegurarse de que se captaba una grabación de absoultamente todo lo que pasase en mi siguiente misión. Ese dato llevó mi mente de nuevo a Molniya, y al último mensaje en mi datapad.
+
+Un tal "AMCUser0004323" me informó de una reunión en la sala 21 del ala Norte, y ya habían pasado 30 minutos de la hora estipulada. 
+
+La mujer de mediana edad pasó delante de mí, abrió con una tarjeta la puerta 21 y entró. Me levanté apresuradamente y entré a la oscura habitación. La mujer encendió las luces y pude ver una mesa de madera oscura, rodeada de sillas de oficina. 
+
+La mujer, que era bajita y de pelo corto y oscuro, encendió un holograma en el centro de la mesa sin siquiera mirarme, y cogió su tablet de oficina. Comenzó a hablar inmediatamente, mientras unas imágenes cobraban textura en el holograma.
+
+—Estos son los datos que tenemos sobre Leviatán-0, o L0, la criatura que inició el último evento del Aegir-12—dijo ella, que soltó sus palabras con medida rapidez, parando lo justo para que pudiera entenderla.
+
+Miré su presentación, que ella mandó directamente a mi neuropad mientras hablaba. Cuando habló de toda la información que tenían no esperaba que fuera tan poca. Se conocían su envergadura y algunas de sus cualidades físicas, como los tentáculos o su extraña capacidad de volverse casi transparente, pero había poca información sobre como pudo interferir en nuestras radios. Sí que se incluía info muy interesante sobre sus capacidades de comunicación, que demostró múltiples veces lanzando ondas de radio contra el Odín. Habían analizado las muestras de audio, y parecían ser un montón de sonidos y crujidos superpuestos y mexclados de forma suave, de manera que a oídos humanos sonaba casi como un crepitar de fuego pero algo más musical.
+
+Yo solo recuerdo el pavor de estar atrapado, completamente rodeado de oscuridad, y saber que un ser te tenía justamente donde quería.
+
+Cuando terminó con la pequeña explicación del L0, continuó con la verdadera razón de la reunión.
+
+—Hemos seguido intentando captar imágenes y escáneres del animal, pero es especialmente esquivo y domina el terreno de Molniya mucho mejor que nosotros. El último escáner—dijo, mirándome por primera vez—, muestra como el L0 encogió su envergadura para profundizar en la fosa. Queremos mandar a un equipo a investigar, pero nadie quiere bajar de los 2500 metros. Ahí, Ikr, es donde entras tú. Necesitamos que lleves a una de nuestros investigadores, la doctora Saida Quamac, al fondo de esa fosa en busca del L0 y su "nido" o lo que sea que tenga ahí abajo. Ella te informará de qué muestras se han de tomar.
+
+Asentí durante toda la explicación, lentamente. Si bien era cierto que el miedo, el dolor y la sensación opresiva en mi cuerpo no habían desaparecido, alguna parte de mí más recóndita y curiosa no se lo quiso pensar dos veces.
