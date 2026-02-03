@@ -1,6 +1,6 @@
 PARTE 1. REPORTE
 
-La sala era pequeña, blanca y aburrida hasta doler. No había ventanas. Solo una mesa metálica atornillada al suelo, tres sillas y una luz demasiado fuerte colgando del techo. Yo estaba sentado en un lado, con las manos apoyadas sobre la superficie fría. Frente a mí, dos hombres con traje negro escuchaban sin interrumpir. No tomaban notas. No asentían. Solo miraban.
+La sala era pequeña, blanca y aburrida hasta doler. No había ventanas. Solo una mesa metálica atornillada al suelo, tres sillas y una luz demasiado fuerte colgando del techo. Yo estaba sentado en un lado de la mesa, con una mano apoyada sobre la superficie fría, la otra en un cabestrillo ligero que indicaba que en poco tiempo recuperaría el uso de mi mano derecha. Frente a mí, dos hombres con traje negro se preparaban para escucharme. No tomaban notas ni asentían. Solo miraban.
 
 —Voy a empezar por el principio —les dije—. Por la primera inmersión. Por el momento exacto en el que dejamos de estar solos ahí abajo.
 
@@ -52,7 +52,7 @@ Entonces volvió a suceder.
 
 Un retorno limpio, claro e imposible de ignorar.
 
-La señal atravesó el casco como una vibración grave, más sentida que oída. Durante un segundo, los sistemas dudaron. No fallaron, no, dudaron. Como si algo externo hubiera interferido en la interpretación de los datos que la terminal nos mostraba en verde y rojo.
+La señal atravesó el casco como una vibración grave, más sentida que oída. Durante un segundo, los sistemas dudaron. No fallaron, no. Dudaron. Como si algo externo hubiera interferido en la interpretación de los datos que la terminal nos mostraba en verde y rojo.
 
 —Eso no es el Aegir —dijo Red, sin apartar la vista—. Y no es terreno.
 
@@ -146,7 +146,7 @@ Tras unos segundos de silencio, un hombre trajeado me sacó de mis pensamientos.
 
 —Continúe, por favor.
 
-Levanté una mano, desviando la mirada al techo, esperando poder tener un par de segundos más antes de continuar. Como se notaba que ellos no habían estado allí.
+Levanté mi mano buena, desviando la mirada al suelo, esperando poder tener un par de segundos más antes de continuar. Como se notaba que ellos no habían estado allí.
 
 —Esta parte ya la saben, de boca de Briemman. ¿Qué hago yo aquí?—dije, cansado.
 
@@ -342,7 +342,7 @@ Avancé. Y entonces...
 
 —De acuerdo, vale—dije, suspirando profundamente—. Es que en retrospectiva... bueno, ya llegaremos a eso.
 
-Aclaré mi garganta y los tres volvimos a Molniya.
+Aclaré mi garganta, me rasqué bajo el cabestrillo, y los tres volvimos a Molniya.
 
 --
 
@@ -502,7 +502,7 @@ Les mantuve la mirada unos segundos.
 
 —No es necesario que esconda nada, Ikr—respodió el hombre de la derecha—, los de arriba ya me han dicho que usted tendrá derecho absoluto sobre toda la información que tenemos sobre "la bestia" que usted dice. Briemman ha dicho...
 
-—Briemman está desequilibrado—espeté, cortando su frase a aquel hombre—, la caja estaba cerrada y no sé qué contenía. ¿Puedo terminar de una vez mi narración?
+—Briemman está desequilibrado—espeté, cortando su frase a aquel hombre—, la caja estaba cerrada y no sé qué contenía. ¿Puedo terminar de una vez mi reporte?
 
 El hombre suspiró y se rascó la barbilla, pasando su mano por el mentón con barba de dos días.
 
@@ -511,3 +511,97 @@ El hombre suspiró y se rascó la barbilla, pasando su mano por el mentón con b
 --
 
 El hombre y la mujer a mi lado intercambiaron unas palabras a través de la estancia, pero yo estaba recorriendo con la mirada las hileras de camas, algunas vacías, otras fríamente ocupadas. El señor se acercó a mí, con clara ilusión y alivio en la cara, y trató de hablar conmigo. Solo entendí su nombre, porque venía en el informe, bajo el título de jefe de laboratorio: Johannes Briemman. Sigo sin saber qué idioma hablaban, pero parecía que ni siquiera entre ellos lograban comunicarse bien, por la confusión en sus caras mientras conversaban en frases cortas, cada vez más alto.
+
+—¡Eh, eh!—grité para hacerme oír entre esos dos— Ya hablaréis de vuelta en casa, tú—señalé a Briemman—, ¿tu amiga puede andar?
+
+Ambos se callaron, mirándome. Hice un ademán con la cabeza en dirección a la chica tumbada. Briemman la miró un segundo y corrió hacia ella, despertándola. Era una señora un poco mayor, menuda, a la que parecía que el hambre y el frío habían golpeado con especial interés. Se pudo poner en pie, y al verme, preguntó algo a Briemman. Él se veía confuso de nuevo y yo me pregunté a mis adentros "¿Qué clase de equipo científico no comparte ni siquiera un idioma para comunicarse?".
+
+Les guié a todos fuera de la estancia. Briemman no se olvidó de coger la caja blanca del asa antes de salir, y me sostuvo la mirada un segundo al pasar a mi lado. Yo cerraba la fila de cuatro que habíamos formado en la oscuridad de los pasillos, con la mujer joven y su linterna delante.
+
+El camino de vuelta al laboratorio principal del Aegir fue tedioso y lúgubre, pero sepan que entre los cuatro presentes, la mujer con el traje era nuestra luz, literal y metafóricamente. Nos iluminó el camino y ayudó al resto a volver con prisa a la parte superior del complejo. No sé explicar como me sentí al ver a la civil llevar la delantera, pero alguien tenía que cerrar la fila, y prefería ser yo.
+
+En cualquier caso, volvimos a la estancia grande del principio. El primer cambio que me noté fue que esa cosa había desaparecido. La ventana al exterior, aunque igual de oscura, absorvente y aterradora, ya no estaba cubierta por la bestia que nos había acechado antes. Las luces del Odín brillaban como un faro desde arriba. 
+
+Me acerqué a la mujer joven, y con cuidado le quité el casco para intentar comunicarme con el sumergible.
+
+—Ikr al Odín, ¿me recibes, Red? Aquí Ikr con 3 supervivientes, ¿me recibes?
+
+Poco más que el silencio rebotó en las paredes del Aegir‑12, nosotros cuatro aguantando la respiración.
+
+—...Ikr...—A través de una estática repentina que me reventó el oído derecho, me llegó un extracto de la voz de Red, diciendo mi nombre. 
+
+Incluso sin esa bestia presente, las intereferencias seguían siendo demasiado, y no tenía mucho tiempo. Yo mismo llevaba unos minutos notando una falta de oxígeno en el aire, y no quería ni pensar como estarían los supervivientes. Me volteé hacía ellos y los miré. La mujer joven se había quitado el traje completamente, y pretendía ayudar a la señora a ponérselo. Briemman estaba con ellas, con la mirada perdida en el traje y las mujeres, los brazos cruzados y un tic nervioso en la pierna. Todos parecían a punto de perder el conocimiento de cansancio, hambre, frío, o todo a la vez.
+
+Enseguida se me ocurrió qué podía hacer. Les señalé que esperasen ahí y salí corriendo a la habitación de mantenimiento cuyo techo había cedido. Me quité todo lo rápido que pude el traje de hiperpresión, y escalé al compartimento superior. El falso techo era un laberinto de cables, tuberías y vigas, estrecho como para permitir el paso solo a una persona, y una menuda. Mis hombros quedaron casi encajados en varias partes del compartimento, pero avancé hasta estar seguro de que me encontraba lo suficientemente lejos de la estancia principal. Saqué mi vibro-cuchillo al volverme para quedarme boca-arriba y lo encendí. Un siseo momentáneo fue el preludio de la vibración que sacudió mi brazo, que pudo aguantar solo gracas a mi experiencia con esa clase de herramientas. El calor que emanaba tras empezar a vibrar podía fundir casi de todo, y lo hacía cortar vigas de acero como mantequilla. Lo clavé sin dudar en el casco exterior del Aegir-12, el trozo de techo que había justo encima de mí. El techo en sí era ancho, incluso siendo tan compacto, y me llevó más tiempo del que me gustaría admitir abrir el primer agujero. 
+
+Cuando conseguí atravesar del todo el casco, un torrente de agua a presiones inhumanas casi me desarma, golpeando mi hombro derecho. El dolor inundó mi cuerpo y casi perdí la conciencia mientras se rompía algún hueso que no ha curado todavía. Poco a poco, y a través de mis gritos y dolor, conseguí grabar un bonito tatuaje en el casco del Aegir‑12: un tres. No era perfecto, claro, perdí muchas veces el control del cuchillo, pero conseguí la forma de un tosco tres, que brillaría en rojo incandescente para Rowan. Con suerte, entendería que me refería a tres supervivientes, y que debía traer él mismo al Odín.
+
+Mientras el compartimento se llenaba de agua, derrumbándose a trozos encima de otras habitaciones del complejo, me arrastré a toda prisa con mi brazo bueno hasta la habitación de mantenimiento por la que había entrado. Abrí la compuerta, aún sin ponerme mi traje, queriendo correr a la ventana de delante y ver si Red reaccionaba a mi desesperado intento de comunicación. 
+
+Pero claro, ya saben qué me encontré. 
+
+La habitación estaba empezando a inundarse, agua subiendo del pasillo que llevaba al interior del laboratorio, y las luces de emergencia se habían apagado por completo. La única luz eran los distantes focos del Odín, que lanzaban un haz reflejado en el suelo encharcado y a través de la pared de cristal. Tardé un segundo en comprender la escena, porque no vi a nadie en un principio y no sabía si se debía a la falta de aire. Luego mis ojos comprendieron que algunas sombras del agua eran en realidad sangre, que flotaba empujada por la corriente que inundaba la estancia. El sonido del latido de mi corazón se superpuso al del agua correr a toda velocidad.
+
+Después vi a la señora mayor, que flotaba boca arriba entre las mesas de trabajo que ocupaban el centro del laboratorio principal. Su cabeza estaba abierta, como una nuez. Un pico de mesa ensangrentado cerca de ella me quitó de los pensamientos la pregunta del cómo, pero no la del por qué. Me acerqué sin habla un par de pasos. Paré de golpe al ver a la joven mujer, derrumbada boca abajo sobre una de las mesas, con un cristal clavado en la nuca. La herida era tan grave que por poco no se había cercenado del todo el cuello, como si se hubieran ensañado con el cristal. Finalmente unos ojos azules, avergonzados y asustados, como de animal acorralado, me miraron entre la oscuridad. Vi, gracias a la luz que se colaba detrás de él, la figura de Johannes Briemman, normalmente alta y ancha, pero que ahora parecía encorvada, casi fetal. Se encontraba metiendo penosamente sus piernas en el traje, con su estúpida caja apoyada en una mesa cerca, y le sostuve la mirada unos segundos. Abrió la boca, llorando, pero ningún sonido salió de ella. 
+
+--
+
+De nuevo, me quedé callado un segundo de más.
+
+—Ikr, continúe por favor, esta es la parte más importante—dijo el hombre de la izquierda.
+
+Su compañero asintió, ahora apoyando los codos en la mesa, toda su atención puesta en mí.
+
+Yo apoyé mi cabestrillo sobre la mesa, aún notando el agua atravesar parte de mi piel.
+
+—Sé muy bien, de primera mano, en lo que el hambre y el miedo convierten a las personas—dije, en voz baja—, pero si solo... si solo hubiera esperado unos minutos...
+
+Rompí a llorar, no sé ni por qué. La vergüenza, el asco y la frustración que sentí entonces en el Aegir me hicieron perder la compostura, y de nuevo frente a estos hombres esos sentimientos me cortaban como un cristal aún clavado en mi hombro.
+
+Tardé un minuto en calmarme, los hombres no dijeron nada en ese tiempo y como ya habían hecho antes, me miraron en silencio y me oyeron terminar mi historia.
+
+--
+
+En fin, no supe muy bien como reaccionar. Le aguanté la mirada un segundo más, con rabia tras mis ojos, pero me sacó de mi trance un sonido familiar, casi divino en la situación en la que estábamos.
+
+—...Ikr, me recibes? Repito, voy a- -l Odín- -quí Red, es- -n camino.
+
+Briemman me miró, esperanzado, pero la sangre que cubría su cara me arrebató la felicidad que me trajo oír a Red. La luz de la habitación giró cuando el Odín comenzó su descenso. Corrimos al cristal a verlo, cuando una sombra cruzó el espacio negro entre el complejo y el sumergible. Briemman soltó sin querer un aterrado quejido, y yo solo supe mirar como aquella bestia intentaba envolver al Odín. El sumergible viró como tratando de posicionarse para acoplarse al Odín, pero Rowan debió darse cuenta de lo que sucedía, ya que volvió a ascender, girando rápidamente.
+
+No me quedé quieto: comencé a ponerme el traje medio reparado a toda prisa. Briemman se percató de mi reacción e hizo lo mismo con el suyo. Mientras nos poníamos a toda velocidad nuestros salvavidas, fui alzando la mirada, cada pocos segundos, viendo como el Odín giraba en la fosa, tratando de zafarse del abrazo tenebroso de la bestia. Sé que nunca Rowan había tenido que hacer tantos movimientos evasivos, y me compadecí de él por tener que vivir todo eso en solitario. Aún así he de admitir que me alegro profundamente de que ignorase por completo mi orden. 
+
+Tardamos unos minutos en ponernos los trajes, se notaba que no era la primera vez de Briemman. Cuando todo estaba bien con mi traje, comprobé el suyo. Finalmente le miré a través de los cristales de nuestros cascos. Su mirada estaba más calmada, pero evitaba a toda costa mirar el destrozo que dejaba tras de sí. A su espalda, el cuerpo de la mujer joven ya había caído al agua, que había subido y nos empezaba a llegar a la mitad del muslo. 
+
+Briemman agarró del asa la caja y corrimos desesperados a la cabina de descompresión, con el techo del pasillo casi completamente derrumbado por mi anterior expedición a los compartimentos del falso techo. Entramos a toda prisa en la cabina y cerré con fuerza la puerta pesada tras nosotros. A través del cristal vi como saltaban algunas chispas dentro del laboratorio, el agua cada vez más y más alta. Sin que yo hiciera nada, Briemman ya había presionado el botón rojo a un lado de la cabina, y el agua comenzó a inundar la habitación. Solo pudimos observar mientras Rowan luchaba por su vida. 
+
+Los movimientos de la bestia eran lentos, casi hipnóticos. Más que moverse parecía que ya estuviera en el sitio en el que quería estar, y simplemente se hacía visible, como si la niebla espesa y oscura decidiera cuando hacerse materia. Tan embobados estábamos mirando aquel juego de luces y sombras, a más de 2500 metros de profundidad, que casi ni nos dimos cuenta cuando una luz de emergencia se iluminó en la puerta, avisándonos de que se podía abrir. Briemman fue de nuevo el primero en salir, esta vez al vacío total.
+
+Justo en ese momento, vi, aunque solo de refilón gracias a la luz de emergencia, como un tentáculo perfectamente camuflado en la oscuridad trataba de envolver la pierna de Briemman. Entonces, un flash recorrió la fosa cuando una baliza salió despedida del Odín, yendo a caer justamente sobre la cabina de descompresión. La luz repentina me dejó ver, solo durante un instante, la forma al completo de aquella bestia. Vi una especie de núcleo ovalado, del tamaño de un camión, del que un tejido oscuro, a trozos semitransparente, salía del ser en todas direcciones, terminando su forma en cientos de tentáculos finos y afilados. La escala del ser era casi imposible, pues ni siquiera podía abarcar con mi mirada toda su envergadura: más tentáculos y materia casi etérea se perdían en todas direcciones en la fosa. 
+
+La baliza brilló brevemente, sí, pero les aseguró que en aquella profundidad, pareció un sol en miniatura. Tanto es así que la luz hizo dudar al monstruo, aunque fuera solo un segundo, y yo aproveché esa duda. Me impulsé dentro de la cabina y empujé a Briemman justo antes de que uno de esos tentáculos pudiera atraparlo, mientras las luces del Odín se hacían más y más fuertes. La nave apareció frente a nosotros, con su propia compuerta de descompresión abierta y lista, y sin dudarlo entramos en ella. Cerramos la puerta entre los dos, mientras Red hacía todo lo posible por acelerar el sumergible hacia arriba. 
+
+Vi gracias a un mapa holográfico en la pared del interior de esa cabina que subíamos cerca del costado de la fosa. La velocidad nos hizo agarrarnos a lo primero que pudimos, y vi que Briemman sujetaba la caja como si de su propio hijo se tratase. 
+
+Finalmente, abandonamos Molniya.
+
+El agua desapareció de la cabina cuando aún me latía el corazón en los oídos. Me quité el casco y el resto del traje al entrar en la cabina principal del Odín. Red me recibió con un abrazo, algo muy propio de él, y yo caí agotado sobre un asiento en la parte posterior del sumergible, junto al compartimento de los trajes. 
+
+—¿Ikr, estás bien?—le oí decir— Venga tío, ya estamos volviendo.
+
+—¿Y el bicho?¿Dónde está?—dije yo, recuperando un poco el sentido.
+
+—Cuando superamos los 2000 y salimos de la fosa, la criatura se paró y dió media vuelta, no creo que nos vaya a seguir más. ¿Cómo estás?
+
+—Bien, bien—dije, justo cuando la adrenalina empezaba a desaparecer de mi hombro derecho, destrozado por el agua—, aunque no le diría que no a un calmante bien cargadito ahora mismo.
+
+Rowan me sonrió, y yo a él. Gracias a Dios que no perdí todo mi sentido del humor ahí abajo.
+
+Su mirada se tornó entonces a la cabina de descompresión, que quedaba fuera de mi punto de vista. Yo me medio incorporé para ver lo mismo que él, y encontré la imagen de Briemman, temblando abrazado a su estúpida caja, sentado en el suelo.
+
+--
+
+—Después de eso tocamos superficie en unos minutos—dije, con voz cansada—, contactamos con el AMC para la extracción y me aseguré de poder contar en persona a un superior sobre lo ocurrido, para que no corriera mucho la voz. Dos semanas después, ya casi tengo el brazo curado—levanté el cabestrillo—, a Briemman lo tratan como un puto héroe y yo no sé nada de nada. Eso es todo.
+
+Se hizo el silencio en la habitación. Esperaba algún tipo de condolencias, algo que humanizase a los cuerpos en traje negro que tenía delante, pero no. Me hicieron salir de la sala, y quedó cerrado mi informe.
+
+FIN DE LA PARTE 1
