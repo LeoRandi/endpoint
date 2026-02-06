@@ -660,9 +660,9 @@ Añadí una frase más.
 
 Añadí el alias de Maya, una prima suya y antigua compañera mía, experta en comunicaciones y equipos de radio. Durante la narración del informe caí en cuenta que ella seguramente hubiera sido capaz de darse cuenta de más cosas sobre el L0 si hubiera estado allí abajo, descifrando lo que la criatura quería comunicar. Pensé en contactarla esta última semana, pero ni tenía su contacto ni creo que me respondiese. No es que nos llevásemos muy bien. 
 
-Maya era de los pocos familiares que le quedaban a Rowan, y desde hacía tiempo trataba que su primo dejara este trabajo, que le hacía rodearse de sus miedos más profundos, una y otra vez. Ella no podía comprender que yo necesitaba al mejor piloto posible igual que Rowan necesitaba enfrentarse a esos miedos. Sin su experiencia yo hubiera muerto en esa fatídica última inmersión, y si no le hubiera trído conmigo en todos nuestros otros encargos él no tendría dicha experiencia. Además, yo también le salve la vida en una ocasión.
+Maya era de los pocos familiares que le quedaban a Rowan, y desde hacía tiempo trataba que su primo dejara este trabajo, que le hacía rodearse de sus miedos más profundos, una y otra vez. Ella no podía comprender que yo necesitaba al mejor piloto posible igual que Rowan necesitaba enfrentarse a esos miedos. Sin su experiencia yo hubiera muerto en esa fatídica última inmersión, y si no le hubiera trído conmigo en todos nuestros otros encargos él no tendría dicha experiencia. Además, yo también le salvé la vida en una ocasión.
 
-Aparté de mi mente esa corriente de pensamiento con un meneo de cabeza. Apreté el puede de mi nariz, cerrando los ojos para ver el juego de luces dentro de mis párpados. Los mantuve cerrados menos de un minuto, pero era quizá mi récord desde Molniya. El sueño es el primer enemigo del traumado, el camino a una realidad donde ni de ti mismo puedes fiarte. Mi cabeza parecía saberlo, porque lo había esquivado como Rowan al L0.
+Aparté de mi mente esa corriente de pensamiento con un meneo de cabeza. Apreté el puente de mi nariz, cerrando los ojos para ver el juego de luces dentro de mis párpados. Los mantuve cerrados menos de un minuto, pero era quizá mi récord desde Molniya. El sueño es el primer enemigo del traumado, el camino a una realidad donde ni de ti mismo puedes fiarte. Mi cabeza parecía saberlo, porque lo había esquivado como Rowan al L0.
 
 Salí de la sala de juntas, sintiendo que tenía aún algo de trabajo que hacer hoy, y cerré tras de mí. Oí un clic electrónico cuando la sala quedó vacía y cerrada, y caminé a paso rápido pasillo abajo. Un hombre igual de roto que yo me miró pasar desde su respectivo banco, y no me hacía buena cara.
 
@@ -676,7 +676,9 @@ Nada más. Ni preguntas sobre la misión, ni comentarios sobre las últimas sema
 
 Me pregunté si eso era lealtad o algo más parecido a la resignación.
 
-El ala H del AMC quedaba en el subsuelo de un edificio anexo, dos plantas por debajo del nivel de acceso principal. Para llegar tuve que pasar tres controles de seguridad y firmar dos formularios de confidencialidad que ni siquiera me dejaron leer completos. La enfermera de recepción apenas me miró cuando le di el nombre.
+Lo leí mientras bajaba unas escaleras del ala hospitalaria. Era cuestión de tiempo que usar el neuropad mientras tenía que moverme fuera una necesidad, así que practiqué de camino a mi primera visita a la doctora Qamac.
+
+El ala H del AMC quedaba en el subsuelo de un edificio anexo, dos plantas por debajo del nivel de acceso principal. Para llegar tuve que pasar tres controles de seguridad y firmar dos formularios de confidencialidad que ni siquiera me dejaron leer completos. Al terminar de bajar las escaleras, la enfermera de recepción apenas me miró cuando le di el nombre.
 
 —Sala común —dijo, señalando un pasillo—. Tercera puerta a la izquierda.
 
@@ -781,7 +783,7 @@ El cementerio quedaba en una loma al norte de Ptivya, donde el viento constante 
 Dos tumbas nuevas destacaban por su pulcritud. Piedra limpia, letras recién grabadas, sin el musgo ni la erosión de las demás. Completamente vacías.
 
 [Ekaterina Volkov]
-[2019 - 2056]
+[2009 - 2056]
 
 [Sofia Petrov]
 [2026 - 2056]
