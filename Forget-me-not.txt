@@ -610,7 +610,7 @@ FIN DE LA PARTE 1
 
 INTERLUDIO 1. Nomeolvides.
 
-Hacía mucho frío en ese pasillo. El suelo estba hecho de enormes baldosas blancas, limpias como la patena, con las que contrastaba el banco negro sobre el que me sentaba. A pesar de la tecnología, el avance humanitario, y los descubrimientos en todos los aspectos científicos, nada jamás nos evitaría totalmente la maldita burocracia. "Burrocracia" lo llamaba mi padre. Llevaba 45 minutos sentado, observando la típica máquina de agua enfrente mío. Una burbuja subió por la botella puesta boca-abajo. Recordé a la bestia por un segundo, y al informe presencial de hace un par de semanas. Me llevé la mano al hombro sin pensarlo.
+Hacía mucho frío en ese pasillo. El suelo estba hecho de enormes baldosas blancas, limpias como la patena, con las que contrastaba el banco negro sobre el que me sentaba. A pesar de la tecnología, el avance humanitario, y los descubrimientos en todos los aspectos científicos, nada jamás nos evitaría totalmente la maldita burocracia. "Burrocracia" lo llamaba mi padre. Llevaba tres cuartos de hora sentado, observando la típica máquina de agua enfrente mío. Una burbuja subió por la botella puesta boca-abajo. Recordé a la bestia por un segundo, y al informe presencial de hace un par de semanas. Me llevé la mano al hombro sin pensarlo.
 
 Una mujer de mediana edad salió de un pasillo secundario y la seguí con la mirada. Para ser un complejo super secreto, el AMC tenía todo lo que cualquier oficina de mediados de este siglo tenía: máquinas de café, tablets personales, sesiones de cigarrillo después de una reunión dura y gente con traje que te haría perder el tiempo. "Maldita burrocracia" pensé, usando la voz de mi padre en mi cabeza.
 
@@ -622,7 +622,7 @@ La mujer de mediana edad pasó delante de mí, abrió con una tarjeta la puerta 
 
 La mujer, que era bajita y de pelo corto y oscuro, encendió un holograma en el centro de la mesa sin siquiera mirarme, y cogió su tablet de oficina, fina,  elástica y semitransparente, como una funda de plástico. Comenzó a hablar inmediatamente, mientras unas imágenes cobraban textura en el holograma.
 
-—Estos son los datos que tenemos sobre Leviatán-0, o L0, la criatura que inició el último evento del Aegir-12—dijo ella, que soltó sus palabras con medida rapidez, parando lo justo para que pudiera entenderla.
+—Estos son los datos que tenemos sobre Leviatán-0, o L0—dijo ella, que soltó sus palabras con medida rapidez, parando lo justo para que pudiera entenderla.
 
 Miré su presentación, que ella mandó directamente a mi neuropad mientras hablaba. Cuando habló de toda la información que tenían no esperaba que fuera tan poca. Se conocían su envergadura y algunas de sus cualidades físicas, como los tentáculos o su extraña capacidad de volverse casi transparente, pero había poca información sobre como pudo interferir en nuestras radios. Sí que se incluía info muy interesante sobre sus capacidades de comunicación, que demostró múltiples veces lanzando ondas de radio contra el Odín. Habían analizado las muestras de audio, y parecían ser un montón de sonidos y crujidos superpuestos y mexclados de forma suave, de manera que a oídos humanos sonaba casi como un crepitar de fuego pero algo más musical.
 
@@ -678,11 +678,13 @@ Me pregunté si eso era lealtad o algo más parecido a la resignación.
 
 Lo leí mientras bajaba unas escaleras del ala hospitalaria. Era cuestión de tiempo que usar el neuropad mientras tenía que moverme fuera una necesidad, así que practiqué de camino a mi primera visita a la doctora Qamac.
 
-El ala H del AMC quedaba en el subsuelo de un edificio anexo, dos plantas por debajo del nivel de acceso principal. Para llegar tuve que pasar tres controles de seguridad y firmar dos formularios de confidencialidad que ni siquiera me dejaron leer completos. Al terminar de bajar las escaleras, la enfermera de recepción apenas me miró cuando le di el nombre.
+El ala H del AMC quedaba en el subsuelo de un edificio anexo, dos plantas por debajo del nivel de acceso principal. Para llegar tuve que pasar tres controles de seguridad y firmar dos formularios de confidencialidad que ni siquiera me dejaron leer completos. Al terminar de bajar las escaleras, la enfermera de recepción apenas me miró cuando le di el nombre de la doctora.
 
 —Sala común —dijo, señalando un pasillo—. Tercera puerta a la izquierda.
 
 El pasillo olía a desinfectante y a algo más: ese olor particular de los espacios sin ventanas, donde el aire se recicla una y otra vez hasta volverse casi masticable. Las luces eran blancas, clínicas, sin sombras. Todo diseñado para que no pudieras esconderte de nada, ni siquiera de ti mismo. Apreté la mandíbula y el paso.
+
+La doctora, según mi corta investigación previa a visitarla, no existía, al menos fuera de la red del AMC. De los pocos datos que quedaban sobre ella, el más repetido y quizá más importante para mi misión era que su estancia en el ala hospitalaria era, concretamente, en el pasillo de psiquiatría. Como paciente. Esto se debía, según los informes, a una "repentina obsesión" y a "varios intentos de inmersión en solitario". 
 
 La encontré en una habitación quirúrgicamente diseñada para aburrir, con un televisor de principios de siglo sin señal y un sofá que podría haber vivido la invención de las pantallas táctiles. Ella se encontraba junto a una ventana que daba a un patio interior de cemento. No había nada que ver allí fuera, solo paredes grises, un pequeño cuadrado de hierba artifical, y una rejilla de drenaje en el suelo. Aun así, la doctora Saida Quamac miraba a través del cristal como si hubiera algo fascinante al otro lado. 
 
@@ -732,7 +734,11 @@ El aire en la habitación pareció enfriarse varios grados.
 
 —Así fue. ¿Cómo tiene acceso a eso?
 
-—¿De verdad? —dijo, obviando convenientemente mi pregunta, sus ojos fijos en la ventana—. Porque he revisado los datos del traje. La velocidad a la que se desplazaba, demasiado rápido, y con tan poca visibilidad... —Hizo una pausa—. No parece un ataque, Ikr. Parece un accidente.
+—¿De verdad? —dijo, obviando convenientemente mi pregunta, sus ojos fijos en la ventana—. ¿Sabía que me encargaron a mí, aún estando encerrada en mi habitación del ala psiquiátrica, revisar todos los datos vitales recogidos por el Odín y su traje? ¿Sabía también que su pico de estrés empieza dos segundos antes del golpe?
+
+La pregunta flotó en el aire unos segundos, mientras yo decidía cómo responder.
+
+—La velocidad a la que se desplazaba—se adelantó ella—, demasiado rápido, y con tan poca visibilidad... —Hizo una pausa—. Podría parecer un accidente.
 
 Me miró directamente con sus ojos como microscopios. No respondí. El silencio se extendió entre nosotros como agua llenando un espacio cerrado.
 
@@ -740,7 +746,7 @@ Me miró directamente con sus ojos como microscopios. No respondí. El silencio 
 
 —No mentí, me atacó.
 
-—Ah, claro, claro—Su tono no era acusatorio, sino pensativo—. A esa profundidad, bajo ese estrés... la memoria puede jugarnos malas pasadas, ¿no?
+—Ah, claro, claro—Su tono no era acusatorio, sino pensativo.
 
 Le sostuve la mirada un momento más, luego me giré hacia la puerta.
 
@@ -822,7 +828,7 @@ Johannes se encogió ligeramente, un movimiento casi imperceptible. Cuando se aj
 
 —¿Y tú?—no supe hacer otra cosa que sostener mi mirada en la sombra de hombre que tenía ante mí. Él miraba las tumbas.
 
-—Vengo cada tres días. —Se arrodilló, tocando con cuidado los pétalos de la nomeolvides—. No sé quién la plantó. Estaba aquí la primera vez que vine, hace una semana, cuando mandé hacer las tumbas. Pensé que moriría con la primera helada, pero ahí la tienes, y sigue creciendo.
+—Vengo cada dos días. —Se arrodilló, tocando con cuidado los pétalos de la nomeolvides—. No sé quién la plantó. Estaba aquí la primera vez que vine, hace una semana, cuando mandé hacer las tumbas. Pensé que moriría con la primera helada, pero ahí la tienes. Y sigue creciendo.
 
 Nos quedamos en silencio un momento. El viento silbaba entre las lápidas, y desde lejos, el monstruoso complejo reflejaba con timidez los rayos de luz. Sentí como si nos observara.
 
@@ -889,3 +895,4 @@ FIN DEL INTERLUDIO 1
 ------------------
 
 PARTE 2. La Tumba más Profunda.
+
