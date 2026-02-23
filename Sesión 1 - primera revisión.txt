@@ -2,7 +2,7 @@ Sesión 1: Sombras en el Remanso
 Revisión completa
 
 Premisa de la sesión
-Lumi y Mosto llegan por primera vez a Risco de Sal por rutas distintas, justo al anochecer. Lo que empieza como un pueblo tenso pero funcional se rompe cuando una sombra con forma de látigo atrapa a un niño en plena plaza. Tras una noche inquietantemente tranquila, ambos investigan la desaparición de la alguacil Iria Tal, descubren la implicación del alcalde Edren Tal y terminan descendiendo bajo el molino a un complejo oculto donde la Cofradía del Farol utiliza a Sielu como núcleo de un arma de sombras.
+Lumi y Mosto llegan por primera vez a Risco de Sal por rutas distintas, justo al anochecer. En superficie, el pueblo parece normal: comercio abierto, voces en las casas, taberna viva, rutina intacta. El ataque de las sombras se ejecuta, irónicamente, desde las sombras: rápido, selectivo y difícil de demostrar. Esa normalidad se rompe cuando una sombra con forma de látigo atrapa a un niño en plena plaza. Tras una noche inquietantemente tranquila, ambos investigan la desaparición de la alguacil Iria Tal, descubren la implicación del alcalde Edren Tal y terminan descendiendo bajo el molino a un complejo oculto donde la Cofradía del Farol utiliza a Sielu como núcleo de un arma de sombras.
 
 Objetivos de mesa
 1. Forzar alianza Lumi-Mosto en la primera escena.
@@ -78,13 +78,18 @@ Lugar:
 Taberna El Remanso de Sal (en el mismo perímetro de la plaza).
 
 Texto para leer:
-"La taberna está llena, pero nadie habla alto. El fuego del hogar central arde sin alegría. En la barra, vasos alineados por tamaño y una jarra de agua con ramitas de menta para calmar nervios. Cada vez que alguien abre la puerta, media sala mira las sombras del suelo antes de mirar la cara del recién llegado."
+"La taberna está llena y viva: risas sueltas, dados rodando sobre una mesa del fondo, olor a guiso, pan tostado y cerveza joven. Dos músicos locales se turnan con una flauta y una cuerda corta. A simple vista, todo parece normal. Solo al fijarte notas tres cosas raras: un parroquiano que se sobresalta cada vez que tiembla la luz, una pareja que baja la voz al pasar junto a las ventanas, y un chico que evita sentarse donde su sombra toca la pared."
 
 Disparador:
-Si Lumi o Mosto mencionan la sombra-látigo, la posadera interviene.
+Si Lumi o Mosto mencionan la sombra-látigo, aunque sea en voz baja y en otra mesa, Sabina se acerca de inmediato y los interrumpe.
 
 Posadera (Sabina Riel), línea sugerida:
-"Si vieron eso de cerca, no pierdan tiempo conmigo. Vayan a la alguacil Iria Tal. Vive en la Calle de la Noria, casa de piedra con contraventanas azules. Si alguien aquí puede poner orden, es ella."
+"No repitan eso en alto. Aquí no, no ahora. Vayan a ver a la alguacil Iria Tal, Calle de la Noria, casa de piedra con contraventanas azules. Esta mañana salió de aquí muy preocupada, y no volvió. Si algo raro está pasando, ella ya iba por delante."
+
+Cómo lo hace Sabina:
+- Les deja una jarra para disimular y aparentar servicio normal.
+- Habla sin mirarlos directamente, como si siguiera tomando pedidos.
+- Les pide que no monten ruido ni acusen a nadie de momento.
 
 Propósito:
 Dar dirección clara sin quitar libertad de movimiento.
@@ -138,7 +143,7 @@ Pueblo abierto para exploración (sitios y descripciones)
 
 Descripción general de Risco de Sal
 -----------------------------------
-Risco de Sal tiene unas cuarenta y tantas casas, casi todas de piedra baja y madera oscura, construidas alrededor de una plaza central y dos calles principales que bajan al río. Los tejados son de pizarra pesada para soportar tormentas. Hay olor constante a barro, ceniza de hogar y pescado secándose.
+Risco de Sal tiene unas cuarenta y tantas casas, casi todas de piedra baja y madera oscura, construidas alrededor de una plaza central cuatro calles, dos que bajan por la ribera(el camino por el que vino Mosto, y el que va al molino) y otros que suben por el pueblo. Los tejados son de pizarra pesada para soportar tormentas. El pueblo parece perfectamente funcional: mercado corto, oficios abiertos, vecinos barriendo portales, chicos corriendo entre carros.
 
 Lugares recomendados de exploración
 -----------------------------------
@@ -181,22 +186,77 @@ Lugares recomendados de exploración
 - Huellas de botas iguales, barro con polvo de yeso y fibras de tela gris.
 
 
-Búsqueda de pistas (hilo conductor al molino)
----------------------------------------------
+Minijuego de pistas por checks (resumen rápido)
+-----------------------------------------------
 Objetivo:
-Que lleguen al molino por acumulación de evidencias.
+Resolver la investigación en pocas tiradas, sin narrar cada rincón, pero manteniendo progresión y premio por tiradas altas.
 
-Pistas en casa de Iria:
-- Nota incompleta en despacho: "Si Edren vuelve a insistir con el molino..."
-- Mapa con marcas en Calle de la Noria, plaza y molino.
-- Hilo gris enganchado en una astilla junto a la puerta trasera.
-- Mancha de harina fina en el alféizar interior.
+Cómo funciona:
+1. La investigación tiene 3 niveles encadenados: Casa de Iria -> Pueblo -> Molino.
+2. En cada nivel, Lumi y Mosto hacen 1 check cada uno (habilidad libre, si la justifican bien).
+3. Evalúa cada tirada por tramos:
+   - Baja: 1-9
+   - Aceptable: 10-13
+   - Buena: 14-17
+   - Muy buena: 18-21
+   - Excelente: 22+
+4. Resultado del nivel:
+   - Si no hay al menos una tirada Aceptable, obtienen solo una pista difusa y pierden tiempo.
+   - Con al menos una Buena, obtienen la pista principal del nivel.
+   - Si además la otra tirada es Muy buena o mejor, obtienen una pista extra de calidad.
+   - Con una Excelente, además añades una ventaja táctica para la siguiente escena.
 
-Pistas por el pueblo:
-- Radan (armería): vio dos personas con capas grisáceas cargando bidones al molino.
-- Maira (surtidos): venta de sedantes y aceite a un ayudante municipal vestido de gris.
-- Almacén municipal: faltan materiales útiles para retención y faroles.
-- Capilla: panfleto con ideario de orden por medio de la sombra.
+Ejemplo rápido (el que pediste):
+- Casa de Iria: Lumi saca Buena y Mosto Muy buena.
+- Descubren marcas de arrastre + nota sobre Edren y el molino.
+- Por la Muy buena, además encuentran restos de tela gris en una astilla de madera rota.
+
+Nivel 1: Casa de Iria (escena del crimen)
+-----------------------------------------
+Pista principal (Buena):
+- Rastro de arrastre hacia despacho y nota incompleta:
+  "Si Edren vuelve a insistir con el molino..."
+
+Pistas extra (Muy buena/Excelente):
+- Tela gris enganchada en una astilla (agresor o cómplice con vestimenta grisácea).
+- Mapa local con marcas en plaza, Calle de la Noria y molino.
+- Harina fina y grasa de lámpara en zonas sin sentido doméstico.
+
+Coste por fallo global (sin Aceptables):
+- Ruido, contaminación de escena o discusión con vecinos.
+- Avanza el reloj narrativo y aumenta vigilancia enemiga en el molino.
+
+Nivel 2: Pulsar el pueblo (resumen social)
+------------------------------------------
+Pista principal (Buena):
+- Coincidencia de testimonios: personas de gris moviendo bidones/paquetes hacia zona del molino.
+
+Pistas extra (Muy buena/Excelente):
+- Armería: Radan vio carga nocturna en carros municipales.
+- Surtidos: Maira vendió sedantes y aceite a emisarios con brazalete gris.
+- Almacén municipal: faltan cuerda, grilletes y lona negra con salida firmada por iniciales.
+- Capilla: panfleto "La sombra ordena donde la ley fracasa."
+
+Ventaja por Excelente:
+- Obtienen hora aproximada de relevo o ruta secundaria hacia el molino.
+
+Nivel 3: Confirmación y acceso al molino
+----------------------------------------
+Pista principal (Buena):
+- Identifican entrada útil (puerta lateral o trampilla interior) y concluyen que el molino está activo pese a su fachada.
+
+Pistas extra (Muy buena/Excelente):
+- Detectan patrón de limpieza artificial en interior (base operativa, no ruina real).
+- Encuentran mecanismo de trampilla sin activar alarma.
+- Localizan marcas de botas y arrastre hacia el descenso subterráneo.
+
+Ventaja por Excelente:
+- Entran sin alertar a la primera guardia o empiezan con mejor posición táctica.
+
+Ritmo recomendado:
+- 1 minuto para explicar cada nivel.
+- 2 tiradas por nivel.
+- Narras resultado en bloque y pasas al siguiente punto.
 
 Nota de dirección:
 Hasta que descubran la Sala [4] del archivo, no nombres a la Cofradía en boca de PNJ. Usa siempre "grupo de capas grises", "los del brazalete gris" o "la gente del farol".
