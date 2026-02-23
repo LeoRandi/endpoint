@@ -2,7 +2,7 @@ Sesión 1: Sombras en el Remanso
 Revisión completa
 
 Premisa de la sesión
-Lumi y Mosto llegan por primera vez a Risco de Sal por rutas distintas, justo al anochecer. En superficie, el pueblo parece normal: comercio abierto, voces en las casas, taberna viva, rutina intacta. El ataque de las sombras se ejecuta, irónicamente, desde las sombras: rápido, selectivo y difícil de demostrar. Esa normalidad se rompe cuando una sombra con forma de látigo atrapa a un niño en plena plaza. Tras una noche inquietantemente tranquila, ambos investigan la desaparición de la alguacil Iria Tal, descubren la implicación del alcalde Edren Tal y terminan descendiendo bajo el molino a un complejo oculto donde la Cofradía del Farol utiliza a Sielu como núcleo de un arma de sombras.
+Lumi y Mosto llegan por primera vez a Riscalobre por rutas distintas, justo al anochecer. En superficie, el pueblo parece normal: comercio abierto, voces en las casas, taberna viva, rutina intacta. El ataque de las sombras se ejecuta, irónicamente, desde las sombras: rápido, selectivo y difícil de demostrar. Esa normalidad se rompe cuando una sombra con forma de látigo atrapa a un niño en plena plaza. Tras una noche inquietantemente tranquila, ambos investigan la desaparición de la alguacil Irina Tal, descubren la implicación del alcalde Edren Tal y terminan descendiendo bajo el molino a un complejo oculto donde la Cofradía del Farol utiliza a Sielu como núcleo de un arma de sombras.
 
 Objetivos de mesa
 1. Forzar alianza Lumi-Mosto en la primera escena.
@@ -21,7 +21,7 @@ Texto para leer:
 "El sendero baja en curvas desde la ladera, primero entre pinos y piedra húmeda, luego entre huertos pequeños cercados con estacas torcidas. A medida que desciendes, el terreno deja de oler a resina y empieza a oler a barro, carbón y sopa de olla. El camino se ensancha en una calzada de cantos lisos: señal de que estás entrando en un pueblo que vive del río. Al fondo, entre tejados inclinados, ves la plaza principal con su poste de anuncios y una campana de alarma colgada bajo un arco de madera."
 
 Detalles útiles:
-- El camino principal entra por el noroeste de Risco de Sal.
+- El camino principal entra por el noroeste de Riscalobre.
 - Hay marcas de rueda recientes y huellas de bota en grupos de 4-5 personas.
 - La gente cierra postigos antes de que caiga del todo el sol.
 
@@ -29,7 +29,7 @@ Detalles útiles:
 Llegada de Lumi (bordes del río)
 --------------------------------
 Texto para leer:
-"El río aquí no corre: respira. Hay zonas de agua quieta como vidrio roto y otras donde la corriente empuja en silencio. En la ribera, raíces de sauce asoman como dedos, y el barro tiene surcos de arrastre reciente. Pasas junto a un molino de piedra, de esos que llevan décadas viendo inviernos: la rueda gira lenta y desacompasada, sin llamar la atención. Más adelante, el cauce se abre y aparecen las primeras casas de Risco de Sal, elevadas sobre pilotes cortos para que el agua no les coma los cimientos."
+"El río aquí no corre: respira. Hay zonas de agua quieta como vidrio roto y otras donde la corriente empuja en silencio. En la ribera, raíces de sauce asoman como dedos, y el barro tiene surcos de arrastre reciente. Pasas junto a un molino de piedra, de esos que llevan décadas viendo inviernos: la rueda gira lenta y desacompasada, sin llamar la atención. Más adelante, el cauce se abre y aparecen las primeras casas de Riscalobre, elevadas sobre pilotes cortos para que el agua no les coma los cimientos."
 
 Detalles útiles:
 - El molino se ve de pasada, sin énfasis especial.
@@ -40,7 +40,7 @@ Detalles útiles:
 Llegada de Lumi (embarcadero)
 ------------------------------
 Texto para leer:
-"El embarcadero de Risco de Sal es una pasarela de madera oscura, de unos veinte pasos de largo, con barcas amarradas por cuerdas húmedas y piedras de lastre. Faroles bajos, vidrio sucio, luz irregular. Un cobertizo de redes, un puesto cerrado de salazón, y al fondo una escalinata que sube a la plaza."
+"El embarcadero de Riscalobre es una pasarela de madera oscura, de unos veinte pasos de largo, con barcas amarradas por cuerdas húmedas y piedras de lastre. Faroles bajos, vidrio sucio, luz irregular. Un cobertizo de redes, un puesto cerrado de salazón, y al fondo una escalinata que sube a la plaza."
 
 Detalles útiles:
 - Dos guardacabos parecen recién cambiados.
@@ -84,7 +84,7 @@ Disparador:
 Si Lumi o Mosto mencionan la sombra-látigo, aunque sea en voz baja y en otra mesa, Sabina se acerca de inmediato y los interrumpe.
 
 Posadera (Sabina Riel), línea sugerida:
-"No repitan eso en alto. Aquí no, no ahora. Vayan a ver a la alguacil Iria Tal, Calle de la Noria, casa de piedra con contraventanas azules. Esta mañana salió de aquí muy preocupada, y no volvió. Si algo raro está pasando, ella ya iba por delante."
+"No repitan eso en alto. Aquí no, no ahora. Vayan a ver a la alguacil Irina Tal, Calle de la Noria, casa de piedra con contraventanas azules. Esta mañana salió de aquí muy preocupada, y no volvió. Si algo raro está pasando, ella ya iba por delante."
 
 Cómo lo hace Sabina:
 - Les deja una jarra para disimular y aparentar servicio normal.
@@ -106,10 +106,10 @@ Texto breve para transición:
 Acto II: Mañana de investigación
 ================================
 
-Escena 3: Casa de la alguacil Iria Tal
+Escena 3: Casa de la alguacil Irina Tal
 --------------------------------------
 Inicio:
-A la mañana siguiente, los PJ van a la casa de Iria (o llegan tras explorar el pueblo).
+A la mañana siguiente, los PJ van a la casa de Irina (o llegan tras explorar el pueblo).
 
 Descripción de llegada:
 "La puerta principal está entornada, apenas dos dedos abierta. Nadie responde al llamar. Dentro, el aire huele a hierro y aceite."
@@ -118,7 +118,7 @@ Interior:
 - Recibidor con salpicaduras de sangre en pared y suelo.
 - Muebles volcados con golpes desde dentro hacia fuera.
 - Rastro de arrastre que llega hasta el despacho y se pierde.
-- No hay cuerpo de Iria.
+- No hay cuerpo de Irina.
 
 Justo entonces aparece Edren Tal
 --------------------------------
@@ -141,9 +141,9 @@ Edren parece colaborador. En realidad ya sabe lo ocurrido y quiere controlar la 
 Pueblo abierto para exploración (sitios y descripciones)
 --------------------------------------------------------
 
-Descripción general de Risco de Sal
+Descripción general de Riscalobre
 -----------------------------------
-Risco de Sal tiene unas cuarenta y tantas casas, casi todas de piedra baja y madera oscura, construidas alrededor de una plaza central cuatro calles, dos que bajan por la ribera(el camino por el que vino Mosto, y el que va al molino) y otros que suben por el pueblo. Los tejados son de pizarra pesada para soportar tormentas. El pueblo parece perfectamente funcional: mercado corto, oficios abiertos, vecinos barriendo portales, chicos corriendo entre carros.
+Riscalobre tiene unas cuarenta y tantas casas, casi todas de piedra baja y madera oscura, construidas alrededor de una plaza central cuatro calles, dos que bajan por la ribera(el camino por el que vino Mosto, y el que va al molino) y otros que suben por el pueblo. Los tejados son de pizarra pesada para soportar tormentas. El pueblo parece perfectamente funcional: mercado corto, oficios abiertos, vecinos barriendo portales, chicos corriendo entre carros.
 
 Lugares recomendados de exploración
 -----------------------------------
@@ -161,11 +161,11 @@ Lugares recomendados de exploración
 3) Calle de la Noria
 - Fachadas más cuidadas, viviendas de oficio.
 - Drenaje central de piedra; cualquier rastro de sangre dura poco aquí.
-- La casa de Iria está en el número 7, con persianas azules.
+- La casa de Irina está en el número 7, con persianas azules.
 
 4) Armería Yunque de Ribera
 - Local estrecho con banco de trabajo, yunque de viaje y pared de armas de uso real (no decorativas).
-- El herrero Radan Mirk comenta haber visto gente con capas grisáceas transportando cajas al amanecer.
+- El herrero Rada Mirk comenta haber visto gente con capas grisáceas transportando cajas al amanecer.
 
 5) Tienda de surtidos El Cesto de Marea
 - Frascos rotulados por color, vendas, tónicos, aceite de lámpara, antisépticos.
@@ -192,7 +192,7 @@ Objetivo:
 Resolver la investigación en pocas tiradas, sin narrar cada rincón, pero manteniendo progresión y premio por tiradas altas.
 
 Cómo funciona:
-1. La investigación tiene 3 niveles encadenados: Casa de Iria -> Pueblo -> Molino.
+1. La investigación tiene 3 niveles encadenados: Casa de Irina -> Pueblo -> Molino.
 2. En cada nivel, Lumi y Mosto hacen 1 check cada uno (habilidad libre, si la justifican bien).
 3. Evalúa cada tirada por tramos:
    - Baja: 1-9
@@ -207,11 +207,11 @@ Cómo funciona:
    - Con una Excelente, además añades una ventaja táctica para la siguiente escena.
 
 Ejemplo rápido (el que pediste):
-- Casa de Iria: Lumi saca Buena y Mosto Muy buena.
+- Casa de Irina: Lumi saca Buena y Mosto Muy buena.
 - Descubren marcas de arrastre + nota sobre Edren y el molino.
 - Por la Muy buena, además encuentran restos de tela gris en una astilla de madera rota.
 
-Nivel 1: Casa de Iria (escena del crimen)
+Nivel 1: Casa de Irina (escena del crimen)
 -----------------------------------------
 Pista principal (Buena):
 - Rastro de arrastre hacia despacho y nota incompleta:
@@ -232,7 +232,7 @@ Pista principal (Buena):
 - Coincidencia de testimonios: personas de gris moviendo bidones/paquetes hacia zona del molino.
 
 Pistas extra (Muy buena/Excelente):
-- Armería: Radan vio carga nocturna en carros municipales.
+- Armería: Rada vio carga nocturna en carros municipales.
 - Surtidos: Maira vendió sedantes y aceite a emisarios con brazalete gris.
 - Almacén municipal: faltan cuerda, grilletes y lona negra con salida firmada por iniciales.
 - Capilla: panfleto "La sombra ordena donde la ley fracasa."
@@ -350,7 +350,7 @@ Aquí se explica qué es la Cofradía:
 - No se presentan como culto religioso, sino como "orden correctiva".
 - Doctrina: "La luz revela el caos; la sombra lo disciplina."
 - Método: infundir miedo selectivo, debilitar autoridades legítimas y sustituirlas.
-- Objetivo local: controlar Risco de Sal como nodo de paso hacia Muelles Altos.
+- Objetivo local: controlar Riscalobre como nodo de paso hacia Muelles Altos.
 
 Pista mayor:
 - Documento que vincula pagos de Edren a la Cofradía.
@@ -378,7 +378,7 @@ Encuentro:
 - Ejecutor patrullando o preparando acceso a la sala final.
 
 Pistas:
-- Insignia de alguacil de Iria cubierta de sangre seca.
+- Insignia de alguacil de Irina cubierta de sangre seca.
 - Cuaderno con horarios de exposición de Sielu al farol.
 
 
@@ -472,7 +472,7 @@ Por la Costura y la Luz."
 
 Última imagen sugerida
 ----------------------
-Plaza de Risco de Sal al atardecer del día siguiente. El pueblo respira, pero nadie pisa aún las zonas donde la sombra dejó marca.
+Plaza de Riscalobre al atardecer del día siguiente. El pueblo respira, pero nadie pisa aún las zonas donde la sombra dejó marca.
 
 Gancho a sesión 2
 -----------------
