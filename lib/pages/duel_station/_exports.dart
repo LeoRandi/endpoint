@@ -3,6 +3,8 @@ export 'duel_station_duelist_appbar.dart';
 export 'duel_station_provider.dart';
 export 'duel_station_hand.dart';
 export 'duel_station_field.dart';
+export 'duel_station_battler_lineup.dart';
+export 'duel_station_coin_flip_announcement.dart';
 export 'duel_station_party.dart';
 export 'duel_station_drop_slot.dart';
 export 'duel_station_middle_zone.dart';

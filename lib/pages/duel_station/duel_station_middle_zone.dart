@@ -141,7 +141,7 @@ class _DuelStationMiddleZoneState extends State<DuelStationMiddleZone>
               ),
             ),
             child: const Text(
-              'Ready',
+              'Finish Turn',
               style: TextStyle(fontSize: MIDDLE_ZONE_BUTTON_TEXT_FONT_SIZE),
             ),
           ),

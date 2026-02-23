@@ -11,6 +11,10 @@ class DuelStationPage extends StatefulWidget {
 class _DuelStationPageState extends State<DuelStationPage> {
   late DuelStationStepManager _stepManager;
   int? _announcedTurn;
+  DuelistSide? _coinFlipWinner;
+  bool _showCoinFlip = false;
+  Completer<void>? _turnAnnouncementCompleter;
+  Completer<void>? _coinFlipCompleter;
 
   @override
   void initState() {
@@ -33,24 +37,53 @@ class _DuelStationPageState extends State<DuelStationPage> {
   }
 
   void _startTurnCycle() async {
-    // Show turn announcement for the initial turn
-    setState(() {
-      _announcedTurn = _stepManager.turnNumber;
-    });
-    
-    // Wait for announcement to complete (1500ms animation)
-    await Future.delayed(const Duration(milliseconds: 1500));
-    
+    await _showTurnAnnouncement();
+    await _showCoinFlipAnnouncement();
+
+    if (!mounted) return;
+
     // Execute start step events
     await _stepManager.executeStartStepEvents();
-    
+
     // Advance to cardPlayStep
     await _stepManager.advanceToNextStep();
   }
 
+  Future<void> _showTurnAnnouncement() async {
+    _turnAnnouncementCompleter = Completer<void>();
+    setState(() {
+      _announcedTurn = _stepManager.turnNumber;
+    });
+    await _turnAnnouncementCompleter!.future;
+  }
+
+  Future<void> _showCoinFlipAnnouncement() async {
+    final coinFlipWinner =
+        Random().nextBool() ? DuelistSide.ally : DuelistSide.enemy;
+    _coinFlipCompleter = Completer<void>();
+    setState(() {
+      _coinFlipWinner = coinFlipWinner;
+      _showCoinFlip = true;
+    });
+    await _coinFlipCompleter!.future;
+  }
+
   void _onAnnouncementComplete() {
+    if (_turnAnnouncementCompleter != null &&
+        !_turnAnnouncementCompleter!.isCompleted) {
+      _turnAnnouncementCompleter!.complete();
+    }
     setState(() {
       _announcedTurn = null;
+    });
+  }
+
+  void _onCoinFlipComplete() {
+    if (_coinFlipCompleter != null && !_coinFlipCompleter!.isCompleted) {
+      _coinFlipCompleter!.complete();
+    }
+    setState(() {
+      _showCoinFlip = false;
     });
   }
 
@@ -93,6 +126,11 @@ class _DuelStationPageState extends State<DuelStationPage> {
           DuelStationTurnAnnouncement(
             turnNumber: _announcedTurn!,
             onAnimationComplete: _onAnnouncementComplete,
+          ),
+        if (_showCoinFlip && _coinFlipWinner != null)
+          DuelStationCoinFlipAnnouncement(
+            winner: _coinFlipWinner!,
+            onAnimationComplete: _onCoinFlipComplete,
           ),
       ],
     );

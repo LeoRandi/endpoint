@@ -1,0 +1,895 @@
+Prólogo(Lumi Musta): Máscaras y Huellas
+
+
+
+
+
+
+Escena 1: El cuarto de piedra
+El lugar
+Un sótano reconvertido en oficina improvisada.
+Las paredes de ladrillo húmedo dejan ver vetas de cal, y la luz proviene de una única bombilla colgante, una fuente mágica de luz blanca oscilando levemente con el aire viciado.
+El suelo es de piedra irregular; una fina capa de polvo revela huellas de botas que van y vienen hasta la puerta metálica.
+En un rincón, un barril cortado hace de estufa; el humo asciende hasta perderse por una grieta del techo.
+Hay cajas apiladas, la mayoría con carpetas, papeles arrugados y sellos policiales antiguos; alguna lleva etiquetas escritas a mano: “Inventario Norte”, “Contactos 4º distrito”, “Despiece”.
+El aire huele a papel mojado, grasa y tabaco rancio.
+La mesa central, de madera astillada, tiene una mancha de vino o sangre seca. Encima:
+* un cenicero lleno de colillas,
+
+* un vaso de cristal con dos dedos de whisky,
+
+* y una vela apagada por la mitad.
+
+Lumi está sentado en silencio frente a esa mesa, la bombilla parpadeando sobre su cabeza, escuchando solo su respiración y el goteo de una tubería cercana.
+________________
+
+
+La entrada de Arno “La Cuña”
+La puerta de metal se abre con un chirrido seco, y una corriente de aire llena el cuarto con olor a tabaco fuerte y perfume barato.
+Entra una mujer delgada, Arno “La Cuña”, apodo que se ganó porque siempre logra abrir puertas.
+Descripción física:
+   * Treinta y muchos, piel pálida con arrugas finas alrededor de los ojos.
+
+   * Cabello engominado hacia atrás, ya con mechones grises.
+
+   * Traje oscuro arrugado, chaleco sin abotonar, camisa blanca con el cuello abierto.
+
+   * Lleva un abrigo de piel desgastado y unos guantes de cuero que no se quita ni para fumar.
+
+   * En el bolsillo interior del abrigo sobresale el extremo de una navaja plegable de acero negro —su herramienta y firma.
+
+   * Una cadena de reloj cuelga de su cinturón, pero el reloj ya no funciona; lo usa por costumbre.
+
+Forma de moverse: pausada pero precisa, con el tipo de confianza que solo tiene quien ha salido ileso de demasiados tratos sucios.
+Habla con voz ronca, marcada por el tabaco y la falta de sueño.
+No levanta la voz, pero cada palabra parece medida, como si calculase lo que vale decir… y lo que vale callar.
+Dialogo:
+Arno (encendiendo un cigarro y exhalando hacia la bombilla):
+“Pensé que no vendrías. Los tipos de tu clase no suelen bajar tan profundo.”
+(Se sienta frente a Lumi, cruza las piernas, mira el vaso de whisky sin tocarlo.)
+“Dicen que vienes de lejos. Que cazabas cosas que no deberían existir.
+Es Interesante, desde luego. Aquí arriba también tenemos monstruos, eh?. Solo que llevan …corbata.”
+(Se inclina hacia delante, el humo se mezcla con su voz baja)
+“Escuché un nombre… Sielu Suuri
+Difícil de pronunciar, pero más difícil de encontrar, no?.
+Si lo que he oído es verdad, te va a interesar, y si lo que he oído te interesa pues… tendrás que ganártelo, no?”
+
+Arno debe convencer a Lumi a toda costa de que debe encontrar una carpeta verde oscuro, en posesión de una banda rival, las “Hijas de Gha”, que contiene info sobre polis untados, chanchullos, escondites de la banda, vamos cosas jugosas. Si lo consigue esta noche, Arno le contará a Lumi lo que sabe. Le explica que no sabe dónde está la guarida secreta de la jefa de las Hojas de Gha, pero que seguro que sus habilidades de cazador le son de ayuda en eso. Explica que sus miembros suelen diferenciarse entre ellos con una marca en la ceja derecha en forma de espiral, y solo debe sonsacarselo o seguirle a su guarida, claro que entonces tendría que lidiar con más gente en la guarida.
+
+Le dice que le esperará en los muelles al amanecer, a ver si tiene la carpeta verde.
+
+Escena 2: Muelles Altos
+La ciudad se alza como un anfiteatro de hierro y piedra sobre el mar.
+Muelles Altos —la joya mecánica de los Altos de Gharil— no descansa nunca(y menos por la noche).
+Sus calles serpentean entre pasarelas de metal y arcos de piedra ennegrecida; los canales elevados caen en escalera entre los tejados, y vierten el agua hacia los mecanismos que mueven la ciudad.
+En lo más profundo, a trescientos metros por debajo, el océano ruge contra la roca, siempre presente.
+Cada pocas horas, un estruendo rompe el silencio:
+Los Elevadores Navales, inmensas plataformas hidráulicas como cazos de agua de mar, ascienden lentamente desde el abismo, cargadas con barcos enteros.
+Sus cadenas y engranajes retumban como los latidos de un corazón metálico, y los iluminan centenares de pequeños faroles de emergencia.
+Cuando los barcos emergen, los estibadores los reciben con vítores y silbidos, mientras los comerciantes ya gritan precios y ofertas desde los balcones.
+La ciudad huele a aceite, sal, humo y a veces, a pan caliente.
+La mezcla perfecta entre lo vivo y lo mecánico.
+Cada esquina tiene un taller, un bar o un almacén, y cada taller, bar o almacén tiene una historia que contar.
+En los distritos altos, las cúpulas de vidrio de la aristocracia brillan con una luz fría, alimentada por cristales de energía o magia condensada.
+Las calles bajas, sin embargo, cuentan otra historia.
+Allí la humedad sube desde las grietas, los callejones huelen a pescado podrido y a sangre seca.
+Los niños corretean entre cajas marcadas, las prostitutas descansan en los escalones, y los guardias del distrito evitan mirar demasiado tiempo a la oscuridad.
+El rumor constante de las turbinas y el golpeteo de los cascos en los diques llenan el aire como una oración mecánica.
+Los habitantes llaman a esa vibración el Pulso de la ciudad.
+Y según has oído centenares de veces desde que llegaste: si un día cesa, la ciudad entera caerá de nuevo al mar.
+________________
+
+
+Sales del sótano de Arno y asciende unas escaleras de piedra húmeda.
+La bruma de la noche te recibe con el olor salado del mar y el sonido de las grúas hidráulicas en movimiento.
+Desde tu punto en el borde del distrito portuario puede ver un atisbo del abismo —y más allá, la fila de luces de los barcos que esperan a poder ascender hacia el lago elevado.
+Por un momento, la visión te hipnotiza.
+No hay nada natural en esa ciudad, pero hay algo casi vivo en su respiración metálica.
+Muelles Altos nunca duerme, y por lo visto esta noche tú tampoco.
+________________
+
+
+
+El Ojo Hundido
+El Ojo Hundido es una taberna estrecha, encajada entre dos tuberías gigantes que gotean vapor caliente.
+Al entrar, el olor a ron barato, sudor y aceite de máquina se mezcla con una música desafinada tocada por alguien que claramente no quiere estar aquí.
+La luz es tenue: faroles de vidrio azul colgados del techo y una hilera de velas casi consumidas sobre la barra.
+Las mesas están apretadas, llenas de marineros, estibadores y gente que evita mirar demasiado a cualquiera.
+En el fondo, junto a un ventanal que da a los muelles bajos, hay una mesa siempre vacía…
+salvo por una figura con máscara de gato que observa la sala sin decir una palabra.
+NPC #1 — Vern Trosk, “el Marinerazo Bocazas”
+Primer contacto. El que abre la puerta narrativa hacia Sura.
+¿Cómo lo encuentra Lumi?
+Después de superar una tirada de Percepción/Investigación en el distrito portuario, Lumi nota:
+      * un hombre enorme ruidoso que habla demasiado alto en la entrada del bar El Ojo Hundido.
+
+      * está contando historias sobre bandas, delitos y “sus contactos”.
+Es imposible ignorarlo. Es un imán para información… y estupideces.
+
+Actitud
+         * Extrovertido, orgulloso, algo borracho.
+
+         * Cree saber más de lo que sabe.
+
+         * Le encantan los extraños silenciosos porque puede rellenar el silencio hablando.
+
+Cómo rolearlo
+Voz alta, lenguaje de manos, se acerca demasiado.
+“¡Míralo tú! ¡Un tipo sin máscara, no se ven muchos hoy!
+Mira, compañero, yo conozco a todo el mundo por aquí.
+Si buscas gente peligrosa… estás hablando con el correcto.”
+Información que puede soltar
+Con un poco de paciencia, o si Lumi hace un gesto amenazante, Vern dirá:
+            * “A veces viene por aquí un miembro de las Hijas… calladita, máscara de gato, no toca nada, solo mira.”
+
+            * “La he visto ahí, en el fondo, junto a la ventana que da a los muelles bajos.”
+
+            * “Tiene esa marquita rara en la ceja… como una espiral, ¿lo has visto? No es un tatuaje normal.”
+
+→ Esto redirige directamente a Sura.
+Tirada útil aquí
+Intuición (DC 10) para saber que Vern no es peligroso, solo bocazas.
+Intimidación (DC 12) para hacerlo hablar más rápido.
+Sigilo (DC 14) si Lumi prefiere escuchar sin ser visto.
+
+
+NPC #2 — Mella Varr, vendedora ambulante de comida nocturna
+Segundo contacto. Confirma detalles, filtra rumores y humaniza el entorno.
+¿Cómo la encuentra Lumi?
+Si la primera tirada falla, o si Lumi decide caminar más:
+El cazador huele comida callejera (pan al vapor con pescado especiado).
+Mella tiene un puesto improvisado entre dos tuberías enormes que condensan vapor.
+Actitud
+               * Amable, práctica, acostumbrada a ver gente rara de noche.
+
+               * Tolera la presencia silenciosa de Lumi con naturalidad.
+
+               * Le gusta observar a los clientes más que hablar con ellos.
+
+Cómo rolearla
+Voz suave, mirada cansada pero amistosa.
+“No tienes pinta de borracho ni de perdido…
+¿Buscas a alguien, verdad?”
+Si Lumi señala o describe (con gestos) la espiral:
+“Sí, he visto a alguien así.
+Una chica con máscara de gato.
+Nunca come. Nunca pide nada.
+Solo mira hacia los muelles bajos… como si esperara a alguien.”
+Tiradas útiles
+Percepción (DC 12) para notar que Mella mira de reojo hacia donde suele estar Sura.
+Diplomacia/Persuasión (DC 10) si Lumi intenta que ella hable un poco más.
+Información útil
+                  * “Suelo verla a esta hora. Si te das prisa, todavía estará ahí dentro.”
+
+                  * “No me meto en líos… pero esa chica camina como alguien que sabe pelear.”
+
+NPC #3 — Sura “la Gata” (el contacto real)
+Miembro de las Hijas de Gha. La clave del puzzle.
+¿Cómo la encuentra Lumi?
+Después de hablar con Vern o Mella, Lumi entra en El Ojo Hundido.
+La luz interior es tenue, música desafinada, olor a ron y aceite de máquina.
+En la mesa del fondo, junto a un ventanal que da a los muelles bajos:
+Una joven de piel oscura con una máscara de gato negro, agrietada en la mejilla.
+No bebe, no habla, no se mueve más de lo necesario.
+Lumi nota algo extraño en ella: la está mirando incluso antes de que él entre.
+Actitud
+                     * Seria, analítica.
+
+                     * Cuando habla, es en frases cortas.
+
+                     * No se impresiona por presencia física, pero sí por control emocional.
+
+Cómo rolearla
+Habla lento, tono bajo, sin emociones obvias.
+Sura (sin levantar la cabeza):
+ “Has preguntado por las Hijas.
+No es muy… prudente.”
+Si Lumi muestra la espiral con gestos o dibuja en el aire, ella se queda quieta un segundo.
+Lentamente, se quita la máscara:
+la espiral marcada a fuego en la ceja derecha.
+“La mansión que buscas existe.
+Está en los muelles bajos.
+Es un lugar… tranquilo.”
+Sura no lo guía hasta allí — solo marca el camino.
+Tiradas útiles
+                        * Intimidación (DC 14) si Lumi quiere forzar más información.
+
+                        * Persuasión/Engaño (DC 12) para conseguir una descripción más concreta.
+
+                        * Intuición (DC 10) para ver que no mentirá, pero tampoco dirá más de lo justo.
+
+Lo máximo que puede decir
+“No entres por la puerta grande.
+No la usamos.
+Busca el balcón hundido. El que da al lago negro.”
+Con esto, Lumi ya tiene la entrada a la guarida.
+Escena 3: Muelles Altos
+Exterior de la mansión
+La encuentras donde los muelles bajos se vuelven silenciosos, en una zona donde el agua apenas se mueve y el Pulso suena lejano, como un latido bajo la ciudad.
+La mansión se alza en mitad de la niebla: un cascarón enorme de piedra negra y metal oxidado, con balcones hundidos y ventanales rotos que miran al lago como ojos vacíos.
+Antiguos emblemas tallados en la fachada están cubiertos de moho y sal; la puerta principal, reforzada con planchas de acero, parece sellada desde dentro.
+En el porche derruido, bajo la sombra de una columna rota, un guardia fuma en silencio, la cara iluminada por el ascenso de un elevador lejano.
+Todo lo demás está inmóvil.
+Muy inmóvil.
+Interior de la mansión (entrada)
+Por dentro, la mansión es un esqueleto metálico envuelto en polvo y telarañas:
+el suelo de parquet está levantado, mezclado con placas de hierro que chirrían bajo el peso; tuberías viejas cruzan las paredes como venas abiertas.
+Un vestíbulo amplio se extiende hacia varios pasillos oscuros, iluminados apenas por lámparas improvisadas hechas con botellas y mechas de aceite.
+Se oyen voces lejanas, el murmullo de jóvenes ocupando habitaciones, mezclado con el eco hueco de la estructura antigua.
+Cada paso resuena más de lo que debería.
+Rutas de entrada sigilosas
+1) El Balcón Hundido (la ruta más limpia para un Vagabond)
+Sura ya mencionó un “balcón hundido”.
+Está a un lado de la mansión, como si hubiera cedido hacia el lago artificial.
+                           * Baranda rota, madera húmeda y resbaladiza.
+
+                           * La pared está cubierta de una placa de hierro oxidado → perfecta para trepar.
+
+                           * La ventana que da al interior no tiene cristal, solo tablones flojos por dentro.
+
+                           * No pasa nadie por ahí; los guardias evitan esa zona porque huele a moho.
+
+Tirada sugerida:
+                              * Sigilo (DC 12–14) para no hacer ruido en las tablas mojadas.
+
+                              * Atletismo o Acrobacias (DC 10–12) para escalar por el hierro oxidado.
+
+________________
+
+
+2) Las Pasarelas de Servicio (ruta técnica y más ambientada en el entorno industrial)
+Bajo los muelles, entre la bruma del lago y la estructura de metal de la mansión, hay pasarelas antiguas que servían para mantenimiento.
+                                 * Una trampilla oxidada lleva a una sala de calderas abandonada.
+
+                                 * Tubos enormes, vapor que sale a presión, cadenas que cuelgan del techo.
+
+                                 * Un pequeño hueco entre paneles da directamente a un pasillo interior.
+
+Tirada sugerida:
+                                    * Percepción (DC 10) para encontrar la trampilla.
+
+                                    * Sigilo (DC 14) para evitar hacer ruido contra las tuberías o cadenas.
+
+                                    * Si falla: un “PSSSH” de vapor avisa a dos chavales dentro que se acercan a mirar.
+
+________________
+
+
+3) La Ventana del Ático (ruta arriesgada pero que deja a Lumi justo donde quiere: en las alturas y sin vigilancia)
+La parte superior de la mansión tiene un tragaluz parcialmente roto.
+                                       * Hay que subir por una pared de piedra con placas arrancadas — difícil pero posible.
+
+                                       * Desde arriba, Lumi entra directamente en un ático lleno de muebles cubiertos y polvo espeso.
+
+                                       * Desde allí, puede observar sin ser visto y hacer un descenso silencioso.
+
+Tirada sugerida:
+                                          * Acrobacias (DC 14–16) para escalar.
+
+                                          * Sigilo (DC 10) para entrar sin levantar polvo.
+
+Extra: esta ruta le permite ver dos guardias conversando abajo, antes de decidir cómo moverse.
+________________
+
+
+🚬 Conversación con el guardia (si Lumi decide acercarse, engañar o distraer)
+El guardia fuma apoyado en la columna rota del porche, con una lámpara de aceite a un lado que ilumina su rostro cansado.
+Su actitud es pasiva, más aburrido que alerta.
+Voz áspera, acento de puerto, tono desconfiado pero no agresivo.
+ Habla sin sacar la mano del bolsillo.
+________________
+
+
+Inicio del diálogo (el guardia nota a Lumi acercarse):
+Guardia:
+ “Oye, tú.
+¿No sabes leer?
+Esa puerta no es para visitantes.”
+(Señala un cartel de “NO ENTRAR” cerca de la entrada. Da una calada larga. Observa a Lumi de arriba abajo. Si Lumi no habla, él continua.)
+“¿Qué pasa, te has perdido?
+No pareces del barrio…”
+________________
+
+
+Si Lumi intenta pasar como mensajero / alguien casual
+(Puedes exigir una tirada de Engaño/Persuasión DC 12–14)
+Guardia (frunciendo el ceño):
+ “¿Un recado a estas horas?
+Qué casualidad… justo cuando la jefa no recibe a nadie.”
+(Mira a Lumi más tiempo que necesario.)
+ “Enséñame lo que traes, o date la vuelta.”
+Si Lumi pasa la tirada:
+“Bah. Adelante, pero no subas las escaleras.
+Camina recto y no abras puertas raras.”
+Si falla:
+“No cuela, amigo.
+Vete antes de que tenga que llamar al resto.”
+________________
+
+
+Si Lumi intenta intimidarlo con presencia, postura o arma visible
+(Intimidación DC 14)
+Guardia (hace un gesto de calma, pero se tensa):
+ “Eh… tranquilo.
+No quiero jaleo.”
+(Da un paso atrás.)
+ “Si buscas a alguien… no está aquí.
+Pero si vas por el lateral, igual encuentras una entrada vieja.”
+(Te está mintiendo para que te largues, pero la dirección que da coincide con el balcón hundido.)
+Éxito total → El guardia se aparta del porche y finge no ver nada.
+Fracaso → silba para llamar a otro, dos voces se oyen dentro.
+________________
+
+
+Si Lumi simplemente quiere distraerlo para huir hacia otra ruta
+(Sigilo DC 12–15)
+ Puedes describir que el guardia:
+                                             * se agacha para encender otra lámpara,
+
+                                             * deja caer la colilla,
+
+                                             * se pone de espaldas para orinar,
+
+                                             * o se mete un segundo en el interior para responder cuando lo llaman.
+
+→ Momento perfecto para moverse sin ser visto.
+________________
+
+
+Si Lumi se queda quieto y solo observa (sin acercarse)
+Tirada: Percepción DC 10–12
+Descubre:
+                                                * una cadencia irregular en el guardia → está cansado y no espera problemas;
+
+                                                * la rutina: cada 20–30 segundos mira hacia el lago, no hacia la puerta;
+
+                                                * un punto ciego en el lateral izquierdo donde Lumi puede deslizarse hacia el balcón hundido sin necesidad de interactuar.
+De aquí en adelante, Mario debe rolear pasear por la mansión sin ser visto, que consiste en un gran salón central, y dos pasillos a cada lado. 
+El izquierdo lleva a una cocina abandonada, en la que ahora descansan 3  miembros de las Hijas de Gha, tambien a un pequeño cuarto de almacenaje, donde, en una caja de metal en la pared, hay colgados varios juegos de llaves.
+El derecho  gira casi inmediatamente, y lleva a un montón de habitaciones a cada lado del largo pasillo.
+El pasillo desemboca en unas puertas dobles de madera oscura, reforzadas con placas de metal que alguien añadió después de que la casa quedara en ruinas.
+A diferencia del resto de la mansión, aquí no hay polvo en el suelo: alguien pasa por este tramo a menudo.
+Hay dos lámparas sobre las puertas, cada una hecha con botellas de cristal rellenas de mecha y aceite, ardiendo con una llama azulada.
+El aire huele a incienso quemado y perfume metálico, casi como si alguien estuviera intentando disfrazar el olor a humedad.
+A cada lado de las puertas hay dos pequeñas ranuras en la pared, como rejillas.
+Al acercarse, Lumi siente una corriente de aire cálido: hay maquinaria funcionando detrás.
+La puerta está cerrada con llave y la cerradura no es simple:
+una mezcla de mecanismo antiguo y añadido reciente, con dos etapas de bloqueo.
+Al otro lado, silencio absoluto.
+Opciones de entrada (el jugador decide el estilo)
+1) Forzar / Ganzuar la cerradura silenciosamente
+(Ruta técnica, ideal para un Vagabond.)
+La cerradura es un mecanismo doble:
+                                                   * un seguro tradicional,
+
+                                                   * y un engranaje añadido por la banda.
+
+Tirada sugerida:
+                                                      * Destreza + Herramientas o Sigilo (DC 14–16).
+Si lo consigue: la puerta se abre sin ruido.
+Si falla:
+
+                                                      * el seguro salta con un “clic” audible → dos guardias del pasillo contiguo pueden oírlo.
+
+Ventaja: entra sin activar trampas ni alarmas.
+Desventaja: arriesga ser oído.
+________________
+
+
+2) Buscar entrada alternativa cercana
+(Ruta astuta / percepción)
+Lumi puede notar (Percepción DC 12):
+                                                         * una rejilla baja en la pared izquierda,
+
+                                                         * apenas sujeta por dos tornillos.
+Detrás hay un conducto de mantenimiento que atraviesa justo la pared que da al despacho.
+
+Dentro es estrecho, sucio y con ruido metálico de tuberías…
+pero sale directamente a la esquina oscura de la habitación sin que nadie lo espere.
+Tirada sugerida:
+                                                            * Sigilo (DC 10–12) para moverse sin hacer sonar cadenas internas.
+
+                                                            * Acrobacias si es muy estrecho.
+
+Ventaja: entrada completamente inesperada.
+Desventaja: puede aparecer justo detrás de alguien sin quererlo.
+________________
+
+
+3) Escuchar antes de entrar (y aprovechar una oportunidad)
+(Ruta de observación / paciencia.)
+Lumi puede pegar el oído a la puerta (Percepción DC 10–14):
+                                                               * A DC 10: oye movimiento leve, como papeles o ropa.
+
+                                                               * A DC 12: oye a una mujer suspirando, molesta.
+
+                                                               * A DC 14+: oye claramente:
+
+
+“¿Dónde demonios está ese informe…?”
+y después un golpe seco de frustración.
+
+
+Si Lumi espera 10–20 segundos más,
+La jefa abre una ventana lateral de la habitación para ventilar → ruido de apertura, paso al balcón interior.
+Ese es el momento perfecto para entrar por:
+                                                                  * la puerta,
+
+                                                                  * o rodear y entrar por la ventana del balcón interior.
+
+Ventaja: entrar cuando la jefa está ocupada o de espaldas.
+Desventaja: requiere paciencia y buen timing.
+________________
+
+
+Habitación de la Jefa — Descripción breve
+La habitación es amplia pero asfixiante, iluminada solo por una lámpara de cristal azul que tiñe todo de un tono frío.
+Un escritorio enorme ocupa el centro, cubierto de papeles, frascos de tinta, mapas arrugados y una botella a medio vaciar.
+En la pared del fondo, una ventana estrecha da a un balcón lleno de musgo.
+A la derecha, bajo una sábana raída, se distingue el contorno imponente de un órgano antiguo, roto, con sus tubos oxidados apuntando al techo como lanzas.
+En el suelo, una alfombra enrollada deja ver placas metálicas añadidas recientemente, y varias cajas sin cerrar contienen objetos robados.
+El aire huele a perfume metálico, incienso quemado y humedad vieja.
+Es un despacho improvisado, medio ruinoso, pero claramente de alguien que pasa mucho tiempo aquí.
+________________
+
+
+🔥 La Jefa de las Hijas de Gha — Descripción breve
+Se llama Rhyza Ghaal, aunque todos la llaman simplemente Rhyza.
+Es una mujer de unos treinta y pocos, de piel oscura con reflejos rojizos, ojos almendrados y expresivos, y cabello recogido en trenzas apretadas adornadas con anillos de cobre.
+Viste una chaqueta larga reforzada con placas de cuero, tatuajes visibles subiendo por su cuello, y la espiral de la banda grabada en la ceja derecha.
+Su postura es firme, alerta, pero cuando cree estar sola se nota el cansancio acumulado en los hombros.
+Tiene una herida fina y reciente en el labio superior —un mal día.
+Habla con voz baja y afilada, como quien está acostumbrada a mandar sin buscar permiso.
+Rasgo clave:
+ Hay una cadena fina al cuello, oculta bajo la ropa.
+En el extremo, si alguien la ve, cuelga un pequeño colgante metálico en forma de cuña.
+Es el recuerdo de su antigua amante: Arno.
+Aunque lo oculta con ferocidad, la herida emocional está ahí, sin cicatrizar.
+Rhyza sigue enamorada de él y lo odia a la vez.
+Ése es el nudo interior que nunca menciona, pero condiciona cada decisión que toma.
+
+
+Puzzle del Órgano — Diseño Completo
+1. La Nota (pista inicial)
+Si Lumi registra la mesa, encuentra una nota arrugada con instrucciones:
+“Configuración del Órgano → usar caja de ajustes.
+Importante ponerlo TODO a tope.
+Si no, no se abrirá la compuerta.”
+La letra es apresurada y torpe, como si Rhyza hubiera tomado apuntes de algo que aún no entiende del todo.
+Esta pista sirve para que el jugador entienda que el órgano no se toca como música, sino como una máquina.
+________________
+
+
+2. La Caja de Configuración (interacción física)
+En el lateral inferior del órgano (Lumi debe buscar bien, Percepción DC 12–14) hay una caja de metal del tamaño de un libro, unida al instrumento por cables viejos y tubos finos.
+Al abrirla, dentro se ven cuatro manivelas y un dial:
+                                                                     * Manivela 1: “Presión”
+
+                                                                     * Manivela 2: “Resonancia”
+
+                                                                     * Manivela 3: “Amplitud”
+
+                                                                     * Manivela 4: “Anclaje”
+
+                                                                     * Dial: escala del 0 al 6
+
+Todas están bajadas a valores bajos.
+________________
+
+
+3. Solución del Puzzle
+El jugador debe hacer exactamente lo que dice la nota:
+Ponerlo todo a tope.
+ (Manivelas al máximo, dial a 6.)
+Cuando Lumi ajusta la última pieza:
+Efecto:
+El órgano tiembla, los tubos vibran con un gemido grave, y parte del panel trasero se desliza como un cajón oculto.
+Dentro hay:
+                                                                        * La carpeta verde oscuro, llena de información valiosísima (polis untados, nombres, rutas, compradores).
+
+                                                                        * Un pequeño frasco metálico con un contenido negro (opcional, para lore).
+
+                                                                        * Polvo acumulado: esto no se ha abierto en años.
+
+Y en ese mismo segundo…
+ El ruido del órgano alerta a la jefa.
+Combate en la Habitación
+Primer turno after puzzle → Rhyza aparece inmediatamente.
+ Ella estaba en la terraza de la habitación, fumando
+Entra por la puerta con arma corta, sorprendida y furiosa.
+
+Segundo turno → Llegan dos ayudantes por la puerta.
+ Son miembros jóvenes de las Hijas de Gha.
+
+Tercer turno → Entra Raph por la ventana.
+ Es enorme, atlético, enviado por Arno; rompe parte del marco y cae dentro.
+
+
+Descripción de la irrupción
+1. Entrada de Rhyza (primer turno)
+La puerta doble se abre con violencia.
+Rhyza Ghaal entra con una daga curva en mano, ojos encendidos, respiración alterada.
+Rhyza:
+“¿Tú? ¿Quién demonios eres…?
+¡Fuera de mi despacho!”
+Ella no espera explicaciones.
+Ataca.
+Tiene ventaja inicial: conoce el lugar, Lumi no.
+________________
+
+
+2. Refuerzos de Rhyza (segundo turno)
+Dos miembros de las Hijas de Gha irrumpen por la puerta.
+                                                                           * Uno lleva una cadena corta.
+
+                                                                           * El otro una barra de hierro que usa para desviar ataques.
+
+Ayudante 1:
+“¡Jefa! ¡Lo tenemos!”
+Ayudante 2:
+“¡Cerrad ventanas! ¡No dejéis que escape!”
+Ahora Lumi está rodeado en un espacio que vibra y cruje.
+________________
+
+
+3. Llegada de Raph (tercer turno)
+La ventana del balcón interior estalla con un golpe seco.
+Un tipo alto, ancho como dos guardias, con barba mal afeitada y una cicatriz en la frente, cae dentro levantando polvo.
+Raph:
+“Eh, Lunático…
+Arno dijo que te trajera de una pieza.
+¡Qué fiesta tienes montada!”
+Raph se incorpora, cruje el cuello y se prepara para luchar a favor de Lumi.
+Terreno “Engaging” — Cosas que pueden pasar
+La habitación tiene peligros y oportunidades.
+Aquí tienes ideas que puedes activar espontáneamente:
+Elementos del entorno
+                                                                              * Tuberías: si son golpeadas, expulsan vapor caliente (1d4 daño y cegado leve).
+
+                                                                              * El Órgano: si alguien lo choca, suelta un BOOOOOOM grave → todos hacen salvación de Con para no quedar aturdidos 1 turno.
+
+                                                                              * La alfombra enrollada: puede usarse para hacer tropezar a un enemigo.
+
+                                                                              * Cajas con botín: pueden tirarse al suelo para crear cobertura improvisada.
+
+                                                                              * Escritorio grande: se puede empujar como muro móvil.
+
+                                                                              * Sábana del órgano: Lumi puede usarla para envolver o cegar a alguien.
+
+Dinámica del combate
+
+                                                                                 * Raph es un tanque, pero torpe: puede romper muebles por accidente, abriendo nuevas líneas de visión o movimiento.
+
+Raph — El refuerzo enviado por Arno
+Raph es un hombre enorme, casi desproporcionado para los techos bajos del despacho.
+Tiene hombros anchos, torso como una muralla y brazos marcados por cicatrices viejas.
+Su rostro está sombreado por una barba descuidada, con una cicatriz oblicua cruzando la frente hasta la ceja izquierda.
+Viste un chaleco de cuero oscuro reforzado con placas de latón, que cruje cuando respira.
+Los nudillos están vendados, ennegrecidos por sangre seca y tinta.
+Cuando entra por la ventana lo hace como un ariete:
+un golpe seco, el marco cede, y él cae con un estrépito que hace vibrar el parquet.
+Al incorporarse sonríe con descaro, como si esto fuera un juego.
+Personalidad en pocas palabras:
+ tosco, brutal, leal a Arno por motivos que no explica;
+suele bromear mientras pelea, pero se oscurece mucho si alguien insulta a Arno.
+Luchador de las Hijas de Gha — “Drek” (cuerpo a cuerpo)
+Drek es un joven flaco pero fibroso, con el pelo rapado a los lados y un mechón largo que le cae sobre la cara.
+Su marca en espiral de la banda es reciente, aún rojiza, hecha con hierro candente.
+Va armado con una barra de hierro corta que usa como quien pelea en callejones más que en campos de batalla.
+Tiene ropa de cuero remendada, botas embarradas y vendajes en las muñecas.
+Se mueve rápido, con pasos cortos y tensos, y ataca apuntando a las piernas o costados para desestabilizar.
+Es nervioso, pero decidido: quiere impresionar a su jefa.
+Personalidad en pocas palabras:
+ inseguro, impresionable, extremadamente leal a Rhyza;
+más bruto que talentoso, pero pelea como si su vida dependiera de ello.
+Hechicera de las Hijas de Gha — “Lehna” (empujones y fuego)
+Lehna es joven, delgada, con piel clara y el cabello recogido en una serie de trenzas apretadas anudadas con hilo rojo.
+La espiral de su ceja está tatuada, no marcada, y decorada alrededor con pequeños puntos de tinta como si fueran chispas.
+Sus ojos tienen un brillo ámbar extraño —y cuando se concentra, ese brillo se vuelve casi incandescente.
+Viste una capa ligera hecha de retales, con bolsillos llenos de hierbas secas, pequeños frascos y pétalos quemados.
+Al levantar las manos, se forma un viento caliente a su alrededor:
+pequeñas llamaradas en sus palmas y ondas de calor que hacen temblar el aire.
+Usa magia de empuje, más para controlar posiciones que para matar.
+Personalidad en pocas palabras:
+ segura de sí misma, altiva, disfruta induciendo miedo;
+cree firmemente que la banda es una familia mejor que cualquier otra cosa.
+
+________________
+
+
+Prólogo: Los Altos de Gharil
+
+
+Los Altos de Gharil
+________________
+
+
+Sesión 1
+Premisa
+Tu Mendicante viaja por el camino que conecta Barrovilla de Arriba con Barrovilla de Abajo, dos aldeas separadas por una cuesta empinada que baja desde los riscos hasta el cauce del río.
+Últimamente, la mayoría de los habitantes de Abajo han huido hacia Arriba: dicen que los campos del valle han comenzado a cantar, que el trigo se mueve aunque no haya viento, y que el suelo devora a los hombres.
+En la posada de Barrovilla de Arriba, los aldeanos murmuran:
+“Los campos de terraza ya no duermen. Llevan tres noches cantando. Y lo que canta… no es humano.”
+________________
+
+
+Escenarios
+1. El Camino de los Dos Barros
+Un sendero empedrado, medio cubierto de hierba y niebla.
+Muros de piedra seca separan pequeños bancales donde crecen tomillos y restos de trigo salvaje.
+Los postes del camino están tallados con símbolos de la Iglesia Reparadora, aunque algunos están invertidos o carcomidos.
+Por las noches, el sonido del río parece un lamento que sube desde el valle.
+________________
+
+
+2. Barrovilla de Arriba
+Casas apretadas, con balcones de madera que se inclinan sobre la calle.
+Las puertas están aseguradas con cruces de mimbre, y los niños no salen de las casas.
+El pueblo parece demasiado lleno: refugiados de Abajo duermen en establos o en los pasillos de la posada.
+El sonido de los martillos reparando techos se mezcla con murmullos de plegarias.
+________________
+
+
+3. Barrovilla de Abajo
+Aldea abandonada junto al cauce del río.
+Los huertos en terraza se derrumban lentamente bajo su propio peso, cubiertos por una capa de trigo que nunca fue plantado.
+El aire es más denso aquí; huele a agua estancada y flores podridas.
+Las ventanas están tapiadas. En el centro, una vieja capilla con su puerta arrancada por dentro.
+________________
+
+
+4. Los Campos en Terraza
+Cientos de escalones de tierra y piedra donde crece trigo marchito.
+De día, el viento parece agitar las espigas al compás de una respiración profunda.
+De noche, el campo murmura; si se guarda silencio, pueden escucharse voces enterradas.
+Bajo la última terraza yace el Altar Hundido, el corazón de la maldición.
+________________
+
+
+5. El Altar Hundido
+Una estructura semienterrada entre raíces y agua.
+Piedras ennegrecidas, símbolos arcaicos de lluvia y cosecha grabados con cuchillos de piedra.
+Un ídolo de madera cuarteado —mitad figura humana, mitad espiga— yace atado con cuerdas y enredaderas.
+Si el Mendicante lo toca, siente que algo dentro late… débil, pero vivo.
+Un susurro se eleva desde el suelo:
+“Nadie recuerda mi nombre.”
+________________
+
+
+6. Interior de la posada El Jaral Gris
+Oscura, húmeda, con el suelo desigual y olor a vino agrio.
+Una chimenea central crepita entre sombras, proyectando figuras alargadas sobre las paredes.
+El aire está lleno de conversaciones cortadas, de platos sin terminar, de miedo.
+En la trastienda, hay un altar pequeño con un símbolo de la Iglesia Reparadora cubierto de hollín.
+________________
+
+
+Acto I — La llegada
+Barrovilla de Arriba es una aldea encaramada en la pendiente. Casas de piedra y madera húmeda se apiñan alrededor de un viejo campanario.
+El aire huele a pino, hierro oxidado y humo de chimenea.
+La posada El Jaral Gris es el único refugio para los viajeros: su chimenea chisporrotea sin alegría, y las vigas del techo rezuman humedad.
+Allí el Mendicante conoce a varios personajes:
+________________
+
+
+NPCs principales
+Mara del Jaral
+* Joven viuda, cabello oscuro trenzado con cintas de lino.
+
+* Atiende la posada con manos temblorosas. Su marido, Tomas, fue tragado por la tierra en los campos del valle.
+
+* Aún lo sueña cada noche: lo ve sonriendo, con espigas brotando del pecho.
+
+* Desea que alguien “hable” con lo que sea que ocupa los campos, más que destruirlo.
+
+Reeve Haldrin
+   * Antiguo soldado reconvertido en alguacil local.
+
+   * Guarda un rosario de hierro al cuello, pero ya no reza.
+
+   * Ofrece pagar al Mendicante o darle refugio si logra purgar el valle.
+
+   * Siente culpa por no haber ayudado a evacuar antes a la gente de Barrovilla de Abajo.
+
+   * Tiene aspecto cansado, con una barba sin afeitar desde hace semanas. Está en sus treinta, y por las noches vigila el camino hacia Barrovilla de Abajo(de ahí el cansancio)
+
+   * Busca al Mendicante mientras se hospeda en la posada del Jaral Gris, habiendo oído rumores de que un monje había llegado a la villa
+
+Velia la Curandera
+      * Anciana de voz ronca y mirada astuta.
+
+      * Vende hierbas y rezos, conoce las antiguas supersticiones locales.
+
+      * Sospecha que no se trata de una “maldición”, sino de algo que despertó cuando alguien escarbó demasiado profundo.
+
+      * Velia vive en la casa más arriba del camino, donde ya no hay apenas huertos. Esta información se la puede dar cualquiera en el pueblo.
+
+      * Velia la Curandera le habla al Mendicante con voz cascada una noche, mientras mezcla raíces junto al fuego:
+“Cuando yo era niña, las mujeres del valle cantaban a la tierra para que bebiera despacio.
+Era una canción vieja, más vieja que la Iglesia misma.
+Decían que si la repetías palabra por palabra frente al altar, la tierra recordaba quién eras… y te perdonaba.”
+         * Vella ya no recuerda toda la letra —solo fragmentos:
+“Despierta, Madre, sin hambre.
+Bebe del río, pero no del hombre.”
+
+________________
+
+
+Acto II — La investigación
+El Mendicante puede hablar con los refugiados, revisar el camino o descender al valle.
+Durante el día, el campo parece dormido, pero el suelo palpita bajo los pies.
+La savia de las espigas es luminosa al caer la tarde; las raíces parecen formar letras, casi palabras.
+En el campo, la tierra se abre lentamente.
+Tomas, el marido de Mara, surge del suelo junto a otro granjero, hombres conocidos que ahora caminan con torsos huecos, llenos de trigo y raíces.
+Sus ojos están vacíos, pero sus voces repiten los nombres de sus seres queridos como oraciones rotas.
+No atacan por maldad, sino por instinto —son extensiones del santuario, buscando ser recordados.
+Si el Mendicante muestra compasión o canta los antiguos rezos, los devueltos se detienen…
+pero entonces aparece la Bruja-Jabalí.
+Conseguir el resto de la canción:
+1. El sueño del río (revelación onírica)
+Condición: dormir en Barrovilla de Abajo, en el camino desde Barrovilla de Arriba, o junto al cauce del río antes del enfrentamiento final.
+Evento: sueña con un campo inundado bajo la luna; ve a una mujer de barro y raíces que canta al ritmo del agua. Cientos de ciervos, jabalíes y otros animales corren hacia ella, devorándola. Se siente sin embargo como si todo fuera bueno y bello, como parte de la naturaleza.
+Recompensa: al despertar, recuerda vagamente las palabras que aún le resuenan en la mente:
+“Baja el hierro, levanta la mano.
+Da nombre al barro, y será hermano.”
+2. Los susurros del campo (revelación ambiental)
+Condición: después de mostrar compasión hacia los “granjeros devueltos” (por ejemplo, evitando rematarlos o rezando por ellos).
+Evento: cuando el Mendicante se arrodilla o guarda silencio, el viento se calma. Las espigas se inclinan todas hacia él, y el zumbido del campo se convierte en un canto coral débil.
+Recompensa: oye una frase nueva, perdida entre la brisa:
+“Que beba el suelo, no lo olvides.
+Que duerma el trigo allá donde vives.”
+3. El diario del viejo capellán (descubrimiento físico)
+Condición: explorar la vieja capilla de Barrovilla de Abajo.
+Evento: entre los escombros, el Mendicante encuentra un libro de oraciones antiguas, con pasajes tachados y escritos con tinta vieja.
+En el margen, alguien (quizá el propio capellán) anotó versos similares al cántico de Vella, mezclando plegarias de la Iglesia con fragmentos paganos.
+Recompensa: una estrofa más de la canción, acompañada de una reflexión:
+“Haz la paz y florece,
+y que la cosecha empiece.”
+4. El sacrificio de la Bruja (revelación final)
+Condición: derrotar o purificar a la Bruja-Jabalí sin odio (o con un gesto de compasión al final).
+Evento: cuando su cuerpo se desmorona, del zurrón caen semillas y una tablilla de madera húmeda con símbolos tallados.
+Si el Mendicante los toca, oye en su mente la última estrofa completa:
+“Despierta, Madre, sin hambre.
+Bebe del río, pero no del hombre.
+Baja el hierro, levanta la mano.
+Da nombre al barro, y será hermano.
+Que beba el suelo, no lo olvides.
+Que duerma el trigo allá donde vives.
+Haz la paz y florece,
+y que la cosecha empiece”
+
+
+________________
+
+
+Acto III — La vigilia nocturna
+La Bruja-jabalí debe ser derrotada, no hay manera humana de entablar conversación. Tras este combate, un camino entre los campos en terraza se abre, dando paso al altar, semi enterrado. 
+
+El altar está en un agujero de tierra, casi enterrado por completo, pero una parte como de un monolito sobresale y es perfectamente visible. En el monolito hay unos grabados, dibujos de antaño, de un corro de gente en los campos. Tienen la cara feliz, y abren la boca como si cantaran en corro.
+
+El altar emite, a ojos del Mendicante, un aura antigua, claramente un dios o espíritu de la cosecha ya olvidado. 
+________________
+
+
+Final y consecuencias
+Opciones del Mendicante:
+         1. Exorcizar el santuario:
+
+            * Los campos quedan estériles, el valle muere.
+
+            * La Iglesia Reparadora lo elogia, pero los aldeanos lo miran con amargura.
+
+               2. Restaurar el altar cantando la canción de Velia:
+
+                  * La tierra florece, las aguas se limpian.
+
+                  * La Iglesia manda un emisario con una sola frase: “Has roto el voto de pureza.”
+
+                     3. 3ª opción secreta: Vincular el espíritu
+
+                        * El Mendicante nota que hay otra opción, como si algo atrajese al espíritu del altar hacia él, pero desconoce totalmente las consecuencias. Si decide seguir este camino absorbe parte de la entidad.
+
+                        * A partir de entonces, oye susurros cuando pisa tierra húmeda; las plantas crecen a su paso.
+
+                        * Los aldeanos lo llaman “el que escucha”.
+
+________________
+
+
+¿Ganchos posteriores?
+                           * Rumores de otro santuario que despierta junto a unas minas anegadas.
+
+                           * Un peregrino llega a Barrovilla buscando al “Monje de las raíces”.
+
+                           * La Iglesia Reparadora envía una carta sellada:
+
+“Tu senda se aparta de la Luz, hermano/hermana.
+Pero hay heridas que solo se curan si sangran primero.”
+________________
+
+
+Nombres random
+Hombres
+                              1. Tomas (el esposo de Mara)
+                              2. Noel
+                              3. Leandro
+                              4. Odrin
+                              5. Tarel
+                              6. Marn
+                              7. Silvio
+                              8. Benar
+                              9. Iago
+                              10. Darnel
+                              11. Elías
+                              12. Corman
+                              13. Farel
+                              14. Antor
+                              15. Ruden
+Mujeres
+                              1. Mara (la viuda)
+                              2. Vella (la curandera)
+                              3. Lirien
+                              4. Alna
+                              5. Brida
+                              6. Eda
+                              7. Ronne
+                              8. Celna
+                              9. Mair
+                              10. Isela
+                              11. Doria
+                              12. Fenna
+                              13. Tarla
+                              14. Neris
+                              15. Elen
+Handout para Fran:
+Los Altos de Gharil
+Una región montañosa y húmeda, donde la niebla se aferra a los riscos y los pueblos viven entre el musgo y la piedra.
+Los caminos serpentean entre valles con terrazas de cultivo y ruinas de una era olvidada.
+Los aldeanos creen que la tierra recuerda, y que a veces esas memorias despiertan.
+Tu personaje, un Mendicante de la Iglesia Reparadora, viaja solo por estas montañas, ayudando a quienes sufren cuando el mundo se desgarra un poco.
+La magia aquí no se lanza; se susurra, se canta, se reza.
+Y a veces responde.
+________________
+
+
+La llamada de Barrovilla
+En mitad del viaje, el Mendicante encuentra en un cruce de caminos un pequeño grupo de refugiados en el camino:
+dicen venir de Barrovilla de Abajo, huyendo de sus campos, donde el suelo canta y el trigo se traga a la gente(esto lo dice un niño random).
+Ahora viven hacinados en Barrovilla de Arriba, a medio camino entre el río y las cimas.
+Los aldeanos están cansados, pero conservan la fe.
+Dicen que el alguacil busca a alguien que se atreva a bajar al valle.
+Dicen que una viuda llora porque su marido fue tragado por la tierra.
+Dicen que una vieja curandera conoce posibles pistas.
+________________
+
+
+Tu misión
+La Iglesia te enseñó a remendar, no a destruir.
+Pero aquí, en los Altos de Gharil, no hay costura fácil:
+el campo está vivo, la gente tiene miedo y algo antiguo reclama su nombre
+________________
+
+
+La Bruja-Jabalí de las Terrazas
+Una criatura mitad humana, mitad bestia:
+                              * Cuerpo cubierto de barro seco y espinas.
+
+                              * Hocico curvado, ojos hundidos, colmillos manchados de savia.
+
+                              * Carga sobre sus hombros un zurrón lleno de huesos y semillas.
+
+Era una antigua recolectora que, al excavar para “liberar la tierra”, desenterró el altar.
+Ahora está poseída por el mismo espíritu que intenta renacer.
+Sus gruñidos se mezclan con palabras humanas:
+“¡El hambre de la tierra debe saciarse!”
+Es fuerte, pero desesperada; su piel se abre mostrando raíces vivas.
+El Mendicante puede matarla, o intentar separarla del espíritu que la consume.
+Los granjeros devueltos
+Cuando el Mendicante se acerca a los campos en terraza durante la noche, las figuras se levantan lentamente entre el trigo.
+No son muertos vivientes, sino cuerpos vacíos donde la tierra ha decidido crecer de nuevo.
+Sus rostros están agrietados por el sol y la sequedad; la piel se ha tensado sobre huesos donde ahora brotan tallos de trigo.
+De los ojos cuelgan filamentos de raíz, y huelen dulce, ligeramente a moho.
+Llevan aún sus ropas de trabajo —camisas de lino rasgadas, cinturones de cuero, botas cubiertas de barro— y sostienen herramientas deformadas por la humedad: hoces sin filo, azadas convertidas en garrotes.
+A medida que se acercan, sus movimientos son torpes pero rítmicos, como si bailaran al compás del zumbido del campo.
+No hablan, pero de sus gargantas emerge un murmullo coral, una plegaria rota que imita el canto del viento entre las espigas.
+

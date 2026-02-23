@@ -68,7 +68,7 @@ class DuelStationStepManager {
         isSlotsEnabled = false;
         break;
       case DuelStep.cardPlayStep:
-        isRotateButtonEnabled = true;
+        isRotateButtonEnabled = false;
         isReadyButtonEnabled = true;
         isPlayerHandEnabled = true;
         isSlotsEnabled = true;

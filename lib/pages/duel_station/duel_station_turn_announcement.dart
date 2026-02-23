@@ -25,15 +25,33 @@ class _DuelStationTurnAnnouncementState extends State<DuelStationTurnAnnouncemen
     super.initState();
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 5000),
+      duration: const Duration(milliseconds: 1600),
       vsync: this,
     );
 
-    // Slide animation: enters from left, exits to right
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(-1, 0),
-      end: const Offset(1, 0),
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubic));
+    // Slide animation with a center hold to improve readability.
+    _slideAnimation = TweenSequence<Offset>(
+      [
+        TweenSequenceItem<Offset>(
+          tween: Tween<Offset>(
+            begin: const Offset(-1, 0),
+            end: const Offset(0, 0),
+          ).chain(CurveTween(curve: Curves.easeOutCubic)),
+          weight: 30,
+        ),
+        TweenSequenceItem<Offset>(
+          tween: ConstantTween<Offset>(const Offset(0, 0)),
+          weight: 40,
+        ),
+        TweenSequenceItem<Offset>(
+          tween: Tween<Offset>(
+            begin: const Offset(0, 0),
+            end: const Offset(1, 0),
+          ).chain(CurveTween(curve: Curves.easeInCubic)),
+          weight: 30,
+        ),
+      ],
+    ).animate(_animationController);
 
     // Opacity: fade in, stay, fade out
     _opacityAnimation = TweenSequence<double>(
@@ -106,7 +124,7 @@ class _DuelStationTurnAnnouncementState extends State<DuelStationTurnAnnouncemen
                     ],
                   ),
                   child: Text(
-                    'Turn ${widget.turnNumber}',
+                    'Turn ${widget.turnNumber} Starts',
                     style: TextStyle(
                       fontSize: TURN_ANNOUNCEMENT_FONT_SIZE,
                       fontWeight: FontWeight.bold,
