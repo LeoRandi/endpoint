@@ -292,23 +292,28 @@ Mapa de referencia (esquema)
 Entrada (E)
   |
   v
-[1] Pasadizo de Drenaje ---- [2] Cuarto de Filtros
-                              |            |
-                              |            +---- [3] Barracón Gris------------+
+[1] Pasadizo de Drenaje ---- [2] Cuarto de Filtros----------+
+                              |                             |
+                              |                  [3] Barracón Gris------------+
                               |                             |                 |
                               +---- [4] Archivo del Farol---+                 |
                                            |                                  |
                                            +---- [5] Laboratorio de Ceniza    |
                                                         |                     |
-                                                        +---- [6] Galería de Celdas
-                                                                     |
-                                                                     +---- [7] Cámara de Proyección (encuentro final)
+                                                        +---- [6] Galería de Celdas-------+
+                                                        |                                 |
+                                                        +----------------- [7] Cámara de Proyección (encuentro final)
 
 
 Sala [1]: Pasadizo de Drenaje
 -----------------------------
 Descripción:
-Corredor de piedra húmeda, 1.5 m de ancho, goteras constantes, suelo ligeramente inclinado.
+Corredor de piedra húmeda de 11 metros de largo por 2 de ancho. Techo bajo en arco, con salitre blanco en las juntas y agua filtrando por varias grietas. El suelo está inclinado hacia una canaleta central de hierro oxidado que lleva agua negra en hilo constante. La luz llega pobre desde una única lámpara de mantenimiento al fondo, por lo que la visibilidad es irregular.
+
+Elementos concretos:
+- Dos nichos en pared (derecha) donde caben herramientas o alguien agachado.
+- Canaleta abierta en medio: terreno resbaladizo si corren.
+- Escalón final roto: fácil tropezar en persecución.
 
 Encuentro:
 - Trampa sonora: una cadena con campanilla conectada a un clavo en pared.
@@ -318,7 +323,11 @@ Encuentro:
 Sala [2]: Cuarto de Filtros
 ---------------------------
 Descripción:
-Tanques pequeños de decantación, tubos de cobre y dos lámparas de mantenimiento.
+Sala rectangular (6x4 metros) con tres tanques de decantación, tubos de cobre que cruzan techo y pared, y válvulas etiquetadas a mano: "entrada", "limpia", "residuo". El aire huele a metal caliente, cal húmeda y aceite rancio. Las paredes tienen marcas de limpieza reciente en franjas, señal de uso continuo.
+
+Elementos concretos:
+- Válvula principal: puede abrirse para soltar vapor corto y cubrir movimiento.
+- Caja de herramientas con llaves de tuerca, tornillos y un cortatubos.
 
 Encuentro:
 - Dos acólitos de gris revisando válvulas.
@@ -331,20 +340,26 @@ Botín/pista:
 Sala [3]: Barracón Gris
 -----------------------
 Descripción:
-Dormitorio rudo con literas de madera, mantas grises, baúles sin nombre. Hay decoraciones toscas con forma de farol negro por toda la habitación
+Dormitorio alargado (8x5 metros) con seis camas de madera clavadas a pared, mantas grises desdobladas y baúles de tapa plana sin marcas personales. Hay clavos en vigas con capas húmedas colgadas para secar, y en la pared del fondo se repite el símbolo del farol pintado con brea.
+
+Elementos concretos:
+- Mesa de rancho con migas recientes y cuencos aún tibios.
+- Arcón de disciplina con porras cortas, esposas y tiras de cuero.
+- Rincón de oración laica: juramento del grupo escrito en tablilla.
 
 Encuentro:
 - 1-2 acólitos descansando/curando heridas.
 
-Pista:
-- Lista de turnos firmada por iniciales, incluyendo "E.T.".
-
-
 Sala [4]: Archivo del Farol (sala de contexto)
 ----------------------------------------------
 Descripción:
-Estanterías bajas con cuadernos encerados, panfletos y actas.
-Una mesa central con un farol apagado y un juramento escrito.
+Sala seca y sorprendentemente ordenada (7x6 metros), con estanterías bajas de madera encerada, cajas de actas por fecha y mapas enrollados en tubos de lona. Una mesa central de roble sostiene un farol apagado, un sello de cera negra y un libro de juramento con firmas.
+
+Elementos concretos:
+- Estante "Doctrina": panfletos ideológicos y manual de reclutamiento.
+- Estante "Operaciones": registros de vigilancia por calles y perfiles de vecinos.
+- Estante "Pagos": sobres de cobro, recibos y cuentas.
+- Mapa mural con rutas a Muelles Altos y puntos de contacto.
 
 Aquí se explica qué es la Cofradía:
 - No se presentan como culto religioso, sino como "orden correctiva".
@@ -354,38 +369,58 @@ Aquí se explica qué es la Cofradía:
 
 Pista mayor:
 - Documento que vincula pagos de Edren a la Cofradía.
+- Acta interna: "Iria Tal, objetivo de neutralización prioritaria".
 
 
 Sala [5]: Laboratorio de Ceniza
 -------------------------------
 Descripción:
-Mesa química con matraces, frascos etiquetados, sedantes, estimulantes y aceites fotosensibles.
+Laboratorio estrecho (5x5 metros), abarrotado de matraces, frascos y embudos sobre dos mesas metálicas, completamente a oscuras. Hay una campana de extracción rudimentaria que no absorbe bien los vapores. El suelo está manchado por derrames de reactivos y sangre, y el aire pica en garganta y ojos. Un enorme tubo oscuro al fondo contiene lo que parecen ser sombras en suspensión líquida, en una especie de brea muy densa.
+
+Elementos concretos:
+- Estantería de sedantes por dosis (baja/media/alta).
+- Caja de jeringas de vidrio envueltas en paños.
+- Cuaderno de formulación con tiempos de efecto y contraindicaciones.
+- Quemador de alcohol con llama azul muy inestable.
 
 Encuentro:
 - Posible aparición del alquimista si no ha huido aún.
-- Riesgo ambiental: frascos frágiles que generan humo irritante al romperse.
+- Riesgo ambiental: Si mucha luz cae sobre el tubo enorme, las sombras intentarán salir, atacando al grupo.
 
 Pista:
-- Dosis registradas a nombre de "S. (sujeto-faro)".
+- Dosis registradas a nombre de "Sielu Suuri".
+- Receta de "aceite de proyección" para intensificar contraste sombra-luz.
 
 
 Sala [6]: Galería de Celdas
 ---------------------------
 Descripción:
-Pasillo con tres celdas de barrotes. Una vacía, una con restos de lucha, una con pertenencias requisadas.
+Pasillo longitudinal de 12 metros, con ocho celdas ensangrentadas, de barrotes de hierro remachado, cerraduras dobles y mirillas a la altura del pecho. La ventilación es mínima; huele a humedad, sangre vieja y desinfectante barato. Goteras finas caen de la bóveda y marcan charcos oscuros junto a los barrotes.
+
+Distribución:
+- Celda 6 (Cuerpo de Irina): sangre, medalla de alguacil, ropa rota.
+- Celda 1 a la 5 (lucha): sangre en pared y suelo, pero sin nada más.
 
 Encuentro:
-- Ejecutor patrullando o preparando acceso a la sala final.
+- Ejecutor embobado en una lámpara, entre dos celdas vacías.
 
 Pistas:
 - Insignia de alguacil de Irina cubierta de sangre seca.
-- Cuaderno con horarios de exposición de Sielu al farol.
 
 
 Sala [7]: Cámara de Proyección (final)
 --------------------------------------
 Descripción:
-Sala circular alta, pared frontal de piedra lisa ennegrecida, plataforma central con Sielu atado a una silla de hierro. Detrás de él, el comandante sostiene un farol de potencia brutal. La luz recorta a Sielu y proyecta una sombra compacta, viva, que se pliega y golpea como bestia entrenada.
+Sala circular de 14 metros de diámetro y casi 6 de altura, con suelo de losas negras pulidas y una pared frontal de piedra lisa ennegrecida por uso ritual. En el centro hay una plataforma ligeramente elevada (30 cm) con anillas de sujeción; Sielu está atado a una silla de hierro con correas en muñecas, torso y tobillos.
+
+Detrás de Sielu, una figura encapuchada controla un farol de lente gruesa montado sobre un brazo giratorio. El haz es duro y blanco, y al chocar con Sielu proyecta en la pared una sombra compacta que cambia de forma: látigo, garra y lanza a la vez. La sombra no se desplaza libremente; depende del ángulo del farol y de la postura del objetivo.
+
+Elementos tácticos:
+- Brazo del farol: puede bloquearse con fuerza o herramienta.
+- Pilares: pueden bloquear el haz, y sirven para perder line de vision.
+
+Riesgos ambientales:
+- Si el farol cae, provoca destello cegador breve y fuego localizado.
 
 
 Acto IV: Encuentro final (boss + salvación)
@@ -464,17 +499,38 @@ Cierre narrativo 2 (Mosto)
 Antes de cerrar la jornada, Mosto recibe una carta sellada de alto rango de la Iglesia Reparadora:
 
 "Hermano Mosto:
-Se han confirmado indicios de vínculo entre la tribu de Lumi y corrientes de Caos y oscuridad no regulada.
-No actúe aún. Observe.
+Se han confirmado indicios de vínculo entre la tribu de Lumi y corrientes de Caos y oscuridad inusitadas.
+No actúe aún, le pedimos que observe.
 Vigile a Lumi y a su linaje.
-Informe por escrito.
-Por la Costura y la Luz."
-
-Última imagen sugerida
-----------------------
-Plaza de Riscalobre al atardecer del día siguiente. El pueblo respira, pero nadie pisa aún las zonas donde la sombra dejó marca.
+Informe por escrito al apartado que ya conoce de nuestra Iglesia en Muelles Altos.
+Sagrada sea la luz que le guarde."
 
 Gancho a sesión 2
 -----------------
 1. Trama de infiltración en Muelles Altos (alta sociedad).
 2. Conflicto de confianza entre Mosto y Lumi por la orden de vigilancia.
+
+
+Nombres aleatorios para improvisar NPC (20)
+===========================================
+
+1. Dario (H)
+2. Elia (M)
+3. Narek (H)
+4. Sabela (M)
+5. Ivo (H)
+6. Mirel (M)
+7. Taro (H)
+8. Alenia (M)
+9. Bren (H)
+10. Calia (M)
+11. Oren (H)
+12. Vessa (M)
+13. Lior (H)
+14. Naeris (M)
+15. Marn (H)
+16. Isela (M)
+17. Farel (H)
+18. Tiria (M)
+19. Corin (H)
+20. Dalia (M)
