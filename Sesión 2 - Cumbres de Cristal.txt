@@ -1,0 +1,139 @@
+﻿Sesión 2: Cumbres de Cristal
+Borrador en construcción
+
+Premisa de la sesión
+Lumi y Mosto llegan a Muelles Altos para encontrar a Auttaa, hermana de Lumi. La sesión gira en torno al peso de la jerarquía urbana, la imagen pública y las barreras sociales de una metrópolis steampunk donde la ingeniería y la fe conviven en tensión.
+
+
+Acto I: Llegada
+===================================
+
+Escena 1: Llegada en barco de la Iglesia Reparadora
+====================================================
+
+Ubicación: Barca fluvial de la Iglesia Reparadora
+--------------------------------------------------
+Descripción:
+Embarcación larga de fondo plano, casco de madera oscura reforzado con costillas de hierro remachado. Lleva un pequeño altar de viaje en popa con símbolo de la Iglesia Reparadora grabado en latón, lámparas de aceite azul y cajas selladas con suministros médicos. No es un navío de guerra ni de lujo: es un barco de ruta útil, resistente y humilde.
+
+Texto para leer:
+"La barca de la Iglesia avanza por el tramo interior del río, dejando atrás las afiladas y oscuras montañas de los Altos de Gharil. Más adelante, chocando con el sol del atardecer, la silueta de una enorme metrópoli crea sombras sobre las aguas. El corazón metálico de Muelles Altos marca el pulso con golpes graves que hacen vibrar el casco incluso a esta distancia. A lo lejos, por debajo del nivel del puerto interior, el elevador gigante sube y baja barcos enteros hacia el mar como si fueran ofrendas en un altar de acero."
+
+Dar pie a rolear, dejarles hablar y preguntar qué están haciendo mientras llegan a Muelles Altos al atardecer.
+
+Un iniciado mendicante de rango bajo les avisa que en seguida atracará el barco.
+
+Escena 2: Control de entrada en el embarcadero interior
+========================================================
+
+Ubicación: Embarcadero interior de Muelles Altos
+-------------------------------------------------
+Descripción:
+Un muelle de piedra negra reforzado con vigas metálicas, grúas de brazo corto y pasarelas con barandillas de latón. Hay marcas de carga pintadas en el suelo, campanas de turno y un puesto de registro con ventanilla blindada. El aire mezcla vapor, tinta de oficina y sal vieja que sube desde los niveles inferiores.
+
+NPC: Brenda Coil, oficial del embarcadero
+----------------------------------------
+Descripción:
+Mujer de mediana edad, pelo corto recogido con pasador de cobre, uniforme azul petróleo y guantes sin dedos manchados de tinta. Lleva un libro de entradas sujeto al antebrazo con una correa de cuero y un sello de bronce colgado al cuello. Habla poco, no improvisa y no pierde el tiempo.
+
+Qué pide al grupo:
+- Oficio.
+- Nombre.
+- Motivo para entrar en Muelles Altos.
+
+Líneas sugeridas:
+- "Oficio, nombre y motivo. En ese orden."
+- "El acceso de turistas está limitado al Barrio Bajo."
+- "Para subir a barrios medios o altos hace falta licencia de trabajo para la ciudad."
+
+
+Escena 3: Marea humana en los embarcaderos
+===========================================
+
+Ubicación: Calles de los embarcaderos (Barrio Bajo)
+----------------------------------------------------
+Descripción:
+Un entramado de callejones húmedos, rampas de carga y puentes cortos entre almacenes. El suelo está cubierto de barro, cuerda mojada, virutas de madera y agua aceitosa. El aire quema por el vapor de tuberías abiertas y huele a sal, carbón y pescado. Hay demasiada gente: estibadores, descargadores, predicadores callejeros, aprendices de taller, viajeros perdidos y carteristas profesionales moviéndose como peces entre piernas.
+
+Transición narrada:
+Tras el control de entrada, Lumi y Mosto son absorbidos por la corriente de gente. El paso se vuelve lento, los hombros chocan, las voces se pisan y por momentos cuesta hasta respirar con calma.
+
+Texto para leer:
+"Muelles Altos os deja entrar, pero lo hace empujando. El gentío os traga en un corredor de cuerpos, humo y gritos de carga. Cada paso exige abrirse hueco."
+
+Check de calle: evitar robo en el bullicio
+------------------------------------------
+Haz 1 check por PJ (o uno conjunto si cooperan):
+- Percepción para detectar manos rápidas.
+- Sigilo/Acrobacias para moverse sin quedar atrapados.
+- Intuición para leer la ruta menos peligrosa del flujo humano.
+
+Dificultad sugerida:
+- DC 12: evitan intento de robo sin coste.
+- DC 9-11: detectan tarde; pierden una bolsa menor o unas monedas sueltas.
+- DC 8 o menos: carterazo limpio; desaparece una cantidad relevante de dinero.
+
+Si fallan:
+No hace falta combate. El ladrón se pierde en la marea humana en segundos.
+
+
+Escena 4: Sura en mitad del bullicio
+====================================
+
+NPC: Sura "la Gata"
+-------------------
+Descripción:
+Joven de piel oscura, figura ligera y postura siempre medida, como quien calcula distancias sin mirar. Lleva una máscara de gato negro agrietada en la mejilla y se mueve con calma felina incluso entre multitudes. Habla bajo, en frases cortas, y observa antes de confiar.
+
+Cómo aparece:
+En mitad del caos, Sura surge de frente, cruza la trayectoria de Lumi y lo mira directamente. Lumi la reconoce al instante. Ella no se detiene más de un latido.
+
+Línea sugerida:
+- "Seguidme. Y no os quedéis atrás."
+
+Seguir a Sura (no lo pone fácil)
+--------------------------------
+Sura no guía en línea recta: cambia de calle, corta por pasos estrechos y aprovecha cambios de turno para romper posibles seguimientos.
+
+Checks sugeridos de seguimiento:
+- Percepción o Supervivencia urbana (DC 12) para no perderla entre humo y gente.
+- Atletismo/Acrobacias (DC 12) para salvar desniveles, pasarelas y carros en marcha.
+
+Resultado:
+- Si superan, llegan a la taberna por la ruta limpia.
+- Si fallan una, llegan igualmente pero más tarde y con más presión.
+- Si fallan ambas, llegan agotados y con la sensación de haber sido observados.
+
+
+Escena 5: El Ojo Hundido
+========================
+
+Ubicación: Taberna El Ojo Hundido
+---------------------------------
+Descripción:
+Taberna estrecha encajada entre dos tuberías gigantes que gotean vapor caliente. Por dentro huele a ron barato, sudor y aceite de máquina. La luz es tenue: faroles de vidrio azul colgados del techo y una hilera de velas casi consumidas sobre la barra. Las mesas están apretadas, llenas de marineros, estibadores y gente que evita mirar demasiado tiempo a nadie.
+
+Texto para leer:
+"Sura dobla dos esquinas, aparta una cortina de lona manchada y entra en una sala de luz azulada. El cartel exterior está torcido y casi borrado por el humo, pero todavía se lee: El Ojo Hundido."
+
+Qué pasa dentro:
+Sura se sienta en una mesa al fondo, bajo una cristalera, y escucha. No da información hasta que Lumi y Mosto expliquen qué necesitan ahora en Muelles Altos.
+
+Línea sugerida de Sura:
+"Habla, pequeño aprendiz. Dime qué buscas, y te diré cuánto te va a costar encontrarlo."
+
+Opciones que Sura puede ofrecer para llegar al Distrito Mercantil
+-----------------------------------------------------------------
+Ruta 1: Pase de descargador temporal
+- Un capataz de muelle vende turnos falsos de descarga que dan acceso legal al puente de servicio del Distrito Mercantil.
+- Coste: dinero, o un favor importante a Sura más adelante.
+- Riesgo: control sorpresa de identidad.
+
+Si le presionan pueden hacer que suelte:
+Ruta 2: Abrirse paso desde las bodegas inferiores a través de guardias hasta el elevador interno
+- Coste: Combate muy crudo
+- Riesgo: Incluso si pasan, es muy probable que queden marcados como intrusos y sean encarcelados si no van cuidado.
+
+Límite claro de Sura:
+"Hasta el Distrito Mercantil puedo orientaros. Más arriba, no tengo manos allí. Si queréis subir más, tendréis que hacerlo sin mis favores."
+
