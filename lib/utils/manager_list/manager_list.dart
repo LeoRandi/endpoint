@@ -29,6 +29,4 @@ class ManagerList<T> {
   }
 
   ManagerList(this.models);
-
-
 }
