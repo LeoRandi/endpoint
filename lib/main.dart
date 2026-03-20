@@ -12,10 +12,15 @@ class Endpoint extends StatelessWidget {
     return MaterialApp(
       title: 'Endpoint',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF5AF78E),
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF030807),
         useMaterial3: true,
       ),
-      home: const SizedBox(),
+      debugShowCheckedModeBanner: false,
+      home: const MainMenuPage(),
     );
   }
 }

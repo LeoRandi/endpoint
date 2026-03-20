@@ -1,4 +1,3 @@
-import 'dart:math';
 import "_imports.dart";
 
 extension IterableExtensionV2<T> on Iterable<T> {
@@ -18,7 +17,7 @@ extension IterableExtensionV2<T> on Iterable<T> {
 }
 
 extension ListExtensionV2<T> on List<T> {
-    T? whereReplaceable(bool Function(T m) isMatch,
+  T? whereReplaceable(bool Function(T m) isMatch,
       bool Function(T original, T replacement) isReplaceable) {
     T? mf;
 
@@ -40,8 +39,7 @@ extension ListExtensionV2<T> on List<T> {
 
   List<T> sortByInt(int Function(T o) getInt) {
     if (isEmpty) return this;
-    sort(
-        (a, b) => getInt(a).compareTo(getInt(b)));
+    sort((a, b) => getInt(a).compareTo(getInt(b)));
     return this;
   }
 
@@ -274,5 +272,4 @@ extension ListExtensionV2<T> on List<T> {
     final nextIndex = (currentIndex + 1) % length;
     return this[nextIndex];
   }
-
 }
