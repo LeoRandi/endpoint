@@ -1,7 +1,7 @@
 import '_imports.dart';
 
 class BattleSkillsDialog extends StatelessWidget {
-  final List<String> skills;
+  final List<BattlerAbility> skills;
 
   const BattleSkillsDialog({
     super.key,
@@ -10,14 +10,20 @@ class BattleSkillsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BattleFloatingMenu(
+    return BattleFloatingMenu<BattlerAbility>(
       title: 'Habilidades',
       subtitle: 'Tecnicas del battler',
       emptyText: 'No tienes ninguna habilidad',
-      entries: skills,
-      entryTooltips: const {
-        'Defender': 'Consumir turno sin atacar',
-      },
+      entries: skills
+          .map(
+            (ability) => BattleMenuEntry<BattlerAbility>(
+              value: ability,
+              label: ability.label,
+              tooltip: ability.tooltip,
+              isEnabled: ability.isImplemented,
+            ),
+          )
+          .toList(growable: false),
       closeTooltip: 'Cerrar habilidades',
     );
   }

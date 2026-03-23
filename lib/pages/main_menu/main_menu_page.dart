@@ -64,83 +64,75 @@ class _MainMenuPageState extends State<MainMenuPage>
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: surface.withOpacity(0.72),
-                        border: Border.all(color: accent.withOpacity(0.6)),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: accent.withOpacity(0.1),
-                            blurRadius: 30,
-                            spreadRadius: 4,
+                    child: EndpointPanel(
+                      accent: accent,
+                      backgroundColor: surface.withOpacity(0.72),
+                      borderRadius: 16,
+                      glowOpacity: 0.1,
+                      blurRadius: 30,
+                      spreadRadius: 4,
+                      padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: _scale.value,
+                                child: Text(
+                                  'ENDPOINT',
+                                  textAlign: TextAlign.center,
+                                  style: textExtraLargeBold.copyWith(
+                                    fontSize: 56,
+                                    letterSpacing: 6,
+                                    color: Color.lerp(
+                                      const Color(0xFFD6FFE5),
+                                      accent,
+                                      _glow.value,
+                                    ),
+                                    shadows: [
+                                      Shadow(
+                                        color: accent.withOpacity(
+                                          0.35 + (_glow.value * 0.25),
+                                        ),
+                                        blurRadius: 12 + (_glow.value * 18),
+                                      ),
+                                      Shadow(
+                                        color: Colors.white.withOpacity(
+                                          0.12 + (_glow.value * 0.16),
+                                        ),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SeparatorFiori.double(),
+                          EndpointMenuButton(
+                            label: 'Start',
+                            tooltip: 'Abrir rutas de encuentro',
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const PathSelectionPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SeparatorFiori.half(),
+                          const EndpointMenuButton(
+                            label: 'Codex',
+                            tooltip: 'Apartado no disponible',
+                          ),
+                          const SeparatorFiori.half(),
+                          const EndpointMenuButton(
+                            label: 'Settings',
+                            tooltip: 'Configuracion no disponible',
                           ),
                         ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedBuilder(
-                              animation: _controller,
-                              builder: (context, child) {
-                                return Transform.scale(
-                                  scale: _scale.value,
-                                  child: Text(
-                                    'ENDPOINT',
-                                    textAlign: TextAlign.center,
-                                    style: textExtraLargeBold.copyWith(
-                                      fontSize: 56,
-                                      letterSpacing: 6,
-                                      color: Color.lerp(
-                                        const Color(0xFFD6FFE5),
-                                        accent,
-                                        _glow.value,
-                                      ),
-                                      shadows: [
-                                        Shadow(
-                                          color: accent.withOpacity(
-                                            0.35 + (_glow.value * 0.25),
-                                          ),
-                                          blurRadius: 12 + (_glow.value * 18),
-                                        ),
-                                        Shadow(
-                                          color: Colors.white.withOpacity(
-                                            0.12 + (_glow.value * 0.16),
-                                          ),
-                                          blurRadius: 6,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SeparatorFiori.double(),
-                            EndpointMenuButton(
-                              label: 'Start',
-                              tooltip: 'Abrir rutas de encuentro',
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const PathSelectionPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SeparatorFiori.half(),
-                            const EndpointMenuButton(
-                              label: 'Codex',
-                              tooltip: 'Apartado no disponible',
-                            ),
-                            const SeparatorFiori.half(),
-                            const EndpointMenuButton(
-                              label: 'Settings',
-                              tooltip: 'Configuracion no disponible',
-                            ),
-                          ],
-                        ),
                       ),
                     ),
                   ),

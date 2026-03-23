@@ -13,7 +13,7 @@ class Battler {
   final String name;
   final int health;
   final Map<BattlerStat, int> baseStats;
-  final List<String> abilities;
+  final List<BattlerAbility> abilities;
   final List<Item> inventoryItems;
   final List<Item> equippedItems;
 
@@ -32,7 +32,7 @@ class Battler {
     required int defense,
     required int health,
     int? maxHealth,
-    List<String> abilities = const [],
+    List<Object> abilities = const [],
     List<Item> inventoryItems = const [],
     List<Item> equippedItems = const [],
   }) : this(
@@ -46,7 +46,9 @@ class Battler {
             BattlerStat.damageReduction: 0,
             BattlerStat.vampirism: 0,
           },
-          abilities: abilities,
+          abilities: List<BattlerAbility>.unmodifiable(
+            abilities.map(BattlerAbility.fromLegacy),
+          ),
           inventoryItems: inventoryItems,
           equippedItems: equippedItems,
         );
@@ -70,6 +72,14 @@ class Battler {
   int get vampirism => calculatedStat(BattlerStat.vampirism);
 
   bool get isDefeated => health <= 0;
+
+  bool ownsItem(Item item) {
+    return inventoryItems.contains(item) || equippedItems.contains(item);
+  }
+
+  bool hasAbility(BattlerAbility ability) {
+    return abilities.contains(ability);
+  }
 
   int baseStat(BattlerStat stat) {
     return baseStats[stat] ?? 0;
@@ -106,16 +116,55 @@ class Battler {
     return copyWith(health: min(maxHealth, health + safeAmount));
   }
 
+  Battler addItem(Item item) {
+    if (ownsItem(item)) return this;
+
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable([
+        ...inventoryItems,
+        item,
+      ]),
+    );
+  }
+
+  Battler removeItem(Item item) {
+    if (equippedItems.contains(item)) {
+      return unequipItem(item).removeItem(item);
+    }
+    if (!inventoryItems.contains(item)) return this;
+
+    final updatedInventoryItems = List<Item>.from(inventoryItems)..remove(item);
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+    );
+  }
+
+  Item? equippedItemForSlot(ItemSlot slot) {
+    for (final item in equippedItems) {
+      if (item.slot == slot) return item;
+    }
+    return null;
+  }
+
   Battler equipItem(Item item) {
+    if (!item.isEquippable) return this;
     if (!inventoryItems.contains(item)) return this;
     if (equippedItems.contains(item)) return this;
 
     final updatedInventoryItems = List<Item>.from(inventoryItems)..remove(item);
-    final updatedEquippedItems = List<Item>.from(equippedItems)..add(item);
+    final updatedEquippedItems = List<Item>.from(equippedItems);
+    final occupiedSlotItem = equippedItemForSlot(item.slot!);
+
+    if (occupiedSlotItem != null) {
+      updatedEquippedItems.remove(occupiedSlotItem);
+      updatedInventoryItems.add(occupiedSlotItem);
+    }
+
+    updatedEquippedItems.add(item);
 
     return copyWith(
-      inventoryItems: updatedInventoryItems,
-      equippedItems: updatedEquippedItems,
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+      equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
     );
   }
 
@@ -126,8 +175,8 @@ class Battler {
     final updatedInventoryItems = List<Item>.from(inventoryItems)..add(item);
 
     return copyWith(
-      inventoryItems: updatedInventoryItems,
-      equippedItems: updatedEquippedItems,
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+      equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
     );
   }
 
@@ -135,13 +184,17 @@ class Battler {
     String? name,
     int? health,
     Map<BattlerStat, int>? baseStats,
-    List<String>? abilities,
+    List<BattlerAbility>? abilities,
     List<Item>? inventoryItems,
     List<Item>? equippedItems,
   }) {
     final resolvedBaseStats = baseStats ?? this.baseStats;
-    final resolvedInventoryItems = inventoryItems ?? this.inventoryItems;
-    final resolvedEquippedItems = equippedItems ?? this.equippedItems;
+    final resolvedInventoryItems = List<Item>.unmodifiable(
+      inventoryItems ?? this.inventoryItems,
+    );
+    final resolvedEquippedItems = List<Item>.unmodifiable(
+      equippedItems ?? this.equippedItems,
+    );
     final resolvedMaxHealth = _calculateStat(
       baseStats: resolvedBaseStats,
       equippedItems: resolvedEquippedItems,
@@ -153,7 +206,7 @@ class Battler {
       name: name ?? this.name,
       health: max(0, resolvedHealth),
       baseStats: resolvedBaseStats,
-      abilities: abilities ?? this.abilities,
+      abilities: List<BattlerAbility>.unmodifiable(abilities ?? this.abilities),
       inventoryItems: resolvedInventoryItems,
       equippedItems: resolvedEquippedItems,
     );

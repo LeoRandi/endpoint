@@ -16,17 +16,20 @@ class BattleItemsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = items.map((item) => item.name).toList();
-    final entryTooltips = {
-      for (final item in items) item.name: item.description,
-    };
-
-    return BattleFloatingMenu(
+    return BattleFloatingMenu<Item>(
       title: 'Objetos',
       subtitle: subtitle,
       emptyText: emptyText,
-      entries: entries,
-      entryTooltips: entryTooltips,
+      entries: items
+          .map(
+            (item) => BattleMenuEntry<Item>(
+              value: item,
+              label: item.name,
+              tooltip: item.description,
+              isEnabled: false,
+            ),
+          )
+          .toList(growable: false),
       closeTooltip: 'Cerrar inventario',
       bottomInset: bottomInset,
     );

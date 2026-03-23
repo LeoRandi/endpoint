@@ -24,7 +24,7 @@ const greenEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: ['Defender'],
+  abilities: [BattlerAbility.defend],
 );
 
 const blueEnemyBattler = Battler(
@@ -38,7 +38,7 @@ const blueEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: ['Defender'],
+  abilities: [BattlerAbility.defend],
 );
 
 const purpleEnemyBattler = Battler(
@@ -52,7 +52,10 @@ const purpleEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: ['Defender', 'Overclock'],
+  abilities: [
+    BattlerAbility.defend,
+    BattlerAbility.overclock,
+  ],
 );
 
 const yellowEnemyBattler = Battler(
@@ -66,7 +69,11 @@ const yellowEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: ['Defender', 'Overclock', 'Purge'],
+  abilities: [
+    BattlerAbility.defend,
+    BattlerAbility.overclock,
+    BattlerAbility.purge,
+  ],
 );
 
 const defaultEnemyBattler = greenEnemyBattler;
@@ -82,5 +89,5 @@ const defaultPlayerBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: ['Defender'],
+  abilities: [BattlerAbility.defend],
 );

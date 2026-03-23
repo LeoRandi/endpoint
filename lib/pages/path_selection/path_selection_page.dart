@@ -25,37 +25,32 @@ class PathSelectionPage extends StatefulWidget {
 class _PathSelectionPageState extends State<PathSelectionPage> {
   static const _itemsBottomInset = 164.0;
 
-  late Battler _player;
-  late final Random _random;
-  late List<PathNode> _nodes;
-  bool _isOpeningNode = false;
+  late final RunSessionController _sessionController;
 
   @override
   void initState() {
     super.initState();
-    _player = widget.player;
-    _random = widget.randomSeed == null ? Random() : Random(widget.randomSeed);
-    _rollNodes();
+    _sessionController = RunSessionController(
+      player: widget.player,
+      availableNodes: widget.availableNodes ?? defaultPathNodePool,
+      nodeCount: widget.nodeCount,
+      battleEnemyTurnDelay: widget.battleEnemyTurnDelay,
+      battleCombatEndDelay: widget.battleCombatEndDelay,
+      randomSeed: widget.randomSeed,
+    );
   }
 
-  void _rollNodes() {
-    final availableNodes = widget.availableNodes ?? defaultPathNodePool;
-
-    if (availableNodes.isEmpty) {
-      throw StateError('PathSelectionPage requires at least one available node.');
-    }
-
-    _nodes = List<PathNode>.generate(
-      widget.nodeCount,
-      (_) => availableNodes[_random.nextInt(availableNodes.length)],
-    );
+  @override
+  void dispose() {
+    _sessionController.dispose();
+    super.dispose();
   }
 
   Future<void> _handleOpenItems() async {
     await showEndpointOverlay<void>(
       context: context,
       builder: (_) => BattleItemsDialog(
-        items: _player.inventoryItems,
+        items: _sessionController.player.inventoryItems,
         subtitle: 'Inventario de ruta',
         bottomInset: _itemsBottomInset,
       ),
@@ -63,80 +58,67 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   }
 
   Future<void> _handleStartEncounter(CombatPathNode node) async {
-    if (_isOpeningNode) return;
-
-    setState(() {
-      _isOpeningNode = true;
-    });
-
-    final updatedPlayer = await Navigator.of(context).push<Battler>(
-      _buildSceneRoute<Battler>(
+    final result = await Navigator.of(context).push<BattleFlowResult>(
+      _buildSceneRoute<BattleFlowResult>(
         BattlePage(
           enemy: node.enemy,
-          player: _player,
+          player: _sessionController.player,
           showTitle: node.showTitle,
-          enemyTurnDelay: widget.battleEnemyTurnDelay,
-          combatEndDelay: widget.battleCombatEndDelay,
+          enemyTurnDelay: _sessionController.state.battleEnemyTurnDelay,
+          combatEndDelay: _sessionController.state.battleCombatEndDelay,
           returnPlayerOnCombatEnd: true,
         ),
       ),
     );
 
     if (!mounted) return;
+    if (result == null) {
+      _sessionController.cancelNodeResolution();
+      return;
+    }
+    if (result.shouldPopToRoot) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
 
-    setState(() {
-      _isOpeningNode = false;
-      if (updatedPlayer != null) {
-        _player = updatedPlayer;
-      }
-      _rollNodes();
-    });
+    _sessionController.completeEncounter(result);
   }
 
   Future<void> _handleOpenWeaponShop() async {
-    if (_isOpeningNode) return;
-
-    setState(() {
-      _isOpeningNode = true;
-    });
-
-    await Navigator.of(context).push<void>(
-      _buildSceneRoute<void>(const WeaponShopPage()),
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _isOpeningNode = false;
-      _rollNodes();
-    });
-  }
-
-  Future<void> _handleOpenCampSite() async {
-    if (_isOpeningNode) return;
-
-    setState(() {
-      _isOpeningNode = true;
-    });
-
-    final updatedPlayer = await Navigator.of(context).push<Battler>(
-      _buildSceneRoute<Battler>(
-        CampSitePage(player: _player),
+    final result = await Navigator.of(context).push<WeaponShopVisitResult>(
+      _buildSceneRoute<WeaponShopVisitResult>(
+        WeaponShopPage(player: _sessionController.player),
       ),
     );
 
     if (!mounted) return;
+    if (result == null) {
+      _sessionController.cancelNodeResolution();
+      return;
+    }
 
-    setState(() {
-      _isOpeningNode = false;
-      if (updatedPlayer != null) {
-        _player = updatedPlayer;
-      }
-      _rollNodes();
-    });
+    _sessionController.completeWeaponShopVisit(result);
+  }
+
+  Future<void> _handleOpenCampSite() async {
+    final result = await Navigator.of(context).push<CampSiteVisitResult>(
+      _buildSceneRoute<CampSiteVisitResult>(
+        CampSitePage(player: _sessionController.player),
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == null) {
+      _sessionController.cancelNodeResolution();
+      return;
+    }
+
+    _sessionController.completeCampVisit(result);
   }
 
   Future<void> _handleNodePressed(PathNode node) async {
+    if (!_sessionController.beginNodeResolution()) return;
+
     switch (node.type) {
       case PathNodeType.encounter:
         await _handleStartEncounter(node as CombatPathNode);
@@ -202,78 +184,94 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF050A08),
-              Color(0xFF09120D),
-              Color(0xFF020403),
-            ],
-          ),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const _PathBackdrop(),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
-                child: Column(
-                  children: [
-                    const _PathHeader(),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          const Spacer(),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              const spacing = 14.0;
-                              final encounterCount = _nodes.length;
-                              final availableWidth =
-                                  constraints.maxWidth - (spacing * (encounterCount - 1));
-                              final nodeWidth = min(112.0, availableWidth / encounterCount);
+    return AnimatedBuilder(
+      animation: _sessionController,
+      builder: (context, child) {
+        final player = _sessionController.player;
+        final nodes = _sessionController.nodes;
+        final isOpeningNode = _sessionController.isResolvingNode;
 
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  for (int index = 0; index < encounterCount; index++) ...[
-                                    if (index > 0) const SizedBox(width: spacing),
-                                    SizedBox(
-                                      width: nodeWidth,
-                                      child: PathNodeCard(
-                                        node: _nodes[index],
-                                        onPressed: _isOpeningNode
-                                            ? null
-                                            : () => _handleNodePressed(_nodes[index]),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              );
-                            },
-                          ),
-                          const Spacer(),
-                          SizedBox(
-                            width: double.infinity,
-                            child: _PathBottomHud(
-                              player: _player,
-                              onOpenItems: _handleOpenItems,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+        return Scaffold(
+          body: DecoratedBox(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF050A08),
+                  Color(0xFF09120D),
+                  Color(0xFF020403),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const _PathBackdrop(),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+                    child: Column(
+                      children: [
+                        const _PathHeader(),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Spacer(),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  const spacing = 14.0;
+                                  final encounterCount = nodes.length;
+                                  final availableWidth = constraints.maxWidth -
+                                      (spacing * (encounterCount - 1));
+                                  final nodeWidth =
+                                      min(112.0, availableWidth / encounterCount);
+
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      for (int index = 0;
+                                          index < encounterCount;
+                                          index++) ...[
+                                        if (index > 0)
+                                          const SizedBox(width: spacing),
+                                        SizedBox(
+                                          width: nodeWidth,
+                                          child: PathNodeCard(
+                                            node: nodes[index],
+                                            onPressed: isOpeningNode
+                                                ? null
+                                                : () => _handleNodePressed(
+                                                      nodes[index],
+                                                    ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  );
+                                },
+                              ),
+                              const Spacer(),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _PathBottomHud(
+                                  player: player,
+                                  onOpenItems: _handleOpenItems,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -283,33 +281,28 @@ class _PathHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xCC07120D),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0x665AF78E)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'SELECCION DE RUTA',
-              style: textMediumBold.copyWith(
-                color: const Color(0xFF5AF78E),
-                letterSpacing: 2.4,
-              ),
+    return EndpointPanel(
+      backgroundColor: const Color(0xCC07120D),
+      borderRadius: 18,
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SELECCION DE RUTA',
+            style: textMediumBold.copyWith(
+              color: const Color(0xFF5AF78E),
+              letterSpacing: 2.4,
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Elige un nodo para avanzar.',
-              style: textMedium.copyWith(
-                color: Colors.white.withOpacity(0.8),
-              ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Elige un nodo para avanzar.',
+            style: textMedium.copyWith(
+              color: Colors.white.withOpacity(0.8),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -398,86 +391,75 @@ class _PathPlayerStatus extends StatelessWidget {
         : (player.health / player.maxHealth).clamp(0.0, 1.0).toDouble();
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 280),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: const Color(0xD907120D),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: accent.withOpacity(0.7)),
-          boxShadow: [
-            BoxShadow(
-              color: accent.withOpacity(0.12),
-              blurRadius: 20,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      player.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textMediumBold.copyWith(
-                        color: const Color(0xFFE6FFF0),
-                        letterSpacing: 1.4,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '${player.health} / ${player.maxHealth}',
+      constraints: const BoxConstraints(maxWidth: 320),
+      child: EndpointPanel(
+        accent: accent,
+        backgroundColor: const Color(0xD907120D),
+        borderRadius: 16,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    player.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: textMediumBold.copyWith(
-                      color: accent,
+                      color: const Color(0xFFE6FFF0),
+                      letterSpacing: 1.4,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  height: 12,
-                  color: Colors.black.withOpacity(0.35),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: healthFactor,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xA65AF78E),
-                              Color(0xFF5AF78E),
-                            ],
-                          ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '${player.health} / ${player.maxHealth}',
+                  style: textMediumBold.copyWith(
+                    color: accent,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: Container(
+                height: 12,
+                color: Colors.black.withOpacity(0.35),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: healthFactor,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xA65AF78E),
+                            Color(0xFF5AF78E),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _StatChip(
-                    label: 'ATK',
-                    value: player.attack,
-                  ),
-                  _StatChip(
-                    label: 'DEF',
-                    value: player.defense,
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _StatChip(
+                  label: 'ATK',
+                  value: player.attack,
+                ),
+                _StatChip(
+                  label: 'DEF',
+                  value: player.defense,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
