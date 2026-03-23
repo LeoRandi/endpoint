@@ -1,7 +1,7 @@
 import '_imports.dart';
 
 class BattleItemsDialog extends StatelessWidget {
-  final List<String> items;
+  final List<Item> items;
   final String subtitle;
   final String emptyText;
   final double bottomInset;
@@ -16,11 +16,17 @@ class BattleItemsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final entries = items.map((item) => item.name).toList();
+    final entryTooltips = {
+      for (final item in items) item.name: item.description,
+    };
+
     return BattleFloatingMenu(
       title: 'Objetos',
       subtitle: subtitle,
       emptyText: emptyText,
-      entries: items,
+      entries: entries,
+      entryTooltips: entryTooltips,
       closeTooltip: 'Cerrar inventario',
       bottomInset: bottomInset,
     );

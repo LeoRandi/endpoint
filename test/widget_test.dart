@@ -2,10 +2,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:endpoint/entities/battler/battler.dart';
+import 'package:endpoint/entities/_exports.dart';
 import 'package:endpoint/main.dart';
 import 'package:endpoint/pages/battle/battle_page.dart';
 import 'package:endpoint/pages/path_selection/path_selection_page.dart';
+import 'package:endpoint/widgets/path/path_node_card.dart';
 
 void main() {
   testWidgets('main menu renders title and actions',
@@ -28,7 +29,7 @@ void main() {
     expect(find.text('SELECCION DE RUTA'), findsOneWidget);
     expect(find.text('Operativos'), findsOneWidget);
     expect(find.text('Objetos'), findsOneWidget);
-    expect(find.text('Combate 1'), findsNWidgets(3));
+    expect(find.byType(PathNodeCard), findsNWidgets(3));
   });
 
   testWidgets('tooltip appears only while holding a button',
@@ -48,15 +49,34 @@ void main() {
     expect(find.text('Abrir rutas de encuentro'), findsNothing);
   });
 
-  testWidgets('path node opens battle screen with action buttons',
+  testWidgets('path node opens battle screen with title and action buttons',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const Endpoint());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PathSelectionPage(
+          availableNodes: [
+            CombatPathNode(
+              enemy: Battler.legacy(
+                name: 'Enemy',
+                attack: 4,
+                defense: 1,
+                health: 8,
+              ),
+              tier: CombatNodeTier.green,
+              label: 'Enemy',
+            ),
+          ],
+        ),
+      ),
+    );
 
-    await tester.tap(find.text('Start'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Combate 1').first);
+    await tester.tap(find.byType(PathNodeCard).first);
     await tester.pump();
+
+    expect(find.text('!Un enemigo aparece!'), findsOneWidget);
+
     await tester.pumpAndSettle();
 
     expect(find.text('Atacar'), findsOneWidget);
@@ -65,18 +85,57 @@ void main() {
     expect(find.text('Objetos'), findsOneWidget);
   });
 
+  testWidgets('camp site heals player and returns to path selection',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PathSelectionPage(
+          player: Battler.legacy(
+            name: 'Player',
+            attack: 3,
+            defense: 1,
+            health: 4,
+            maxHealth: 10,
+          ),
+          availableNodes: [
+            PathNode.campSite(),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('4 / 10'), findsOneWidget);
+    expect(find.text('Acampada'), findsNWidgets(3));
+
+    await tester.tap(find.byType(PathNodeCard).first);
+    await tester.pump();
+
+    expect(find.text('!Has encontrado una zona de acampada!'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('ZONA DE ACAMPADA'), findsOneWidget);
+    expect(find.text('4 / 10  ->  9 / 10'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SELECCION DE RUTA'), findsOneWidget);
+    expect(find.text('9 / 10'), findsOneWidget);
+  });
+
   testWidgets('attack damages enemy and enemy answers on its turn',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: BattlePage(
-          enemy: Battler(
+          enemy: Battler.legacy(
             name: 'Enemy',
             attack: 6,
             defense: 5,
             health: 12,
           ),
-          player: Battler(
+          player: Battler.legacy(
             name: 'Player',
             attack: 9,
             defense: 4,
@@ -106,12 +165,46 @@ void main() {
 
   testWidgets('huir returns to the first route immediately',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const Endpoint());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => PathSelectionPage(
+                          availableNodes: [
+                            CombatPathNode(
+                              enemy: Battler.legacy(
+                                name: 'Enemy',
+                                attack: 4,
+                                defense: 1,
+                                health: 8,
+                              ),
+                              tier: CombatNodeTier.green,
+                              label: 'Enemy',
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open Path'),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
 
-    await tester.tap(find.text('Start'));
+    await tester.tap(find.text('Open Path'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Combate 1').first);
+    await tester.tap(find.byType(PathNodeCard).first);
     await tester.pump();
     await tester.pumpAndSettle();
 
@@ -119,14 +212,44 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 800));
 
-    expect(find.text('ENDPOINT'), findsOneWidget);
-    expect(find.text('Start'), findsOneWidget);
+    expect(find.text('Open Path'), findsOneWidget);
+  });
+
+  testWidgets('weapon shop node opens shop title and close returns to path selection',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PathSelectionPage(
+          availableNodes: [
+            PathNode.weaponShop(),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Tienda'), findsNWidgets(3));
+
+    await tester.tap(find.byType(PathNodeCard).first);
+    await tester.pump();
+
+    expect(find.text('!Bienvenido a la tienda!'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('TIENDA DE ARMAS'), findsOneWidget);
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SELECCION DE RUTA'), findsOneWidget);
+    expect(find.byType(PathNodeCard), findsNWidgets(3));
   });
 
   testWidgets('path objetos opens an empty route inventory dialog',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: PathSelectionPage(),
       ),
     );
@@ -147,7 +270,7 @@ void main() {
   testWidgets('objetos opens an empty inventory dialog',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: BattlePage(),
       ),
     );
@@ -168,15 +291,15 @@ void main() {
   testWidgets('habilidades opens floating menu and defender spends turn',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: BattlePage(
-          enemy: Battler(
+          enemy: Battler.legacy(
             name: 'Enemy',
             attack: 5,
             defense: 1,
             health: 10,
           ),
-          player: Battler(
+          player: Battler.legacy(
             name: 'Player',
             attack: 4,
             defense: 2,
@@ -216,14 +339,14 @@ void main() {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const BattlePage(
-                          enemy: Battler(
+                        builder: (_) => BattlePage(
+                          enemy: Battler.legacy(
                             name: 'Enemy',
                             attack: 1,
                             defense: 0,
                             health: 1,
                           ),
-                          player: Battler(
+                          player: Battler.legacy(
                             name: 'Player',
                             attack: 1,
                             defense: 0,
@@ -262,32 +385,24 @@ void main() {
   testWidgets('path keeps player health after combat',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: PathSelectionPage(
-          player: Battler(
+          player: Battler.legacy(
             name: 'Player',
             attack: 3,
             defense: 0,
             health: 10,
           ),
-          encounters: [
-            Battler(
-              name: 'Enemy',
-              attack: 2,
-              defense: 0,
-              health: 5,
-            ),
-            Battler(
-              name: 'Enemy',
-              attack: 2,
-              defense: 0,
-              health: 5,
-            ),
-            Battler(
-              name: 'Enemy',
-              attack: 2,
-              defense: 0,
-              health: 5,
+          availableNodes: [
+            CombatPathNode(
+              enemy: Battler.legacy(
+                name: 'Enemy',
+                attack: 2,
+                defense: 0,
+                health: 5,
+              ),
+              tier: CombatNodeTier.green,
+              label: 'Enemy',
             ),
           ],
           battleEnemyTurnDelay: Duration(milliseconds: 10),
@@ -298,7 +413,7 @@ void main() {
 
     expect(find.text('10 / 10'), findsOneWidget);
 
-    await tester.tap(find.text('Combate 1').first);
+    await tester.tap(find.byType(PathNodeCard).first);
     await tester.pump();
     await tester.pumpAndSettle();
 
@@ -330,31 +445,43 @@ void main() {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const PathSelectionPage(
-                          player: Battler(
+                        builder: (_) => PathSelectionPage(
+                          player: Battler.legacy(
                             name: 'Player',
                             attack: 1,
                             defense: 0,
                             health: 2,
                           ),
-                          encounters: [
-                            Battler(
-                              name: 'Enemy',
-                              attack: 4,
-                              defense: 0,
-                              health: 6,
+                          availableNodes: [
+                            CombatPathNode(
+                              enemy: Battler.legacy(
+                                name: 'Enemy',
+                                attack: 4,
+                                defense: 0,
+                                health: 6,
+                              ),
+                              tier: CombatNodeTier.green,
+                              label: 'Enemy',
                             ),
-                            Battler(
-                              name: 'Enemy',
-                              attack: 4,
-                              defense: 0,
-                              health: 6,
+                            CombatPathNode(
+                              enemy: Battler.legacy(
+                                name: 'Enemy',
+                                attack: 4,
+                                defense: 0,
+                                health: 6,
+                              ),
+                              tier: CombatNodeTier.green,
+                              label: 'Enemy',
                             ),
-                            Battler(
-                              name: 'Enemy',
-                              attack: 4,
-                              defense: 0,
-                              health: 6,
+                            CombatPathNode(
+                              enemy: Battler.legacy(
+                                name: 'Enemy',
+                                attack: 4,
+                                defense: 0,
+                                health: 6,
+                              ),
+                              tier: CombatNodeTier.green,
+                              label: 'Enemy',
                             ),
                           ],
                           battleEnemyTurnDelay: Duration(milliseconds: 10),
@@ -375,7 +502,7 @@ void main() {
     await tester.tap(find.text('Open Path'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Combate 1').first);
+    await tester.tap(find.byType(PathNodeCard).first);
     await tester.pump();
     await tester.pumpAndSettle();
 

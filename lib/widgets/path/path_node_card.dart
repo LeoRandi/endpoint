@@ -1,25 +1,25 @@
 import '_imports.dart';
 
 class PathNodeCard extends StatelessWidget {
-  final String label;
-  final String tooltip;
+  final PathNode node;
   final VoidCallback? onPressed;
-  final String iconEmoji;
 
   const PathNodeCard({
     super.key,
-    required this.label,
-    required this.tooltip,
+    required this.node,
     this.onPressed,
-    this.iconEmoji = '\u{1F47E}',
   });
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF5AF78E);
+    final accent = node.accent;
+    final topColor =
+        Color.lerp(const Color(0xFF09100C), accent, 0.18) ?? const Color(0xFF112016);
+    final bottomColor =
+        Color.lerp(const Color(0xFF040705), accent, 0.08) ?? const Color(0xFF09100C);
 
     return HoldTooltip(
-      message: tooltip,
+      message: node.tooltip,
       child: Material(
         color: Colors.transparent,
         child: AspectRatio(
@@ -29,12 +29,12 @@ class PathNodeCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             child: Ink(
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF112016),
-                    Color(0xFF09100C),
+                    topColor,
+                    bottomColor,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(18),
@@ -62,7 +62,7 @@ class PathNodeCard extends StatelessWidget {
                         border: Border.all(color: accent.withOpacity(0.5)),
                       ),
                       child: Text(
-                        'NODO',
+                        node.badgeLabel,
                         style: textSmallBold.copyWith(
                           color: accent,
                           letterSpacing: 1.8,
@@ -75,8 +75,8 @@ class PathNodeCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         child: Center(
                           child: EndpointEmojiSprite(
-                            emoji: iconEmoji,
-                            accent: const Color(0xFFFF6B6B),
+                            emoji: node.iconEmoji,
+                            accent: accent,
                             size: 68,
                           ),
                         ),
@@ -84,8 +84,10 @@ class PathNodeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      label,
+                      node.label,
                       textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: textMediumBold.copyWith(
                         color: const Color(0xFFE6FFF0),
                         letterSpacing: 1.2,

@@ -2,21 +2,21 @@ import '_imports.dart';
 
 class PathSelectionPage extends StatefulWidget {
   final Battler player;
-  final List<Battler> encounters;
+  final List<PathNode>? availableNodes;
+  final int nodeCount;
+  final int? randomSeed;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
 
   const PathSelectionPage({
     super.key,
     this.player = defaultPlayerBattler,
-    this.encounters = const [
-      defaultEnemyBattler,
-      defaultEnemyBattler,
-      defaultEnemyBattler,
-    ],
+    this.availableNodes,
+    this.nodeCount = 3,
+    this.randomSeed,
     this.battleEnemyTurnDelay = const Duration(milliseconds: 900),
     this.battleCombatEndDelay = const Duration(seconds: 2),
-  });
+  }) : assert(nodeCount > 0);
 
   @override
   State<PathSelectionPage> createState() => _PathSelectionPageState();
@@ -26,57 +26,136 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   static const _itemsBottomInset = 164.0;
 
   late Battler _player;
-  bool _isOpeningBattle = false;
+  late final Random _random;
+  late List<PathNode> _nodes;
+  bool _isOpeningNode = false;
 
   @override
   void initState() {
     super.initState();
     _player = widget.player;
+    _random = widget.randomSeed == null ? Random() : Random(widget.randomSeed);
+    _rollNodes();
+  }
+
+  void _rollNodes() {
+    final availableNodes = widget.availableNodes ?? defaultPathNodePool;
+
+    if (availableNodes.isEmpty) {
+      throw StateError('PathSelectionPage requires at least one available node.');
+    }
+
+    _nodes = List<PathNode>.generate(
+      widget.nodeCount,
+      (_) => availableNodes[_random.nextInt(availableNodes.length)],
+    );
   }
 
   Future<void> _handleOpenItems() async {
     await showEndpointOverlay<void>(
       context: context,
-      builder: (_) => const BattleItemsDialog(
+      builder: (_) => BattleItemsDialog(
+        items: _player.inventoryItems,
         subtitle: 'Inventario de ruta',
         bottomInset: _itemsBottomInset,
       ),
     );
   }
 
-  Future<void> _handleStartEncounter(Battler enemy) async {
-    if (_isOpeningBattle) return;
+  Future<void> _handleStartEncounter(CombatPathNode node) async {
+    if (_isOpeningNode) return;
 
     setState(() {
-      _isOpeningBattle = true;
+      _isOpeningNode = true;
     });
 
     final updatedPlayer = await Navigator.of(context).push<Battler>(
-      _buildBattleRoute(enemy),
+      _buildSceneRoute<Battler>(
+        BattlePage(
+          enemy: node.enemy,
+          player: _player,
+          showTitle: node.showTitle,
+          enemyTurnDelay: widget.battleEnemyTurnDelay,
+          combatEndDelay: widget.battleCombatEndDelay,
+          returnPlayerOnCombatEnd: true,
+        ),
+      ),
     );
 
     if (!mounted) return;
 
     setState(() {
-      _isOpeningBattle = false;
+      _isOpeningNode = false;
       if (updatedPlayer != null) {
         _player = updatedPlayer;
       }
+      _rollNodes();
     });
   }
 
-  Route<Battler> _buildBattleRoute(Battler enemy) {
-    return PageRouteBuilder<Battler>(
+  Future<void> _handleOpenWeaponShop() async {
+    if (_isOpeningNode) return;
+
+    setState(() {
+      _isOpeningNode = true;
+    });
+
+    await Navigator.of(context).push<void>(
+      _buildSceneRoute<void>(const WeaponShopPage()),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isOpeningNode = false;
+      _rollNodes();
+    });
+  }
+
+  Future<void> _handleOpenCampSite() async {
+    if (_isOpeningNode) return;
+
+    setState(() {
+      _isOpeningNode = true;
+    });
+
+    final updatedPlayer = await Navigator.of(context).push<Battler>(
+      _buildSceneRoute<Battler>(
+        CampSitePage(player: _player),
+      ),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isOpeningNode = false;
+      if (updatedPlayer != null) {
+        _player = updatedPlayer;
+      }
+      _rollNodes();
+    });
+  }
+
+  Future<void> _handleNodePressed(PathNode node) async {
+    switch (node.type) {
+      case PathNodeType.encounter:
+        await _handleStartEncounter(node as CombatPathNode);
+        break;
+      case PathNodeType.weaponShop:
+        await _handleOpenWeaponShop();
+        break;
+      case PathNodeType.campSite:
+        await _handleOpenCampSite();
+        break;
+    }
+  }
+
+  Route<T> _buildSceneRoute<T>(Widget page) {
+    return PageRouteBuilder<T>(
       transitionDuration: const Duration(milliseconds: 420),
       reverseTransitionDuration: const Duration(milliseconds: 360),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return BattlePage(
-          enemy: enemy,
-          player: _player,
-          enemyTurnDelay: widget.battleEnemyTurnDelay,
-          combatEndDelay: widget.battleCombatEndDelay,
-          returnPlayerOnCombatEnd: true,
-        );
+        return page;
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(
@@ -153,29 +232,23 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                           LayoutBuilder(
                             builder: (context, constraints) {
                               const spacing = 14.0;
-                              final encounterCount = widget.encounters.length;
+                              final encounterCount = _nodes.length;
                               final availableWidth =
                                   constraints.maxWidth - (spacing * (encounterCount - 1));
-                              final nodeWidth =
-                                  min(112.0, availableWidth / encounterCount);
+                              final nodeWidth = min(112.0, availableWidth / encounterCount);
 
                               return Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  for (int index = 0;
-                                      index < encounterCount;
-                                      index++) ...[
+                                  for (int index = 0; index < encounterCount; index++) ...[
                                     if (index > 0) const SizedBox(width: spacing),
                                     SizedBox(
                                       width: nodeWidth,
                                       child: PathNodeCard(
-                                        label: 'Combate 1',
-                                        tooltip: 'Combate 1',
-                                        onPressed: _isOpeningBattle
+                                        node: _nodes[index],
+                                        onPressed: _isOpeningNode
                                             ? null
-                                            : () => _handleStartEncounter(
-                                                  widget.encounters[index],
-                                                ),
+                                            : () => _handleNodePressed(_nodes[index]),
                                       ),
                                     ),
                                   ],
@@ -269,8 +342,8 @@ class _PathBottomHud extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: 146),
-                      child: PathActionButton(
+                      constraints: const BoxConstraints(maxWidth: 146),
+                      child: const PathActionButton(
                         label: 'Operativos',
                         icon: Icons.groups_2_outlined,
                         tooltip: 'Gestion de operativos no disponible',

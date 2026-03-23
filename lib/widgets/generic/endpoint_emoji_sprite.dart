@@ -64,13 +64,8 @@ class EndpointEmojiSprite extends StatelessWidget {
       ),
     );
 
-    return Transform(
-      alignment: Alignment.center,
-      transform: Matrix4.diagonal3Values(
-        mirror ? -1.0 : 1.0,
-        1.0,
-        1.0,
-      ),
+    return Transform.flip(
+      flipX: mirror,
       child: sprite,
     );
   }

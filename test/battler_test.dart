@@ -4,19 +4,19 @@ import 'package:endpoint/entities/battler/battler.dart';
 
 void main() {
   test('calculateDamageAgainst uses attack and defense with minimum 1', () {
-    const attacker = Battler(
+    final attacker = Battler.legacy(
       name: 'Attacker',
       attack: 8,
       defense: 2,
       health: 10,
     );
-    const target = Battler(
+    final target = Battler.legacy(
       name: 'Target',
       attack: 4,
       defense: 5,
       health: 10,
     );
-    const tank = Battler(
+    final tank = Battler.legacy(
       name: 'Tank',
       attack: 3,
       defense: 20,
@@ -28,13 +28,13 @@ void main() {
   });
 
   test('receiveAttack reduces health without going below zero', () {
-    const attacker = Battler(
+    final attacker = Battler.legacy(
       name: 'Attacker',
       attack: 12,
       defense: 1,
       health: 10,
     );
-    const target = Battler(
+    final target = Battler.legacy(
       name: 'Target',
       attack: 4,
       defense: 2,
@@ -45,5 +45,21 @@ void main() {
 
     expect(updatedTarget.health, 0);
     expect(updatedTarget.isDefeated, isTrue);
+  });
+
+  test('heal restores health without exceeding max health', () {
+    final battler = Battler.legacy(
+      name: 'Operative',
+      attack: 6,
+      defense: 3,
+      health: 4,
+      maxHealth: 10,
+    );
+
+    final healed = battler.heal(5);
+    final overhealed = battler.heal(20);
+
+    expect(healed.health, 9);
+    expect(overhealed.health, 10);
   });
 }

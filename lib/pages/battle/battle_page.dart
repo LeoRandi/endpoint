@@ -9,6 +9,7 @@ enum _BattleTurn {
 class BattlePage extends StatefulWidget {
   final Battler enemy;
   final Battler player;
+  final String showTitle;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
   final bool returnPlayerOnCombatEnd;
@@ -17,6 +18,7 @@ class BattlePage extends StatefulWidget {
     super.key,
     this.enemy = defaultEnemyBattler,
     this.player = defaultPlayerBattler,
+    this.showTitle = 'ENCOUNTER',
     this.enemyTurnDelay = const Duration(milliseconds: 900),
     this.combatEndDelay = const Duration(seconds: 2),
     this.returnPlayerOnCombatEnd = false,
@@ -182,7 +184,7 @@ class _BattlePageState extends State<BattlePage> {
 
     await showEndpointOverlay<void>(
       context: context,
-      builder: (_) => const BattleItemsDialog(),
+      builder: (_) => BattleItemsDialog(items: _player.inventoryItems),
     );
   }
 
@@ -211,100 +213,103 @@ class _BattlePageState extends State<BattlePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF090406),
-              Color(0xFF050907),
-              Color(0xFF020403),
-            ],
+      body: NodeSceneWrapper(
+        showTitle: widget.showTitle,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF090406),
+                Color(0xFF050907),
+                Color(0xFF020403),
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: _BattleSide(
-                  title: 'THREAT',
-                  subtitle: 'Enemy',
-                  accent: const Color(0xFFFF6B6B),
-                  background: const [
-                    Color(0xFF230C11),
-                    Color(0xFF12060A),
-                  ],
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: SizedBox(
-                      width: 320,
-                      child: BattleCharacterPanel(
-                        factionLabel: 'HOSTILE',
-                        characterName: _enemy.name,
-                        currentHealth: _enemy.health,
-                        maxHealth: _enemy.maxHealth,
-                        spriteEmoji: '👾',
-                        accent: const Color(0xFFFF6B6B),
-                        spriteAlignment: Alignment.topCenter,
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: _BattleSide(
+                    title: 'THREAT',
+                    subtitle: 'Enemy',
+                    accent: const Color(0xFFFF6B6B),
+                    background: const [
+                      Color(0xFF230C11),
+                      Color(0xFF12060A),
+                    ],
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: SizedBox(
+                        width: 320,
+                        child: BattleCharacterPanel(
+                          factionLabel: 'HOSTILE',
+                          characterName: _enemy.name,
+                          currentHealth: _enemy.health,
+                          maxHealth: _enemy.maxHealth,
+                          spriteEmoji: '\u{1F47E}',
+                          accent: const Color(0xFFFF6B6B),
+                          spriteAlignment: Alignment.topCenter,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Container(
-                height: 2,
-                color: const Color(0x335AF78E),
-              ),
-              Expanded(
-                child: _BattleSide(
-                  title: 'OPERATIVE',
-                  subtitle: 'Player',
-                  accent: const Color(0xFF5AF78E),
-                  background: const [
-                    Color(0xFF07110D),
-                    Color(0xFF030806),
-                  ],
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.bottomCenter,
-                    child: SizedBox(
-                      width: 420,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          BattleCharacterPanel(
-                            factionLabel: 'ALLY',
-                            characterName: _player.name,
-                            currentHealth: _player.health,
-                            maxHealth: _player.maxHealth,
-                            spriteEmoji: '🤖',
-                            accent: const Color(0xFF5AF78E),
-                            mirrorSprite: true,
-                            spriteAlignment: Alignment.bottomCenter,
-                          ),
-                          const SizedBox(height: 12),
-                          _TurnBanner(
-                            title: _turnTitle,
-                            description: _turnDescription,
-                            isEnemyTurn: _turn == _BattleTurn.enemy,
-                            isCombatFinished: _isCombatFinished,
-                          ),
-                          const SizedBox(height: 12),
-                          _ActionPanel(
-                            isEnabled: _canUseActions,
-                            onAttack: _handlePlayerAttack,
-                            onOpenSkills: _handleOpenSkills,
-                            onRunAway: _handleRunAway,
-                            onOpenItems: _handleOpenItems,
-                          ),
-                        ],
+                Container(
+                  height: 2,
+                  color: const Color(0x335AF78E),
+                ),
+                Expanded(
+                  child: _BattleSide(
+                    title: 'OPERATIVE',
+                    subtitle: 'Player',
+                    accent: const Color(0xFF5AF78E),
+                    background: const [
+                      Color(0xFF07110D),
+                      Color(0xFF030806),
+                    ],
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.bottomCenter,
+                      child: SizedBox(
+                        width: 420,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            BattleCharacterPanel(
+                              factionLabel: 'ALLY',
+                              characterName: _player.name,
+                              currentHealth: _player.health,
+                              maxHealth: _player.maxHealth,
+                              spriteEmoji: '\u{1F916}',
+                              accent: const Color(0xFF5AF78E),
+                              mirrorSprite: true,
+                              spriteAlignment: Alignment.bottomCenter,
+                            ),
+                            const SizedBox(height: 12),
+                            _TurnBanner(
+                              title: _turnTitle,
+                              description: _turnDescription,
+                              isEnemyTurn: _turn == _BattleTurn.enemy,
+                              isCombatFinished: _isCombatFinished,
+                            ),
+                            const SizedBox(height: 12),
+                            _ActionPanel(
+                              isEnabled: _canUseActions,
+                              onAttack: _handlePlayerAttack,
+                              onOpenSkills: _handleOpenSkills,
+                              onRunAway: _handleRunAway,
+                              onOpenItems: _handleOpenItems,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
