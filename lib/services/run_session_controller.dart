@@ -43,6 +43,11 @@ class RunSessionController extends ChangeNotifier {
   bool get isResolvingNode => _isResolvingNode;
   bool get isRunComplete => _state.isRunComplete;
 
+  void updatePlayer(Battler player) {
+    _state = _state.copyWith(player: player);
+    notifyListeners();
+  }
+
   bool beginNodeResolution() {
     if (_isResolvingNode) return false;
     _isResolvingNode = true;

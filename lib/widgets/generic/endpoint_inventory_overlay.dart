@@ -44,7 +44,6 @@ class EndpointInventoryOverlay extends StatelessWidget {
       pageBuilder: (context, animation, secondaryAnimation) {
         return EndpointItemDetailsDialog(
           item: item,
-          player: player,
           accent: item.rarity.accent,
           price: priceBuilder?.call(item) ?? item.cost,
           statusText: detailStatusBuilder(item),

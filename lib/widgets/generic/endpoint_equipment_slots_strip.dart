@@ -44,6 +44,7 @@ extension _EndpointEquipmentVisualSlotPresentation
 class EndpointEquipmentSlotsStrip extends StatelessWidget {
   final Battler battler;
   final EndpointEquipmentLayout layout;
+  final ValueChanged<Item>? onItemPressed;
   final double tileExtent;
   final double tileHeight;
   final double emojiSize;
@@ -56,6 +57,7 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
     super.key,
     required this.battler,
     this.layout = EndpointEquipmentLayout.standard,
+    this.onItemPressed,
     this.tileExtent = 70,
     this.tileHeight = 84,
     this.emojiSize = 18,
@@ -82,20 +84,30 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
       children: [
         for (int index = 0; index < slots.length; index++) ...[
           if (index > 0) SizedBox(width: spacing),
-          SizedBox(
-            width: tileExtent,
-            height: tileHeight,
-            child: _EndpointEquipmentSlotTile(
-              item: _itemForSlot(slots[index]),
-              slot: slots[index],
-              emojiSize: emojiSize,
-              borderColor: borderColor,
-              backgroundColor: backgroundColor,
-              textColor: textColor,
-            ),
-          ),
+          _buildSlotTile(slots[index]),
         ],
       ],
+    );
+  }
+
+  Widget _buildSlotTile(_EndpointEquipmentVisualSlot slot) {
+    final item = _itemForSlot(slot);
+
+    return SizedBox(
+      width: tileExtent,
+      height: tileHeight,
+      child: _EndpointEquipmentSlotTile(
+        item: item,
+        slot: slot,
+        emojiSize: emojiSize,
+        borderColor: borderColor,
+        backgroundColor: backgroundColor,
+        textColor: textColor,
+        onPressed:
+            onItemPressed == null || item == null
+                ? null
+                : () => onItemPressed!.call(item),
+      ),
     );
   }
 
@@ -121,6 +133,7 @@ class _EndpointEquipmentSlotTile extends StatelessWidget {
   final Color borderColor;
   final Color backgroundColor;
   final Color textColor;
+  final VoidCallback? onPressed;
 
   const _EndpointEquipmentSlotTile({
     required this.item,
@@ -129,63 +142,79 @@ class _EndpointEquipmentSlotTile extends StatelessWidget {
     required this.borderColor,
     required this.backgroundColor,
     required this.textColor,
+    this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
+    final decoration = BoxDecoration(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: borderColor),
+    );
+    final content = Padding(
+      padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  slot.assetPath,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.none,
+                ),
+                Center(
+                  child: item == null
+                      ? const SizedBox()
+                      : EndpointText(
+                          item!.iconEmoji,
+                          style: TextStyle(
+                            fontSize: emojiSize,
+                            height: 1,
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 3),
+          if (item != null)
+            EndpointText(
+              item!.name,
+              textAlign: TextAlign.center,
+              style: textSmallBold.copyWith(
+                color: textColor,
+                fontSize: 12,
+                letterSpacing: 0.5,
+              ),
+            )
+          else
+            const SizedBox(height: 14),
+        ],
+      ),
+    );
+
     return HoldTooltip(
       message: item?.description ?? slot.label,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.asset(
-                      slot.assetPath,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.none,
-                    ),
-                    Center(
-                      child: item == null
-                          ? const SizedBox()
-                          : EndpointText(
-                              item!.iconEmoji,
-                              style: TextStyle(
-                                fontSize: emojiSize,
-                                height: 1,
-                              ),
-                            ),
-                    ),
-                  ],
+      child: onPressed == null
+          ? DecoratedBox(
+              decoration: decoration,
+              child: content,
+            )
+          : Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onPressed,
+                borderRadius: BorderRadius.circular(12),
+                child: Ink(
+                  decoration: decoration,
+                  child: content,
                 ),
               ),
-              const SizedBox(height: 3),
-              if (item != null)
-                EndpointText(
-                  item!.name,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    color: textColor,
-                    fontSize: 12,
-                    letterSpacing: 0.5,
-                  ),
-                )
-              else
-                const SizedBox(height: 14),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

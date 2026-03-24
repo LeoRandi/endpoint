@@ -62,7 +62,10 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     await showEndpointOverlay<void>(
       context: context,
       barrierColor: const Color(0xB0000000),
-      builder: (_) => OperativesOverlay(player: _sessionController.player),
+      builder: (_) => OperativesOverlay(
+        player: _sessionController.player,
+        onPlayerChanged: _sessionController.updatePlayer,
+      ),
     );
   }
 
@@ -284,28 +287,8 @@ class _PathHeader extends StatelessWidget {
     return EndpointPanel(
       backgroundColor: const Color(0xCC07120D),
       borderRadius: 18,
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EndpointText(
-            currentHour.title,
-            style: textMediumBold.copyWith(
-              color: const Color(0xFF5AF78E),
-              letterSpacing: 2.4,
-            ),
-          ),
-          const SizedBox(height: 6),
-          EndpointText(
-            currentHour.subtitle,
-            style: textMedium.copyWith(
-              color: Colors.white.withOpacity(0.8),
-            ),
-          ),
-          const SizedBox(height: 14),
-          _RunTimelineMeter(currentHour: currentHour),
-        ],
-      ),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+      child: _RunTimelineMeter(currentHour: currentHour),
     );
   }
 }
@@ -494,52 +477,39 @@ class _RunTimelineMeter extends StatelessWidget {
       1.0,
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 20,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                height: 12,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.34),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0x335AF78E)),
+    return SizedBox(
+      height: 20,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.34),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: const Color(0x335AF78E)),
+            ),
+          ),
+          FractionallySizedBox(
+            widthFactor: progress,
+            child: Container(
+              height: 12,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF5AF78E),
+                    Color(0xFFDBB95A),
+                    Color(0xFF59B7FF),
+                    Color(0xFFF3D35C),
+                  ],
                 ),
               ),
-              FractionallySizedBox(
-                widthFactor: progress,
-                child: Container(
-                  height: 12,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF5AF78E),
-                        Color(0xFFDBB95A),
-                        Color(0xFF59B7FF),
-                        Color(0xFFF3D35C),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              ..._buildMarkers(),
-            ],
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        EndpointText(
-          EndpointStrings.routeTimelineDescription,
-          style: textSmallBold.copyWith(
-            color: Colors.white.withOpacity(0.68),
-            letterSpacing: 1,
-          ),
-        ),
-      ],
+          ..._buildMarkers(),
+        ],
+      ),
     );
   }
 

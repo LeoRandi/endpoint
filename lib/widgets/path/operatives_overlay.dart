@@ -7,11 +7,13 @@ const _operativeTileEmojiSize = 18.0;
 class OperativesOverlay extends StatefulWidget {
   final Battler player;
   final List<Battler> companions;
+  final ValueChanged<Battler>? onPlayerChanged;
 
   const OperativesOverlay({
     super.key,
     required this.player,
     this.companions = const [],
+    this.onPlayerChanged,
   });
 
   @override
@@ -20,8 +22,15 @@ class OperativesOverlay extends StatefulWidget {
 
 class _OperativesOverlayState extends State<OperativesOverlay> {
   int _selectedIndex = 0;
+  late Battler _player;
 
-  List<Battler> get _operatives => [widget.player, ...widget.companions];
+  @override
+  void initState() {
+    super.initState();
+    _player = widget.player;
+  }
+
+  List<Battler> get _operatives => [_player, ...widget.companions];
   Battler get _selectedOperative => _operatives[_selectedIndex];
   bool get _isPlayerSelected => _selectedIndex == 0;
 
@@ -33,12 +42,78 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
       barrierColor: Colors.black.withOpacity(0.62),
       transitionDuration: const Duration(milliseconds: 220),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return EndpointItemDetailsDialog(
-          item: item,
-          player: widget.player,
-          accent: item.rarity.accent,
-          price: item.cost,
-          statusText: _statusLabelFor(item),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return EndpointItemDetailsDialog(
+              item: item,
+              accent: item.rarity.accent,
+              price: item.cost,
+              statusText: _statusLabelFor(item),
+              actionLabel: _actionLabelFor(item),
+              onPrimaryAction: _isActionEnabled(item)
+                  ? () {
+                      _handlePrimaryAction(item);
+                      setDialogState(() {});
+                    }
+                  : null,
+              isActionEnabled: _isActionEnabled(item),
+              enabledActionTooltip: _enabledActionTooltipFor(item),
+              disabledActionTooltip: _disabledActionTooltipFor(item),
+            );
+          },
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openEquippedItemDetails(
+    Item item, {
+    required Battler owner,
+    required bool canUnequip,
+  }) async {
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Detalle de objeto equipado',
+      barrierColor: Colors.black.withOpacity(0.62),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final detailBattler = canUnequip ? _player : owner;
+
+            return EndpointItemDetailsDialog(
+              item: item,
+              accent: item.rarity.accent,
+              price: item.cost,
+              statusText: _statusLabelForOwner(detailBattler, item),
+              actionLabel: _unequipActionLabelFor(detailBattler, item, canUnequip),
+              onPrimaryAction: _isUnequipEnabled(detailBattler, item, canUnequip)
+                  ? () {
+                      _handleUnequipItem(item);
+                      setDialogState(() {});
+                    }
+                  : null,
+              isActionEnabled:
+                  _isUnequipEnabled(detailBattler, item, canUnequip),
+              enabledActionTooltip: 'Quitar objeto del equipo activo',
+              disabledActionTooltip: 'El objeto ya no esta equipado',
+            );
+          },
         );
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -59,10 +134,75 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
   }
 
   String _statusLabelFor(Item item) {
-    if (widget.player.equippedItems.contains(item)) {
+    return _statusLabelForOwner(_player, item);
+  }
+
+  String? _actionLabelFor(Item item) {
+    if (!item.isEquippable) return null;
+    if (_player.equippedItems.contains(item)) return 'Quitar';
+    if (_player.inventoryItems.contains(item)) return 'Equipar';
+    return null;
+  }
+
+  bool _isActionEnabled(Item item) {
+    return _actionLabelFor(item) != null;
+  }
+
+  String _enabledActionTooltipFor(Item item) {
+    if (_player.equippedItems.contains(item)) {
+      return 'Quitar objeto del equipo activo';
+    }
+    return 'Equipar objeto al jugador';
+  }
+
+  String _disabledActionTooltipFor(Item item) {
+    if (!item.isEquippable) return 'Este objeto no se puede equipar';
+    return 'El objeto ya no esta disponible';
+  }
+
+  String _statusLabelForOwner(Battler owner, Item item) {
+    if (owner.equippedItems.contains(item)) {
       return 'Estado actual: equipado';
     }
-    return 'Estado actual: en inventario';
+    if (owner.inventoryItems.contains(item)) {
+      return 'Estado actual: en inventario';
+    }
+    return 'Estado actual: no disponible';
+  }
+
+  String? _unequipActionLabelFor(
+    Battler owner,
+    Item item,
+    bool canUnequip,
+  ) {
+    if (!canUnequip) return null;
+    if (owner.equippedItems.contains(item)) return 'Quitar';
+    return null;
+  }
+
+  bool _isUnequipEnabled(Battler owner, Item item, bool canUnequip) {
+    return canUnequip && owner.equippedItems.contains(item);
+  }
+
+  void _handlePrimaryAction(Item item) {
+    final updatedPlayer = _player.equippedItems.contains(item)
+        ? _player.unequipItem(item)
+        : _player.equipItem(item);
+
+    setState(() {
+      _player = updatedPlayer;
+    });
+    widget.onPlayerChanged?.call(updatedPlayer);
+  }
+
+  void _handleUnequipItem(Item item) {
+    if (!_player.equippedItems.contains(item)) return;
+
+    final updatedPlayer = _player.unequipItem(item);
+    setState(() {
+      _player = updatedPlayer;
+    });
+    widget.onPlayerChanged?.call(updatedPlayer);
   }
 
   @override
@@ -136,6 +276,11 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                   _EquipmentRow(
                     battler: _selectedOperative,
                     isPlayer: _isPlayerSelected,
+                    onItemPressed: (item) => _openEquippedItemDetails(
+                      item,
+                      owner: _selectedOperative,
+                      canUnequip: _isPlayerSelected,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -149,7 +294,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                       ),
                       const Spacer(),
                       EndpointText(
-                        '${widget.player.inventoryItems.length}',
+                        '${_player.inventoryItems.length}',
                         style: textSmallBold.copyWith(
                           color: Colors.white.withOpacity(0.76),
                         ),
@@ -158,7 +303,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                   ),
                   const SizedBox(height: 6),
                   Expanded(
-                    child: widget.player.inventoryItems.isEmpty
+                    child: _player.inventoryItems.isEmpty
                         ? Center(
                             child: EndpointText(
                               'No llevas ningun objeto.',
@@ -171,7 +316,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                         : LayoutBuilder(
                             builder: (context, constraints) {
                               return GridView.builder(
-                                itemCount: widget.player.inventoryItems.length,
+                                itemCount: _player.inventoryItems.length,
                                 gridDelegate:
                                     const SliverGridDelegateWithMaxCrossAxisExtent(
                                   maxCrossAxisExtent: _operativeTileExtent,
@@ -180,8 +325,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                                   mainAxisExtent: _operativeTileHeight,
                                 ),
                                 itemBuilder: (context, index) {
-                                  final item =
-                                      widget.player.inventoryItems[index];
+                                  final item = _player.inventoryItems[index];
                                   return _InventoryItemTile(
                                     item: item,
                                     onPressed: () => _openItemDetails(item),
@@ -269,10 +413,12 @@ class _OperativeIconCard extends StatelessWidget {
 class _EquipmentRow extends StatelessWidget {
   final Battler battler;
   final bool isPlayer;
+  final ValueChanged<Item>? onItemPressed;
 
   const _EquipmentRow({
     required this.battler,
     required this.isPlayer,
+    this.onItemPressed,
   });
 
   @override
@@ -300,6 +446,7 @@ class _EquipmentRow extends StatelessWidget {
               layout: isPlayer
                   ? EndpointEquipmentLayout.standard
                   : EndpointEquipmentLayout.generic,
+              onItemPressed: onItemPressed,
             ),
           ),
         ],

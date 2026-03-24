@@ -62,7 +62,6 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
           builder: (context, child) {
             return EndpointItemDetailsDialog(
               item: item,
-              player: _controller.player,
               accent: widget.accent,
               price: _controller.costFor(item),
               statusText: _controller.detailStatusLabelFor(item),

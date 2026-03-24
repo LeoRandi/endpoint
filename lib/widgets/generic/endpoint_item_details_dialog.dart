@@ -2,7 +2,6 @@ import '_imports.dart';
 
 class EndpointItemDetailsDialog extends StatelessWidget {
   final Item item;
-  final Battler player;
   final Color accent;
   final int price;
   final String statusText;
@@ -15,7 +14,6 @@ class EndpointItemDetailsDialog extends StatelessWidget {
   const EndpointItemDetailsDialog({
     super.key,
     required this.item,
-    required this.player,
     required this.accent,
     required this.price,
     required this.statusText,
@@ -112,37 +110,13 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                       backgroundColor: const Color(0xCC2A2212),
                       glowOpacity: 0.03,
                       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              EndpointValueChip(
-                                icon: Icons.monetization_on_rounded,
-                                value: player.money,
-                                accent: const Color(0xFFF3D35C),
-                                foreground: const Color(0xFFFFF4C7),
-                              ),
-                              EndpointValueChip(
-                                icon: Icons.trending_up_rounded,
-                                value: player.income,
-                                accent: const Color(0xFF59B7FF),
-                                foreground: const Color(0xFFD7EEFF),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          EndpointText(
-                            statusText,
-                            maxLines: null,
-                            style: textSmallBold.copyWith(
-                              color: Colors.white.withOpacity(0.76),
-                              letterSpacing: 0.9,
-                            ),
-                          ),
-                        ],
+                      child: EndpointText(
+                        statusText,
+                        maxLines: null,
+                        style: textSmallBold.copyWith(
+                          color: Colors.white.withOpacity(0.76),
+                          letterSpacing: 0.9,
+                        ),
                       ),
                     ),
                     if (actionLabel != null) ...[
