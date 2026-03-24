@@ -50,6 +50,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     await showEndpointOverlay<void>(
       context: context,
       builder: (_) => BattleItemsDialog(
+        player: _sessionController.player,
         items: _sessionController.player.inventoryItems,
         subtitle: 'Inventario de ruta',
         bottomInset: _itemsBottomInset,

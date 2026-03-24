@@ -32,55 +32,56 @@ class BattleCharacterPanel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 280),
+          constraints: const BoxConstraints(maxWidth: 248),
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: const Color(0xD907120D),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: accent.withOpacity(0.7)),
               boxShadow: [
                 BoxShadow(
                   color: accent.withOpacity(0.12),
-                  blurRadius: 20,
-                  spreadRadius: 2,
+                  blurRadius: 16,
+                  spreadRadius: 1,
                 ),
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
               child: Column(
                 children: [
                   Row(
                     children: [
                       EndpointText(
                         factionLabel,
-                        style: textMediumBold.copyWith(
+                        style: textSmallBold.copyWith(
                           color: accent,
-                          letterSpacing: 2,
+                          letterSpacing: 1.8,
                         ),
                       ),
                       const Spacer(),
                       EndpointText(
                         '$currentHealth / $maxHealth',
-                        style: textMediumBold.copyWith(
+                        style: textSmallBold.copyWith(
                           color: Colors.white.withOpacity(0.86),
+                          letterSpacing: 0.8,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   EndpointHealthBar(
                     value: healthFactor,
                     accent: accent,
-                    height: 14,
+                    height: 12,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   EndpointText(
                     characterName,
                     textAlign: TextAlign.center,
-                    style: textLargeBold.copyWith(
+                    style: textMediumBold.copyWith(
                       color: const Color(0xFFE6FFF0),
-                      letterSpacing: 2,
+                      letterSpacing: 1.4,
                     ),
                   ),
                 ],
@@ -88,13 +89,13 @@ class BattleCharacterPanel extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         Align(
           alignment: spriteAlignment,
           child: EndpointEmojiSprite(
             emoji: spriteEmoji,
             accent: accent,
-            size: 132,
+            size: 104,
             mirror: mirrorSprite,
           ),
         ),

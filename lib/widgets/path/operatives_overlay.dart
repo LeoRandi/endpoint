@@ -277,16 +277,6 @@ class _EquipmentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final slots = isPlayer
-        ? const <_OperativeVisualSlot>[
-            _OperativeVisualSlot.weapon,
-            _OperativeVisualSlot.armor,
-            _OperativeVisualSlot.accessory,
-          ]
-        : const <_OperativeVisualSlot>[
-            _OperativeVisualSlot.generic,
-          ];
-
     return EndpointPanel(
       backgroundColor: const Color(0xCC07120D),
       borderRadius: 14,
@@ -304,143 +294,15 @@ class _EquipmentRow extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (final slot in slots)
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: slot == slots.last ? 0 : 8,
-                  ),
-                  child: SizedBox(
-                    width: _operativeTileExtent,
-                    height: _operativeTileHeight,
-                    child: _EquipmentSlotTile(
-                      item: _itemForSlot(slot),
-                      slot: slot,
-                    ),
-                  ),
-                ),
-            ],
+          Center(
+            child: EndpointEquipmentSlotsStrip(
+              battler: battler,
+              layout: isPlayer
+                  ? EndpointEquipmentLayout.standard
+                  : EndpointEquipmentLayout.generic,
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Item? _itemForSlot(_OperativeVisualSlot slot) {
-    switch (slot) {
-      case _OperativeVisualSlot.weapon:
-        return battler.equippedItemForSlot(ItemSlot.weapon);
-      case _OperativeVisualSlot.armor:
-        return battler.equippedItemForSlot(ItemSlot.offHand);
-      case _OperativeVisualSlot.accessory:
-        return battler.equippedItemForSlot(ItemSlot.accessory);
-      case _OperativeVisualSlot.generic:
-        if (battler.equippedItems.isEmpty) return null;
-        return battler.equippedItems.first;
-    }
-  }
-}
-
-enum _OperativeVisualSlot {
-  weapon,
-  armor,
-  accessory,
-  generic,
-}
-
-extension _OperativeVisualSlotPresentation on _OperativeVisualSlot {
-  String get label {
-    switch (this) {
-      case _OperativeVisualSlot.weapon:
-        return 'ARMA';
-      case _OperativeVisualSlot.armor:
-        return 'ARMADURA';
-      case _OperativeVisualSlot.accessory:
-        return 'AMULETO';
-      case _OperativeVisualSlot.generic:
-        return 'SLOT';
-    }
-  }
-
-  String get assetPath {
-    switch (this) {
-      case _OperativeVisualSlot.weapon:
-        return 'assets/images/slots/equipment_slot_weapon.png';
-      case _OperativeVisualSlot.armor:
-        return 'assets/images/slots/equipment_slot_chest.png';
-      case _OperativeVisualSlot.accessory:
-        return 'assets/images/slots/equipment_slot_accessory.png';
-      case _OperativeVisualSlot.generic:
-        return 'assets/images/slots/empty_slot.png';
-    }
-  }
-}
-
-class _EquipmentSlotTile extends StatelessWidget {
-  final Item? item;
-  final _OperativeVisualSlot slot;
-
-  const _EquipmentSlotTile({
-    required this.item,
-    required this.slot,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return HoldTooltip(
-      message: item?.description ?? slot.label,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: const Color(0x66030807),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0x335AF78E)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.asset(
-                      slot.assetPath,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.none,
-                    ),
-                    Center(
-                      child: item == null
-                          ? const SizedBox()
-                          : EndpointText(
-                              item!.iconEmoji,
-                              style: const TextStyle(
-                                fontSize: _operativeTileEmojiSize,
-                                height: 1,
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 3),
-              if (item != null)
-                EndpointText(
-                  item!.name,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    color: const Color(0xFFE6FFF0),
-                    fontSize: 12,
-                    letterSpacing: 0.5,
-                  ),
-                )
-              else
-                const SizedBox(height: 14),
-            ],
-          ),
-        ),
       ),
     );
   }

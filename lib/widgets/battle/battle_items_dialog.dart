@@ -1,6 +1,7 @@
 import '_imports.dart';
 
 class BattleItemsDialog extends StatelessWidget {
+  final Battler player;
   final List<Item> items;
   final String subtitle;
   final String emptyText;
@@ -8,30 +9,29 @@ class BattleItemsDialog extends StatelessWidget {
 
   const BattleItemsDialog({
     super.key,
+    required this.player,
     this.items = const [],
     this.subtitle = 'Inventario de combate',
     this.emptyText = EndpointStrings.noItems,
-    this.bottomInset = 164,
+    this.bottomInset = 112,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BattleFloatingMenu<Item>(
+    return EndpointInventoryOverlay(
+      player: player,
       title: 'Objetos',
       subtitle: subtitle,
       emptyText: emptyText,
-      entries: items
-          .map(
-            (item) => BattleMenuEntry<Item>(
-              value: item,
-              label: item.name,
-              tooltip: item.description,
-              isEnabled: false,
-            ),
-          )
-          .toList(growable: false),
       closeTooltip: 'Cerrar inventario',
+      items: items,
       bottomInset: bottomInset,
+      detailStatusBuilder: (item) {
+        if (player.equippedItems.contains(item)) {
+          return 'Estado actual: equipado';
+        }
+        return 'Estado actual: en inventario';
+      },
     );
   }
 }

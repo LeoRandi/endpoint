@@ -60,7 +60,6 @@ class _BattlePageState extends State<BattlePage> {
   }
 
   Future<bool> _handleWillPop() async {
-    _controller.handleSystemBack();
     return false;
   }
 
@@ -71,28 +70,14 @@ class _BattlePageState extends State<BattlePage> {
   Future<void> _handleOpenItems() async {
     if (!_controller.canUseActions) return;
 
-    // TODO: Allow battle items to execute real combat effects once consumables exist.
     await showEndpointOverlay<void>(
       context: context,
-      builder: (_) =>
-          BattleItemsDialog(items: _controller.player.inventoryItems),
+      builder: (_) => BattleItemsDialog(
+        player: _controller.player,
+        items: _controller.player.inventoryItems,
+      ),
+      barrierColor: Colors.black.withOpacity(0.12),
     );
-  }
-
-  Future<void> _handleOpenSkills() async {
-    if (!_controller.canUseActions) return;
-
-    final selectedSkill = await showEndpointOverlay<BattlerAbility>(
-      context: context,
-      builder: (_) => BattleSkillsDialog(skills: _controller.player.abilities),
-    );
-
-    if (!mounted || selectedSkill == null || !_controller.canUseActions) return;
-    _controller.handleAbility(selectedSkill);
-  }
-
-  void _handleRunAway() {
-    _controller.handleRunAway();
   }
 
   @override
@@ -129,19 +114,9 @@ class _BattlePageState extends State<BattlePage> {
                             Color(0xFF230C11),
                             Color(0xFF12060A),
                           ],
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: SizedBox(
-                              width: 320,
-                              child: BattleCharacterPanel(
-                                factionLabel: 'HOSTILE',
-                                characterName: _controller.enemy.name,
-                                currentHealth: _controller.enemy.health,
-                                maxHealth: _controller.enemy.maxHealth,
-                                spriteEmoji: '\u{1F47E}',
-                                accent: const Color(0xFFFF6B6B),
-                                spriteAlignment: Alignment.topCenter,
-                              ),
+                          child: SizedBox.expand(
+                            child: _EnemyBattleHud(
+                              enemy: _controller.enemy,
                             ),
                           ),
                         ),
@@ -159,43 +134,17 @@ class _BattlePageState extends State<BattlePage> {
                             Color(0xFF07110D),
                             Color(0xFF030806),
                           ],
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.bottomCenter,
-                            child: SizedBox(
-                              width: 420,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  BattleCharacterPanel(
-                                    factionLabel: 'ALLY',
-                                    characterName: _controller.player.name,
-                                    currentHealth: _controller.player.health,
-                                    maxHealth: _controller.player.maxHealth,
-                                    spriteEmoji: '\u{1F916}',
-                                    accent: const Color(0xFF5AF78E),
-                                    mirrorSprite: true,
-                                    spriteAlignment: Alignment.bottomCenter,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _TurnBanner(
-                                    title: _controller.turnTitle,
-                                    description: _controller.turnDescription,
-                                    isEnemyTurn: _controller.turn ==
-                                        BattleTurnState.enemy,
-                                    isCombatFinished:
-                                        _controller.isCombatFinished,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _ActionPanel(
-                                    isEnabled: _controller.canUseActions,
-                                    onAttack: _handlePlayerAttack,
-                                    onOpenSkills: _handleOpenSkills,
-                                    onRunAway: _handleRunAway,
-                                    onOpenItems: _handleOpenItems,
-                                  ),
-                                ],
-                              ),
+                          child: SizedBox.expand(
+                            child: _PlayerBattleHud(
+                              player: _controller.player,
+                              isEnabled: _controller.canUseActions,
+                              turnTitle: _controller.turnTitle,
+                              turnDescription: _controller.turnDescription,
+                              isEnemyTurn:
+                                  _controller.turn == BattleTurnState.enemy,
+                              isCombatFinished: _controller.isCombatFinished,
+                              onAttack: _handlePlayerAttack,
+                              onOpenItems: _handleOpenItems,
                             ),
                           ),
                         ),
@@ -238,7 +187,7 @@ class _BattleSide extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -252,23 +201,22 @@ class _BattleSide extends StatelessWidget {
               children: [
                 EndpointText(
                   title.toUpperCase(),
-                  style: textMediumBold.copyWith(
+                  style: textSmallBold.copyWith(
                     color: accent,
-                    letterSpacing: 3,
+                    fontSize: 15,
+                    letterSpacing: 2.4,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 EndpointText(
                   subtitle,
-                  style: textMedium.copyWith(
+                  style: textSmallBold.copyWith(
                     color: Colors.white.withOpacity(0.72),
-                    letterSpacing: 1.5,
+                    letterSpacing: 1,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Center(child: child),
-                ),
+                const SizedBox(height: 6),
+                Expanded(child: child),
               ],
             ),
           ],
@@ -300,29 +248,31 @@ class _TurnBanner extends StatelessWidget {
             : const Color(0xFF5AF78E);
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 420),
+      constraints: const BoxConstraints(maxWidth: 320),
       child: EndpointPanel(
         accent: accent,
         backgroundColor: const Color(0xCC05100B),
-        borderRadius: 14,
+        borderRadius: 12,
         glowOpacity: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Column(
           children: [
             EndpointText(
               title,
               textAlign: TextAlign.center,
-              style: textMediumBold.copyWith(
+              style: textSmallBold.copyWith(
                 color: accent,
-                letterSpacing: 2.4,
+                fontSize: 14,
+                letterSpacing: 1.8,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             EndpointText(
               description,
               textAlign: TextAlign.center,
-              style: textMedium.copyWith(
+              style: textSmallBold.copyWith(
                 color: Colors.white.withOpacity(0.84),
+                letterSpacing: 0.5,
               ),
             ),
           ],
@@ -335,59 +285,420 @@ class _TurnBanner extends StatelessWidget {
 class _ActionPanel extends StatelessWidget {
   final bool isEnabled;
   final VoidCallback onAttack;
-  final Future<void> Function() onOpenSkills;
-  final VoidCallback onRunAway;
   final Future<void> Function() onOpenItems;
 
   const _ActionPanel({
     required this.isEnabled,
     required this.onAttack,
-    required this.onOpenSkills,
-    required this.onRunAway,
     required this.onOpenItems,
   });
 
   @override
   Widget build(BuildContext context) {
-    return EndpointPanel(
-      backgroundColor: const Color(0xCC05100B),
-      borderRadius: 16,
-      glowOpacity: 0,
-      blurRadius: 18,
-      padding: const EdgeInsets.all(14),
-      child: GridView(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          mainAxisExtent: 56,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        BattleActionButton(
+          label: 'Atacar',
+          icon: Icons.flash_on_rounded,
+          onPressed: isEnabled ? onAttack : null,
+          tooltip: 'Atacar al enemigo',
         ),
+        const SizedBox(width: 8),
+        BattleActionButton(
+          label: 'Objetos',
+          icon: Icons.inventory_2_outlined,
+          onPressed: isEnabled ? onOpenItems : null,
+          tooltip: 'Abrir inventario de combate',
+        ),
+      ],
+    );
+  }
+}
+
+class _PlayerBattleHud extends StatelessWidget {
+  final Battler player;
+  final bool isEnabled;
+  final String turnTitle;
+  final String turnDescription;
+  final bool isEnemyTurn;
+  final bool isCombatFinished;
+  final VoidCallback onAttack;
+  final Future<void> Function() onOpenItems;
+
+  const _PlayerBattleHud({
+    required this.player,
+    required this.isEnabled,
+    required this.turnTitle,
+    required this.turnDescription,
+    required this.isEnemyTurn,
+    required this.isCombatFinished,
+    required this.onAttack,
+    required this.onOpenItems,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.topCenter,
+          child: _TurnBanner(
+            title: turnTitle,
+            description: turnDescription,
+            isEnemyTurn: isEnemyTurn,
+            isCombatFinished: isCombatFinished,
+          ),
+        ),
+        const Spacer(),
+        _BattleLoadoutStrip(
+          battler: player,
+          accent: const Color(0xFF5AF78E),
+          mirrorHorizontally: false,
+        ),
+        const SizedBox(height: 10),
+        _BattleStatusBar(
+          battler: player,
+          accent: const Color(0xFF5AF78E),
+          factionLabel: 'ALLY',
+          mirrorHorizontally: false,
+        ),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _ActionPanel(
+              isEnabled: isEnabled,
+              onAttack: onAttack,
+              onOpenItems: onOpenItems,
+            ),
+            const Spacer(),
+            const _BattleSpriteDock(
+              emoji: '\u{1F916}',
+              accent: Color(0xFF5AF78E),
+              label: 'TU',
+              mirror: true,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _EnemyBattleHud extends StatelessWidget {
+  final Battler enemy;
+
+  const _EnemyBattleHud({
+    required this.enemy,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _BattleSpriteDock(
+              emoji: '\u{1F47E}',
+              accent: Color(0xFFFF6B6B),
+              label: 'FOE',
+            ),
+            const Spacer(),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _BattleStatusBar(
+          battler: enemy,
+          accent: const Color(0xFFFF6B6B),
+          factionLabel: 'HOSTILE',
+          mirrorHorizontally: true,
+        ),
+        const SizedBox(height: 10),
+        _BattleLoadoutStrip(
+          battler: enemy,
+          accent: const Color(0xFFFF6B6B),
+          mirrorHorizontally: true,
+        ),
+        const Spacer(),
+      ],
+    );
+  }
+}
+
+class _BattleStatusBar extends StatelessWidget {
+  final Battler battler;
+  final Color accent;
+  final String factionLabel;
+  final bool mirrorHorizontally;
+
+  const _BattleStatusBar({
+    required this.battler,
+    required this.accent,
+    required this.factionLabel,
+    required this.mirrorHorizontally,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final healthFactor = battler.maxHealth <= 0
+        ? 0.0
+        : (battler.health / battler.maxHealth).clamp(0.0, 1.0).toDouble();
+
+    return Align(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: EndpointPanel(
+          accent: accent,
+          backgroundColor: const Color(0xCC05100B),
+          borderRadius: 12,
+          glowOpacity: 0,
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: mirrorHorizontally
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (mirrorHorizontally) ...[
+                    EndpointText(
+                      '${battler.health} / ${battler.maxHealth}',
+                      style: textSmallBold.copyWith(
+                        color: Colors.white.withOpacity(0.84),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(
+                    child: EndpointText(
+                      battler.name,
+                      maxLines: 1,
+                      textAlign:
+                          mirrorHorizontally ? TextAlign.right : TextAlign.left,
+                      style: textSmallBold.copyWith(
+                        color: const Color(0xFFE6FFF0),
+                        fontSize: 14,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  EndpointText(
+                    factionLabel,
+                    style: textSmallBold.copyWith(
+                      color: accent,
+                      fontSize: 14,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                  if (!mirrorHorizontally) ...[
+                    const SizedBox(width: 8),
+                    EndpointText(
+                      '${battler.health} / ${battler.maxHealth}',
+                      style: textSmallBold.copyWith(
+                        color: Colors.white.withOpacity(0.84),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              EndpointHealthBar(
+                value: healthFactor,
+                accent: accent,
+                height: 12,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleLoadoutStrip extends StatelessWidget {
+  final Battler battler;
+  final Color accent;
+  final bool mirrorHorizontally;
+
+  const _BattleLoadoutStrip({
+    required this.battler,
+    required this.accent,
+    required this.mirrorHorizontally,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final equipmentStrip = EndpointEquipmentSlotsStrip(
+      battler: battler,
+      layout: EndpointEquipmentLayout.standard,
+      tileExtent: 62,
+      tileHeight: 74,
+      emojiSize: 16,
+      borderColor: accent.withOpacity(0.34),
+    );
+    final abilityStrip = _AbilitySlotsStrip(
+      abilities: battler.abilities,
+      accent: accent,
+    );
+    final children = mirrorHorizontally
+        ? <Widget>[
+            abilityStrip,
+            const SizedBox(width: 18),
+            equipmentStrip,
+          ]
+        : <Widget>[
+            equipmentStrip,
+            const SizedBox(width: 18),
+            abilityStrip,
+          ];
+
+    return SizedBox(
+      height: 76,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: children,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AbilitySlotsStrip extends StatelessWidget {
+  final List<BattlerAbility> abilities;
+  final Color accent;
+
+  const _AbilitySlotsStrip({
+    required this.abilities,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final slotCount = max(3, abilities.length);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int index = 0; index < slotCount; index++) ...[
+          if (index > 0) const SizedBox(width: 8),
+          _AbilitySlotTile(
+            accent: accent,
+            isReserved: index < abilities.length,
+            tooltip: index < abilities.length
+                ? abilities[index].label
+                : 'Slot de habilidad',
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AbilitySlotTile extends StatelessWidget {
+  final Color accent;
+  final bool isReserved;
+  final String tooltip;
+
+  const _AbilitySlotTile({
+    required this.accent,
+    required this.isReserved,
+    required this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return HoldTooltip(
+      message: tooltip,
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xCC05100B),
+            border: Border.all(color: accent.withOpacity(0.5), width: 1.4),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withOpacity(0.08),
+                blurRadius: 12,
+              ),
+            ],
+          ),
+          child: Center(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: accent.withOpacity(isReserved ? 0.72 : 0.24),
+              ),
+              child: SizedBox(
+                width: isReserved ? 12 : 8,
+                height: isReserved ? 12 : 8,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleSpriteDock extends StatelessWidget {
+  final String emoji;
+  final Color accent;
+  final String label;
+  final bool mirror;
+
+  const _BattleSpriteDock({
+    required this.emoji,
+    required this.accent,
+    required this.label,
+    this.mirror = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return EndpointPanel(
+      accent: accent,
+      backgroundColor: const Color(0xCC05100B),
+      borderRadius: 14,
+      glowOpacity: 0.06,
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          BattleActionButton(
-            label: 'Atacar',
-            icon: Icons.flash_on_rounded,
-            onPressed: isEnabled ? onAttack : null,
-            tooltip: 'Atacar al enemigo',
+          EndpointEmojiSprite(
+            emoji: emoji,
+            accent: accent,
+            size: 84,
+            mirror: mirror,
           ),
-          BattleActionButton(
-            label: 'Habilidades',
-            icon: Icons.shield_outlined,
-            onPressed: isEnabled ? onOpenSkills : null,
-            tooltip: 'Abrir lista de habilidades',
-          ),
-          BattleActionButton(
-            label: 'Huir',
-            icon: Icons.directions_run_rounded,
-            onPressed: isEnabled ? onRunAway : null,
-            tooltip: 'Abandonar el combate',
-          ),
-          BattleActionButton(
-            label: 'Objetos',
-            icon: Icons.inventory_2_outlined,
-            onPressed: isEnabled ? onOpenItems : null,
-            tooltip: 'Abrir inventario de combate',
+          const SizedBox(height: 4),
+          EndpointText(
+            label,
+            style: textSmallBold.copyWith(
+              color: const Color(0xFFE6FFF0),
+              letterSpacing: 1.1,
+            ),
           ),
         ],
       ),
