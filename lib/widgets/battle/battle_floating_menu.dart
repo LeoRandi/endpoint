@@ -53,7 +53,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  EndpointText(
                     title,
                     style: textLargeBold.copyWith(
                       color: accent,
@@ -61,7 +61,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  EndpointText(
                     subtitle,
                     style: textMedium.copyWith(
                       color: Colors.white.withOpacity(0.72),
@@ -69,7 +69,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   if (entries.isEmpty)
-                    Text(
+                    EndpointText(
                       emptyText,
                       style: textMedium.copyWith(
                         color: Colors.white.withOpacity(0.9),
@@ -100,7 +100,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                                   letterSpacing: 1.4,
                                 ),
                               ),
-                              child: Text(entry.label),
+                              child: EndpointText(entry.label),
                             ),
                           ),
                         ),
@@ -123,7 +123,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                           textStyle:
                               textMediumBold.copyWith(letterSpacing: 1.4),
                         ),
-                        child: const Text('Cerrar'),
+                        child: const EndpointText('Cerrar'),
                       ),
                     ),
                   ),
@@ -136,3 +136,4 @@ class BattleFloatingMenu<T> extends StatelessWidget {
     );
   }
 }
+

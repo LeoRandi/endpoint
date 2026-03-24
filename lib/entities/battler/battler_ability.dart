@@ -1,5 +1,3 @@
-import '_imports.dart';
-
 enum BattlerAbility {
   defend(
     label: 'Defender',

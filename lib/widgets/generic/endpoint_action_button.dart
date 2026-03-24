@@ -12,6 +12,7 @@ class EndpointActionButton extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final double borderRadius;
   final double borderWidth;
+  final double iconSize;
   final bool expands;
   final bool allowDisabledTooltip;
 
@@ -28,6 +29,7 @@ class EndpointActionButton extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     this.borderRadius = 12,
     this.borderWidth = 1.5,
+    this.iconSize = 22,
     this.expands = false,
     this.allowDisabledTooltip = true,
   });
@@ -39,14 +41,14 @@ class EndpointActionButton extends StatelessWidget {
       button = FilledButton(
         onPressed: onPressed,
         style: _buttonStyle(),
-        child: Text(label, overflow: TextOverflow.ellipsis),
+        child: EndpointText(label, overflow: TextOverflow.ellipsis),
       );
     } else {
       button = FilledButton.icon(
         onPressed: onPressed,
         style: _buttonStyle(),
-        icon: Icon(icon, size: 22),
-        label: Text(label, overflow: TextOverflow.ellipsis),
+        icon: Icon(icon, size: iconSize),
+        label: EndpointText(label, overflow: TextOverflow.ellipsis),
       );
     }
 
@@ -84,3 +86,4 @@ class EndpointActionButton extends StatelessWidget {
     );
   }
 }
+

@@ -96,7 +96,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               size: 132,
                             ),
                             const SizedBox(height: 16),
-                            Text(
+                            EndpointText(
                               'TIENDA DE ARMAS',
                               textAlign: TextAlign.center,
                               style: textLargeBold.copyWith(
@@ -105,7 +105,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
+                            EndpointText(
                               'Adquiere y equipa piezas para la ruta.',
                               textAlign: TextAlign.center,
                               style: textMedium.copyWith(
@@ -120,7 +120,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
                               child: Column(
                                 children: [
-                                  Text(
+                                  EndpointText(
                                     player.name,
                                     style: textMediumBold.copyWith(
                                       color: const Color(0xFFFFF4CC),
@@ -128,7 +128,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(
+                                  EndpointText(
                                     'ATK ${player.attack}   DEF ${player.defense}   HP ${player.health}/${player.maxHealth}',
                                     textAlign: TextAlign.center,
                                     style: textMedium.copyWith(
@@ -136,7 +136,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(
+                                  EndpointText(
                                     _equippedSummary(player),
                                     textAlign: TextAlign.center,
                                     style: textMedium.copyWith(
@@ -232,7 +232,7 @@ class _ShopItemCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    EndpointText(
                       item.name,
                       style: textMediumBold.copyWith(
                         color: const Color(0xFFFFF4CC),
@@ -240,7 +240,7 @@ class _ShopItemCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    EndpointText(
                       item.slot?.label ?? 'Consumible',
                       style: textSmallBold.copyWith(
                         color: accent,
@@ -248,7 +248,7 @@ class _ShopItemCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    EndpointText(
                       statusLabel,
                       style: textMedium.copyWith(
                         color: Colors.white.withOpacity(0.74),
@@ -260,7 +260,7 @@ class _ShopItemCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          EndpointText(
             item.description,
             style: textMedium.copyWith(
               color: Colors.white.withOpacity(0.82),
@@ -337,3 +337,4 @@ class _ShopBackdropPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

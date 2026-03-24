@@ -61,7 +61,7 @@ class PathNodeCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(color: accent.withOpacity(0.5)),
                       ),
-                      child: Text(
+                      child: EndpointText(
                         node.badgeLabel,
                         style: textSmallBold.copyWith(
                           color: accent,
@@ -83,11 +83,9 @@ class PathNodeCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    EndpointText(
                       node.label,
                       textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: textMediumBold.copyWith(
                         color: const Color(0xFFE6FFF0),
                         letterSpacing: 1.2,
@@ -103,3 +101,4 @@ class PathNodeCard extends StatelessWidget {
     );
   }
 }
+

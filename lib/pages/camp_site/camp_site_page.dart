@@ -82,7 +82,7 @@ class _CampSitePageState extends State<CampSitePage> {
                           size: 144,
                         ),
                         const SizedBox(height: 18),
-                        Text(
+                        EndpointText(
                           'ZONA DE ACAMPADA',
                           textAlign: TextAlign.center,
                           style: textLargeBold.copyWith(
@@ -91,7 +91,7 @@ class _CampSitePageState extends State<CampSitePage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
+                        EndpointText(
                           'Recuperas 50% de tu vida maxima.',
                           textAlign: TextAlign.center,
                           style: textMedium.copyWith(
@@ -104,7 +104,7 @@ class _CampSitePageState extends State<CampSitePage> {
                           padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
                           child: Column(
                             children: [
-                              Text(
+                              EndpointText(
                                 '${widget.player.health} / ${widget.player.maxHealth}  ->  ${_visitResult.player.health} / ${_visitResult.player.maxHealth}',
                                 textAlign: TextAlign.center,
                                 style: textMediumBold.copyWith(
@@ -112,7 +112,7 @@ class _CampSitePageState extends State<CampSitePage> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
+                              EndpointText(
                                 _visitResult.healedAmount > 0
                                     ? 'Salud recuperada: +${_visitResult.healedAmount}'
                                     : 'Tu salud ya estaba al maximo.',
@@ -183,3 +183,4 @@ class _CampBackdropPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

@@ -1,5 +1,16 @@
 import '_imports.dart';
 
+const woodenStickItem = Item(
+  id: ItemId.woodenStick,
+  name: 'Palo',
+  description: '+1 ATK mientras este equipado.',
+  iconEmoji: '\u{1FAB5}',
+  slot: ItemSlot.weapon,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+);
+
 const ironSwordItem = Item(
   id: ItemId.ironSword,
   name: 'Espada de Hierro',

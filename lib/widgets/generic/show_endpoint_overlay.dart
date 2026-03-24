@@ -5,12 +5,13 @@ Future<T?> showEndpointOverlay<T>({
   required WidgetBuilder builder,
   String barrierLabel = 'Cerrar menu',
   bool barrierDismissible = true,
+  Color barrierColor = Colors.transparent,
 }) {
   return showGeneralDialog<T>(
     context: context,
     barrierLabel: barrierLabel,
     barrierDismissible: barrierDismissible,
-    barrierColor: Colors.transparent,
+    barrierColor: barrierColor,
     transitionDuration: const Duration(milliseconds: 180),
     pageBuilder: (context, animation, secondaryAnimation) => builder(context),
     transitionBuilder: (context, animation, secondaryAnimation, child) {

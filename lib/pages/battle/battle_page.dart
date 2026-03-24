@@ -249,7 +249,7 @@ class _BattleSide extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                EndpointText(
                   title.toUpperCase(),
                   style: textMediumBold.copyWith(
                     color: accent,
@@ -257,7 +257,7 @@ class _BattleSide extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                EndpointText(
                   subtitle,
                   style: textMedium.copyWith(
                     color: Colors.white.withOpacity(0.72),
@@ -308,7 +308,7 @@ class _TurnBanner extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           children: [
-            Text(
+            EndpointText(
               title,
               textAlign: TextAlign.center,
               style: textMediumBold.copyWith(
@@ -317,7 +317,7 @@ class _TurnBanner extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
+            EndpointText(
               description,
               textAlign: TextAlign.center,
               style: textMedium.copyWith(
@@ -419,3 +419,4 @@ class _BattleSideGridPainter extends CustomPainter {
     return oldDelegate.accent != accent;
   }
 }
+

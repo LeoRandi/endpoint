@@ -1,6 +1,7 @@
 import '_imports.dart';
 
 enum ItemId {
+  woodenStick,
   ironSword,
   guardShield,
 }

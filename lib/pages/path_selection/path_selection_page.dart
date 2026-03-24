@@ -57,6 +57,14 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
   }
 
+  Future<void> _handleOpenOperatives() async {
+    await showEndpointOverlay<void>(
+      context: context,
+      barrierColor: const Color(0xB0000000),
+      builder: (_) => OperativesOverlay(player: _sessionController.player),
+    );
+  }
+
   Future<void> _handleStartEncounter(CombatPathNode node) async {
     final result = await Navigator.of(context).push<BattleFlowResult>(
       _buildSceneRoute<BattleFlowResult>(
@@ -257,6 +265,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                 width: double.infinity,
                                 child: _PathBottomHud(
                                   player: player,
+                                  onOpenOperatives: _handleOpenOperatives,
                                   onOpenItems: _handleOpenItems,
                                 ),
                               ),
@@ -288,7 +297,7 @@ class _PathHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          EndpointText(
             'SELECCION DE RUTA',
             style: textMediumBold.copyWith(
               color: const Color(0xFF5AF78E),
@@ -296,7 +305,7 @@ class _PathHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
+          EndpointText(
             'Elige un nodo para avanzar.',
             style: textMedium.copyWith(
               color: Colors.white.withOpacity(0.8),
@@ -310,10 +319,12 @@ class _PathHeader extends StatelessWidget {
 
 class _PathBottomHud extends StatelessWidget {
   final Battler player;
+  final Future<void> Function() onOpenOperatives;
   final Future<void> Function() onOpenItems;
 
   const _PathBottomHud({
     required this.player,
+    required this.onOpenOperatives,
     required this.onOpenItems,
   });
 
@@ -323,41 +334,45 @@ class _PathBottomHud extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _PathPlayerStatus(player: player),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
-            final avatarSize = constraints.maxWidth < 360 ? 92.0 : 112.0;
+            final avatarSize = constraints.maxWidth < 360 ? 82.0 : 98.0;
 
             return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: Alignment.bottomLeft,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 146),
-                      child: const PathActionButton(
+                      constraints: const BoxConstraints(maxWidth: 132),
+                      child: PathActionButton(
                         label: 'Operativos',
                         icon: Icons.groups_2_outlined,
-                        tooltip: 'Gestion de operativos no disponible',
+                        onPressed: onOpenOperatives,
+                        tooltip: 'Abrir ventana de operativos',
                       ),
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: avatarSize,
-                  height: avatarSize,
-                  child: EndpointEmojiSprite(
-                    emoji: '\u{1F916}',
-                    accent: const Color(0xFF5AF78E),
-                    size: avatarSize,
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SizedBox(
+                    width: avatarSize,
+                    height: avatarSize,
+                    child: EndpointEmojiSprite(
+                      emoji: '\u{1F916}',
+                      accent: const Color(0xFF5AF78E),
+                      size: avatarSize,
+                    ),
                   ),
                 ),
                 Expanded(
                   child: Align(
-                    alignment: Alignment.centerRight,
+                    alignment: Alignment.bottomRight,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 132),
+                      constraints: const BoxConstraints(maxWidth: 118),
                       child: PathActionButton(
                         label: 'Objetos',
                         icon: Icons.inventory_2_outlined,
@@ -402,7 +417,7 @@ class _PathPlayerStatus extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
+                  child: EndpointText(
                     player.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -413,7 +428,7 @@ class _PathPlayerStatus extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
+                EndpointText(
                   '${player.health} / ${player.maxHealth}',
                   style: textMediumBold.copyWith(
                     color: accent,
@@ -485,7 +500,7 @@ class _StatChip extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Text(
+        child: EndpointText(
           '$label $value',
           style: textSmallBold.copyWith(
             color: const Color(0xFFBDEECC),
@@ -550,3 +565,4 @@ class _PathBackdropPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

@@ -90,4 +90,5 @@ const defaultPlayerBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   abilities: [BattlerAbility.defend],
+  inventoryItems: [woodenStickItem],
 );

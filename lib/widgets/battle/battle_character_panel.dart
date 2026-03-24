@@ -52,7 +52,7 @@ class BattleCharacterPanel extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
+                      EndpointText(
                         factionLabel,
                         style: textMediumBold.copyWith(
                           color: accent,
@@ -60,7 +60,7 @@ class BattleCharacterPanel extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Text(
+                      EndpointText(
                         '$currentHealth / $maxHealth',
                         style: textMediumBold.copyWith(
                           color: Colors.white.withOpacity(0.86),
@@ -93,7 +93,7 @@ class BattleCharacterPanel extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(
+                  EndpointText(
                     characterName,
                     textAlign: TextAlign.center,
                     style: textLargeBold.copyWith(
@@ -120,3 +120,4 @@ class BattleCharacterPanel extends StatelessWidget {
     );
   }
 }
+

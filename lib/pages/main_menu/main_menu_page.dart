@@ -80,7 +80,7 @@ class _MainMenuPageState extends State<MainMenuPage>
                             builder: (context, child) {
                               return Transform.scale(
                                 scale: _scale.value,
-                                child: Text(
+                                child: EndpointText(
                                   'ENDPOINT',
                                   textAlign: TextAlign.center,
                                   style: textExtraLargeBold.copyWith(
@@ -225,3 +225,4 @@ class _ScanlinePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

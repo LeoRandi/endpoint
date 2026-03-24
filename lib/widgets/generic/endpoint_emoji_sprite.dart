@@ -52,7 +52,7 @@ class EndpointEmojiSprite extends StatelessWidget {
             ),
           ),
           Center(
-            child: Text(
+            child: EndpointText(
               emoji,
               style: TextStyle(
                 fontSize: size * 0.48,
@@ -70,3 +70,4 @@ class EndpointEmojiSprite extends StatelessWidget {
     );
   }
 }
+

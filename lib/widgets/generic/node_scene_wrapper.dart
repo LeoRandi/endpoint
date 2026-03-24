@@ -126,7 +126,7 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
                                 horizontal: 20,
                                 vertical: 14,
                               ),
-                              child: Text(
+                              child: EndpointText(
                                 widget.showTitle,
                                 textAlign: TextAlign.center,
                                 style: textLargeBold.copyWith(
@@ -149,3 +149,4 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
     );
   }
 }
+

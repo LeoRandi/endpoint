@@ -23,10 +23,11 @@ class PathActionButton extends StatelessWidget {
       tooltip: tooltip,
       borderRadius: 14,
       borderWidth: 1.4,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      iconSize: 18,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       textStyle: textMediumBold.copyWith(
-        fontSize: 18,
-        letterSpacing: 1.2,
+        fontSize: 15,
+        letterSpacing: 0.9,
       ),
     );
   }
