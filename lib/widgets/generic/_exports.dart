@@ -3,6 +3,7 @@ export "endpoint_menu_button.dart";
 export "endpoint_action_button.dart";
 export "endpoint_center_stage_scene.dart";
 export "endpoint_health_bar.dart";
+export "endpoint_item_details_dialog.dart";
 export "endpoint_marquee_text.dart";
 export "endpoint_panel.dart";
 export "endpoint_scene_route.dart";

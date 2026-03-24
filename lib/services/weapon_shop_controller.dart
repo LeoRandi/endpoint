@@ -20,6 +20,21 @@ class WeaponShopController extends ChangeNotifier {
   int costFor(Item item) => max(1, (item.cost * priceMultiplier).round());
   bool canAfford(Item item) => _player.canAfford(costFor(item));
 
+  String availabilityLabelFor(Item item) {
+    if (isItemEquipped(item)) return 'Equipado';
+    if (isItemInInventory(item)) return 'Inventario';
+    if (canAfford(item)) return 'Disponible';
+    return 'Sin fondos';
+  }
+
+  String detailStatusLabelFor(Item item) {
+    if (isItemEquipped(item)) return 'Estado actual: equipado';
+    if (isItemInInventory(item)) return 'Estado actual: en inventario';
+    if (canAfford(item)) return 'Credito suficiente para comprar';
+    final missingMoney = max(0, costFor(item) - _player.money);
+    return 'Te faltan ${missingMoney}C';
+  }
+
   String actionLabelFor(Item item) {
     if (!ownsItem(item)) return canAfford(item) ? 'Comprar' : 'Sin fondos';
     if (!item.isEquippable) return 'Disponible';

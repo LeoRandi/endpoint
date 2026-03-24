@@ -43,4 +43,6 @@ enum RarityTier {
     required this.factor,
     required this.rollWeight,
   });
+
+  int get shopPriceBase => index + 1;
 }

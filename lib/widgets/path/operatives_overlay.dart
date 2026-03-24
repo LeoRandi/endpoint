@@ -25,6 +25,46 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
   Battler get _selectedOperative => _operatives[_selectedIndex];
   bool get _isPlayerSelected => _selectedIndex == 0;
 
+  Future<void> _openItemDetails(Item item) async {
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Detalle de objeto',
+      barrierColor: Colors.black.withOpacity(0.62),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return EndpointItemDetailsDialog(
+          item: item,
+          player: widget.player,
+          accent: item.rarity.accent,
+          price: item.cost,
+          statusText: _statusLabelFor(item),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  String _statusLabelFor(Item item) {
+    if (widget.player.equippedItems.contains(item)) {
+      return 'Estado actual: equipado';
+    }
+    return 'Estado actual: en inventario';
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -142,7 +182,10 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                                 itemBuilder: (context, index) {
                                   final item =
                                       widget.player.inventoryItems[index];
-                                  return _InventoryItemTile(item: item);
+                                  return _InventoryItemTile(
+                                    item: item,
+                                    onPressed: () => _openItemDetails(item),
+                                  );
                                 },
                               );
                             },
@@ -405,55 +448,64 @@ class _EquipmentSlotTile extends StatelessWidget {
 
 class _InventoryItemTile extends StatelessWidget {
   final Item item;
+  final VoidCallback onPressed;
 
   const _InventoryItemTile({
     required this.item,
+    required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     return HoldTooltip(
       message: item.description,
-      child: EndpointPanel(
-        backgroundColor: const Color(0xCC07120D),
-        borderRadius: 12,
-        glowOpacity: 0.03,
-        padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/images/slots/equipment_slot_base.png',
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.none,
-                  ),
-                  Center(
-                    child: EndpointText(
-                      item.iconEmoji,
-                      style: const TextStyle(
-                        fontSize: _operativeTileEmojiSize,
-                        height: 1,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: EndpointPanel(
+            backgroundColor: const Color(0xCC07120D),
+            borderRadius: 12,
+            glowOpacity: 0.03,
+            padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/slots/equipment_slot_base.png',
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.none,
                       ),
-                    ),
+                      Center(
+                        child: EndpointText(
+                          item.iconEmoji,
+                          style: const TextStyle(
+                            fontSize: _operativeTileEmojiSize,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 3),
+                EndpointText(
+                  item.name,
+                  textAlign: TextAlign.center,
+                  style: textSmallBold.copyWith(
+                    color: const Color(0xFFE6FFF0),
+                    fontSize: 12,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 3),
-            EndpointText(
-              item.name,
-              textAlign: TextAlign.center,
-              style: textSmallBold.copyWith(
-                color: const Color(0xFFE6FFF0),
-                fontSize: 12,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

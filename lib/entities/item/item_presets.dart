@@ -7,7 +7,6 @@ const woodenStickItem = Item(
   iconEmoji: '\u{1FAB5}',
   slot: ItemSlot.weapon,
   rarity: RarityTier.gray,
-  baseCost: 1,
   statModifiers: {
     BattlerStat.attack: 1,
   },
@@ -20,7 +19,6 @@ const ironSwordItem = Item(
   iconEmoji: '\u2694',
   slot: ItemSlot.weapon,
   rarity: RarityTier.green,
-  baseCost: 3,
   statModifiers: {
     BattlerStat.attack: 5,
   },
@@ -33,7 +31,6 @@ const guardShieldItem = Item(
   iconEmoji: '\u{1F6E1}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
-  baseCost: 3,
   statModifiers: {
     BattlerStat.defense: 2,
   },
@@ -46,7 +43,6 @@ const platedJacketItem = Item(
   iconEmoji: '\u{1F9E5}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.blue,
-  baseCost: 4,
   statModifiers: {
     BattlerStat.defense: 4,
   },
@@ -59,7 +55,6 @@ const sunsteelBladeItem = Item(
   iconEmoji: '\u{1F5E1}',
   slot: ItemSlot.weapon,
   rarity: RarityTier.yellow,
-  baseCost: 6,
   statModifiers: {
     BattlerStat.attack: 8,
   },
@@ -72,7 +67,6 @@ const dawnCharmItem = Item(
   iconEmoji: '\u2600',
   slot: ItemSlot.accessory,
   rarity: RarityTier.yellow,
-  baseCost: 6,
   statModifiers: {
     BattlerStat.health: 16,
   },
@@ -85,7 +79,6 @@ const midnightCloakItem = Item(
   iconEmoji: '\u{1F576}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.purple,
-  baseCost: 5,
   statModifiers: {
     BattlerStat.defense: 5,
   },
@@ -98,7 +91,6 @@ const voidInjectorItem = Item(
   iconEmoji: '\u{1F489}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.purple,
-  baseCost: 5,
   statModifiers: {
     BattlerStat.attack: 4,
     BattlerStat.health: 8,

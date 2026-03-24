@@ -57,10 +57,24 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
       barrierColor: Colors.black.withOpacity(0.62),
       transitionDuration: const Duration(milliseconds: 220),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return _ShopItemDetailsDialog(
-          controller: _controller,
-          item: item,
-          accent: widget.accent,
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return EndpointItemDetailsDialog(
+              item: item,
+              player: _controller.player,
+              accent: widget.accent,
+              price: _controller.costFor(item),
+              statusText: _controller.detailStatusLabelFor(item),
+              actionLabel: _controller.actionLabelFor(item),
+              onPrimaryAction: _controller.isActionEnabled(item)
+                  ? () => _controller.handlePrimaryAction(item)
+                  : null,
+              isActionEnabled: _controller.isActionEnabled(item),
+              enabledActionTooltip: 'Aplicar accion de tienda',
+              disabledActionTooltip: 'No tienes credito suficiente',
+            );
+          },
         );
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -227,7 +241,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                     onPressed: () => _openItemDetails(item),
                                     item: item,
                                     price: _controller.costFor(item),
-                                    statusLabel: _statusLabel(item),
+                                    statusLabel:
+                                        _controller.availabilityLabelFor(item),
                                     accent: accent,
                                     foreground: foreground,
                                   );
@@ -246,13 +261,6 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
         },
       ),
     );
-  }
-
-  String _statusLabel(Item item) {
-    if (_controller.isItemEquipped(item)) return 'Equipado';
-    if (_controller.isItemInInventory(item)) return 'Inventario';
-    if (_controller.canAfford(item)) return 'Disponible';
-    return 'Sin fondos';
   }
 
   String _equippedSummary(Battler player) {
@@ -335,195 +343,6 @@ class _ShopItemTile extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _ShopItemDetailsDialog extends StatelessWidget {
-  final WeaponShopController controller;
-  final Item item;
-  final Color accent;
-
-  const _ShopItemDetailsDialog({
-    required this.controller,
-    required this.item,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final foreground =
-        Color.lerp(Colors.white, accent, 0.32) ?? const Color(0xFFEEDB96);
-    final cost = controller.costFor(item);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: AnimatedBuilder(
-                animation: controller,
-                builder: (context, child) {
-                  final player = controller.player;
-
-                  return EndpointPanel(
-                    accent: accent,
-                    backgroundColor: const Color(0xF017130B),
-                    borderRadius: 18,
-                    glowOpacity: 0.12,
-                    blurRadius: 26,
-                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            EndpointEmojiSprite(
-                              emoji: item.iconEmoji,
-                              accent: accent,
-                              size: 72,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  EndpointText(
-                                    item.name,
-                                    style: textLargeBold.copyWith(
-                                      color: foreground,
-                                      letterSpacing: 1.4,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  EndpointText(
-                                    '${item.rarity.label}  |  ${item.slot?.label ?? 'Consumible'}',
-                                    style: textSmallBold.copyWith(
-                                      color: accent,
-                                      letterSpacing: 1.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  EndpointText(
-                                    'COSTE ${cost}C',
-                                    style: textMediumBold.copyWith(
-                                      color: foreground,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        EndpointText(
-                          item.description,
-                          maxLines: null,
-                          style: textMedium.copyWith(
-                            color: Colors.white.withOpacity(0.84),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        EndpointText(
-                          _buildModifiersText(item),
-                          maxLines: null,
-                          style: textSmallBold.copyWith(
-                            color: accent,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        EndpointPanel(
-                          accent: accent,
-                          backgroundColor: const Color(0xCC2A2212),
-                          glowOpacity: 0.03,
-                          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _ShopEconomyStrip(
-                                money: player.money,
-                                income: player.income,
-                              ),
-                              const SizedBox(height: 4),
-                              EndpointText(
-                                _statusLabel(player),
-                                maxLines: null,
-                                style: textSmallBold.copyWith(
-                                  color: Colors.white.withOpacity(0.76),
-                                  letterSpacing: 0.9,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: EndpointActionButton(
-                            label: controller.actionLabelFor(item),
-                            icon: Icons.shopping_bag_outlined,
-                            onPressed: controller.isActionEnabled(item)
-                                ? () => controller.handlePrimaryAction(item)
-                                : null,
-                            tooltip: controller.isActionEnabled(item)
-                                ? 'Aplicar accion de tienda'
-                                : 'No tienes credito suficiente',
-                            accent: accent,
-                            backgroundColor: const Color(0xFF2A2212),
-                            foregroundColor: foreground,
-                            borderWidth: 1.3,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            textStyle:
-                                textMediumBold.copyWith(letterSpacing: 1.2),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            Positioned(
-              top: -18,
-              right: -10,
-              child: EndpointSceneCloseButton(
-                onPressed: () => Navigator.of(context).pop(),
-                tooltip: 'Cerrar detalle',
-                accent: accent,
-                foregroundColor: foreground,
-                backgroundColor: const Color(0xFF17130B),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _buildModifiersText(Item item) {
-    if (item.statModifiers.isEmpty) return 'Sin modificadores directos.';
-
-    final entries = item.statModifiers.entries.map((entry) {
-      return '+${entry.value} ${entry.key.name.toUpperCase()}';
-    });
-
-    return entries.join('   ');
-  }
-
-  String _statusLabel(Battler player) {
-    if (controller.isItemEquipped(item)) return 'Estado actual: equipado';
-    if (controller.isItemInInventory(item))
-      return 'Estado actual: en inventario';
-    if (controller.canAfford(item)) return 'Credito suficiente para comprar';
-    final missingMoney = max(0, controller.costFor(item) - player.money);
-    return 'Te faltan ${missingMoney}C';
   }
 }
 
