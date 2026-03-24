@@ -2,11 +2,13 @@ import '_imports.dart';
 
 class WeaponShopController extends ChangeNotifier {
   final List<Item> catalog;
+  final double priceMultiplier;
   Battler _player;
 
   WeaponShopController({
     required Battler player,
     required List<Item> catalog,
+    this.priceMultiplier = 1,
   })  : _player = player,
         catalog = List<Item>.unmodifiable(catalog);
 
@@ -15,15 +17,19 @@ class WeaponShopController extends ChangeNotifier {
   bool ownsItem(Item item) => _player.ownsItem(item);
   bool isItemEquipped(Item item) => _player.equippedItems.contains(item);
   bool isItemInInventory(Item item) => _player.inventoryItems.contains(item);
+  int costFor(Item item) => max(1, (item.cost * priceMultiplier).round());
+  bool canAfford(Item item) => _player.canAfford(costFor(item));
 
   String actionLabelFor(Item item) {
-    if (!item.isEquippable) return ownsItem(item) ? 'Disponible' : 'Adquirir';
+    if (!ownsItem(item)) return canAfford(item) ? 'Comprar' : 'Sin fondos';
+    if (!item.isEquippable) return 'Disponible';
     if (isItemEquipped(item)) return 'Quitar';
     if (isItemInInventory(item)) return 'Equipar';
-    return 'Adquirir';
+    return 'Comprar';
   }
 
   bool isActionEnabled(Item item) {
+    if (!ownsItem(item)) return canAfford(item);
     if (!item.isEquippable && ownsItem(item)) return false;
     return true;
   }
@@ -32,8 +38,7 @@ class WeaponShopController extends ChangeNotifier {
     if (!isActionEnabled(item)) return;
 
     if (!ownsItem(item)) {
-      // TODO: Replace free acquisition with a real shop economy and rotating stock.
-      _player = _player.addItem(item);
+      _player = _player.spendMoney(costFor(item)).addItem(item);
       notifyListeners();
       return;
     }

@@ -4,6 +4,8 @@ class PathNodeService {
   static const startStageIndex = 0;
   static const duskStageIndex = 5;
   static const sunriseStageIndex = 11;
+  static const _centerShopPremiumChance = 0.78;
+  static const _centerShopPremiumMultiplier = 1.2;
 
   final Random _random;
 
@@ -60,28 +62,118 @@ class PathNodeService {
   }
 
   List<PathNode> _buildDayNodes() {
-    return List<PathNode>.generate(3, (_) {
-      final roll = _random.nextDouble();
-      if (roll < 0.06) return _pick(rareDayCombatNodes);
-      if (roll < 0.28) return _pick(dayEventNodes);
-      if (roll < 0.38) return dayCampNode;
-      return _pick(dayShopNodes);
-    });
+    return [
+      _pickWeightedNode(_buildDaySideCandidates()),
+      _buildCenterShopNode(dayShopNodes),
+      _pickWeightedNode(_buildDaySideCandidates()),
+    ];
   }
 
   List<PathNode> _buildNightNodes() {
-    return List<PathNode>.generate(3, (_) {
-      final roll = _random.nextDouble();
-      if (roll < 0.58) return _pick(nightCombatNodes);
-      if (roll < 0.8) return _pick(nightShopNodes);
-      return _pick(nightEventNodes);
-    });
+    return [
+      _pickWeightedNode(_buildNightSideCandidates()),
+      _buildCenterShopNode(nightShopNodes),
+      _pickWeightedNode(_buildNightSideCandidates()),
+    ];
   }
 
-  T _pick<T>(List<T> values) {
-    if (values.isEmpty) {
-      throw StateError('Cannot pick from an empty node list.');
-    }
-    return values[_random.nextInt(values.length)];
+  List<_WeightedPathNode> _buildDaySideCandidates() {
+    return [
+      ...dayShopNodes.map(
+        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
+      ),
+      ...dayEventNodes.map(
+        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
+      ),
+      _WeightedPathNode(
+        node: dayCampNode,
+        weight: dayCampNode.rollWeight,
+      ),
+      ...rareDayCombatNodes.map(
+        (node) => _WeightedPathNode(
+          node: node,
+          weight: _dayCombatWeight(node),
+        ),
+      ),
+    ];
   }
+
+  List<_WeightedPathNode> _buildNightSideCandidates() {
+    return [
+      ...nightCombatNodes.map(
+        (node) => _WeightedPathNode(
+          node: node,
+          weight: node.rollWeight * 1.35,
+        ),
+      ),
+      ...nightShopNodes.map(
+        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
+      ),
+      ...nightEventNodes.map(
+        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
+      ),
+    ];
+  }
+
+  ShopPathNode _buildCenterShopNode(List<ShopPathNode> shopPool) {
+    final baseNode = _pickWeightedNode(
+      shopPool
+          .map(
+            (node) => _WeightedPathNode(
+              node: node,
+              weight: node.rollWeight,
+            ),
+          )
+          .toList(),
+    ) as ShopPathNode;
+
+    final shouldApplyPremium =
+        _random.nextDouble() <= _centerShopPremiumChance;
+    if (!shouldApplyPremium) return baseNode;
+
+    return baseNode.withPriceMultiplier(_centerShopPremiumMultiplier);
+  }
+
+  double _dayCombatWeight(CombatPathNode node) {
+    switch (node.tier) {
+      case CombatNodeTier.gray:
+        return RarityTier.blue.rollWeight;
+      case CombatNodeTier.green:
+        return RarityTier.purple.rollWeight;
+      case CombatNodeTier.blue:
+        return RarityTier.yellow.rollWeight;
+      case CombatNodeTier.purple:
+      case CombatNodeTier.yellow:
+        return 0;
+    }
+  }
+
+  PathNode _pickWeightedNode(List<_WeightedPathNode> candidates) {
+    if (candidates.isEmpty) {
+      throw StateError('Cannot pick from an empty weighted node list.');
+    }
+
+    final totalWeight = candidates.fold<double>(
+      0,
+      (sum, candidate) => sum + candidate.weight,
+    );
+    var roll = _random.nextDouble() * totalWeight;
+
+    for (final candidate in candidates) {
+      roll -= candidate.weight;
+      if (roll <= 0) return candidate.node;
+    }
+
+    return candidates.last.node;
+  }
+}
+
+class _WeightedPathNode {
+  final PathNode node;
+  final double weight;
+
+  const _WeightedPathNode({
+    required this.node,
+    required this.weight,
+  });
 }

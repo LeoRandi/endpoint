@@ -12,14 +12,17 @@ class PathNode {
   final String label;
   final String tooltip;
   final String iconEmoji;
+  final RarityTier rarity;
   final Color accent;
   final String badgeLabel;
+  double get rollWeight => rarity.rollWeight;
 
   const PathNode.base({
     required this.type,
     required this.label,
     required this.tooltip,
     required this.iconEmoji,
+    required this.rarity,
     required this.accent,
     required this.badgeLabel,
   });
@@ -28,13 +31,15 @@ class PathNode {
     String label = 'Tienda',
     String tooltip = 'Tienda de armas',
     String iconEmoji = '\u{2694}',
-    Color accent = const Color(0xFFDBB95A),
+    RarityTier rarity = RarityTier.gray,
+    Color accent = const Color(0xFF9EA7B3),
     String badgeLabel = 'TIENDA',
   }) : this.base(
           type: PathNodeType.shop,
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,
+          rarity: rarity,
           accent: accent,
           badgeLabel: badgeLabel,
         );
@@ -43,12 +48,14 @@ class PathNode {
     String label = 'Tienda',
     String tooltip = 'Tienda de armas',
     String iconEmoji = '\u{2694}',
-    Color accent = const Color(0xFFDBB95A),
+    RarityTier rarity = RarityTier.gray,
+    Color accent = const Color(0xFF9EA7B3),
     String badgeLabel = 'TIENDA',
   }) : this.shop(
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,
+          rarity: rarity,
           accent: accent,
           badgeLabel: badgeLabel,
         );
@@ -62,6 +69,7 @@ class PathNode {
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,
+          rarity: RarityTier.green,
           accent: const Color(0xFF5AF78E),
           badgeLabel: 'DESCANSO',
         );

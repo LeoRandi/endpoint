@@ -36,6 +36,8 @@ class Item {
   final String description;
   final String iconEmoji;
   final ItemSlot? slot;
+  final RarityTier rarity;
+  final int baseCost;
   final Map<BattlerStat, int> statModifiers;
 
   const Item({
@@ -44,10 +46,13 @@ class Item {
     required this.description,
     this.iconEmoji = '\u{1F9F0}',
     this.slot,
+    this.rarity = RarityTier.gray,
+    this.baseCost = 1,
     this.statModifiers = const {},
   });
 
   bool get isEquippable => slot != null;
+  int get cost => baseCost * rarity.factor;
 
   int modifier(BattlerStat stat) {
     return statModifiers[stat] ?? 0;

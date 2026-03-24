@@ -1,34 +1,30 @@
 import '_imports.dart';
 
 enum CombatNodeTier {
-  gray(
-    accent: Color(0xFF9EA7B3),
-    badgeLabel: 'GRIS',
-  ),
-  green(
-    accent: Color(0xFF5AF78E),
-    badgeLabel: 'VERDE',
-  ),
-  blue(
-    accent: Color(0xFF59B7FF),
-    badgeLabel: 'AZUL',
-  ),
-  purple(
-    accent: Color(0xFFBE7CFF),
-    badgeLabel: 'MORADO',
-  ),
-  yellow(
-    accent: Color(0xFFF3D35C),
-    badgeLabel: 'AMARILLO',
-  );
+  gray,
+  green,
+  blue,
+  purple,
+  yellow;
 
-  final Color accent;
-  final String badgeLabel;
+  RarityTier get rarity {
+    switch (this) {
+      case CombatNodeTier.gray:
+        return RarityTier.gray;
+      case CombatNodeTier.green:
+        return RarityTier.green;
+      case CombatNodeTier.blue:
+        return RarityTier.blue;
+      case CombatNodeTier.purple:
+        return RarityTier.purple;
+      case CombatNodeTier.yellow:
+        return RarityTier.yellow;
+    }
+  }
 
-  const CombatNodeTier({
-    required this.accent,
-    required this.badgeLabel,
-  });
+  Color get accent => rarity.accent;
+  String get badgeLabel => rarity.label;
+  int get factor => rarity.factor;
 }
 
 class CombatPathNode extends PathNode {
@@ -46,6 +42,7 @@ class CombatPathNode extends PathNode {
           label: label,
           tooltip: tooltip ?? label,
           iconEmoji: iconEmoji,
+          rarity: tier.rarity,
           accent: tier.accent,
           badgeLabel: tier.badgeLabel,
         );

@@ -87,7 +87,15 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       return;
     }
 
-    _sessionController.completeEncounter(result);
+    final rewardedPlayer = result.player.earnMoney(
+      result.player.income * node.tier.factor,
+    );
+    _sessionController.completeEncounter(
+      BattleFlowResult(
+        type: result.type,
+        player: rewardedPlayer,
+      ),
+    );
     if (_sessionController.isRunComplete && mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
@@ -99,6 +107,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         WeaponShopPage(
           player: _sessionController.player,
           catalog: node.catalog,
+          priceMultiplier: node.priceMultiplier,
           showTitle: node.showTitle,
           shopTitle: node.shopTitle,
           shopSubtitle: node.shopSubtitle,
@@ -413,14 +422,26 @@ class _PathBottomHud extends StatelessWidget {
                 ),
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: SizedBox(
-                    width: avatarSize,
-                    height: avatarSize,
-                    child: EndpointEmojiSprite(
-                      emoji: '\u{1F916}',
-                      accent: const Color(0xFF5AF78E),
-                      size: avatarSize,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: avatarSize,
+                        height: avatarSize,
+                        child: EndpointEmojiSprite(
+                          emoji: '\u{1F916}',
+                          accent: const Color(0xFF5AF78E),
+                          size: avatarSize,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      _IconValueChip(
+                        icon: Icons.monetization_on_rounded,
+                        value: player.money,
+                        accent: const Color(0xFFF3D35C),
+                        foreground: const Color(0xFFFFF4C7),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -516,8 +537,10 @@ class _PathPlayerStatus extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
               children: [
                 _StatChip(
                   label: 'ATK',
@@ -526,6 +549,12 @@ class _PathPlayerStatus extends StatelessWidget {
                 _StatChip(
                   label: 'DEF',
                   value: player.defense,
+                ),
+                _IconValueChip(
+                  icon: Icons.trending_up_rounded,
+                  value: player.income,
+                  accent: const Color(0xFF59B7FF),
+                  foreground: const Color(0xFFD7EEFF),
                 ),
               ],
             ),
@@ -674,6 +703,48 @@ class _RunTimelineMeter extends StatelessWidget {
 
   double _alignmentForProgress(double progress) {
     return (progress * 2) - 1;
+  }
+}
+
+class _IconValueChip extends StatelessWidget {
+  final IconData icon;
+  final int value;
+  final Color accent;
+  final Color foreground;
+
+  const _IconValueChip({
+    required this.icon,
+    required this.value,
+    required this.accent,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.22),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accent.withOpacity(0.35)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: accent),
+            const SizedBox(width: 6),
+            EndpointText(
+              '$value',
+              style: textSmallBold.copyWith(
+                color: foreground,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

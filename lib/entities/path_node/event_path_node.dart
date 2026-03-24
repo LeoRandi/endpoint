@@ -10,6 +10,7 @@ class EventPathNode extends PathNode {
     required String label,
     required String tooltip,
     required String iconEmoji,
+    required RarityTier rarity,
     required Color accent,
     required String badgeLabel,
     required this.showTitle,
@@ -21,6 +22,7 @@ class EventPathNode extends PathNode {
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,
+          rarity: rarity,
           accent: accent,
           badgeLabel: badgeLabel,
         );

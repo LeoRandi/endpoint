@@ -3,6 +3,8 @@ import '_imports.dart';
 const grayEnemyBattler = Battler(
   name: 'SCRAP MITE',
   health: 48,
+  money: 0,
+  income: 0,
   baseStats: {
     BattlerStat.health: 48,
     BattlerStat.attack: 6,
@@ -16,6 +18,8 @@ const grayEnemyBattler = Battler(
 const greenEnemyBattler = Battler(
   name: 'HOLLOW DRONE',
   health: 72,
+  money: 0,
+  income: 0,
   baseStats: {
     BattlerStat.health: 72,
     BattlerStat.attack: 8,
@@ -30,6 +34,8 @@ const greenEnemyBattler = Battler(
 const blueEnemyBattler = Battler(
   name: 'RIFT HOUND',
   health: 96,
+  money: 0,
+  income: 0,
   baseStats: {
     BattlerStat.health: 96,
     BattlerStat.attack: 10,
@@ -44,6 +50,8 @@ const blueEnemyBattler = Battler(
 const purpleEnemyBattler = Battler(
   name: 'NULL WARDEN',
   health: 128,
+  money: 0,
+  income: 0,
   baseStats: {
     BattlerStat.health: 128,
     BattlerStat.attack: 13,
@@ -61,6 +69,8 @@ const purpleEnemyBattler = Battler(
 const yellowEnemyBattler = Battler(
   name: 'SOLAR EXECUTOR',
   health: 168,
+  money: 0,
+  income: 0,
   baseStats: {
     BattlerStat.health: 168,
     BattlerStat.attack: 16,
@@ -81,6 +91,8 @@ const defaultEnemyBattler = greenEnemyBattler;
 const defaultPlayerBattler = Battler(
   name: 'ENDPOINT UNIT',
   health: 84,
+  money: 5,
+  income: 1,
   baseStats: {
     BattlerStat.health: 100,
     BattlerStat.attack: 10,

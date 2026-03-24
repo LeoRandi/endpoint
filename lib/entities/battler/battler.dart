@@ -12,6 +12,8 @@ enum BattlerStat {
 class Battler {
   final String name;
   final int health;
+  final int money;
+  final int income;
   final Map<BattlerStat, int> baseStats;
   final List<BattlerAbility> abilities;
   final List<Item> inventoryItems;
@@ -20,6 +22,8 @@ class Battler {
   const Battler({
     required this.name,
     required this.health,
+    this.money = 0,
+    this.income = 0,
     required this.baseStats,
     this.abilities = const [],
     this.inventoryItems = const [],
@@ -32,12 +36,16 @@ class Battler {
     required int defense,
     required int health,
     int? maxHealth,
+    int money = 0,
+    int income = 0,
     List<Object> abilities = const [],
     List<Item> inventoryItems = const [],
     List<Item> equippedItems = const [],
   }) : this(
           name: name,
           health: health,
+          money: money,
+          income: income,
           baseStats: {
             BattlerStat.health: maxHealth ?? health,
             BattlerStat.attack: attack,
@@ -116,6 +124,17 @@ class Battler {
     return copyWith(health: min(maxHealth, health + safeAmount));
   }
 
+  bool canAfford(int amount) => money >= amount;
+
+  Battler earnMoney(int amount) {
+    return copyWith(money: money + max(0, amount));
+  }
+
+  Battler spendMoney(int amount) {
+    final safeAmount = max(0, amount);
+    return copyWith(money: max(0, money - safeAmount));
+  }
+
   Battler addItem(Item item) {
     if (ownsItem(item)) return this;
 
@@ -183,6 +202,8 @@ class Battler {
   Battler copyWith({
     String? name,
     int? health,
+    int? money,
+    int? income,
     Map<BattlerStat, int>? baseStats,
     List<BattlerAbility>? abilities,
     List<Item>? inventoryItems,
@@ -205,6 +226,8 @@ class Battler {
     return Battler(
       name: name ?? this.name,
       health: max(0, resolvedHealth),
+      money: max(0, money ?? this.money),
+      income: max(0, income ?? this.income),
       baseStats: resolvedBaseStats,
       abilities: List<BattlerAbility>.unmodifiable(abilities ?? this.abilities),
       inventoryItems: resolvedInventoryItems,
