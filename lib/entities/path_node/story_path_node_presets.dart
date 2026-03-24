@@ -109,7 +109,7 @@ final afterHoursTechnosurgeonNode = EventPathNode(
   showTitle: 'Technosurgeon Nocturno',
   eventTitle: 'TECHNOSURGEON NOCTURNO',
   description:
-      'Las luces de neón ocultan a un technosurgeon que ofrece un injerto express.',
+      'Las luces de neon ocultan a un technosurgeon que ofrece un injerto express.',
   outcomeText:
       'Por ahora no altera tus estadisticas. TODO: aplicar efectos temporales nocturnos.',
 );

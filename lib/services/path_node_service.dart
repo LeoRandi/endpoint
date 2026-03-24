@@ -8,6 +8,37 @@ class PathNodeService {
   static const _centerShopPremiumMultiplier = 1.2;
 
   final Random _random;
+  late final List<_RunStageDefinition> _stageDefinitions = [
+    _RunStageDefinition(
+      matches: (stageIndex) => stageIndex < duskStageIndex,
+      phase: RunHourPhase.day,
+      titleBuilder: (stageIndex) => 'HORA $stageIndex',
+      subtitle: 'Mercados y favores tensos antes del anochecer.',
+      buildNodes: _buildDayNodes,
+    ),
+    _RunStageDefinition(
+      matches: (stageIndex) => stageIndex == duskStageIndex,
+      phase: RunHourPhase.dusk,
+      titleBuilder: (_) => 'ANOCHECER',
+      subtitle:
+          'La ciudad se cierra. Tres enfrentamientos marcan la entrada en la noche.',
+      buildNodes: () => duskCombatNodes,
+    ),
+    _RunStageDefinition(
+      matches: (stageIndex) => stageIndex < sunriseStageIndex,
+      phase: RunHourPhase.night,
+      titleBuilder: (stageIndex) => 'NOCHE ${stageIndex - duskStageIndex}',
+      subtitle: 'Mas violencia, peores tratos y menos margen de error.',
+      buildNodes: _buildNightNodes,
+    ),
+    _RunStageDefinition(
+      matches: (_) => true,
+      phase: RunHourPhase.sunrise,
+      titleBuilder: (_) => 'SUNRISE',
+      subtitle: 'Solo queda un combate. El peor de toda la run.',
+      buildNodes: () => sunriseCombatNodes.take(1).toList(growable: false),
+    ),
+  ];
 
   PathNodeService({
     int? seed,
@@ -15,49 +46,34 @@ class PathNodeService {
 
   RunHourSnapshot buildHourSnapshot({
     required int stageIndex,
+    List<PathNode>? availableNodes,
+    int nodeCount = 3,
   }) {
     final clampedStageIndex = stageIndex.clamp(
       startStageIndex,
       sunriseStageIndex,
     );
-
-    if (clampedStageIndex < duskStageIndex) {
-      return RunHourSnapshot(
-        stageIndex: clampedStageIndex,
-        phase: RunHourPhase.day,
-        title: 'HORA $clampedStageIndex',
-        subtitle: 'Mercados y favores tensos antes del anochecer.',
-        nodes: List<PathNode>.unmodifiable(_buildDayNodes()),
-      );
-    }
-
-    if (clampedStageIndex == duskStageIndex) {
-      return RunHourSnapshot(
-        stageIndex: clampedStageIndex,
-        phase: RunHourPhase.dusk,
-        title: 'ANOCHECER',
-        subtitle:
-            'La ciudad se cierra. Tres enfrentamientos marcan la entrada en la noche.',
-        nodes: List<PathNode>.unmodifiable(duskCombatNodes),
-      );
-    }
-
-    if (clampedStageIndex < sunriseStageIndex) {
-      return RunHourSnapshot(
-        stageIndex: clampedStageIndex,
-        phase: RunHourPhase.night,
-        title: 'NOCHE ${clampedStageIndex - duskStageIndex}',
-        subtitle: 'Más violencia, peores tratos y menos margen de error.',
-        nodes: List<PathNode>.unmodifiable(_buildNightNodes()),
-      );
-    }
+    final resolvedNodeCount = max(1, nodeCount);
+    final definition = _definitionFor(clampedStageIndex);
 
     return RunHourSnapshot(
       stageIndex: clampedStageIndex,
-      phase: RunHourPhase.sunrise,
-      title: 'SUNRISE',
-      subtitle: 'Solo queda un combate. El peor de toda la run.',
-      nodes: List<PathNode>.unmodifiable(sunriseCombatNodes.take(1)),
+      phase: definition.phase,
+      title: definition.titleBuilder(clampedStageIndex),
+      subtitle: definition.subtitle,
+      nodes: List<PathNode>.unmodifiable(
+        _resolveNodes(
+          fallbackNodes: definition.buildNodes(),
+          availableNodes: availableNodes,
+          nodeCount: resolvedNodeCount,
+        ),
+      ),
+    );
+  }
+
+  _RunStageDefinition _definitionFor(int stageIndex) {
+    return _stageDefinitions.firstWhere(
+      (definition) => definition.matches(stageIndex),
     );
   }
 
@@ -75,6 +91,20 @@ class PathNodeService {
       _buildCenterShopNode(nightShopNodes),
       _pickWeightedNode(_buildNightSideCandidates()),
     ];
+  }
+
+  List<PathNode> _resolveNodes({
+    required List<PathNode> fallbackNodes,
+    required int nodeCount,
+    List<PathNode>? availableNodes,
+  }) {
+    final sourceNodes = availableNodes == null || availableNodes.isEmpty
+        ? fallbackNodes
+        : availableNodes;
+
+    return sourceNodes.take(min(nodeCount, sourceNodes.length)).toList(
+          growable: false,
+        );
   }
 
   List<_WeightedPathNode> _buildDaySideCandidates() {
@@ -127,8 +157,7 @@ class PathNodeService {
           .toList(),
     ) as ShopPathNode;
 
-    final shouldApplyPremium =
-        _random.nextDouble() <= _centerShopPremiumChance;
+    final shouldApplyPremium = _random.nextDouble() <= _centerShopPremiumChance;
     if (!shouldApplyPremium) return baseNode;
 
     return baseNode.withPriceMultiplier(_centerShopPremiumMultiplier);
@@ -166,6 +195,22 @@ class PathNodeService {
 
     return candidates.last.node;
   }
+}
+
+class _RunStageDefinition {
+  final bool Function(int stageIndex) matches;
+  final RunHourPhase phase;
+  final String Function(int stageIndex) titleBuilder;
+  final String subtitle;
+  final List<PathNode> Function() buildNodes;
+
+  const _RunStageDefinition({
+    required this.matches,
+    required this.phase,
+    required this.titleBuilder,
+    required this.subtitle,
+    required this.buildNodes,
+  });
 }
 
 class _WeightedPathNode {

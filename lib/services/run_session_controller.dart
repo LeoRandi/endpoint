@@ -2,6 +2,8 @@ import '_imports.dart';
 
 class RunSessionController extends ChangeNotifier {
   final PathNodeService _pathNodeService;
+  final List<PathNode>? _availableNodesOverride;
+  final int _nodeCount;
   RunState _state;
   bool _isResolvingNode = false;
 
@@ -9,8 +11,14 @@ class RunSessionController extends ChangeNotifier {
     required Battler player,
     required Duration battleEnemyTurnDelay,
     required Duration battleCombatEndDelay,
+    List<PathNode>? availableNodes,
+    int nodeCount = 3,
     int? randomSeed,
   })  : _pathNodeService = PathNodeService(seed: randomSeed),
+        _availableNodesOverride = availableNodes == null
+            ? null
+            : List<PathNode>.unmodifiable(availableNodes),
+        _nodeCount = max(1, nodeCount),
         _state = RunState(
           player: player,
           currentHour: const RunHourSnapshot(
@@ -51,6 +59,8 @@ class RunSessionController extends ChangeNotifier {
   void refreshNodes() {
     final currentHour = _pathNodeService.buildHourSnapshot(
       stageIndex: _state.stageIndex,
+      availableNodes: _availableNodesOverride,
+      nodeCount: _nodeCount,
     );
 
     _state = _state.copyWith(

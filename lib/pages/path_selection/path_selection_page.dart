@@ -34,6 +34,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       player: widget.player,
       battleEnemyTurnDelay: widget.battleEnemyTurnDelay,
       battleCombatEndDelay: widget.battleCombatEndDelay,
+      availableNodes: widget.availableNodes,
+      nodeCount: widget.nodeCount,
       randomSeed: widget.randomSeed,
     );
   }
@@ -64,115 +66,66 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   }
 
   Future<void> _handleStartEncounter(CombatPathNode node) async {
-    final result = await Navigator.of(context).push<BattleFlowResult>(
-      _buildSceneRoute<BattleFlowResult>(
-        BattlePage(
-          enemy: node.enemy,
-          player: _sessionController.player,
-          showTitle: node.showTitle,
-          enemyTurnDelay: _sessionController.state.battleEnemyTurnDelay,
-          combatEndDelay: _sessionController.state.battleCombatEndDelay,
-          returnPlayerOnCombatEnd: true,
-        ),
+    await _openNodeScene<BattleFlowResult>(
+      page: BattlePage(
+        enemy: node.enemy,
+        player: _sessionController.player,
+        showTitle: node.showTitle,
+        enemyTurnDelay: _sessionController.state.battleEnemyTurnDelay,
+        combatEndDelay: _sessionController.state.battleCombatEndDelay,
+        returnResultToCaller: true,
       ),
+      shouldPopToRoot: (result) => result.shouldExitRun,
+      onCompleted: (result) {
+        final rewardedPlayer = result.player.earnMoney(
+          result.player.income * node.tier.factor,
+        );
+        _sessionController.completeEncounter(
+          BattleFlowResult(
+            type: result.type,
+            player: rewardedPlayer,
+          ),
+        );
+      },
     );
-
-    if (!mounted) return;
-    if (result == null) {
-      _sessionController.cancelNodeResolution();
-      return;
-    }
-    if (result.shouldPopToRoot) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
-    }
-
-    final rewardedPlayer = result.player.earnMoney(
-      result.player.income * node.tier.factor,
-    );
-    _sessionController.completeEncounter(
-      BattleFlowResult(
-        type: result.type,
-        player: rewardedPlayer,
-      ),
-    );
-    if (_sessionController.isRunComplete && mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
   }
 
   Future<void> _handleOpenWeaponShop(ShopPathNode node) async {
-    final result = await Navigator.of(context).push<WeaponShopVisitResult>(
-      _buildSceneRoute<WeaponShopVisitResult>(
-        WeaponShopPage(
-          player: _sessionController.player,
-          catalog: node.catalog,
-          priceMultiplier: node.priceMultiplier,
-          showTitle: node.showTitle,
-          shopTitle: node.shopTitle,
-          shopSubtitle: node.shopSubtitle,
-          iconEmoji: node.iconEmoji,
-          accent: node.accent,
-        ),
+    await _openNodeScene<WeaponShopVisitResult>(
+      page: WeaponShopPage(
+        player: _sessionController.player,
+        catalog: node.catalog,
+        priceMultiplier: node.priceMultiplier,
+        showTitle: node.showTitle,
+        shopTitle: node.shopTitle,
+        shopSubtitle: node.shopSubtitle,
+        iconEmoji: node.iconEmoji,
+        accent: node.accent,
       ),
+      onCompleted: _sessionController.completeWeaponShopVisit,
     );
-
-    if (!mounted) return;
-    if (result == null) {
-      _sessionController.cancelNodeResolution();
-      return;
-    }
-
-    _sessionController.completeWeaponShopVisit(result);
-    if (_sessionController.isRunComplete && mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
   }
 
   Future<void> _handleOpenCampSite() async {
-    final result = await Navigator.of(context).push<CampSiteVisitResult>(
-      _buildSceneRoute<CampSiteVisitResult>(
-        CampSitePage(player: _sessionController.player),
-      ),
+    await _openNodeScene<CampSiteVisitResult>(
+      page: CampSitePage(player: _sessionController.player),
+      onCompleted: _sessionController.completeCampVisit,
     );
-
-    if (!mounted) return;
-    if (result == null) {
-      _sessionController.cancelNodeResolution();
-      return;
-    }
-
-    _sessionController.completeCampVisit(result);
-    if (_sessionController.isRunComplete && mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
   }
 
   Future<void> _handleOpenEvent(EventPathNode node) async {
-    final result = await Navigator.of(context).push<PathEventVisitResult>(
-      _buildSceneRoute<PathEventVisitResult>(
-        PathEventPage(
-          player: _sessionController.player,
-          showTitle: node.showTitle,
-          eventTitle: node.eventTitle,
-          description: node.description,
-          outcomeText: node.outcomeText,
-          iconEmoji: node.iconEmoji,
-          accent: node.accent,
-        ),
+    await _openNodeScene<PathEventVisitResult>(
+      page: PathEventPage(
+        player: _sessionController.player,
+        showTitle: node.showTitle,
+        eventTitle: node.eventTitle,
+        description: node.description,
+        outcomeText: node.outcomeText,
+        iconEmoji: node.iconEmoji,
+        accent: node.accent,
       ),
+      onCompleted: _sessionController.completeEventVisit,
     );
-
-    if (!mounted) return;
-    if (result == null) {
-      _sessionController.cancelNodeResolution();
-      return;
-    }
-
-    _sessionController.completeEventVisit(result);
-    if (_sessionController.isRunComplete && mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
   }
 
   Future<void> _handleNodePressed(PathNode node) async {
@@ -194,54 +147,29 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     }
   }
 
-  Route<T> _buildSceneRoute<T>(Widget page) {
-    return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 420),
-      reverseTransitionDuration: const Duration(milliseconds: 360),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return page;
-      },
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeInOutCubic,
-        );
-        final blackoutOpacity = TweenSequence<double>([
-          TweenSequenceItem(
-            tween: Tween<double>(begin: 0, end: 1),
-            weight: 52,
-          ),
-          TweenSequenceItem(
-            tween: ConstantTween<double>(1),
-            weight: 48,
-          ),
-        ]).animate(curved);
-        final childOpacity = TweenSequence<double>([
-          TweenSequenceItem(
-            tween: ConstantTween<double>(0),
-            weight: 38,
-          ),
-          TweenSequenceItem(
-            tween: Tween<double>(begin: 0, end: 1),
-            weight: 62,
-          ),
-        ]).animate(curved);
-
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            FadeTransition(
-              opacity: blackoutOpacity,
-              child: const ColoredBox(color: Colors.black),
-            ),
-            FadeTransition(
-              opacity: childOpacity,
-              child: child,
-            ),
-          ],
-        );
-      },
+  Future<void> _openNodeScene<T>({
+    required Widget page,
+    required void Function(T result) onCompleted,
+    bool Function(T result)? shouldPopToRoot,
+  }) async {
+    final result = await Navigator.of(context).push<T>(
+      buildEndpointSceneRoute<T>(page),
     );
+
+    if (!mounted) return;
+    if (result == null) {
+      _sessionController.cancelNodeResolution();
+      return;
+    }
+    if (shouldPopToRoot?.call(result) ?? false) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    onCompleted(result);
+    if (_sessionController.isRunComplete && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   @override
@@ -287,8 +215,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                   final encounterCount = nodes.length;
                                   final availableWidth = constraints.maxWidth -
                                       (spacing * (encounterCount - 1));
-                                  final nodeWidth =
-                                      min(112.0, availableWidth / encounterCount);
+                                  final nodeWidth = min(
+                                      112.0, availableWidth / encounterCount);
 
                                   return Row(
                                     mainAxisAlignment: encounterCount == 1
@@ -435,7 +363,7 @@ class _PathBottomHud extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      _IconValueChip(
+                      EndpointValueChip(
                         icon: Icons.monetization_on_rounded,
                         value: player.money,
                         accent: const Color(0xFFF3D35C),
@@ -513,28 +441,9 @@ class _PathPlayerStatus extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: Container(
-                height: 12,
-                color: Colors.black.withOpacity(0.35),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: healthFactor,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xA65AF78E),
-                            Color(0xFF5AF78E),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            EndpointHealthBar(
+              value: healthFactor,
+              accent: accent,
             ),
             const SizedBox(height: 10),
             Wrap(
@@ -542,15 +451,19 @@ class _PathPlayerStatus extends StatelessWidget {
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                _StatChip(
+                EndpointValueChip(
                   label: 'ATK',
                   value: player.attack,
+                  accent: accent,
+                  foreground: const Color(0xFFBDEECC),
                 ),
-                _StatChip(
+                EndpointValueChip(
                   label: 'DEF',
                   value: player.defense,
+                  accent: accent,
+                  foreground: const Color(0xFFBDEECC),
                 ),
-                _IconValueChip(
+                EndpointValueChip(
                   icon: Icons.trending_up_rounded,
                   value: player.income,
                   accent: const Color(0xFF59B7FF),
@@ -559,37 +472,6 @@ class _PathPlayerStatus extends StatelessWidget {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final int value;
-
-  const _StatChip({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.22),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0x335AF78E)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: EndpointText(
-          '$label $value',
-          style: textSmallBold.copyWith(
-            color: const Color(0xFFBDEECC),
-            letterSpacing: 1.4,
-          ),
         ),
       ),
     );
@@ -607,9 +489,9 @@ class _RunTimelineMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress =
         (currentHour.stageIndex / PathNodeService.sunriseStageIndex).clamp(
-          0.0,
-          1.0,
-        );
+      0.0,
+      1.0,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -650,7 +532,7 @@ class _RunTimelineMeter extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         EndpointText(
-          'Ruta de 12 horas: dia, anochecer, noche y sunrise.',
+          EndpointStrings.routeTimelineDescription,
           style: textSmallBold.copyWith(
             color: Colors.white.withOpacity(0.68),
             letterSpacing: 1,
@@ -668,8 +550,8 @@ class _RunTimelineMeter extends StatelessWidget {
         color: const Color(0xFF5AF78E),
       ),
       _buildMarker(
-        alignmentX:
-            _alignmentForProgress(PathNodeService.duskStageIndex / PathNodeService.sunriseStageIndex),
+        alignmentX: _alignmentForProgress(
+            PathNodeService.duskStageIndex / PathNodeService.sunriseStageIndex),
         icon: Icons.dark_mode_outlined,
         color: const Color(0xFF59B7FF),
       ),
@@ -703,48 +585,6 @@ class _RunTimelineMeter extends StatelessWidget {
 
   double _alignmentForProgress(double progress) {
     return (progress * 2) - 1;
-  }
-}
-
-class _IconValueChip extends StatelessWidget {
-  final IconData icon;
-  final int value;
-  final Color accent;
-  final Color foreground;
-
-  const _IconValueChip({
-    required this.icon,
-    required this.value,
-    required this.accent,
-    required this.foreground,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.22),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withOpacity(0.35)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: accent),
-            const SizedBox(width: 6),
-            EndpointText(
-              '$value',
-              style: textSmallBold.copyWith(
-                color: foreground,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -815,4 +655,3 @@ class _PathBackdropPainter extends CustomPainter {
     return oldDelegate.nodeCount != nodeCount;
   }
 }
-

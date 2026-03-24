@@ -10,7 +10,7 @@ class BattleItemsDialog extends StatelessWidget {
     super.key,
     this.items = const [],
     this.subtitle = 'Inventario de combate',
-    this.emptyText = 'No tienes ningun objeto',
+    this.emptyText = EndpointStrings.noItems,
     this.bottomInset = 164,
   });
 

@@ -6,7 +6,7 @@ class BattlePage extends StatefulWidget {
   final String showTitle;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
-  final bool returnPlayerOnCombatEnd;
+  final bool returnResultToCaller;
 
   const BattlePage({
     super.key,
@@ -15,7 +15,7 @@ class BattlePage extends StatefulWidget {
     this.showTitle = 'ENCOUNTER',
     this.enemyTurnDelay = const Duration(milliseconds: 900),
     this.combatEndDelay = const Duration(seconds: 2),
-    this.returnPlayerOnCombatEnd = false,
+    this.returnResultToCaller = false,
   });
 
   @override
@@ -51,8 +51,7 @@ class _BattlePageState extends State<BattlePage> {
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) return;
 
-    // TODO: Rename returnPlayerOnCombatEnd to returnResultToCaller in a future API cleanup.
-    if (widget.returnPlayerOnCombatEnd) {
+    if (widget.returnResultToCaller) {
       navigator.pop(exitResult);
       return;
     }
@@ -75,7 +74,8 @@ class _BattlePageState extends State<BattlePage> {
     // TODO: Allow battle items to execute real combat effects once consumables exist.
     await showEndpointOverlay<void>(
       context: context,
-      builder: (_) => BattleItemsDialog(items: _controller.player.inventoryItems),
+      builder: (_) =>
+          BattleItemsDialog(items: _controller.player.inventoryItems),
     );
   }
 
@@ -181,9 +181,10 @@ class _BattlePageState extends State<BattlePage> {
                                   _TurnBanner(
                                     title: _controller.turnTitle,
                                     description: _controller.turnDescription,
-                                    isEnemyTurn:
-                                        _controller.turn == BattleTurnState.enemy,
-                                    isCombatFinished: _controller.isCombatFinished,
+                                    isEnemyTurn: _controller.turn ==
+                                        BattleTurnState.enemy,
+                                    isCombatFinished:
+                                        _controller.isCombatFinished,
                                   ),
                                   const SizedBox(height: 12),
                                   _ActionPanel(
@@ -419,4 +420,3 @@ class _BattleSideGridPainter extends CustomPainter {
     return oldDelegate.accent != accent;
   }
 }
-

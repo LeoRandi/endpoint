@@ -60,19 +60,9 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                           ),
                         ),
                       ),
-                      HoldTooltip(
-                        message: 'Cerrar operativos',
-                        child: IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: IconButton.styleFrom(
-                            foregroundColor: const Color(0xFFE6FFF0),
-                            backgroundColor: const Color(0xFF102519),
-                            side: const BorderSide(color: Color(0xFF5AF78E)),
-                            minimumSize: const Size(38, 38),
-                            padding: const EdgeInsets.all(8),
-                          ),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
+                      EndpointSceneCloseButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        tooltip: 'Cerrar operativos',
                       ),
                     ],
                   ),
@@ -83,7 +73,9 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          for (int index = 0; index < _operatives.length; index++) ...[
+                          for (int index = 0;
+                              index < _operatives.length;
+                              index++) ...[
                             if (index > 0) const SizedBox(width: 8),
                             _OperativeIconCard(
                               battler: _operatives[index],
@@ -148,7 +140,8 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                                   mainAxisExtent: _operativeTileHeight,
                                 ),
                                 itemBuilder: (context, index) {
-                                  final item = widget.player.inventoryItems[index];
+                                  final item =
+                                      widget.player.inventoryItems[index];
                                   return _InventoryItemTile(item: item);
                                 },
                               );
@@ -180,9 +173,8 @@ class _OperativeIconCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = isSelected
-        ? const Color(0xFF5AF78E)
-        : const Color(0x665AF78E);
+    final accent =
+        isSelected ? const Color(0xFF5AF78E) : const Color(0x665AF78E);
 
     return HoldTooltip(
       message: battler.name,

@@ -94,8 +94,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
         builder: (context, child) {
           final player = _controller.player;
           final accent = widget.accent;
-          final foreground = Color.lerp(Colors.white, accent, 0.32) ??
-              const Color(0xFFEEDB96);
+          final foreground =
+              Color.lerp(Colors.white, accent, 0.32) ?? const Color(0xFFEEDB96);
 
           return Scaffold(
             body: NodeSceneWrapper(
@@ -125,17 +125,12 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                           children: [
                             Align(
                               alignment: Alignment.topRight,
-                              child: HoldTooltip(
-                                message: 'Salir de la tienda',
-                                child: IconButton(
-                                  onPressed: _closeShop,
-                                  style: IconButton.styleFrom(
-                                    foregroundColor: foreground,
-                                    backgroundColor: const Color(0xFF17130B),
-                                    side: BorderSide(color: accent),
-                                  ),
-                                  icon: const Icon(Icons.close_rounded),
-                                ),
+                              child: EndpointSceneCloseButton(
+                                onPressed: _closeShop,
+                                tooltip: 'Salir de la tienda',
+                                accent: accent,
+                                foregroundColor: foreground,
+                                backgroundColor: const Color(0xFF17130B),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -160,7 +155,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               accent: accent,
                               backgroundColor: const Color(0xCC17130B),
                               glowOpacity: 0.08,
-                              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 14, 16, 14),
                               child: Column(
                                 children: [
                                   Row(
@@ -260,7 +256,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
   }
 
   String _equippedSummary(Battler player) {
-    if (player.equippedItems.isEmpty) return 'Equipo activo: sin piezas equipadas';
+    if (player.equippedItems.isEmpty)
+      return 'Equipo activo: sin piezas equipadas';
 
     return 'Equipo activo: ${player.equippedItems.map((item) => item.name).join(' | ')}';
   }
@@ -496,17 +493,12 @@ class _ShopItemDetailsDialog extends StatelessWidget {
             Positioned(
               top: -18,
               right: -10,
-              child: HoldTooltip(
-                message: 'Cerrar detalle',
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: IconButton.styleFrom(
-                    foregroundColor: foreground,
-                    backgroundColor: const Color(0xFF17130B),
-                    side: BorderSide(color: accent),
-                  ),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+              child: EndpointSceneCloseButton(
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Cerrar detalle',
+                accent: accent,
+                foregroundColor: foreground,
+                backgroundColor: const Color(0xFF17130B),
               ),
             ),
           ],
@@ -527,7 +519,8 @@ class _ShopItemDetailsDialog extends StatelessWidget {
 
   String _statusLabel(Battler player) {
     if (controller.isItemEquipped(item)) return 'Estado actual: equipado';
-    if (controller.isItemInInventory(item)) return 'Estado actual: en inventario';
+    if (controller.isItemInInventory(item))
+      return 'Estado actual: en inventario';
     if (controller.canAfford(item)) return 'Credito suficiente para comprar';
     final missingMoney = max(0, controller.costFor(item) - player.money);
     return 'Te faltan ${missingMoney}C';
@@ -549,61 +542,19 @@ class _ShopEconomyStrip extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        _ShopEconomyBadge(
+        EndpointValueChip(
           icon: Icons.monetization_on_rounded,
           value: money,
           accent: const Color(0xFFF3D35C),
           foreground: const Color(0xFFFFF4C7),
         ),
-        _ShopEconomyBadge(
+        EndpointValueChip(
           icon: Icons.trending_up_rounded,
           value: income,
           accent: const Color(0xFF59B7FF),
           foreground: const Color(0xFFD7EEFF),
         ),
       ],
-    );
-  }
-}
-
-class _ShopEconomyBadge extends StatelessWidget {
-  final IconData icon;
-  final int value;
-  final Color accent;
-  final Color foreground;
-
-  const _ShopEconomyBadge({
-    required this.icon,
-    required this.value,
-    required this.accent,
-    required this.foreground,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.22),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withOpacity(0.35)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: accent),
-            const SizedBox(width: 6),
-            EndpointText(
-              '$value',
-              style: textSmallBold.copyWith(
-                color: foreground,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -38,8 +38,8 @@ class _MainMenuPageState extends State<MainMenuPage>
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF5AF78E);
-    const surface = Color(0xFF07120D);
+    const accent = EndpointPalette.primaryAccent;
+    const surface = EndpointPalette.panelBackground;
 
     return Scaffold(
       body: DecoratedBox(
@@ -112,7 +112,7 @@ class _MainMenuPageState extends State<MainMenuPage>
                           ),
                           const SeparatorFiori.double(),
                           EndpointMenuButton(
-                            label: 'Start',
+                            label: EndpointStrings.start,
                             tooltip: 'Iniciar la carrera hasta el sunrise',
                             onPressed: () {
                               Navigator.of(context).push(
@@ -124,13 +124,13 @@ class _MainMenuPageState extends State<MainMenuPage>
                           ),
                           const SeparatorFiori.half(),
                           const EndpointMenuButton(
-                            label: 'Codex',
-                            tooltip: 'Apartado no disponible',
+                            label: EndpointStrings.codex,
+                            tooltip: EndpointStrings.codexUnavailable,
                           ),
                           const SeparatorFiori.half(),
                           const EndpointMenuButton(
-                            label: 'Settings',
-                            tooltip: 'Configuracion no disponible',
+                            label: EndpointStrings.settings,
+                            tooltip: EndpointStrings.settingsUnavailable,
                           ),
                         ],
                       ),
@@ -225,4 +225,3 @@ class _ScanlinePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

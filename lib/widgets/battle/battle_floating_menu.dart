@@ -89,8 +89,10 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                                   : null,
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: accent,
-                                disabledForegroundColor: accent.withOpacity(0.38),
-                                side: BorderSide(color: accent.withOpacity(0.9)),
+                                disabledForegroundColor:
+                                    accent.withOpacity(0.38),
+                                side:
+                                    BorderSide(color: accent.withOpacity(0.9)),
                                 alignment: Alignment.centerLeft,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -100,7 +102,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                                   letterSpacing: 1.4,
                                 ),
                               ),
-                              child: EndpointText(entry.label),
+                              child: EndpointMarqueeText(entry.label),
                             ),
                           ),
                         ),
@@ -136,4 +138,3 @@ class BattleFloatingMenu<T> extends StatelessWidget {
     );
   }
 }
-

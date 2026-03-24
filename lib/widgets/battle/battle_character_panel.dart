@@ -69,28 +69,10 @@ class BattleCharacterPanel extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      height: 14,
-                      color: Colors.black.withOpacity(0.35),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: healthFactor,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  accent.withOpacity(0.75),
-                                  accent,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  EndpointHealthBar(
+                    value: healthFactor,
+                    accent: accent,
+                    height: 14,
                   ),
                   const SizedBox(height: 10),
                   EndpointText(
@@ -120,4 +102,3 @@ class BattleCharacterPanel extends StatelessWidget {
     );
   }
 }
-

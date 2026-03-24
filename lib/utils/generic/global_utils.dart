@@ -1,5 +1,4 @@
-
-int idx(int x, int y, int width){
+int idx(int x, int y, int width) {
   return y * width + x;
 }
 

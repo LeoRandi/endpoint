@@ -15,6 +15,12 @@ class BattleFlowResult {
     required this.player,
   });
 
-  bool get shouldReturnPlayerToCaller => type == BattleFlowResultType.victory;
-  bool get shouldPopToRoot => !shouldReturnPlayerToCaller;
+  bool get shouldReturnToCaller => type == BattleFlowResultType.victory;
+  bool get shouldExitRun => !shouldReturnToCaller;
+
+  @Deprecated('Use shouldReturnToCaller instead.')
+  bool get shouldReturnPlayerToCaller => shouldReturnToCaller;
+
+  @Deprecated('Use shouldExitRun instead.')
+  bool get shouldPopToRoot => shouldExitRun;
 }

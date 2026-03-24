@@ -36,102 +36,61 @@ class _CampSitePageState extends State<CampSitePage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _handleWillPop,
-      child: Scaffold(
-        body: NodeSceneWrapper(
-          showTitle: 'Has encontrado una zona de acampada',
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF061008),
-                  Color(0xFF0B1510),
-                  Color(0xFF020403),
+      child: EndpointCenterStageScene(
+        showTitle: 'Has encontrado una zona de acampada',
+        background: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF061008),
+            Color(0xFF0B1510),
+            Color(0xFF020403),
+          ],
+        ),
+        backdrop: const _CampBackdrop(),
+        onClose: _closeCamp,
+        closeTooltip: EndpointStrings.backToRoute,
+        accent: EndpointPalette.primaryAccent,
+        emoji: '\u{26FA}',
+        emojiSize: 144,
+        title: 'ZONA DE ACAMPADA',
+        titleColor: const Color(0xFFD6FFE5),
+        content: Column(
+          children: [
+            EndpointText(
+              'Recuperas 50% de tu vida maxima.',
+              textAlign: TextAlign.center,
+              style: textMedium.copyWith(
+                color: Colors.white.withOpacity(0.84),
+              ),
+            ),
+            const SizedBox(height: 18),
+            EndpointPanel(
+              backgroundColor: const Color(0xCC07120D),
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+              child: Column(
+                children: [
+                  EndpointText(
+                    '${widget.player.health} / ${widget.player.maxHealth}  ->  ${_visitResult.player.health} / ${_visitResult.player.maxHealth}',
+                    textAlign: TextAlign.center,
+                    style: textMediumBold.copyWith(
+                      color: EndpointPalette.primaryAccent,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  EndpointText(
+                    _visitResult.healedAmount > 0
+                        ? 'Salud recuperada: +${_visitResult.healedAmount}'
+                        : 'Tu salud ya estaba al maximo.',
+                    textAlign: TextAlign.center,
+                    style: textMedium.copyWith(
+                      color: Colors.white.withOpacity(0.76),
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                const _CampBackdrop(),
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: HoldTooltip(
-                            message: 'Volver a la ruta',
-                            child: IconButton(
-                              onPressed: _closeCamp,
-                              style: IconButton.styleFrom(
-                                foregroundColor: const Color(0xFFE6FFF0),
-                                backgroundColor: const Color(0xFF102519),
-                                side: const BorderSide(color: Color(0xFF5AF78E)),
-                              ),
-                              icon: const Icon(Icons.close_rounded),
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        const EndpointEmojiSprite(
-                          emoji: '\u{26FA}',
-                          accent: Color(0xFF5AF78E),
-                          size: 144,
-                        ),
-                        const SizedBox(height: 18),
-                        EndpointText(
-                          'ZONA DE ACAMPADA',
-                          textAlign: TextAlign.center,
-                          style: textLargeBold.copyWith(
-                            color: const Color(0xFFD6FFE5),
-                            letterSpacing: 2.2,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        EndpointText(
-                          'Recuperas 50% de tu vida maxima.',
-                          textAlign: TextAlign.center,
-                          style: textMedium.copyWith(
-                            color: Colors.white.withOpacity(0.84),
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        EndpointPanel(
-                          backgroundColor: const Color(0xCC07120D),
-                          padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-                          child: Column(
-                            children: [
-                              EndpointText(
-                                '${widget.player.health} / ${widget.player.maxHealth}  ->  ${_visitResult.player.health} / ${_visitResult.player.maxHealth}',
-                                textAlign: TextAlign.center,
-                                style: textMediumBold.copyWith(
-                                  color: const Color(0xFF5AF78E),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              EndpointText(
-                                _visitResult.healedAmount > 0
-                                    ? 'Salud recuperada: +${_visitResult.healedAmount}'
-                                    : 'Tu salud ya estaba al maximo.',
-                                textAlign: TextAlign.center,
-                                style: textMedium.copyWith(
-                                  color: Colors.white.withOpacity(0.76),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );
@@ -183,4 +142,3 @@ class _CampBackdropPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

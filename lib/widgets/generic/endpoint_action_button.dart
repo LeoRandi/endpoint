@@ -41,14 +41,14 @@ class EndpointActionButton extends StatelessWidget {
       button = FilledButton(
         onPressed: onPressed,
         style: _buttonStyle(),
-        child: EndpointText(label, overflow: TextOverflow.ellipsis),
+        child: EndpointMarqueeText(label, overflow: TextOverflow.ellipsis),
       );
     } else {
       button = FilledButton.icon(
         onPressed: onPressed,
         style: _buttonStyle(),
         icon: Icon(icon, size: iconSize),
-        label: EndpointText(label, overflow: TextOverflow.ellipsis),
+        label: EndpointMarqueeText(label, overflow: TextOverflow.ellipsis),
       );
     }
 
@@ -86,4 +86,3 @@ class EndpointActionButton extends StatelessWidget {
     );
   }
 }
-

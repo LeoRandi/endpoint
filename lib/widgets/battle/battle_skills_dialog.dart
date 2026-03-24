@@ -13,7 +13,7 @@ class BattleSkillsDialog extends StatelessWidget {
     return BattleFloatingMenu<BattlerAbility>(
       title: 'Habilidades',
       subtitle: 'Tecnicas del battler',
-      emptyText: 'No tienes ninguna habilidad',
+      emptyText: EndpointStrings.noSkills,
       entries: skills
           .map(
             (ability) => BattleMenuEntry<BattlerAbility>(
