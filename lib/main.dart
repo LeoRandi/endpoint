@@ -1,16 +1,16 @@
 import '_imports.dart';
 
 void main() {
-  runApp(const Endpoint());
+  runApp(const DeathAtSunriseApp());
 }
 
-class Endpoint extends StatelessWidget {
-  const Endpoint({super.key});
+class DeathAtSunriseApp extends StatelessWidget {
+  const DeathAtSunriseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Endpoint',
+      title: 'Death at Sunrise',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF5AF78E),
@@ -23,4 +23,8 @@ class Endpoint extends StatelessWidget {
       home: const MainMenuPage(),
     );
   }
+}
+
+class Endpoint extends DeathAtSunriseApp {
+  const Endpoint({super.key});
 }

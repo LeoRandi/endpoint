@@ -16,7 +16,7 @@ class PathSelectionPage extends StatefulWidget {
     this.randomSeed,
     this.battleEnemyTurnDelay = const Duration(milliseconds: 900),
     this.battleCombatEndDelay = const Duration(seconds: 2),
-  }) : assert(nodeCount > 0);
+  });
 
   @override
   State<PathSelectionPage> createState() => _PathSelectionPageState();
@@ -32,8 +32,6 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     super.initState();
     _sessionController = RunSessionController(
       player: widget.player,
-      availableNodes: widget.availableNodes ?? defaultPathNodePool,
-      nodeCount: widget.nodeCount,
       battleEnemyTurnDelay: widget.battleEnemyTurnDelay,
       battleCombatEndDelay: widget.battleCombatEndDelay,
       randomSeed: widget.randomSeed,
@@ -90,12 +88,23 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     }
 
     _sessionController.completeEncounter(result);
+    if (_sessionController.isRunComplete && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
-  Future<void> _handleOpenWeaponShop() async {
+  Future<void> _handleOpenWeaponShop(ShopPathNode node) async {
     final result = await Navigator.of(context).push<WeaponShopVisitResult>(
       _buildSceneRoute<WeaponShopVisitResult>(
-        WeaponShopPage(player: _sessionController.player),
+        WeaponShopPage(
+          player: _sessionController.player,
+          catalog: node.catalog,
+          showTitle: node.showTitle,
+          shopTitle: node.shopTitle,
+          shopSubtitle: node.shopSubtitle,
+          iconEmoji: node.iconEmoji,
+          accent: node.accent,
+        ),
       ),
     );
 
@@ -106,6 +115,9 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     }
 
     _sessionController.completeWeaponShopVisit(result);
+    if (_sessionController.isRunComplete && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   Future<void> _handleOpenCampSite() async {
@@ -122,6 +134,36 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     }
 
     _sessionController.completeCampVisit(result);
+    if (_sessionController.isRunComplete && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
+  Future<void> _handleOpenEvent(EventPathNode node) async {
+    final result = await Navigator.of(context).push<PathEventVisitResult>(
+      _buildSceneRoute<PathEventVisitResult>(
+        PathEventPage(
+          player: _sessionController.player,
+          showTitle: node.showTitle,
+          eventTitle: node.eventTitle,
+          description: node.description,
+          outcomeText: node.outcomeText,
+          iconEmoji: node.iconEmoji,
+          accent: node.accent,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == null) {
+      _sessionController.cancelNodeResolution();
+      return;
+    }
+
+    _sessionController.completeEventVisit(result);
+    if (_sessionController.isRunComplete && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   Future<void> _handleNodePressed(PathNode node) async {
@@ -131,11 +173,14 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       case PathNodeType.encounter:
         await _handleStartEncounter(node as CombatPathNode);
         break;
-      case PathNodeType.weaponShop:
-        await _handleOpenWeaponShop();
+      case PathNodeType.shop:
+        await _handleOpenWeaponShop(node as ShopPathNode);
         break;
       case PathNodeType.campSite:
         await _handleOpenCampSite();
+        break;
+      case PathNodeType.event:
+        await _handleOpenEvent(node as EventPathNode);
         break;
     }
   }
@@ -197,6 +242,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       builder: (context, child) {
         final player = _sessionController.player;
         final nodes = _sessionController.nodes;
+        final currentHour = _sessionController.currentHour;
         final isOpeningNode = _sessionController.isResolvingNode;
 
         return Scaffold(
@@ -215,13 +261,13 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                const _PathBackdrop(),
+                _PathBackdrop(nodeCount: nodes.length),
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
                     child: Column(
                       children: [
-                        const _PathHeader(),
+                        _PathHeader(currentHour: currentHour),
                         Expanded(
                           child: Column(
                             children: [
@@ -236,6 +282,9 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                       min(112.0, availableWidth / encounterCount);
 
                                   return Row(
+                                    mainAxisAlignment: encounterCount == 1
+                                        ? MainAxisAlignment.center
+                                        : MainAxisAlignment.start,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
@@ -286,7 +335,11 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 }
 
 class _PathHeader extends StatelessWidget {
-  const _PathHeader();
+  final RunHourSnapshot currentHour;
+
+  const _PathHeader({
+    required this.currentHour,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +351,7 @@ class _PathHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           EndpointText(
-            'SELECCION DE RUTA',
+            currentHour.title,
             style: textMediumBold.copyWith(
               color: const Color(0xFF5AF78E),
               letterSpacing: 2.4,
@@ -306,11 +359,13 @@ class _PathHeader extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           EndpointText(
-            'Elige un nodo para avanzar.',
+            currentHour.subtitle,
             style: textMedium.copyWith(
               color: Colors.white.withOpacity(0.8),
             ),
           ),
+          const SizedBox(height: 14),
+          _RunTimelineMeter(currentHour: currentHour),
         ],
       ),
     );
@@ -512,21 +567,139 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-class _PathBackdrop extends StatelessWidget {
-  const _PathBackdrop();
+class _RunTimelineMeter extends StatelessWidget {
+  final RunHourSnapshot currentHour;
+
+  const _RunTimelineMeter({
+    required this.currentHour,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const IgnorePointer(
+    final progress =
+        (currentHour.stageIndex / PathNodeService.sunriseStageIndex).clamp(
+          0.0,
+          1.0,
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 20,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.34),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: const Color(0x335AF78E)),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: progress,
+                child: Container(
+                  height: 12,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF5AF78E),
+                        Color(0xFFDBB95A),
+                        Color(0xFF59B7FF),
+                        Color(0xFFF3D35C),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              ..._buildMarkers(),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        EndpointText(
+          'Ruta de 12 horas: dia, anochecer, noche y sunrise.',
+          style: textSmallBold.copyWith(
+            color: Colors.white.withOpacity(0.68),
+            letterSpacing: 1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildMarkers() {
+    return [
+      _buildMarker(
+        alignmentX: -1,
+        icon: Icons.wb_sunny_outlined,
+        color: const Color(0xFF5AF78E),
+      ),
+      _buildMarker(
+        alignmentX:
+            _alignmentForProgress(PathNodeService.duskStageIndex / PathNodeService.sunriseStageIndex),
+        icon: Icons.dark_mode_outlined,
+        color: const Color(0xFF59B7FF),
+      ),
+      _buildMarker(
+        alignmentX: 1,
+        icon: Icons.sunny,
+        color: const Color(0xFFF3D35C),
+      ),
+    ];
+  }
+
+  Widget _buildMarker({
+    required double alignmentX,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Align(
+      alignment: Alignment(alignmentX, 0),
+      child: Container(
+        width: 20,
+        height: 20,
+        decoration: BoxDecoration(
+          color: const Color(0xFF07120D),
+          shape: BoxShape.circle,
+          border: Border.all(color: color),
+        ),
+        child: Icon(icon, size: 12, color: color),
+      ),
+    );
+  }
+
+  double _alignmentForProgress(double progress) {
+    return (progress * 2) - 1;
+  }
+}
+
+class _PathBackdrop extends StatelessWidget {
+  final int nodeCount;
+
+  const _PathBackdrop({
+    required this.nodeCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
       child: CustomPaint(
-        painter: _PathBackdropPainter(),
+        painter: _PathBackdropPainter(nodeCount: nodeCount),
       ),
     );
   }
 }
 
 class _PathBackdropPainter extends CustomPainter {
-  const _PathBackdropPainter();
+  final int nodeCount;
+
+  const _PathBackdropPainter({
+    required this.nodeCount,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -543,11 +716,15 @@ class _PathBackdropPainter extends CustomPainter {
     }
 
     final start = Offset(size.width / 2, size.height - 120);
-    final targets = [
-      Offset(size.width * 0.24, size.height * 0.42),
-      Offset(size.width * 0.5, size.height * 0.34),
-      Offset(size.width * 0.76, size.height * 0.42),
-    ];
+    final targets = nodeCount <= 1
+        ? [
+            Offset(size.width * 0.5, size.height * 0.36),
+          ]
+        : [
+            Offset(size.width * 0.24, size.height * 0.42),
+            Offset(size.width * 0.5, size.height * 0.34),
+            Offset(size.width * 0.76, size.height * 0.42),
+          ];
 
     for (final target in targets) {
       final path = Path()
@@ -563,6 +740,8 @@ class _PathBackdropPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _PathBackdropPainter oldDelegate) {
+    return oldDelegate.nodeCount != nodeCount;
+  }
 }
 

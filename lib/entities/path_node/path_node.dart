@@ -2,8 +2,9 @@ import '_imports.dart';
 
 enum PathNodeType {
   encounter,
-  weaponShop,
+  shop,
   campSite,
+  event,
 }
 
 class PathNode {
@@ -23,17 +24,33 @@ class PathNode {
     required this.badgeLabel,
   });
 
+  const PathNode.shop({
+    String label = 'Tienda',
+    String tooltip = 'Tienda de armas',
+    String iconEmoji = '\u{2694}',
+    Color accent = const Color(0xFFDBB95A),
+    String badgeLabel = 'TIENDA',
+  }) : this.base(
+          type: PathNodeType.shop,
+          label: label,
+          tooltip: tooltip,
+          iconEmoji: iconEmoji,
+          accent: accent,
+          badgeLabel: badgeLabel,
+        );
+
   const PathNode.weaponShop({
     String label = 'Tienda',
     String tooltip = 'Tienda de armas',
     String iconEmoji = '\u{2694}',
-  }) : this.base(
-          type: PathNodeType.weaponShop,
+    Color accent = const Color(0xFFDBB95A),
+    String badgeLabel = 'TIENDA',
+  }) : this.shop(
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,
-          accent: const Color(0xFFDBB95A),
-          badgeLabel: 'TIENDA',
+          accent: accent,
+          badgeLabel: badgeLabel,
         );
 
   const PathNode.campSite({

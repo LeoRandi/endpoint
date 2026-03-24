@@ -7,19 +7,21 @@ class RunSessionController extends ChangeNotifier {
 
   RunSessionController({
     required Battler player,
-    required List<PathNode> availableNodes,
-    required int nodeCount,
     required Duration battleEnemyTurnDelay,
     required Duration battleCombatEndDelay,
     int? randomSeed,
   })  : _pathNodeService = PathNodeService(seed: randomSeed),
         _state = RunState(
           player: player,
-          availableNodes: List<PathNode>.unmodifiable(
-            availableNodes.isEmpty ? defaultPathNodePool : availableNodes,
+          currentHour: const RunHourSnapshot(
+            stageIndex: PathNodeService.startStageIndex,
+            phase: RunHourPhase.day,
+            title: 'HORA 0',
+            subtitle: '',
+            nodes: [],
           ),
           visibleNodes: const [],
-          nodeCount: nodeCount,
+          stageIndex: PathNodeService.startStageIndex,
           battleEnemyTurnDelay: battleEnemyTurnDelay,
           battleCombatEndDelay: battleCombatEndDelay,
         ) {
@@ -29,7 +31,9 @@ class RunSessionController extends ChangeNotifier {
   RunState get state => _state;
   Battler get player => _state.player;
   List<PathNode> get nodes => _state.visibleNodes;
+  RunHourSnapshot get currentHour => _state.currentHour;
   bool get isResolvingNode => _isResolvingNode;
+  bool get isRunComplete => _state.isRunComplete;
 
   bool beginNodeResolution() {
     if (_isResolvingNode) return false;
@@ -45,13 +49,13 @@ class RunSessionController extends ChangeNotifier {
   }
 
   void refreshNodes() {
-    final visibleNodes = _pathNodeService.rollNodes(
-      availableNodes: _state.availableNodes,
-      nodeCount: _state.nodeCount,
+    final currentHour = _pathNodeService.buildHourSnapshot(
+      stageIndex: _state.stageIndex,
     );
 
     _state = _state.copyWith(
-      visibleNodes: List<PathNode>.unmodifiable(visibleNodes),
+      currentHour: currentHour,
+      visibleNodes: List<PathNode>.unmodifiable(currentHour.nodes),
     );
     notifyListeners();
   }
@@ -64,6 +68,10 @@ class RunSessionController extends ChangeNotifier {
     _completeScene(updatedPlayer: result.player);
   }
 
+  void completeEventVisit(PathEventVisitResult result) {
+    _completeScene(updatedPlayer: result.player);
+  }
+
   void completeWeaponShopVisit(WeaponShopVisitResult result) {
     _completeScene(updatedPlayer: result.player);
   }
@@ -71,7 +79,23 @@ class RunSessionController extends ChangeNotifier {
   void _completeScene({
     required Battler updatedPlayer,
   }) {
-    _state = _state.copyWith(player: updatedPlayer);
+    final hasCompletedRun =
+        _state.stageIndex >= PathNodeService.sunriseStageIndex;
+
+    if (hasCompletedRun) {
+      _state = _state.copyWith(
+        player: updatedPlayer,
+        isRunComplete: true,
+      );
+      _isResolvingNode = false;
+      notifyListeners();
+      return;
+    }
+
+    _state = _state.copyWith(
+      player: updatedPlayer,
+      stageIndex: _state.stageIndex + 1,
+    );
     _isResolvingNode = false;
     refreshNodes();
   }

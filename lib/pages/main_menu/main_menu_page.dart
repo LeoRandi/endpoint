@@ -81,11 +81,11 @@ class _MainMenuPageState extends State<MainMenuPage>
                               return Transform.scale(
                                 scale: _scale.value,
                                 child: EndpointText(
-                                  'ENDPOINT',
+                                  'DEATH AT SUNRISE',
                                   textAlign: TextAlign.center,
                                   style: textExtraLargeBold.copyWith(
-                                    fontSize: 56,
-                                    letterSpacing: 6,
+                                    fontSize: 42,
+                                    letterSpacing: 3.2,
                                     color: Color.lerp(
                                       const Color(0xFFD6FFE5),
                                       accent,
@@ -113,7 +113,7 @@ class _MainMenuPageState extends State<MainMenuPage>
                           const SeparatorFiori.double(),
                           EndpointMenuButton(
                             label: 'Start',
-                            tooltip: 'Abrir rutas de encuentro',
+                            tooltip: 'Iniciar la carrera hasta el sunrise',
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(

@@ -44,6 +44,6 @@ final List<PathNode> defaultPathNodePool = List.unmodifiable([
   blueCombatNode,
   purpleCombatNode,
   yellowCombatNode,
-  const PathNode.weaponShop(),
+  const PathNode.shop(),
   const PathNode.campSite(),
 ]);

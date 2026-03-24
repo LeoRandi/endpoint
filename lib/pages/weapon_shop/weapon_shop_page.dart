@@ -3,11 +3,21 @@ import '_imports.dart';
 class WeaponShopPage extends StatefulWidget {
   final Battler player;
   final List<Item> catalog;
+  final String showTitle;
+  final String shopTitle;
+  final String shopSubtitle;
+  final String iconEmoji;
+  final Color accent;
 
   const WeaponShopPage({
     super.key,
     required this.player,
     this.catalog = itemPresets,
+    this.showTitle = 'Bienvenido a la tienda',
+    this.shopTitle = 'TIENDA DE ARMAS',
+    this.shopSubtitle = 'Adquiere y equipa piezas para la ruta.',
+    this.iconEmoji = '\u{2694}',
+    this.accent = const Color(0xFFDBB95A),
   });
 
   @override
@@ -49,26 +59,31 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
         animation: _controller,
         builder: (context, child) {
           final player = _controller.player;
+          final accent = widget.accent;
+          final foreground = Color.lerp(Colors.white, accent, 0.32) ??
+              const Color(0xFFEEDB96);
 
           return Scaffold(
             body: NodeSceneWrapper(
-              showTitle: 'Bienvenido a la tienda',
+              showTitle: widget.showTitle,
               child: DecoratedBox(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFF090705),
-                      Color(0xFF11120A),
-                      Color(0xFF030403),
+                      Color.lerp(const Color(0xFF090705), accent, 0.12) ??
+                          const Color(0xFF090705),
+                      Color.lerp(const Color(0xFF11120A), accent, 0.08) ??
+                          const Color(0xFF11120A),
+                      const Color(0xFF030403),
                     ],
                   ),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    const _ShopBackdrop(),
+                    _ShopBackdrop(accent: accent),
                     SafeArea(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
@@ -81,32 +96,32 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                 child: IconButton(
                                   onPressed: _closeShop,
                                   style: IconButton.styleFrom(
-                                    foregroundColor: const Color(0xFFE9E4C4),
+                                    foregroundColor: foreground,
                                     backgroundColor: const Color(0xFF17130B),
-                                    side: const BorderSide(color: Color(0xFFDBB95A)),
+                                    side: BorderSide(color: accent),
                                   ),
                                   icon: const Icon(Icons.close_rounded),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 12),
-                            const EndpointEmojiSprite(
-                              emoji: '\u{2694}',
-                              accent: Color(0xFFDBB95A),
+                            EndpointEmojiSprite(
+                              emoji: widget.iconEmoji,
+                              accent: accent,
                               size: 132,
                             ),
                             const SizedBox(height: 16),
                             EndpointText(
-                              'TIENDA DE ARMAS',
+                              widget.shopTitle,
                               textAlign: TextAlign.center,
                               style: textLargeBold.copyWith(
-                                color: const Color(0xFFEEDB96),
+                                color: foreground,
                                 letterSpacing: 2.4,
                               ),
                             ),
                             const SizedBox(height: 8),
                             EndpointText(
-                              'Adquiere y equipa piezas para la ruta.',
+                              widget.shopSubtitle,
                               textAlign: TextAlign.center,
                               style: textMedium.copyWith(
                                 color: Colors.white.withOpacity(0.82),
@@ -114,7 +129,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                             ),
                             const SizedBox(height: 18),
                             EndpointPanel(
-                              accent: const Color(0xFFDBB95A),
+                              accent: accent,
                               backgroundColor: const Color(0xCC17130B),
                               glowOpacity: 0.08,
                               padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
@@ -123,7 +138,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                   EndpointText(
                                     player.name,
                                     style: textMediumBold.copyWith(
-                                      color: const Color(0xFFFFF4CC),
+                                      color: foreground,
                                       letterSpacing: 1.6,
                                     ),
                                   ),
@@ -160,6 +175,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                     actionLabel: _controller.actionLabelFor(item),
                                     isActionEnabled:
                                         _controller.isActionEnabled(item),
+                                    accent: accent,
+                                    foreground: foreground,
                                     onPrimaryAction: () =>
                                         _controller.handlePrimaryAction(item),
                                   );
@@ -198,6 +215,8 @@ class _ShopItemCard extends StatelessWidget {
   final String statusLabel;
   final String actionLabel;
   final bool isActionEnabled;
+  final Color accent;
+  final Color foreground;
   final VoidCallback onPrimaryAction;
 
   const _ShopItemCard({
@@ -205,13 +224,13 @@ class _ShopItemCard extends StatelessWidget {
     required this.statusLabel,
     required this.actionLabel,
     required this.isActionEnabled,
+    required this.accent,
+    required this.foreground,
     required this.onPrimaryAction,
   });
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFDBB95A);
-
     return EndpointPanel(
       accent: accent,
       backgroundColor: const Color(0xCC17130B),
@@ -235,7 +254,7 @@ class _ShopItemCard extends StatelessWidget {
                     EndpointText(
                       item.name,
                       style: textMediumBold.copyWith(
-                        color: const Color(0xFFFFF4CC),
+                        color: foreground,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -278,7 +297,7 @@ class _ShopItemCard extends StatelessWidget {
                   : 'Ya tienes este objeto listo',
               accent: accent,
               backgroundColor: const Color(0xFF2A2212),
-              foregroundColor: const Color(0xFFFFF4CC),
+              foregroundColor: foreground,
               borderWidth: 1.3,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
@@ -291,28 +310,36 @@ class _ShopItemCard extends StatelessWidget {
 }
 
 class _ShopBackdrop extends StatelessWidget {
-  const _ShopBackdrop();
+  final Color accent;
+
+  const _ShopBackdrop({
+    required this.accent,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const IgnorePointer(
+    return IgnorePointer(
       child: CustomPaint(
-        painter: _ShopBackdropPainter(),
+        painter: _ShopBackdropPainter(accent: accent),
       ),
     );
   }
 }
 
 class _ShopBackdropPainter extends CustomPainter {
-  const _ShopBackdropPainter();
+  final Color accent;
+
+  const _ShopBackdropPainter({
+    required this.accent,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = const Color(0x12DBB95A)
+      ..color = accent.withOpacity(0.12)
       ..strokeWidth = 1;
     final beamPaint = Paint()
-      ..color = const Color(0x1FDBB95A)
+      ..color = accent.withOpacity(0.18)
       ..strokeWidth = 2;
 
     for (double y = 28; y <= size.height; y += 34) {

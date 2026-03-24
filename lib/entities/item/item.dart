@@ -4,6 +4,11 @@ enum ItemId {
   woodenStick,
   ironSword,
   guardShield,
+  platedJacket,
+  sunsteelBlade,
+  dawnCharm,
+  midnightCloak,
+  voidInjector,
 }
 
 enum ItemSlot {

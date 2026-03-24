@@ -2,36 +2,40 @@ import '_imports.dart';
 
 class RunState {
   final Battler player;
-  final List<PathNode> availableNodes;
+  final RunHourSnapshot currentHour;
   final List<PathNode> visibleNodes;
-  final int nodeCount;
+  final int stageIndex;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
+  final bool isRunComplete;
 
   const RunState({
     required this.player,
-    required this.availableNodes,
+    required this.currentHour,
     required this.visibleNodes,
-    required this.nodeCount,
+    required this.stageIndex,
     required this.battleEnemyTurnDelay,
     required this.battleCombatEndDelay,
+    this.isRunComplete = false,
   });
 
   RunState copyWith({
     Battler? player,
-    List<PathNode>? availableNodes,
+    RunHourSnapshot? currentHour,
     List<PathNode>? visibleNodes,
-    int? nodeCount,
+    int? stageIndex,
     Duration? battleEnemyTurnDelay,
     Duration? battleCombatEndDelay,
+    bool? isRunComplete,
   }) {
     return RunState(
       player: player ?? this.player,
-      availableNodes: availableNodes ?? this.availableNodes,
+      currentHour: currentHour ?? this.currentHour,
       visibleNodes: visibleNodes ?? this.visibleNodes,
-      nodeCount: nodeCount ?? this.nodeCount,
+      stageIndex: stageIndex ?? this.stageIndex,
       battleEnemyTurnDelay: battleEnemyTurnDelay ?? this.battleEnemyTurnDelay,
       battleCombatEndDelay: battleCombatEndDelay ?? this.battleCombatEndDelay,
+      isRunComplete: isRunComplete ?? this.isRunComplete,
     );
   }
 }
