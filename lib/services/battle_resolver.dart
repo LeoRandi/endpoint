@@ -19,12 +19,29 @@ class BattleResolver {
     required Battler attacker,
     required Battler defender,
   }) {
-    final damageDealt = attacker.calculateDamageAgainst(defender);
-    final updatedDefender = defender.receiveDamage(damageDealt);
+    final baseDamage = attacker.calculateDamageAgainst(defender);
+    final outgoingModifiedDamage = attacker.applyOutgoingDamageModifiers(
+      target: defender,
+      damage: baseDamage,
+    );
+    final damageDealt = defender.applyIncomingDamageModifiers(
+      source: attacker,
+      damage: outgoingModifiedDamage,
+    );
+    final defenderAfterDamage = defender.receiveDamage(damageDealt);
+    final updatedAttacker = attacker.applyAttackResolvedEffects(
+      target: defenderAfterDamage,
+      damageDealt: damageDealt,
+    );
+    final updatedDefender =
+        defenderAfterDamage.applyReceiveDamageResolvedEffects(
+      source: updatedAttacker,
+      damageTaken: damageDealt,
+    );
 
     // TODO: Apply thorns, damage reduction, and vampirism once combat rules are finalized.
     return BattleAttackResolution(
-      attacker: attacker,
+      attacker: updatedAttacker,
       defender: updatedDefender,
       damageDealt: damageDealt,
     );

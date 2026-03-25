@@ -432,9 +432,11 @@ class _PathPlayerStatus extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            EndpointHealthBar(
+            EndpointHealthBarWithStatuses(
+              battler: player,
               value: healthFactor,
               accent: accent,
+              badgeAlignment: WrapAlignment.start,
             ),
             const SizedBox(height: 10),
             Wrap(

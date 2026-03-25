@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:endpoint/entities/_exports.dart';
+import 'package:endpoint/services/_exports.dart';
 
 void main() {
   test('calculateDamageAgainst uses attack and defense with minimum 1', () {
@@ -79,5 +80,34 @@ void main() {
     expect(updatedBattler.inventoryItems[1].id, ItemId.woodenStick);
     expect(updatedBattler.inventoryItems[0],
         isNot(updatedBattler.inventoryItems[1]));
+  });
+
+  test('calentando adds increasing bonus damage as turns are spent', () {
+    final attacker = Battler.legacy(
+      name: 'Operative',
+      attack: 8,
+      defense: 2,
+      health: 10,
+      statuses: const [CalentandoStatus()],
+    );
+    final target = Battler.legacy(
+      name: 'Target',
+      attack: 4,
+      defense: 5,
+      health: 20,
+    );
+    const resolver = BattleResolver();
+
+    final firstAttack = resolver.resolveAttack(
+      attacker: attacker,
+      defender: target,
+    );
+    final secondAttack = resolver.resolveAttack(
+      attacker: attacker.decrementStatusDurations(),
+      defender: target,
+    );
+
+    expect(firstAttack.damageDealt, 4);
+    expect(secondAttack.damageDealt, 5);
   });
 }

@@ -10,6 +10,7 @@ export "endpoint_marquee_text.dart";
 export "endpoint_panel.dart";
 export "endpoint_scene_route.dart";
 export "endpoint_scene_close_button.dart";
+export "endpoint_status_badges.dart";
 export "endpoint_text.dart";
 export "endpoint_value_chip.dart";
 export "hold_tooltip.dart";

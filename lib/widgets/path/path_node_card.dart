@@ -179,13 +179,9 @@ class _SignatureCorner extends StatelessWidget {
       alignment: alignment,
       child: Padding(
         padding: const EdgeInsets.all(7),
-        child: Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.diagonal3Values(
-            mirrorHorizontally ? -1 : 1,
-            mirrorVertically ? -1 : 1,
-            1,
-          ),
+        child: Transform.flip(
+          flipX: mirrorHorizontally,
+          flipY: mirrorVertically,
           child: SizedBox(
             width: 18,
             height: 18,

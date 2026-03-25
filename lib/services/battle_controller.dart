@@ -28,7 +28,9 @@ class BattleController extends ChangeNotifier {
     BattleResolver resolver = const BattleResolver(),
   })  : _enemy = enemy.materializeOwnedItems(),
         _player = player.materializeOwnedItems(),
-        _resolver = resolver;
+        _resolver = resolver {
+    _beginTurn(BattleTurnState.player, notify: false);
+  }
 
   Battler get enemy => _enemy;
   Battler get player => _player;
@@ -73,19 +75,17 @@ class BattleController extends ChangeNotifier {
       defender: _enemy,
     );
 
+    _player = resolution.attacker;
     _enemy = resolution.defender;
 
-    if (_enemy.isDefeated) {
-      _finishCombat(
-        resultType: BattleFlowResultType.victory,
-        resultText: 'Objetivo neutralizado.',
-      );
+    if (_completeTurn(BattleTurnState.player)) {
       return;
     }
 
-    _turn = BattleTurnState.enemy;
-    notifyListeners();
-    _scheduleEnemyTurn();
+    _beginTurn(BattleTurnState.enemy);
+    if (_turn == BattleTurnState.enemy) {
+      _scheduleEnemyTurn();
+    }
   }
 
   void handleAbility(BattlerAbility ability) {
@@ -93,9 +93,14 @@ class BattleController extends ChangeNotifier {
 
     switch (ability) {
       case BattlerAbility.defend:
-        _turn = BattleTurnState.enemy;
-        notifyListeners();
-        _scheduleEnemyTurn();
+        if (_completeTurn(BattleTurnState.player)) {
+          return;
+        }
+
+        _beginTurn(BattleTurnState.enemy);
+        if (_turn == BattleTurnState.enemy) {
+          _scheduleEnemyTurn();
+        }
         return;
       case BattlerAbility.overclock:
       case BattlerAbility.purge:
@@ -135,19 +140,15 @@ class BattleController extends ChangeNotifier {
       defender: _player,
     );
 
+    _enemy = resolution.attacker;
     _player = resolution.defender;
 
-    if (_player.isDefeated) {
-      _finishCombat(
-        resultType: BattleFlowResultType.defeat,
-        resultText: 'La unidad ha caido.',
-      );
+    if (_completeTurn(BattleTurnState.enemy)) {
       return;
     }
 
     // TODO: Add enemy ability selection once hostile AI supports more than basic attacks.
-    _turn = BattleTurnState.player;
-    notifyListeners();
+    _beginTurn(BattleTurnState.player);
   }
 
   void _finishCombat({
@@ -173,6 +174,72 @@ class BattleController extends ChangeNotifier {
     _combatExitTimer?.cancel();
     _enemyTurnTimer = null;
     _combatExitTimer = null;
+  }
+
+  void _beginTurn(BattleTurnState nextTurn, {bool notify = true}) {
+    _turn = nextTurn;
+
+    final playerBeforeHooks = _player;
+    final enemyBeforeHooks = _enemy;
+
+    _player = playerBeforeHooks.applyStatusTurnStart(
+      opponent: enemyBeforeHooks,
+      isOwnerTurn: nextTurn == BattleTurnState.player,
+    );
+    _enemy = enemyBeforeHooks.applyStatusTurnStart(
+      opponent: playerBeforeHooks,
+      isOwnerTurn: nextTurn == BattleTurnState.enemy,
+    );
+
+    if (_finishCombatFromCurrentState()) {
+      return;
+    }
+
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
+  bool _completeTurn(BattleTurnState completedTurn) {
+    final playerBeforeHooks = _player;
+    final enemyBeforeHooks = _enemy;
+
+    _player = playerBeforeHooks.applyStatusTurnEnd(
+      opponent: enemyBeforeHooks,
+      isOwnerTurn: completedTurn == BattleTurnState.player,
+    );
+    _enemy = enemyBeforeHooks.applyStatusTurnEnd(
+      opponent: playerBeforeHooks,
+      isOwnerTurn: completedTurn == BattleTurnState.enemy,
+    );
+
+    if (completedTurn == BattleTurnState.player) {
+      _player = _player.decrementStatusDurations();
+    } else if (completedTurn == BattleTurnState.enemy) {
+      _enemy = _enemy.decrementStatusDurations();
+    }
+
+    return _finishCombatFromCurrentState();
+  }
+
+  bool _finishCombatFromCurrentState() {
+    if (_enemy.isDefeated) {
+      _finishCombat(
+        resultType: BattleFlowResultType.victory,
+        resultText: 'Objetivo neutralizado.',
+      );
+      return true;
+    }
+
+    if (_player.isDefeated) {
+      _finishCombat(
+        resultType: BattleFlowResultType.defeat,
+        resultText: 'La unidad ha caido.',
+      );
+      return true;
+    }
+
+    return false;
   }
 
   @override

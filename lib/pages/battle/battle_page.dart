@@ -646,10 +646,16 @@ class _BattleStatusBar extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              EndpointHealthBar(
+              EndpointHealthBarWithStatuses(
+                battler: battler,
                 value: healthFactor,
                 accent: accent,
                 height: 10,
+                badgeSize: 20,
+                badgeOverlap: 6,
+                badgeAlignment: mirrorHorizontally
+                    ? WrapAlignment.end
+                    : WrapAlignment.start,
               ),
             ],
           ),

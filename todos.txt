@@ -1,4 +1,4 @@
-TODOS:
+TODOs:
 
 -Página de Selección de Camino
 --Barra de fase de día no está alineada verticalmente con los iconos en el stack
@@ -8,7 +8,11 @@ TODOS:
 --Manejar su inventario
 
 -Combate
---Añadir estados alterados
+[--Añadir estados alterados]
+--Arreglar nombre de enemigo y datos visibles durante el combate
+
+-Estados
+--Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)
 
 -Habilidades
 --Meter en el loot
