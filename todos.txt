@@ -1,0 +1,33 @@
+TODOS:
+
+-Sistema de acompañantes
+--Añadir al loot posibilidad de conseguir al acompañante
+--Manejar su inventario
+
+-Habilidades
+--Meter en el loot
+--Crear presets
+
+-Items
+--Meter al menos 100-120
+--Repartirlos bien
+
+-Tiendas
+--Mejorar aspecto y diseño
+--Crear más tiendas diferenciadas(después de añadir los Items)
+
+-Enemigos
+--Crear Presets(al menos 40 distintos)
+--Equipar adecuadamente
+
+-Codex
+--Códice con todos los items y habilidades descubiertos por el jugador
+
+-General
+--Sistema de guardado de partida
+--Volver a la pantalla del menú principal
+--Botón de Continuar
+--Cambio de avatar
+
+-Settings
+--Cambio de colores base(sets específicos)
