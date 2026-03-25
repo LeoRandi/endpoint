@@ -4,7 +4,9 @@ import 'package:endpoint/_imports.dart';
 
 void main() {
   test('opening hour always offers the three archetype nodes', () {
-    final snapshot = PathNodeService(seed: 1).buildHourSnapshot(
+    final snapshot = PathNodeService(
+      randomizer: RunRandomizer(seed: 1),
+    ).buildHourSnapshot(
       stageIndex: PathNodeService.startStageIndex,
     );
 
@@ -29,7 +31,9 @@ void main() {
 
   test('last hour before sunrise always offers the two recovery side nodes',
       () {
-    final snapshot = PathNodeService(seed: 7).buildHourSnapshot(
+    final snapshot = PathNodeService(
+      randomizer: RunRandomizer(seed: 7),
+    ).buildHourSnapshot(
       stageIndex: PathNodeService.sunriseStageIndex - 1,
     );
 

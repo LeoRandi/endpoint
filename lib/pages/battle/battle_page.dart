@@ -3,6 +3,7 @@ import '_imports.dart';
 class BattlePage extends StatefulWidget {
   final Battler enemy;
   final Battler player;
+  final RunRandomizer? randomizer;
   final String showTitle;
   final int victoryMoneyFactor;
   final Duration enemyTurnDelay;
@@ -13,6 +14,7 @@ class BattlePage extends StatefulWidget {
     super.key,
     this.enemy = defaultEnemyBattler,
     this.player = defaultPlayerBattler,
+    this.randomizer,
     this.showTitle = 'ENCOUNTER',
     this.victoryMoneyFactor = 0,
     this.enemyTurnDelay = const Duration(milliseconds: 900),
@@ -26,12 +28,13 @@ class BattlePage extends StatefulWidget {
 
 class _BattlePageState extends State<BattlePage> {
   late final BattleController _controller;
-  final Random _lootRandom = Random();
+  late final RunRandomizer _randomizer;
   bool _isPresentingVictoryRewards = false;
 
   @override
   void initState() {
     super.initState();
+    _randomizer = widget.randomizer ?? RunRandomizer();
     _controller = BattleController(
       enemy: widget.enemy,
       player: widget.player,
@@ -84,7 +87,7 @@ class _BattlePageState extends State<BattlePage> {
     final rewardedPlayer = await showEndpointOverlay<Battler>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.74),
+      barrierColor: EndpointPalette.overlayScrimStrong,
       builder: (_) => BattleLootOverlay(
         player: exitResult.player,
         lootItem: lootItem,
@@ -118,7 +121,7 @@ class _BattlePageState extends State<BattlePage> {
         .toList(growable: false);
     final resolvedPool = preferredPool.isNotEmpty ? preferredPool : lootPool;
 
-    return resolvedPool[_lootRandom.nextInt(resolvedPool.length)];
+    return resolvedPool[_randomizer.nextInt(resolvedPool.length)];
   }
 
   void _completeBattleExit(BattleFlowResult exitResult) {
@@ -150,7 +153,7 @@ class _BattlePageState extends State<BattlePage> {
         player: _controller.player,
         items: _controller.player.inventoryItems,
       ),
-      barrierColor: Colors.black.withOpacity(0.12),
+      barrierColor: EndpointPalette.overlayScrimSoft,
     );
   }
 
@@ -158,32 +161,16 @@ class _BattlePageState extends State<BattlePage> {
     Battler battler,
     Item item,
   ) async {
-    await showGeneralDialog<void>(
+    await showEndpointDialog<void>(
       context: context,
-      barrierDismissible: true,
       barrierLabel: 'Detalle de objeto equipado',
-      barrierColor: Colors.black.withOpacity(0.62),
-      transitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
         return EndpointItemDetailsDialog(
           item: item,
           accent: item.rarity.accent,
           price: item.cost,
           statusText: _statusLabelFor(battler, item),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
-            child: child,
-          ),
         );
       },
     );
@@ -206,21 +193,39 @@ class _BattlePageState extends State<BattlePage> {
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
+          const enemyAccent = EndpointPalette.dangerAccent;
+          const playerAccent = EndpointPalette.primaryAccent;
+          final enemyBackground = [
+            EndpointPalette.blend(
+              EndpointPalette.panelBackgroundBattle,
+              enemyAccent,
+              0.42,
+            ),
+            EndpointPalette.blend(
+              EndpointPalette.scaffoldBackground,
+              enemyAccent,
+              0.12,
+            ),
+          ];
+          final playerBackground = [
+            EndpointPalette.blend(
+              EndpointPalette.panelBackground,
+              playerAccent,
+              0.1,
+            ),
+            EndpointPalette.blend(
+              EndpointPalette.scaffoldBackground,
+              playerAccent,
+              0.04,
+            ),
+          ];
+
           return Scaffold(
             body: NodeSceneWrapper(
               showTitle: widget.showTitle,
               child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF090406),
-                      Color(0xFF050907),
-                      Color(0xFF020403),
-                    ],
-                  ),
-                ),
+                decoration:
+                    const BoxDecoration(gradient: EndpointGradients.battle),
                 child: SafeArea(
                   child: Stack(
                     fit: StackFit.expand,
@@ -231,11 +236,8 @@ class _BattlePageState extends State<BattlePage> {
                             child: _BattleSide(
                               title: 'THREAT',
                               subtitle: 'Enemy',
-                              accent: const Color(0xFFFF6B6B),
-                              background: const [
-                                Color(0xFF230C11),
-                                Color(0xFF12060A),
-                              ],
+                              accent: enemyAccent,
+                              background: enemyBackground,
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
                                   enemy: _controller.enemy,
@@ -250,17 +252,14 @@ class _BattlePageState extends State<BattlePage> {
                           ),
                           Container(
                             height: 2,
-                            color: const Color(0x335AF78E),
+                            color: playerAccent.withOpacity(0.2),
                           ),
                           Expanded(
                             child: _BattleSide(
                               title: 'OPERATIVE',
                               subtitle: 'Player',
-                              accent: const Color(0xFF5AF78E),
-                              background: const [
-                                Color(0xFF07110D),
-                                Color(0xFF030806),
-                              ],
+                              accent: playerAccent,
+                              background: playerBackground,
                               child: SizedBox.expand(
                                 child: _PlayerBattleHud(
                                   player: _controller.player,
@@ -351,7 +350,7 @@ class _BattleSide extends StatelessWidget {
                 EndpointText(
                   subtitle,
                   style: textSmallBold.copyWith(
-                    color: Colors.white.withOpacity(0.72),
+                    color: EndpointPalette.softForeground.withOpacity(0.72),
                     fontSize: 12,
                     letterSpacing: 1,
                   ),
@@ -383,16 +382,16 @@ class _TurnBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = isCombatFinished
-        ? const Color(0xFFEBCB5A)
+        ? EndpointPalette.rewardAccent
         : isEnemyTurn
-            ? const Color(0xFFFF6B6B)
-            : const Color(0xFF5AF78E);
+            ? EndpointPalette.dangerAccent
+            : EndpointPalette.primaryAccent;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 240),
       child: EndpointPanel(
         accent: accent,
-        backgroundColor: const Color(0xCC05100B),
+        backgroundColor: EndpointPalette.panelBackgroundBattle,
         borderRadius: 10,
         glowOpacity: 0.04,
         blurRadius: 16,
@@ -415,7 +414,7 @@ class _TurnBanner extends StatelessWidget {
               description,
               textAlign: TextAlign.center,
               style: textSmallBold.copyWith(
-                color: Colors.white.withOpacity(0.84),
+                color: EndpointPalette.softForeground.withOpacity(0.84),
                 fontSize: 11,
                 letterSpacing: 0.5,
               ),
@@ -484,14 +483,14 @@ class _PlayerBattleHud extends StatelessWidget {
         const Spacer(),
         _BattleLoadoutStrip(
           battler: player,
-          accent: const Color(0xFF5AF78E),
+          accent: EndpointPalette.primaryAccent,
           mirrorHorizontally: false,
           onItemPressed: onOpenEquippedItemDetails,
         ),
         const SizedBox(height: 8),
         _BattleStatusBar(
           battler: player,
-          accent: const Color(0xFF5AF78E),
+          accent: EndpointPalette.primaryAccent,
           factionLabel: 'ALLY',
           mirrorHorizontally: false,
         ),
@@ -507,7 +506,7 @@ class _PlayerBattleHud extends StatelessWidget {
             const Spacer(),
             _BattleSpriteDock(
               emoji: player.iconEmoji,
-              accent: Color(0xFF5AF78E),
+              accent: EndpointPalette.primaryAccent,
               label: 'TU',
               mirror: true,
             ),
@@ -532,12 +531,12 @@ class _EnemyBattleHud extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Row(
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _BattleSpriteDock(
               emoji: '\u{1F47E}',
-              accent: Color(0xFFFF6B6B),
+              accent: EndpointPalette.dangerAccent,
               label: 'FOE',
             ),
             Spacer(),
@@ -546,14 +545,14 @@ class _EnemyBattleHud extends StatelessWidget {
         const SizedBox(height: 8),
         _BattleStatusBar(
           battler: enemy,
-          accent: const Color(0xFFFF6B6B),
+          accent: EndpointPalette.dangerAccent,
           factionLabel: 'HOSTILE',
           mirrorHorizontally: true,
         ),
         const SizedBox(height: 8),
         _BattleLoadoutStrip(
           battler: enemy,
-          accent: const Color(0xFFFF6B6B),
+          accent: EndpointPalette.dangerAccent,
           mirrorHorizontally: true,
           onItemPressed: onOpenEquippedItemDetails,
         ),
@@ -587,7 +586,7 @@ class _BattleStatusBar extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 300),
         child: EndpointPanel(
           accent: accent,
-          backgroundColor: const Color(0xCC05100B),
+          backgroundColor: EndpointPalette.panelBackgroundBattle,
           borderRadius: 10,
           glowOpacity: 0,
           padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
@@ -617,7 +616,7 @@ class _BattleStatusBar extends StatelessWidget {
                       textAlign:
                           mirrorHorizontally ? TextAlign.right : TextAlign.left,
                       style: textSmallBold.copyWith(
-                        color: const Color(0xFFE6FFF0),
+                        color: EndpointPalette.softForeground,
                         fontSize: 12,
                         letterSpacing: 0.8,
                       ),
@@ -780,7 +779,7 @@ class _AbilitySlotTile extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xCC05100B),
+            color: EndpointPalette.panelBackgroundBattle,
             border: Border.all(color: accent.withOpacity(0.5), width: 1.2),
             boxShadow: [
               BoxShadow(
@@ -824,7 +823,7 @@ class _BattleSpriteDock extends StatelessWidget {
   Widget build(BuildContext context) {
     return EndpointPanel(
       accent: accent,
-      backgroundColor: const Color(0xCC05100B),
+      backgroundColor: EndpointPalette.panelBackgroundBattle,
       borderRadius: 12,
       glowOpacity: 0.06,
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
@@ -841,7 +840,7 @@ class _BattleSpriteDock extends StatelessWidget {
           EndpointText(
             label,
             style: textSmallBold.copyWith(
-              color: const Color(0xFFE6FFF0),
+              color: EndpointPalette.softForeground,
               fontSize: 12,
               letterSpacing: 0.9,
             ),

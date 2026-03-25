@@ -5,6 +5,7 @@ export 'camp_site_service.dart';
 export 'path_node_service.dart';
 export 'path_event_visit_result.dart';
 export 'run_hour_snapshot.dart';
+export 'run_randomizer.dart';
 export 'run_session_controller.dart';
 export 'run_state.dart';
 export 'weapon_shop_controller.dart';

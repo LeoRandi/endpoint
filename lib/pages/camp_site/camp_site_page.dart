@@ -3,6 +3,7 @@ import '_imports.dart';
 class CampSitePage extends StatefulWidget {
   final Battler player;
   final CampSiteService recoveryService;
+  final RunRandomizer? randomizer;
   final String showTitle;
   final String sceneTitle;
   final String description;
@@ -13,6 +14,7 @@ class CampSitePage extends StatefulWidget {
     super.key,
     required this.player,
     this.recoveryService = const CampSiteService(),
+    this.randomizer,
     this.showTitle = 'Has encontrado una zona de descanso',
     this.sceneTitle = 'ZONA DE DESCANSO',
     this.description = 'Recuperas toda tu vida.',
@@ -30,7 +32,10 @@ class _CampSitePageState extends State<CampSitePage> {
   @override
   void initState() {
     super.initState();
-    _visitResult = widget.recoveryService.recover(widget.player);
+    _visitResult = widget.recoveryService.recover(
+      widget.player,
+      randomizer: widget.randomizer,
+    );
   }
 
   void _closeCamp() {
@@ -48,15 +53,7 @@ class _CampSitePageState extends State<CampSitePage> {
       onWillPop: _handleWillPop,
       child: EndpointCenterStageScene(
         showTitle: widget.showTitle,
-        background: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF061008),
-            Color(0xFF0B1510),
-            Color(0xFF020403),
-          ],
-        ),
+        background: EndpointGradients.camp,
         backdrop: const _CampBackdrop(),
         onClose: _closeCamp,
         closeTooltip: EndpointStrings.backToRoute,
@@ -64,7 +61,7 @@ class _CampSitePageState extends State<CampSitePage> {
         emoji: widget.iconEmoji,
         emojiSize: 144,
         title: widget.sceneTitle,
-        titleColor: const Color(0xFFD6FFE5),
+        titleColor: EndpointPalette.soften(widget.accent, amount: 0.24),
         content: Column(
           children: [
             EndpointText(
@@ -72,12 +69,12 @@ class _CampSitePageState extends State<CampSitePage> {
               textAlign: TextAlign.center,
               maxLines: null,
               style: textMedium.copyWith(
-                color: Colors.white.withOpacity(0.84),
+                color: EndpointPalette.softForeground.withOpacity(0.84),
               ),
             ),
             const SizedBox(height: 18),
             EndpointPanel(
-              backgroundColor: const Color(0xCC07120D),
+              backgroundColor: EndpointPalette.panelBackgroundSoft,
               padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
               child: Column(
                 children: [
@@ -96,7 +93,7 @@ class _CampSitePageState extends State<CampSitePage> {
                     textAlign: TextAlign.center,
                     maxLines: null,
                     style: textMedium.copyWith(
-                      color: Colors.white.withOpacity(0.76),
+                      color: EndpointPalette.softForeground.withOpacity(0.76),
                     ),
                   ),
                   if (widget.recoveryService.removeRandomDebuff) ...[
@@ -108,7 +105,7 @@ class _CampSitePageState extends State<CampSitePage> {
                       textAlign: TextAlign.center,
                       maxLines: null,
                       style: textMedium.copyWith(
-                        color: Colors.white.withOpacity(0.76),
+                        color: EndpointPalette.softForeground.withOpacity(0.76),
                       ),
                     ),
                   ],
@@ -141,10 +138,10 @@ class _CampBackdropPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = const Color(0x115AF78E)
+      ..color = EndpointPalette.primaryAccent.withOpacity(0.07)
       ..strokeWidth = 1;
     final ringPaint = Paint()
-      ..color = const Color(0x1A5AF78E)
+      ..color = EndpointPalette.primaryAccent.withOpacity(0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 

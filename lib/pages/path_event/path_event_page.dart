@@ -29,16 +29,7 @@ class PathEventPage extends StatelessWidget {
     // TODO: Apply temporary status effects and timed modifiers when event logic exists.
     return EndpointCenterStageScene(
       showTitle: showTitle,
-      background: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color.lerp(const Color(0xFF050907), accent, 0.12) ??
-              const Color(0xFF050907),
-          const Color(0xFF09120D),
-          const Color(0xFF020403),
-        ],
-      ),
+      background: EndpointGradients.event(accent),
       onClose: () => _close(context),
       closeTooltip: EndpointStrings.backToRoute,
       accent: accent,
@@ -46,7 +37,7 @@ class PathEventPage extends StatelessWidget {
       title: eventTitle,
       content: EndpointPanel(
         accent: accent,
-        backgroundColor: const Color(0xCC07120D),
+        backgroundColor: EndpointPalette.panelBackgroundSoft,
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
         child: Column(
           children: [
@@ -55,7 +46,7 @@ class PathEventPage extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: null,
               style: textMedium.copyWith(
-                color: Colors.white.withOpacity(0.84),
+                color: EndpointPalette.softForeground.withOpacity(0.84),
               ),
             ),
             const SizedBox(height: 10),

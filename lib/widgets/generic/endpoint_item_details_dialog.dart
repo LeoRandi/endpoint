@@ -26,9 +26,15 @@ class EndpointItemDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground =
-        Color.lerp(Colors.white, accent, 0.32) ?? const Color(0xFFEEDB96);
+    final foreground = EndpointPalette.soften(accent);
     final screenSize = MediaQuery.sizeOf(context);
+    final effectSurface =
+        EndpointPalette.blend(EndpointPalette.panelBackground, accent, 0.12);
+    final statusSurface = EndpointPalette.blend(
+      EndpointPalette.panelBackgroundGold,
+      accent,
+      0.16,
+    );
 
     return Center(
       child: Padding(
@@ -43,7 +49,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
               ),
               child: EndpointPanel(
                 accent: accent,
-                backgroundColor: const Color(0xF017130B),
+                backgroundColor: EndpointPalette.panelBackgroundGold,
                 borderRadius: 18,
                 glowOpacity: 0.12,
                 blurRadius: 26,
@@ -106,14 +112,14 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                           maxLines: null,
                           style: textMedium.copyWith(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.84),
+                            color: EndpointPalette.softForeground.withOpacity(0.84),
                           ),
                         ),
                         if (item.effect != null) ...[
                           const SizedBox(height: 12),
                           EndpointPanel(
                             accent: accent,
-                            backgroundColor: const Color(0xCC101A13),
+                            backgroundColor: effectSurface,
                             glowOpacity: 0.03,
                             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                             child: EndpointText(
@@ -121,7 +127,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                               maxLines: null,
                               style: textSmallBold.copyWith(
                                 fontSize: 10,
-                                color: const Color(0xFFE6FFF0),
+                                color: EndpointPalette.softForeground,
                                 letterSpacing: 0.9,
                               ),
                             ),
@@ -140,7 +146,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                         const SizedBox(height: 12),
                         EndpointPanel(
                           accent: accent,
-                          backgroundColor: const Color(0xCC2A2212),
+                          backgroundColor: statusSurface,
                           glowOpacity: 0.03,
                           padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                           child: EndpointText(
@@ -148,7 +154,8 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                             maxLines: null,
                             style: textSmallBold.copyWith(
                               fontSize: 10,
-                              color: Colors.white.withOpacity(0.76),
+                              color:
+                                  EndpointPalette.softForeground.withOpacity(0.76),
                               letterSpacing: 0.9,
                             ),
                           ),
@@ -166,7 +173,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                                   ? enabledActionTooltip
                                   : disabledActionTooltip,
                               accent: accent,
-                              backgroundColor: const Color(0xFF2A2212),
+                              backgroundColor: statusSurface,
                               foregroundColor: foreground,
                               borderWidth: 1.3,
                               padding: const EdgeInsets.symmetric(
@@ -192,7 +199,11 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                 tooltip: 'Cerrar detalle',
                 accent: accent,
                 foregroundColor: foreground,
-                backgroundColor: const Color(0xFF17130B),
+                backgroundColor: EndpointPalette.blend(
+                  EndpointPalette.panelBackgroundGold,
+                  accent,
+                  0.08,
+                ),
               ),
             ),
           ],

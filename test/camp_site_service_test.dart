@@ -15,7 +15,10 @@ void main() {
       ],
     );
 
-    final result = restZoneCampNode.recoveryService.recover(player);
+    final result = CampSiteService(
+      recoveryFactor: restZoneCampNode.recoveryFactor,
+      removeRandomDebuff: restZoneCampNode.removeRandomDebuff,
+    ).recover(player);
 
     expect(result.player.health, 10);
     expect(result.healedAmount, 6);
@@ -36,7 +39,10 @@ void main() {
       ],
     );
 
-    final result = severeMedicationCampNode.recoveryService.recover(player);
+    final result = CampSiteService(
+      recoveryFactor: severeMedicationCampNode.recoveryFactor,
+      removeRandomDebuff: severeMedicationCampNode.removeRandomDebuff,
+    ).recover(player);
 
     expect(result.player.health, 8);
     expect(result.healedAmount, 4);

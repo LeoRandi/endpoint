@@ -61,7 +61,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   Future<void> _handleOpenOperatives() async {
     await showEndpointOverlay<void>(
       context: context,
-      barrierColor: const Color(0xB0000000),
+      barrierColor: EndpointPalette.overlayScrimStrong,
       builder: (_) => OperativesOverlay(
         player: _sessionController.player,
         onPlayerChanged: _sessionController.updatePlayer,
@@ -74,6 +74,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       page: BattlePage(
         enemy: node.enemy,
         player: _sessionController.player,
+        randomizer: _sessionController.randomizer,
         showTitle: node.showTitle,
         victoryMoneyFactor: node.tier.factor,
         enemyTurnDelay: _sessionController.state.battleEnemyTurnDelay,
@@ -107,8 +108,11 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     await _openNodeScene<CampSiteVisitResult>(
       page: CampSitePage(
         player: _sessionController.player,
-        recoveryService:
-            resolvedNode?.recoveryService ?? const CampSiteService(),
+        recoveryService: CampSiteService(
+          recoveryFactor: resolvedNode?.recoveryFactor ?? 1,
+          removeRandomDebuff: resolvedNode?.removeRandomDebuff ?? false,
+        ),
+        randomizer: _sessionController.randomizer,
         showTitle:
             resolvedNode?.showTitle ?? 'Has encontrado una zona de descanso',
         sceneTitle: resolvedNode?.sceneTitle ?? 'ZONA DE DESCANSO',
@@ -196,17 +200,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
         return Scaffold(
           body: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF050A08),
-                  Color(0xFF09120D),
-                  Color(0xFF020403),
-                ],
-              ),
-            ),
+            decoration: const BoxDecoration(gradient: EndpointGradients.path),
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -293,7 +287,7 @@ class _PathHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EndpointPanel(
-      backgroundColor: const Color(0xCC07120D),
+      backgroundColor: EndpointPalette.panelBackgroundSoft,
       borderRadius: 18,
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: _RunTimelineMeter(currentHour: currentHour),
@@ -355,7 +349,7 @@ class _PathBottomHud extends StatelessWidget {
                         height: avatarSize,
                         child: EndpointEmojiSprite(
                           emoji: player.iconEmoji,
-                          accent: const Color(0xFF5AF78E),
+                          accent: EndpointPalette.primaryAccent,
                           size: avatarSize,
                         ),
                       ),
@@ -363,8 +357,8 @@ class _PathBottomHud extends StatelessWidget {
                       EndpointValueChip(
                         icon: Icons.monetization_on_rounded,
                         value: player.money,
-                        accent: const Color(0xFFF3D35C),
-                        foreground: const Color(0xFFFFF4C7),
+                        accent: EndpointPalette.warningAccent,
+                        foreground: EndpointPalette.softForegroundWarm,
                         textStyle: chipTextStyle,
                       ),
                     ],
@@ -402,7 +396,7 @@ class _PathPlayerStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF5AF78E);
+    const accent = EndpointPalette.primaryAccent;
     final statChipTextStyle = textMediumBold.copyWith(
       fontSize: 14,
       letterSpacing: 1.2,
@@ -415,7 +409,7 @@ class _PathPlayerStatus extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 320),
       child: EndpointPanel(
         accent: accent,
-        backgroundColor: const Color(0xD907120D),
+        backgroundColor: EndpointPalette.panelBackgroundStrong,
         borderRadius: 16,
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: Column(
@@ -428,7 +422,7 @@ class _PathPlayerStatus extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textMediumBold.copyWith(
-                      color: const Color(0xFFE6FFF0),
+                      color: EndpointPalette.softForeground,
                       letterSpacing: 1.4,
                     ),
                   ),
@@ -460,21 +454,22 @@ class _PathPlayerStatus extends StatelessWidget {
                   label: 'ATK',
                   value: player.attack,
                   accent: accent,
-                  foreground: const Color(0xFFBDEECC),
+                  foreground: EndpointPalette.soften(accent, amount: 0.24),
                   textStyle: statChipTextStyle,
                 ),
                 EndpointValueChip(
                   label: 'DEF',
                   value: player.defense,
                   accent: accent,
-                  foreground: const Color(0xFFBDEECC),
+                  foreground: EndpointPalette.soften(accent, amount: 0.24),
                   textStyle: statChipTextStyle,
                 ),
                 EndpointValueChip(
                   icon: Icons.trending_up_rounded,
                   value: player.income,
-                  accent: const Color(0xFF59B7FF),
-                  foreground: const Color(0xFFD7EEFF),
+                  accent: EndpointPalette.infoAccent,
+                  foreground:
+                      EndpointPalette.soften(EndpointPalette.infoAccent),
                   textStyle: statChipTextStyle,
                 ),
               ],
@@ -511,7 +506,9 @@ class _RunTimelineMeter extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.34),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: const Color(0x335AF78E)),
+              border: Border.all(
+                color: EndpointPalette.primaryAccent.withOpacity(0.2),
+              ),
             ),
           ),
           FractionallySizedBox(
@@ -522,10 +519,10 @@ class _RunTimelineMeter extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
                 gradient: const LinearGradient(
                   colors: [
-                    Color(0xFF5AF78E),
-                    Color(0xFFDBB95A),
-                    Color(0xFF59B7FF),
-                    Color(0xFFF3D35C),
+                    EndpointPalette.primaryAccent,
+                    EndpointPalette.shopAccent,
+                    EndpointPalette.infoAccent,
+                    EndpointPalette.warningAccent,
                   ],
                 ),
               ),
@@ -542,18 +539,18 @@ class _RunTimelineMeter extends StatelessWidget {
       _buildMarker(
         alignmentX: -1,
         icon: Icons.wb_sunny_outlined,
-        color: const Color(0xFF5AF78E),
+        color: EndpointPalette.primaryAccent,
       ),
       _buildMarker(
         alignmentX: _alignmentForProgress(
             PathNodeService.duskStageIndex / PathNodeService.sunriseStageIndex),
         icon: Icons.dark_mode_outlined,
-        color: const Color(0xFF59B7FF),
+        color: EndpointPalette.infoAccent,
       ),
       _buildMarker(
         alignmentX: 1,
         icon: Icons.sunny,
-        color: const Color(0xFFF3D35C),
+        color: EndpointPalette.warningAccent,
       ),
     ];
   }
@@ -569,7 +566,7 @@ class _RunTimelineMeter extends StatelessWidget {
         width: 20,
         height: 20,
         decoration: BoxDecoration(
-          color: const Color(0xFF07120D),
+          color: EndpointPalette.panelBackground,
           shape: BoxShape.circle,
           border: Border.all(color: color),
         ),
@@ -610,10 +607,10 @@ class _PathBackdropPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = const Color(0x115AF78E)
+      ..color = EndpointPalette.primaryAccent.withOpacity(0.07)
       ..strokeWidth = 1;
     final pathPaint = Paint()
-      ..color = const Color(0x245AF78E)
+      ..color = EndpointPalette.primaryAccent.withOpacity(0.14)
       ..strokeWidth = 2.4
       ..style = PaintingStyle.stroke;
 

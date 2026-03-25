@@ -19,7 +19,7 @@ class WeaponShopPage extends StatefulWidget {
     this.shopTitle = 'TIENDA DE ARMAS',
     this.shopSubtitle = 'Adquiere y equipa piezas para la ruta.',
     this.iconEmoji = '\u{2694}',
-    this.accent = const Color(0xFFDBB95A),
+    this.accent = EndpointPalette.shopAccent,
   });
 
   @override
@@ -50,13 +50,11 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
   }
 
   Future<void> _openItemDetails(Item item) async {
-    await showGeneralDialog<void>(
+    await showEndpointDialog<void>(
       context: context,
-      barrierDismissible: true,
       barrierLabel: 'Detalle de objeto',
-      barrierColor: Colors.black.withOpacity(0.62),
-      transitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
         return AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
@@ -76,20 +74,6 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
           },
         );
       },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
-            child: child,
-          ),
-        );
-      },
     );
   }
 
@@ -107,25 +91,24 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
         builder: (context, child) {
           final player = _controller.player;
           final accent = widget.accent;
-          final foreground =
-              Color.lerp(Colors.white, accent, 0.32) ?? const Color(0xFFEEDB96);
+          final foreground = EndpointPalette.soften(accent);
+          final panelBackground = EndpointPalette.blend(
+            EndpointPalette.panelBackgroundGold,
+            accent,
+            0.08,
+          );
+          final tileBackground = EndpointPalette.blend(
+            EndpointPalette.panelBackgroundSoft,
+            accent,
+            0.12,
+          );
 
           return Scaffold(
             body: NodeSceneWrapper(
               showTitle: widget.showTitle,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color.lerp(const Color(0xFF090705), accent, 0.12) ??
-                          const Color(0xFF090705),
-                      Color.lerp(const Color(0xFF11120A), accent, 0.08) ??
-                          const Color(0xFF11120A),
-                      const Color(0xFF030403),
-                    ],
-                  ),
+                  gradient: EndpointGradients.shop(accent),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
@@ -143,7 +126,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                 tooltip: 'Salir de la tienda',
                                 accent: accent,
                                 foregroundColor: foreground,
-                                backgroundColor: const Color(0xFF17130B),
+                                backgroundColor: panelBackground,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -160,13 +143,14 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               widget.shopSubtitle,
                               textAlign: TextAlign.center,
                               style: textMedium.copyWith(
-                                color: Colors.white.withOpacity(0.82),
+                                color:
+                                    EndpointPalette.softForeground.withOpacity(0.82),
                               ),
                             ),
                             const SizedBox(height: 14),
                             EndpointPanel(
                               accent: accent,
-                              backgroundColor: const Color(0xCC17130B),
+                              backgroundColor: panelBackground,
                               glowOpacity: 0.08,
                               padding:
                                   const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -201,7 +185,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                             EndpointText(
                                               'ATK ${player.attack}   DEF ${player.defense}   HP ${player.health}/${player.maxHealth}',
                                               style: textSmallBold.copyWith(
-                                                color: Colors.white
+                                                color: EndpointPalette.softForeground
                                                     .withOpacity(0.8),
                                                 letterSpacing: 0.9,
                                               ),
@@ -243,6 +227,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                     statusLabel:
                                         _controller.availabilityLabelFor(item),
                                     accent: accent,
+                                    backgroundColor: tileBackground,
                                     foreground: foreground,
                                   );
                                 },
@@ -275,6 +260,7 @@ class _ShopItemTile extends StatelessWidget {
   final int price;
   final String statusLabel;
   final Color accent;
+  final Color backgroundColor;
   final Color foreground;
   final VoidCallback onPressed;
 
@@ -283,6 +269,7 @@ class _ShopItemTile extends StatelessWidget {
     required this.price,
     required this.statusLabel,
     required this.accent,
+    required this.backgroundColor,
     required this.foreground,
     required this.onPressed,
   });
@@ -298,7 +285,7 @@ class _ShopItemTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: EndpointPanel(
             accent: accent,
-            backgroundColor: const Color(0xCC17130B),
+            backgroundColor: backgroundColor,
             glowOpacity: 0.06,
             borderRadius: 16,
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
@@ -334,7 +321,7 @@ class _ShopItemTile extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: textSmallBold.copyWith(
                     fontSize: 10,
-                    color: Colors.white.withOpacity(0.72),
+                    color: EndpointPalette.softForeground.withOpacity(0.72),
                     letterSpacing: 0.9,
                   ),
                 ),
@@ -365,14 +352,14 @@ class _ShopEconomyStrip extends StatelessWidget {
         EndpointValueChip(
           icon: Icons.monetization_on_rounded,
           value: money,
-          accent: const Color(0xFFF3D35C),
-          foreground: const Color(0xFFFFF4C7),
+          accent: EndpointPalette.warningAccent,
+          foreground: EndpointPalette.softForegroundWarm,
         ),
         EndpointValueChip(
           icon: Icons.trending_up_rounded,
           value: income,
-          accent: const Color(0xFF59B7FF),
-          foreground: const Color(0xFFD7EEFF),
+          accent: EndpointPalette.infoAccent,
+          foreground: EndpointPalette.soften(EndpointPalette.infoAccent),
         ),
       ],
     );

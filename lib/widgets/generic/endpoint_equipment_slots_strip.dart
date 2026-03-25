@@ -62,22 +62,14 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
     this.tileHeight = 84,
     this.emojiSize = 18,
     this.spacing = 8,
-    this.borderColor = const Color(0x335AF78E),
-    this.backgroundColor = const Color(0x66030807),
-    this.textColor = const Color(0xFFE6FFF0),
+    this.borderColor = EndpointPalette.accentBorderSoft,
+    this.backgroundColor = EndpointPalette.controlBackground,
+    this.textColor = EndpointPalette.softForeground,
   });
 
   @override
   Widget build(BuildContext context) {
-    final slots = layout == EndpointEquipmentLayout.standard
-        ? const <_EndpointEquipmentVisualSlot>[
-            _EndpointEquipmentVisualSlot.weapon,
-            _EndpointEquipmentVisualSlot.armor,
-            _EndpointEquipmentVisualSlot.accessory,
-          ]
-        : const <_EndpointEquipmentVisualSlot>[
-            _EndpointEquipmentVisualSlot.generic,
-          ];
+    final slots = _buildSlots();
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -90,40 +82,71 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
     );
   }
 
-  Widget _buildSlotTile(_EndpointEquipmentVisualSlot slot) {
-    final item = _itemForSlot(slot);
-
+  Widget _buildSlotTile(_EndpointEquipmentSlotData slotData) {
     return SizedBox(
       width: tileExtent,
       height: tileHeight,
       child: _EndpointEquipmentSlotTile(
-        item: item,
-        slot: slot,
+        item: slotData.item,
+        slot: slotData.slot,
         emojiSize: emojiSize,
         borderColor: borderColor,
         backgroundColor: backgroundColor,
         textColor: textColor,
         onPressed:
-            onItemPressed == null || item == null
+            onItemPressed == null || slotData.item == null
                 ? null
-                : () => onItemPressed!.call(item),
+                : () => onItemPressed!.call(slotData.item!),
       ),
     );
   }
 
-  Item? _itemForSlot(_EndpointEquipmentVisualSlot slot) {
-    switch (slot) {
-      case _EndpointEquipmentVisualSlot.weapon:
-        return battler.equippedItemForSlot(ItemSlot.weapon);
-      case _EndpointEquipmentVisualSlot.armor:
-        return battler.equippedItemForSlot(ItemSlot.offHand);
-      case _EndpointEquipmentVisualSlot.accessory:
-        return battler.equippedItemForSlot(ItemSlot.accessory);
-      case _EndpointEquipmentVisualSlot.generic:
-        if (battler.equippedItems.isEmpty) return null;
-        return battler.equippedItems.first;
+  List<_EndpointEquipmentSlotData> _buildSlots() {
+    switch (layout) {
+      case EndpointEquipmentLayout.standard:
+        return [
+          _EndpointEquipmentSlotData(
+            slot: _EndpointEquipmentVisualSlot.weapon,
+            item: battler.equippedItemForSlot(ItemSlot.weapon),
+          ),
+          _EndpointEquipmentSlotData(
+            slot: _EndpointEquipmentVisualSlot.armor,
+            item: battler.equippedItemForSlot(ItemSlot.offHand),
+          ),
+          _EndpointEquipmentSlotData(
+            slot: _EndpointEquipmentVisualSlot.accessory,
+            item: battler.equippedItemForSlot(ItemSlot.accessory),
+          ),
+        ];
+      case EndpointEquipmentLayout.generic:
+        if (battler.equippedItems.isEmpty) {
+          return const [
+            _EndpointEquipmentSlotData(
+              slot: _EndpointEquipmentVisualSlot.generic,
+            ),
+          ];
+        }
+
+        return battler.equippedItems
+            .map(
+              (item) => _EndpointEquipmentSlotData(
+                slot: _EndpointEquipmentVisualSlot.generic,
+                item: item,
+              ),
+            )
+            .toList(growable: false);
     }
   }
+}
+
+class _EndpointEquipmentSlotData {
+  final _EndpointEquipmentVisualSlot slot;
+  final Item? item;
+
+  const _EndpointEquipmentSlotData({
+    required this.slot,
+    this.item,
+  });
 }
 
 class _EndpointEquipmentSlotTile extends StatelessWidget {

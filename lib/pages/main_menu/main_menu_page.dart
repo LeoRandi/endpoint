@@ -43,17 +43,7 @@ class _MainMenuPageState extends State<MainMenuPage>
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF040A07),
-              Color(0xFF0A1710),
-              Color(0xFF020403),
-            ],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: EndpointGradients.menu),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -88,7 +78,10 @@ class _MainMenuPageState extends State<MainMenuPage>
                                     fontSize: 42,
                                     letterSpacing: 3.2,
                                     color: Color.lerp(
-                                      const Color(0xFFD6FFE5),
+                                      EndpointPalette.soften(
+                                        accent,
+                                        amount: 0.12,
+                                      ),
                                       accent,
                                       _glow.value,
                                     ),
@@ -160,12 +153,12 @@ class _MenuBackdrop extends StatelessWidget {
           child: Container(
             width: 180,
             height: 180,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Color(0x225AF78E),
-                  Color(0x00030807),
+                  EndpointPalette.primaryAccent.withOpacity(0.13),
+                  EndpointPalette.scaffoldBackground.withOpacity(0),
                 ],
               ),
             ),
@@ -176,12 +169,16 @@ class _MenuBackdrop extends StatelessWidget {
           child: Container(
             width: 220,
             height: 220,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Color(0x1822A36A),
-                  Color(0x00030807),
+                  EndpointPalette.blend(
+                    EndpointPalette.primaryAccent,
+                    EndpointPalette.panelBackground,
+                    0.35,
+                  ).withOpacity(0.1),
+                  EndpointPalette.scaffoldBackground.withOpacity(0),
                 ],
               ),
             ),
@@ -202,16 +199,14 @@ class _ScanlinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const scanlineColor = Color(0x0819FF8B);
-    const gridColor = Color(0x105AF78E);
     const scanlineStep = 24.0;
     const gridStep = 48.0;
 
     final scanlinePaint = Paint()
-      ..color = scanlineColor
+      ..color = EndpointPalette.primaryAccent.withOpacity(0.03)
       ..strokeWidth = 1;
     final gridPaint = Paint()
-      ..color = gridColor
+      ..color = EndpointPalette.primaryAccent.withOpacity(0.06)
       ..strokeWidth = 1;
 
     for (double y = 0; y <= size.height; y += scanlineStep) {

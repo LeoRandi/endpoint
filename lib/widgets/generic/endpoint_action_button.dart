@@ -15,6 +15,13 @@ class EndpointActionButton extends StatelessWidget {
   final double iconSize;
   final bool expands;
   final bool allowDisabledTooltip;
+  final Axis layoutAxis;
+  final int labelMaxLines;
+  final TextAlign labelTextAlign;
+  final double iconSpacing;
+  final double? width;
+  final double? height;
+  final bool useMarquee;
 
   const EndpointActionButton({
     super.key,
@@ -22,9 +29,9 @@ class EndpointActionButton extends StatelessWidget {
     this.icon,
     this.onPressed,
     this.tooltip = '',
-    this.accent = const Color(0xFF5AF78E),
-    this.backgroundColor = const Color(0xFF102519),
-    this.foregroundColor = const Color(0xFFE6FFF0),
+    this.accent = EndpointPalette.primaryAccent,
+    this.backgroundColor = EndpointPalette.closeButtonBackground,
+    this.foregroundColor = EndpointPalette.softForeground,
     this.textStyle = textMediumBold,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     this.borderRadius = 12,
@@ -32,29 +39,41 @@ class EndpointActionButton extends StatelessWidget {
     this.iconSize = 22,
     this.expands = false,
     this.allowDisabledTooltip = true,
+    this.layoutAxis = Axis.horizontal,
+    this.labelMaxLines = 1,
+    this.labelTextAlign = TextAlign.center,
+    this.iconSpacing = 8,
+    this.width,
+    this.height,
+    this.useMarquee = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    Widget button;
-    if (icon == null) {
-      button = FilledButton(
-        onPressed: onPressed,
-        style: _buttonStyle(),
-        child: EndpointMarqueeText(label, overflow: TextOverflow.ellipsis),
-      );
-    } else {
-      button = FilledButton.icon(
-        onPressed: onPressed,
-        style: _buttonStyle(),
-        icon: Icon(icon, size: iconSize),
-        label: EndpointMarqueeText(label, overflow: TextOverflow.ellipsis),
-      );
-    }
+    Widget button = FilledButton(
+      onPressed: onPressed,
+      style: _buttonStyle(),
+      child: _ButtonContent(
+        label: label,
+        icon: icon,
+        iconSize: iconSize,
+        layoutAxis: layoutAxis,
+        labelMaxLines: labelMaxLines,
+        labelTextAlign: labelTextAlign,
+        iconSpacing: iconSpacing,
+        useMarquee: useMarquee,
+      ),
+    );
 
     if (expands) {
       button = SizedBox(
         width: double.infinity,
+        child: button,
+      );
+    } else if (width != null || height != null) {
+      button = SizedBox(
+        width: width,
+        height: height,
         child: button,
       );
     }
@@ -83,6 +102,68 @@ class EndpointActionButton extends StatelessWidget {
       elevation: 0,
     ).copyWith(
       overlayColor: MaterialStatePropertyAll(accent.withOpacity(0.14)),
+    );
+  }
+}
+
+class _ButtonContent extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final double iconSize;
+  final Axis layoutAxis;
+  final int labelMaxLines;
+  final TextAlign labelTextAlign;
+  final double iconSpacing;
+  final bool useMarquee;
+
+  const _ButtonContent({
+    required this.label,
+    required this.icon,
+    required this.iconSize,
+    required this.layoutAxis,
+    required this.labelMaxLines,
+    required this.labelTextAlign,
+    required this.iconSpacing,
+    required this.useMarquee,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final labelWidget = useMarquee
+        ? EndpointMarqueeText(
+            label,
+            overflow: TextOverflow.ellipsis,
+          )
+        : EndpointText(
+            label,
+            textAlign: labelTextAlign,
+            maxLines: labelMaxLines,
+            overflow: TextOverflow.ellipsis,
+          );
+
+    if (icon == null) {
+      return labelWidget;
+    }
+
+    final spacing = SizedBox(
+      width: layoutAxis == Axis.horizontal ? iconSpacing : null,
+      height: layoutAxis == Axis.vertical ? iconSpacing : null,
+    );
+    final children = <Widget>[
+      Icon(icon, size: iconSize),
+      spacing,
+      if (layoutAxis == Axis.vertical)
+        Flexible(child: labelWidget)
+      else
+        Expanded(child: labelWidget),
+    ];
+
+    return Flex(
+      direction: layoutAxis,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
     );
   }
 }

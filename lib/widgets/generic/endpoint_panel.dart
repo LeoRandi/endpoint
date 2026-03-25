@@ -15,8 +15,8 @@ class EndpointPanel extends StatelessWidget {
   const EndpointPanel({
     super.key,
     required this.child,
-    this.accent = const Color(0xFF5AF78E),
-    this.backgroundColor = const Color(0xD907120D),
+    this.accent = EndpointPalette.primaryAccent,
+    this.backgroundColor = EndpointPalette.panelBackgroundStrong,
     this.padding = const EdgeInsets.all(16),
     this.borderRadius = 16,
     this.borderOpacity = 0.7,

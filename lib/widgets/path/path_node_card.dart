@@ -14,10 +14,10 @@ class PathNodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = node.accent;
     final hasSignatureBorder = node.hasSignatureBorder;
-    final topColor = Color.lerp(const Color(0xFF09100C), accent, 0.18) ??
-        const Color(0xFF112016);
-    final bottomColor = Color.lerp(const Color(0xFF040705), accent, 0.08) ??
-        const Color(0xFF09100C);
+    final topColor =
+        EndpointPalette.blend(EndpointPalette.panelBackground, accent, 0.18);
+    final bottomColor =
+        EndpointPalette.blend(EndpointPalette.scaffoldBackground, accent, 0.08);
 
     return HoldTooltip(
       message: node.tooltip,
@@ -95,7 +95,7 @@ class PathNodeCard extends StatelessWidget {
                           node.label,
                           textAlign: TextAlign.center,
                           style: textMediumBold.copyWith(
-                            color: const Color(0xFFE6FFF0),
+                            color: EndpointPalette.softForeground,
                             letterSpacing: 1.2,
                           ),
                         ),

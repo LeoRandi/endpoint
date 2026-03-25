@@ -4,7 +4,8 @@ class CampSitePathNode extends PathNode {
   final String showTitle;
   final String sceneTitle;
   final String description;
-  final CampSiteService recoveryService;
+  final double recoveryFactor;
+  final bool removeRandomDebuff;
 
   const CampSitePathNode({
     required String label,
@@ -16,7 +17,8 @@ class CampSitePathNode extends PathNode {
     required this.showTitle,
     required this.sceneTitle,
     required this.description,
-    required this.recoveryService,
+    this.recoveryFactor = 1,
+    this.removeRandomDebuff = false,
   }) : super.base(
           type: PathNodeType.campSite,
           label: label,

@@ -2,8 +2,6 @@ import '_imports.dart';
 
 const _inventoryTileExtent = 70.0;
 const _inventoryTileHeight = 84.0;
-const _inventoryTileEmojiSize = 18.0;
-
 class EndpointInventoryOverlay extends StatelessWidget {
   final Battler player;
   final List<Item> items;
@@ -27,7 +25,7 @@ class EndpointInventoryOverlay extends StatelessWidget {
     this.subtitle = 'Inventario',
     this.emptyText = EndpointStrings.noItems,
     this.closeTooltip = 'Cerrar inventario',
-    this.accent = const Color(0xFF5AF78E),
+    this.accent = EndpointPalette.primaryAccent,
     this.bottomInset = 112,
     this.maxWidth = 360,
     this.maxHeight = 340,
@@ -35,32 +33,16 @@ class EndpointInventoryOverlay extends StatelessWidget {
   });
 
   Future<void> _openItemDetails(BuildContext context, Item item) async {
-    await showGeneralDialog<void>(
+    await showEndpointDialog<void>(
       context: context,
-      barrierDismissible: true,
       barrierLabel: 'Detalle de objeto',
-      barrierColor: Colors.black.withOpacity(0.62),
-      transitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
         return EndpointItemDetailsDialog(
           item: item,
           accent: item.rarity.accent,
           price: priceBuilder?.call(item) ?? item.cost,
           statusText: detailStatusBuilder(item),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
-            child: child,
-          ),
         );
       },
     );
@@ -86,7 +68,7 @@ class EndpointInventoryOverlay extends StatelessWidget {
             ),
             child: EndpointPanel(
               accent: accent,
-              backgroundColor: const Color(0xF107120D),
+              backgroundColor: EndpointPalette.panelBackgroundOpaque,
               borderRadius: 18,
               glowOpacity: 0.12,
               blurRadius: 22,
@@ -105,7 +87,7 @@ class EndpointInventoryOverlay extends StatelessWidget {
                             EndpointText(
                               title,
                               style: textMediumBold.copyWith(
-                                color: const Color(0xFFE6FFF0),
+                                color: EndpointPalette.softForeground,
                                 letterSpacing: 1.8,
                               ),
                             ),
@@ -169,7 +151,7 @@ class EndpointInventoryOverlay extends StatelessWidget {
                             ),
                             itemBuilder: (context, index) {
                               final item = items[index];
-                              return _InventoryOverlayItemTile(
+                              return EndpointInventoryItemTile(
                                 item: item,
                                 onPressed: () =>
                                     _openItemDetails(context, item),
@@ -179,72 +161,6 @@ class EndpointInventoryOverlay extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InventoryOverlayItemTile extends StatelessWidget {
-  final Item item;
-  final VoidCallback onPressed;
-
-  const _InventoryOverlayItemTile({
-    required this.item,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return HoldTooltip(
-      message: item.description,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
-          child: EndpointPanel(
-            backgroundColor: const Color(0xCC07120D),
-            borderRadius: 12,
-            glowOpacity: 0.03,
-            padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        'assets/images/slots/equipment_slot_base.png',
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.none,
-                      ),
-                      Center(
-                        child: EndpointText(
-                          item.iconEmoji,
-                          style: const TextStyle(
-                            fontSize: _inventoryTileEmojiSize,
-                            height: 1,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 3),
-                EndpointText(
-                  item.name,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    color: const Color(0xFFE6FFF0),
-                    fontSize: 12,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
             ),
           ),
         ),

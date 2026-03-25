@@ -176,9 +176,7 @@ final restZoneCampNode = CampSitePathNode(
   showTitle: 'Has encontrado una zona de descanso',
   sceneTitle: 'ZONA DE DESCANSO',
   description: 'Recuperas toda tu vida.',
-  recoveryService: CampSiteService(
-    recoveryFactor: 1,
-  ),
+  recoveryFactor: 1,
 );
 
 final severeMedicationCampNode = CampSitePathNode(
@@ -192,10 +190,8 @@ final severeMedicationCampNode = CampSitePathNode(
   sceneTitle: 'MEDICACION SEVERA',
   description:
       'Recuperas 33% de tu vida maxima y eliminas un debuff aleatorio.',
-  recoveryService: CampSiteService(
-    recoveryFactor: 1 / 3,
-    removeRandomDebuff: true,
-  ),
+  recoveryFactor: 1 / 3,
+  removeRandomDebuff: true,
 );
 
 final List<ShopPathNode> dayShopNodes = List.unmodifiable([

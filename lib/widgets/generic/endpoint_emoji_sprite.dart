@@ -25,7 +25,7 @@ class EndpointEmojiSprite extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             accent.withOpacity(0.24),
-            const Color(0xFF09100C),
+            EndpointPalette.blend(EndpointPalette.panelBackground, accent, 0.06),
           ],
         ),
         borderRadius: BorderRadius.circular(size * 0.22),

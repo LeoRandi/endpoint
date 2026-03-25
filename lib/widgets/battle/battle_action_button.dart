@@ -19,58 +19,33 @@ class BattleActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = onPressed == null
-        ? const Color(0xFFE6FFF0).withOpacity(0.42)
-        : const Color(0xFFE6FFF0);
+        ? EndpointPalette.softForeground.withOpacity(0.42)
+        : EndpointPalette.softForeground;
 
-    Widget button = SizedBox.square(
-      dimension: dimension,
-      child: FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: const Color(0xFF102519),
-          foregroundColor: foreground,
-          disabledBackgroundColor: const Color(0xFF102519),
-          disabledForegroundColor: foreground,
-          side: const BorderSide(
-            color: Color(0xFF5AF78E),
-            width: 1.5,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-          elevation: 0,
-        ).copyWith(
-          overlayColor: const MaterialStatePropertyAll(
-            Color(0x245AF78E),
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18),
-            const SizedBox(height: 6),
-            EndpointText(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              style: textSmallBold.copyWith(
-                color: foreground,
-                fontSize: 12,
-                letterSpacing: 0.6,
-                height: 1.1,
-              ),
-            ),
-          ],
-        ),
+    return EndpointActionButton(
+      label: label,
+      icon: icon,
+      onPressed: onPressed,
+      tooltip: tooltip,
+      width: dimension,
+      height: dimension,
+      useMarquee: false,
+      layoutAxis: Axis.vertical,
+      labelMaxLines: 2,
+      iconSize: 18,
+      iconSpacing: 6,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      textStyle: textSmallBold.copyWith(
+        color: foreground,
+        fontSize: 12,
+        letterSpacing: 0.6,
+        height: 1.1,
       ),
-    );
-
-    if (tooltip.isEmpty) return button;
-
-    return HoldTooltip(
-      message: tooltip,
-      child: button,
+      backgroundColor: EndpointPalette.closeButtonBackground,
+      foregroundColor: foreground,
+      accent: EndpointPalette.primaryAccent,
     );
   }
 }

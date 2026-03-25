@@ -24,7 +24,7 @@ class EndpointCenterStageScene extends StatelessWidget {
     required this.emoji,
     this.emojiSize = 138,
     required this.title,
-    this.titleColor = const Color(0xFFE6FFF0),
+    this.titleColor = EndpointPalette.softForeground,
     required this.content,
   });
 

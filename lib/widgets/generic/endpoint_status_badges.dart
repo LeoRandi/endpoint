@@ -111,7 +111,7 @@ class _EndpointStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = status.type.accent;
-    final badgeLabel = status.isIndefinite ? '∞' : '${status.remainingTurns}';
+    final badgeLabel = status.isIndefinite ? 'INF' : '${status.remainingTurns}';
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -127,7 +127,7 @@ class _EndpointStatusBadge extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF07120D),
+                    color: EndpointPalette.panelBackground,
                     border: Border.all(
                       color: accent.withOpacity(0.88),
                       width: 1.4,
@@ -155,7 +155,7 @@ class _EndpointStatusBadge extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: accent,
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFF020403)),
+                    border: Border.all(color: EndpointPalette.scaffoldBackground),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -165,7 +165,7 @@ class _EndpointStatusBadge extends StatelessWidget {
                     child: EndpointText(
                       badgeLabel,
                       style: textSmallBold.copyWith(
-                        color: const Color(0xFF020403),
+                        color: EndpointPalette.scaffoldBackground,
                         fontSize: 8,
                         letterSpacing: 0.2,
                       ),
@@ -181,30 +181,14 @@ class _EndpointStatusBadge extends StatelessWidget {
   }
 
   Future<void> _showStatusDetails(BuildContext context) async {
-    await showGeneralDialog<void>(
+    await showEndpointDialog<void>(
       context: context,
-      barrierDismissible: true,
       barrierLabel: 'Detalle de estado',
-      barrierColor: Colors.black.withOpacity(0.62),
-      transitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
         return _EndpointStatusDetailsDialog(
           battler: battler,
           status: status,
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
-            child: child,
-          ),
         );
       },
     );
@@ -235,7 +219,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
           ),
           child: EndpointPanel(
             accent: accent,
-            backgroundColor: const Color(0xF207120D),
+            backgroundColor: EndpointPalette.panelBackgroundOpaque,
             borderRadius: 18,
             glowOpacity: 0.05,
             padding: EdgeInsets.zero,
@@ -265,7 +249,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                       textAlign: TextAlign.center,
                       maxLines: null,
                       style: textMediumBold.copyWith(
-                        color: const Color(0xFFE6FFF0),
+                        color: EndpointPalette.softForeground,
                         letterSpacing: 1.1,
                       ),
                     ),
@@ -286,7 +270,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                       textAlign: TextAlign.center,
                       maxLines: null,
                       style: textMedium.copyWith(
-                        color: Colors.white.withOpacity(0.86),
+                        color: EndpointPalette.softForeground.withOpacity(0.86),
                         height: 1.3,
                       ),
                     ),

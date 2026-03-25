@@ -7,7 +7,7 @@ class PathNodeService {
   static const _centerShopPremiumChance = 0.78;
   static const _centerShopPremiumMultiplier = 1.2;
 
-  final Random _random;
+  final RunRandomizer _randomizer;
   late final List<_RunStageDefinition> _stageDefinitions = [
     _RunStageDefinition(
       matches: (stageIndex) => stageIndex == startStageIndex,
@@ -49,8 +49,10 @@ class PathNodeService {
   ];
 
   PathNodeService({
-    int? seed,
-  }) : _random = seed == null ? Random() : Random(seed);
+    required RunRandomizer randomizer,
+  }) : _randomizer = randomizer;
+
+  RunRandomizer get randomizer => _randomizer;
 
   RunHourSnapshot buildHourSnapshot({
     required int stageIndex,
@@ -214,7 +216,7 @@ class PathNodeService {
           .toList(),
     ) as ShopPathNode;
 
-    final shouldApplyPremium = _random.nextDouble() <= _centerShopPremiumChance;
+    final shouldApplyPremium = _randomizer.chance(_centerShopPremiumChance);
     if (!shouldApplyPremium) return baseNode;
 
     return baseNode.withPriceMultiplier(_centerShopPremiumMultiplier);
@@ -269,7 +271,7 @@ class PathNodeService {
       0,
       (sum, candidate) => sum + candidate.weight,
     );
-    var roll = _random.nextDouble() * totalWeight;
+    var roll = _randomizer.nextDouble() * totalWeight;
 
     for (final candidate in candidates) {
       roll -= candidate.weight;

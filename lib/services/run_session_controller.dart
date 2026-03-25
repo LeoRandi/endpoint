@@ -1,6 +1,7 @@
 import '_imports.dart';
 
 class RunSessionController extends ChangeNotifier {
+  final RunRandomizer _randomizer;
   final PathNodeService _pathNodeService;
   final List<PathNode>? _availableNodesOverride;
   final int _nodeCount;
@@ -14,7 +15,26 @@ class RunSessionController extends ChangeNotifier {
     List<PathNode>? availableNodes,
     int nodeCount = 3,
     int? randomSeed,
-  })  : _pathNodeService = PathNodeService(seed: randomSeed),
+  }) : this._(
+          player: player,
+          battleEnemyTurnDelay: battleEnemyTurnDelay,
+          battleCombatEndDelay: battleCombatEndDelay,
+          availableNodes: availableNodes,
+          nodeCount: nodeCount,
+          randomizer: RunRandomizer(seed: randomSeed),
+        );
+
+  RunSessionController._({
+    required Battler player,
+    required Duration battleEnemyTurnDelay,
+    required Duration battleCombatEndDelay,
+    required RunRandomizer randomizer,
+    List<PathNode>? availableNodes,
+    int nodeCount = 3,
+  })  : _randomizer = randomizer,
+        _pathNodeService = PathNodeService(
+          randomizer: randomizer,
+        ),
         _availableNodesOverride = availableNodes == null
             ? null
             : List<PathNode>.unmodifiable(availableNodes),
@@ -37,6 +57,7 @@ class RunSessionController extends ChangeNotifier {
   }
 
   RunState get state => _state;
+  RunRandomizer get randomizer => _randomizer;
   Battler get player => _state.player;
   List<PathNode> get nodes => _state.visibleNodes;
   RunHourSnapshot get currentHour => _state.currentHour;

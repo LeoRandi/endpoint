@@ -21,7 +21,11 @@ class CampSiteService {
     this.removeRandomDebuff = false,
   });
 
-  CampSiteVisitResult recover(Battler player) {
+  CampSiteVisitResult recover(
+    Battler player, {
+    RunRandomizer? randomizer,
+  }) {
+    final effectiveRandomizer = randomizer ?? RunRandomizer();
     final recoveryAmount = max(1, (player.maxHealth * recoveryFactor).round());
     var updatedPlayer = player.heal(recoveryAmount);
     BattlerStatus? removedDebuff;
@@ -32,7 +36,8 @@ class CampSiteService {
           .toList(growable: false);
 
       if (debuffs.isNotEmpty) {
-        removedDebuff = debuffs[Random().nextInt(debuffs.length)];
+        final debuffIndex = effectiveRandomizer.nextInt(debuffs.length);
+        removedDebuff = debuffs[debuffIndex];
         updatedPlayer = updatedPlayer.removeStatusInstance(removedDebuff);
       }
     }

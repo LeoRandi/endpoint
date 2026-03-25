@@ -34,7 +34,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF5AF78E);
+    const accent = EndpointPalette.primaryAccent;
 
     return SafeArea(
       child: Align(
@@ -45,7 +45,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 420),
             child: EndpointPanel(
               accent: accent,
-              backgroundColor: const Color(0xFF07120D),
+              backgroundColor: EndpointPalette.panelBackground,
               borderRadius: 18,
               blurRadius: 24,
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
@@ -64,7 +64,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                   EndpointText(
                     subtitle,
                     style: textMedium.copyWith(
-                      color: Colors.white.withOpacity(0.72),
+                      color: EndpointPalette.softForeground.withOpacity(0.72),
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -72,7 +72,7 @@ class BattleFloatingMenu<T> extends StatelessWidget {
                     EndpointText(
                       emptyText,
                       style: textMedium.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: EndpointPalette.softForeground.withOpacity(0.9),
                       ),
                     )
                   else

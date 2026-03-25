@@ -59,21 +59,20 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   }
 
   Future<bool> _showLeaveRewardsDialog() async {
-    final shouldLeave = await showGeneralDialog<bool>(
+    final shouldLeave = await showEndpointDialog<bool>(
       context: context,
-      barrierDismissible: true,
       barrierLabel: 'Confirmar salida de recompensas',
-      barrierColor: Colors.black.withOpacity(0.72),
+      barrierColor: EndpointPalette.overlayScrimStrong,
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      builder: (context) {
         return Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 360),
               child: EndpointPanel(
-                accent: const Color(0xFFEBCB5A),
-                backgroundColor: const Color(0xF010140F),
+                accent: EndpointPalette.rewardAccent,
+                backgroundColor: EndpointPalette.panelBackgroundBattleOpaque,
                 borderRadius: 18,
                 glowOpacity: 0.1,
                 blurRadius: 24,
@@ -85,7 +84,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                     EndpointText(
                       'RECOMPENSAS PENDIENTES',
                       style: textMediumBold.copyWith(
-                        color: const Color(0xFFEBCB5A),
+                        color: EndpointPalette.rewardAccent,
                         letterSpacing: 1.6,
                       ),
                     ),
@@ -94,7 +93,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                       'Te has dejado recompensas. Seguro que quieres seguir?',
                       maxLines: null,
                       style: textMedium.copyWith(
-                        color: Colors.white.withOpacity(0.84),
+                        color: EndpointPalette.softForeground.withOpacity(0.84),
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -104,9 +103,10 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           child: EndpointActionButton(
                             label: 'No',
                             onPressed: () => Navigator.of(context).pop(false),
-                            accent: const Color(0xFF5AF78E),
-                            backgroundColor: const Color(0xFF102519),
-                            foregroundColor: const Color(0xFFE6FFF0),
+                            accent: EndpointPalette.primaryAccent,
+                            backgroundColor:
+                                EndpointPalette.closeButtonBackground,
+                            foregroundColor: EndpointPalette.softForeground,
                             textStyle: textMediumBold.copyWith(
                               fontSize: 15,
                               letterSpacing: 0.9,
@@ -118,9 +118,14 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           child: EndpointActionButton(
                             label: 'Si',
                             onPressed: () => Navigator.of(context).pop(true),
-                            accent: const Color(0xFFFF6B6B),
-                            backgroundColor: const Color(0xFF261012),
-                            foregroundColor: const Color(0xFFFFE3E3),
+                            accent: EndpointPalette.dangerAccent,
+                            backgroundColor: EndpointPalette.blend(
+                              EndpointPalette.panelBackgroundBattle,
+                              EndpointPalette.dangerAccent,
+                              0.42,
+                            ),
+                            foregroundColor:
+                                EndpointPalette.soften(EndpointPalette.dangerAccent),
                             textStyle: textMediumBold.copyWith(
                               fontSize: 15,
                               letterSpacing: 0.9,
@@ -133,20 +138,6 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                 ),
               ),
             ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
-            child: child,
           ),
         );
       },
@@ -188,7 +179,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEBCB5A);
+    const accent = EndpointPalette.rewardAccent;
 
     return WillPopScope(
       onWillPop: _handleWillPop,
@@ -197,7 +188,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
           child: EndpointPanel(
             accent: accent,
-            backgroundColor: const Color(0xF0090F0C),
+            backgroundColor: EndpointPalette.panelBackgroundBattleOpaque,
             borderRadius: 20,
             glowOpacity: 0.12,
             blurRadius: 28,
@@ -216,7 +207,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           EndpointText(
                             'BOTIN ASEGURADO',
                             style: textLargeBold.copyWith(
-                              color: const Color(0xFFFFF1B8),
+                              color: EndpointPalette.softForegroundWarm,
                               letterSpacing: 1.8,
                             ),
                           ),
@@ -225,7 +216,8 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                             'Recoge las recompensas del combate contra ${widget.enemyName}.',
                             maxLines: null,
                             style: textMedium.copyWith(
-                              color: Colors.white.withOpacity(0.76),
+                              color:
+                                  EndpointPalette.softForeground.withOpacity(0.76),
                               fontSize: 14,
                             ),
                           ),
@@ -237,8 +229,12 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                       onPressed: _handleClosePressed,
                       tooltip: 'Cerrar recompensas',
                       accent: accent,
-                      foregroundColor: const Color(0xFFFFF1B8),
-                      backgroundColor: const Color(0xFF17150D),
+                      foregroundColor: EndpointPalette.softForegroundWarm,
+                      backgroundColor: EndpointPalette.blend(
+                        EndpointPalette.panelBackgroundGold,
+                        accent,
+                        0.08,
+                      ),
                     ),
                   ],
                 ),
@@ -272,7 +268,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                         _BattleLootRewardCard(
                           title: '${widget.moneyReward} CREDITOS',
                           subtitle: 'Recompensa economica del encuentro.',
-                          accent: const Color(0xFFF3D35C),
+                          accent: EndpointPalette.warningAccent,
                           icon: Icons.monetization_on_rounded,
                           isCollected: _isMoneyCollected,
                           collectedLabel: 'COBRADO',
@@ -292,8 +288,12 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                     onPressed: _collectAll,
                     tooltip: 'Recoger todas las recompensas y salir',
                     accent: accent,
-                    backgroundColor: const Color(0xFF231E0F),
-                    foregroundColor: const Color(0xFFFFF1B8),
+                    backgroundColor: EndpointPalette.blend(
+                      EndpointPalette.panelBackgroundGold,
+                      accent,
+                      0.12,
+                    ),
+                    foregroundColor: EndpointPalette.softForegroundWarm,
                     expands: true,
                     iconSize: 20,
                     textStyle: textMediumBold.copyWith(
@@ -337,7 +337,9 @@ class _BattleLootRewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foregroundColor =
-        isCollected ? Colors.white.withOpacity(0.5) : const Color(0xFFE6FFF0);
+        isCollected
+            ? Colors.white.withOpacity(0.5)
+            : EndpointPalette.softForeground;
     final statusColor = isCollected ? Colors.white.withOpacity(0.54) : accent;
 
     return SizedBox(
@@ -351,7 +353,9 @@ class _BattleLootRewardCard extends StatelessWidget {
           child: EndpointPanel(
             accent: accent,
             backgroundColor:
-                isCollected ? const Color(0x8807120D) : const Color(0xCC07120D),
+                isCollected
+                    ? EndpointPalette.panelBackgroundMuted
+                    : EndpointPalette.panelBackgroundSoft,
             borderRadius: 14,
             glowOpacity: isCollected ? 0.01 : 0.05,
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),

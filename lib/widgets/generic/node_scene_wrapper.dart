@@ -108,14 +108,14 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
                           opacity: _titleOpacity.value,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: const Color(0xE007120D),
+                              color: EndpointPalette.panelBackgroundOpaque,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: const Color(0xCC5AF78E),
+                                color: EndpointPalette.primaryAccent,
                               ),
-                              boxShadow: const [
+                              boxShadow: [
                                 BoxShadow(
-                                  color: Color(0x33000000),
+                                  color: Colors.black.withOpacity(0.2),
                                   blurRadius: 20,
                                   spreadRadius: 2,
                                 ),
@@ -130,7 +130,7 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
                                 widget.showTitle,
                                 textAlign: TextAlign.center,
                                 style: textLargeBold.copyWith(
-                                  color: const Color(0xFFE6FFF0),
+                                  color: EndpointPalette.softForeground,
                                   letterSpacing: 1.8,
                                 ),
                               ),

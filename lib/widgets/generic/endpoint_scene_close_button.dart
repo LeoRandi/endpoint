@@ -11,9 +11,9 @@ class EndpointSceneCloseButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     this.tooltip = 'Cerrar',
-    this.accent = const Color(0xFF5AF78E),
-    this.foregroundColor = const Color(0xFFE6FFF0),
-    this.backgroundColor = const Color(0xFF102519),
+    this.accent = EndpointPalette.primaryAccent,
+    this.foregroundColor = EndpointPalette.softForeground,
+    this.backgroundColor = EndpointPalette.closeButtonBackground,
   });
 
   @override
