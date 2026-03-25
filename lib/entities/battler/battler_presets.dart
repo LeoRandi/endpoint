@@ -100,17 +100,16 @@ const defaultEnemyBattler = greenEnemyBattler;
 
 const defaultPlayerBattler = Battler(
   name: 'ENDPOINT UNIT',
-  health: 84,
+  health: 100,
   money: 5,
   income: 1,
   baseStats: {
     BattlerStat.health: 100,
-    BattlerStat.attack: 10,
-    BattlerStat.defense: 5,
+    BattlerStat.attack: 9,
+    BattlerStat.defense: 4,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
   abilities: [BattlerAbility.defend],
-  inventoryItems: [woodenStickItem],
 );

@@ -2,17 +2,25 @@ import '_imports.dart';
 
 class PathNodeService {
   static const startStageIndex = 0;
-  static const duskStageIndex = 5;
-  static const sunriseStageIndex = 11;
+  static const duskStageIndex = 6;
+  static const sunriseStageIndex = 12;
   static const _centerShopPremiumChance = 0.78;
   static const _centerShopPremiumMultiplier = 1.2;
 
   final Random _random;
   late final List<_RunStageDefinition> _stageDefinitions = [
     _RunStageDefinition(
-      matches: (stageIndex) => stageIndex < duskStageIndex,
+      matches: (stageIndex) => stageIndex == startStageIndex,
       phase: RunHourPhase.day,
-      titleBuilder: (stageIndex) => 'HORA $stageIndex',
+      titleBuilder: (_) => 'HORA 1',
+      subtitle: 'Elige el arquetipo con el que abrira la run.',
+      buildNodes: () => openingArchetypeNodes,
+    ),
+    _RunStageDefinition(
+      matches: (stageIndex) =>
+          stageIndex > startStageIndex && stageIndex < duskStageIndex,
+      phase: RunHourPhase.day,
+      titleBuilder: (stageIndex) => 'HORA ${stageIndex + 1}',
       subtitle: 'Mercados y favores tensos antes del anochecer.',
       buildNodes: _buildDayNodes,
     ),

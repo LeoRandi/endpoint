@@ -1,5 +1,55 @@
 import '_imports.dart';
 
+final velozArchetypeNode = ArchetypePathNode(
+  label: 'Veloz',
+  tooltip:
+      'Cyber Latigos + Gafas de Sol. Perfil agil con un poco mas de ataque base.',
+  iconEmoji: cyberWhipsItem.iconEmoji,
+  playerIconEmoji: cyberWhipsItem.iconEmoji,
+  accent: const Color(0xFF59B7FF),
+  rarity: RarityTier.blue,
+  baseStatModifiers: const {
+    BattlerStat.attack: 1,
+  },
+  startingItems: const [
+    cyberWhipsItem,
+    sunglassesItem,
+  ],
+);
+
+final inamovibleArchetypeNode = ArchetypePathNode(
+  label: 'Inamovible',
+  tooltip:
+      'Escudo + Amuleto de Bastion. Perfil resistente con mas defensa y aguante base.',
+  iconEmoji: shieldItem.iconEmoji,
+  playerIconEmoji: shieldItem.iconEmoji,
+  accent: const Color(0xFF5AF78E),
+  rarity: RarityTier.green,
+  baseStatModifiers: const {
+    BattlerStat.health: 4,
+    BattlerStat.defense: 1,
+  },
+  startingItems: const [
+    shieldItem,
+    bulwarkAmuletItem,
+  ],
+);
+
+final imparableArchetypeNode = ArchetypePathNode(
+  label: 'Imparable',
+  tooltip: 'Espada de Hierro. Perfil ofensivo con mas pegada base.',
+  iconEmoji: ironSwordItem.iconEmoji,
+  playerIconEmoji: ironSwordItem.iconEmoji,
+  accent: const Color(0xFFF3D35C),
+  rarity: RarityTier.yellow,
+  baseStatModifiers: const {
+    BattlerStat.attack: 2,
+  },
+  startingItems: const [
+    ironSwordItem,
+  ],
+);
+
 final scrapArsenalNode = ShopPathNode(
   label: 'Arsenal de Chatarra',
   tooltip: 'Armas funcionales antes del anochecer',
@@ -123,6 +173,12 @@ final List<ShopPathNode> dayShopNodes = List.unmodifiable([
   scrapArsenalNode,
   bulwarkWorkshopNode,
   luxuryRelicsNode,
+]);
+
+final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
+  velozArchetypeNode,
+  inamovibleArchetypeNode,
+  imparableArchetypeNode,
 ]);
 
 final List<EventPathNode> dayEventNodes = List.unmodifiable([

@@ -505,8 +505,8 @@ class _PlayerBattleHud extends StatelessWidget {
               onOpenItems: onOpenItems,
             ),
             const Spacer(),
-            const _BattleSpriteDock(
-              emoji: '\u{1F916}',
+            _BattleSpriteDock(
+              emoji: player.iconEmoji,
               accent: Color(0xFF5AF78E),
               label: 'TU',
               mirror: true,

@@ -11,6 +11,7 @@ enum BattlerStat {
 
 class Battler {
   final String name;
+  final String iconEmoji;
   final int health;
   final int money;
   final int income;
@@ -21,6 +22,7 @@ class Battler {
 
   const Battler({
     required this.name,
+    this.iconEmoji = '\u{1F916}',
     required this.health,
     this.money = 0,
     this.income = 0,
@@ -32,6 +34,7 @@ class Battler {
 
   Battler.legacy({
     required String name,
+    String iconEmoji = '\u{1F916}',
     required int attack,
     required int defense,
     required int health,
@@ -43,6 +46,7 @@ class Battler {
     List<Item> equippedItems = const [],
   }) : this(
           name: name,
+          iconEmoji: iconEmoji,
           health: health,
           money: money,
           income: income,
@@ -234,6 +238,7 @@ class Battler {
 
   Battler copyWith({
     String? name,
+    String? iconEmoji,
     int? health,
     int? money,
     int? income,
@@ -258,6 +263,7 @@ class Battler {
 
     return Battler(
       name: name ?? this.name,
+      iconEmoji: iconEmoji ?? this.iconEmoji,
       health: max(0, resolvedHealth),
       money: max(0, money ?? this.money),
       income: max(0, income ?? this.income),

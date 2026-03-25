@@ -2,6 +2,10 @@ import '_imports.dart';
 
 enum ItemId {
   woodenStick,
+  cyberWhips,
+  sunglasses,
+  shield,
+  bulwarkAmulet,
   ironSword,
   guardShield,
   platedJacket,

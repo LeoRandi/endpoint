@@ -390,7 +390,7 @@ class _OperativeIconCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 EndpointEmojiSprite(
-                  emoji: isPlayer ? '\u{1F916}' : '\u{1F464}',
+                  emoji: isPlayer ? battler.iconEmoji : '\u{1F464}',
                   accent: const Color(0xFF5AF78E),
                   size: 28,
                 ),

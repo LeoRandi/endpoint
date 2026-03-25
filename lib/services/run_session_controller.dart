@@ -87,6 +87,10 @@ class RunSessionController extends ChangeNotifier {
     _completeScene(updatedPlayer: result.player);
   }
 
+  void completeArchetypeSelection(Battler player) {
+    _completeScene(updatedPlayer: player);
+  }
+
   void completeWeaponShopVisit(WeaponShopVisitResult result) {
     _completeScene(updatedPlayer: result.player);
   }

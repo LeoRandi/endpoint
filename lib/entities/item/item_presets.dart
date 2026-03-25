@@ -12,6 +12,55 @@ const woodenStickItem = Item(
   },
 );
 
+const cyberWhipsItem = Item(
+  id: ItemId.cyberWhips,
+  name: 'Cyber Latigos',
+  description: '+1 ATK mientras este equipado.',
+  iconEmoji: '\u{26D3}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.gray,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+);
+
+const sunglassesItem = Item(
+  id: ItemId.sunglasses,
+  name: 'Gafas de Sol',
+  description: '+1 DEF mientras esten equipadas.',
+  iconEmoji: '\u{1F453}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.gray,
+  statModifiers: {
+    BattlerStat.defense: 1,
+  },
+);
+
+const shieldItem = Item(
+  id: ItemId.shield,
+  name: 'Escudo',
+  description: '+2 DEF mientras este equipado.',
+  iconEmoji: '\u{1F6E1}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.green,
+  statModifiers: {
+    BattlerStat.defense: 2,
+  },
+);
+
+const bulwarkAmuletItem = Item(
+  id: ItemId.bulwarkAmulet,
+  name: 'Amuleto de Bastion',
+  description: '+6 HP y +1 DEF mientras este equipado.',
+  iconEmoji: '\u{1F9FF}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.green,
+  statModifiers: {
+    BattlerStat.health: 6,
+    BattlerStat.defense: 1,
+  },
+);
+
 const ironSwordItem = Item(
   id: ItemId.ironSword,
   name: 'Espada de Hierro',

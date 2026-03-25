@@ -130,6 +130,11 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       case PathNodeType.encounter:
         await _handleStartEncounter(node as CombatPathNode);
         break;
+      case PathNodeType.archetype:
+        _sessionController.completeArchetypeSelection(
+          (node as ArchetypePathNode).applyTo(_sessionController.player),
+        );
+        break;
       case PathNodeType.shop:
         await _handleOpenWeaponShop(node as ShopPathNode);
         break;
@@ -337,7 +342,7 @@ class _PathBottomHud extends StatelessWidget {
                         width: avatarSize,
                         height: avatarSize,
                         child: EndpointEmojiSprite(
-                          emoji: '\u{1F916}',
+                          emoji: player.iconEmoji,
                           accent: const Color(0xFF5AF78E),
                           size: avatarSize,
                         ),

@@ -1,6 +1,7 @@
 import '_imports.dart';
 
 enum PathNodeType {
+  archetype,
   encounter,
   shop,
   campSite,
@@ -15,6 +16,7 @@ class PathNode {
   final RarityTier rarity;
   final Color accent;
   final String badgeLabel;
+  final bool hasSignatureBorder;
   double get rollWeight => rarity.rollWeight;
 
   const PathNode.base({
@@ -25,6 +27,7 @@ class PathNode {
     required this.rarity,
     required this.accent,
     required this.badgeLabel,
+    this.hasSignatureBorder = false,
   });
 
   const PathNode.shop({
@@ -42,6 +45,7 @@ class PathNode {
           rarity: rarity,
           accent: accent,
           badgeLabel: badgeLabel,
+          hasSignatureBorder: false,
         );
 
   const PathNode.weaponShop({
@@ -72,5 +76,6 @@ class PathNode {
           rarity: RarityTier.green,
           accent: const Color(0xFF5AF78E),
           badgeLabel: 'DESCANSO',
+          hasSignatureBorder: false,
         );
 }
