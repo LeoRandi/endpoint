@@ -75,22 +75,13 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         enemy: node.enemy,
         player: _sessionController.player,
         showTitle: node.showTitle,
+        victoryMoneyFactor: node.tier.factor,
         enemyTurnDelay: _sessionController.state.battleEnemyTurnDelay,
         combatEndDelay: _sessionController.state.battleCombatEndDelay,
         returnResultToCaller: true,
       ),
       shouldPopToRoot: (result) => result.shouldExitRun,
-      onCompleted: (result) {
-        final rewardedPlayer = result.player.earnMoney(
-          result.player.income * node.tier.factor,
-        );
-        _sessionController.completeEncounter(
-          BattleFlowResult(
-            type: result.type,
-            player: rewardedPlayer,
-          ),
-        );
-      },
+      onCompleted: _sessionController.completeEncounter,
     );
   }
 
@@ -306,6 +297,11 @@ class _PathBottomHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final chipTextStyle = textMediumBold.copyWith(
+      fontSize: 14,
+      letterSpacing: 1.2,
+    );
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -352,6 +348,7 @@ class _PathBottomHud extends StatelessWidget {
                         value: player.money,
                         accent: const Color(0xFFF3D35C),
                         foreground: const Color(0xFFFFF4C7),
+                        textStyle: chipTextStyle,
                       ),
                     ],
                   ),
@@ -389,6 +386,10 @@ class _PathPlayerStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFF5AF78E);
+    final statChipTextStyle = textMediumBold.copyWith(
+      fontSize: 14,
+      letterSpacing: 1.2,
+    );
     final healthFactor = player.maxHealth <= 0
         ? 0.0
         : (player.health / player.maxHealth).clamp(0.0, 1.0).toDouble();
@@ -419,6 +420,7 @@ class _PathPlayerStatus extends StatelessWidget {
                 EndpointText(
                   '${player.health} / ${player.maxHealth}',
                   style: textMediumBold.copyWith(
+                    fontSize: 14,
                     color: accent,
                   ),
                 ),
@@ -440,18 +442,21 @@ class _PathPlayerStatus extends StatelessWidget {
                   value: player.attack,
                   accent: accent,
                   foreground: const Color(0xFFBDEECC),
+                  textStyle: statChipTextStyle,
                 ),
                 EndpointValueChip(
                   label: 'DEF',
                   value: player.defense,
                   accent: accent,
                   foreground: const Color(0xFFBDEECC),
+                  textStyle: statChipTextStyle,
                 ),
                 EndpointValueChip(
                   icon: Icons.trending_up_rounded,
                   value: player.income,
                   accent: const Color(0xFF59B7FF),
                   foreground: const Color(0xFFD7EEFF),
+                  textStyle: statChipTextStyle,
                 ),
               ],
             ),

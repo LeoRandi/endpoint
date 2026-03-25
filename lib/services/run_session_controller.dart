@@ -20,7 +20,7 @@ class RunSessionController extends ChangeNotifier {
             : List<PathNode>.unmodifiable(availableNodes),
         _nodeCount = max(1, nodeCount),
         _state = RunState(
-          player: player,
+          player: player.materializeOwnedItems(),
           currentHour: const RunHourSnapshot(
             stageIndex: PathNodeService.startStageIndex,
             phase: RunHourPhase.day,

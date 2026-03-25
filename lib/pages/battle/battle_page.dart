@@ -4,6 +4,7 @@ class BattlePage extends StatefulWidget {
   final Battler enemy;
   final Battler player;
   final String showTitle;
+  final int victoryMoneyFactor;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
   final bool returnResultToCaller;
@@ -13,6 +14,7 @@ class BattlePage extends StatefulWidget {
     this.enemy = defaultEnemyBattler,
     this.player = defaultPlayerBattler,
     this.showTitle = 'ENCOUNTER',
+    this.victoryMoneyFactor = 0,
     this.enemyTurnDelay = const Duration(milliseconds: 900),
     this.combatEndDelay = const Duration(seconds: 2),
     this.returnResultToCaller = false,
@@ -24,6 +26,8 @@ class BattlePage extends StatefulWidget {
 
 class _BattlePageState extends State<BattlePage> {
   late final BattleController _controller;
+  final Random _lootRandom = Random();
+  bool _isPresentingVictoryRewards = false;
 
   @override
   void initState() {
@@ -48,6 +52,76 @@ class _BattlePageState extends State<BattlePage> {
     final exitResult = _controller.consumePendingExitResult();
     if (exitResult == null || !mounted) return;
 
+    _handleBattleExit(exitResult);
+  }
+
+  Future<void> _handleBattleExit(BattleFlowResult exitResult) async {
+    if (exitResult.type != BattleFlowResultType.victory) {
+      _completeBattleExit(exitResult);
+      return;
+    }
+    if (_isPresentingVictoryRewards) return;
+
+    _isPresentingVictoryRewards = true;
+    final rewardedResult = await _presentVictoryRewards(exitResult);
+    if (!mounted) return;
+
+    _completeBattleExit(rewardedResult);
+  }
+
+  Future<BattleFlowResult> _presentVictoryRewards(
+    BattleFlowResult exitResult,
+  ) async {
+    final lootItem = _selectVictoryLoot(
+      enemy: _controller.enemy,
+      player: exitResult.player,
+    );
+    final moneyReward = _buildVictoryMoneyReward(exitResult.player);
+    if (lootItem == null && moneyReward <= 0) {
+      return exitResult;
+    }
+
+    final rewardedPlayer = await showEndpointOverlay<Battler>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.74),
+      builder: (_) => BattleLootOverlay(
+        player: exitResult.player,
+        lootItem: lootItem,
+        moneyReward: moneyReward,
+        enemyName: _controller.enemy.name,
+      ),
+    );
+
+    return BattleFlowResult(
+      type: exitResult.type,
+      player: rewardedPlayer ?? exitResult.player,
+    );
+  }
+
+  int _buildVictoryMoneyReward(Battler player) {
+    return max(0, player.income * widget.victoryMoneyFactor);
+  }
+
+  Item? _selectVictoryLoot({
+    required Battler enemy,
+    required Battler player,
+  }) {
+    final lootPool = <Item>{
+      ...enemy.equippedItems,
+      ...enemy.inventoryItems,
+    }.toList(growable: false);
+    if (lootPool.isEmpty) return null;
+
+    final preferredPool = lootPool
+        .where((item) => !player.ownsItem(item))
+        .toList(growable: false);
+    final resolvedPool = preferredPool.isNotEmpty ? preferredPool : lootPool;
+
+    return resolvedPool[_lootRandom.nextInt(resolvedPool.length)];
+  }
+
+  void _completeBattleExit(BattleFlowResult exitResult) {
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) return;
 

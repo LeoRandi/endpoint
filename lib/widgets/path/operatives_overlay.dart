@@ -27,7 +27,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
   @override
   void initState() {
     super.initState();
-    _player = widget.player;
+    _player = widget.player.materializeOwnedItems();
   }
 
   List<Battler> get _operatives => [_player, ...widget.companions];
@@ -101,13 +101,15 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
               accent: item.rarity.accent,
               price: item.cost,
               statusText: _statusLabelForOwner(detailBattler, item),
-              actionLabel: _unequipActionLabelFor(detailBattler, item, canUnequip),
-              onPrimaryAction: _isUnequipEnabled(detailBattler, item, canUnequip)
-                  ? () {
-                      _handleUnequipItem(item);
-                      setDialogState(() {});
-                    }
-                  : null,
+              actionLabel:
+                  _unequipActionLabelFor(detailBattler, item, canUnequip),
+              onPrimaryAction:
+                  _isUnequipEnabled(detailBattler, item, canUnequip)
+                      ? () {
+                          _handleUnequipItem(item);
+                          setDialogState(() {});
+                        }
+                      : null,
               isActionEnabled:
                   _isUnequipEnabled(detailBattler, item, canUnequip),
               enabledActionTooltip: 'Quitar objeto del equipo activo',

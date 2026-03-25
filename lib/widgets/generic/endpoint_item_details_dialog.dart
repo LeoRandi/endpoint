@@ -71,6 +71,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                               EndpointText(
                                 '${item.rarity.label}  |  ${item.slot?.label ?? 'Consumible'}',
                                 style: textSmallBold.copyWith(
+                                  fontSize: 10,
                                   color: accent,
                                   letterSpacing: 1.2,
                                 ),
@@ -79,6 +80,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                               EndpointText(
                                 'COSTE ${price}C',
                                 style: textMediumBold.copyWith(
+                                  fontSize: 14,
                                   color: foreground,
                                 ),
                               ),
@@ -92,6 +94,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                       item.description,
                       maxLines: null,
                       style: textMedium.copyWith(
+                        fontSize: 14,
                         color: Colors.white.withOpacity(0.84),
                       ),
                     ),
@@ -100,6 +103,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                       _buildModifiersText(item),
                       maxLines: null,
                       style: textSmallBold.copyWith(
+                        fontSize: 10,
                         color: accent,
                         letterSpacing: 1,
                       ),
@@ -114,6 +118,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                         statusText,
                         maxLines: null,
                         style: textSmallBold.copyWith(
+                          fontSize: 10,
                           color: Colors.white.withOpacity(0.76),
                           letterSpacing: 0.9,
                         ),

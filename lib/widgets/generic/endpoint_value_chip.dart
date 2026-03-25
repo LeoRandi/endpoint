@@ -6,6 +6,7 @@ class EndpointValueChip extends StatelessWidget {
   final int value;
   final Color accent;
   final Color foreground;
+  final TextStyle? textStyle;
 
   const EndpointValueChip({
     super.key,
@@ -14,6 +15,7 @@ class EndpointValueChip extends StatelessWidget {
     required this.value,
     required this.accent,
     required this.foreground,
+    this.textStyle,
   });
 
   @override
@@ -37,10 +39,11 @@ class EndpointValueChip extends StatelessWidget {
             ],
             EndpointText(
               text,
-              style: textSmallBold.copyWith(
-                color: foreground,
-                letterSpacing: 1.2,
-              ),
+              style: (textStyle ??
+                      textSmallBold.copyWith(
+                        letterSpacing: 1.2,
+                      ))
+                  .copyWith(color: foreground),
             ),
           ],
         ),

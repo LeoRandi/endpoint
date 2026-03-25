@@ -9,14 +9,15 @@ class WeaponShopController extends ChangeNotifier {
     required Battler player,
     required List<Item> catalog,
     this.priceMultiplier = 1,
-  })  : _player = player,
+  })  : _player = player.materializeOwnedItems(),
         catalog = List<Item>.unmodifiable(catalog);
 
   Battler get player => _player;
 
-  bool ownsItem(Item item) => _player.ownsItem(item);
-  bool isItemEquipped(Item item) => _player.equippedItems.contains(item);
-  bool isItemInInventory(Item item) => _player.inventoryItems.contains(item);
+  bool ownsItem(Item item) => _player.ownsItemOfType(item.id);
+  bool isItemEquipped(Item item) => _player.equippedItemOfType(item.id) != null;
+  bool isItemInInventory(Item item) =>
+      _player.inventoryItemOfType(item.id) != null;
   int costFor(Item item) => max(1, (item.cost * priceMultiplier).round());
   bool canAfford(Item item) => _player.canAfford(costFor(item));
 
@@ -59,9 +60,13 @@ class WeaponShopController extends ChangeNotifier {
     }
 
     if (item.isEquippable) {
-      _player = isItemEquipped(item)
-          ? _player.unequipItem(item)
-          : _player.equipItem(item);
+      final equippedItem = _player.equippedItemOfType(item.id);
+      final inventoryItem = _player.inventoryItemOfType(item.id);
+      _player = equippedItem != null
+          ? _player.unequipItem(equippedItem)
+          : inventoryItem == null
+              ? _player
+              : _player.equipItem(inventoryItem);
       notifyListeners();
     }
   }

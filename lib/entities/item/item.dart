@@ -31,6 +31,8 @@ extension ItemSlotPresentation on ItemSlot {
 }
 
 class Item {
+  static int _nextInstanceSequence = 0;
+
   final ItemId id;
   final String name;
   final String description;
@@ -38,6 +40,7 @@ class Item {
   final ItemSlot? slot;
   final RarityTier rarity;
   final Map<BattlerStat, int> statModifiers;
+  final String? instanceId;
 
   const Item({
     required this.id,
@@ -47,21 +50,41 @@ class Item {
     this.slot,
     this.rarity = RarityTier.gray,
     this.statModifiers = const {},
+    this.instanceId,
   });
 
   bool get isEquippable => slot != null;
+  bool get isInstanced => instanceId != null;
   int get cost => rarity.shopPriceBase;
 
   int modifier(BattlerStat stat) {
     return statModifiers[stat] ?? 0;
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Item && other.id == id;
+  Item toOwnedInstance() {
+    if (isInstanced) return this;
+
+    return Item(
+      id: id,
+      name: name,
+      description: description,
+      iconEmoji: iconEmoji,
+      slot: slot,
+      rarity: rarity,
+      statModifiers: statModifiers,
+      instanceId: 'item_${_nextInstanceSequence++}',
+    );
   }
 
   @override
-  int get hashCode => id.hashCode;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Item &&
+        instanceId != null &&
+        other.instanceId != null &&
+        other.instanceId == instanceId;
+  }
+
+  @override
+  int get hashCode => instanceId?.hashCode ?? identityHashCode(this);
 }

@@ -78,19 +78,17 @@ class PathNodeService {
   }
 
   List<PathNode> _buildDayNodes() {
-    return [
-      _pickWeightedNode(_buildDaySideCandidates()),
-      _buildCenterShopNode(dayShopNodes),
-      _pickWeightedNode(_buildDaySideCandidates()),
-    ];
+    return _buildUniqueHourNodes(
+      sideCandidates: _buildDaySideCandidates(),
+      shopPool: dayShopNodes,
+    );
   }
 
   List<PathNode> _buildNightNodes() {
-    return [
-      _pickWeightedNode(_buildNightSideCandidates()),
-      _buildCenterShopNode(nightShopNodes),
-      _pickWeightedNode(_buildNightSideCandidates()),
-    ];
+    return _buildUniqueHourNodes(
+      sideCandidates: _buildNightSideCandidates(),
+      shopPool: nightShopNodes,
+    );
   }
 
   List<PathNode> _resolveNodes({
@@ -145,6 +143,31 @@ class PathNodeService {
     ];
   }
 
+  List<PathNode> _buildUniqueHourNodes({
+    required List<_WeightedPathNode> sideCandidates,
+    required List<ShopPathNode> shopPool,
+  }) {
+    final centerNode = _buildCenterShopNode(shopPool);
+    final sideNodes = _pickDistinctWeightedNodes(
+      sideCandidates,
+      count: 2,
+      excludedKeys: {_nodeKey(centerNode)},
+    );
+
+    if (sideNodes.length < 2) {
+      return [
+        ...sideNodes,
+        centerNode,
+      ];
+    }
+
+    return [
+      sideNodes.first,
+      centerNode,
+      sideNodes.last,
+    ];
+  }
+
   ShopPathNode _buildCenterShopNode(List<ShopPathNode> shopPool) {
     final baseNode = _pickWeightedNode(
       shopPool
@@ -175,6 +198,32 @@ class PathNodeService {
       case CombatNodeTier.yellow:
         return 0;
     }
+  }
+
+  List<PathNode> _pickDistinctWeightedNodes(
+    List<_WeightedPathNode> candidates, {
+    required int count,
+    Set<String> excludedKeys = const {},
+  }) {
+    final remainingCandidates = candidates
+        .where((candidate) => !excludedKeys.contains(_nodeKey(candidate.node)))
+        .toList(growable: true);
+    final selectedNodes = <PathNode>[];
+
+    while (selectedNodes.length < count && remainingCandidates.isNotEmpty) {
+      final pickedNode = _pickWeightedNode(remainingCandidates);
+      final pickedKey = _nodeKey(pickedNode);
+      selectedNodes.add(pickedNode);
+      remainingCandidates.removeWhere(
+        (candidate) => _nodeKey(candidate.node) == pickedKey,
+      );
+    }
+
+    return selectedNodes;
+  }
+
+  String _nodeKey(PathNode node) {
+    return '${node.type.name}:${node.label}';
   }
 
   PathNode _pickWeightedNode(List<_WeightedPathNode> candidates) {

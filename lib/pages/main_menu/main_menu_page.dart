@@ -82,6 +82,7 @@ class _MainMenuPageState extends State<MainMenuPage>
                                 scale: _scale.value,
                                 child: EndpointText(
                                   'DEATH AT SUNRISE',
+                                  maxLines: 2,
                                   textAlign: TextAlign.center,
                                   style: textExtraLargeBold.copyWith(
                                     fontSize: 42,

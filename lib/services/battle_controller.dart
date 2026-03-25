@@ -26,8 +26,8 @@ class BattleController extends ChangeNotifier {
     required this.enemyTurnDelay,
     required this.combatEndDelay,
     BattleResolver resolver = const BattleResolver(),
-  })  : _enemy = enemy,
-        _player = player,
+  })  : _enemy = enemy.materializeOwnedItems(),
+        _player = player.materializeOwnedItems(),
         _resolver = resolver;
 
   Battler get enemy => _enemy;

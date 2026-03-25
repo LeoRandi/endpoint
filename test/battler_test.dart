@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:endpoint/entities/battler/battler.dart';
+import 'package:endpoint/entities/_exports.dart';
 
 void main() {
   test('calculateDamageAgainst uses attack and defense with minimum 1', () {
@@ -61,5 +61,23 @@ void main() {
 
     expect(healed.health, 9);
     expect(overhealed.health, 10);
+  });
+
+  test('addItem accepts duplicate item types as separate owned instances', () {
+    final battler = Battler.legacy(
+      name: 'Operative',
+      attack: 6,
+      defense: 3,
+      health: 10,
+    );
+
+    final updatedBattler =
+        battler.addItem(woodenStickItem).addItem(woodenStickItem);
+
+    expect(updatedBattler.inventoryItems, hasLength(2));
+    expect(updatedBattler.inventoryItems[0].id, ItemId.woodenStick);
+    expect(updatedBattler.inventoryItems[1].id, ItemId.woodenStick);
+    expect(updatedBattler.inventoryItems[0],
+        isNot(updatedBattler.inventoryItems[1]));
   });
 }

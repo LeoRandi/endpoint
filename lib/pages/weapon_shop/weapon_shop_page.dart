@@ -323,6 +323,7 @@ class _ShopItemTile extends StatelessWidget {
                 EndpointText(
                   '${price}C',
                   style: textSmallBold.copyWith(
+                    fontSize: 10,
                     color: accent,
                     letterSpacing: 1.2,
                   ),
@@ -332,6 +333,7 @@ class _ShopItemTile extends StatelessWidget {
                   statusLabel,
                   textAlign: TextAlign.center,
                   style: textSmallBold.copyWith(
+                    fontSize: 10,
                     color: Colors.white.withOpacity(0.72),
                     letterSpacing: 0.9,
                   ),

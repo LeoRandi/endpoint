@@ -85,6 +85,11 @@ class Battler {
     return inventoryItems.contains(item) || equippedItems.contains(item);
   }
 
+  bool ownsItemOfType(ItemId itemId) {
+    return inventoryItemOfType(itemId) != null ||
+        equippedItemOfType(itemId) != null;
+  }
+
   bool hasAbility(BattlerAbility ability) {
     return abilities.contains(ability);
   }
@@ -136,12 +141,10 @@ class Battler {
   }
 
   Battler addItem(Item item) {
-    if (ownsItem(item)) return this;
-
     return copyWith(
       inventoryItems: List<Item>.unmodifiable([
         ...inventoryItems,
-        item,
+        item.toOwnedInstance(),
       ]),
     );
   }
@@ -163,6 +166,36 @@ class Battler {
       if (item.slot == slot) return item;
     }
     return null;
+  }
+
+  Item? inventoryItemOfType(ItemId itemId) {
+    for (final item in inventoryItems) {
+      if (item.id == itemId) return item;
+    }
+    return null;
+  }
+
+  Item? equippedItemOfType(ItemId itemId) {
+    for (final item in equippedItems) {
+      if (item.id == itemId) return item;
+    }
+    return null;
+  }
+
+  Battler materializeOwnedItems() {
+    final hasOnlyInstancedItems =
+        inventoryItems.every((item) => item.isInstanced) &&
+            equippedItems.every((item) => item.isInstanced);
+    if (hasOnlyInstancedItems) return this;
+
+    return copyWith(
+      inventoryItems: inventoryItems
+          .map((item) => item.toOwnedInstance())
+          .toList(growable: false),
+      equippedItems: equippedItems
+          .map((item) => item.toOwnedInstance())
+          .toList(growable: false),
+    );
   }
 
   Battler equipItem(Item item) {
