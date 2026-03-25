@@ -1,12 +1,18 @@
 TODOS:
 
+-Página de Selección de Camino
+--Barra de fase de día no está alineada verticalmente con los iconos en el stack
+
 -Sistema de acompañantes
 --Añadir al loot posibilidad de conseguir al acompañante
 --Manejar su inventario
 
+-Combate
+--Añadir estados alterados
+
 -Habilidades
 --Meter en el loot
---Crear presets
+--Crear presets(al menos 50)
 
 -Items
 --Meter al menos 100-120
@@ -15,6 +21,10 @@ TODOS:
 -Tiendas
 --Mejorar aspecto y diseño
 --Crear más tiendas diferenciadas(después de añadir los Items)
+
+-Eventos
+--Crear más eventos, al menos 10-15
+--implementar los efectos de cada uno
 
 -Enemigos
 --Crear Presets(al menos 40 distintos)
