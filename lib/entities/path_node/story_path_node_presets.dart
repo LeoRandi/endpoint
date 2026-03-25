@@ -164,9 +164,36 @@ final afterHoursTechnosurgeonNode = EventPathNode(
       'Por ahora no altera tus estadisticas. TODO: aplicar efectos temporales nocturnos.',
 );
 
-const dayCampNode = PathNode.campSite(
-  label: 'Campamento de Ruta',
-  tooltip: 'Un respiro breve antes de que caiga el sol',
+final restZoneCampNode = CampSitePathNode(
+  label: 'Zona de Descanso',
+  tooltip: 'Recupera toda tu vida en un refugio seguro',
+  iconEmoji: '\u{1F6CF}',
+  rarity: RarityTier.green,
+  accent: RarityTier.green.accent,
+  badgeLabel: 'DESCANSO',
+  showTitle: 'Has encontrado una zona de descanso',
+  sceneTitle: 'ZONA DE DESCANSO',
+  description: 'Recuperas toda tu vida.',
+  recoveryService: CampSiteService(
+    recoveryFactor: 1,
+  ),
+);
+
+final severeMedicationCampNode = CampSitePathNode(
+  label: 'Medicacion Severa',
+  tooltip: 'Recupera 33% de tu vida maxima y elimina un debuff aleatorio',
+  iconEmoji: '\u{1F489}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'TRATAMIENTO',
+  showTitle: 'Has encontrado un modulo de medicacion severa',
+  sceneTitle: 'MEDICACION SEVERA',
+  description:
+      'Recuperas 33% de tu vida maxima y eliminas un debuff aleatorio.',
+  recoveryService: CampSiteService(
+    recoveryFactor: 1 / 3,
+    removeRandomDebuff: true,
+  ),
 );
 
 final List<ShopPathNode> dayShopNodes = List.unmodifiable([

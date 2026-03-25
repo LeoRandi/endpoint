@@ -201,7 +201,8 @@ class Battler {
     final activeStatuses = List<BattlerStatus>.from(statuses);
 
     for (final status in activeStatuses) {
-      updatedOwner = status.onTurnStart(
+      final resolvedStatus = status.resolved(updatedOwner);
+      updatedOwner = resolvedStatus.onTurnStart(
         owner: updatedOwner,
         opponent: opponent,
         isOwnerTurn: isOwnerTurn,
@@ -221,7 +222,8 @@ class Battler {
     final activeStatuses = List<BattlerStatus>.from(statuses);
 
     for (final status in activeStatuses) {
-      updatedOwner = status.onTurnEnd(
+      final resolvedStatus = status.resolved(updatedOwner);
+      updatedOwner = resolvedStatus.onTurnEnd(
         owner: updatedOwner,
         opponent: opponent,
         isOwnerTurn: isOwnerTurn,
@@ -238,7 +240,8 @@ class Battler {
     var updatedDamage = damage;
 
     for (final status in statuses) {
-      updatedDamage = status.modifyOutgoingDamage(
+      final resolvedStatus = status.resolved(this);
+      updatedDamage = resolvedStatus.modifyOutgoingDamage(
         owner: this,
         target: target,
         damage: updatedDamage,
@@ -255,7 +258,8 @@ class Battler {
     var updatedDamage = damage;
 
     for (final status in statuses) {
-      updatedDamage = status.modifyIncomingDamage(
+      final resolvedStatus = status.resolved(this);
+      updatedDamage = resolvedStatus.modifyIncomingDamage(
         owner: this,
         source: source,
         damage: updatedDamage,
@@ -275,7 +279,8 @@ class Battler {
     final activeStatuses = List<BattlerStatus>.from(statuses);
 
     for (final status in activeStatuses) {
-      updatedOwner = status.onAttackResolved(
+      final resolvedStatus = status.resolved(updatedOwner);
+      updatedOwner = resolvedStatus.onAttackResolved(
         owner: updatedOwner,
         target: target,
         damageDealt: damageDealt,
@@ -295,7 +300,8 @@ class Battler {
     final activeStatuses = List<BattlerStatus>.from(statuses);
 
     for (final status in activeStatuses) {
-      updatedOwner = status.onReceiveDamageResolved(
+      final resolvedStatus = status.resolved(updatedOwner);
+      updatedOwner = resolvedStatus.onReceiveDamageResolved(
         owner: updatedOwner,
         source: source,
         damageTaken: damageTaken,

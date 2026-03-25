@@ -40,8 +40,8 @@ abstract class BattlerStatus {
   final BattlerStatusType type;
   final IconData icon;
   final String description;
-  final int totalDuration;
   final int remainingTurns;
+  final int value;
 
   const BattlerStatus({
     required this.id,
@@ -49,29 +49,39 @@ abstract class BattlerStatus {
     required this.type,
     required this.icon,
     required this.description,
-    required this.totalDuration,
     required this.remainingTurns,
-  })  : assert(totalDuration > 0),
-        assert(remainingTurns >= 0),
-        assert(remainingTurns <= totalDuration);
+    this.value = 0,
+  }) : assert(remainingTurns >= 0);
 
-  bool get isExpired => remainingTurns <= 0;
+  bool get isIndefinite => false;
 
-  int get activeTurnCount => min(
-        totalDuration,
-        max(1, totalDuration - remainingTurns + 1),
-      );
+  bool get isExpired => !isIndefinite && remainingTurns <= 0;
 
   String get remainingTurnsLabel {
+    if (isIndefinite) return 'Indefinido';
     if (remainingTurns == 1) return '1 turno';
     return '$remainingTurns turnos';
   }
 
-  String descriptionFor(Battler owner) => description;
-
   BattlerStatus copyWith({
     int? remainingTurns,
+    int? value,
   });
+
+  int resolveValue(Battler owner) => value;
+
+  BattlerStatus resolved(Battler owner) {
+    final currentStatus = owner.statusById(id) ?? this;
+    final resolvedValue = currentStatus.resolveValue(owner);
+
+    if (resolvedValue == currentStatus.value) {
+      return currentStatus;
+    }
+
+    return currentStatus.copyWith(value: resolvedValue);
+  }
+
+  String descriptionFor(Battler owner) => description;
 
   Battler onTurnStart({
     required Battler owner,
@@ -124,21 +134,22 @@ abstract class BattlerStatus {
 
 class CalentandoStatus extends BattlerStatus {
   static const defaultDuration = 5;
+  static const defaultValue = 1;
 
   const CalentandoStatus({
     int remainingTurns = defaultDuration,
+    int value = defaultValue,
   }) : super(
           id: 'calentando',
           name: 'Calentando',
           type: BattlerStatusType.buff,
           icon: Icons.local_fire_department_rounded,
-          description:
-              'El usuario hace 1 mas de dano por cada turno que este activo este efecto.',
-          totalDuration: defaultDuration,
+          description: 'El usuario suma su value al dano total al atacar.',
           remainingTurns: remainingTurns,
+          value: value,
         );
 
-  int currentDamageBonus(Battler owner) => activeTurnCount;
+  int currentDamageBonus(Battler owner) => resolved(owner).value;
 
   @override
   String descriptionFor(Battler owner) {
@@ -148,9 +159,11 @@ class CalentandoStatus extends BattlerStatus {
   @override
   BattlerStatus copyWith({
     int? remainingTurns,
+    int? value,
   }) {
     return CalentandoStatus(
       remainingTurns: remainingTurns ?? this.remainingTurns,
+      value: value ?? this.value,
     );
   }
 
@@ -161,5 +174,128 @@ class CalentandoStatus extends BattlerStatus {
     required int damage,
   }) {
     return damage + currentDamageBonus(owner);
+  }
+
+  @override
+  Battler onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) return owner;
+
+    final currentStatus = resolved(owner);
+    return owner.applyStatus(
+      currentStatus.copyWith(value: currentStatus.value + 1),
+    );
+  }
+}
+
+class QuemaduraStatus extends BattlerStatus {
+  static const defaultDuration = 3;
+
+  const QuemaduraStatus({
+    int remainingTurns = defaultDuration,
+    int? value,
+  }) : super(
+          id: 'quemadura',
+          name: 'Quemadura',
+          type: BattlerStatusType.debuff,
+          icon: Icons.whatshot_rounded,
+          description:
+              'Al final del turno del objetivo, este estado inflige dano igual a su duracion restante.',
+          remainingTurns: remainingTurns,
+          value: value ?? remainingTurns,
+        );
+
+  int currentDamage(Battler owner) => resolved(owner).value;
+
+  @override
+  int resolveValue(Battler owner) => remainingTurns;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Dano actual: ${currentDamage(owner)}';
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    final nextRemainingTurns = remainingTurns ?? this.remainingTurns;
+
+    return QuemaduraStatus(
+      remainingTurns: nextRemainingTurns,
+      value: value ?? nextRemainingTurns,
+    );
+  }
+
+  @override
+  Battler onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) return owner;
+
+    final currentStatus = resolved(owner);
+    return owner.applyStatus(currentStatus).receiveDamage(currentStatus.value);
+  }
+}
+
+class IntoxicacionStatus extends BattlerStatus {
+  static const defaultDuration = 1;
+  static const defaultValue = 1;
+
+  const IntoxicacionStatus({
+    int remainingTurns = defaultDuration,
+    int value = defaultValue,
+  }) : super(
+          id: 'intoxicacion',
+          name: 'Intoxicacion',
+          type: BattlerStatusType.debuff,
+          icon: Icons.science_rounded,
+          description:
+              'Al final del turno del objetivo, este estado inflige dano fijo igual a su value y renueva su duracion.',
+          remainingTurns: remainingTurns,
+          value: value,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  int currentDamage(Battler owner) => resolved(owner).value;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Dano actual: ${currentDamage(owner)}';
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return IntoxicacionStatus(
+      remainingTurns: remainingTurns ?? this.remainingTurns,
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  Battler onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) return owner;
+
+    final currentStatus = resolved(owner);
+    final renewedStatus = currentStatus.copyWith(
+      remainingTurns: currentStatus.remainingTurns + 1,
+    );
+
+    return owner.applyStatus(renewedStatus).receiveDamage(currentStatus.value);
   }
 }

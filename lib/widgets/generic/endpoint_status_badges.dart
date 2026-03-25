@@ -111,6 +111,7 @@ class _EndpointStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = status.type.accent;
+    final badgeLabel = status.isIndefinite ? '∞' : '${status.remainingTurns}';
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -162,7 +163,7 @@ class _EndpointStatusBadge extends StatelessWidget {
                       vertical: 1,
                     ),
                     child: EndpointText(
-                      '${status.remainingTurns}',
+                      badgeLabel,
                       style: textSmallBold.copyWith(
                         color: const Color(0xFF020403),
                         fontSize: 8,

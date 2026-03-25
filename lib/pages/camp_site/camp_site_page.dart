@@ -3,11 +3,21 @@ import '_imports.dart';
 class CampSitePage extends StatefulWidget {
   final Battler player;
   final CampSiteService recoveryService;
+  final String showTitle;
+  final String sceneTitle;
+  final String description;
+  final String iconEmoji;
+  final Color accent;
 
   const CampSitePage({
     super.key,
     required this.player,
     this.recoveryService = const CampSiteService(),
+    this.showTitle = 'Has encontrado una zona de descanso',
+    this.sceneTitle = 'ZONA DE DESCANSO',
+    this.description = 'Recuperas toda tu vida.',
+    this.iconEmoji = '\u{1F6CF}',
+    this.accent = EndpointPalette.primaryAccent,
   });
 
   @override
@@ -37,7 +47,7 @@ class _CampSitePageState extends State<CampSitePage> {
     return WillPopScope(
       onWillPop: _handleWillPop,
       child: EndpointCenterStageScene(
-        showTitle: 'Has encontrado una zona de acampada',
+        showTitle: widget.showTitle,
         background: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -50,16 +60,17 @@ class _CampSitePageState extends State<CampSitePage> {
         backdrop: const _CampBackdrop(),
         onClose: _closeCamp,
         closeTooltip: EndpointStrings.backToRoute,
-        accent: EndpointPalette.primaryAccent,
-        emoji: '\u{26FA}',
+        accent: widget.accent,
+        emoji: widget.iconEmoji,
         emojiSize: 144,
-        title: 'ZONA DE ACAMPADA',
+        title: widget.sceneTitle,
         titleColor: const Color(0xFFD6FFE5),
         content: Column(
           children: [
             EndpointText(
-              'Recuperas 50% de tu vida maxima.',
+              widget.description,
               textAlign: TextAlign.center,
+              maxLines: null,
               style: textMedium.copyWith(
                 color: Colors.white.withOpacity(0.84),
               ),
@@ -83,10 +94,24 @@ class _CampSitePageState extends State<CampSitePage> {
                         ? 'Salud recuperada: +${_visitResult.healedAmount}'
                         : 'Tu salud ya estaba al maximo.',
                     textAlign: TextAlign.center,
+                    maxLines: null,
                     style: textMedium.copyWith(
                       color: Colors.white.withOpacity(0.76),
                     ),
                   ),
+                  if (widget.recoveryService.removeRandomDebuff) ...[
+                    const SizedBox(height: 8),
+                    EndpointText(
+                      _visitResult.removedDebuff != null
+                          ? 'Debuff eliminado: ${_visitResult.removedDebuff!.name}'
+                          : 'No habia debuffs activos que purgar.',
+                      textAlign: TextAlign.center,
+                      maxLines: null,
+                      style: textMedium.copyWith(
+                        color: Colors.white.withOpacity(0.76),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

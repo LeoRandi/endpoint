@@ -26,4 +26,16 @@ void main() {
       {ItemId.shield, ItemId.bulwarkAmulet},
     );
   });
+
+  test('last hour before sunrise always offers the two recovery side nodes',
+      () {
+    final snapshot = PathNodeService(seed: 7).buildHourSnapshot(
+      stageIndex: PathNodeService.sunriseStageIndex - 1,
+    );
+
+    expect(snapshot.nodes, hasLength(3));
+    expect(snapshot.nodes.first.label, restZoneCampNode.label);
+    expect(snapshot.nodes.last.label, severeMedicationCampNode.label);
+    expect(snapshot.nodes[1], isA<ShopPathNode>());
+  });
 }

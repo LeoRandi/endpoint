@@ -65,9 +65,9 @@ class PathNode {
         );
 
   const PathNode.campSite({
-    String label = 'Acampada',
-    String tooltip = 'Zona de acampada',
-    String iconEmoji = '\u{26FA}',
+    String label = 'Zona de Descanso',
+    String tooltip = 'Recupera toda tu vida',
+    String iconEmoji = '\u{1F6CF}',
   }) : this.base(
           type: PathNodeType.campSite,
           label: label,

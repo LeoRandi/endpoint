@@ -14,7 +14,7 @@ class PathNodeService {
       phase: RunHourPhase.day,
       titleBuilder: (_) => 'HORA 1',
       subtitle: 'Elige el arquetipo con el que abrira la run.',
-      buildNodes: () => openingArchetypeNodes,
+      buildNodes: (_) => openingArchetypeNodes,
     ),
     _RunStageDefinition(
       matches: (stageIndex) =>
@@ -30,7 +30,7 @@ class PathNodeService {
       titleBuilder: (_) => 'ANOCHECER',
       subtitle:
           'La ciudad se cierra. Tres enfrentamientos marcan la entrada en la noche.',
-      buildNodes: () => duskCombatNodes,
+      buildNodes: (_) => duskCombatNodes,
     ),
     _RunStageDefinition(
       matches: (stageIndex) => stageIndex < sunriseStageIndex,
@@ -44,7 +44,7 @@ class PathNodeService {
       phase: RunHourPhase.sunrise,
       titleBuilder: (_) => 'SUNRISE',
       subtitle: 'Solo queda un combate. El peor de toda la run.',
-      buildNodes: () => sunriseCombatNodes.take(1).toList(growable: false),
+      buildNodes: (_) => sunriseCombatNodes.take(1).toList(growable: false),
     ),
   ];
 
@@ -71,7 +71,7 @@ class PathNodeService {
       subtitle: definition.subtitle,
       nodes: List<PathNode>.unmodifiable(
         _resolveNodes(
-          fallbackNodes: definition.buildNodes(),
+          fallbackNodes: definition.buildNodes(clampedStageIndex),
           availableNodes: availableNodes,
           nodeCount: resolvedNodeCount,
         ),
@@ -85,14 +85,18 @@ class PathNodeService {
     );
   }
 
-  List<PathNode> _buildDayNodes() {
+  List<PathNode> _buildDayNodes(int stageIndex) {
     return _buildUniqueHourNodes(
       sideCandidates: _buildDaySideCandidates(),
       shopPool: dayShopNodes,
     );
   }
 
-  List<PathNode> _buildNightNodes() {
+  List<PathNode> _buildNightNodes(int stageIndex) {
+    if (stageIndex == sunriseStageIndex - 1) {
+      return _buildFinalNightNodes();
+    }
+
     return _buildUniqueHourNodes(
       sideCandidates: _buildNightSideCandidates(),
       shopPool: nightShopNodes,
@@ -122,8 +126,12 @@ class PathNodeService {
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
       _WeightedPathNode(
-        node: dayCampNode,
-        weight: dayCampNode.rollWeight,
+        node: restZoneCampNode,
+        weight: restZoneCampNode.rollWeight,
+      ),
+      _WeightedPathNode(
+        node: severeMedicationCampNode,
+        weight: severeMedicationCampNode.rollWeight,
       ),
       ...rareDayCombatNodes.map(
         (node) => _WeightedPathNode(
@@ -148,6 +156,24 @@ class PathNodeService {
       ...nightEventNodes.map(
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
+      _WeightedPathNode(
+        node: restZoneCampNode,
+        weight: restZoneCampNode.rollWeight,
+      ),
+      _WeightedPathNode(
+        node: severeMedicationCampNode,
+        weight: severeMedicationCampNode.rollWeight,
+      ),
+    ];
+  }
+
+  List<PathNode> _buildFinalNightNodes() {
+    final centerNode = _buildCenterShopNode(nightShopNodes);
+
+    return [
+      restZoneCampNode,
+      centerNode,
+      severeMedicationCampNode,
     ];
   }
 
@@ -259,7 +285,7 @@ class _RunStageDefinition {
   final RunHourPhase phase;
   final String Function(int stageIndex) titleBuilder;
   final String subtitle;
-  final List<PathNode> Function() buildNodes;
+  final List<PathNode> Function(int stageIndex) buildNodes;
 
   const _RunStageDefinition({
     required this.matches,

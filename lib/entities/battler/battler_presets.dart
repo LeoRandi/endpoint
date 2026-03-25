@@ -72,7 +72,7 @@ const purpleEnemyBattler = Battler(
   ],
   equippedItems: [
     ironSwordItem,
-    midnightCloakItem,
+    voidInjectorItem,
   ],
 );
 
@@ -101,16 +101,20 @@ const defaultEnemyBattler = greenEnemyBattler;
 const defaultPlayerBattler = Battler(
   name: 'ENDPOINT UNIT',
   health: 100,
-  money: 5,
-  income: 1,
+  money: 0,
+  income: 0,
   baseStats: {
     BattlerStat.health: 100,
-    BattlerStat.attack: 9,
-    BattlerStat.defense: 4,
+    BattlerStat.attack: 10,
+    BattlerStat.defense: 5,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
   abilities: [BattlerAbility.defend],
-  statuses: [calentandoStatus],
+  statuses: [
+    calentandoStatus,
+    quemaduraStatus,
+    intoxicacionStatus,
+  ],
 );

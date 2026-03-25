@@ -101,9 +101,21 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
   }
 
-  Future<void> _handleOpenCampSite() async {
+  Future<void> _handleOpenCampSite(PathNode node) async {
+    final resolvedNode = node is CampSitePathNode ? node : null;
+
     await _openNodeScene<CampSiteVisitResult>(
-      page: CampSitePage(player: _sessionController.player),
+      page: CampSitePage(
+        player: _sessionController.player,
+        recoveryService:
+            resolvedNode?.recoveryService ?? const CampSiteService(),
+        showTitle:
+            resolvedNode?.showTitle ?? 'Has encontrado una zona de descanso',
+        sceneTitle: resolvedNode?.sceneTitle ?? 'ZONA DE DESCANSO',
+        description: resolvedNode?.description ?? 'Recuperas toda tu vida.',
+        iconEmoji: resolvedNode?.iconEmoji ?? '\u{1F6CF}',
+        accent: resolvedNode?.accent ?? EndpointPalette.primaryAccent,
+      ),
       onCompleted: _sessionController.completeCampVisit,
     );
   }
@@ -139,7 +151,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         await _handleOpenWeaponShop(node as ShopPathNode);
         break;
       case PathNodeType.campSite:
-        await _handleOpenCampSite();
+        await _handleOpenCampSite(node);
         break;
       case PathNodeType.event:
         await _handleOpenEvent(node as EventPathNode);
