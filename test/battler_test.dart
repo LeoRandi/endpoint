@@ -4,11 +4,8 @@ import 'package:endpoint/entities/_exports.dart';
 import 'package:endpoint/services/_exports.dart';
 
 void main() {
-  test('default player starts with the three test statuses active', () {
-    expect(
-      defaultPlayerBattler.statuses.map((status) => status.id).toList(),
-      ['calentando', 'quemadura', 'intoxicacion'],
-    );
+  test('default player starts without altered statuses', () {
+    expect(defaultPlayerBattler.statuses, isEmpty);
   });
 
   test('calculateDamageAgainst uses attack and defense with minimum 1', () {
@@ -151,6 +148,23 @@ void main() {
     expect(burn?.value, 2);
   });
 
+  test('quemadura can stack as separate statuses', () {
+    final battler = Battler.legacy(
+      name: 'Operative',
+      attack: 4,
+      defense: 2,
+      health: 12,
+    )
+        .applyStatus(
+          const QuemaduraStatus(remainingTurns: 4),
+        )
+        .applyStatus(
+          const QuemaduraStatus(remainingTurns: 4),
+        );
+
+    expect(battler.statusesById('quemadura'), hasLength(2));
+  });
+
   test('intoxicacion deals fixed end turn damage and does not expire', () {
     final enemy = Battler.legacy(
       name: 'Enemy',
@@ -189,5 +203,76 @@ void main() {
     expect(secondPoison, isNotNull);
     expect(secondPoison?.remainingTurns, 1);
     expect(secondPoison?.value, 1);
+  });
+
+  test('attack item effect applies intoxicacion and increases its value', () {
+    final attacker = Battler.legacy(
+      name: 'Operative',
+      attack: 6,
+      defense: 2,
+      health: 10,
+      equippedItems: const [toxicCatalystItem],
+    );
+    final target = Battler.legacy(
+      name: 'Target',
+      attack: 4,
+      defense: 1,
+      health: 20,
+    );
+    const resolver = BattleResolver();
+
+    final firstAttack = resolver.resolveAttack(
+      attacker: attacker,
+      defender: target,
+    );
+    final firstPoison =
+        firstAttack.defender.statusById('intoxicacion') as IntoxicacionStatus?;
+
+    expect(firstPoison, isNotNull);
+    expect(firstPoison?.value, 1);
+
+    final secondAttack = resolver.resolveAttack(
+      attacker: firstAttack.attacker,
+      defender: firstAttack.defender,
+    );
+    final secondPoison =
+        secondAttack.defender.statusById('intoxicacion') as IntoxicacionStatus?;
+
+    expect(secondPoison, isNotNull);
+    expect(secondPoison?.value, 2);
+  });
+
+  test('receive item effect adds stacked quemadura to the attacker', () {
+    final attacker = Battler.legacy(
+      name: 'Attacker',
+      attack: 6,
+      defense: 2,
+      health: 14,
+    );
+    final defender = Battler.legacy(
+      name: 'Defender',
+      attack: 3,
+      defense: 1,
+      health: 18,
+      equippedItems: const [reactiveCasingItem],
+    );
+    const resolver = BattleResolver();
+
+    final firstAttack = resolver.resolveAttack(
+      attacker: attacker,
+      defender: defender,
+    );
+    expect(firstAttack.attacker.statusesById('quemadura'), hasLength(1));
+    expect(
+      (firstAttack.attacker.statusesById('quemadura').first as QuemaduraStatus)
+          .remainingTurns,
+      4,
+    );
+
+    final secondAttack = resolver.resolveAttack(
+      attacker: firstAttack.attacker,
+      defender: firstAttack.defender,
+    );
+    expect(secondAttack.attacker.statusesById('quemadura'), hasLength(2));
   });
 }

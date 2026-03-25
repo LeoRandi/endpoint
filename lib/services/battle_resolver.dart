@@ -20,24 +20,49 @@ class BattleResolver {
     required Battler defender,
   }) {
     final baseDamage = attacker.calculateDamageAgainst(defender);
-    final outgoingModifiedDamage = attacker.applyOutgoingDamageModifiers(
+    final outgoingStatusModifiedDamage = attacker.applyOutgoingDamageModifiers(
       target: defender,
       damage: baseDamage,
     );
-    final damageDealt = defender.applyIncomingDamageModifiers(
+    final outgoingModifiedDamage =
+        attacker.applyEquippedItemOutgoingDamageModifiers(
+      target: defender,
+      damage: outgoingStatusModifiedDamage,
+    );
+    final incomingStatusModifiedDamage = defender.applyIncomingDamageModifiers(
       source: attacker,
       damage: outgoingModifiedDamage,
     );
+    final damageDealt = defender.applyEquippedItemIncomingDamageModifiers(
+      source: attacker,
+      damage: incomingStatusModifiedDamage,
+    );
     final defenderAfterDamage = defender.receiveDamage(damageDealt);
-    final updatedAttacker = attacker.applyAttackResolvedEffects(
+    var updatedAttacker = attacker.applyAttackResolvedEffects(
       target: defenderAfterDamage,
       damageDealt: damageDealt,
     );
-    final updatedDefender =
-        defenderAfterDamage.applyReceiveDamageResolvedEffects(
+    var updatedDefender = defenderAfterDamage;
+
+    final attackItemResolution =
+        updatedAttacker.applyEquippedItemAttackResolvedEffects(
+      target: updatedDefender,
+      damageDealt: damageDealt,
+    );
+    updatedAttacker = attackItemResolution.owner;
+    updatedDefender = attackItemResolution.opponent;
+
+    updatedDefender = updatedDefender.applyReceiveDamageResolvedEffects(
       source: updatedAttacker,
       damageTaken: damageDealt,
     );
+    final receiveItemResolution =
+        updatedDefender.applyEquippedItemReceiveDamageResolvedEffects(
+      source: updatedAttacker,
+      damageTaken: damageDealt,
+    );
+    updatedDefender = receiveItemResolution.owner;
+    updatedAttacker = receiveItemResolution.opponent;
 
     // TODO: Apply thorns, damage reduction, and vampirism once combat rules are finalized.
     return BattleAttackResolution(

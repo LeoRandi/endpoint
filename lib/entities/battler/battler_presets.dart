@@ -112,9 +112,4 @@ const defaultPlayerBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   abilities: [BattlerAbility.defend],
-  statuses: [
-    calentandoStatus,
-    quemaduraStatus,
-    intoxicacionStatus,
-  ],
 );

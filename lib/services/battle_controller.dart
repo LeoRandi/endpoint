@@ -179,17 +179,30 @@ class BattleController extends ChangeNotifier {
   void _beginTurn(BattleTurnState nextTurn, {bool notify = true}) {
     _turn = nextTurn;
 
-    final playerBeforeHooks = _player;
-    final enemyBeforeHooks = _enemy;
-
-    _player = playerBeforeHooks.applyStatusTurnStart(
-      opponent: enemyBeforeHooks,
+    var updatedPlayer = _player.applyStatusTurnStart(
+      opponent: _enemy,
       isOwnerTurn: nextTurn == BattleTurnState.player,
     );
-    _enemy = enemyBeforeHooks.applyStatusTurnStart(
-      opponent: playerBeforeHooks,
+    var updatedEnemy = _enemy.applyStatusTurnStart(
+      opponent: updatedPlayer,
       isOwnerTurn: nextTurn == BattleTurnState.enemy,
     );
+    final playerItemResolution =
+        updatedPlayer.applyEquippedItemTurnStartEffects(
+      opponent: updatedEnemy,
+      isOwnerTurn: nextTurn == BattleTurnState.player,
+    );
+    updatedPlayer = playerItemResolution.owner;
+    updatedEnemy = playerItemResolution.opponent;
+    final enemyItemResolution = updatedEnemy.applyEquippedItemTurnStartEffects(
+      opponent: updatedPlayer,
+      isOwnerTurn: nextTurn == BattleTurnState.enemy,
+    );
+    updatedEnemy = enemyItemResolution.owner;
+    updatedPlayer = enemyItemResolution.opponent;
+
+    _player = updatedPlayer;
+    _enemy = updatedEnemy;
 
     if (_finishCombatFromCurrentState()) {
       return;
@@ -201,23 +214,35 @@ class BattleController extends ChangeNotifier {
   }
 
   bool _completeTurn(BattleTurnState completedTurn) {
-    final playerBeforeHooks = _player;
-    final enemyBeforeHooks = _enemy;
-
-    _player = playerBeforeHooks.applyStatusTurnEnd(
-      opponent: enemyBeforeHooks,
+    var updatedPlayer = _player.applyStatusTurnEnd(
+      opponent: _enemy,
       isOwnerTurn: completedTurn == BattleTurnState.player,
     );
-    _enemy = enemyBeforeHooks.applyStatusTurnEnd(
-      opponent: playerBeforeHooks,
+    var updatedEnemy = _enemy.applyStatusTurnEnd(
+      opponent: updatedPlayer,
       isOwnerTurn: completedTurn == BattleTurnState.enemy,
     );
+    final playerItemResolution = updatedPlayer.applyEquippedItemTurnEndEffects(
+      opponent: updatedEnemy,
+      isOwnerTurn: completedTurn == BattleTurnState.player,
+    );
+    updatedPlayer = playerItemResolution.owner;
+    updatedEnemy = playerItemResolution.opponent;
+    final enemyItemResolution = updatedEnemy.applyEquippedItemTurnEndEffects(
+      opponent: updatedPlayer,
+      isOwnerTurn: completedTurn == BattleTurnState.enemy,
+    );
+    updatedEnemy = enemyItemResolution.owner;
+    updatedPlayer = enemyItemResolution.opponent;
 
     if (completedTurn == BattleTurnState.player) {
-      _player = _player.decrementStatusDurations();
+      updatedPlayer = updatedPlayer.decrementStatusDurations();
     } else if (completedTurn == BattleTurnState.enemy) {
-      _enemy = _enemy.decrementStatusDurations();
+      updatedEnemy = updatedEnemy.decrementStatusDurations();
     }
+
+    _player = updatedPlayer;
+    _enemy = updatedEnemy;
 
     return _finishCombatFromCurrentState();
   }

@@ -33,7 +33,7 @@ class CampSiteService {
 
       if (debuffs.isNotEmpty) {
         removedDebuff = debuffs[Random().nextInt(debuffs.length)];
-        updatedPlayer = updatedPlayer.removeStatus(removedDebuff.id);
+        updatedPlayer = updatedPlayer.removeStatusInstance(removedDebuff);
       }
     }
 

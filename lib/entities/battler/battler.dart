@@ -103,6 +103,7 @@ class Battler {
   }
 
   bool get hasStatuses => statuses.isNotEmpty;
+  bool get hasItemEffects => equippedItems.any((item) => item.effect != null);
 
   int baseStat(BattlerStat stat) {
     return baseStats[stat] ?? 0;
@@ -113,6 +114,12 @@ class Battler {
       if (status.id == statusId) return status;
     }
     return null;
+  }
+
+  List<BattlerStatus> statusesById(String statusId) {
+    return statuses
+        .where((status) => status.id == statusId)
+        .toList(growable: false);
   }
 
   bool hasStatus(String statusId) {
@@ -152,14 +159,23 @@ class Battler {
 
   Battler applyStatus(BattlerStatus status) {
     final updatedStatuses = List<BattlerStatus>.from(statuses);
+    final instancedStatus = status.copyWith();
+    if (instancedStatus.canStack) {
+      updatedStatuses.add(instancedStatus);
+      return copyWith(
+        statuses: List<BattlerStatus>.unmodifiable(updatedStatuses),
+      )._removeExpiredStatuses();
+    }
+
     final existingIndex = updatedStatuses.indexWhere(
-      (activeStatus) => activeStatus.id == status.id,
+      (activeStatus) =>
+          activeStatus.id == instancedStatus.id && !activeStatus.canStack,
     );
 
     if (existingIndex >= 0) {
-      updatedStatuses[existingIndex] = status;
+      updatedStatuses[existingIndex] = instancedStatus;
     } else {
-      updatedStatuses.add(status);
+      updatedStatuses.add(instancedStatus);
     }
 
     return copyWith(statuses: List<BattlerStatus>.unmodifiable(updatedStatuses))
@@ -174,6 +190,24 @@ class Battler {
         .toList(growable: false);
     return copyWith(
         statuses: List<BattlerStatus>.unmodifiable(updatedStatuses));
+  }
+
+  Battler removeStatusInstance(BattlerStatus status) {
+    final updatedStatuses = List<BattlerStatus>.from(statuses);
+    final matchingIndex = updatedStatuses.indexWhere(
+      (activeStatus) =>
+          identical(activeStatus, status) ||
+          (activeStatus.runtimeType == status.runtimeType &&
+              activeStatus.id == status.id &&
+              activeStatus.remainingTurns == status.remainingTurns &&
+              activeStatus.value == status.value),
+    );
+    if (matchingIndex < 0) return this;
+
+    updatedStatuses.removeAt(matchingIndex);
+    return copyWith(
+      statuses: List<BattlerStatus>.unmodifiable(updatedStatuses),
+    );
   }
 
   Battler decrementStatusDurations() {
@@ -251,6 +285,27 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  int applyEquippedItemOutgoingDamageModifiers({
+    required Battler target,
+    required int damage,
+  }) {
+    var updatedDamage = damage;
+
+    for (final item in equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      updatedDamage = effect.modifyOutgoingDamage(
+        owner: this,
+        target: target,
+        item: item,
+        damage: updatedDamage,
+      );
+    }
+
+    return max(0, updatedDamage);
+  }
+
   int applyIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -262,6 +317,27 @@ class Battler {
       updatedDamage = resolvedStatus.modifyIncomingDamage(
         owner: this,
         source: source,
+        damage: updatedDamage,
+      );
+    }
+
+    return max(0, updatedDamage);
+  }
+
+  int applyEquippedItemIncomingDamageModifiers({
+    required Battler source,
+    required int damage,
+  }) {
+    var updatedDamage = damage;
+
+    for (final item in equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      updatedDamage = effect.modifyIncomingDamage(
+        owner: this,
+        source: source,
+        item: item,
         damage: updatedDamage,
       );
     }
@@ -290,6 +366,33 @@ class Battler {
     return updatedOwner._removeExpiredStatuses();
   }
 
+  ItemEffectResolution applyEquippedItemAttackResolvedEffects({
+    required Battler target,
+    required int damageDealt,
+  }) {
+    var updatedOwner = this;
+    var updatedTarget = target;
+
+    for (final item in updatedOwner.equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onAttackResolved(
+        owner: updatedOwner,
+        target: updatedTarget,
+        item: item,
+        damageDealt: damageDealt,
+      );
+      updatedOwner = resolution.owner;
+      updatedTarget = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedTarget._removeExpiredStatuses(),
+    );
+  }
+
   Battler applyReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
@@ -309,6 +412,112 @@ class Battler {
     }
 
     return updatedOwner._removeExpiredStatuses();
+  }
+
+  ItemEffectResolution applyEquippedItemReceiveDamageResolvedEffects({
+    required Battler source,
+    required int damageTaken,
+  }) {
+    var updatedOwner = this;
+    var updatedSource = source;
+
+    for (final item in updatedOwner.equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onReceiveDamageResolved(
+        owner: updatedOwner,
+        source: updatedSource,
+        item: item,
+        damageTaken: damageTaken,
+      );
+      updatedOwner = resolution.owner;
+      updatedSource = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedSource._removeExpiredStatuses(),
+    );
+  }
+
+  ItemEffectResolution applyEquippedItemTurnStartEffects({
+    required Battler opponent,
+    required bool isOwnerTurn,
+  }) {
+    var updatedOwner = this;
+    var updatedOpponent = opponent;
+
+    for (final item in updatedOwner.equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onTurnStart(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+        isOwnerTurn: isOwnerTurn,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedOpponent._removeExpiredStatuses(),
+    );
+  }
+
+  ItemEffectResolution applyEquippedItemTurnEndEffects({
+    required Battler opponent,
+    required bool isOwnerTurn,
+  }) {
+    var updatedOwner = this;
+    var updatedOpponent = opponent;
+
+    for (final item in updatedOwner.equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onTurnEnd(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+        isOwnerTurn: isOwnerTurn,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedOpponent._removeExpiredStatuses(),
+    );
+  }
+
+  ItemEffectResolution applyEquippedItemPassiveEffects({
+    required Battler opponent,
+  }) {
+    var updatedOwner = this;
+    var updatedOpponent = opponent;
+
+    for (final item in updatedOwner.equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.applyPassive(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedOpponent._removeExpiredStatuses(),
+    );
   }
 
   bool canAfford(int amount) => money >= amount;

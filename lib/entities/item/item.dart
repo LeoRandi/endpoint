@@ -13,6 +13,8 @@ enum ItemId {
   dawnCharm,
   midnightCloak,
   voidInjector,
+  toxicCatalyst,
+  reactiveCasing,
 }
 
 enum ItemSlot {
@@ -44,6 +46,7 @@ class Item {
   final ItemSlot? slot;
   final RarityTier rarity;
   final Map<BattlerStat, int> statModifiers;
+  final ItemEffect? effect;
   final String? instanceId;
 
   const Item({
@@ -54,11 +57,13 @@ class Item {
     this.slot,
     this.rarity = RarityTier.gray,
     this.statModifiers = const {},
+    this.effect,
     this.instanceId,
   });
 
   bool get isEquippable => slot != null;
   bool get isInstanced => instanceId != null;
+  bool get hasEffect => effect != null;
   int get cost => rarity.shopPriceBase;
 
   int modifier(BattlerStat stat) {
@@ -76,6 +81,7 @@ class Item {
       slot: slot,
       rarity: rarity,
       statModifiers: statModifiers,
+      effect: effect,
       instanceId: 'item_${_nextInstanceSequence++}',
     );
   }

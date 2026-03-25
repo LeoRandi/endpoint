@@ -109,6 +109,24 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                             color: Colors.white.withOpacity(0.84),
                           ),
                         ),
+                        if (item.effect != null) ...[
+                          const SizedBox(height: 12),
+                          EndpointPanel(
+                            accent: accent,
+                            backgroundColor: const Color(0xCC101A13),
+                            glowOpacity: 0.03,
+                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                            child: EndpointText(
+                              item.effect!.description,
+                              maxLines: null,
+                              style: textSmallBold.copyWith(
+                                fontSize: 10,
+                                color: const Color(0xFFE6FFF0),
+                                letterSpacing: 0.9,
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 12),
                         EndpointText(
                           _buildModifiersText(item),

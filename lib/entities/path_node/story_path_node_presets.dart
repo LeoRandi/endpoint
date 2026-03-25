@@ -77,6 +77,7 @@ final bulwarkWorkshopNode = ShopPathNode(
   shopTitle: 'TALLER BLINDADO',
   shopSubtitle: 'Piezas defensivas montadas en el acto.',
   catalog: const [
+    toxicCatalystItem,
     guardShieldItem,
     platedJacketItem,
   ],
@@ -144,6 +145,7 @@ final velvetArmoryNode = ShopPathNode(
   shopSubtitle: 'Blindaje elegante para quien espera volver con vida.',
   catalog: const [
     platedJacketItem,
+    reactiveCasingItem,
     midnightCloakItem,
     dawnCharmItem,
   ],

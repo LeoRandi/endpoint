@@ -61,6 +61,16 @@ const bulwarkAmuletItem = Item(
   },
 );
 
+const toxicCatalystItem = Item(
+  id: ItemId.toxicCatalyst,
+  name: 'Catalizador Toxico',
+  description: 'Accesorio quimico que contamina cada impacto.',
+  iconEmoji: '\u2623',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.green,
+  effect: IntoxicarOnAttackItemEffect(),
+);
+
 const ironSwordItem = Item(
   id: ItemId.ironSword,
   name: 'Espada de Hierro',
@@ -83,6 +93,16 @@ const guardShieldItem = Item(
   statModifiers: {
     BattlerStat.defense: 2,
   },
+);
+
+const reactiveCasingItem = Item(
+  id: ItemId.reactiveCasing,
+  name: 'Coraza Reactiva',
+  description: 'Blindaje inestable que devuelve fuego al agresor.',
+  iconEmoji: '\u{1F9F1}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.blue,
+  effect: QuemaduraOnHitReceivedItemEffect(),
 );
 
 const platedJacketItem = Item(
@@ -147,9 +167,11 @@ const voidInjectorItem = Item(
 );
 
 const itemPresets = <Item>[
+  toxicCatalystItem,
   ironSwordItem,
   guardShieldItem,
   platedJacketItem,
+  reactiveCasingItem,
   sunsteelBladeItem,
   dawnCharmItem,
   midnightCloakItem,

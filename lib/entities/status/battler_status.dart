@@ -54,6 +54,7 @@ abstract class BattlerStatus {
   }) : assert(remainingTurns >= 0);
 
   bool get isIndefinite => false;
+  bool get canStack => false;
 
   bool get isExpired => !isIndefinite && remainingTurns <= 0;
 
@@ -71,14 +72,13 @@ abstract class BattlerStatus {
   int resolveValue(Battler owner) => value;
 
   BattlerStatus resolved(Battler owner) {
-    final currentStatus = owner.statusById(id) ?? this;
-    final resolvedValue = currentStatus.resolveValue(owner);
+    final resolvedValue = resolveValue(owner);
 
-    if (resolvedValue == currentStatus.value) {
-      return currentStatus;
+    if (resolvedValue == value) {
+      return this;
     }
 
-    return currentStatus.copyWith(value: resolvedValue);
+    return copyWith(value: resolvedValue);
   }
 
   String descriptionFor(Battler owner) => description;
@@ -211,6 +211,9 @@ class QuemaduraStatus extends BattlerStatus {
   int currentDamage(Battler owner) => resolved(owner).value;
 
   @override
+  bool get canStack => true;
+
+  @override
   int resolveValue(Battler owner) => remainingTurns;
 
   @override
@@ -240,7 +243,7 @@ class QuemaduraStatus extends BattlerStatus {
     if (!isOwnerTurn) return owner;
 
     final currentStatus = resolved(owner);
-    return owner.applyStatus(currentStatus).receiveDamage(currentStatus.value);
+    return owner.receiveDamage(currentStatus.value);
   }
 }
 
