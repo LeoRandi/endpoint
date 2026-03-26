@@ -20,7 +20,7 @@ TODOs:
 --Crear presets(al menos 50)[6/50]
 
 -Items
---Meter al menos 100-120[14/100]
+--Meter al menos 100-120[22/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 --Venta de items del jugador en tiendas, o descarte en el inventario
 --Añadir slots de equipamiento
