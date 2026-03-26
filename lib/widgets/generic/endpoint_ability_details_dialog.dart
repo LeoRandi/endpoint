@@ -115,7 +115,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
                                   EndpointText(
                                     'COOLDOWN  ${ability.cooldownLabel}',
                                     maxLines: null,
-                                    style: textMediumBold.copyWith(
+                                    style: textMediumNumericBold.copyWith(
                                       fontSize: 14,
                                       color: foreground,
                                     ),
@@ -145,7 +145,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
                         EndpointText(
                           _buildInfoText(ability),
                           maxLines: null,
-                          style: textSmallBold.copyWith(
+                          style: textSmallNumericBold.copyWith(
                             fontSize: 10,
                             color: accent,
                             letterSpacing: 1,

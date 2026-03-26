@@ -5,6 +5,11 @@ enum BattlerAbilityId {
   overclock,
   purge,
   criticalScanner,
+  weaknessHunter,
+  ghostMesh,
+  cruelCatalysis,
+  venousOverload,
+  hardReset,
 }
 
 enum BattlerAbilityActivationContext {
@@ -138,6 +143,149 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(
       owner: owner.updateAbility(ability.startCooldown()),
       opponent: target,
+    );
+  }
+}
+
+class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
+  const WeaknessHunterAbilityEffect();
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    final targetHasDebuff = target.statuses.any(
+      (status) => status.type == BattlerStatusType.debuff,
+    );
+    if (!targetHasDebuff) return damage;
+
+    return damage + ability.value;
+  }
+}
+
+class GhostMeshAbilityEffect extends BattlerAbilityEffect {
+  const GhostMeshAbilityEffect();
+
+  @override
+  int modifyIncomingDamage({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    if (damage <= 0 || owner.health < owner.maxHealth) return damage;
+
+    return (damage / max(1, ability.value)).ceil();
+  }
+}
+
+class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
+  const CruelCatalysisAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final updatedOpponent = opponent.applyStatus(
+      CatalisisCruelStatus(value: max(2, ability.value)),
+    );
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.updateAbility(ability.startCooldown()),
+      opponent: updatedOpponent,
+    );
+  }
+}
+
+class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
+  const VenousOverloadAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    return BattlerAbilityEffectResolution(
+      owner: owner,
+      opponent: opponent,
+    );
+  }
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    if (!ability.isActive) return damage;
+
+    return damage + ability.value;
+  }
+
+  @override
+  BattlerAbilityEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damageDealt,
+  }) {
+    if (!ability.isActive) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: target);
+    }
+
+    final burnTurns = max(1, ability.value ~/ 2);
+    final updatedOwner = owner
+        .applyStatus(QuemaduraStatus(remainingTurns: burnTurns))
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: target,
+    );
+  }
+}
+
+class HardResetAbilityEffect extends BattlerAbilityEffect {
+  const HardResetAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    var updatedOwner = owner;
+    final removableDebuffs = updatedOwner.statuses
+        .where((status) => status.type == BattlerStatusType.debuff)
+        .take(max(0, ability.value))
+        .toList(growable: false);
+
+    for (final debuff in removableDebuffs) {
+      updatedOwner = updatedOwner.removeStatusInstance(debuff);
+    }
+
+    final selfDamage = max(
+      1,
+      ((updatedOwner.maxHealth * ability.value) / 10).round(),
+    );
+
+    updatedOwner = updatedOwner
+        .receiveDamage(selfDamage)
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
     );
   }
 }
@@ -287,6 +435,21 @@ class BattlerAbility {
       case 'scanner critico':
       case 'critical scanner':
         return criticalScannerAbility;
+      case 'caza de debilidades':
+      case 'weakness hunter':
+        return weaknessHunterAbility;
+      case 'malla fantasma':
+      case 'ghost mesh':
+        return ghostMeshAbility;
+      case 'catalisis cruel':
+      case 'cruel catalysis':
+        return cruelCatalysisAbility;
+      case 'sobrecarga venosa':
+      case 'venous overload':
+        return venousOverloadAbility;
+      case 'reinicio en seco':
+      case 'hard reset':
+        return hardResetAbility;
     }
 
     throw ArgumentError.value(value, 'value', 'Unknown battler ability.');
@@ -302,6 +465,16 @@ class BattlerAbility {
         return purgeAbility;
       case BattlerAbilityId.criticalScanner:
         return criticalScannerAbility;
+      case BattlerAbilityId.weaknessHunter:
+        return weaknessHunterAbility;
+      case BattlerAbilityId.ghostMesh:
+        return ghostMeshAbility;
+      case BattlerAbilityId.cruelCatalysis:
+        return cruelCatalysisAbility;
+      case BattlerAbilityId.venousOverload:
+        return venousOverloadAbility;
+      case BattlerAbilityId.hardReset:
+        return hardResetAbility;
     }
   }
 }
@@ -341,5 +514,67 @@ const criticalScannerAbility = BattlerAbility(
   upgradeValue: 2,
   manualActivationContext: BattlerAbilityActivationContext.battle,
   effect: CriticalScannerAbilityEffect(),
+  isImplemented: true,
+);
+
+const weaknessHunterAbility = BattlerAbility(
+  id: BattlerAbilityId.weaknessHunter,
+  name: 'Caza de debilidades',
+  description:
+      'Pasiva. Tus ataques infligen dano adicional si el objetivo ya tiene al menos un debuff.',
+  icon: Icons.track_changes_rounded,
+  value: 2,
+  upgradeValue: 2,
+  effect: WeaknessHunterAbilityEffect(),
+  isImplemented: true,
+);
+
+const ghostMeshAbility = BattlerAbility(
+  id: BattlerAbilityId.ghostMesh,
+  name: 'Malla Fantasma',
+  description:
+      'Pasiva. Si tu vida esta al maximo, el dano recibido por ataques se reduce a la mitad, redondeando hacia arriba.',
+  icon: Icons.security_rounded,
+  value: 2,
+  effect: GhostMeshAbilityEffect(),
+  isImplemented: true,
+);
+
+const cruelCatalysisAbility = BattlerAbility(
+  id: BattlerAbilityId.cruelCatalysis,
+  name: 'Catalisis Cruel',
+  description:
+      'Activacion manual en combate. Aplica al enemigo un debuff que duplica el valor de la siguiente desventaja que reciba.',
+  icon: Icons.biotech_rounded,
+  cooldownTurns: 2,
+  value: 2,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: CruelCatalysisAbilityEffect(),
+  isImplemented: true,
+);
+
+const venousOverloadAbility = BattlerAbility(
+  id: BattlerAbilityId.venousOverload,
+  name: 'Sobrecarga venosa',
+  description:
+      'Activacion manual en combate. El siguiente ataque inflige dano adicional igual a su value, pero te aplica Quemadura por value/2 turnos.',
+  icon: Icons.flash_on_rounded,
+  value: 4,
+  upgradeValue: 2,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: VenousOverloadAbilityEffect(),
+  isImplemented: true,
+);
+
+const hardResetAbility = BattlerAbility(
+  id: BattlerAbilityId.hardReset,
+  name: 'Reinicio en seco',
+  description:
+      'Activacion manual en ruta. Elimina debuffs propios y luego te inflige dano igual al 10% de tu vida maxima por cada punto de value.',
+  icon: Icons.refresh_rounded,
+  value: 1,
+  upgradeValue: 1,
+  manualActivationContext: BattlerAbilityActivationContext.pathSelection,
+  effect: HardResetAbilityEffect(),
   isImplemented: true,
 );

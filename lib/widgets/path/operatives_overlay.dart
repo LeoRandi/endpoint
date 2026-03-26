@@ -2,6 +2,7 @@ import '_imports.dart';
 
 const _operativeTileExtent = 70.0;
 const _operativeTileHeight = 84.0;
+
 class OperativesOverlay extends StatefulWidget {
   final Battler player;
   final List<Battler> companions;
@@ -202,7 +203,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                       Expanded(
                         child: EndpointText(
                           'OPERATIVOS',
-                          style: textMediumBold.copyWith(
+                          style: textTitleMediumBold.copyWith(
                             color: EndpointPalette.softForeground,
                             letterSpacing: 1.8,
                           ),
@@ -328,10 +329,9 @@ class _OperativeIconCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent =
-        isSelected
-            ? EndpointPalette.primaryAccent
-            : EndpointPalette.primaryAccent.withOpacity(0.4);
+    final accent = isSelected
+        ? EndpointPalette.primaryAccent
+        : EndpointPalette.primaryAccent.withOpacity(0.4);
 
     return HoldTooltip(
       message: battler.name,

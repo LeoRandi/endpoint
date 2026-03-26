@@ -111,4 +111,11 @@ const defaultPlayerBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
+  abilities: [
+    weaknessHunterAbility,
+    ghostMeshAbility,
+    cruelCatalysisAbility,
+    venousOverloadAbility,
+    hardResetAbility,
+  ],
 );

@@ -153,7 +153,7 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
                           children: [
                             EndpointText(
                               widget.title,
-                              style: textMediumBold.copyWith(
+                              style: textTitleMediumBold.copyWith(
                                 color: EndpointPalette.softForeground,
                                 letterSpacing: 1.8,
                               ),
@@ -255,18 +255,11 @@ class _AbilityOverlayTile extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(14),
-        child: EndpointPanel(
-          accent: accent.withOpacity(0.34),
-          backgroundColor: EndpointPalette.panelBackgroundSoft,
-          borderRadius: 14,
-          glowOpacity: 0.04,
-          padding: const EdgeInsets.all(10),
-          child: Center(
-            child: EndpointAbilityOrb(
-              ability: ability,
-              accent: accent,
-              size: 58,
-            ),
+        child: Center(
+          child: EndpointAbilityOrb(
+            ability: ability,
+            accent: accent,
+            size: 58,
           ),
         ),
       ),

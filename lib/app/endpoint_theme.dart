@@ -12,7 +12,7 @@ abstract final class EndpointTheme {
       colorScheme: baseColorScheme,
       scaffoldBackgroundColor: EndpointPalette.scaffoldBackground,
       textTheme: ThemeData.dark().textTheme.apply(
-            fontFamily: 'Pixeboy',
+            fontFamily: 'Exo2',
             bodyColor: EndpointPalette.softForeground,
             displayColor: EndpointPalette.softForeground,
           ),

@@ -10,6 +10,7 @@ TODOs:
 -Combate
 [--Añadir estados alterados]
 --Arreglar nombre de enemigo y datos visibles durante el combate
+--Separar el scroll de equipamiento y de habilidades
 
 -Estados
 --Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)[3/20]
@@ -20,8 +21,9 @@ TODOs:
 
 -Items
 --Meter al menos 100-120[14/100]
---Repartirlos bien
---Venta de items en tiendas, o descarte en el inventario
+--Repartirlos bien en eventos/enemigos/tiendas
+--Venta de items del jugador en tiendas, o descarte en el inventario
+--Añadir slots de equipamiento
 
 -Tiendas
 --Mejorar aspecto y diseño
@@ -39,6 +41,7 @@ TODOs:
 --Códice con todos los items y habilidades descubiertos por el jugador
 
 -General
+--APLICAR NUEVAS FONTS(Ya están importadas en el yaml)
 --Sistema de guardado de partida
 --Volver a la pantalla del menú principal
 --Botón de Continuar

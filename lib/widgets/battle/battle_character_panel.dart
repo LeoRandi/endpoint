@@ -55,7 +55,7 @@ class BattleCharacterPanel extends StatelessWidget {
                     const Spacer(),
                     EndpointText(
                       '$currentHealth / $maxHealth',
-                      style: textSmallBold.copyWith(
+                      style: textSmallNumericBold.copyWith(
                         color: Colors.white.withOpacity(0.86),
                         letterSpacing: 0.8,
                       ),
@@ -72,7 +72,7 @@ class BattleCharacterPanel extends StatelessWidget {
                 EndpointText(
                   characterName,
                   textAlign: TextAlign.center,
-                  style: textMediumBold.copyWith(
+                  style: textTitleMediumBold.copyWith(
                     color: EndpointPalette.softForeground,
                     letterSpacing: 1.4,
                   ),

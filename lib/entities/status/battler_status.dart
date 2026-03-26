@@ -69,6 +69,12 @@ abstract class BattlerStatus {
     int? value,
   });
 
+  BattlerStatus amplifyValue(int factor) {
+    if (factor <= 1) return this;
+
+    return copyWith(value: value * factor);
+  }
+
   int resolveValue(Battler owner) => value;
 
   BattlerStatus resolved(Battler owner) {
@@ -130,6 +136,26 @@ abstract class BattlerStatus {
   }) {
     return owner;
   }
+
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    return BattlerStatusApplicationResolution(
+      owner: owner,
+      appliedStatus: appliedStatus,
+    );
+  }
+}
+
+class BattlerStatusApplicationResolution {
+  final Battler owner;
+  final BattlerStatus appliedStatus;
+
+  const BattlerStatusApplicationResolution({
+    required this.owner,
+    required this.appliedStatus,
+  });
 }
 
 class CalentandoStatus extends BattlerStatus {
@@ -235,6 +261,15 @@ class QuemaduraStatus extends BattlerStatus {
   }
 
   @override
+  BattlerStatus amplifyValue(int factor) {
+    if (factor <= 1) return this;
+
+    return copyWith(
+      remainingTurns: remainingTurns * factor,
+    );
+  }
+
+  @override
   Battler onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -300,5 +335,66 @@ class IntoxicacionStatus extends BattlerStatus {
     );
 
     return owner.applyStatus(renewedStatus).receiveDamage(currentStatus.value);
+  }
+}
+
+class CatalisisCruelStatus extends BattlerStatus {
+  const CatalisisCruelStatus({
+    int value = 2,
+  }) : super(
+          id: 'catalisis_cruel',
+          name: 'Catalisis Cruel',
+          type: BattlerStatusType.debuff,
+          icon: Icons.biotech_rounded,
+          description:
+              'La proxima desventaja recibida multiplica su valor y consume este estado. Volver a aplicarlo acumula multiplicador.',
+          remainingTurns: 1,
+          value: value,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Multiplicador actual: x$value';
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return CatalisisCruelStatus(
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    if (appliedStatus.id == id) {
+      final stackedMultiplier =
+          (max(1, value) * max(1, appliedStatus.value)).toInt();
+
+      return BattlerStatusApplicationResolution(
+        owner: owner.removeStatusInstance(this),
+        appliedStatus: appliedStatus.copyWith(value: stackedMultiplier),
+      );
+    }
+
+    if (appliedStatus.type != BattlerStatusType.debuff) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    return BattlerStatusApplicationResolution(
+      owner: owner.removeStatusInstance(this),
+      appliedStatus: appliedStatus.amplifyValue(value),
+    );
   }
 }

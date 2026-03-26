@@ -94,7 +94,7 @@ class PathNodeCard extends StatelessWidget {
                         EndpointMarqueeText(
                           node.label,
                           textAlign: TextAlign.center,
-                          style: textMediumBold.copyWith(
+                          style: textTitleMediumBold.copyWith(
                             color: EndpointPalette.softForeground,
                             letterSpacing: 1.2,
                           ),

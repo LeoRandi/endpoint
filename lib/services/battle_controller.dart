@@ -118,6 +118,11 @@ class BattleController extends ChangeNotifier {
       case BattlerAbilityId.overclock:
       case BattlerAbilityId.purge:
       case BattlerAbilityId.criticalScanner:
+      case BattlerAbilityId.weaknessHunter:
+      case BattlerAbilityId.ghostMesh:
+      case BattlerAbilityId.cruelCatalysis:
+      case BattlerAbilityId.venousOverload:
+      case BattlerAbilityId.hardReset:
         // TODO: Implement additional battle ability effects once they are designed.
         return;
     }

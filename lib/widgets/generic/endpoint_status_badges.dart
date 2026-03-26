@@ -155,7 +155,8 @@ class _EndpointStatusBadge extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: accent,
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: EndpointPalette.scaffoldBackground),
+                    border:
+                        Border.all(color: EndpointPalette.scaffoldBackground),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -248,7 +249,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                       status.name,
                       textAlign: TextAlign.center,
                       maxLines: null,
-                      style: textMediumBold.copyWith(
+                      style: textTitleMediumBold.copyWith(
                         color: EndpointPalette.softForeground,
                         letterSpacing: 1.1,
                       ),

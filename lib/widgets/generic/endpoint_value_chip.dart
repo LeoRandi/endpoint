@@ -40,7 +40,7 @@ class EndpointValueChip extends StatelessWidget {
             EndpointText(
               text,
               style: (textStyle ??
-                      textSmallBold.copyWith(
+                      textSmallNumericBold.copyWith(
                         letterSpacing: 1.2,
                       ))
                   .copyWith(color: foreground),

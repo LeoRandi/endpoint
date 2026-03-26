@@ -2,6 +2,7 @@ import '_imports.dart';
 
 const _inventoryTileExtent = 70.0;
 const _inventoryTileHeight = 84.0;
+
 class EndpointInventoryOverlay extends StatelessWidget {
   final Battler player;
   final List<Item> items;
@@ -86,7 +87,7 @@ class EndpointInventoryOverlay extends StatelessWidget {
                           children: [
                             EndpointText(
                               title,
-                              style: textMediumBold.copyWith(
+                              style: textTitleMediumBold.copyWith(
                                 color: EndpointPalette.softForeground,
                                 letterSpacing: 1.8,
                               ),

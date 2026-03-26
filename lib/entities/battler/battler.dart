@@ -166,13 +166,28 @@ class Battler {
   }
 
   Battler applyStatus(BattlerStatus status) {
-    final updatedStatuses = List<BattlerStatus>.from(statuses);
-    final instancedStatus = status.copyWith();
+    var updatedOwner = this;
+    var instancedStatus = status.copyWith();
+    final activeStatuses = List<BattlerStatus>.from(updatedOwner.statuses);
+
+    for (final activeStatus in activeStatuses) {
+      final resolvedStatus = activeStatus.resolved(updatedOwner);
+      final resolution = resolvedStatus.onStatusApplied(
+        owner: updatedOwner,
+        appliedStatus: instancedStatus,
+      );
+      updatedOwner = resolution.owner;
+      instancedStatus = resolution.appliedStatus.copyWith();
+    }
+
+    final updatedStatuses = List<BattlerStatus>.from(updatedOwner.statuses);
     if (instancedStatus.canStack) {
       updatedStatuses.add(instancedStatus);
-      return copyWith(
-        statuses: List<BattlerStatus>.unmodifiable(updatedStatuses),
-      )._removeExpiredStatuses();
+      return updatedOwner
+          .copyWith(
+            statuses: List<BattlerStatus>.unmodifiable(updatedStatuses),
+          )
+          ._removeExpiredStatuses();
     }
 
     final existingIndex = updatedStatuses.indexWhere(
@@ -186,7 +201,8 @@ class Battler {
       updatedStatuses.add(instancedStatus);
     }
 
-    return copyWith(statuses: List<BattlerStatus>.unmodifiable(updatedStatuses))
+    return updatedOwner
+        .copyWith(statuses: List<BattlerStatus>.unmodifiable(updatedStatuses))
         ._removeExpiredStatuses();
   }
 

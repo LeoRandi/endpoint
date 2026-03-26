@@ -81,7 +81,7 @@ class _CampSitePageState extends State<CampSitePage> {
                   EndpointText(
                     '${widget.player.health} / ${widget.player.maxHealth}  ->  ${_visitResult.player.health} / ${_visitResult.player.maxHealth}',
                     textAlign: TextAlign.center,
-                    style: textMediumBold.copyWith(
+                    style: textMediumNumericBold.copyWith(
                       color: EndpointPalette.primaryAccent,
                     ),
                   ),

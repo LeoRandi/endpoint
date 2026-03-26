@@ -309,7 +309,7 @@ class _PathBottomHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chipTextStyle = textMediumBold.copyWith(
+    final chipTextStyle = textMediumNumericBold.copyWith(
       fontSize: 14,
       letterSpacing: 1.2,
     );
@@ -398,7 +398,7 @@ class _PathPlayerStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const accent = EndpointPalette.primaryAccent;
-    final statChipTextStyle = textMediumBold.copyWith(
+    final statChipTextStyle = textMediumNumericBold.copyWith(
       fontSize: 14,
       letterSpacing: 1.2,
     );
@@ -431,7 +431,7 @@ class _PathPlayerStatus extends StatelessWidget {
                 const SizedBox(width: 12),
                 EndpointText(
                   '${player.health} / ${player.maxHealth}',
-                  style: textMediumBold.copyWith(
+                  style: textMediumNumericBold.copyWith(
                     fontSize: 14,
                     color: accent,
                   ),

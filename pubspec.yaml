@@ -1,7 +1,7 @@
 name: endpoint
 description: "A new Flutter project."
 
-version: 0.0.3
+version: 0.0.3+3
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -30,4 +30,10 @@ flutter:
     - family: Pixeboy
       fonts:
         - asset: fonts/Pixeboy-z8XGD.ttf
+    - family: Rajdhani
+      fonts:
+        - asset: fonts/Rajdhani-Regular.ttf
+    - family: Exo2
+      fonts:
+        - asset: fonts/Exo2-VariableFont_wght.ttf
 

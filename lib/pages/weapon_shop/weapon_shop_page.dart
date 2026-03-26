@@ -143,8 +143,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               widget.shopSubtitle,
                               textAlign: TextAlign.center,
                               style: textMedium.copyWith(
-                                color:
-                                    EndpointPalette.softForeground.withOpacity(0.82),
+                                color: EndpointPalette.softForeground
+                                    .withOpacity(0.82),
                               ),
                             ),
                             const SizedBox(height: 14),
@@ -184,8 +184,10 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                             const SizedBox(height: 8),
                                             EndpointText(
                                               'ATK ${player.attack}   DEF ${player.defense}   HP ${player.health}/${player.maxHealth}',
-                                              style: textSmallBold.copyWith(
-                                                color: EndpointPalette.softForeground
+                                              style:
+                                                  textSmallNumericBold.copyWith(
+                                                color: EndpointPalette
+                                                    .softForeground
                                                     .withOpacity(0.8),
                                                 letterSpacing: 0.9,
                                               ),
@@ -309,7 +311,7 @@ class _ShopItemTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 EndpointText(
                   '${price}C',
-                  style: textSmallBold.copyWith(
+                  style: textSmallNumericBold.copyWith(
                     fontSize: 10,
                     color: accent,
                     letterSpacing: 1.2,

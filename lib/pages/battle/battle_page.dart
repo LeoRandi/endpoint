@@ -516,7 +516,7 @@ class _BattleSide extends StatelessWidget {
               children: [
                 EndpointText(
                   title.toUpperCase(),
-                  style: textSmallBold.copyWith(
+                  style: textTitleSmallBold.copyWith(
                     color: accent,
                     fontSize: 13,
                     letterSpacing: 2,
@@ -579,7 +579,7 @@ class _TurnBanner extends StatelessWidget {
             EndpointText(
               title,
               textAlign: TextAlign.center,
-              style: textSmallBold.copyWith(
+              style: textTitleSmallBold.copyWith(
                 color: accent,
                 fontSize: 12,
                 letterSpacing: 1.5,
@@ -832,7 +832,7 @@ class _BattleStatusBar extends StatelessWidget {
                   if (mirrorHorizontally) ...[
                     EndpointText(
                       '${battler.health} / ${battler.maxHealth}',
-                      style: textSmallBold.copyWith(
+                      style: textSmallNumericBold.copyWith(
                         color: Colors.white.withOpacity(0.84),
                         fontSize: 12,
                         letterSpacing: 0.8,
@@ -846,7 +846,7 @@ class _BattleStatusBar extends StatelessWidget {
                       maxLines: 1,
                       textAlign:
                           mirrorHorizontally ? TextAlign.right : TextAlign.left,
-                      style: textSmallBold.copyWith(
+                      style: textTitleSmallBold.copyWith(
                         color: EndpointPalette.softForeground,
                         fontSize: 12,
                         letterSpacing: 0.8,
@@ -866,7 +866,7 @@ class _BattleStatusBar extends StatelessWidget {
                     const SizedBox(width: 8),
                     EndpointText(
                       '${battler.health} / ${battler.maxHealth}',
-                      style: textSmallBold.copyWith(
+                      style: textSmallNumericBold.copyWith(
                         color: Colors.white.withOpacity(0.84),
                         fontSize: 12,
                         letterSpacing: 0.8,
