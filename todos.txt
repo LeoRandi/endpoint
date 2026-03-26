@@ -16,10 +16,10 @@ TODOs:
 
 -Habilidades
 --Meter en el loot
---Crear presets(al menos 50)
+--Crear presets(al menos 50)[1/50]
 
 -Items
---Meter al menos 100-120[13/100]
+--Meter al menos 100-120[14/100]
 --Repartirlos bien
 --Venta de items en tiendas, o descarte en el inventario
 

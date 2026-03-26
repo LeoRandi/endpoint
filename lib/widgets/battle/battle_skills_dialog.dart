@@ -18,8 +18,8 @@ class BattleSkillsDialog extends StatelessWidget {
           .map(
             (ability) => BattleMenuEntry<BattlerAbility>(
               value: ability,
-              label: ability.label,
-              tooltip: ability.tooltip,
+              label: ability.name,
+              tooltip: ability.description,
               isEnabled: ability.isImplemented,
             ),
           )

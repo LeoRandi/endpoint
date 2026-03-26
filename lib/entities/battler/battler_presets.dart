@@ -29,7 +29,7 @@ const greenEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [BattlerAbility.defend],
+  abilities: [defendAbility],
   equippedItems: [guardShieldItem],
 );
 
@@ -46,7 +46,7 @@ const blueEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [BattlerAbility.defend],
+  abilities: [defendAbility],
   equippedItems: [
     ironSwordItem,
     platedJacketItem,
@@ -67,8 +67,8 @@ const purpleEnemyBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   abilities: [
-    BattlerAbility.defend,
-    BattlerAbility.overclock,
+    defendAbility,
+    overclockAbility,
   ],
   equippedItems: [
     ironSwordItem,
@@ -90,9 +90,9 @@ const yellowEnemyBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   abilities: [
-    BattlerAbility.defend,
-    BattlerAbility.overclock,
-    BattlerAbility.purge,
+    defendAbility,
+    overclockAbility,
+    purgeAbility,
   ],
 );
 
@@ -111,5 +111,4 @@ const defaultPlayerBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [BattlerAbility.defend],
 );

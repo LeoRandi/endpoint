@@ -99,9 +99,10 @@ class Battler {
   }
 
   bool hasAbility(BattlerAbility ability) {
-    return abilities.contains(ability);
+    return abilityById(ability.id) != null;
   }
 
+  bool get hasAbilities => abilities.isNotEmpty;
   bool get hasStatuses => statuses.isNotEmpty;
   bool get hasItemEffects => equippedItems.any((item) => item.effect != null);
 
@@ -120,6 +121,13 @@ class Battler {
     return statuses
         .where((status) => status.id == statusId)
         .toList(growable: false);
+  }
+
+  BattlerAbility? abilityById(BattlerAbilityId abilityId) {
+    for (final ability in abilities) {
+      if (ability.id == abilityId) return ability;
+    }
+    return null;
   }
 
   bool hasStatus(String statusId) {
@@ -225,6 +233,18 @@ class Battler {
         statuses: List<BattlerStatus>.unmodifiable(updatedStatuses));
   }
 
+  Battler progressAbilityCooldownsOnTurnStart({
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn || abilities.isEmpty) return this;
+
+    return copyWith(
+      abilities: abilities
+          .map((ability) => ability.tickCooldown())
+          .toList(growable: false),
+    );
+  }
+
   Battler applyStatusTurnStart({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -246,6 +266,39 @@ class Battler {
     return updatedOwner._removeExpiredStatuses();
   }
 
+  BattlerAbilityEffectResolution applyAbilityTurnStartEffects({
+    required Battler opponent,
+    required bool isOwnerTurn,
+  }) {
+    if (abilities.isEmpty) {
+      return BattlerAbilityEffectResolution(owner: this, opponent: opponent);
+    }
+
+    var updatedOwner = this;
+    var updatedOpponent = opponent;
+    final activeAbilities = List<BattlerAbility>.from(abilities);
+
+    for (final ability in activeAbilities) {
+      final resolvedAbility = updatedOwner.abilityById(ability.id);
+      final effect = resolvedAbility?.effect;
+      if (resolvedAbility == null || effect == null) continue;
+
+      final resolution = effect.onTurnStart(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        ability: resolvedAbility,
+        isOwnerTurn: isOwnerTurn,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedOpponent._removeExpiredStatuses(),
+    );
+  }
+
   Battler applyStatusTurnEnd({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -265,6 +318,39 @@ class Battler {
     }
 
     return updatedOwner._removeExpiredStatuses();
+  }
+
+  BattlerAbilityEffectResolution applyAbilityTurnEndEffects({
+    required Battler opponent,
+    required bool isOwnerTurn,
+  }) {
+    if (abilities.isEmpty) {
+      return BattlerAbilityEffectResolution(owner: this, opponent: opponent);
+    }
+
+    var updatedOwner = this;
+    var updatedOpponent = opponent;
+    final activeAbilities = List<BattlerAbility>.from(abilities);
+
+    for (final ability in activeAbilities) {
+      final resolvedAbility = updatedOwner.abilityById(ability.id);
+      final effect = resolvedAbility?.effect;
+      if (resolvedAbility == null || effect == null) continue;
+
+      final resolution = effect.onTurnEnd(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        ability: resolvedAbility,
+        isOwnerTurn: isOwnerTurn,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedOpponent._removeExpiredStatuses(),
+    );
   }
 
   int applyOutgoingDamageModifiers({
@@ -306,6 +392,27 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  int applyAbilityOutgoingDamageModifiers({
+    required Battler target,
+    required int damage,
+  }) {
+    var updatedDamage = damage;
+
+    for (final ability in abilities) {
+      final effect = ability.effect;
+      if (effect == null) continue;
+
+      updatedDamage = effect.modifyOutgoingDamage(
+        owner: this,
+        target: target,
+        ability: ability,
+        damage: updatedDamage,
+      );
+    }
+
+    return max(0, updatedDamage);
+  }
+
   int applyIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -338,6 +445,27 @@ class Battler {
         owner: this,
         source: source,
         item: item,
+        damage: updatedDamage,
+      );
+    }
+
+    return max(0, updatedDamage);
+  }
+
+  int applyAbilityIncomingDamageModifiers({
+    required Battler source,
+    required int damage,
+  }) {
+    var updatedDamage = damage;
+
+    for (final ability in abilities) {
+      final effect = ability.effect;
+      if (effect == null) continue;
+
+      updatedDamage = effect.modifyIncomingDamage(
+        owner: this,
+        source: source,
+        ability: ability,
         damage: updatedDamage,
       );
     }
@@ -393,6 +521,39 @@ class Battler {
     );
   }
 
+  BattlerAbilityEffectResolution applyAbilityAttackResolvedEffects({
+    required Battler target,
+    required int damageDealt,
+  }) {
+    if (abilities.isEmpty) {
+      return BattlerAbilityEffectResolution(owner: this, opponent: target);
+    }
+
+    var updatedOwner = this;
+    var updatedTarget = target;
+    final activeAbilities = List<BattlerAbility>.from(abilities);
+
+    for (final ability in activeAbilities) {
+      final resolvedAbility = updatedOwner.abilityById(ability.id);
+      final effect = resolvedAbility?.effect;
+      if (resolvedAbility == null || effect == null) continue;
+
+      final resolution = effect.onAttackResolved(
+        owner: updatedOwner,
+        target: updatedTarget,
+        ability: resolvedAbility,
+        damageDealt: damageDealt,
+      );
+      updatedOwner = resolution.owner;
+      updatedTarget = resolution.opponent;
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedTarget._removeExpiredStatuses(),
+    );
+  }
+
   Battler applyReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
@@ -436,6 +597,39 @@ class Battler {
     }
 
     return ItemEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedSource._removeExpiredStatuses(),
+    );
+  }
+
+  BattlerAbilityEffectResolution applyAbilityReceiveDamageResolvedEffects({
+    required Battler source,
+    required int damageTaken,
+  }) {
+    if (abilities.isEmpty) {
+      return BattlerAbilityEffectResolution(owner: this, opponent: source);
+    }
+
+    var updatedOwner = this;
+    var updatedSource = source;
+    final activeAbilities = List<BattlerAbility>.from(abilities);
+
+    for (final ability in activeAbilities) {
+      final resolvedAbility = updatedOwner.abilityById(ability.id);
+      final effect = resolvedAbility?.effect;
+      if (resolvedAbility == null || effect == null) continue;
+
+      final resolution = effect.onReceiveDamageResolved(
+        owner: updatedOwner,
+        source: updatedSource,
+        ability: resolvedAbility,
+        damageTaken: damageTaken,
+      );
+      updatedOwner = resolution.owner;
+      updatedSource = resolution.opponent;
+    }
+
+    return BattlerAbilityEffectResolution(
       owner: updatedOwner._removeExpiredStatuses(),
       opponent: updatedSource._removeExpiredStatuses(),
     );
@@ -520,6 +714,37 @@ class Battler {
     );
   }
 
+  BattlerAbilityEffectResolution applyAbilityPassiveEffects({
+    required Battler opponent,
+  }) {
+    if (abilities.isEmpty) {
+      return BattlerAbilityEffectResolution(owner: this, opponent: opponent);
+    }
+
+    var updatedOwner = this;
+    var updatedOpponent = opponent;
+    final activeAbilities = List<BattlerAbility>.from(abilities);
+
+    for (final ability in activeAbilities) {
+      final resolvedAbility = updatedOwner.abilityById(ability.id);
+      final effect = resolvedAbility?.effect;
+      if (resolvedAbility == null || effect == null) continue;
+
+      final resolution = effect.applyPassive(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        ability: resolvedAbility,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      opponent: updatedOpponent._removeExpiredStatuses(),
+    );
+  }
+
   bool canAfford(int amount) => money >= amount;
 
   Battler earnMoney(int amount) {
@@ -529,6 +754,104 @@ class Battler {
   Battler spendMoney(int amount) {
     final safeAmount = max(0, amount);
     return copyWith(money: max(0, money - safeAmount));
+  }
+
+  Battler addAbility(BattlerAbility ability) {
+    final existingIndex = abilities.indexWhere(
+      (activeAbility) => activeAbility.id == ability.id,
+    );
+    if (existingIndex < 0) {
+      return copyWith(
+        abilities: List<BattlerAbility>.unmodifiable([
+          ...abilities,
+          ability,
+        ]),
+      );
+    }
+
+    final updatedAbilities = List<BattlerAbility>.from(abilities);
+    updatedAbilities[existingIndex] =
+        updatedAbilities[existingIndex].upgraded();
+
+    return copyWith(
+      abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
+    );
+  }
+
+  Battler updateAbility(BattlerAbility ability) {
+    final updatedAbilities = List<BattlerAbility>.from(abilities);
+    final existingIndex = updatedAbilities.indexWhere(
+      (activeAbility) => activeAbility.id == ability.id,
+    );
+    if (existingIndex < 0) return this;
+
+    updatedAbilities[existingIndex] = ability;
+    return copyWith(
+      abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
+    );
+  }
+
+  Battler resetAbilitiesForContext(
+    BattlerAbilityActivationContext screenContext,
+  ) {
+    if (abilities.isEmpty) return this;
+
+    return copyWith(
+      abilities: abilities
+          .map(
+            (ability) => ability.manualActivationContext == screenContext
+                ? ability.resetState()
+                : ability,
+          )
+          .toList(growable: false),
+    );
+  }
+
+  BattlerAbilityEffectResolution toggleAbilityActivation({
+    required BattlerAbilityId abilityId,
+    required BattlerAbilityActivationContext screenContext,
+    Battler? opponent,
+  }) {
+    final currentAbility = abilityById(abilityId);
+    final resolvedOpponent = opponent ?? this;
+    if (currentAbility == null || !currentAbility.canToggleOn(screenContext)) {
+      return BattlerAbilityEffectResolution(
+        owner: this,
+        opponent: resolvedOpponent,
+      );
+    }
+
+    if (currentAbility.canDeactivateOn(screenContext)) {
+      return BattlerAbilityEffectResolution(
+        owner: updateAbility(currentAbility.deactivate()),
+        opponent: resolvedOpponent,
+      );
+    }
+
+    if (!currentAbility.canActivateOn(screenContext) ||
+        !currentAbility.isImplemented) {
+      return BattlerAbilityEffectResolution(
+        owner: this,
+        opponent: resolvedOpponent,
+      );
+    }
+
+    final activatedOwner = updateAbility(currentAbility.activate());
+    final activatedAbility = activatedOwner.abilityById(abilityId);
+    final effect = activatedAbility?.effect;
+    if (activatedAbility == null || effect == null) {
+      return BattlerAbilityEffectResolution(
+        owner: activatedOwner,
+        opponent: resolvedOpponent,
+      );
+    }
+
+    return effect.onManualActivation(
+      owner: activatedOwner,
+      opponent: resolvedOpponent,
+      ability: activatedAbility,
+      screenContext: screenContext,
+    );
   }
 
   Battler addItem(Item item) {

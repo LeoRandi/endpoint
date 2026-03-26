@@ -30,6 +30,9 @@ class _BattlePageState extends State<BattlePage> {
   late final BattleController _controller;
   late final RunRandomizer _randomizer;
   bool _isPresentingVictoryRewards = false;
+  BattleFlowResult? _pendingVictoryExitResult;
+  Item? _pendingVictoryLootItem;
+  int _pendingVictoryMoneyReward = 0;
 
   @override
   void initState() {
@@ -63,24 +66,37 @@ class _BattlePageState extends State<BattlePage> {
       _completeBattleExit(exitResult);
       return;
     }
-    if (_isPresentingVictoryRewards) return;
 
-    _isPresentingVictoryRewards = true;
-    final rewardedResult = await _presentVictoryRewards(exitResult);
-    if (!mounted) return;
-
-    _completeBattleExit(rewardedResult);
-  }
-
-  Future<BattleFlowResult> _presentVictoryRewards(
-    BattleFlowResult exitResult,
-  ) async {
     final lootItem = _selectVictoryLoot(
       enemy: _controller.enemy,
       player: exitResult.player,
     );
     final moneyReward = _buildVictoryMoneyReward(exitResult.player);
     if (lootItem == null && moneyReward <= 0) {
+      _completeBattleExit(exitResult);
+      return;
+    }
+
+    setState(() {
+      _pendingVictoryExitResult = exitResult;
+      _pendingVictoryLootItem = lootItem;
+      _pendingVictoryMoneyReward = moneyReward;
+    });
+  }
+
+  Future<BattleFlowResult> _presentVictoryRewards(
+    BattleFlowResult exitResult, {
+    Item? lootItem,
+    int? moneyReward,
+  }) async {
+    final resolvedLootItem = lootItem ??
+        _selectVictoryLoot(
+          enemy: _controller.enemy,
+          player: exitResult.player,
+        );
+    final resolvedMoneyReward =
+        moneyReward ?? _buildVictoryMoneyReward(exitResult.player);
+    if (resolvedLootItem == null && resolvedMoneyReward <= 0) {
       return exitResult;
     }
 
@@ -90,8 +106,8 @@ class _BattlePageState extends State<BattlePage> {
       barrierColor: EndpointPalette.overlayScrimStrong,
       builder: (_) => BattleLootOverlay(
         player: exitResult.player,
-        lootItem: lootItem,
-        moneyReward: moneyReward,
+        lootItem: resolvedLootItem,
+        moneyReward: resolvedMoneyReward,
         enemyName: _controller.enemy.name,
       ),
     );
@@ -125,11 +141,17 @@ class _BattlePageState extends State<BattlePage> {
   }
 
   void _completeBattleExit(BattleFlowResult exitResult) {
+    final resolvedResult = BattleFlowResult(
+      type: exitResult.type,
+      player: exitResult.player.resetAbilitiesForContext(
+        BattlerAbilityActivationContext.battle,
+      ),
+    );
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) return;
 
     if (widget.returnResultToCaller) {
-      navigator.pop(exitResult);
+      navigator.pop(resolvedResult);
       return;
     }
 
@@ -144,8 +166,26 @@ class _BattlePageState extends State<BattlePage> {
     _controller.handleAttack();
   }
 
+  Future<void> _handleOpenPendingRewards() async {
+    final exitResult = _pendingVictoryExitResult;
+    if (exitResult == null || _isPresentingVictoryRewards) return;
+
+    setState(() {
+      _isPresentingVictoryRewards = true;
+    });
+
+    final rewardedResult = await _presentVictoryRewards(
+      exitResult,
+      lootItem: _pendingVictoryLootItem,
+      moneyReward: _pendingVictoryMoneyReward,
+    );
+    if (!mounted) return;
+
+    _completeBattleExit(rewardedResult);
+  }
+
   Future<void> _handleOpenItems() async {
-    if (!_controller.canUseActions) return;
+    if (!_controller.canUseActions || _pendingVictoryExitResult != null) return;
 
     await showEndpointOverlay<void>(
       context: context,
@@ -161,6 +201,8 @@ class _BattlePageState extends State<BattlePage> {
     Battler battler,
     Item item,
   ) async {
+    if (_pendingVictoryExitResult != null) return;
+
     await showEndpointDialog<void>(
       context: context,
       barrierLabel: 'Detalle de objeto equipado',
@@ -186,8 +228,127 @@ class _BattlePageState extends State<BattlePage> {
     return 'Estado actual: no disponible';
   }
 
+  Future<void> _handleOpenAbilityDetails(
+    Battler battler,
+    BattlerAbility ability, {
+    required Color accent,
+    required bool canControlOwner,
+  }) async {
+    if (_pendingVictoryExitResult != null) return;
+
+    await showEndpointDialog<void>(
+      context: context,
+      barrierLabel: 'Detalle de habilidad',
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final currentOwner =
+                canControlOwner ? _controller.player : _controller.enemy;
+            final currentAbility =
+                currentOwner.abilityById(ability.id) ?? ability;
+
+            return EndpointAbilityDetailsDialog(
+              ability: currentAbility,
+              accent: accent,
+              statusText: _abilityStatusTextFor(
+                currentAbility,
+                canControlOwner: canControlOwner,
+              ),
+              actionLabel: _abilityActionLabelFor(
+                currentAbility,
+                canControlOwner: canControlOwner,
+              ),
+              onPrimaryAction: _isAbilityActionEnabled(
+                currentAbility,
+                canControlOwner: canControlOwner,
+              )
+                  ? () {
+                      _controller.togglePlayerAbility(currentAbility);
+                      setDialogState(() {});
+                    }
+                  : null,
+              isActionEnabled: _isAbilityActionEnabled(
+                currentAbility,
+                canControlOwner: canControlOwner,
+              ),
+              enabledActionTooltip: currentAbility.isActive
+                  ? 'Desactivar habilidad manual'
+                  : 'Activar habilidad manual',
+              disabledActionTooltip: _disabledAbilityActionTooltipFor(
+                currentAbility,
+                canControlOwner: canControlOwner,
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _abilityStatusTextFor(
+    BattlerAbility ability, {
+    required bool canControlOwner,
+  }) {
+    final stateText = ability.isActive
+        ? 'Estado actual: activa.'
+        : ability.isOnCooldown
+            ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
+            : 'Estado actual: lista.';
+    final ownershipText =
+        canControlOwner ? 'Pertenece al jugador.' : 'Pertenece al enemigo.';
+    final activationText = ability.manualActivationContext == null
+        ? 'Se aplica sin activacion manual.'
+        : 'Se puede activar manualmente en ${ability.manualActivationContext!.label}.';
+
+    return '$stateText $ownershipText $activationText';
+  }
+
+  String? _abilityActionLabelFor(
+    BattlerAbility ability, {
+    required bool canControlOwner,
+  }) {
+    if (!canControlOwner ||
+        !ability.canToggleOn(BattlerAbilityActivationContext.battle)) {
+      return null;
+    }
+
+    return ability.isActive ? 'Desactivar' : 'Activar';
+  }
+
+  bool _isAbilityActionEnabled(
+    BattlerAbility ability, {
+    required bool canControlOwner,
+  }) {
+    if (!canControlOwner ||
+        !ability.canToggleOn(BattlerAbilityActivationContext.battle) ||
+        !_controller.canUseActions) {
+      return false;
+    }
+    if (ability.isActive) return true;
+
+    return !ability.isOnCooldown && ability.isImplemented;
+  }
+
+  String _disabledAbilityActionTooltipFor(
+    BattlerAbility ability, {
+    required bool canControlOwner,
+  }) {
+    if (!canControlOwner) return 'Solo puedes gestionar habilidades propias';
+    if (!_controller.canUseActions) {
+      return 'Solo puedes gestionar habilidades en tu turno';
+    }
+    if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
+    if (ability.isOnCooldown) {
+      return 'Recarga restante: ${ability.remainingCooldownLabel}';
+    }
+    return 'No se puede activar desde esta pantalla';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasPendingVictoryRewards = _pendingVictoryExitResult != null;
+
     return WillPopScope(
       onWillPop: _handleWillPop,
       child: AnimatedBuilder(
@@ -246,6 +407,13 @@ class _BattlePageState extends State<BattlePage> {
                                     _controller.enemy,
                                     item,
                                   ),
+                                  onOpenAbilityDetails: (ability) =>
+                                      _handleOpenAbilityDetails(
+                                    _controller.enemy,
+                                    ability,
+                                    accent: enemyAccent,
+                                    canControlOwner: false,
+                                  ),
                                 ),
                               ),
                             ),
@@ -271,21 +439,29 @@ class _BattlePageState extends State<BattlePage> {
                                     _controller.player,
                                     item,
                                   ),
+                                  onOpenAbilityDetails: (ability) =>
+                                      _handleOpenAbilityDetails(
+                                    _controller.player,
+                                    ability,
+                                    accent: playerAccent,
+                                    canControlOwner: true,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      IgnorePointer(
-                        child: Center(
-                          child: _TurnBanner(
-                            title: _controller.turnTitle,
-                            description: _controller.turnDescription,
-                            isEnemyTurn:
-                                _controller.turn == BattleTurnState.enemy,
-                            isCombatFinished: _controller.isCombatFinished,
-                          ),
+                      Center(
+                        child: _BattleCenterOverlay(
+                          title: _controller.turnTitle,
+                          description: _controller.turnDescription,
+                          isEnemyTurn:
+                              _controller.turn == BattleTurnState.enemy,
+                          isCombatFinished: _controller.isCombatFinished,
+                          onAdvancePressed: hasPendingVictoryRewards
+                              ? _handleOpenPendingRewards
+                              : null,
                         ),
                       ),
                     ],
@@ -426,6 +602,55 @@ class _TurnBanner extends StatelessWidget {
   }
 }
 
+class _BattleCenterOverlay extends StatelessWidget {
+  final String title;
+  final String description;
+  final bool isEnemyTurn;
+  final bool isCombatFinished;
+  final Future<void> Function()? onAdvancePressed;
+
+  const _BattleCenterOverlay({
+    required this.title,
+    required this.description,
+    required this.isEnemyTurn,
+    required this.isCombatFinished,
+    this.onAdvancePressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _TurnBanner(
+          title: title,
+          description: description,
+          isEnemyTurn: isEnemyTurn,
+          isCombatFinished: isCombatFinished,
+        ),
+        if (onAdvancePressed != null) ...[
+          const SizedBox(width: 10),
+          EndpointActionButton(
+            label: '-->',
+            onPressed: onAdvancePressed,
+            tooltip: 'Abrir botin del combate',
+            accent: EndpointPalette.rewardAccent,
+            backgroundColor: EndpointPalette.panelBackgroundBattle,
+            foregroundColor: EndpointPalette.softForegroundWarm,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            textStyle: textMediumBold.copyWith(
+              fontSize: 13,
+              letterSpacing: 1.1,
+            ),
+            useMarquee: false,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _ActionPanel extends StatelessWidget {
   final bool isEnabled;
   final VoidCallback onAttack;
@@ -466,6 +691,7 @@ class _PlayerBattleHud extends StatelessWidget {
   final VoidCallback onAttack;
   final Future<void> Function() onOpenItems;
   final Future<void> Function(Item item) onOpenEquippedItemDetails;
+  final Future<void> Function(BattlerAbility ability) onOpenAbilityDetails;
 
   const _PlayerBattleHud({
     required this.player,
@@ -473,6 +699,7 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.onAttack,
     required this.onOpenItems,
     required this.onOpenEquippedItemDetails,
+    required this.onOpenAbilityDetails,
   });
 
   @override
@@ -486,6 +713,7 @@ class _PlayerBattleHud extends StatelessWidget {
           accent: EndpointPalette.primaryAccent,
           mirrorHorizontally: false,
           onItemPressed: onOpenEquippedItemDetails,
+          onAbilityPressed: onOpenAbilityDetails,
         ),
         const SizedBox(height: 8),
         _BattleStatusBar(
@@ -520,10 +748,12 @@ class _PlayerBattleHud extends StatelessWidget {
 class _EnemyBattleHud extends StatelessWidget {
   final Battler enemy;
   final Future<void> Function(Item item) onOpenEquippedItemDetails;
+  final Future<void> Function(BattlerAbility ability) onOpenAbilityDetails;
 
   const _EnemyBattleHud({
     required this.enemy,
     required this.onOpenEquippedItemDetails,
+    required this.onOpenAbilityDetails,
   });
 
   @override
@@ -555,6 +785,7 @@ class _EnemyBattleHud extends StatelessWidget {
           accent: EndpointPalette.dangerAccent,
           mirrorHorizontally: true,
           onItemPressed: onOpenEquippedItemDetails,
+          onAbilityPressed: onOpenAbilityDetails,
         ),
         const Spacer(),
       ],
@@ -669,12 +900,14 @@ class _BattleLoadoutStrip extends StatelessWidget {
   final Color accent;
   final bool mirrorHorizontally;
   final ValueChanged<Item>? onItemPressed;
+  final ValueChanged<BattlerAbility>? onAbilityPressed;
 
   const _BattleLoadoutStrip({
     required this.battler,
     required this.accent,
     required this.mirrorHorizontally,
     this.onItemPressed,
+    this.onAbilityPressed,
   });
 
   @override
@@ -688,9 +921,10 @@ class _BattleLoadoutStrip extends StatelessWidget {
       borderColor: accent.withOpacity(0.34),
       onItemPressed: onItemPressed,
     );
-    final abilityStrip = _AbilitySlotsStrip(
+    final abilityStrip = EndpointAbilitySlotsStrip(
       abilities: battler.abilities,
       accent: accent,
+      onAbilityPressed: onAbilityPressed,
     );
     final children = mirrorHorizontally
         ? <Widget>[
@@ -722,85 +956,6 @@ class _BattleLoadoutStrip extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _AbilitySlotsStrip extends StatelessWidget {
-  final List<BattlerAbility> abilities;
-  final Color accent;
-
-  const _AbilitySlotsStrip({
-    required this.abilities,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final slotCount = max(3, abilities.length);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int index = 0; index < slotCount; index++) ...[
-          if (index > 0) const SizedBox(width: 6),
-          _AbilitySlotTile(
-            accent: accent,
-            isReserved: index < abilities.length,
-            tooltip: index < abilities.length
-                ? abilities[index].label
-                : 'Slot de habilidad',
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _AbilitySlotTile extends StatelessWidget {
-  final Color accent;
-  final bool isReserved;
-  final String tooltip;
-
-  const _AbilitySlotTile({
-    required this.accent,
-    required this.isReserved,
-    required this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return HoldTooltip(
-      message: tooltip,
-      child: SizedBox(
-        width: 46,
-        height: 46,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: EndpointPalette.panelBackgroundBattle,
-            border: Border.all(color: accent.withOpacity(0.5), width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withOpacity(0.08),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: Center(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: accent.withOpacity(isReserved ? 0.72 : 0.24),
-              ),
-              child: SizedBox(
-                width: isReserved ? 10 : 6,
-                height: isReserved ? 10 : 6,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

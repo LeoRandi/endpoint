@@ -1,6 +1,9 @@
 export "endpoint_emoji_sprite.dart";
 export "endpoint_menu_button.dart";
 export "endpoint_action_button.dart";
+export "endpoint_abilities_overlay.dart";
+export "endpoint_ability_details_dialog.dart";
+export "endpoint_ability_slots_strip.dart";
 export "endpoint_center_stage_scene.dart";
 export "endpoint_dialog.dart";
 export "endpoint_equipment_slots_strip.dart";

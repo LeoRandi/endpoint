@@ -111,6 +111,32 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
   }
 }
 
+class QuemaduraOnAttackItemEffect extends ItemEffect {
+  final int duration;
+
+  const QuemaduraOnAttackItemEffect({
+    this.duration = QuemaduraStatus.defaultDuration,
+  }) : super(
+          description:
+              'Al atacar: anade un efecto de Quemadura de 3 turnos de duracion.',
+        );
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: target.applyStatus(
+        QuemaduraStatus(remainingTurns: duration),
+      ),
+    );
+  }
+}
+
 class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
   final int duration;
 

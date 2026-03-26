@@ -14,6 +14,7 @@ enum ItemId {
   midnightCloak,
   voidInjector,
   toxicCatalyst,
+  emberCharm,
   reactiveCasing,
 }
 

@@ -71,6 +71,16 @@ const toxicCatalystItem = Item(
   effect: IntoxicarOnAttackItemEffect(),
 );
 
+const emberCharmItem = Item(
+  id: ItemId.emberCharm,
+  name: 'Amuleto de Ascuas',
+  description: 'Accesorio ofensivo que prende fuego en cada impacto.',
+  iconEmoji: '\u{1F525}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.green,
+  effect: QuemaduraOnAttackItemEffect(),
+);
+
 const ironSwordItem = Item(
   id: ItemId.ironSword,
   name: 'Espada de Hierro',
@@ -168,6 +178,7 @@ const voidInjectorItem = Item(
 
 const itemPresets = <Item>[
   toxicCatalystItem,
+  emberCharmItem,
   ironSwordItem,
   guardShieldItem,
   platedJacketItem,

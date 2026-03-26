@@ -3,7 +3,7 @@ import '_imports.dart';
 final velozArchetypeNode = ArchetypePathNode(
   label: 'Veloz',
   tooltip:
-      'Cyber Latigos + Gafas de Sol. Perfil agil con un poco mas de ataque base.',
+      'Cyber Latigos + Gafas de Sol. Perfil agil con un poco mas de ataque base. Empieza con 4C y 3 income.',
   iconEmoji: cyberWhipsItem.iconEmoji,
   playerIconEmoji: cyberWhipsItem.iconEmoji,
   accent: const Color(0xFF59B7FF),
@@ -11,16 +11,21 @@ final velozArchetypeNode = ArchetypePathNode(
   baseStatModifiers: const {
     BattlerStat.attack: 1,
   },
+  moneyModifier: 4,
+  incomeModifier: 3,
   startingItems: const [
     cyberWhipsItem,
     sunglassesItem,
+  ],
+  startingAbilities: const [
+    criticalScannerAbility,
   ],
 );
 
 final inamovibleArchetypeNode = ArchetypePathNode(
   label: 'Inamovible',
   tooltip:
-      'Escudo + Amuleto de Bastion. Perfil resistente con mas defensa y aguante base.',
+      'Escudo + Amuleto de Bastion. Perfil resistente con mas defensa y aguante base. Empieza con 6C y 2 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
   accent: const Color(0xFF5AF78E),
@@ -29,6 +34,8 @@ final inamovibleArchetypeNode = ArchetypePathNode(
     BattlerStat.health: 4,
     BattlerStat.defense: 1,
   },
+  moneyModifier: 6,
+  incomeModifier: 2,
   startingItems: const [
     shieldItem,
     bulwarkAmuletItem,
@@ -37,7 +44,8 @@ final inamovibleArchetypeNode = ArchetypePathNode(
 
 final imparableArchetypeNode = ArchetypePathNode(
   label: 'Imparable',
-  tooltip: 'Espada de Hierro. Perfil ofensivo con mas pegada base.',
+  tooltip:
+      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base. Empieza con 4C y 2 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
   accent: const Color(0xFFF3D35C),
@@ -45,8 +53,14 @@ final imparableArchetypeNode = ArchetypePathNode(
   baseStatModifiers: const {
     BattlerStat.attack: 2,
   },
+  moneyModifier: 4,
+  incomeModifier: 2,
   startingItems: const [
     ironSwordItem,
+    emberCharmItem,
+  ],
+  startingAbilities: const [
+    criticalScannerAbility,
   ],
 );
 

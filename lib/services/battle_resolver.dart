@@ -24,18 +24,28 @@ class BattleResolver {
       target: defender,
       damage: baseDamage,
     );
+    final outgoingAbilityModifiedDamage =
+        attacker.applyAbilityOutgoingDamageModifiers(
+      target: defender,
+      damage: outgoingStatusModifiedDamage,
+    );
     final outgoingModifiedDamage =
         attacker.applyEquippedItemOutgoingDamageModifiers(
       target: defender,
-      damage: outgoingStatusModifiedDamage,
+      damage: outgoingAbilityModifiedDamage,
     );
     final incomingStatusModifiedDamage = defender.applyIncomingDamageModifiers(
       source: attacker,
       damage: outgoingModifiedDamage,
     );
-    final damageDealt = defender.applyEquippedItemIncomingDamageModifiers(
+    final incomingAbilityModifiedDamage =
+        defender.applyAbilityIncomingDamageModifiers(
       source: attacker,
       damage: incomingStatusModifiedDamage,
+    );
+    final damageDealt = defender.applyEquippedItemIncomingDamageModifiers(
+      source: attacker,
+      damage: incomingAbilityModifiedDamage,
     );
     final defenderAfterDamage = defender.receiveDamage(damageDealt);
     var updatedAttacker = attacker.applyAttackResolvedEffects(
@@ -43,6 +53,13 @@ class BattleResolver {
       damageDealt: damageDealt,
     );
     var updatedDefender = defenderAfterDamage;
+    final attackAbilityResolution =
+        updatedAttacker.applyAbilityAttackResolvedEffects(
+      target: updatedDefender,
+      damageDealt: damageDealt,
+    );
+    updatedAttacker = attackAbilityResolution.owner;
+    updatedDefender = attackAbilityResolution.opponent;
 
     final attackItemResolution =
         updatedAttacker.applyEquippedItemAttackResolvedEffects(
@@ -56,6 +73,13 @@ class BattleResolver {
       source: updatedAttacker,
       damageTaken: damageDealt,
     );
+    final receiveAbilityResolution =
+        updatedDefender.applyAbilityReceiveDamageResolvedEffects(
+      source: updatedAttacker,
+      damageTaken: damageDealt,
+    );
+    updatedDefender = receiveAbilityResolution.owner;
+    updatedAttacker = receiveAbilityResolution.opponent;
     final receiveItemResolution =
         updatedDefender.applyEquippedItemReceiveDamageResolvedEffects(
       source: updatedAttacker,

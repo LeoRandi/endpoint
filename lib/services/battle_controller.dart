@@ -67,6 +67,19 @@ class BattleController extends ChangeNotifier {
     return pendingExitResult;
   }
 
+  void togglePlayerAbility(BattlerAbility ability) {
+    if (!canUseActions) return;
+
+    final resolution = _player.toggleAbilityActivation(
+      abilityId: ability.id,
+      screenContext: BattlerAbilityActivationContext.battle,
+      opponent: _enemy,
+    );
+    _player = resolution.owner;
+    _enemy = resolution.opponent;
+    notifyListeners();
+  }
+
   void handleAttack() {
     if (!canUseActions) return;
 
@@ -91,8 +104,8 @@ class BattleController extends ChangeNotifier {
   void handleAbility(BattlerAbility ability) {
     if (!canUseActions) return;
 
-    switch (ability) {
-      case BattlerAbility.defend:
+    switch (ability.id) {
+      case BattlerAbilityId.defend:
         if (_completeTurn(BattleTurnState.player)) {
           return;
         }
@@ -102,8 +115,9 @@ class BattleController extends ChangeNotifier {
           _scheduleEnemyTurn();
         }
         return;
-      case BattlerAbility.overclock:
-      case BattlerAbility.purge:
+      case BattlerAbilityId.overclock:
+      case BattlerAbilityId.purge:
+      case BattlerAbilityId.criticalScanner:
         // TODO: Implement additional battle ability effects once they are designed.
         return;
     }
@@ -179,14 +193,32 @@ class BattleController extends ChangeNotifier {
   void _beginTurn(BattleTurnState nextTurn, {bool notify = true}) {
     _turn = nextTurn;
 
-    var updatedPlayer = _player.applyStatusTurnStart(
+    var updatedPlayer = _player.progressAbilityCooldownsOnTurnStart(
+      isOwnerTurn: nextTurn == BattleTurnState.player,
+    );
+    var updatedEnemy = _enemy.progressAbilityCooldownsOnTurnStart(
+      isOwnerTurn: nextTurn == BattleTurnState.enemy,
+    );
+    updatedPlayer = updatedPlayer.applyStatusTurnStart(
       opponent: _enemy,
       isOwnerTurn: nextTurn == BattleTurnState.player,
     );
-    var updatedEnemy = _enemy.applyStatusTurnStart(
+    updatedEnemy = updatedEnemy.applyStatusTurnStart(
       opponent: updatedPlayer,
       isOwnerTurn: nextTurn == BattleTurnState.enemy,
     );
+    final playerAbilityResolution = updatedPlayer.applyAbilityTurnStartEffects(
+      opponent: updatedEnemy,
+      isOwnerTurn: nextTurn == BattleTurnState.player,
+    );
+    updatedPlayer = playerAbilityResolution.owner;
+    updatedEnemy = playerAbilityResolution.opponent;
+    final enemyAbilityResolution = updatedEnemy.applyAbilityTurnStartEffects(
+      opponent: updatedPlayer,
+      isOwnerTurn: nextTurn == BattleTurnState.enemy,
+    );
+    updatedEnemy = enemyAbilityResolution.owner;
+    updatedPlayer = enemyAbilityResolution.opponent;
     final playerItemResolution =
         updatedPlayer.applyEquippedItemTurnStartEffects(
       opponent: updatedEnemy,
@@ -222,6 +254,18 @@ class BattleController extends ChangeNotifier {
       opponent: updatedPlayer,
       isOwnerTurn: completedTurn == BattleTurnState.enemy,
     );
+    final playerAbilityResolution = updatedPlayer.applyAbilityTurnEndEffects(
+      opponent: updatedEnemy,
+      isOwnerTurn: completedTurn == BattleTurnState.player,
+    );
+    updatedPlayer = playerAbilityResolution.owner;
+    updatedEnemy = playerAbilityResolution.opponent;
+    final enemyAbilityResolution = updatedEnemy.applyAbilityTurnEndEffects(
+      opponent: updatedPlayer,
+      isOwnerTurn: completedTurn == BattleTurnState.enemy,
+    );
+    updatedEnemy = enemyAbilityResolution.owner;
+    updatedPlayer = enemyAbilityResolution.opponent;
     final playerItemResolution = updatedPlayer.applyEquippedItemTurnEndEffects(
       opponent: updatedEnemy,
       isOwnerTurn: completedTurn == BattleTurnState.player,

@@ -23,7 +23,7 @@ class PathSelectionPage extends StatefulWidget {
 }
 
 class _PathSelectionPageState extends State<PathSelectionPage> {
-  static const _itemsBottomInset = 164.0;
+  static const _abilitiesBottomInset = 164.0;
 
   late final RunSessionController _sessionController;
 
@@ -46,14 +46,15 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     super.dispose();
   }
 
-  Future<void> _handleOpenItems() async {
+  Future<void> _handleOpenAbilities() async {
     await showEndpointOverlay<void>(
       context: context,
-      builder: (_) => BattleItemsDialog(
+      builder: (_) => EndpointAbilitiesOverlay(
         player: _sessionController.player,
-        items: _sessionController.player.inventoryItems,
-        subtitle: 'Inventario de ruta',
-        bottomInset: _itemsBottomInset,
+        screenContext: BattlerAbilityActivationContext.pathSelection,
+        subtitle: 'Protocolos disponibles en ruta',
+        bottomInset: _abilitiesBottomInset,
+        onPlayerChanged: _sessionController.updatePlayer,
       ),
     );
   }
@@ -258,7 +259,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                 child: _PathBottomHud(
                                   player: player,
                                   onOpenOperatives: _handleOpenOperatives,
-                                  onOpenItems: _handleOpenItems,
+                                  onOpenAbilities: _handleOpenAbilities,
                                 ),
                               ),
                             ],
@@ -298,12 +299,12 @@ class _PathHeader extends StatelessWidget {
 class _PathBottomHud extends StatelessWidget {
   final Battler player;
   final Future<void> Function() onOpenOperatives;
-  final Future<void> Function() onOpenItems;
+  final Future<void> Function() onOpenAbilities;
 
   const _PathBottomHud({
     required this.player,
     required this.onOpenOperatives,
-    required this.onOpenItems,
+    required this.onOpenAbilities,
   });
 
   @override
@@ -370,10 +371,10 @@ class _PathBottomHud extends StatelessWidget {
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 118),
                       child: PathActionButton(
-                        label: 'Objetos',
-                        icon: Icons.inventory_2_outlined,
-                        onPressed: onOpenItems,
-                        tooltip: 'Abrir inventario de ruta',
+                        label: 'Habilidades',
+                        icon: Icons.auto_awesome_rounded,
+                        onPressed: onOpenAbilities,
+                        tooltip: 'Abrir panel de habilidades',
                       ),
                     ),
                   ),

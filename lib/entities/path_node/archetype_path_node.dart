@@ -3,7 +3,10 @@ import '_imports.dart';
 class ArchetypePathNode extends PathNode {
   final String playerIconEmoji;
   final List<Item> startingItems;
+  final List<BattlerAbility> startingAbilities;
   final Map<BattlerStat, int> baseStatModifiers;
+  final int moneyModifier;
+  final int incomeModifier;
 
   ArchetypePathNode({
     required String label,
@@ -13,8 +16,13 @@ class ArchetypePathNode extends PathNode {
     required RarityTier rarity,
     this.playerIconEmoji = '\u{1F916}',
     required List<Item> startingItems,
+    List<BattlerAbility> startingAbilities = const [],
     this.baseStatModifiers = const {},
+    this.moneyModifier = 0,
+    this.incomeModifier = 0,
   })  : startingItems = List<Item>.unmodifiable(startingItems),
+        startingAbilities =
+            List<BattlerAbility>.unmodifiable(startingAbilities),
         super.base(
           type: PathNodeType.archetype,
           label: label,
@@ -38,6 +46,8 @@ class ArchetypePathNode extends PathNode {
 
     var updatedPlayer = player.copyWith(
       iconEmoji: playerIconEmoji,
+      money: player.money + moneyModifier,
+      income: player.income + incomeModifier,
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
       inventoryItems: const [],
       equippedItems: const [],
@@ -49,6 +59,10 @@ class ArchetypePathNode extends PathNode {
       if (item.isEquippable && inventoryItem != null) {
         updatedPlayer = updatedPlayer.equipItem(inventoryItem);
       }
+    }
+
+    for (final ability in startingAbilities) {
+      updatedPlayer = updatedPlayer.addAbility(ability);
     }
 
     return updatedPlayer.copyWith(health: updatedPlayer.maxHealth);
