@@ -17,7 +17,7 @@ TODOs:
 
 -Habilidades
 --Meter en el loot
---Crear presets(al menos 50)[1/50]
+--Crear presets(al menos 50)[6/50]
 
 -Items
 --Meter al menos 100-120[14/100]
@@ -50,3 +50,50 @@ TODOs:
 
 -Settings
 --Cambio de colores base(sets específicos)
+
+ECOM
+Pulso de Fractura: activable en combate; el siguiente ataque ignora parte de la defensa enemiga.
+Deriva de Chatarra: activable en ruta; rerollea un nodo de la hora actual.
+Sobrecarga Venosa: activable en combate; ganas ATK este turno, pero recibes Quemadura.
+Malla Fantasma: pasiva; el primer golpe recibido en cada combate hace menos daño.
+Saqueo Tactico: pasiva; al ganar combate, aumentas la probabilidad de loot o ganas dinero extra.
+Reinicio en Seco: activable en ruta o campamento; elimina un debuff a cambio de vida.
+Caza de Debilidades: pasiva; haces daño extra a enemigos con estados alterados.
+Catalisis Cruel: activable en combate; si el objetivo ya tiene un debuff, duplicas el valor del siguiente debuff aplicado.
+Contrato de Mercado: activable en tienda; el siguiente objeto cuesta menos, pero pierdes income temporal o permanentemente.
+Eco de Asalto: pasiva; cuando una habilidad entra en cooldown, ganas un pequeño buff inmediato.
+
+Bateria Rajada (gray, accesorio): la primera habilidad manual del combate entra con 1 turno menos de cooldown.
+Guantes de Impacto (gray, arma): +ATK modesto y daño extra si el objetivo no tiene buffs.
+Filtro Quimico (green, accesorio): reduce Intoxicacion y Quemadura recibidas en 1 al aplicarse.
+Modulo de Cobro (green, soporte): +income, pero -HP max.
+Visor de Coincidencia (blue, accesorio): tus habilidades hacen +1 value si el enemigo ya tiene un debuff.
+Arpon Magnetico (blue, arma): el primer ataque contra un enemigo intacto aplica Marcado.
+Capacitador Parasitario (purple, accesorio): cuando una habilidad entra en cooldown, te curas o ganas Calentando.
+Horno Portatil (purple, soporte): tus Quemaduras duran más, pero recibes daño leve al final de tu turno.
+Mandato de Eclipse (yellow, accesorio): la primera activación manual de cada combate obtiene un bonus de value.
+Caja Negra del Operativo (yellow, accesorio): si ibas a morir, sobrevives a 1 HP y activas automáticamente tu habilidad manual lista.
+Estados Alterados
+
+Marcado: el siguiente golpe contra el objetivo hace daño adicional y consume el estado.
+Fragilidad: reduce defensa en función de su value.
+Interferencia: impide activar habilidades manuales o aumenta su cooldown al usarlas.
+Blindaje Temporal: absorbe parte del siguiente impacto y luego desaparece.
+Hemorragia: daño al final del turno que aumenta cuando el portador recibe ataques.
+Shock: reduce el daño del siguiente ataque del portador y luego se consume.
+Eco Termico: cada nueva Quemadura aplicada hace daño instantáneo extra.
+Sobreexposicion: el portador recibe más daño de habilidades y efectos, no tanto de ataques base.
+Inercia: al final del turno gana ATK o DEF si no ha activado habilidades manuales.
+Deuda: estado economico; modifica money/income hasta que se purga o se cumple una condicion.
+
+/////
+Vamos a meter algunos objetos con efectos(solo deben activarse si están equipados y se cumplen sus condiciones):
+-Objetos:
+--Bateria Rajada(gray, accesorio):(la primera habilidad manual activada que se resuelva en combate, reduce su cooldown en 1([value]). [upgradeValue] es 1. Habrá que crear un nuevo Hook para la resolución de habilidades)
+--Guantes de Impacto(gray, arma): +ATK modesto y daño extra si el objetivo no tiene buffs.
+--Filtro Quimico (green, accesorio): reduce Intoxicacion y Quemadura recibidas en 1 al aplicarse.(asegúrate bien de que si el value que van a aplicar es 0, no se aplique)
+--Modulo de Cobro(green, soporte): +income, pero -HP max.(Checkea que al equipar/desequipar, la vida total no supere a la máxima nunca)(+2([value]) de income y -10%([value]*5) de vida máxima)([upgradeValue] es 1)
+--Horno Portatil (purple, soporte): tus Quemaduras duran 1([value]) más, pero al final de tu turno te provocas 1([value]) de Quemadura a tí mismo.
+--Capacitador Parasitario (purple, accesorio): + 5 MaxHp, cuando una habilidad entra en cooldown, te curas por 5([value])
+--Manto de Eclipse (yellow, armadura): +4 def, la primera activación manual de cada combate obtiene un bonus de +3 al value.
+--Caja Negra del Operativo (yellow, accesorio): si ibas a morir, sobrevives a 1 HP y todos tus habilidades se refrescan(asegurarte de que si tiene debuffos, no puedan matar al jugador hasta que sea su turno)
