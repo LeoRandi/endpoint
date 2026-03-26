@@ -6,6 +6,14 @@ enum ItemId {
   sunglasses,
   shield,
   bulwarkAmulet,
+  crackedBattery,
+  impactGloves,
+  chemicalFilter,
+  billingModule,
+  portableOven,
+  parasiticCapacitor,
+  eclipseMantle,
+  operativeBlackBox,
   ironSword,
   guardShield,
   platedJacket,
@@ -46,6 +54,10 @@ class Item {
   final String iconEmoji;
   final ItemSlot? slot;
   final RarityTier rarity;
+  final int value;
+  final int upgradeValue;
+  final int incomePerValueUnit;
+  final int maxHealthPercentPerValueUnit;
   final Map<BattlerStat, int> statModifiers;
   final ItemEffect? effect;
   final String? instanceId;
@@ -57,6 +69,10 @@ class Item {
     this.iconEmoji = '\u{1F9F0}',
     this.slot,
     this.rarity = RarityTier.gray,
+    this.value = 0,
+    this.upgradeValue = 0,
+    this.incomePerValueUnit = 0,
+    this.maxHealthPercentPerValueUnit = 0,
     this.statModifiers = const {},
     this.effect,
     this.instanceId,
@@ -66,9 +82,51 @@ class Item {
   bool get isInstanced => instanceId != null;
   bool get hasEffect => effect != null;
   int get cost => rarity.shopPriceBase;
+  int get incomeModifier => value * incomePerValueUnit;
+  int get maxHealthPercentModifier => value * maxHealthPercentPerValueUnit;
 
   int modifier(BattlerStat stat) {
     return statModifiers[stat] ?? 0;
+  }
+
+  Item upgraded() {
+    if (upgradeValue <= 0) return this;
+
+    return copyWith(value: value + upgradeValue);
+  }
+
+  Item copyWith({
+    String? name,
+    String? description,
+    String? iconEmoji,
+    ItemSlot? slot,
+    bool clearSlot = false,
+    RarityTier? rarity,
+    int? value,
+    int? upgradeValue,
+    int? incomePerValueUnit,
+    int? maxHealthPercentPerValueUnit,
+    Map<BattlerStat, int>? statModifiers,
+    ItemEffect? effect,
+    bool clearEffect = false,
+    String? instanceId,
+  }) {
+    return Item(
+      id: id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      iconEmoji: iconEmoji ?? this.iconEmoji,
+      slot: clearSlot ? null : slot ?? this.slot,
+      rarity: rarity ?? this.rarity,
+      value: value ?? this.value,
+      upgradeValue: upgradeValue ?? this.upgradeValue,
+      incomePerValueUnit: incomePerValueUnit ?? this.incomePerValueUnit,
+      maxHealthPercentPerValueUnit:
+          maxHealthPercentPerValueUnit ?? this.maxHealthPercentPerValueUnit,
+      statModifiers: statModifiers ?? this.statModifiers,
+      effect: clearEffect ? null : effect ?? this.effect,
+      instanceId: instanceId ?? this.instanceId,
+    );
   }
 
   Item toOwnedInstance() {
@@ -81,6 +139,10 @@ class Item {
       iconEmoji: iconEmoji,
       slot: slot,
       rarity: rarity,
+      value: value,
+      upgradeValue: upgradeValue,
+      incomePerValueUnit: incomePerValueUnit,
+      maxHealthPercentPerValueUnit: maxHealthPercentPerValueUnit,
       statModifiers: statModifiers,
       effect: effect,
       instanceId: 'item_${_nextInstanceSequence++}',

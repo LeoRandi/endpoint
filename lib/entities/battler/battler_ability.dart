@@ -126,7 +126,7 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
   }) {
     if (!ability.isActive) return damage;
 
-    return damage + ability.value;
+    return damage + ability.currentValue;
   }
 
   @override
@@ -162,7 +162,7 @@ class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
     );
     if (!targetHasDebuff) return damage;
 
-    return damage + ability.value;
+    return damage + ability.currentValue;
   }
 }
 
@@ -178,7 +178,7 @@ class GhostMeshAbilityEffect extends BattlerAbilityEffect {
   }) {
     if (damage <= 0 || owner.health < owner.maxHealth) return damage;
 
-    return (damage / max(1, ability.value)).ceil();
+    return (damage / max(1, ability.currentValue)).ceil();
   }
 }
 
@@ -193,7 +193,8 @@ class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbilityActivationContext screenContext,
   }) {
     final updatedOpponent = opponent.applyStatus(
-      CatalisisCruelStatus(value: max(2, ability.value)),
+      CatalisisCruelStatus(value: max(2, ability.currentValue)),
+      source: owner,
     );
 
     return BattlerAbilityEffectResolution(
@@ -228,7 +229,7 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
   }) {
     if (!ability.isActive) return damage;
 
-    return damage + ability.value;
+    return damage + ability.currentValue;
   }
 
   @override
@@ -242,9 +243,12 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
       return BattlerAbilityEffectResolution(owner: owner, opponent: target);
     }
 
-    final burnTurns = max(1, ability.value ~/ 2);
+    final burnTurns = max(1, ability.currentValue ~/ 2);
     final updatedOwner = owner
-        .applyStatus(QuemaduraStatus(remainingTurns: burnTurns))
+        .applyStatus(
+          QuemaduraStatus(remainingTurns: burnTurns),
+          source: owner,
+        )
         .updateAbility(ability.startCooldown());
 
     return BattlerAbilityEffectResolution(
@@ -267,7 +271,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
     var updatedOwner = owner;
     final removableDebuffs = updatedOwner.statuses
         .where((status) => status.type == BattlerStatusType.debuff)
-        .take(max(0, ability.value))
+        .take(max(0, ability.currentValue))
         .toList(growable: false);
 
     for (final debuff in removableDebuffs) {
@@ -276,7 +280,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
 
     final selfDamage = max(
       1,
-      ((updatedOwner.maxHealth * ability.value) / 10).round(),
+      ((updatedOwner.maxHealth * ability.currentValue) / 10).round(),
     );
 
     updatedOwner = updatedOwner
@@ -299,6 +303,7 @@ class BattlerAbility {
   final int remainingCooldownTurns;
   final int value;
   final int upgradeValue;
+  final int runtimeValueBonus;
   final bool isActive;
   final BattlerAbilityActivationContext? manualActivationContext;
   final BattlerAbilityEffect? effect;
@@ -313,6 +318,7 @@ class BattlerAbility {
     this.remainingCooldownTurns = 0,
     this.value = 0,
     this.upgradeValue = 0,
+    this.runtimeValueBonus = 0,
     this.isActive = false,
     this.manualActivationContext,
     this.effect,
@@ -323,6 +329,7 @@ class BattlerAbility {
   bool get hasEffect => effect != null;
   bool get canManuallyActivate => manualActivationContext != null;
   bool get isOnCooldown => remainingCooldownTurns > 0;
+  int get currentValue => value + runtimeValueBonus;
 
   String get cooldownLabel {
     if (cooldownTurns <= 0) return 'Sin cooldown';
@@ -356,12 +363,16 @@ class BattlerAbility {
 
   BattlerAbility activate() => copyWith(isActive: true);
 
-  BattlerAbility deactivate() => copyWith(isActive: false);
+  BattlerAbility deactivate() => copyWith(
+        isActive: false,
+        runtimeValueBonus: 0,
+      );
 
   BattlerAbility startCooldown() {
     return copyWith(
       isActive: false,
       remainingCooldownTurns: cooldownTurns,
+      runtimeValueBonus: 0,
     );
   }
 
@@ -377,6 +388,21 @@ class BattlerAbility {
     return copyWith(
       isActive: false,
       remainingCooldownTurns: 0,
+      runtimeValueBonus: 0,
+    );
+  }
+
+  BattlerAbility addRuntimeValueBonus(int amount) {
+    if (amount == 0) return this;
+
+    return copyWith(runtimeValueBonus: runtimeValueBonus + amount);
+  }
+
+  BattlerAbility reduceCooldown(int amount) {
+    if (amount <= 0 || !isOnCooldown) return this;
+
+    return copyWith(
+      remainingCooldownTurns: max(0, remainingCooldownTurns - amount),
     );
   }
 
@@ -388,6 +414,7 @@ class BattlerAbility {
     int? remainingCooldownTurns,
     int? value,
     int? upgradeValue,
+    int? runtimeValueBonus,
     bool? isActive,
     BattlerAbilityActivationContext? manualActivationContext,
     bool clearManualActivationContext = false,
@@ -407,6 +434,7 @@ class BattlerAbility {
       ),
       value: value ?? this.value,
       upgradeValue: upgradeValue ?? this.upgradeValue,
+      runtimeValueBonus: runtimeValueBonus ?? this.runtimeValueBonus,
       isActive: isActive ?? this.isActive,
       manualActivationContext: clearManualActivationContext
           ? null

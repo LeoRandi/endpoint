@@ -224,10 +224,13 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
 
   String _buildInfoText(BattlerAbility ability) {
     final parts = <String>[
-      'VALOR ${ability.value}',
+      'VALOR ${ability.currentValue}',
       'MEJORA +${ability.upgradeValue}',
       'RECARGA ${ability.remainingCooldownLabel}',
     ];
+    if (ability.runtimeValueBonus > 0) {
+      parts.add('BONO +${ability.runtimeValueBonus}');
+    }
     if (ability.isActive) {
       parts.add('ESTADO ACTIVA');
     }

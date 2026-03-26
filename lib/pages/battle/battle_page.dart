@@ -143,9 +143,11 @@ class _BattlePageState extends State<BattlePage> {
   void _completeBattleExit(BattleFlowResult exitResult) {
     final resolvedResult = BattleFlowResult(
       type: exitResult.type,
-      player: exitResult.player.resetAbilitiesForContext(
-        BattlerAbilityActivationContext.battle,
-      ),
+      player: exitResult.player
+          .resetAbilitiesForContext(
+            BattlerAbilityActivationContext.battle,
+          )
+          .clearCombatFlags(),
     );
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) return;

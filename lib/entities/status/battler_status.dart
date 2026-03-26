@@ -213,6 +213,7 @@ class CalentandoStatus extends BattlerStatus {
     final currentStatus = resolved(owner);
     return owner.applyStatus(
       currentStatus.copyWith(value: currentStatus.value + 1),
+      applyEquipmentModifiers: false,
     );
   }
 }
@@ -334,7 +335,12 @@ class IntoxicacionStatus extends BattlerStatus {
       remainingTurns: currentStatus.remainingTurns + 1,
     );
 
-    return owner.applyStatus(renewedStatus).receiveDamage(currentStatus.value);
+    return owner
+        .applyStatus(
+          renewedStatus,
+          applyEquipmentModifiers: false,
+        )
+        .receiveDamage(currentStatus.value);
   }
 }
 

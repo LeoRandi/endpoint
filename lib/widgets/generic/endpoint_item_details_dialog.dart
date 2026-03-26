@@ -124,7 +124,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                             glowOpacity: 0.03,
                             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                             child: EndpointText(
-                              item.effect!.description,
+                              item.effect!.descriptionFor(item),
                               maxLines: null,
                               style: textSmallBold.copyWith(
                                 fontSize: 10,
@@ -214,11 +214,25 @@ class EndpointItemDetailsDialog extends StatelessWidget {
   }
 
   String _buildModifiersText(Item item) {
-    if (item.statModifiers.isEmpty) return 'Sin modificadores directos.';
+    final entries = <String>[
+      ...item.statModifiers.entries.map((entry) {
+        final value = entry.value;
+        final sign = value >= 0 ? '+' : '';
+        return '$sign$value ${entry.key.name.toUpperCase()}';
+      }),
+    ];
 
-    final entries = item.statModifiers.entries.map((entry) {
-      return '+${entry.value} ${entry.key.name.toUpperCase()}';
-    });
+    if (item.incomeModifier != 0) {
+      final sign = item.incomeModifier >= 0 ? '+' : '';
+      entries.add('$sign${item.incomeModifier} INCOME');
+    }
+
+    if (item.maxHealthPercentModifier != 0) {
+      final sign = item.maxHealthPercentModifier >= 0 ? '+' : '';
+      entries.add('$sign${item.maxHealthPercentModifier}% HP MAX');
+    }
+
+    if (entries.isEmpty) return 'Sin modificadores directos.';
 
     return entries.join('   ');
   }

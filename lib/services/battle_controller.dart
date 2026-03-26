@@ -26,8 +26,14 @@ class BattleController extends ChangeNotifier {
     required this.enemyTurnDelay,
     required this.combatEndDelay,
     BattleResolver resolver = const BattleResolver(),
-  })  : _enemy = enemy.materializeOwnedItems(),
-        _player = player.materializeOwnedItems(),
+  })  : _enemy = enemy
+            .materializeOwnedItems()
+            .clearCombatFlags()
+            .addCombatFlag(Battler.combatActiveFlag),
+        _player = player
+            .materializeOwnedItems()
+            .clearCombatFlags()
+            .addCombatFlag(Battler.combatActiveFlag),
         _resolver = resolver {
     _beginTurn(BattleTurnState.player, notify: false);
   }
@@ -205,7 +211,7 @@ class BattleController extends ChangeNotifier {
       isOwnerTurn: nextTurn == BattleTurnState.enemy,
     );
     updatedPlayer = updatedPlayer.applyStatusTurnStart(
-      opponent: _enemy,
+      opponent: updatedEnemy,
       isOwnerTurn: nextTurn == BattleTurnState.player,
     );
     updatedEnemy = updatedEnemy.applyStatusTurnStart(

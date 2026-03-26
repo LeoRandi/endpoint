@@ -61,6 +61,32 @@ const bulwarkAmuletItem = Item(
   },
 );
 
+const crackedBatteryItem = Item(
+  id: ItemId.crackedBattery,
+  name: 'Bateria Rajada',
+  description: 'Accesorio inestable que exprime la primera habilidad manual.',
+  iconEmoji: '\u{1F50B}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.gray,
+  value: 1,
+  upgradeValue: 1,
+  effect: CrackedBatteryItemEffect(),
+);
+
+const impactGlovesItem = Item(
+  id: ItemId.impactGloves,
+  name: 'Guantes de Impacto',
+  description: '+1 ATK y castigo extra contra objetivos sin buffs.',
+  iconEmoji: '\u{1F9E4}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.gray,
+  value: 2,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: ImpactGlovesItemEffect(),
+);
+
 const toxicCatalystItem = Item(
   id: ItemId.toxicCatalyst,
   name: 'Catalizador Toxico',
@@ -79,6 +105,31 @@ const emberCharmItem = Item(
   slot: ItemSlot.accessory,
   rarity: RarityTier.green,
   effect: QuemaduraOnAttackItemEffect(),
+);
+
+const chemicalFilterItem = Item(
+  id: ItemId.chemicalFilter,
+  name: 'Filtro Quimico',
+  description: 'Reduce la Quemadura y la Intoxicacion que recibes.',
+  iconEmoji: '\u{1F637}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.green,
+  value: 1,
+  effect: ChemicalFilterItemEffect(),
+);
+
+const billingModuleItem = Item(
+  id: ItemId.billingModule,
+  name: 'Modulo de Cobro',
+  description: 'Convierte soporte vital en ingresos operativos.',
+  iconEmoji: '\u{1F4B3}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.green,
+  value: 2,
+  upgradeValue: 1,
+  incomePerValueUnit: 1,
+  maxHealthPercentPerValueUnit: -5,
+  effect: BillingModuleItemEffect(),
 );
 
 const ironSwordItem = Item(
@@ -163,6 +214,31 @@ const midnightCloakItem = Item(
   },
 );
 
+const portableOvenItem = Item(
+  id: ItemId.portableOven,
+  name: 'Horno Portatil',
+  description: 'Amplifica tus Quemaduras, pero siempre deja rescoldos.',
+  iconEmoji: '\u{1F525}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.purple,
+  value: 1,
+  effect: PortableOvenItemEffect(),
+);
+
+const parasiticCapacitorItem = Item(
+  id: ItemId.parasiticCapacitor,
+  name: 'Capacitador Parasitario',
+  description: '+5 HP y drenaje energetico cada vez que una habilidad entra en cooldown.',
+  iconEmoji: '\u26A1',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.purple,
+  value: 5,
+  statModifiers: {
+    BattlerStat.health: 5,
+  },
+  effect: ParasiticCapacitorItemEffect(),
+);
+
 const voidInjectorItem = Item(
   id: ItemId.voidInjector,
   name: 'Inyector del Vacio',
@@ -176,15 +252,47 @@ const voidInjectorItem = Item(
   },
 );
 
+const eclipseMantleItem = Item(
+  id: ItemId.eclipseMantle,
+  name: 'Manto de Eclipse',
+  description: '+4 DEF y un pulso de potencia en la primera activacion manual del combate.',
+  iconEmoji: '\u{1F318}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.yellow,
+  value: 3,
+  statModifiers: {
+    BattlerStat.defense: 4,
+  },
+  effect: EclipseMantleItemEffect(),
+);
+
+const operativeBlackBoxItem = Item(
+  id: ItemId.operativeBlackBox,
+  name: 'Caja Negra del Operativo',
+  description: 'Failsafe de emergencia que rehusa dejar caer la unidad a la primera.',
+  iconEmoji: '\u{1F4E6}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.yellow,
+  effect: OperativeBlackBoxItemEffect(),
+);
+
 const itemPresets = <Item>[
+  crackedBatteryItem,
+  impactGlovesItem,
   toxicCatalystItem,
   emberCharmItem,
+  chemicalFilterItem,
+  billingModuleItem,
   ironSwordItem,
   guardShieldItem,
   platedJacketItem,
   reactiveCasingItem,
+  portableOvenItem,
+  parasiticCapacitorItem,
   sunsteelBladeItem,
   dawnCharmItem,
+  eclipseMantleItem,
+  operativeBlackBoxItem,
   midnightCloakItem,
   voidInjectorItem,
 ];

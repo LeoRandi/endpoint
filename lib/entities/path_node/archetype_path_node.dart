@@ -47,7 +47,7 @@ class ArchetypePathNode extends PathNode {
     var updatedPlayer = player.copyWith(
       iconEmoji: playerIconEmoji,
       money: player.money + moneyModifier,
-      income: player.income + incomeModifier,
+      income: player.baseIncome + incomeModifier,
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
       inventoryItems: const [],
       equippedItems: const [],
