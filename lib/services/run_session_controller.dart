@@ -85,6 +85,7 @@ class RunSessionController extends ChangeNotifier {
   void refreshNodes() {
     final currentHour = _pathNodeService.buildHourSnapshot(
       stageIndex: _state.stageIndex,
+      player: _state.player,
       availableNodes: _availableNodesOverride,
       nodeCount: _nodeCount,
     );
@@ -120,7 +121,8 @@ class RunSessionController extends ChangeNotifier {
     required Battler updatedPlayer,
   }) {
     final hasCompletedRun =
-        _state.stageIndex >= PathNodeService.sunriseStageIndex;
+        _state.stageIndex >= PathNodeService.sunriseStageIndex ||
+            updatedPlayer.isDefeated;
 
     if (hasCompletedRun) {
       _state = _state.copyWith(

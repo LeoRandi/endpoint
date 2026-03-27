@@ -1,4 +1,5 @@
 import '_imports.dart';
+import '../../services/run_randomizer.dart';
 
 enum BattlerStat {
   health,
@@ -11,6 +12,8 @@ enum BattlerStat {
 
 class Battler {
   static const combatActiveFlag = 'combat_active';
+  static const manualAbilityActivatedThisTurnFlag =
+      'manual_ability_activated_this_turn';
 
   final String name;
   final String iconEmoji;
@@ -94,10 +97,22 @@ class Battler {
   int get baseVampirism => baseStat(BattlerStat.vampirism);
   int get vampirism => calculatedStat(BattlerStat.vampirism);
 
-  int get income => _calculateIncome(
-        baseIncome: baseIncome,
-        equippedItems: equippedItems,
+  int get income {
+    var updatedIncome = _calculateIncome(
+      baseIncome: baseIncome,
+      equippedItems: equippedItems,
+    );
+
+    for (final status in statuses) {
+      final resolvedStatus = status.resolved(this);
+      updatedIncome = resolvedStatus.modifyIncome(
+        owner: this,
+        income: updatedIncome,
       );
+    }
+
+    return max(0, updatedIncome);
+  }
 
   bool get isDefeated => health <= 0;
 
@@ -149,11 +164,22 @@ class Battler {
   }
 
   int calculatedStat(BattlerStat stat) {
-    return _calculateStat(
+    var updatedValue = _calculateStat(
       baseStats: baseStats,
       equippedItems: equippedItems,
       stat: stat,
     );
+
+    for (final status in statuses) {
+      final resolvedStatus = status.resolved(this);
+      updatedValue = resolvedStatus.modifyCalculatedStat(
+        owner: this,
+        stat: stat,
+        value: updatedValue,
+      );
+    }
+
+    return max(0, updatedValue);
   }
 
   int calculateDamageAgainst(Battler target) {
@@ -166,7 +192,10 @@ class Battler {
   }
 
   Battler receiveAttack(Battler attacker) {
-    return receiveDamage(attacker.calculateDamageAgainst(this));
+    return receiveDirectDamage(
+      attacker.calculateDamageAgainst(this),
+      source: attacker,
+    );
   }
 
   Battler receiveDamage(int damage) {
@@ -181,6 +210,30 @@ class Battler {
     return damagedOwner.applyEquippedItemFatalDamageEffects(
       incomingDamage: safeDamage,
     );
+  }
+
+  Battler receiveDirectDamage(
+    int damage, {
+    required Battler source,
+  }) {
+    final resolution = applyIncomingDamageEffects(
+      source: source,
+      damage: damage,
+      kind: DamageKind.direct,
+    );
+    return resolution.owner.receiveDamage(resolution.damage);
+  }
+
+  Battler receiveDebuffDamage(
+    int damage, {
+    required Battler source,
+  }) {
+    final resolution = applyIncomingDamageEffects(
+      source: source,
+      damage: damage,
+      kind: DamageKind.debuff,
+    );
+    return resolution.owner.receiveDamage(resolution.damage);
   }
 
   Battler heal(int amount) {
@@ -287,6 +340,27 @@ class Battler {
     );
   }
 
+  Battler replaceStatusInstance({
+    required BattlerStatus currentStatus,
+    required BattlerStatus replacement,
+  }) {
+    final updatedStatuses = List<BattlerStatus>.from(statuses);
+    final matchingIndex = updatedStatuses.indexWhere(
+      (activeStatus) =>
+          identical(activeStatus, currentStatus) ||
+          (activeStatus.runtimeType == currentStatus.runtimeType &&
+              activeStatus.id == currentStatus.id &&
+              activeStatus.remainingTurns == currentStatus.remainingTurns &&
+              activeStatus.value == currentStatus.value),
+    );
+    if (matchingIndex < 0) return this;
+
+    updatedStatuses[matchingIndex] = replacement;
+    return copyWith(
+      statuses: List<BattlerStatus>.unmodifiable(updatedStatuses),
+    );
+  }
+
   Battler decrementStatusDurations() {
     if (statuses.isEmpty) return this;
 
@@ -317,6 +391,7 @@ class Battler {
   Battler applyStatusTurnStart({
     required Battler opponent,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (statuses.isEmpty) return this;
 
@@ -329,6 +404,7 @@ class Battler {
         owner: updatedOwner,
         opponent: opponent,
         isOwnerTurn: isOwnerTurn,
+        randomizer: randomizer,
       );
     }
 
@@ -380,6 +456,7 @@ class Battler {
   Battler applyStatusTurnEnd({
     required Battler opponent,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (statuses.isEmpty) return this;
 
@@ -392,6 +469,7 @@ class Battler {
         owner: updatedOwner,
         opponent: opponent,
         isOwnerTurn: isOwnerTurn,
+        randomizer: randomizer,
       );
     }
 
@@ -537,6 +615,45 @@ class Battler {
     }
 
     return max(0, updatedDamage);
+  }
+
+  BattlerIncomingDamageResolution applyIncomingDamageEffects({
+    required Battler source,
+    required int damage,
+    required DamageKind kind,
+  }) {
+    var updatedOwner = this;
+    var updatedDamage = damage;
+    final activeStatuses = List<BattlerStatus>.from(statuses);
+
+    for (final status in activeStatuses) {
+      final matchingIndex = updatedOwner.statuses.indexWhere(
+        (activeStatus) =>
+            identical(activeStatus, status) ||
+            (activeStatus.runtimeType == status.runtimeType &&
+                activeStatus.id == status.id &&
+                activeStatus.remainingTurns == status.remainingTurns &&
+                activeStatus.value == status.value),
+      );
+      if (matchingIndex < 0) continue;
+
+      final resolvedStatus = updatedOwner.statuses[matchingIndex].resolved(
+        updatedOwner,
+      );
+      final resolution = resolvedStatus.onIncomingDamage(
+        owner: updatedOwner,
+        source: source,
+        damage: updatedDamage,
+        kind: kind,
+      );
+      updatedOwner = resolution.owner;
+      updatedDamage = resolution.damage;
+    }
+
+    return BattlerIncomingDamageResolution(
+      owner: updatedOwner._removeExpiredStatuses(),
+      damage: max(0, updatedDamage),
+    );
   }
 
   int applyEquippedItemIncomingDamageModifiers({
@@ -1080,8 +1197,19 @@ class Battler {
         opponent: resolvedOpponent,
       );
     }
+    if (!canActivateManualAbilities(screenContext)) {
+      return BattlerAbilityEffectResolution(
+        owner: this,
+        opponent: resolvedOpponent,
+      );
+    }
 
     var activatedOwner = updateAbility(currentAbility.activate());
+    if (screenContext == BattlerAbilityActivationContext.battle) {
+      activatedOwner = activatedOwner.addCombatFlag(
+        manualAbilityActivatedThisTurnFlag,
+      );
+    }
     var updatedOpponent = resolvedOpponent;
     var activatedAbility = activatedOwner.abilityById(abilityId);
     if (activatedAbility == null) {
@@ -1270,6 +1398,43 @@ class Battler {
     if (combatFlags.isEmpty) return this;
 
     return copyWith(combatFlags: const <String>{});
+  }
+
+  Battler clearCombatStatuses() {
+    if (statuses.every((status) => status.persistsOutsideCombat)) {
+      return this;
+    }
+
+    return copyWith(
+      statuses: List<BattlerStatus>.unmodifiable(
+        statuses
+            .where((status) => status.persistsOutsideCombat)
+            .toList(growable: false),
+      ),
+    );
+  }
+
+  String? manualAbilityActivationBlockReason(
+    BattlerAbilityActivationContext screenContext,
+  ) {
+    for (final status in statuses) {
+      final resolvedStatus = status.resolved(this);
+      final blockReason = resolvedStatus.manualAbilityActivationBlockReason(
+        owner: this,
+        screenContext: screenContext,
+      );
+      if (blockReason != null) {
+        return blockReason;
+      }
+    }
+
+    return null;
+  }
+
+  bool canActivateManualAbilities(
+    BattlerAbilityActivationContext screenContext,
+  ) {
+    return manualAbilityActivationBlockReason(screenContext) == null;
   }
 
   Battler copyWith({

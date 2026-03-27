@@ -29,20 +29,30 @@ class BattleTurnEngine {
     required bool isPlayerTurn,
     required Battler player,
     required Battler enemy,
+    RunRandomizer? randomizer,
   }) {
-    var updatedPlayer = player.progressAbilityCooldownsOnTurnStart(
+    var updatedPlayer = isPlayerTurn
+        ? player.removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag)
+        : player;
+    var updatedEnemy = isPlayerTurn
+        ? enemy
+        : enemy.removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag);
+
+    updatedPlayer = updatedPlayer.progressAbilityCooldownsOnTurnStart(
       isOwnerTurn: isPlayerTurn,
     );
-    var updatedEnemy = enemy.progressAbilityCooldownsOnTurnStart(
+    updatedEnemy = updatedEnemy.progressAbilityCooldownsOnTurnStart(
       isOwnerTurn: !isPlayerTurn,
     );
     updatedPlayer = updatedPlayer.applyStatusTurnStart(
       opponent: updatedEnemy,
       isOwnerTurn: isPlayerTurn,
+      randomizer: randomizer,
     );
     updatedEnemy = updatedEnemy.applyStatusTurnStart(
       opponent: updatedPlayer,
       isOwnerTurn: !isPlayerTurn,
+      randomizer: randomizer,
     );
     final playerAbilityResolution = updatedPlayer.applyAbilityTurnStartEffects(
       opponent: updatedEnemy,
@@ -84,14 +94,17 @@ class BattleTurnEngine {
     required bool didPlayerAct,
     required Battler player,
     required Battler enemy,
+    RunRandomizer? randomizer,
   }) {
     var updatedPlayer = player.applyStatusTurnEnd(
       opponent: enemy,
       isOwnerTurn: didPlayerAct,
+      randomizer: randomizer,
     );
     var updatedEnemy = enemy.applyStatusTurnEnd(
       opponent: updatedPlayer,
       isOwnerTurn: !didPlayerAct,
+      randomizer: randomizer,
     );
     final playerAbilityResolution = updatedPlayer.applyAbilityTurnEndEffects(
       opponent: updatedEnemy,

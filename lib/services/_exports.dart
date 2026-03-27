@@ -5,6 +5,7 @@ export 'battle_resolver.dart';
 export 'battle_turn_engine.dart';
 export 'camp_site_service.dart';
 export 'path_node_service.dart';
+export 'path_event_service.dart';
 export 'path_event_visit_result.dart';
 export 'run_hour_snapshot.dart';
 export 'run_randomizer.dart';

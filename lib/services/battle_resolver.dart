@@ -47,7 +47,10 @@ class BattleResolver {
       source: attacker,
       damage: incomingAbilityModifiedDamage,
     );
-    final defenderAfterDamage = defender.receiveDamage(damageDealt);
+    final defenderAfterDamage = defender.receiveDirectDamage(
+      damageDealt,
+      source: attacker,
+    );
     var updatedAttacker = attacker.applyAttackResolvedEffects(
       target: defenderAfterDamage,
       damageDealt: damageDealt,

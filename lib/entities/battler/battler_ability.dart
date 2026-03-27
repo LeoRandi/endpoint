@@ -270,7 +270,10 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
   }) {
     var updatedOwner = owner;
     final removableDebuffs = updatedOwner.statuses
-        .where((status) => status.type == BattlerStatusType.debuff)
+        .where(
+          (status) =>
+              status.type == BattlerStatusType.debuff && status.isPurgeable,
+        )
         .take(max(0, ability.currentValue))
         .toList(growable: false);
 

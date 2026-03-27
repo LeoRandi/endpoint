@@ -8,13 +8,14 @@ class PathNodeService {
   static const _centerShopPremiumMultiplier = 1.2;
 
   final RunRandomizer _randomizer;
+  final PathEventService _pathEventService;
   late final List<_RunStageDefinition> _stageDefinitions = [
     _RunStageDefinition(
       matches: (stageIndex) => stageIndex == startStageIndex,
       phase: RunHourPhase.day,
       titleBuilder: (_) => 'HORA 1',
       subtitle: 'Elige el arquetipo con el que abrira la run.',
-      buildNodes: (_) => openingArchetypeNodes,
+      buildNodes: (_, __) => openingArchetypeNodes,
     ),
     _RunStageDefinition(
       matches: (stageIndex) =>
@@ -30,7 +31,7 @@ class PathNodeService {
       titleBuilder: (_) => 'ANOCHECER',
       subtitle:
           'La ciudad se cierra. Tres enfrentamientos marcan la entrada en la noche.',
-      buildNodes: (_) => duskCombatNodes,
+      buildNodes: (_, __) => duskCombatNodes,
     ),
     _RunStageDefinition(
       matches: (stageIndex) => stageIndex < sunriseStageIndex,
@@ -44,18 +45,21 @@ class PathNodeService {
       phase: RunHourPhase.sunrise,
       titleBuilder: (_) => 'SUNRISE',
       subtitle: 'Solo queda un combate. El peor de toda la run.',
-      buildNodes: (_) => sunriseCombatNodes.take(1).toList(growable: false),
+      buildNodes: (_, __) => sunriseCombatNodes.take(1).toList(growable: false),
     ),
   ];
 
   PathNodeService({
     required RunRandomizer randomizer,
-  }) : _randomizer = randomizer;
+    PathEventService pathEventService = const PathEventService(),
+  })  : _randomizer = randomizer,
+        _pathEventService = pathEventService;
 
   RunRandomizer get randomizer => _randomizer;
 
   RunHourSnapshot buildHourSnapshot({
     required int stageIndex,
+    Battler? player,
     List<PathNode>? availableNodes,
     int nodeCount = 3,
   }) {
@@ -73,9 +77,10 @@ class PathNodeService {
       subtitle: definition.subtitle,
       nodes: List<PathNode>.unmodifiable(
         _resolveNodes(
-          fallbackNodes: definition.buildNodes(clampedStageIndex),
+          fallbackNodes: definition.buildNodes(clampedStageIndex, player),
           availableNodes: availableNodes,
           nodeCount: resolvedNodeCount,
+          player: player,
         ),
       ),
     );
@@ -87,20 +92,20 @@ class PathNodeService {
     );
   }
 
-  List<PathNode> _buildDayNodes(int stageIndex) {
+  List<PathNode> _buildDayNodes(int stageIndex, Battler? player) {
     return _buildUniqueHourNodes(
-      sideCandidates: _buildDaySideCandidates(),
+      sideCandidates: _buildDaySideCandidates(player),
       shopPool: dayShopNodes,
     );
   }
 
-  List<PathNode> _buildNightNodes(int stageIndex) {
+  List<PathNode> _buildNightNodes(int stageIndex, Battler? player) {
     if (stageIndex == sunriseStageIndex - 1) {
       return _buildFinalNightNodes();
     }
 
     return _buildUniqueHourNodes(
-      sideCandidates: _buildNightSideCandidates(),
+      sideCandidates: _buildNightSideCandidates(player),
       shopPool: nightShopNodes,
     );
   }
@@ -108,23 +113,27 @@ class PathNodeService {
   List<PathNode> _resolveNodes({
     required List<PathNode> fallbackNodes,
     required int nodeCount,
+    Battler? player,
     List<PathNode>? availableNodes,
   }) {
     final sourceNodes = availableNodes == null || availableNodes.isEmpty
         ? fallbackNodes
         : availableNodes;
+    final resolvedNodes = sourceNodes
+        .where((node) => _canAppearForPlayer(node, player))
+        .toList(growable: false);
 
-    return sourceNodes.take(min(nodeCount, sourceNodes.length)).toList(
+    return resolvedNodes.take(min(nodeCount, resolvedNodes.length)).toList(
           growable: false,
         );
   }
 
-  List<_WeightedPathNode> _buildDaySideCandidates() {
+  List<_WeightedPathNode> _buildDaySideCandidates(Battler? player) {
     return [
       ...dayShopNodes.map(
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
-      ...dayEventNodes.map(
+      ..._filterEventNodes(dayEventNodes, player).map(
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
       _WeightedPathNode(
@@ -144,7 +153,7 @@ class PathNodeService {
     ];
   }
 
-  List<_WeightedPathNode> _buildNightSideCandidates() {
+  List<_WeightedPathNode> _buildNightSideCandidates(Battler? player) {
     return [
       ...nightCombatNodes.map(
         (node) => _WeightedPathNode(
@@ -155,7 +164,7 @@ class PathNodeService {
       ...nightShopNodes.map(
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
-      ...nightEventNodes.map(
+      ..._filterEventNodes(nightEventNodes, player).map(
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
       _WeightedPathNode(
@@ -167,6 +176,27 @@ class PathNodeService {
         weight: severeMedicationCampNode.rollWeight,
       ),
     ];
+  }
+
+  Iterable<EventPathNode> _filterEventNodes(
+    Iterable<EventPathNode> nodes,
+    Battler? player,
+  ) {
+    return nodes.where(
+      (node) => _pathEventService.canAppear(
+        node: node,
+        player: player,
+      ),
+    );
+  }
+
+  bool _canAppearForPlayer(PathNode node, Battler? player) {
+    if (node is! EventPathNode) return true;
+
+    return _pathEventService.canAppear(
+      node: node,
+      player: player,
+    );
   }
 
   List<PathNode> _buildFinalNightNodes() {
@@ -287,7 +317,7 @@ class _RunStageDefinition {
   final RunHourPhase phase;
   final String Function(int stageIndex) titleBuilder;
   final String subtitle;
-  final List<PathNode> Function(int stageIndex) buildNodes;
+  final List<PathNode> Function(int stageIndex, Battler? player) buildNodes;
 
   const _RunStageDefinition({
     required this.matches,

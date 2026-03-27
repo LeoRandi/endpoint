@@ -32,7 +32,10 @@ class CampSiteService {
 
     if (removeRandomDebuff) {
       final debuffs = updatedPlayer.statuses
-          .where((status) => status.type == BattlerStatusType.debuff)
+          .where(
+            (status) =>
+                status.type == BattlerStatusType.debuff && status.isPurgeable,
+          )
           .toList(growable: false);
 
       if (debuffs.isNotEmpty) {

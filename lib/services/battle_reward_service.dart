@@ -38,6 +38,7 @@ class BattleRewardService {
     return BattleFlowResult(
       type: exitResult.type,
       player: exitResult.player
+          .clearCombatStatuses()
           .resetAbilitiesForContext(
             BattlerAbilityActivationContext.battle,
           )

@@ -116,6 +116,7 @@ final luxuryRelicsNode = ShopPathNode(
 );
 
 final shadyTechnosurgeonNode = EventPathNode(
+  id: PathEventId.shadyTechnosurgeon,
   label: 'Shady Technosurgeon',
   tooltip: 'Un cirujano de callejon ofrece ajustes temporales',
   iconEmoji: '\u2695',
@@ -166,6 +167,7 @@ final velvetArmoryNode = ShopPathNode(
 );
 
 final afterHoursTechnosurgeonNode = EventPathNode(
+  id: PathEventId.afterHoursTechnosurgeon,
   label: 'Technosurgeon Nocturno',
   tooltip: 'Un especialista trasnochado ofrece modificaciones ilegales',
   iconEmoji: '\u2699',
@@ -178,6 +180,22 @@ final afterHoursTechnosurgeonNode = EventPathNode(
       'Las luces de neon ocultan a un technosurgeon que ofrece un injerto express.',
   outcomeText:
       'Por ahora no altera tus estadisticas. TODO: aplicar efectos temporales nocturnos.',
+);
+
+final debtCollectionNode = EventPathNode(
+  id: PathEventId.debtCollection,
+  label: 'Oficina de Cobros',
+  tooltip: 'Un recaudador intenta cerrar tu deuda operativa',
+  iconEmoji: '\u{1F4B8}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'DEUDA',
+  showTitle: 'La deuda te ha encontrado',
+  eventTitle: 'OFICINA DE COBROS',
+  description:
+      'Un recaudador del circuito local intercepta tu ruta. O saldas la cuota pendiente o te cobran en carne y credito.',
+  outcomeText:
+      'La cantidad exacta se resuelve al entrar segun el saldo pendiente de tu Deuda.',
 );
 
 final restZoneCampNode = CampSitePathNode(
@@ -222,6 +240,7 @@ final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
 
 final List<EventPathNode> dayEventNodes = List.unmodifiable([
   shadyTechnosurgeonNode,
+  debtCollectionNode,
 ]);
 
 final List<ShopPathNode> nightShopNodes = List.unmodifiable([
@@ -233,6 +252,7 @@ final List<ShopPathNode> nightShopNodes = List.unmodifiable([
 final List<EventPathNode> nightEventNodes = List.unmodifiable([
   afterHoursTechnosurgeonNode,
   shadyTechnosurgeonNode,
+  debtCollectionNode,
 ]);
 
 final List<CombatPathNode> rareDayCombatNodes = List.unmodifiable([

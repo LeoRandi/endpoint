@@ -42,6 +42,7 @@ class _BattlePageState extends State<BattlePage> {
     _controller = BattleController(
       enemy: widget.enemy,
       player: widget.player,
+      randomizer: _randomizer,
       enemyTurnDelay: widget.enemyTurnDelay,
       combatEndDelay: widget.combatEndDelay,
     )..addListener(_handleControllerChanged);
@@ -298,6 +299,11 @@ class _BattlePageState extends State<BattlePage> {
       return false;
     }
     if (ability.isActive) return true;
+    if (!_controller.player.canActivateManualAbilities(
+      BattlerAbilityActivationContext.battle,
+    )) {
+      return false;
+    }
 
     return !ability.isOnCooldown && ability.isImplemented;
   }
@@ -309,6 +315,12 @@ class _BattlePageState extends State<BattlePage> {
     if (!canControlOwner) return 'Solo puedes gestionar habilidades propias';
     if (!_controller.canUseActions) {
       return 'Solo puedes gestionar habilidades en tu turno';
+    }
+    final blockReason = _controller.player.manualAbilityActivationBlockReason(
+      BattlerAbilityActivationContext.battle,
+    );
+    if (blockReason != null && !ability.isActive) {
+      return blockReason;
     }
     if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
     if (ability.isOnCooldown) {
@@ -391,7 +403,7 @@ class _BattlePageState extends State<BattlePage> {
                           ),
                           Container(
                             height: 2,
-                            color: playerAccent.withOpacity(0.2),
+                            color: playerAccent.withValues(alpha: 0.2),
                           ),
                           Expanded(
                             child: _BattleSide(
@@ -497,7 +509,9 @@ class _BattleSide extends StatelessWidget {
                 EndpointText(
                   subtitle,
                   style: textSmallBold.copyWith(
-                    color: EndpointPalette.softForeground.withOpacity(0.72),
+                    color: EndpointPalette.softForeground.withValues(
+                      alpha: 0.72,
+                    ),
                     fontSize: 12,
                     letterSpacing: 1,
                   ),
@@ -561,7 +575,7 @@ class _TurnBanner extends StatelessWidget {
               description,
               textAlign: TextAlign.center,
               style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withOpacity(0.84),
+                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
                 fontSize: 11,
                 letterSpacing: 0.5,
               ),
@@ -804,7 +818,7 @@ class _BattleStatusBar extends StatelessWidget {
                     EndpointText(
                       '${battler.health} / ${battler.maxHealth}',
                       style: textSmallNumericBold.copyWith(
-                        color: Colors.white.withOpacity(0.84),
+                        color: Colors.white.withValues(alpha: 0.84),
                         fontSize: 12,
                         letterSpacing: 0.8,
                       ),
@@ -838,7 +852,7 @@ class _BattleStatusBar extends StatelessWidget {
                     EndpointText(
                       '${battler.health} / ${battler.maxHealth}',
                       style: textSmallNumericBold.copyWith(
-                        color: Colors.white.withOpacity(0.84),
+                        color: Colors.white.withValues(alpha: 0.84),
                         fontSize: 12,
                         letterSpacing: 0.8,
                       ),
@@ -889,7 +903,7 @@ class _BattleLoadoutStrip extends StatelessWidget {
       tileExtent: 54,
       tileHeight: 66,
       emojiSize: 14,
-      borderColor: accent.withOpacity(0.34),
+      borderColor: accent.withValues(alpha: 0.34),
       onItemPressed: onItemPressed,
     );
     final abilityStrip = EndpointAbilitySlotsStrip(
@@ -985,7 +999,7 @@ class _BattleSideGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = accent.withOpacity(0.08)
+      ..color = accent.withValues(alpha: 0.08)
       ..strokeWidth = 1;
 
     for (double y = 16; y <= size.height; y += 28) {

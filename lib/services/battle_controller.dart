@@ -9,6 +9,7 @@ enum BattleTurnState {
 class BattleController extends ChangeNotifier {
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
+  final RunRandomizer _randomizer;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
 
@@ -26,6 +27,7 @@ class BattleController extends ChangeNotifier {
     required Battler player,
     required this.enemyTurnDelay,
     required this.combatEndDelay,
+    RunRandomizer? randomizer,
     BattleResolver resolver = const BattleResolver(),
     BattleTurnEngine turnEngine = const BattleTurnEngine(),
   })  : _enemy = enemy
@@ -37,6 +39,7 @@ class BattleController extends ChangeNotifier {
             .clearCombatFlags()
             .addCombatFlag(Battler.combatActiveFlag),
         _resolver = resolver,
+        _randomizer = randomizer ?? RunRandomizer(),
         _turnEngine = turnEngine {
     _beginTurn(BattleTurnState.player, notify: false);
   }
@@ -210,6 +213,7 @@ class BattleController extends ChangeNotifier {
       isPlayerTurn: nextTurn == BattleTurnState.player,
       player: _player,
       enemy: _enemy,
+      randomizer: _randomizer,
     );
 
     _player = resolution.player;
@@ -233,6 +237,7 @@ class BattleController extends ChangeNotifier {
       didPlayerAct: completedTurn == BattleTurnState.player,
       player: _player,
       enemy: _enemy,
+      randomizer: _randomizer,
     );
 
     _player = resolution.player;

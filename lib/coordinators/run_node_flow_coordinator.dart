@@ -86,12 +86,7 @@ class RunNodeFlowCoordinator {
           session: session,
           page: PathEventPage(
             player: session.player,
-            showTitle: eventNode.showTitle,
-            eventTitle: eventNode.eventTitle,
-            description: eventNode.description,
-            outcomeText: eventNode.outcomeText,
-            iconEmoji: eventNode.iconEmoji,
-            accent: eventNode.accent,
+            node: eventNode,
           ),
           onCompleted: session.completeEventVisit,
         );
