@@ -8,6 +8,7 @@ const woodenStickItem = Item(
   iconEmoji: '\u{1FAB5}',
   slot: ItemSlot.weapon,
   rarity: RarityTier.gray,
+  baseCost: 2,
   statModifiers: {
     BattlerStat.attack: 1,
   },
@@ -21,6 +22,7 @@ const cyberWhipsItem = Item(
   iconEmoji: '\u{26D3}',
   slot: ItemSlot.weapon,
   rarity: RarityTier.gray,
+  baseCost: 2,
   statModifiers: {
     BattlerStat.attack: 1,
   },
@@ -34,6 +36,7 @@ const sunglassesItem = Item(
   iconEmoji: '\u{1F453}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.gray,
+  baseCost: 2,
   statModifiers: {
     BattlerStat.defense: 1,
   },
@@ -47,6 +50,7 @@ const shieldItem = Item(
   iconEmoji: '\u{1F6E1}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
+  baseCost: 4,
   statModifiers: {
     BattlerStat.defense: 2,
   },
@@ -60,6 +64,7 @@ const bulwarkAmuletItem = Item(
   iconEmoji: '\u{1F9FF}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.green,
+  baseCost: 4,
   statModifiers: {
     BattlerStat.health: 6,
     BattlerStat.defense: 1,
@@ -74,6 +79,7 @@ const crackedBatteryItem = Item(
   iconEmoji: '\u{1F50B}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.gray,
+  baseCost: 2,
   value: 1,
   upgradeValue: 1,
   effect: CrackedBatteryItemEffect(),
@@ -87,6 +93,7 @@ const impactGlovesItem = Item(
   iconEmoji: '\u{1F9E4}',
   slot: ItemSlot.weapon,
   rarity: RarityTier.gray,
+  baseCost: 2,
   value: 2,
   statModifiers: {
     BattlerStat.attack: 1,
@@ -102,6 +109,7 @@ const toxicCatalystItem = Item(
   iconEmoji: '\u2623',
   slot: ItemSlot.accessory,
   rarity: RarityTier.green,
+  baseCost: 4,
   effect: IntoxicarOnAttackItemEffect(),
 );
 
@@ -113,6 +121,7 @@ const emberCharmItem = Item(
   iconEmoji: '\u{1F525}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.green,
+  baseCost: 4,
   effect: QuemaduraOnAttackItemEffect(),
 );
 
@@ -124,6 +133,7 @@ const chemicalFilterItem = Item(
   iconEmoji: '\u{1F637}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.green,
+  baseCost: 4,
   value: 1,
   effect: ChemicalFilterItemEffect(),
 );
@@ -136,6 +146,7 @@ const billingModuleItem = Item(
   iconEmoji: '\u{1F4B3}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
+  baseCost: 4,
   value: 2,
   upgradeValue: 1,
   incomePerValueUnit: 1,
@@ -151,6 +162,7 @@ const ironSwordItem = Item(
   iconEmoji: '\u2694',
   slot: ItemSlot.weapon,
   rarity: RarityTier.green,
+  baseCost: 4,
   statModifiers: {
     BattlerStat.attack: 5,
   },
@@ -164,6 +176,7 @@ const guardShieldItem = Item(
   iconEmoji: '\u{1F6E1}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
+  baseCost: 4,
   statModifiers: {
     BattlerStat.defense: 2,
   },
@@ -177,6 +190,7 @@ const reactiveCasingItem = Item(
   iconEmoji: '\u{1F9F1}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.blue,
+  baseCost: 6,
   effect: QuemaduraOnHitReceivedItemEffect(),
 );
 
@@ -188,6 +202,7 @@ const platedJacketItem = Item(
   iconEmoji: '\u{1F9E5}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.blue,
+  baseCost: 6,
   statModifiers: {
     BattlerStat.defense: 4,
   },
@@ -201,6 +216,7 @@ const sunsteelBladeItem = Item(
   iconEmoji: '\u{1F5E1}',
   slot: ItemSlot.weapon,
   rarity: RarityTier.yellow,
+  baseCost: 10,
   statModifiers: {
     BattlerStat.attack: 8,
   },
@@ -214,6 +230,7 @@ const dawnCharmItem = Item(
   iconEmoji: '\u2600',
   slot: ItemSlot.accessory,
   rarity: RarityTier.yellow,
+  baseCost: 10,
   statModifiers: {
     BattlerStat.health: 16,
   },
@@ -227,6 +244,7 @@ const midnightCloakItem = Item(
   iconEmoji: '\u{1F576}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.purple,
+  baseCost: 8,
   statModifiers: {
     BattlerStat.defense: 5,
   },
@@ -240,6 +258,7 @@ const portableOvenItem = Item(
   iconEmoji: '\u{1F525}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.purple,
+  baseCost: 8,
   value: 1,
   effect: PortableOvenItemEffect(),
 );
@@ -253,6 +272,7 @@ const parasiticCapacitorItem = Item(
   iconEmoji: '\u26A1',
   slot: ItemSlot.accessory,
   rarity: RarityTier.purple,
+  baseCost: 8,
   value: 5,
   statModifiers: {
     BattlerStat.health: 5,
@@ -268,6 +288,7 @@ const voidInjectorItem = Item(
   iconEmoji: '\u{1F489}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.purple,
+  baseCost: 8,
   statModifiers: {
     BattlerStat.attack: 4,
     BattlerStat.health: 8,
@@ -283,6 +304,7 @@ const eclipseMantleItem = Item(
   iconEmoji: '\u{1F318}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.yellow,
+  baseCost: 10,
   value: 3,
   statModifiers: {
     BattlerStat.defense: 4,
@@ -299,11 +321,17 @@ const operativeBlackBoxItem = Item(
   iconEmoji: '\u{1F4E6}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.yellow,
+  baseCost: 10,
   effect: OperativeBlackBoxItemEffect(),
 );
 
 /// Pool maestro de objetos ofrecidos por tiendas y recompensas.
 const itemPresets = <Item>[
+  woodenStickItem,
+  cyberWhipsItem,
+  sunglassesItem,
+  shieldItem,
+  bulwarkAmuletItem,
   crackedBatteryItem,
   impactGlovesItem,
   toxicCatalystItem,

@@ -1,25 +1,18 @@
 import '../_imports.dart';
 
+const _shopInventoryTileExtent = 70.0;
+const _shopInventoryTileHeight = 84.0;
+
 class WeaponShopPage extends StatefulWidget {
   final Battler player;
-  final List<Item> catalog;
-  final double priceMultiplier;
-  final String showTitle;
-  final String shopTitle;
-  final String shopSubtitle;
-  final String iconEmoji;
-  final Color accent;
+  final ShopPathNode shop;
+  final RunRandomizer randomizer;
 
   const WeaponShopPage({
     super.key,
     required this.player,
-    this.catalog = itemPresets,
-    this.priceMultiplier = 1,
-    this.showTitle = 'Bienvenido a la tienda',
-    this.shopTitle = 'TIENDA DE ARMAS',
-    this.shopSubtitle = 'Adquiere y equipa piezas para la ruta.',
-    this.iconEmoji = '\u{2694}',
-    this.accent = EndpointPalette.shopAccent,
+    required this.shop,
+    required this.randomizer,
   });
 
   @override
@@ -34,8 +27,9 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
     super.initState();
     _controller = WeaponShopController(
       player: widget.player,
-      catalog: widget.catalog,
-      priceMultiplier: widget.priceMultiplier,
+      stockCriterion: widget.shop.stockCriterion,
+      randomizer: widget.randomizer,
+      priceMultiplier: widget.shop.priceMultiplier,
     );
   }
 
@@ -49,10 +43,10 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
     Navigator.of(context).pop(_controller.buildResult());
   }
 
-  Future<void> _openItemDetails(Item item) async {
+  Future<void> _openStockItemDetails(Item item) async {
     await showEndpointDialog<void>(
       context: context,
-      barrierLabel: 'Detalle de objeto',
+      barrierLabel: 'Detalle de objeto en venta',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
         return AnimatedBuilder(
@@ -60,16 +54,53 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
           builder: (context, child) {
             return EndpointItemDetailsDialog(
               item: item,
-              accent: widget.accent,
-              price: _controller.costFor(item),
-              statusText: _controller.detailStatusLabelFor(item),
-              actionLabel: _controller.actionLabelFor(item),
-              onPrimaryAction: _controller.isActionEnabled(item)
-                  ? () => _controller.handlePrimaryAction(item)
+              accent: item.rarity.accent,
+              price: _controller.purchasePriceFor(item),
+              priceLabel: 'COMPRA',
+              statusText: _controller.stockStatusLabelFor(item),
+              actionLabel: _controller.stockActionLabelFor(item),
+              onPrimaryAction: _controller.canBuy(item)
+                  ? () {
+                      _controller.buyItem(item);
+                      Navigator.of(context).pop();
+                    }
                   : null,
-              isActionEnabled: _controller.isActionEnabled(item),
-              enabledActionTooltip: 'Aplicar accion de tienda',
-              disabledActionTooltip: 'No tienes credito suficiente',
+              isActionEnabled: _controller.canBuy(item),
+              enabledActionTooltip: 'Comprar objeto',
+              disabledActionTooltip: 'No tienes dinero suficiente',
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openInventoryItemDetails(Item item) async {
+    await showEndpointDialog<void>(
+      context: context,
+      barrierLabel: 'Detalle de objeto del inventario',
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return EndpointItemDetailsDialog(
+              item: item,
+              accent: item.rarity.accent,
+              price: _controller.sellPriceFor(item),
+              priceLabel: 'VENTA',
+              statusText: _controller.inventoryStatusLabelFor(item),
+              actionLabel: _controller.inventoryActionLabelFor(item),
+              actionIcon: Icons.sell_outlined,
+              onPrimaryAction: _controller.canSell(item)
+                  ? () {
+                      _controller.sellItem(item);
+                      Navigator.of(context).pop();
+                    }
+                  : null,
+              isActionEnabled: _controller.canSell(item),
+              enabledActionTooltip: 'Vender objeto en esta tienda',
+              disabledActionTooltip: 'El objeto ya no esta disponible',
             );
           },
         );
@@ -79,9 +110,11 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
 
   @override
   Widget build(BuildContext context) {
+    final shop = widget.shop;
+
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _closeShop();
       },
@@ -89,22 +122,18 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
         animation: _controller,
         builder: (context, child) {
           final player = _controller.player;
-          final accent = widget.accent;
+          final stock = _controller.stock;
+          final accent = shop.accent;
           final foreground = EndpointPalette.soften(accent);
           final panelBackground = EndpointPalette.blend(
             EndpointPalette.panelBackgroundGold,
             accent,
             0.08,
           );
-          final tileBackground = EndpointPalette.blend(
-            EndpointPalette.panelBackgroundSoft,
-            accent,
-            0.12,
-          );
 
           return Scaffold(
             body: NodeSceneWrapper(
-              showTitle: widget.showTitle,
+              showTitle: shop.showTitle,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: EndpointGradients.shop(accent),
@@ -129,109 +158,230 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            EndpointText(
-                              widget.shopTitle,
-                              textAlign: TextAlign.center,
-                              style: textLargeBold.copyWith(
-                                color: foreground,
-                                letterSpacing: 2.2,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            EndpointText(
-                              widget.shopSubtitle,
-                              textAlign: TextAlign.center,
-                              style: textMedium.copyWith(
-                                color: EndpointPalette.softForeground
-                                    .withOpacity(0.82),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            EndpointPanel(
-                              accent: accent,
-                              backgroundColor: panelBackground,
-                              glowOpacity: 0.08,
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                            Expanded(
                               child: Column(
                                 children: [
-                                  Row(
-                                    children: [
-                                      EndpointEmojiSprite(
-                                        emoji: widget.iconEmoji,
-                                        accent: accent,
-                                        size: 74,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            EndpointText(
-                                              player.name,
-                                              style: textMediumBold.copyWith(
-                                                color: foreground,
-                                                letterSpacing: 1.4,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            _ShopEconomyStrip(
-                                              money: player.money,
-                                              income: player.income,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            EndpointText(
-                                              'ATK ${player.attack}   DEF ${player.defense}   HP ${player.health}/${player.maxHealth}',
-                                              style:
-                                                  textSmallNumericBold.copyWith(
-                                                color: EndpointPalette
-                                                    .softForeground
-                                                    .withOpacity(0.8),
-                                                letterSpacing: 0.9,
-                                              ),
-                                            ),
-                                          ],
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        SizedBox(
+                                          width: 118,
+                                          child: _ShopInfoColumn(
+                                            shop: shop,
+                                            accent: accent,
+                                            foreground: foreground,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: EndpointPanel(
+                                            accent: accent,
+                                            backgroundColor: panelBackground,
+                                            glowOpacity: 0.08,
+                                            padding: const EdgeInsets.fromLTRB(
+                                              16,
+                                              14,
+                                              16,
+                                              14,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _ShopSectionHeader(
+                                                  title: 'OBJETOS DISPONIBLES',
+                                                  caption:
+                                                      '${stock.length} EN TIENDA',
+                                                  accent: accent,
+                                                  foreground: foreground,
+                                                ),
+                                                const SizedBox(height: 10),
+                                                Expanded(
+                                                  child: stock.isEmpty
+                                                      ? Center(
+                                                          child: EndpointText(
+                                                            'No queda mercancia a la venta.',
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            maxLines: null,
+                                                            style: textSmallBold
+                                                                .copyWith(
+                                                              color: Colors
+                                                                  .white
+                                                                  .withAlpha(
+                                                                184,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : ListView.separated(
+                                                          itemCount:
+                                                              stock.length,
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            final item =
+                                                                stock[index];
+                                                            return _ShopOfferCard(
+                                                              item: item,
+                                                              accent: accent,
+                                                              foreground:
+                                                                  foreground,
+                                                              price: _controller
+                                                                  .purchasePriceFor(
+                                                                item,
+                                                              ),
+                                                              statusLabel:
+                                                                  _controller
+                                                                      .stockStatusLabelFor(
+                                                                item,
+                                                              ),
+                                                              onPressed: () =>
+                                                                  _openStockItemDetails(
+                                                                item,
+                                                              ),
+                                                            );
+                                                          },
+                                                          separatorBuilder:
+                                                              (context,
+                                                                      index) =>
+                                                                  const SizedBox(
+                                                            height: 10,
+                                                          ),
+                                                        ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 10),
-                                  EndpointText(
-                                    _equippedSummary(player),
-                                    textAlign: TextAlign.center,
-                                    style: textSmallBold.copyWith(
-                                      color: Colors.white.withOpacity(0.74),
-                                      letterSpacing: 0.9,
+                                  const SizedBox(height: 16),
+                                  Expanded(
+                                    child: EndpointPanel(
+                                      accent: accent,
+                                      backgroundColor: panelBackground,
+                                      glowOpacity: 0.06,
+                                      padding: const EdgeInsets.fromLTRB(
+                                        14,
+                                        12,
+                                        14,
+                                        14,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          LayoutBuilder(
+                                            builder: (context, constraints) {
+                                              final isCompact =
+                                                  constraints.maxWidth < 420;
+                                              final infoColumn = Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  _ShopSectionHeader(
+                                                    title: 'INVENTARIO',
+                                                    caption:
+                                                        '${player.inventoryItems.length} OBJETOS',
+                                                    accent: accent,
+                                                    foreground: foreground,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  EndpointText(
+                                                    'Objetos guardados por ${player.name}. Vende desde aqui cualquier pieza no equipada.',
+                                                    maxLines: null,
+                                                    style:
+                                                        textSmallBold.copyWith(
+                                                      color: EndpointPalette
+                                                          .softForeground
+                                                          .withAlpha(194),
+                                                      fontSize: 11,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+
+                                              if (isCompact) {
+                                                return Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    infoColumn,
+                                                    const SizedBox(height: 10),
+                                                    _ShopEconomyStrip(
+                                                      money: player.money,
+                                                      income: player.income,
+                                                    ),
+                                                  ],
+                                                );
+                                              }
+
+                                              return Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(child: infoColumn),
+                                                  const SizedBox(width: 12),
+                                                  _ShopEconomyStrip(
+                                                    money: player.money,
+                                                    income: player.income,
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Expanded(
+                                            child: player.inventoryItems.isEmpty
+                                                ? Center(
+                                                    child: EndpointText(
+                                                      'No llevas ningun objeto sin equipar.',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      maxLines: null,
+                                                      style: textSmallBold
+                                                          .copyWith(
+                                                        color: Colors.white
+                                                            .withAlpha(184),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : GridView.builder(
+                                                    itemCount: player
+                                                        .inventoryItems.length,
+                                                    gridDelegate:
+                                                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                                                      maxCrossAxisExtent:
+                                                          _shopInventoryTileExtent,
+                                                      crossAxisSpacing: 8,
+                                                      mainAxisSpacing: 8,
+                                                      mainAxisExtent:
+                                                          _shopInventoryTileHeight,
+                                                    ),
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      final item =
+                                                          player.inventoryItems[
+                                                              index];
+
+                                                      return EndpointInventoryItemTile(
+                                                        item: item,
+                                                        onPressed: () =>
+                                                            _openInventoryItemDetails(
+                                                          item,
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: GridView.builder(
-                                itemCount: _controller.catalog.length,
-                                gridDelegate:
-                                    const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 132,
-                                  mainAxisSpacing: 12,
-                                  crossAxisSpacing: 12,
-                                  mainAxisExtent: 148,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final item = _controller.catalog[index];
-                                  return _ShopItemTile(
-                                    onPressed: () => _openItemDetails(item),
-                                    item: item,
-                                    price: _controller.costFor(item),
-                                    statusLabel:
-                                        _controller.availabilityLabelFor(item),
-                                    accent: accent,
-                                    backgroundColor: tileBackground,
-                                    foreground: foreground,
-                                  );
-                                },
                               ),
                             ),
                           ],
@@ -247,91 +397,237 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
       ),
     );
   }
+}
 
-  String _equippedSummary(Battler player) {
-    if (player.equippedItems.isEmpty) {
-      return 'Equipo activo: sin piezas equipadas';
-    }
+class _ShopInfoColumn extends StatelessWidget {
+  final ShopPathNode shop;
+  final Color accent;
+  final Color foreground;
 
-    return 'Equipo activo: ${player.equippedItems.map((item) => item.name).join(' | ')}';
+  const _ShopInfoColumn({
+    required this.shop,
+    required this.accent,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EndpointEmojiSprite(
+            emoji: shop.iconEmoji,
+            accent: accent,
+            size: 74,
+          ),
+          const SizedBox(height: 10),
+          EndpointText(
+            shop.shopTitle,
+            maxLines: null,
+            style: textMediumBold.copyWith(
+              color: foreground,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          EndpointText(
+            shop.shopSubtitle,
+            maxLines: null,
+            style: textMedium.copyWith(
+              color: EndpointPalette.softForeground.withAlpha(209),
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-class _ShopItemTile extends StatelessWidget {
+class _ShopOfferCard extends StatelessWidget {
   final Item item;
   final int price;
   final String statusLabel;
   final Color accent;
-  final Color backgroundColor;
   final Color foreground;
   final VoidCallback onPressed;
 
-  const _ShopItemTile({
+  const _ShopOfferCard({
     required this.item,
     required this.price,
     required this.statusLabel,
     required this.accent,
-    required this.backgroundColor,
     required this.foreground,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return HoldTooltip(
-      message: item.description,
+    return SizedBox(
+      width: double.infinity,
+      height: 74,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           child: EndpointPanel(
             accent: accent,
-            backgroundColor: backgroundColor,
-            glowOpacity: 0.06,
-            borderRadius: 16,
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            backgroundColor: EndpointPalette.blend(
+              EndpointPalette.panelBackgroundSoft,
+              accent,
+              0.14,
+            ),
+            borderRadius: 14,
+            glowOpacity: 0.05,
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            child: Row(
               children: [
-                EndpointEmojiSprite(
-                  emoji: item.iconEmoji,
+                _ShopOfferLead(
                   accent: accent,
-                  size: 56,
+                  emoji: item.iconEmoji,
                 ),
-                const SizedBox(height: 8),
-                EndpointText(
-                  item.name,
-                  textAlign: TextAlign.center,
-                  style: textMediumBold.copyWith(
-                    color: foreground,
-                    letterSpacing: 1.1,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EndpointText(
+                        item.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: textMediumBold.copyWith(
+                          color: foreground,
+                          fontSize: 14,
+                          letterSpacing: 0.9,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      EndpointText(
+                        '${item.rarity.label} | ${item.slot?.label ?? 'Consumible'}',
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: item.rarity.accent,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      EndpointText(
+                        item.description,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: Colors.white.withAlpha(173),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                EndpointText(
-                  '${price}C',
-                  style: textSmallNumericBold.copyWith(
-                    fontSize: 10,
-                    color: accent,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                EndpointText(
-                  statusLabel,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    fontSize: 10,
-                    color: EndpointPalette.softForeground.withOpacity(0.72),
-                    letterSpacing: 0.9,
-                  ),
+                const SizedBox(width: 12),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    EndpointText(
+                      '${price}C',
+                      style: textSmallNumericBold.copyWith(
+                        color: accent,
+                        fontSize: 12,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    EndpointText(
+                      statusLabel,
+                      textAlign: TextAlign.right,
+                      style: textSmallBold.copyWith(
+                        color: Colors.white.withAlpha(179),
+                        fontSize: 10,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ShopOfferLead extends StatelessWidget {
+  final Color accent;
+  final String emoji;
+
+  const _ShopOfferLead({
+    required this.accent,
+    required this.emoji,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(56),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: accent.withAlpha(143),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: EndpointText(
+        emoji,
+        style: const TextStyle(
+          fontSize: 18,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class _ShopSectionHeader extends StatelessWidget {
+  final String title;
+  final String caption;
+  final Color accent;
+  final Color foreground;
+
+  const _ShopSectionHeader({
+    required this.title,
+    required this.caption,
+    required this.accent,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: EndpointText(
+            title,
+            style: textMediumBold.copyWith(
+              color: foreground,
+              letterSpacing: 1.6,
+            ),
+          ),
+        ),
+        EndpointText(
+          caption,
+          style: textSmallBold.copyWith(
+            color: accent,
+            fontSize: 10,
+            letterSpacing: 1.3,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -348,6 +644,7 @@ class _ShopEconomyStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
+      alignment: WrapAlignment.end,
       spacing: 8,
       runSpacing: 8,
       children: [
@@ -395,10 +692,10 @@ class _ShopBackdropPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = accent.withOpacity(0.12)
+      ..color = accent.withAlpha(31)
       ..strokeWidth = 1;
     final beamPaint = Paint()
-      ..color = accent.withOpacity(0.18)
+      ..color = accent.withAlpha(46)
       ..strokeWidth = 2;
 
     for (double y = 28; y <= size.height; y += 34) {

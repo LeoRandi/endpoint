@@ -59,6 +59,7 @@ class Item {
   final String iconEmoji;
   final ItemSlot? slot;
   final RarityTier rarity;
+  final int baseCost;
   final int value;
   final int upgradeValue;
   final int incomePerValueUnit;
@@ -75,6 +76,7 @@ class Item {
     this.iconEmoji = '\u{1F9F0}',
     this.slot,
     this.rarity = RarityTier.gray,
+    required this.baseCost,
     this.value = 0,
     this.upgradeValue = 0,
     this.incomePerValueUnit = 0,
@@ -93,8 +95,8 @@ class Item {
   /// Indica si el objeto tiene una logica activa mas alla de sus stats planos.
   bool get hasEffect => effect != null;
 
-  /// Devuelve el coste base de compra segun la rareza del objeto.
-  int get cost => rarity.shopPriceBase;
+  /// Devuelve el coste base propio del objeto para compra y reventa.
+  int get cost => baseCost;
 
   /// Calcula el income que aporta el objeto a partir de su valor actual.
   int get incomeModifier => value * incomePerValueUnit;
@@ -122,6 +124,7 @@ class Item {
     ItemSlot? slot,
     bool clearSlot = false,
     RarityTier? rarity,
+    int? baseCost,
     int? value,
     int? upgradeValue,
     int? incomePerValueUnit,
@@ -138,6 +141,7 @@ class Item {
       iconEmoji: iconEmoji ?? this.iconEmoji,
       slot: clearSlot ? null : slot ?? this.slot,
       rarity: rarity ?? this.rarity,
+      baseCost: baseCost ?? this.baseCost,
       value: value ?? this.value,
       upgradeValue: upgradeValue ?? this.upgradeValue,
       incomePerValueUnit: incomePerValueUnit ?? this.incomePerValueUnit,
@@ -160,6 +164,7 @@ class Item {
       iconEmoji: iconEmoji,
       slot: slot,
       rarity: rarity,
+      baseCost: baseCost,
       value: value,
       upgradeValue: upgradeValue,
       incomePerValueUnit: incomePerValueUnit,

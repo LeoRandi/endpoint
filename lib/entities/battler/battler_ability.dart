@@ -2,9 +2,6 @@ import '../_imports.dart';
 
 /// Enumera los ids estables usados para guardar y resolver presets de habilidades.
 enum BattlerAbilityId {
-  defend,
-  overclock,
-  purge,
   criticalScanner,
   weaknessHunter,
   ghostMesh,
@@ -382,6 +379,9 @@ class BattlerAbility {
   /// Indica si la habilidad puede activarse desde alguna pantalla.
   bool get canManuallyActivate => manualActivationContext != null;
 
+  /// Indica si la habilidad es pasiva y no requiere ninguna pantalla para activarse.
+  bool get isPassive => manualActivationContext == null;
+
   /// Indica si la habilidad sigue esperando a que termine su cooldown.
   bool get isOnCooldown => remainingCooldownTurns > 0;
 
@@ -405,6 +405,11 @@ class BattlerAbility {
   /// Comprueba si esta habilidad pertenece al contexto manual indicado.
   bool canToggleOn(BattlerAbilityActivationContext screenContext) {
     return manualActivationContext == screenContext;
+  }
+
+  /// Indica si esta habilidad debe mostrarse en la interfaz del contexto indicado.
+  bool appearsInContext(BattlerAbilityActivationContext screenContext) {
+    return isPassive || canToggleOn(screenContext);
   }
 
   /// Comprueba si puede activarse ahora mismo sin estar activa ni en cooldown.
@@ -518,12 +523,6 @@ class BattlerAbility {
   /// Devuelve el preset canonico asociado a un id de habilidad.
   static BattlerAbility presetForId(BattlerAbilityId id) {
     switch (id) {
-      case BattlerAbilityId.defend:
-        return defendAbility;
-      case BattlerAbilityId.overclock:
-        return overclockAbility;
-      case BattlerAbilityId.purge:
-        return purgeAbility;
       case BattlerAbilityId.criticalScanner:
         return criticalScannerAbility;
       case BattlerAbilityId.weaknessHunter:
@@ -539,33 +538,6 @@ class BattlerAbility {
     }
   }
 }
-
-/// Preset de la accion basica que permite pasar el turno sin efectos extra.
-const defendAbility = BattlerAbility(
-  id: BattlerAbilityId.defend,
-  name: 'Defender',
-  description: 'Accion basica. Consume el turno sin atacar.',
-  icon: Icons.shield_outlined,
-  isImplemented: true,
-);
-
-/// Preset reservado para una futura mejora temporal de ataque.
-const overclockAbility = BattlerAbility(
-  id: BattlerAbilityId.overclock,
-  name: 'Overclock',
-  description: 'TODO: aplicar una mejora temporal de ataque.',
-  icon: Icons.bolt_rounded,
-  isImplemented: false,
-);
-
-/// Preset reservado para una futura habilidad ofensiva especial.
-const purgeAbility = BattlerAbility(
-  id: BattlerAbilityId.purge,
-  name: 'Purge',
-  description: 'TODO: aplicar una habilidad ofensiva especial.',
-  icon: Icons.cleaning_services_outlined,
-  isImplemented: false,
-);
 
 /// Preset que prepara un siguiente ataque potenciado y luego entra en cooldown.
 const criticalScannerAbility = BattlerAbility(

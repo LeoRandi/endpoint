@@ -46,13 +46,8 @@ class RunNodeFlowCoordinator {
           session: session,
           page: WeaponShopPage(
             player: session.player,
-            catalog: shopNode.catalog,
-            priceMultiplier: shopNode.priceMultiplier,
-            showTitle: shopNode.showTitle,
-            shopTitle: shopNode.shopTitle,
-            shopSubtitle: shopNode.shopSubtitle,
-            iconEmoji: shopNode.iconEmoji,
-            accent: shopNode.accent,
+            shop: shopNode,
+            randomizer: session.randomizer,
           ),
           onCompleted: session.completeWeaponShopVisit,
         );

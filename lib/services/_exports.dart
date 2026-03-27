@@ -12,4 +12,5 @@ export 'run_randomizer.dart';
 export 'run_session_controller.dart';
 export 'run_state.dart';
 export 'weapon_shop_controller.dart';
+export 'weapon_shop_stock_service.dart';
 export 'weapon_shop_visit_result.dart';

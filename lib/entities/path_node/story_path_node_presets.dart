@@ -4,7 +4,7 @@ import '../_imports.dart';
 final velozArchetypeNode = ArchetypePathNode(
   label: 'Veloz',
   tooltip:
-      'Cyber Latigos + Gafas de Sol. Perfil agil con un poco mas de ataque base. Empieza con 4C y 3 income.',
+      'Cyber Latigos + Gafas de Sol. Perfil agil con un poco mas de ataque base. Empieza con 8C y 6 income.',
   iconEmoji: cyberWhipsItem.iconEmoji,
   playerIconEmoji: cyberWhipsItem.iconEmoji,
   accent: const Color(0xFF59B7FF),
@@ -12,8 +12,8 @@ final velozArchetypeNode = ArchetypePathNode(
   baseStatModifiers: const {
     BattlerStat.attack: 1,
   },
-  moneyModifier: 4,
-  incomeModifier: 3,
+  moneyModifier: 8,
+  incomeModifier: 6,
   startingItems: const [
     cyberWhipsItem,
     sunglassesItem,
@@ -27,7 +27,7 @@ final velozArchetypeNode = ArchetypePathNode(
 final inamovibleArchetypeNode = ArchetypePathNode(
   label: 'Inamovible',
   tooltip:
-      'Escudo + Amuleto de Bastion. Perfil resistente con mas defensa y aguante base. Empieza con 6C y 2 income.',
+      'Escudo + Amuleto de Bastion. Perfil resistente con mas defensa y aguante base. Empieza con 12C y 4 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
   accent: const Color(0xFF5AF78E),
@@ -36,8 +36,8 @@ final inamovibleArchetypeNode = ArchetypePathNode(
     BattlerStat.health: 4,
     BattlerStat.defense: 1,
   },
-  moneyModifier: 6,
-  incomeModifier: 2,
+  moneyModifier: 12,
+  incomeModifier: 4,
   startingItems: const [
     shieldItem,
     bulwarkAmuletItem,
@@ -48,7 +48,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
 final imparableArchetypeNode = ArchetypePathNode(
   label: 'Imparable',
   tooltip:
-      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base. Empieza con 4C y 2 income.',
+      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base. Empieza con 8C y 4 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
   accent: const Color(0xFFF3D35C),
@@ -56,8 +56,8 @@ final imparableArchetypeNode = ArchetypePathNode(
   baseStatModifiers: const {
     BattlerStat.attack: 2,
   },
-  moneyModifier: 4,
-  incomeModifier: 2,
+  moneyModifier: 8,
+  incomeModifier: 4,
   startingItems: const [
     ironSwordItem,
     emberCharmItem,
@@ -65,6 +65,41 @@ final imparableArchetypeNode = ArchetypePathNode(
   startingAbilities: const [
     criticalScannerAbility,
   ],
+);
+
+/// Criterio gris para tiendas de entrada con objetos baratos y comunes.
+const grayShopCriterion = ShopInventoryCriterion(
+  label: 'RAREZA GRIS',
+  description: 'Solo aparecen objetos grises de bajo valor.',
+  exactRarity: RarityTier.gray,
+);
+
+/// Criterio defensivo basado en piezas equipables en el slot de soporte.
+const armorShopCriterion = ShopInventoryCriterion(
+  label: 'ARMADURAS',
+  description: 'Solo aparecen piezas de soporte y blindaje.',
+  requiredSlot: ItemSlot.offHand,
+);
+
+/// Criterio de lujo reservado a reliquias amarillas.
+const luxuryShopCriterion = ShopInventoryCriterion(
+  label: 'RELIQUIAS DE LUJO',
+  description: 'Solo aparecen objetos de rareza amarilla.',
+  exactRarity: RarityTier.yellow,
+);
+
+/// Criterio ofensivo amplio para mercados centrados en armas.
+const weaponShopCriterion = ShopInventoryCriterion(
+  label: 'ARMAS',
+  description: 'Solo aparecen objetos equipables como arma.',
+  requiredSlot: ItemSlot.weapon,
+);
+
+/// Criterio defensivo amplio para objetos que aportan defensa directa.
+const defenseShopCriterion = ShopInventoryCriterion(
+  label: 'DEFENSA',
+  description: 'Solo aparecen objetos que otorgan defensa.',
+  requiredPositiveModifierStat: BattlerStat.defense,
 );
 
 /// Tienda gris de armas basicas para las primeras horas.
@@ -77,11 +112,9 @@ final scrapArsenalNode = ShopPathNode(
   badgeLabel: 'ARMAS',
   showTitle: 'Arsenal de Chatarra',
   shopTitle: 'ARSENAL DE CHATARRA',
-  shopSubtitle: 'Herramientas rapidas para sobrevivir a las primeras horas.',
-  catalog: const [
-    woodenStickItem,
-    ironSwordItem,
-  ],
+  shopSubtitle:
+      'Herramientas rapidas y mercancia de entrada para la primera hora.',
+  stockCriterion: grayShopCriterion,
 );
 
 /// Tienda verde de piezas defensivas para estabilizar la run.
@@ -95,11 +128,7 @@ final bulwarkWorkshopNode = ShopPathNode(
   showTitle: 'Taller Blindado',
   shopTitle: 'TALLER BLINDADO',
   shopSubtitle: 'Piezas defensivas montadas en el acto.',
-  catalog: const [
-    toxicCatalystItem,
-    guardShieldItem,
-    platedJacketItem,
-  ],
+  stockCriterion: armorShopCriterion,
 );
 
 /// Tienda amarilla de reliquias caras y poderosas.
@@ -113,12 +142,8 @@ final luxuryRelicsNode = ShopPathNode(
   showTitle: 'Reliquias de Lujo',
   shopTitle: 'RELIQUIAS DE LUJO',
   shopSubtitle:
-      'Mercancia premium. TODO: conectar precios altos cuando exista economia.',
-  catalog: const [
-    sunsteelBladeItem,
-    dawnCharmItem,
-    voidInjectorItem,
-  ],
+      'Mercancia premium. Solo para quienes pueden pagar el precio de la exclusividad.',
+  stockCriterion: luxuryShopCriterion,
 );
 
 /// Evento verde diurno preparado para futuras mejoras temporales.
@@ -149,11 +174,7 @@ final afterHoursArsenalNode = ShopPathNode(
   showTitle: 'Arsenal After Hours',
   shopTitle: 'ARSENAL AFTER HOURS',
   shopSubtitle: 'La noche trae filo, ruido y peores decisiones.',
-  catalog: const [
-    ironSwordItem,
-    sunsteelBladeItem,
-    voidInjectorItem,
-  ],
+  stockCriterion: weaponShopCriterion,
 );
 
 /// Tienda azul nocturna de blindajes y soportes defensivos.
@@ -167,12 +188,7 @@ final velvetArmoryNode = ShopPathNode(
   showTitle: 'Velvet Armory',
   shopTitle: 'VELVET ARMORY',
   shopSubtitle: 'Blindaje elegante para quien espera volver con vida.',
-  catalog: const [
-    platedJacketItem,
-    reactiveCasingItem,
-    midnightCloakItem,
-    dawnCharmItem,
-  ],
+  stockCriterion: defenseShopCriterion,
 );
 
 /// Evento azul nocturno reservado para efectos temporales mas agresivos.
@@ -189,7 +205,7 @@ final afterHoursTechnosurgeonNode = EventPathNode(
   description:
       'Las luces de neon ocultan a un technosurgeon que ofrece un injerto express.',
   outcomeText:
-      'Por ahora no altera tus estadisticas. TODO: aplicar efectos temporales nocturnos.',
+      'Por ahora no altera tus estadisticas.', // TODO: aplicar efectos temporales nocturnos.'
 );
 
 /// Evento azul condicionado por Deuda que intenta cobrar la cuota pendiente.

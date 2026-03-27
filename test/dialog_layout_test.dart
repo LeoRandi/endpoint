@@ -17,6 +17,7 @@ void main() {
         iconEmoji: '\u{1FAB5}',
         slot: ItemSlot.weapon,
         rarity: RarityTier.blue,
+        baseCost: 6,
         statModifiers: {
           BattlerStat.attack: 3,
         },

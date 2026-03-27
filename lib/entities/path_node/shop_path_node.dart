@@ -1,14 +1,53 @@
 import '../_imports.dart';
 
-/// Define una tienda de ruta con su catalogo y el multiplicador de precios aplicado.
+/// Describe las reglas que debe cumplir un objeto para aparecer en una tienda.
+class ShopInventoryCriterion {
+  final String label;
+  final String description;
+  final ItemSlot? requiredSlot;
+  final RarityTier? exactRarity;
+  final RarityTier? minimumRarity;
+  final BattlerStat? requiredPositiveModifierStat;
+
+  /// Crea un criterio declarativo que puede combinar slot, rareza y stat requerida.
+  const ShopInventoryCriterion({
+    required this.label,
+    required this.description,
+    this.requiredSlot,
+    this.exactRarity,
+    this.minimumRarity,
+    this.requiredPositiveModifierStat,
+  }) : assert(exactRarity == null || minimumRarity == null);
+
+  /// Comprueba si un objeto concreto cumple todas las reglas del criterio.
+  bool matches(Item item) {
+    if (requiredSlot != null && item.slot != requiredSlot) {
+      return false;
+    }
+    if (exactRarity != null && item.rarity != exactRarity) {
+      return false;
+    }
+    if (minimumRarity != null && item.rarity.index < minimumRarity!.index) {
+      return false;
+    }
+    if (requiredPositiveModifierStat != null &&
+        item.modifier(requiredPositiveModifierStat!) <= 0) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+/// Define una tienda de ruta con su criterio de stock y el multiplicador de precios aplicado.
 class ShopPathNode extends PathNode {
   final String showTitle;
   final String shopTitle;
   final String shopSubtitle;
-  final List<Item> catalog;
+  final ShopInventoryCriterion stockCriterion;
   final double priceMultiplier;
 
-  /// Crea una tienda concreta con su catalogo y multiplicador de precio.
+  /// Crea una tienda concreta con su criterio de stock y multiplicador de precio.
   ShopPathNode({
     required String label,
     required String tooltip,
@@ -19,10 +58,9 @@ class ShopPathNode extends PathNode {
     required this.showTitle,
     required this.shopTitle,
     required this.shopSubtitle,
+    required this.stockCriterion,
     this.priceMultiplier = 1,
-    required List<Item> catalog,
-  })  : catalog = List<Item>.unmodifiable(catalog),
-        super.base(
+  }) : super.base(
           type: PathNodeType.shop,
           label: label,
           tooltip: tooltip,
@@ -44,8 +82,8 @@ class ShopPathNode extends PathNode {
       showTitle: showTitle,
       shopTitle: shopTitle,
       shopSubtitle: shopSubtitle,
+      stockCriterion: stockCriterion,
       priceMultiplier: multiplier,
-      catalog: catalog,
     );
   }
 }

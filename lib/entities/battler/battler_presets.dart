@@ -31,7 +31,7 @@ const greenEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [defendAbility],
+  abilities: [],
   equippedItems: [guardShieldItem],
 );
 
@@ -49,7 +49,7 @@ const blueEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [defendAbility],
+  abilities: [],
   equippedItems: [
     ironSwordItem,
     platedJacketItem,
@@ -70,10 +70,7 @@ const purpleEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [
-    defendAbility,
-    overclockAbility,
-  ],
+  abilities: [],
   equippedItems: [
     ironSwordItem,
     voidInjectorItem,
@@ -94,11 +91,7 @@ const yellowEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [
-    defendAbility,
-    overclockAbility,
-    purgeAbility,
-  ],
+  abilities: [],
 );
 
 /// Alias del enemigo por defecto usado en previews y valores fallback.

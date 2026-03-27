@@ -45,7 +45,4 @@ enum RarityTier {
     required this.factor,
     required this.rollWeight,
   });
-
-  /// Devuelve el precio minimo de tienda asociado a esta rareza.
-  int get shopPriceBase => index + 1;
 }

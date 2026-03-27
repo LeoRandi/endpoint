@@ -1,74 +1,76 @@
 import '_imports.dart';
 
 class WeaponShopController extends ChangeNotifier {
-  final List<Item> catalog;
   final double priceMultiplier;
+  final List<Item> _stock;
   Battler _player;
 
   WeaponShopController({
     required Battler player,
-    required List<Item> catalog,
+    required ShopInventoryCriterion stockCriterion,
+    required RunRandomizer randomizer,
     this.priceMultiplier = 1,
+    WeaponShopStockService stockService = const WeaponShopStockService(),
   })  : _player = player.materializeOwnedItems(),
-        catalog = List<Item>.unmodifiable(catalog);
+        _stock = List<Item>.from(
+          stockService.buildInitialStock(
+            criterion: stockCriterion,
+            randomizer: randomizer,
+          ),
+        );
 
   Battler get player => _player;
+  List<Item> get stock => List<Item>.unmodifiable(_stock);
 
-  bool ownsItem(Item item) => _player.ownsItemOfType(item.id);
-  bool isItemEquipped(Item item) => _player.equippedItemOfType(item.id) != null;
-  bool isItemInInventory(Item item) =>
-      _player.inventoryItemOfType(item.id) != null;
-  int costFor(Item item) => max(1, (item.cost * priceMultiplier).round());
-  bool canAfford(Item item) => _player.canAfford(costFor(item));
+  bool canBuy(Item item) =>
+      _stock.contains(item) && _player.canAfford(purchasePriceFor(item));
 
-  String availabilityLabelFor(Item item) {
-    if (isItemEquipped(item)) return 'Equipado';
-    if (isItemInInventory(item)) return 'Inventario';
-    if (canAfford(item)) return 'Disponible';
-    return 'Sin fondos';
-  }
+  int purchasePriceFor(Item item) =>
+      max(1, (item.cost * priceMultiplier).ceil());
 
-  String detailStatusLabelFor(Item item) {
-    if (isItemEquipped(item)) return 'Estado actual: equipado';
-    if (isItemInInventory(item)) return 'Estado actual: en inventario';
-    if (canAfford(item)) return 'Credito suficiente para comprar';
-    final missingMoney = max(0, costFor(item) - _player.money);
+  int sellPriceFor(Item item) => max(1, (item.cost / 2).ceil());
+
+  String stockStatusLabelFor(Item item) {
+    if (!_stock.contains(item)) return 'Agotado';
+    if (canBuy(item)) return 'Disponible';
+    final missingMoney = max(0, purchasePriceFor(item) - _player.money);
     return 'Te faltan ${missingMoney}C';
   }
 
-  String actionLabelFor(Item item) {
-    if (!ownsItem(item)) return canAfford(item) ? 'Comprar' : 'Sin fondos';
-    if (!item.isEquippable) return 'Disponible';
-    if (isItemEquipped(item)) return 'Quitar';
-    if (isItemInInventory(item)) return 'Equipar';
-    return 'Comprar';
+  String stockActionLabelFor(Item item) {
+    if (!_stock.contains(item)) return 'Agotado';
+    if (canBuy(item)) return 'Comprar';
+    return 'Sin fondos';
   }
 
-  bool isActionEnabled(Item item) {
-    if (!ownsItem(item)) return canAfford(item);
-    if (!item.isEquippable && ownsItem(item)) return false;
-    return true;
+  String inventoryStatusLabelFor(Item item) {
+    if (!_player.inventoryItems.contains(item)) {
+      return 'El objeto ya no esta en tu inventario.';
+    }
+
+    return 'Valor de venta en esta tienda: ${sellPriceFor(item)}C.';
   }
 
-  void handlePrimaryAction(Item item) {
-    if (!isActionEnabled(item)) return;
+  String inventoryActionLabelFor(Item item) {
+    return 'Vender: ${sellPriceFor(item)}C';
+  }
 
-    if (!ownsItem(item)) {
-      _player = _player.spendMoney(costFor(item)).addItem(item);
-      notifyListeners();
-      return;
-    }
+  bool canSell(Item item) => _player.inventoryItems.contains(item);
 
-    if (item.isEquippable) {
-      final equippedItem = _player.equippedItemOfType(item.id);
-      final inventoryItem = _player.inventoryItemOfType(item.id);
-      _player = equippedItem != null
-          ? _player.unequipItem(equippedItem)
-          : inventoryItem == null
-              ? _player
-              : _player.equipItem(inventoryItem);
-      notifyListeners();
-    }
+  void buyItem(Item item) {
+    if (!canBuy(item)) return;
+
+    _player = _player.spendMoney(purchasePriceFor(item)).addItem(item);
+    _stock.remove(item);
+    notifyListeners();
+  }
+
+  void sellItem(Item item) {
+    if (!canSell(item)) return;
+
+    _player = _player.earnMoney(sellPriceFor(item)).removeItem(item);
+    _stock.add(item);
+    notifyListeners();
   }
 
   WeaponShopVisitResult buildResult() {

@@ -4,8 +4,10 @@ class EndpointItemDetailsDialog extends StatelessWidget {
   final Item item;
   final Color accent;
   final int price;
+  final String priceLabel;
   final String statusText;
   final String? actionLabel;
+  final IconData actionIcon;
   final VoidCallback? onPrimaryAction;
   final bool isActionEnabled;
   final String enabledActionTooltip;
@@ -16,8 +18,10 @@ class EndpointItemDetailsDialog extends StatelessWidget {
     required this.item,
     required this.accent,
     required this.price,
+    this.priceLabel = 'COSTE',
     required this.statusText,
     this.actionLabel,
+    this.actionIcon = Icons.shopping_bag_outlined,
     this.onPrimaryAction,
     this.isActionEnabled = false,
     this.enabledActionTooltip = '',
@@ -81,7 +85,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     EndpointText(
-                      'COSTE ${price}C',
+                      '$priceLabel ${price}C',
                       maxLines: null,
                       style: textMediumNumericBold.copyWith(
                         fontSize: 14,
@@ -130,13 +134,29 @@ class EndpointItemDetailsDialog extends StatelessWidget {
               letterSpacing: 1,
             ),
           ),
+          const SizedBox(height: 12),
+          EndpointPanel(
+            accent: accent,
+            backgroundColor: statusSurface,
+            glowOpacity: 0.03,
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            child: EndpointText(
+              statusText,
+              maxLines: null,
+              style: textSmallBold.copyWith(
+                fontSize: 10,
+                color: EndpointPalette.softForeground,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
           if (actionLabel != null) ...[
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
               child: EndpointActionButton(
                 label: actionLabel!,
-                icon: Icons.shopping_bag_outlined,
+                icon: actionIcon,
                 onPressed: isActionEnabled ? onPrimaryAction : null,
                 tooltip: isActionEnabled
                     ? enabledActionTooltip

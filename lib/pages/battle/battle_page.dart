@@ -137,6 +137,29 @@ class _BattlePageState extends State<BattlePage> {
     _controller.handleAttack();
   }
 
+  /// Devuelve solo las habilidades que tienen sentido dentro de la interfaz de combate.
+  List<BattlerAbility> _battleVisibleAbilities(Battler battler) {
+    return battler.abilities
+        .where(
+          (ability) =>
+              ability.appearsInContext(BattlerAbilityActivationContext.battle),
+        )
+        .toList(growable: false);
+  }
+
+  /// Indica si una habilidad puede activarse ahora mismo desde una pulsacion mantenida.
+  bool _canQuickActivateAbility(BattlerAbility ability) {
+    return !ability.isActive &&
+        _isAbilityActionEnabled(ability, canControlOwner: true);
+  }
+
+  /// Activa una habilidad manual de combate sin abrir antes su dialogo de detalle.
+  void _handleQuickActivateAbility(BattlerAbility ability) {
+    if (!_canQuickActivateAbility(ability)) return;
+
+    _controller.togglePlayerAbility(ability);
+  }
+
   Future<void> _handleOpenPendingRewards() async {
     final exitResult = _pendingVictoryExitResult;
     if (exitResult == null || _isPresentingVictoryRewards) return;
@@ -385,6 +408,9 @@ class _BattlePageState extends State<BattlePage> {
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
                                   enemy: _controller.enemy,
+                                  visibleAbilities: _battleVisibleAbilities(
+                                    _controller.enemy,
+                                  ),
                                   onOpenEquippedItemDetails: (item) =>
                                       _handleOpenEquippedItemDetails(
                                     _controller.enemy,
@@ -414,9 +440,16 @@ class _BattlePageState extends State<BattlePage> {
                               child: SizedBox.expand(
                                 child: _PlayerBattleHud(
                                   player: _controller.player,
+                                  visibleAbilities: _battleVisibleAbilities(
+                                    _controller.player,
+                                  ),
                                   isEnabled: _controller.canUseActions,
                                   onAttack: _handlePlayerAttack,
                                   onOpenItems: _handleOpenItems,
+                                  onQuickActivateAbility:
+                                      _handleQuickActivateAbility,
+                                  canQuickActivateAbility:
+                                      _canQuickActivateAbility,
                                   onOpenEquippedItemDetails: (item) =>
                                       _handleOpenEquippedItemDetails(
                                     _controller.player,
@@ -670,17 +703,23 @@ class _ActionPanel extends StatelessWidget {
 
 class _PlayerBattleHud extends StatelessWidget {
   final Battler player;
+  final List<BattlerAbility> visibleAbilities;
   final bool isEnabled;
   final VoidCallback onAttack;
   final Future<void> Function() onOpenItems;
+  final ValueChanged<BattlerAbility> onQuickActivateAbility;
+  final bool Function(BattlerAbility ability) canQuickActivateAbility;
   final Future<void> Function(Item item) onOpenEquippedItemDetails;
   final Future<void> Function(BattlerAbility ability) onOpenAbilityDetails;
 
   const _PlayerBattleHud({
     required this.player,
+    required this.visibleAbilities,
     required this.isEnabled,
     required this.onAttack,
     required this.onOpenItems,
+    required this.onQuickActivateAbility,
+    required this.canQuickActivateAbility,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
   });
@@ -693,10 +732,14 @@ class _PlayerBattleHud extends StatelessWidget {
         const Spacer(),
         _BattleLoadoutStrip(
           battler: player,
+          abilities: visibleAbilities,
           accent: EndpointPalette.primaryAccent,
           mirrorHorizontally: false,
           onItemPressed: onOpenEquippedItemDetails,
           onAbilityPressed: onOpenAbilityDetails,
+          onAbilityHoldCompleted: onQuickActivateAbility,
+          canHoldActivateAbility: canQuickActivateAbility,
+          enableAbilityTooltipLongPress: false,
         ),
         const SizedBox(height: 8),
         _BattleStatusBar(
@@ -730,11 +773,13 @@ class _PlayerBattleHud extends StatelessWidget {
 
 class _EnemyBattleHud extends StatelessWidget {
   final Battler enemy;
+  final List<BattlerAbility> visibleAbilities;
   final Future<void> Function(Item item) onOpenEquippedItemDetails;
   final Future<void> Function(BattlerAbility ability) onOpenAbilityDetails;
 
   const _EnemyBattleHud({
     required this.enemy,
+    required this.visibleAbilities,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
   });
@@ -765,6 +810,7 @@ class _EnemyBattleHud extends StatelessWidget {
         const SizedBox(height: 8),
         _BattleLoadoutStrip(
           battler: enemy,
+          abilities: visibleAbilities,
           accent: EndpointPalette.dangerAccent,
           mirrorHorizontally: true,
           onItemPressed: onOpenEquippedItemDetails,
@@ -880,17 +926,25 @@ class _BattleStatusBar extends StatelessWidget {
 
 class _BattleLoadoutStrip extends StatelessWidget {
   final Battler battler;
+  final List<BattlerAbility> abilities;
   final Color accent;
   final bool mirrorHorizontally;
   final ValueChanged<Item>? onItemPressed;
   final ValueChanged<BattlerAbility>? onAbilityPressed;
+  final ValueChanged<BattlerAbility>? onAbilityHoldCompleted;
+  final bool Function(BattlerAbility ability)? canHoldActivateAbility;
+  final bool enableAbilityTooltipLongPress;
 
   const _BattleLoadoutStrip({
     required this.battler,
+    required this.abilities,
     required this.accent,
     required this.mirrorHorizontally,
     this.onItemPressed,
     this.onAbilityPressed,
+    this.onAbilityHoldCompleted,
+    this.canHoldActivateAbility,
+    this.enableAbilityTooltipLongPress = true,
   });
 
   @override
@@ -905,9 +959,12 @@ class _BattleLoadoutStrip extends StatelessWidget {
       onItemPressed: onItemPressed,
     );
     final abilityStrip = EndpointAbilitySlotsStrip(
-      abilities: battler.abilities,
+      abilities: abilities,
       accent: accent,
       onAbilityPressed: onAbilityPressed,
+      onAbilityHoldCompleted: onAbilityHoldCompleted,
+      canHoldActivateAbility: canHoldActivateAbility,
+      enableTooltipLongPress: enableAbilityTooltipLongPress,
     );
     final children = mirrorHorizontally
         ? <Widget>[

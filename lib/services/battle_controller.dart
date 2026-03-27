@@ -113,33 +113,6 @@ class BattleController extends ChangeNotifier {
     }
   }
 
-  void handleAbility(BattlerAbility ability) {
-    if (!canUseActions) return;
-
-    switch (ability.id) {
-      case BattlerAbilityId.defend:
-        if (_completeTurn(BattleTurnState.player)) {
-          return;
-        }
-
-        _beginTurn(BattleTurnState.enemy);
-        if (_turn == BattleTurnState.enemy) {
-          _scheduleEnemyTurn();
-        }
-        return;
-      case BattlerAbilityId.overclock:
-      case BattlerAbilityId.purge:
-      case BattlerAbilityId.criticalScanner:
-      case BattlerAbilityId.weaknessHunter:
-      case BattlerAbilityId.ghostMesh:
-      case BattlerAbilityId.cruelCatalysis:
-      case BattlerAbilityId.venousOverload:
-      case BattlerAbilityId.hardReset:
-        // TODO: Implement additional battle ability effects once they are designed.
-        return;
-    }
-  }
-
   void handleRunAway() {
     if (isCombatFinished) return;
 
