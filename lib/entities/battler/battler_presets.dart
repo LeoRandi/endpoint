@@ -118,4 +118,14 @@ const defaultPlayerBattler = Battler(
     venousOverloadAbility,
     hardResetAbility,
   ],
+  inventoryItems: [
+    crackedBatteryItem,
+    impactGlovesItem,
+    chemicalFilterItem,
+    billingModuleItem,
+    portableOvenItem,
+    parasiticCapacitorItem,
+    eclipseMantleItem,
+    operativeBlackBoxItem,
+  ],
 );

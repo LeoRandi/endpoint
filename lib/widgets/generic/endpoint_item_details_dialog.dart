@@ -27,7 +27,6 @@ class EndpointItemDetailsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = EndpointPalette.soften(accent);
-    final screenSize = MediaQuery.sizeOf(context);
     final effectSurface =
         EndpointPalette.blend(EndpointPalette.panelBackground, accent, 0.12);
     final statusSurface = EndpointPalette.blend(
@@ -36,179 +35,125 @@ class EndpointItemDetailsDialog extends StatelessWidget {
       0.16,
     );
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: min(480, screenSize.width - 48),
-                maxHeight: screenSize.height * 0.82,
-              ),
-              child: EndpointPanel(
+    return EndpointDetailsDialogScaffold(
+      accent: accent,
+      backgroundColor: EndpointPalette.panelBackgroundGold,
+      foregroundColor: foreground,
+      closeBackgroundColor: EndpointPalette.blend(
+        EndpointPalette.panelBackgroundGold,
+        accent,
+        0.08,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EndpointEmojiSprite(
+                emoji: item.iconEmoji,
                 accent: accent,
-                backgroundColor: EndpointPalette.panelBackgroundGold,
-                borderRadius: 18,
-                glowOpacity: 0.12,
-                blurRadius: 26,
-                padding: EdgeInsets.zero,
-                child: Scrollbar(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            EndpointEmojiSprite(
-                              emoji: item.iconEmoji,
-                              accent: accent,
-                              size: 72,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  EndpointText(
-                                    item.name,
-                                    maxLines: null,
-                                    style: textLargeBold.copyWith(
-                                      color: foreground,
-                                      letterSpacing: 1.4,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  EndpointText(
-                                    '${item.rarity.label}  |  ${item.slot?.label ?? 'Consumible'}',
-                                    maxLines: null,
-                                    style: textSmallBold.copyWith(
-                                      fontSize: 10,
-                                      color: accent,
-                                      letterSpacing: 1.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  EndpointText(
-                                    'COSTE ${price}C',
-                                    maxLines: null,
-                                    style: textMediumNumericBold.copyWith(
-                                      fontSize: 14,
-                                      color: foreground,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        EndpointText(
-                          item.description,
-                          maxLines: null,
-                          style: textMedium.copyWith(
-                            fontSize: 14,
-                            color: EndpointPalette.softForeground
-                                .withOpacity(0.84),
-                          ),
-                        ),
-                        if (item.effect != null) ...[
-                          const SizedBox(height: 12),
-                          EndpointPanel(
-                            accent: accent,
-                            backgroundColor: effectSurface,
-                            glowOpacity: 0.03,
-                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                            child: EndpointText(
-                              item.effect!.descriptionFor(item),
-                              maxLines: null,
-                              style: textSmallBold.copyWith(
-                                fontSize: 10,
-                                color: EndpointPalette.softForeground,
-                                letterSpacing: 0.9,
-                              ),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        EndpointText(
-                          _buildModifiersText(item),
-                          maxLines: null,
-                          style: textSmallNumericBold.copyWith(
-                            fontSize: 10,
-                            color: accent,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        EndpointPanel(
-                          accent: accent,
-                          backgroundColor: statusSurface,
-                          glowOpacity: 0.03,
-                          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                          child: EndpointText(
-                            statusText,
-                            maxLines: null,
-                            style: textSmallBold.copyWith(
-                              fontSize: 10,
-                              color: EndpointPalette.softForeground
-                                  .withOpacity(0.76),
-                              letterSpacing: 0.9,
-                            ),
-                          ),
-                        ),
-                        if (actionLabel != null) ...[
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: EndpointActionButton(
-                              label: actionLabel!,
-                              icon: Icons.shopping_bag_outlined,
-                              onPressed:
-                                  isActionEnabled ? onPrimaryAction : null,
-                              tooltip: isActionEnabled
-                                  ? enabledActionTooltip
-                                  : disabledActionTooltip,
-                              accent: accent,
-                              backgroundColor: statusSurface,
-                              foregroundColor: foreground,
-                              borderWidth: 1.3,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              textStyle:
-                                  textMediumBold.copyWith(letterSpacing: 1.2),
-                            ),
-                          ),
-                        ],
-                      ],
+                size: 72,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EndpointText(
+                      item.name,
+                      maxLines: null,
+                      style: textLargeBold.copyWith(
+                        color: foreground,
+                        letterSpacing: 1.4,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    EndpointText(
+                      '${item.rarity.label}  |  ${item.slot?.label ?? 'Consumible'}',
+                      maxLines: null,
+                      style: textSmallBold.copyWith(
+                        fontSize: 10,
+                        color: accent,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    EndpointText(
+                      'COSTE ${price}C',
+                      maxLines: null,
+                      style: textMediumNumericBold.copyWith(
+                        fontSize: 14,
+                        color: foreground,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          EndpointText(
+            item.description,
+            maxLines: null,
+            style: textMedium.copyWith(
+              fontSize: 14,
+              color: EndpointPalette.softForeground.withOpacity(0.84),
             ),
-            Positioned(
-              top: -18,
-              right: -10,
-              child: EndpointSceneCloseButton(
-                onPressed: () => Navigator.of(context).pop(),
-                tooltip: 'Cerrar detalle',
-                accent: accent,
-                foregroundColor: foreground,
-                backgroundColor: EndpointPalette.blend(
-                  EndpointPalette.panelBackgroundGold,
-                  accent,
-                  0.08,
+          ),
+          if (item.effect != null) ...[
+            const SizedBox(height: 12),
+            EndpointPanel(
+              accent: accent,
+              backgroundColor: effectSurface,
+              glowOpacity: 0.03,
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              child: EndpointText(
+                item.effect!.descriptionFor(item),
+                maxLines: null,
+                style: textSmallBold.copyWith(
+                  fontSize: 10,
+                  color: EndpointPalette.softForeground,
+                  letterSpacing: 0.9,
                 ),
               ),
             ),
           ],
-        ),
+          const SizedBox(height: 12),
+          EndpointText(
+            _buildModifiersText(item),
+            maxLines: null,
+            style: textSmallNumericBold.copyWith(
+              fontSize: 10,
+              color: accent,
+              letterSpacing: 1,
+            ),
+          ),
+          if (actionLabel != null) ...[
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: EndpointActionButton(
+                label: actionLabel!,
+                icon: Icons.shopping_bag_outlined,
+                onPressed: isActionEnabled ? onPrimaryAction : null,
+                tooltip: isActionEnabled
+                    ? enabledActionTooltip
+                    : disabledActionTooltip,
+                accent: accent,
+                backgroundColor: statusSurface,
+                foregroundColor: foreground,
+                borderWidth: 1.3,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

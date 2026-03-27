@@ -116,123 +116,46 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final availableHeight = MediaQuery.of(context).size.height;
-    final overlayHeight = max(
-      220.0,
-      min(widget.maxHeight, availableHeight - widget.bottomInset - 40),
-    );
     final abilities = _player.abilities;
 
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 24, 24, widget.bottomInset),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: widget.maxWidth,
-              maxHeight: overlayHeight,
-            ),
-            child: EndpointPanel(
-              accent: widget.accent,
-              backgroundColor: EndpointPalette.panelBackgroundOpaque,
-              borderRadius: 18,
-              glowOpacity: 0.12,
-              blurRadius: 22,
-              spreadRadius: 2,
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            EndpointText(
-                              widget.title,
-                              style: textTitleMediumBold.copyWith(
-                                color: EndpointPalette.softForeground,
-                                letterSpacing: 1.8,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            EndpointText(
-                              widget.subtitle,
-                              style: textSmallBold.copyWith(
-                                color: Colors.white.withOpacity(0.72),
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      EndpointSceneCloseButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        tooltip: widget.closeTooltip,
-                        accent: widget.accent,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      EndpointText(
-                        'HABILIDADES',
-                        style: textSmallBold.copyWith(
-                          color: widget.accent,
-                          letterSpacing: 1.4,
-                        ),
-                      ),
-                      const Spacer(),
-                      EndpointText(
-                        '${abilities.length}',
-                        style: textSmallBold.copyWith(
-                          color: Colors.white.withOpacity(0.76),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Expanded(
-                    child: abilities.isEmpty
-                        ? Center(
-                            child: EndpointText(
-                              widget.emptyText,
-                              textAlign: TextAlign.center,
-                              style: textSmallBold.copyWith(
-                                color: Colors.white.withOpacity(0.72),
-                              ),
-                            ),
-                          )
-                        : GridView.builder(
-                            itemCount: abilities.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 92,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              mainAxisExtent: 82,
-                            ),
-                            itemBuilder: (context, index) {
-                              final ability = abilities[index];
-
-                              return _AbilityOverlayTile(
-                                ability: ability,
-                                accent: widget.accent,
-                                onPressed: () => _openAbilityDetails(ability),
-                              );
-                            },
-                          ),
-                  ),
-                ],
+    return EndpointOverlayScaffold(
+      title: widget.title,
+      subtitle: widget.subtitle,
+      sectionLabel: 'HABILIDADES',
+      sectionValue: '${abilities.length}',
+      closeTooltip: widget.closeTooltip,
+      accent: widget.accent,
+      bottomInset: widget.bottomInset,
+      maxWidth: widget.maxWidth,
+      maxHeight: widget.maxHeight,
+      child: abilities.isEmpty
+          ? Center(
+              child: EndpointText(
+                widget.emptyText,
+                textAlign: TextAlign.center,
+                style: textSmallBold.copyWith(
+                  color: Colors.white.withOpacity(0.72),
+                ),
               ),
+            )
+          : GridView.builder(
+              itemCount: abilities.length,
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 92,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                mainAxisExtent: 82,
+              ),
+              itemBuilder: (context, index) {
+                final ability = abilities[index];
+
+                return _AbilityOverlayTile(
+                  ability: ability,
+                  accent: widget.accent,
+                  onPressed: () => _openAbilityDetails(ability),
+                );
+              },
             ),
-          ),
-        ),
-      ),
     );
   }
 }

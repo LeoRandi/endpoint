@@ -1,6 +1,8 @@
 export 'battle_controller.dart';
 export 'battle_flow_result.dart';
+export 'battle_reward_service.dart';
 export 'battle_resolver.dart';
+export 'battle_turn_engine.dart';
 export 'camp_site_service.dart';
 export 'path_node_service.dart';
 export 'path_event_visit_result.dart';

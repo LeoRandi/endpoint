@@ -37,12 +37,11 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     _isMoneyCollected = widget.moneyReward <= 0;
   }
 
-  Future<bool> _handleWillPop() async {
+  Future<void> _handleBackNavigation() async {
     final shouldClose = await _shouldClose();
-    if (!shouldClose || !mounted) return false;
+    if (!shouldClose || !mounted) return;
 
     Navigator.of(context).pop(_player);
-    return false;
   }
 
   Future<void> _handleClosePressed() async {
@@ -124,8 +123,8 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                               EndpointPalette.dangerAccent,
                               0.42,
                             ),
-                            foregroundColor:
-                                EndpointPalette.soften(EndpointPalette.dangerAccent),
+                            foregroundColor: EndpointPalette.soften(
+                                EndpointPalette.dangerAccent),
                             textStyle: textMediumBold.copyWith(
                               fontSize: 15,
                               letterSpacing: 0.9,
@@ -181,8 +180,12 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   Widget build(BuildContext context) {
     const accent = EndpointPalette.rewardAccent;
 
-    return WillPopScope(
-      onWillPop: _handleWillPop,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        _handleBackNavigation();
+      },
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
@@ -216,8 +219,8 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                             'Recoge las recompensas del combate contra ${widget.enemyName}.',
                             maxLines: null,
                             style: textMedium.copyWith(
-                              color:
-                                  EndpointPalette.softForeground.withOpacity(0.76),
+                              color: EndpointPalette.softForeground
+                                  .withOpacity(0.76),
                               fontSize: 14,
                             ),
                           ),
@@ -336,10 +339,9 @@ class _BattleLootRewardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foregroundColor =
-        isCollected
-            ? Colors.white.withOpacity(0.5)
-            : EndpointPalette.softForeground;
+    final foregroundColor = isCollected
+        ? Colors.white.withOpacity(0.5)
+        : EndpointPalette.softForeground;
     final statusColor = isCollected ? Colors.white.withOpacity(0.54) : accent;
 
     return SizedBox(
@@ -352,10 +354,9 @@ class _BattleLootRewardCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           child: EndpointPanel(
             accent: accent,
-            backgroundColor:
-                isCollected
-                    ? EndpointPalette.panelBackgroundMuted
-                    : EndpointPalette.panelBackgroundSoft,
+            backgroundColor: isCollected
+                ? EndpointPalette.panelBackgroundMuted
+                : EndpointPalette.panelBackgroundSoft,
             borderRadius: 14,
             glowOpacity: isCollected ? 0.01 : 0.05,
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),

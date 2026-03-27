@@ -1,4 +1,6 @@
-import '_imports.dart';
+import 'app/_exports.dart';
+import 'pages/main_menu/main_menu_page.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const EndpointApp());

@@ -19,7 +19,6 @@ class BattleItemsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EndpointInventoryOverlay(
-      player: player,
       title: 'Objetos',
       subtitle: subtitle,
       emptyText: emptyText,

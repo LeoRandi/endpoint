@@ -228,7 +228,8 @@ const portableOvenItem = Item(
 const parasiticCapacitorItem = Item(
   id: ItemId.parasiticCapacitor,
   name: 'Capacitador Parasitario',
-  description: '+5 HP y drenaje energetico cada vez que una habilidad entra en cooldown.',
+  description:
+      '+5 HP y drenaje energetico cada vez que una habilidad entra en cooldown.',
   iconEmoji: '\u26A1',
   slot: ItemSlot.accessory,
   rarity: RarityTier.purple,
@@ -255,7 +256,8 @@ const voidInjectorItem = Item(
 const eclipseMantleItem = Item(
   id: ItemId.eclipseMantle,
   name: 'Manto de Eclipse',
-  description: '+4 DEF y un pulso de potencia en la primera activacion manual del combate.',
+  description:
+      '+4 DEF y un pulso de potencia en la primera activacion manual del combate.',
   iconEmoji: '\u{1F318}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.yellow,
@@ -269,7 +271,8 @@ const eclipseMantleItem = Item(
 const operativeBlackBoxItem = Item(
   id: ItemId.operativeBlackBox,
   name: 'Caja Negra del Operativo',
-  description: 'Failsafe de emergencia que rehusa dejar caer la unidad a la primera.',
+  description:
+      'Failsafe de emergencia que rehusa dejar caer la unidad a la primera.',
   iconEmoji: '\u{1F4E6}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.yellow,

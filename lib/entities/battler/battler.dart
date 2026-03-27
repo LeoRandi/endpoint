@@ -196,7 +196,7 @@ class Battler {
     var updatedOwner = this;
     BattlerStatus? instancedStatus = status.copyWith();
 
-    if (applyEquipmentModifiers && source != null && instancedStatus != null) {
+    if (applyEquipmentModifiers && source != null) {
       instancedStatus = source.applyEquippedItemOutgoingStatusModifiers(
         target: updatedOwner,
         status: instancedStatus,
@@ -231,9 +231,10 @@ class Battler {
       return updatedOwner._removeExpiredStatuses();
     }
 
+    final resolvedInstancedStatus = instancedStatus;
     final updatedStatuses = List<BattlerStatus>.from(updatedOwner.statuses);
-    if (instancedStatus.canStack) {
-      updatedStatuses.add(instancedStatus);
+    if (resolvedInstancedStatus.canStack) {
+      updatedStatuses.add(resolvedInstancedStatus);
       return updatedOwner
           .copyWith(
             statuses: List<BattlerStatus>.unmodifiable(updatedStatuses),
@@ -243,13 +244,14 @@ class Battler {
 
     final existingIndex = updatedStatuses.indexWhere(
       (activeStatus) =>
-          activeStatus.id == instancedStatus.id && !activeStatus.canStack,
+          activeStatus.id == resolvedInstancedStatus.id &&
+          !activeStatus.canStack,
     );
 
     if (existingIndex >= 0) {
-      updatedStatuses[existingIndex] = instancedStatus;
+      updatedStatuses[existingIndex] = resolvedInstancedStatus;
     } else {
-      updatedStatuses.add(instancedStatus);
+      updatedStatuses.add(resolvedInstancedStatus);
     }
 
     return updatedOwner
@@ -359,7 +361,8 @@ class Battler {
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
 
-      final itemResolution = updatedOwner.applyEquippedItemAbilityResolvedEffects(
+      final itemResolution =
+          updatedOwner.applyEquippedItemAbilityResolvedEffects(
         opponent: updatedOpponent,
         previousAbility: previousAbility,
         context: ItemAbilityResolutionContext.turnStart,
@@ -421,7 +424,8 @@ class Battler {
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
 
-      final itemResolution = updatedOwner.applyEquippedItemAbilityResolvedEffects(
+      final itemResolution =
+          updatedOwner.applyEquippedItemAbilityResolvedEffects(
         opponent: updatedOpponent,
         previousAbility: previousAbility,
         context: ItemAbilityResolutionContext.turnEnd,
@@ -672,7 +676,8 @@ class Battler {
       updatedOwner = resolution.owner;
       updatedTarget = resolution.opponent;
 
-      final itemResolution = updatedOwner.applyEquippedItemAbilityResolvedEffects(
+      final itemResolution =
+          updatedOwner.applyEquippedItemAbilityResolvedEffects(
         opponent: updatedTarget,
         previousAbility: previousAbility,
         context: ItemAbilityResolutionContext.attackResolved,
@@ -761,7 +766,8 @@ class Battler {
       updatedOwner = resolution.owner;
       updatedSource = resolution.opponent;
 
-      final itemResolution = updatedOwner.applyEquippedItemAbilityResolvedEffects(
+      final itemResolution =
+          updatedOwner.applyEquippedItemAbilityResolvedEffects(
         opponent: updatedSource,
         previousAbility: previousAbility,
         context: ItemAbilityResolutionContext.receiveDamageResolved,
@@ -1085,7 +1091,8 @@ class Battler {
       );
     }
 
-    final preparation = activatedOwner.applyEquippedItemManualAbilityPreparation(
+    final preparation =
+        activatedOwner.applyEquippedItemManualAbilityPreparation(
       opponent: updatedOpponent,
       ability: activatedAbility,
       screenContext: screenContext,
@@ -1096,7 +1103,8 @@ class Battler {
 
     final effect = activatedAbility.effect;
     if (effect == null) {
-      final itemResolution = activatedOwner.applyEquippedItemAbilityResolvedEffects(
+      final itemResolution =
+          activatedOwner.applyEquippedItemAbilityResolvedEffects(
         opponent: updatedOpponent,
         previousAbility: currentAbility,
         context: ItemAbilityResolutionContext.manualActivation,
@@ -1113,7 +1121,8 @@ class Battler {
       ability: activatedAbility,
       screenContext: screenContext,
     );
-    final itemResolution = abilityResolution.owner.applyEquippedItemAbilityResolvedEffects(
+    final itemResolution =
+        abilityResolution.owner.applyEquippedItemAbilityResolvedEffects(
       opponent: abilityResolution.opponent,
       previousAbility: currentAbility,
       context: ItemAbilityResolutionContext.manualActivation,

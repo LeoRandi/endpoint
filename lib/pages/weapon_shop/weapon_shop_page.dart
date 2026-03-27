@@ -77,15 +77,14 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
     );
   }
 
-  Future<bool> _handleWillPop() async {
-    _closeShop();
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _handleWillPop,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        _closeShop();
+      },
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
@@ -250,8 +249,9 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
   }
 
   String _equippedSummary(Battler player) {
-    if (player.equippedItems.isEmpty)
+    if (player.equippedItems.isEmpty) {
       return 'Equipo activo: sin piezas equipadas';
+    }
 
     return 'Equipo activo: ${player.equippedItems.map((item) => item.name).join(' | ')}';
   }

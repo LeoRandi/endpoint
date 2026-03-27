@@ -27,6 +27,7 @@ class BattlePage extends StatefulWidget {
 }
 
 class _BattlePageState extends State<BattlePage> {
+  final BattleRewardService _rewardService = const BattleRewardService();
   late final BattleController _controller;
   late final RunRandomizer _randomizer;
   bool _isPresentingVictoryRewards = false;
@@ -67,36 +68,36 @@ class _BattlePageState extends State<BattlePage> {
       return;
     }
 
-    final lootItem = _selectVictoryLoot(
+    final rewards = _rewardService.buildVictoryRewards(
       enemy: _controller.enemy,
       player: exitResult.player,
+      victoryMoneyFactor: widget.victoryMoneyFactor,
+      randomizer: _randomizer,
     );
-    final moneyReward = _buildVictoryMoneyReward(exitResult.player);
-    if (lootItem == null && moneyReward <= 0) {
+    if (!rewards.hasRewards) {
       _completeBattleExit(exitResult);
       return;
     }
 
     setState(() {
       _pendingVictoryExitResult = exitResult;
-      _pendingVictoryLootItem = lootItem;
-      _pendingVictoryMoneyReward = moneyReward;
+      _pendingVictoryLootItem = rewards.lootItem;
+      _pendingVictoryMoneyReward = rewards.moneyReward;
     });
   }
 
   Future<BattleFlowResult> _presentVictoryRewards(
     BattleFlowResult exitResult, {
-    Item? lootItem,
-    int? moneyReward,
+    BattleRewardBundle? rewards,
   }) async {
-    final resolvedLootItem = lootItem ??
-        _selectVictoryLoot(
+    final resolvedRewards = rewards ??
+        _rewardService.buildVictoryRewards(
           enemy: _controller.enemy,
           player: exitResult.player,
+          victoryMoneyFactor: widget.victoryMoneyFactor,
+          randomizer: _randomizer,
         );
-    final resolvedMoneyReward =
-        moneyReward ?? _buildVictoryMoneyReward(exitResult.player);
-    if (resolvedLootItem == null && resolvedMoneyReward <= 0) {
+    if (!resolvedRewards.hasRewards) {
       return exitResult;
     }
 
@@ -106,8 +107,8 @@ class _BattlePageState extends State<BattlePage> {
       barrierColor: EndpointPalette.overlayScrimStrong,
       builder: (_) => BattleLootOverlay(
         player: exitResult.player,
-        lootItem: resolvedLootItem,
-        moneyReward: resolvedMoneyReward,
+        lootItem: resolvedRewards.lootItem,
+        moneyReward: resolvedRewards.moneyReward,
         enemyName: _controller.enemy.name,
       ),
     );
@@ -118,37 +119,8 @@ class _BattlePageState extends State<BattlePage> {
     );
   }
 
-  int _buildVictoryMoneyReward(Battler player) {
-    return max(0, player.income * widget.victoryMoneyFactor);
-  }
-
-  Item? _selectVictoryLoot({
-    required Battler enemy,
-    required Battler player,
-  }) {
-    final lootPool = <Item>{
-      ...enemy.equippedItems,
-      ...enemy.inventoryItems,
-    }.toList(growable: false);
-    if (lootPool.isEmpty) return null;
-
-    final preferredPool = lootPool
-        .where((item) => !player.ownsItem(item))
-        .toList(growable: false);
-    final resolvedPool = preferredPool.isNotEmpty ? preferredPool : lootPool;
-
-    return resolvedPool[_randomizer.nextInt(resolvedPool.length)];
-  }
-
   void _completeBattleExit(BattleFlowResult exitResult) {
-    final resolvedResult = BattleFlowResult(
-      type: exitResult.type,
-      player: exitResult.player
-          .resetAbilitiesForContext(
-            BattlerAbilityActivationContext.battle,
-          )
-          .clearCombatFlags(),
-    );
+    final resolvedResult = _rewardService.sanitizeExitResult(exitResult);
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) return;
 
@@ -158,10 +130,6 @@ class _BattlePageState extends State<BattlePage> {
     }
 
     navigator.popUntil((route) => route.isFirst);
-  }
-
-  Future<bool> _handleWillPop() async {
-    return false;
   }
 
   void _handlePlayerAttack() {
@@ -178,8 +146,10 @@ class _BattlePageState extends State<BattlePage> {
 
     final rewardedResult = await _presentVictoryRewards(
       exitResult,
-      lootItem: _pendingVictoryLootItem,
-      moneyReward: _pendingVictoryMoneyReward,
+      rewards: BattleRewardBundle(
+        lootItem: _pendingVictoryLootItem,
+        moneyReward: _pendingVictoryMoneyReward,
+      ),
     );
     if (!mounted) return;
 
@@ -351,46 +321,45 @@ class _BattlePageState extends State<BattlePage> {
   Widget build(BuildContext context) {
     final hasPendingVictoryRewards = _pendingVictoryExitResult != null;
 
-    return WillPopScope(
-      onWillPop: _handleWillPop,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          const enemyAccent = EndpointPalette.dangerAccent;
-          const playerAccent = EndpointPalette.primaryAccent;
-          final enemyBackground = [
-            EndpointPalette.blend(
-              EndpointPalette.panelBackgroundBattle,
-              enemyAccent,
-              0.42,
-            ),
-            EndpointPalette.blend(
-              EndpointPalette.scaffoldBackground,
-              enemyAccent,
-              0.12,
-            ),
-          ];
-          final playerBackground = [
-            EndpointPalette.blend(
-              EndpointPalette.panelBackground,
-              playerAccent,
-              0.1,
-            ),
-            EndpointPalette.blend(
-              EndpointPalette.scaffoldBackground,
-              playerAccent,
-              0.04,
-            ),
-          ];
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: NodeSceneWrapper(
+          showTitle: widget.showTitle,
+          child: DecoratedBox(
+            decoration: const BoxDecoration(gradient: EndpointGradients.battle),
+            child: SafeArea(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  const enemyAccent = EndpointPalette.dangerAccent;
+                  const playerAccent = EndpointPalette.primaryAccent;
+                  final enemyBackground = [
+                    EndpointPalette.blend(
+                      EndpointPalette.panelBackgroundBattle,
+                      enemyAccent,
+                      0.42,
+                    ),
+                    EndpointPalette.blend(
+                      EndpointPalette.scaffoldBackground,
+                      enemyAccent,
+                      0.12,
+                    ),
+                  ];
+                  final playerBackground = [
+                    EndpointPalette.blend(
+                      EndpointPalette.panelBackground,
+                      playerAccent,
+                      0.1,
+                    ),
+                    EndpointPalette.blend(
+                      EndpointPalette.scaffoldBackground,
+                      playerAccent,
+                      0.04,
+                    ),
+                  ];
 
-          return Scaffold(
-            body: NodeSceneWrapper(
-              showTitle: widget.showTitle,
-              child: DecoratedBox(
-                decoration:
-                    const BoxDecoration(gradient: EndpointGradients.battle),
-                child: SafeArea(
-                  child: Stack(
+                  return Stack(
                     fit: StackFit.expand,
                     children: [
                       Column(
@@ -467,12 +436,12 @@ class _BattlePageState extends State<BattlePage> {
                         ),
                       ),
                     ],
-                  ),
-                ),
+                  );
+                },
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -763,7 +732,7 @@ class _EnemyBattleHud extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        const Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _BattleSpriteDock(

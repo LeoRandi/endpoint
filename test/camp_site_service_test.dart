@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:endpoint/_imports.dart';
+import 'package:endpoint/entities/_exports.dart';
+import 'package:endpoint/services/_exports.dart';
 
 void main() {
   test('rest zone heals the player to full health', () {

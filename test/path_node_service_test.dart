@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:endpoint/_imports.dart';
+import 'package:endpoint/entities/_exports.dart';
+import 'package:endpoint/services/_exports.dart';
 
 void main() {
   test('opening hour always offers the three archetype nodes', () {
@@ -26,6 +27,19 @@ void main() {
     expect(
       updatedPlayer.equippedItems.map((item) => item.id).toSet(),
       {ItemId.shield, ItemId.bulwarkAmulet},
+    );
+    expect(
+      updatedPlayer.inventoryItems.map((item) => item.id).toSet(),
+      containsAll({
+        ItemId.crackedBattery,
+        ItemId.impactGloves,
+        ItemId.chemicalFilter,
+        ItemId.billingModule,
+        ItemId.portableOven,
+        ItemId.parasiticCapacitor,
+        ItemId.eclipseMantle,
+        ItemId.operativeBlackBox,
+      }),
     );
   });
 

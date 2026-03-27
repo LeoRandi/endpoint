@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 int idx(int x, int y, int width) {
   return y * width + x;
 }
@@ -68,7 +70,7 @@ void printLongString(String text) {
         (i + 1) * chunkSize > text.length ? text.length : (i + 1) * chunkSize;
 
     // Print the substring chunk
-    print(text.substring(start, end));
+    developer.log(text.substring(start, end));
   }
 }
 

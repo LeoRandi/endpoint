@@ -97,7 +97,7 @@ void main() {
             health: 4,
             maxHealth: 10,
           ),
-          availableNodes: [
+          availableNodes: const [
             PathNode.campSite(),
           ],
         ),
@@ -215,10 +215,11 @@ void main() {
     expect(find.text('Open Path'), findsOneWidget);
   });
 
-  testWidgets('weapon shop node opens shop title and close returns to path selection',
+  testWidgets(
+      'weapon shop node opens shop title and close returns to path selection',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: PathSelectionPage(
           availableNodes: [
             PathNode.weaponShop(),
@@ -249,7 +250,7 @@ void main() {
   testWidgets('path objetos opens an empty route inventory dialog',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: PathSelectionPage(),
       ),
     );
@@ -270,7 +271,7 @@ void main() {
   testWidgets('objetos opens an empty inventory dialog',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: BattlePage(),
       ),
     );
@@ -306,7 +307,7 @@ void main() {
             health: 10,
             abilities: ['Defender'],
           ),
-          enemyTurnDelay: Duration(milliseconds: 50),
+          enemyTurnDelay: const Duration(milliseconds: 50),
         ),
       ),
     );
@@ -353,7 +354,7 @@ void main() {
                             health: 1,
                           ),
                           enemyTurnDelay: Duration.zero,
-                          combatEndDelay: Duration(milliseconds: 250),
+                          combatEndDelay: const Duration(milliseconds: 250),
                         ),
                       ),
                     );
@@ -405,8 +406,8 @@ void main() {
               label: 'Enemy',
             ),
           ],
-          battleEnemyTurnDelay: Duration(milliseconds: 10),
-          battleCombatEndDelay: Duration(milliseconds: 40),
+          battleEnemyTurnDelay: const Duration(milliseconds: 10),
+          battleCombatEndDelay: const Duration(milliseconds: 40),
         ),
       ),
     );
@@ -484,8 +485,10 @@ void main() {
                               label: 'Enemy',
                             ),
                           ],
-                          battleEnemyTurnDelay: Duration(milliseconds: 10),
-                          battleCombatEndDelay: Duration(milliseconds: 40),
+                          battleEnemyTurnDelay:
+                              const Duration(milliseconds: 10),
+                          battleCombatEndDelay:
+                              const Duration(milliseconds: 40),
                         ),
                       ),
                     );

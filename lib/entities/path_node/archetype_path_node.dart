@@ -49,8 +49,6 @@ class ArchetypePathNode extends PathNode {
       money: player.money + moneyModifier,
       income: player.baseIncome + incomeModifier,
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
-      inventoryItems: const [],
-      equippedItems: const [],
     );
 
     for (final item in startingItems) {

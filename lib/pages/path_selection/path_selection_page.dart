@@ -1,4 +1,5 @@
 import '_imports.dart';
+import '../../coordinators/run_node_flow_coordinator.dart';
 
 class PathSelectionPage extends StatefulWidget {
   final Battler player;
@@ -24,6 +25,7 @@ class PathSelectionPage extends StatefulWidget {
 
 class _PathSelectionPageState extends State<PathSelectionPage> {
   static const _abilitiesBottomInset = 164.0;
+  static const _flowCoordinator = RunNodeFlowCoordinator();
 
   late final RunSessionController _sessionController;
 
@@ -70,139 +72,29 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
   }
 
-  Future<void> _handleStartEncounter(CombatPathNode node) async {
-    await _openNodeScene<BattleFlowResult>(
-      page: BattlePage(
-        enemy: node.enemy,
-        player: _sessionController.player,
-        randomizer: _sessionController.randomizer,
-        showTitle: node.showTitle,
-        victoryMoneyFactor: node.tier.factor,
-        enemyTurnDelay: _sessionController.state.battleEnemyTurnDelay,
-        combatEndDelay: _sessionController.state.battleCombatEndDelay,
-        returnResultToCaller: true,
-      ),
-      shouldPopToRoot: (result) => result.shouldExitRun,
-      onCompleted: _sessionController.completeEncounter,
-    );
-  }
-
-  Future<void> _handleOpenWeaponShop(ShopPathNode node) async {
-    await _openNodeScene<WeaponShopVisitResult>(
-      page: WeaponShopPage(
-        player: _sessionController.player,
-        catalog: node.catalog,
-        priceMultiplier: node.priceMultiplier,
-        showTitle: node.showTitle,
-        shopTitle: node.shopTitle,
-        shopSubtitle: node.shopSubtitle,
-        iconEmoji: node.iconEmoji,
-        accent: node.accent,
-      ),
-      onCompleted: _sessionController.completeWeaponShopVisit,
-    );
-  }
-
-  Future<void> _handleOpenCampSite(PathNode node) async {
-    final resolvedNode = node is CampSitePathNode ? node : null;
-
-    await _openNodeScene<CampSiteVisitResult>(
-      page: CampSitePage(
-        player: _sessionController.player,
-        recoveryService: CampSiteService(
-          recoveryFactor: resolvedNode?.recoveryFactor ?? 1,
-          removeRandomDebuff: resolvedNode?.removeRandomDebuff ?? false,
-        ),
-        randomizer: _sessionController.randomizer,
-        showTitle:
-            resolvedNode?.showTitle ?? 'Has encontrado una zona de descanso',
-        sceneTitle: resolvedNode?.sceneTitle ?? 'ZONA DE DESCANSO',
-        description: resolvedNode?.description ?? 'Recuperas toda tu vida.',
-        iconEmoji: resolvedNode?.iconEmoji ?? '\u{1F6CF}',
-        accent: resolvedNode?.accent ?? EndpointPalette.primaryAccent,
-      ),
-      onCompleted: _sessionController.completeCampVisit,
-    );
-  }
-
-  Future<void> _handleOpenEvent(EventPathNode node) async {
-    await _openNodeScene<PathEventVisitResult>(
-      page: PathEventPage(
-        player: _sessionController.player,
-        showTitle: node.showTitle,
-        eventTitle: node.eventTitle,
-        description: node.description,
-        outcomeText: node.outcomeText,
-        iconEmoji: node.iconEmoji,
-        accent: node.accent,
-      ),
-      onCompleted: _sessionController.completeEventVisit,
-    );
-  }
-
   Future<void> _handleNodePressed(PathNode node) async {
     if (!_sessionController.beginNodeResolution()) return;
-
-    switch (node.type) {
-      case PathNodeType.encounter:
-        await _handleStartEncounter(node as CombatPathNode);
-        break;
-      case PathNodeType.archetype:
-        _sessionController.completeArchetypeSelection(
-          (node as ArchetypePathNode).applyTo(_sessionController.player),
-        );
-        break;
-      case PathNodeType.shop:
-        await _handleOpenWeaponShop(node as ShopPathNode);
-        break;
-      case PathNodeType.campSite:
-        await _handleOpenCampSite(node);
-        break;
-      case PathNodeType.event:
-        await _handleOpenEvent(node as EventPathNode);
-        break;
-    }
-  }
-
-  Future<void> _openNodeScene<T>({
-    required Widget page,
-    required void Function(T result) onCompleted,
-    bool Function(T result)? shouldPopToRoot,
-  }) async {
-    final result = await Navigator.of(context).push<T>(
-      buildEndpointSceneRoute<T>(page),
+    await _flowCoordinator.handleNodeSelection(
+      context: context,
+      node: node,
+      session: _sessionController,
     );
-
-    if (!mounted) return;
-    if (result == null) {
-      _sessionController.cancelNodeResolution();
-      return;
-    }
-    if (shouldPopToRoot?.call(result) ?? false) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
-    }
-
-    onCompleted(result);
-    if (_sessionController.isRunComplete && mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _sessionController,
-      builder: (context, child) {
-        final player = _sessionController.player;
-        final nodes = _sessionController.nodes;
-        final currentHour = _sessionController.currentHour;
-        final isOpeningNode = _sessionController.isResolvingNode;
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: EndpointGradients.path),
+        child: AnimatedBuilder(
+          animation: _sessionController,
+          builder: (context, child) {
+            final player = _sessionController.player;
+            final nodes = _sessionController.nodes;
+            final currentHour = _sessionController.currentHour;
+            final isOpeningNode = _sessionController.isResolvingNode;
 
-        return Scaffold(
-          body: DecoratedBox(
-            decoration: const BoxDecoration(gradient: EndpointGradients.path),
-            child: Stack(
+            return Stack(
               fit: StackFit.expand,
               children: [
                 _PathBackdrop(nodeCount: nodes.length),
@@ -223,7 +115,9 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                   final availableWidth = constraints.maxWidth -
                                       (spacing * (encounterCount - 1));
                                   final nodeWidth = min(
-                                      112.0, availableWidth / encounterCount);
+                                    112.0,
+                                    availableWidth / encounterCount,
+                                  );
 
                                   return Row(
                                     mainAxisAlignment: encounterCount == 1
@@ -270,10 +164,10 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                   ),
                 ),
               ],
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }

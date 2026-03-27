@@ -4,7 +4,6 @@ const _inventoryTileExtent = 70.0;
 const _inventoryTileHeight = 84.0;
 
 class EndpointInventoryOverlay extends StatelessWidget {
-  final Battler player;
   final List<Item> items;
   final String title;
   final String subtitle;
@@ -19,7 +18,6 @@ class EndpointInventoryOverlay extends StatelessWidget {
 
   const EndpointInventoryOverlay({
     super.key,
-    required this.player,
     required this.detailStatusBuilder,
     this.items = const [],
     this.title = 'Objetos',
@@ -51,121 +49,42 @@ class EndpointInventoryOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final availableHeight = MediaQuery.of(context).size.height;
-    final overlayHeight = max(
-      220.0,
-      min(maxHeight, availableHeight - bottomInset - 40),
-    );
-
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: maxWidth,
-              maxHeight: overlayHeight,
-            ),
-            child: EndpointPanel(
-              accent: accent,
-              backgroundColor: EndpointPalette.panelBackgroundOpaque,
-              borderRadius: 18,
-              glowOpacity: 0.12,
-              blurRadius: 22,
-              spreadRadius: 2,
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            EndpointText(
-                              title,
-                              style: textTitleMediumBold.copyWith(
-                                color: EndpointPalette.softForeground,
-                                letterSpacing: 1.8,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            EndpointText(
-                              subtitle,
-                              style: textSmallBold.copyWith(
-                                color: Colors.white.withOpacity(0.72),
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      EndpointSceneCloseButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        tooltip: closeTooltip,
-                        accent: accent,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      EndpointText(
-                        'OBJETOS',
-                        style: textSmallBold.copyWith(
-                          color: accent,
-                          letterSpacing: 1.4,
-                        ),
-                      ),
-                      const Spacer(),
-                      EndpointText(
-                        '${items.length}',
-                        style: textSmallBold.copyWith(
-                          color: Colors.white.withOpacity(0.76),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Expanded(
-                    child: items.isEmpty
-                        ? Center(
-                            child: EndpointText(
-                              emptyText,
-                              textAlign: TextAlign.center,
-                              style: textSmallBold.copyWith(
-                                color: Colors.white.withOpacity(0.72),
-                              ),
-                            ),
-                          )
-                        : GridView.builder(
-                            itemCount: items.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: _inventoryTileExtent,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              mainAxisExtent: _inventoryTileHeight,
-                            ),
-                            itemBuilder: (context, index) {
-                              final item = items[index];
-                              return EndpointInventoryItemTile(
-                                item: item,
-                                onPressed: () =>
-                                    _openItemDetails(context, item),
-                              );
-                            },
-                          ),
-                  ),
-                ],
+    return EndpointOverlayScaffold(
+      title: title,
+      subtitle: subtitle,
+      sectionLabel: 'OBJETOS',
+      sectionValue: '${items.length}',
+      closeTooltip: closeTooltip,
+      accent: accent,
+      bottomInset: bottomInset,
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+      child: items.isEmpty
+          ? Center(
+              child: EndpointText(
+                emptyText,
+                textAlign: TextAlign.center,
+                style: textSmallBold.copyWith(
+                  color: Colors.white.withOpacity(0.72),
+                ),
               ),
+            )
+          : GridView.builder(
+              itemCount: items.length,
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: _inventoryTileExtent,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                mainAxisExtent: _inventoryTileHeight,
+              ),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return EndpointInventoryItemTile(
+                  item: item,
+                  onPressed: () => _openItemDetails(context, item),
+                );
+              },
             ),
-          ),
-        ),
-      ),
     );
   }
 }

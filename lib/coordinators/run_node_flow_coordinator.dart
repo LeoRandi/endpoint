@@ -1,0 +1,128 @@
+import '../app/_exports.dart';
+import '../entities/_exports.dart';
+import '../pages/_exports.dart';
+import '../services/_exports.dart';
+import '../widgets/generic/_exports.dart';
+import 'package:flutter/material.dart';
+
+class RunNodeFlowCoordinator {
+  const RunNodeFlowCoordinator();
+
+  // Keeps node-to-scene routing out of the path page.
+  Future<void> handleNodeSelection({
+    required BuildContext context,
+    required PathNode node,
+    required RunSessionController session,
+  }) async {
+    switch (node.type) {
+      case PathNodeType.encounter:
+        final encounterNode = node as CombatPathNode;
+        await _openNodeScene<BattleFlowResult>(
+          context: context,
+          session: session,
+          page: BattlePage(
+            enemy: encounterNode.enemy,
+            player: session.player,
+            randomizer: session.randomizer,
+            showTitle: encounterNode.showTitle,
+            victoryMoneyFactor: encounterNode.tier.factor,
+            enemyTurnDelay: session.state.battleEnemyTurnDelay,
+            combatEndDelay: session.state.battleCombatEndDelay,
+            returnResultToCaller: true,
+          ),
+          onCompleted: session.completeEncounter,
+          shouldPopToRoot: (result) => result.shouldExitRun,
+        );
+        return;
+      case PathNodeType.archetype:
+        session.completeArchetypeSelection(
+          (node as ArchetypePathNode).applyTo(session.player),
+        );
+        return;
+      case PathNodeType.shop:
+        final shopNode = node as ShopPathNode;
+        await _openNodeScene<WeaponShopVisitResult>(
+          context: context,
+          session: session,
+          page: WeaponShopPage(
+            player: session.player,
+            catalog: shopNode.catalog,
+            priceMultiplier: shopNode.priceMultiplier,
+            showTitle: shopNode.showTitle,
+            shopTitle: shopNode.shopTitle,
+            shopSubtitle: shopNode.shopSubtitle,
+            iconEmoji: shopNode.iconEmoji,
+            accent: shopNode.accent,
+          ),
+          onCompleted: session.completeWeaponShopVisit,
+        );
+        return;
+      case PathNodeType.campSite:
+        final campNode = node is CampSitePathNode ? node : null;
+        await _openNodeScene<CampSiteVisitResult>(
+          context: context,
+          session: session,
+          page: CampSitePage(
+            player: session.player,
+            recoveryService: CampSiteService(
+              recoveryFactor: campNode?.recoveryFactor ?? 1,
+              removeRandomDebuff: campNode?.removeRandomDebuff ?? false,
+            ),
+            randomizer: session.randomizer,
+            showTitle:
+                campNode?.showTitle ?? 'Has encontrado una zona de descanso',
+            sceneTitle: campNode?.sceneTitle ?? 'ZONA DE DESCANSO',
+            description: campNode?.description ?? 'Recuperas toda tu vida.',
+            iconEmoji: campNode?.iconEmoji ?? '\u{1F6CF}',
+            accent: campNode?.accent ?? EndpointPalette.primaryAccent,
+          ),
+          onCompleted: session.completeCampVisit,
+        );
+        return;
+      case PathNodeType.event:
+        final eventNode = node as EventPathNode;
+        await _openNodeScene<PathEventVisitResult>(
+          context: context,
+          session: session,
+          page: PathEventPage(
+            player: session.player,
+            showTitle: eventNode.showTitle,
+            eventTitle: eventNode.eventTitle,
+            description: eventNode.description,
+            outcomeText: eventNode.outcomeText,
+            iconEmoji: eventNode.iconEmoji,
+            accent: eventNode.accent,
+          ),
+          onCompleted: session.completeEventVisit,
+        );
+        return;
+    }
+  }
+
+  Future<void> _openNodeScene<T>({
+    required BuildContext context,
+    required RunSessionController session,
+    required Widget page,
+    required void Function(T result) onCompleted,
+    bool Function(T result)? shouldPopToRoot,
+  }) async {
+    final result = await Navigator.of(context).push<T>(
+      buildEndpointSceneRoute<T>(page),
+    );
+
+    if (!context.mounted) return;
+    if (result == null) {
+      session.cancelNodeResolution();
+      return;
+    }
+    if (shouldPopToRoot?.call(result) ?? false) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    onCompleted(result);
+    if (session.isRunComplete && context.mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+}

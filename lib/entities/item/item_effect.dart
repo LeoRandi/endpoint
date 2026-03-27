@@ -281,9 +281,7 @@ class CrackedBatteryItemEffect extends ItemEffect {
 
     final updatedAbility = resolvedAbility.reduceCooldown(item.value);
     return ItemEffectResolution(
-      owner: owner
-          .updateAbility(updatedAbility)
-          .addCombatFlag(usedFlag),
+      owner: owner.updateAbility(updatedAbility).addCombatFlag(usedFlag),
       opponent: opponent,
     );
   }
@@ -488,9 +486,8 @@ class EclipseMantleItemEffect extends ItemEffect {
     }
 
     final boostedAbility = ability.addRuntimeValueBonus(item.value);
-    final updatedOwner = owner
-        .updateAbility(boostedAbility)
-        .addCombatFlag(usedFlag);
+    final updatedOwner =
+        owner.updateAbility(boostedAbility).addCombatFlag(usedFlag);
 
     return ItemAbilityPreparationResolution(
       owner: updatedOwner,

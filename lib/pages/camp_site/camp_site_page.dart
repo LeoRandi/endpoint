@@ -42,15 +42,14 @@ class _CampSitePageState extends State<CampSitePage> {
     Navigator.of(context).pop(_visitResult);
   }
 
-  Future<bool> _handleWillPop() async {
-    _closeCamp();
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _handleWillPop,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        _closeCamp();
+      },
       child: EndpointCenterStageScene(
         showTitle: widget.showTitle,
         background: EndpointGradients.camp,

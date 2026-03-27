@@ -93,10 +93,9 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
         borderColor: borderColor,
         backgroundColor: backgroundColor,
         textColor: textColor,
-        onPressed:
-            onItemPressed == null || slotData.item == null
-                ? null
-                : () => onItemPressed!.call(slotData.item!),
+        onPressed: onItemPressed == null || slotData.item == null
+            ? null
+            : () => onItemPressed!.call(slotData.item!),
       ),
     );
   }
