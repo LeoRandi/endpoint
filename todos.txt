@@ -1,6 +1,7 @@
 TODOs:
 
 -Página de Selección de Camino
+--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)
 --Barra de fase de día no está alineada verticalmente con los iconos en el stack
 
 -Sistema de acompañantes
@@ -14,13 +15,16 @@ TODOs:
 --Separar el scroll de equipamiento y de habilidades
 
 -Estados
+--Añadir Tags
 --Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)[11/20]
 
 -Habilidades
+--Añadir Tags
 --Meter en el loot
 --Crear presets(al menos 50)[6/50]
 
 -Items
+--Añadir Tags
 --Meter al menos 100-120[22/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
@@ -53,12 +57,26 @@ TODOs:
 --Cambio de colores base(sets específicos)
 
 ////
+ARREGLAR:
+-No se repitan objetos iguales en las tiendas, si no encuentra más objetos que meter que meta los que pueda y .
 
-Fragilidad(debuff): reduce defensa en función de su [value] durante [value] turnos.(va reduciendo su value según la duración, similar a Quemadura)
-Interferencia(debuff): impide activar habilidades manuales durante [value] turnos(no stackea, no puede haber dos instancias de este estado a la vez en un personaje).
-Blindaje Temporal(buff): absorbe una cantidad igual a [value] de daño del siguiente impacto que recibe el portador, desaparece al final del combate o si el [value] llega a 0. No desaparece por turnos. Stackea: conseguir otro buff de Blindaje Temporal aumenta el [value], no crea otra instancia del estado
-Conmoción(debuff): reduce el daño del siguiente ataque que realice el portador en [value] y luego se consume(desaparece)(Dura infinitamente hasta que se resuelva).
-Escudo de energía(buff): el portador recibe [value] menos de daño ataques directos, y recibe [value] más de daño de debuffs.
-Escudo de fase(buff): el portador recibe [value] menos de daño de debuffs, y recibe [value] más de daño de  ataques directos
-Inercia(buff): al final del turno gana [value] en ATK o DEF(aleatoriamente, se aplica como un buff que dura hasta que termine el combate. stackea consigo mismo(si vuelve a conseguir el mismo buffo, aumenta su value en vez de crear otra instancia del buffo)) si no ha activado habilidades manuales.
-Deuda(debuff): reduce el income a 1 hasta que se cumpla un evento(no stackeable ni repetible, no se puede purgar de formas convencionales. Esto debe quedar explicado en la info del estado).
+////
+PROBAR:
+
+-Fragilidad(debuff): reduce defensa en función de su [value] durante [value] turnos.(va reduciendo su value según la duración, similar a Quemadura)
+-Interferencia(debuff): impide activar habilidades manuales durante [value] turnos(no stackea, no puede haber dos instancias de este estado a la vez en un personaje).
+-Blindaje Temporal(buff): absorbe una cantidad igual a [value] de daño del siguiente impacto que recibe el portador, desaparece al final del combate o si el [value] llega a 0. No desaparece por turnos. Stackea: conseguir otro buff de Blindaje Temporal aumenta el [value], no crea otra instancia del estado
+-Conmoción(debuff): reduce el daño del siguiente ataque que realice el portador en [value] y luego se consume(desaparece)(Dura infinitamente hasta que se resuelva).
+-Escudo de energía(buff): el portador recibe [value] menos de daño ataques directos, y recibe [value] más de daño de debuffs.
+-Escudo de fase(buff): el portador recibe [value] menos de daño de debuffs, y recibe [value] más de daño de  ataques directos
+-Inercia(buff): al final del turno gana [value] en ATK o DEF(aleatoriamente, se aplica como un buff que dura hasta que termine el combate. stackea consigo mismo(si vuelve a conseguir el mismo buffo, aumenta su value en vez de crear otra instancia del buffo)) si no ha activado habilidades manuales.
+-Deuda(debuff): reduce el income a 1 hasta que se cumpla un evento(no stackeable ni repetible, no se puede purgar de formas convencionales. Esto debe quedar explicado en la info del estado).
+
+///
+IDEAS:
+-Tienda que solo tiene objetos con la tag de Quemadura e Intoxicación, pero solo hasta rareza azul
+-Tienda de tag Quemadura
+-Tienda de tag Intoxicación
+-Tienda de habilidades básicas
+-Evento que te de una habilidad aleatoria pero te quite vida
+-Evento de minijuego, obligatorio para un roguelike
