@@ -1,15 +1,18 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Agrupa el estado final del portador y del rival tras resolver un efecto de item.
 class ItemEffectResolution {
   final Battler owner;
   final Battler opponent;
 
+  /// Crea una resolucion inmutable con ambos combatientes ya actualizados.
   const ItemEffectResolution({
     required this.owner,
     required this.opponent,
   });
 }
 
+/// Enumera los momentos en los que un item puede reaccionar a una habilidad.
 enum ItemAbilityResolutionContext {
   manualActivation,
   attackResolved,
@@ -18,11 +21,13 @@ enum ItemAbilityResolutionContext {
   turnEnd,
 }
 
+/// Devuelve el estado resultante cuando un item modifica una activacion manual.
 class ItemAbilityPreparationResolution {
   final Battler owner;
   final Battler opponent;
   final BattlerAbility ability;
 
+  /// Crea una resolucion con el usuario, el rival y la habilidad ya ajustados.
   const ItemAbilityPreparationResolution({
     required this.owner,
     required this.opponent,
@@ -30,15 +35,19 @@ class ItemAbilityPreparationResolution {
   });
 }
 
+/// Sirve como base comun para todos los hooks reactivos de los objetos equipados.
 abstract class ItemEffect {
   final String description;
 
+  /// Crea un efecto reutilizable con la descripcion base del item.
   const ItemEffect({
     required this.description,
   });
 
+  /// Devuelve la descripcion mostrada por la UI, pudiendo usar el value del item.
   String descriptionFor(Item item) => description;
 
+  /// Resuelve el efecto del item al inicio de turno.
   ItemEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -48,6 +57,7 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Resuelve el efecto del item al final de turno.
   ItemEffectResolution onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -57,6 +67,7 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Ajusta el dano saliente del portador antes de que se aplique.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -66,6 +77,7 @@ abstract class ItemEffect {
     return damage;
   }
 
+  /// Ajusta el dano entrante del portador antes de que se aplique.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -75,6 +87,7 @@ abstract class ItemEffect {
     return damage;
   }
 
+  /// Resuelve efectos posteriores a que el portador termine un ataque.
   ItemEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -84,6 +97,7 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: target);
   }
 
+  /// Resuelve efectos posteriores a que el portador reciba dano.
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
     required Battler source,
@@ -93,6 +107,7 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: source);
   }
 
+  /// Aplica efectos pasivos que deben reevaluarse sin un disparador puntual.
   ItemEffectResolution applyPassive({
     required Battler owner,
     required Battler opponent,
@@ -101,6 +116,7 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Permite modificar una habilidad justo antes de su activacion manual real.
   ItemAbilityPreparationResolution onManualAbilityPreparing({
     required Battler owner,
     required Battler opponent,
@@ -115,6 +131,7 @@ abstract class ItemEffect {
     );
   }
 
+  /// Reacciona a una habilidad ya resuelta para aplicar efectos posteriores.
   ItemEffectResolution onAbilityResolved({
     required Battler owner,
     required Battler opponent,
@@ -126,6 +143,7 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Permite alterar o cancelar un estado antes de aplicarlo al objetivo.
   BattlerStatus? modifyOutgoingStatus({
     required Battler owner,
     required Battler target,
@@ -135,6 +153,7 @@ abstract class ItemEffect {
     return status;
   }
 
+  /// Permite alterar o cancelar un estado recibido antes de que se aplique.
   BattlerStatus? modifyIncomingStatus({
     required Battler owner,
     required Battler source,
@@ -144,6 +163,7 @@ abstract class ItemEffect {
     return status;
   }
 
+  /// Permite interceptar un golpe letal justo antes de que el portador muera.
   Battler onReceiveFatalDamage({
     required Battler owner,
     required Item item,
@@ -153,9 +173,11 @@ abstract class ItemEffect {
   }
 }
 
+/// Aplica Intoxicacion al objetivo o refuerza la que ya tenga.
 class IntoxicarOnAttackItemEffect extends ItemEffect {
   final int amount;
 
+  /// Crea un efecto reutilizable que intoxica al golpear.
   const IntoxicarOnAttackItemEffect({
     this.amount = 1,
   }) : super(
@@ -164,6 +186,8 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Tras atacar, suma Intoxicacion existente o crea una nueva instancia.
   ItemEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -188,9 +212,11 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
   }
 }
 
+/// Aplica Quemadura al objetivo cada vez que el portador conecta un ataque.
 class QuemaduraOnAttackItemEffect extends ItemEffect {
   final int duration;
 
+  /// Crea un efecto reutilizable que anade Quemadura al atacar.
   const QuemaduraOnAttackItemEffect({
     this.duration = QuemaduraStatus.defaultDuration,
   }) : super(
@@ -199,6 +225,8 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Tras atacar, aplica una Quemadura nueva con la duracion configurada.
   ItemEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -215,9 +243,11 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
   }
 }
 
+/// Devuelve Quemadura al atacante cuando el portador recibe un golpe.
 class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
   final int duration;
 
+  /// Crea un efecto reutilizable que castiga al rival al recibir dano.
   const QuemaduraOnHitReceivedItemEffect({
     this.duration = 4,
   }) : super(
@@ -226,6 +256,8 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Tras recibir un golpe, aplica Quemadura al enemigo que lo causo.
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
     required Battler source,
@@ -242,7 +274,9 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
   }
 }
 
+/// Reduce el cooldown de la primera habilidad manual resuelta en cada combate.
 class CrackedBatteryItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para la Bateria Rajada.
   const CrackedBatteryItemEffect()
       : super(
           description:
@@ -250,11 +284,15 @@ class CrackedBatteryItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
     return 'La primera habilidad manual que se resuelve en combate reduce su cooldown en ${item.value}.';
   }
 
   @override
+
+  /// Detecta la primera entrada en cooldown y la acorta una sola vez por combate.
   ItemEffectResolution onAbilityResolved({
     required Battler owner,
     required Battler opponent,
@@ -287,7 +325,9 @@ class CrackedBatteryItemEffect extends ItemEffect {
   }
 }
 
+/// Aumenta el dano si el objetivo no tiene ningun buff activo.
 class ImpactGlovesItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para los Guantes de Impacto.
   const ImpactGlovesItemEffect()
       : super(
           description:
@@ -295,11 +335,15 @@ class ImpactGlovesItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
     return 'Tus ataques infligen ${item.value} de dano adicional si el objetivo no tiene buffs.';
   }
 
   @override
+
+  /// Suma dano solo cuando el objetivo esta completamente sin buffs.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -315,7 +359,9 @@ class ImpactGlovesItemEffect extends ItemEffect {
   }
 }
 
+/// Reduce la potencia de Quemadura e Intoxicacion al recibirlas.
 class ChemicalFilterItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para el Filtro Quimico.
   const ChemicalFilterItemEffect()
       : super(
           description:
@@ -323,11 +369,15 @@ class ChemicalFilterItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
     return 'Reduce la Quemadura e Intoxicacion recibidas en ${item.value} al aplicarse.';
   }
 
   @override
+
+  /// Resta duracion o value al estado recibido y puede cancelarlo si llega a cero.
   BattlerStatus? modifyIncomingStatus({
     required Battler owner,
     required Battler source,
@@ -352,13 +402,17 @@ class ChemicalFilterItemEffect extends ItemEffect {
   }
 }
 
+/// Solo cambia stats del item, asi que aqui solo personaliza la descripcion.
 class BillingModuleItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para el Modulo de Cobro.
   const BillingModuleItemEffect()
       : super(
           description: 'Aumenta los ingresos, pero reduce la vida maxima.',
         );
 
   @override
+
+  /// Explica a la UI cuanto income gana y cuanto HP maximo pierde el portador.
   String descriptionFor(Item item) {
     final healthPenalty = item.maxHealthPercentModifier.abs();
     final incomeGain = item.incomeModifier;
@@ -368,7 +422,9 @@ class BillingModuleItemEffect extends ItemEffect {
   }
 }
 
+/// Alarga las Quemaduras aplicadas y a cambio quema al propio portador al final de turno.
 class PortableOvenItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para el Horno Portatil.
   const PortableOvenItemEffect()
       : super(
           description:
@@ -376,11 +432,15 @@ class PortableOvenItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
     return 'Las Quemaduras que aplicas duran ${item.value} turno mas. Al final de tu turno te aplicas Quemadura (${item.value}).';
   }
 
   @override
+
+  /// Extiende solo las Quemaduras que el portador aplica a otros objetivos.
   BattlerStatus? modifyOutgoingStatus({
     required Battler owner,
     required Battler target,
@@ -395,6 +455,8 @@ class PortableOvenItemEffect extends ItemEffect {
   }
 
   @override
+
+  /// Al cerrar el turno propio, aplica una Quemadura al usuario.
   ItemEffectResolution onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -415,7 +477,9 @@ class PortableOvenItemEffect extends ItemEffect {
   }
 }
 
+/// Cura al usuario cada vez que una habilidad suya entra en cooldown.
 class ParasiticCapacitorItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para el Capacitador Parasitario.
   const ParasiticCapacitorItemEffect()
       : super(
           description:
@@ -423,11 +487,15 @@ class ParasiticCapacitorItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
     return 'Cuando una habilidad entra en cooldown, te curas ${item.value} HP.';
   }
 
   @override
+
+  /// Detecta entradas en cooldown y cura al instante al portador.
   ItemEffectResolution onAbilityResolved({
     required Battler owner,
     required Battler opponent,
@@ -447,7 +515,9 @@ class ParasiticCapacitorItemEffect extends ItemEffect {
   }
 }
 
+/// Potencia la primera activacion manual de cada combate.
 class EclipseMantleItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para el Manto de Eclipse.
   const EclipseMantleItemEffect()
       : super(
           description:
@@ -455,11 +525,15 @@ class EclipseMantleItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
     return 'La primera activacion manual de cada combate obtiene +${item.value} al value.';
   }
 
   @override
+
+  /// Aumenta temporalmente el value de la primera habilidad manual del combate.
   ItemAbilityPreparationResolution onManualAbilityPreparing({
     required Battler owner,
     required Battler opponent,
@@ -497,7 +571,9 @@ class EclipseMantleItemEffect extends ItemEffect {
   }
 }
 
+/// Evita una muerte por combate, deja 1 HP y refresca todas las habilidades.
 class OperativeBlackBoxItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para la Caja Negra del Operativo.
   const OperativeBlackBoxItemEffect()
       : super(
           description:
@@ -505,6 +581,8 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
         );
 
   @override
+
+  /// Intercepta el dano letal y aplica la proteccion una sola vez por combate.
   Battler onReceiveFatalDamage({
     required Battler owner,
     required Item item,
@@ -529,6 +607,8 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
   }
 
   @override
+
+  /// Limpia la proteccion temporal al inicio del siguiente turno propio.
   ItemEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -551,6 +631,7 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
   }
 }
 
+/// Comprueba si una habilidad ha pasado de estar lista a estar en cooldown.
 bool _enteredCooldown(
   BattlerAbility previousAbility,
   BattlerAbility resolvedAbility,
@@ -558,6 +639,7 @@ bool _enteredCooldown(
   return !previousAbility.isOnCooldown && resolvedAbility.isOnCooldown;
 }
 
+/// Genera flags de combate estables para que cada item controle usos por instancia.
 String _itemFlag(Item item, String suffix) {
   return '${item.instanceId ?? item.id.name}_$suffix';
 }

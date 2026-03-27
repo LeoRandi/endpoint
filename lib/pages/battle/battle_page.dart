@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 class BattlePage extends StatefulWidget {
   final Battler enemy;
@@ -403,7 +403,7 @@ class _BattlePageState extends State<BattlePage> {
                           ),
                           Container(
                             height: 2,
-                            color: playerAccent.withValues(alpha: 0.2),
+                            color: playerAccent.withAlpha(51),
                           ),
                           Expanded(
                             child: _BattleSide(
@@ -509,9 +509,7 @@ class _BattleSide extends StatelessWidget {
                 EndpointText(
                   subtitle,
                   style: textSmallBold.copyWith(
-                    color: EndpointPalette.softForeground.withValues(
-                      alpha: 0.72,
-                    ),
+                    color: EndpointPalette.softForeground.withAlpha(184),
                     fontSize: 12,
                     letterSpacing: 1,
                   ),
@@ -575,7 +573,7 @@ class _TurnBanner extends StatelessWidget {
               description,
               textAlign: TextAlign.center,
               style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
+                color: EndpointPalette.softForeground.withAlpha(214),
                 fontSize: 11,
                 letterSpacing: 0.5,
               ),
@@ -818,7 +816,7 @@ class _BattleStatusBar extends StatelessWidget {
                     EndpointText(
                       '${battler.health} / ${battler.maxHealth}',
                       style: textSmallNumericBold.copyWith(
-                        color: Colors.white.withValues(alpha: 0.84),
+                        color: Colors.white.withAlpha(214),
                         fontSize: 12,
                         letterSpacing: 0.8,
                       ),
@@ -852,7 +850,7 @@ class _BattleStatusBar extends StatelessWidget {
                     EndpointText(
                       '${battler.health} / ${battler.maxHealth}',
                       style: textSmallNumericBold.copyWith(
-                        color: Colors.white.withValues(alpha: 0.84),
+                        color: Colors.white.withAlpha(214),
                         fontSize: 12,
                         letterSpacing: 0.8,
                       ),
@@ -903,7 +901,7 @@ class _BattleLoadoutStrip extends StatelessWidget {
       tileExtent: 54,
       tileHeight: 66,
       emojiSize: 14,
-      borderColor: accent.withValues(alpha: 0.34),
+      borderColor: accent.withAlpha(87),
       onItemPressed: onItemPressed,
     );
     final abilityStrip = EndpointAbilitySlotsStrip(
@@ -999,7 +997,7 @@ class _BattleSideGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = accent.withValues(alpha: 0.08)
+      ..color = accent.withAlpha(20)
       ..strokeWidth = 1;
 
     for (double y = 16; y <= size.height; y += 28) {

@@ -2,10 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:endpoint/entities/_exports.dart';
 import 'package:endpoint/services/_exports.dart';
+import 'test_battler_factory.dart';
 
 void main() {
   test('rest zone heals the player to full health', () {
-    final player = Battler.legacy(
+    final player = buildTestBattler(
       name: 'Player',
       attack: 3,
       defense: 1,
@@ -28,7 +29,7 @@ void main() {
   });
 
   test('severe medication heals a third and removes one random debuff', () {
-    final player = Battler.legacy(
+    final player = buildTestBattler(
       name: 'Player',
       attack: 3,
       defense: 1,

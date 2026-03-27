@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 const _rewardActionHeight = 56.0;
 

@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Arquetipo agil orientado a ataque ligero y economia temprana.
 final velozArchetypeNode = ArchetypePathNode(
   label: 'Veloz',
   tooltip:
@@ -22,6 +23,7 @@ final velozArchetypeNode = ArchetypePathNode(
   ],
 );
 
+/// Arquetipo defensivo centrado en vida, defensa y estabilidad.
 final inamovibleArchetypeNode = ArchetypePathNode(
   label: 'Inamovible',
   tooltip:
@@ -42,6 +44,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   ],
 );
 
+/// Arquetipo ofensivo que arranca con mas presion de dano.
 final imparableArchetypeNode = ArchetypePathNode(
   label: 'Imparable',
   tooltip:
@@ -64,6 +67,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   ],
 );
 
+/// Tienda gris de armas basicas para las primeras horas.
 final scrapArsenalNode = ShopPathNode(
   label: 'Arsenal de Chatarra',
   tooltip: 'Armas funcionales antes del anochecer',
@@ -80,6 +84,7 @@ final scrapArsenalNode = ShopPathNode(
   ],
 );
 
+/// Tienda verde de piezas defensivas para estabilizar la run.
 final bulwarkWorkshopNode = ShopPathNode(
   label: 'Taller Blindado',
   tooltip: 'Protecciones para aguantar hasta la noche',
@@ -97,6 +102,7 @@ final bulwarkWorkshopNode = ShopPathNode(
   ],
 );
 
+/// Tienda amarilla de reliquias caras y poderosas.
 final luxuryRelicsNode = ShopPathNode(
   label: 'Reliquias de Lujo',
   tooltip: 'Objetos de gran calidad y procedencia dudosa',
@@ -115,6 +121,7 @@ final luxuryRelicsNode = ShopPathNode(
   ],
 );
 
+/// Evento verde diurno preparado para futuras mejoras temporales.
 final shadyTechnosurgeonNode = EventPathNode(
   id: PathEventId.shadyTechnosurgeon,
   label: 'Shady Technosurgeon',
@@ -131,6 +138,7 @@ final shadyTechnosurgeonNode = EventPathNode(
       'Por ahora no aplica nada, pero la escena queda lista para efectos temporales.',
 );
 
+/// Tienda morada nocturna centrada en armas mas agresivas.
 final afterHoursArsenalNode = ShopPathNode(
   label: 'Arsenal After Hours',
   tooltip: 'El mercado nocturno mueve armas mas agresivas',
@@ -148,6 +156,7 @@ final afterHoursArsenalNode = ShopPathNode(
   ],
 );
 
+/// Tienda azul nocturna de blindajes y soportes defensivos.
 final velvetArmoryNode = ShopPathNode(
   label: 'Velvet Armory',
   tooltip: 'Protecciones discretas para aguantar la noche',
@@ -166,6 +175,7 @@ final velvetArmoryNode = ShopPathNode(
   ],
 );
 
+/// Evento azul nocturno reservado para efectos temporales mas agresivos.
 final afterHoursTechnosurgeonNode = EventPathNode(
   id: PathEventId.afterHoursTechnosurgeon,
   label: 'Technosurgeon Nocturno',
@@ -182,6 +192,7 @@ final afterHoursTechnosurgeonNode = EventPathNode(
       'Por ahora no altera tus estadisticas. TODO: aplicar efectos temporales nocturnos.',
 );
 
+/// Evento azul condicionado por Deuda que intenta cobrar la cuota pendiente.
 final debtCollectionNode = EventPathNode(
   id: PathEventId.debtCollection,
   label: 'Oficina de Cobros',
@@ -198,6 +209,7 @@ final debtCollectionNode = EventPathNode(
       'La cantidad exacta se resuelve al entrar segun el saldo pendiente de tu Deuda.',
 );
 
+/// Nodo de descanso completo que recupera toda la vida.
 final restZoneCampNode = CampSitePathNode(
   label: 'Zona de Descanso',
   tooltip: 'Recupera toda tu vida en un refugio seguro',
@@ -211,6 +223,7 @@ final restZoneCampNode = CampSitePathNode(
   recoveryFactor: 1,
 );
 
+/// Nodo de tratamiento parcial que cura y purga un debuff aleatorio.
 final severeMedicationCampNode = CampSitePathNode(
   label: 'Medicacion Severa',
   tooltip: 'Recupera 33% de tu vida maxima y elimina un debuff aleatorio',
@@ -226,47 +239,55 @@ final severeMedicationCampNode = CampSitePathNode(
   removeRandomDebuff: true,
 );
 
+/// Tiendas posibles durante el tramo diurno de la run.
 final List<ShopPathNode> dayShopNodes = List.unmodifiable([
   scrapArsenalNode,
   bulwarkWorkshopNode,
   luxuryRelicsNode,
 ]);
 
+/// Arquetipos mostrados siempre en la primera hora.
 final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
   velozArchetypeNode,
   inamovibleArchetypeNode,
   imparableArchetypeNode,
 ]);
 
+/// Eventos candidatos para el tramo diurno.
 final List<EventPathNode> dayEventNodes = List.unmodifiable([
   shadyTechnosurgeonNode,
   debtCollectionNode,
 ]);
 
+/// Tiendas posibles durante el tramo nocturno.
 final List<ShopPathNode> nightShopNodes = List.unmodifiable([
   afterHoursArsenalNode,
   velvetArmoryNode,
   luxuryRelicsNode,
 ]);
 
+/// Eventos candidatos para la noche, incluida la deuda si aplica.
 final List<EventPathNode> nightEventNodes = List.unmodifiable([
   afterHoursTechnosurgeonNode,
   shadyTechnosurgeonNode,
   debtCollectionNode,
 ]);
 
+/// Combates raros que pueden colarse de dia como amenaza extra.
 final List<CombatPathNode> rareDayCombatNodes = List.unmodifiable([
   grayCombatNode,
   greenCombatNode,
   blueCombatNode,
 ]);
 
+/// Combates fijos del anochecer que marcan el salto de fase.
 final List<CombatPathNode> duskCombatNodes = List.unmodifiable([
   greenCombatNode,
   blueCombatNode,
   greenCombatNode,
 ]);
 
+/// Combates posibles del tramo nocturno normal.
 final List<CombatPathNode> nightCombatNodes = List.unmodifiable([
   greenCombatNode,
   blueCombatNode,
@@ -274,6 +295,7 @@ final List<CombatPathNode> nightCombatNodes = List.unmodifiable([
   purpleCombatNode,
 ]);
 
+/// Pool final de amanecer con el combate de cierre de run.
 final List<CombatPathNode> sunriseCombatNodes = List.unmodifiable([
   yellowCombatNode,
 ]);

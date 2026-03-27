@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Arma gris sencilla para encuentros y tiendas de bajo nivel.
 const woodenStickItem = Item(
   id: ItemId.woodenStick,
   name: 'Palo',
@@ -12,6 +13,7 @@ const woodenStickItem = Item(
   },
 );
 
+/// Variante agil del arma basica usada por el arquetipo Veloz.
 const cyberWhipsItem = Item(
   id: ItemId.cyberWhips,
   name: 'Cyber Latigos',
@@ -24,6 +26,7 @@ const cyberWhipsItem = Item(
   },
 );
 
+/// Accesorio defensivo ligero que da un punto de defensa.
 const sunglassesItem = Item(
   id: ItemId.sunglasses,
   name: 'Gafas de Sol',
@@ -36,6 +39,7 @@ const sunglassesItem = Item(
   },
 );
 
+/// Soporte defensivo verde para builds de aguante.
 const shieldItem = Item(
   id: ItemId.shield,
   name: 'Escudo',
@@ -48,6 +52,7 @@ const shieldItem = Item(
   },
 );
 
+/// Accesorio verde que sube vida maxima y defensa a la vez.
 const bulwarkAmuletItem = Item(
   id: ItemId.bulwarkAmulet,
   name: 'Amuleto de Bastion',
@@ -61,6 +66,7 @@ const bulwarkAmuletItem = Item(
   },
 );
 
+/// Accesorio gris que acelera la primera habilidad manual de cada combate.
 const crackedBatteryItem = Item(
   id: ItemId.crackedBattery,
   name: 'Bateria Rajada',
@@ -73,6 +79,7 @@ const crackedBatteryItem = Item(
   effect: CrackedBatteryItemEffect(),
 );
 
+/// Arma gris que castiga a objetivos sin buffs activos.
 const impactGlovesItem = Item(
   id: ItemId.impactGloves,
   name: 'Guantes de Impacto',
@@ -87,6 +94,7 @@ const impactGlovesItem = Item(
   effect: ImpactGlovesItemEffect(),
 );
 
+/// Accesorio verde ofensivo que aplica Intoxicacion al atacar.
 const toxicCatalystItem = Item(
   id: ItemId.toxicCatalyst,
   name: 'Catalizador Toxico',
@@ -97,6 +105,7 @@ const toxicCatalystItem = Item(
   effect: IntoxicarOnAttackItemEffect(),
 );
 
+/// Accesorio verde ofensivo que aplica Quemadura al atacar.
 const emberCharmItem = Item(
   id: ItemId.emberCharm,
   name: 'Amuleto de Ascuas',
@@ -107,6 +116,7 @@ const emberCharmItem = Item(
   effect: QuemaduraOnAttackItemEffect(),
 );
 
+/// Accesorio verde defensivo contra Quemadura e Intoxicacion.
 const chemicalFilterItem = Item(
   id: ItemId.chemicalFilter,
   name: 'Filtro Quimico',
@@ -118,6 +128,7 @@ const chemicalFilterItem = Item(
   effect: ChemicalFilterItemEffect(),
 );
 
+/// Soporte verde que cambia vida maxima por income adicional.
 const billingModuleItem = Item(
   id: ItemId.billingModule,
   name: 'Modulo de Cobro',
@@ -132,6 +143,7 @@ const billingModuleItem = Item(
   effect: BillingModuleItemEffect(),
 );
 
+/// Arma verde de ataque alto para la progresion temprana.
 const ironSwordItem = Item(
   id: ItemId.ironSword,
   name: 'Espada de Hierro',
@@ -144,6 +156,7 @@ const ironSwordItem = Item(
   },
 );
 
+/// Soporte verde defensivo para enemigos y tienda.
 const guardShieldItem = Item(
   id: ItemId.guardShield,
   name: 'Escudo de Guardia',
@@ -156,6 +169,7 @@ const guardShieldItem = Item(
   },
 );
 
+/// Soporte azul reactivo que devuelve Quemadura al recibir golpes.
 const reactiveCasingItem = Item(
   id: ItemId.reactiveCasing,
   name: 'Coraza Reactiva',
@@ -166,6 +180,7 @@ const reactiveCasingItem = Item(
   effect: QuemaduraOnHitReceivedItemEffect(),
 );
 
+/// Blindaje azul de defensa plana alta.
 const platedJacketItem = Item(
   id: ItemId.platedJacket,
   name: 'Chaqueta Blindada',
@@ -178,6 +193,7 @@ const platedJacketItem = Item(
   },
 );
 
+/// Arma amarilla de dano alto para el tramo final.
 const sunsteelBladeItem = Item(
   id: ItemId.sunsteelBlade,
   name: 'Filo Solar',
@@ -190,6 +206,7 @@ const sunsteelBladeItem = Item(
   },
 );
 
+/// Accesorio amarillo centrado en vida maxima.
 const dawnCharmItem = Item(
   id: ItemId.dawnCharm,
   name: 'Amuleto del Alba',
@@ -202,6 +219,7 @@ const dawnCharmItem = Item(
   },
 );
 
+/// Soporte morado defensivo simple y consistente.
 const midnightCloakItem = Item(
   id: ItemId.midnightCloak,
   name: 'Capa de Medianoche',
@@ -214,6 +232,7 @@ const midnightCloakItem = Item(
   },
 );
 
+/// Soporte morado que potencia Quemaduras y las devuelve al portador cada turno.
 const portableOvenItem = Item(
   id: ItemId.portableOven,
   name: 'Horno Portatil',
@@ -225,6 +244,7 @@ const portableOvenItem = Item(
   effect: PortableOvenItemEffect(),
 );
 
+/// Accesorio morado que cura al entrar habilidades en cooldown.
 const parasiticCapacitorItem = Item(
   id: ItemId.parasiticCapacitor,
   name: 'Capacitador Parasitario',
@@ -240,6 +260,7 @@ const parasiticCapacitorItem = Item(
   effect: ParasiticCapacitorItemEffect(),
 );
 
+/// Accesorio morado mixto de ataque y vida maxima.
 const voidInjectorItem = Item(
   id: ItemId.voidInjector,
   name: 'Inyector del Vacio',
@@ -253,6 +274,7 @@ const voidInjectorItem = Item(
   },
 );
 
+/// Soporte amarillo que potencia la primera activacion manual del combate.
 const eclipseMantleItem = Item(
   id: ItemId.eclipseMantle,
   name: 'Manto de Eclipse',
@@ -268,6 +290,7 @@ const eclipseMantleItem = Item(
   effect: EclipseMantleItemEffect(),
 );
 
+/// Accesorio amarillo que evita una muerte por combate y reinicia habilidades.
 const operativeBlackBoxItem = Item(
   id: ItemId.operativeBlackBox,
   name: 'Caja Negra del Operativo',
@@ -279,6 +302,7 @@ const operativeBlackBoxItem = Item(
   effect: OperativeBlackBoxItemEffect(),
 );
 
+/// Pool maestro de objetos ofrecidos por tiendas y recompensas.
 const itemPresets = <Item>[
   crackedBatteryItem,
   impactGlovesItem,

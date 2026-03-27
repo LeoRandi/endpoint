@@ -1,6 +1,7 @@
-import '_imports.dart';
+import '../_imports.dart';
 import '../../services/run_randomizer.dart';
 
+/// Enumera las stats base y derivadas que puede consultar un battler.
 enum BattlerStat {
   health,
   attack,
@@ -10,6 +11,7 @@ enum BattlerStat {
   vampirism,
 }
 
+/// Representa el estado completo de un combatiente, incluyendo economia, equipo y hooks runtime.
 class Battler {
   static const combatActiveFlag = 'combat_active';
   static const manualAbilityActivatedThisTurnFlag =
@@ -27,6 +29,7 @@ class Battler {
   final List<Item> equippedItems;
   final Set<String> combatFlags;
 
+  /// Crea un battler inmutable listo para combate, ruta o persistencia.
   const Battler({
     required this.name,
     this.iconEmoji = '\u{1F916}',
@@ -42,61 +45,43 @@ class Battler {
   })  : baseIncome = income,
         assert(health >= 0);
 
-  Battler.legacy({
-    required String name,
-    String iconEmoji = '\u{1F916}',
-    required int attack,
-    required int defense,
-    required int health,
-    int? maxHealth,
-    int money = 0,
-    int income = 0,
-    List<Object> abilities = const [],
-    List<BattlerStatus> statuses = const [],
-    List<Item> inventoryItems = const [],
-    List<Item> equippedItems = const [],
-    Set<String> combatFlags = const <String>{},
-  }) : this(
-          name: name,
-          iconEmoji: iconEmoji,
-          health: health,
-          money: money,
-          income: income,
-          baseStats: {
-            BattlerStat.health: maxHealth ?? health,
-            BattlerStat.attack: attack,
-            BattlerStat.defense: defense,
-            BattlerStat.thorns: 0,
-            BattlerStat.damageReduction: 0,
-            BattlerStat.vampirism: 0,
-          },
-          abilities: List<BattlerAbility>.unmodifiable(
-            abilities.map(BattlerAbility.fromLegacy),
-          ),
-          statuses: List<BattlerStatus>.unmodifiable(statuses),
-          inventoryItems: inventoryItems,
-          equippedItems: equippedItems,
-          combatFlags: combatFlags,
-        );
-
+  /// Devuelve la vida maxima base sin modificadores de equipo ni estados.
   int get baseMaxHealth => baseStat(BattlerStat.health);
+
+  /// Devuelve la vida maxima ya calculada con equipo y estados.
   int get maxHealth => calculatedStat(BattlerStat.health);
 
+  /// Devuelve el ataque base sin modificadores de equipo ni estados.
   int get baseAttack => baseStat(BattlerStat.attack);
+
+  /// Devuelve el ataque ya calculado con equipo y estados.
   int get attack => calculatedStat(BattlerStat.attack);
 
+  /// Devuelve la defensa base sin modificadores de equipo ni estados.
   int get baseDefense => baseStat(BattlerStat.defense);
+
+  /// Devuelve la defensa ya calculada con equipo y estados.
   int get defense => calculatedStat(BattlerStat.defense);
 
+  /// Devuelve el thorns base sin modificadores de equipo ni estados.
   int get baseThorns => baseStat(BattlerStat.thorns);
+
+  /// Devuelve el thorns ya calculado con equipo y estados.
   int get thorns => calculatedStat(BattlerStat.thorns);
 
+  /// Devuelve la reduccion de dano base sin modificadores de equipo ni estados.
   int get baseDamageReduction => baseStat(BattlerStat.damageReduction);
+
+  /// Devuelve la reduccion de dano ya calculada con equipo y estados.
   int get damageReduction => calculatedStat(BattlerStat.damageReduction);
 
+  /// Devuelve el vampirismo base sin modificadores de equipo ni estados.
   int get baseVampirism => baseStat(BattlerStat.vampirism);
+
+  /// Devuelve el vampirismo ya calculado con equipo y estados.
   int get vampirism => calculatedStat(BattlerStat.vampirism);
 
+  /// Calcula el income efectivo tras aplicar equipo y estados que lo alteran.
   int get income {
     var updatedIncome = _calculateIncome(
       baseIncome: baseIncome,
@@ -114,31 +99,43 @@ class Battler {
     return max(0, updatedIncome);
   }
 
+  /// Indica si este battler ya no tiene vida.
   bool get isDefeated => health <= 0;
 
+  /// Comprueba si el battler posee exactamente esa instancia de item.
   bool ownsItem(Item item) {
     return inventoryItems.contains(item) || equippedItems.contains(item);
   }
 
+  /// Comprueba si el battler posee algun item de ese tipo, equipado o en inventario.
   bool ownsItemOfType(ItemId itemId) {
     return inventoryItemOfType(itemId) != null ||
         equippedItemOfType(itemId) != null;
   }
 
+  /// Comprueba si el battler ya tiene una habilidad con ese id.
   bool hasAbility(BattlerAbility ability) {
     return abilityById(ability.id) != null;
   }
 
+  /// Indica si el battler tiene al menos una habilidad.
   bool get hasAbilities => abilities.isNotEmpty;
+
+  /// Indica si el battler tiene al menos un estado activo.
   bool get hasStatuses => statuses.isNotEmpty;
+
+  /// Indica si hay algun item equipado con hooks de efecto.
   bool get hasItemEffects => equippedItems.any((item) => item.effect != null);
 
+  /// Comprueba si una flag de combate concreta sigue activa.
   bool hasCombatFlag(String flag) => combatFlags.contains(flag);
 
+  /// Devuelve el valor base de una stat sin aplicar ningun modificador.
   int baseStat(BattlerStat stat) {
     return baseStats[stat] ?? 0;
   }
 
+  /// Busca el primer estado activo con el id indicado.
   BattlerStatus? statusById(String statusId) {
     for (final status in statuses) {
       if (status.id == statusId) return status;
@@ -146,12 +143,14 @@ class Battler {
     return null;
   }
 
+  /// Devuelve todas las instancias activas que comparten un mismo id de estado.
   List<BattlerStatus> statusesById(String statusId) {
     return statuses
         .where((status) => status.id == statusId)
         .toList(growable: false);
   }
 
+  /// Busca la habilidad activa con el id indicado.
   BattlerAbility? abilityById(BattlerAbilityId abilityId) {
     for (final ability in abilities) {
       if (ability.id == abilityId) return ability;
@@ -159,10 +158,12 @@ class Battler {
     return null;
   }
 
+  /// Comprueba si existe al menos una instancia del estado indicado.
   bool hasStatus(String statusId) {
     return statusById(statusId) != null;
   }
 
+  /// Calcula una stat final aplicando equipo y despues modificadores de estados.
   int calculatedStat(BattlerStat stat) {
     var updatedValue = _calculateStat(
       baseStats: baseStats,
@@ -182,6 +183,7 @@ class Battler {
     return max(0, updatedValue);
   }
 
+  /// Calcula el dano base de un ataque directo usando ataque menos defensa.
   int calculateDamageAgainst(Battler target) {
     // TODO: Apply thorns, damage reduction, and vampirism when their combat rules are defined.
     return max(
@@ -191,6 +193,7 @@ class Battler {
     );
   }
 
+  /// Recibe un ataque basico de otro battler y resuelve dano directo.
   Battler receiveAttack(Battler attacker) {
     return receiveDirectDamage(
       attacker.calculateDamageAgainst(this),
@@ -198,6 +201,7 @@ class Battler {
     );
   }
 
+  /// Resta vida directa, dispara protecciones letales y nunca deja vida negativa.
   Battler receiveDamage(int damage) {
     final safeDamage = max(0, damage);
     if (safeDamage <= 0) return this;
@@ -212,6 +216,7 @@ class Battler {
     );
   }
 
+  /// Procesa un impacto directo con hooks defensivos antes de restar vida.
   Battler receiveDirectDamage(
     int damage, {
     required Battler source,
@@ -224,6 +229,7 @@ class Battler {
     return resolution.owner.receiveDamage(resolution.damage);
   }
 
+  /// Procesa dano de debuff con hooks defensivos antes de restar vida.
   Battler receiveDebuffDamage(
     int damage, {
     required Battler source,
@@ -236,11 +242,13 @@ class Battler {
     return resolution.owner.receiveDamage(resolution.damage);
   }
 
+  /// Cura vida sin superar la vida maxima calculada actual.
   Battler heal(int amount) {
     final safeAmount = max(0, amount);
     return copyWith(health: min(maxHealth, health + safeAmount));
   }
 
+  /// Aplica un estado nuevo pasando por modificadores de equipo, stacking y reemplazos.
   Battler applyStatus(
     BattlerStatus status, {
     Battler? source,
@@ -312,6 +320,7 @@ class Battler {
         ._removeExpiredStatuses();
   }
 
+  /// Elimina todas las instancias del estado indicado.
   Battler removeStatus(String statusId) {
     if (!hasStatus(statusId)) return this;
 
@@ -322,6 +331,7 @@ class Battler {
         statuses: List<BattlerStatus>.unmodifiable(updatedStatuses));
   }
 
+  /// Elimina una instancia concreta de estado comparando referencia o valores runtime.
   Battler removeStatusInstance(BattlerStatus status) {
     final updatedStatuses = List<BattlerStatus>.from(statuses);
     final matchingIndex = updatedStatuses.indexWhere(
@@ -340,6 +350,7 @@ class Battler {
     );
   }
 
+  /// Sustituye una instancia concreta de estado por otra ya resuelta.
   Battler replaceStatusInstance({
     required BattlerStatus currentStatus,
     required BattlerStatus replacement,
@@ -361,6 +372,7 @@ class Battler {
     );
   }
 
+  /// Reduce en uno la duracion de todos los estados temporales y limpia los caducados.
   Battler decrementStatusDurations() {
     if (statuses.isEmpty) return this;
 
@@ -376,6 +388,7 @@ class Battler {
         statuses: List<BattlerStatus>.unmodifiable(updatedStatuses));
   }
 
+  /// Hace avanzar el cooldown de las habilidades al inicio del turno propio.
   Battler progressAbilityCooldownsOnTurnStart({
     required bool isOwnerTurn,
   }) {
@@ -388,6 +401,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta todos los hooks de inicio de turno de los estados activos.
   Battler applyStatusTurnStart({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -411,6 +425,7 @@ class Battler {
     return updatedOwner._removeExpiredStatuses();
   }
 
+  /// Ejecuta todos los hooks de inicio de turno de las habilidades activas.
   BattlerAbilityEffectResolution applyAbilityTurnStartEffects({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -453,6 +468,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta todos los hooks de final de turno de los estados activos.
   Battler applyStatusTurnEnd({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -476,6 +492,7 @@ class Battler {
     return updatedOwner._removeExpiredStatuses();
   }
 
+  /// Ejecuta todos los hooks de final de turno de las habilidades activas.
   BattlerAbilityEffectResolution applyAbilityTurnEndEffects({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -518,6 +535,7 @@ class Battler {
     );
   }
 
+  /// Aplica a un dano saliente todos los modificadores provenientes de estados.
   int applyOutgoingDamageModifiers({
     required Battler target,
     required int damage,
@@ -536,6 +554,7 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  /// Aplica a un dano saliente todos los modificadores de items equipados.
   int applyEquippedItemOutgoingDamageModifiers({
     required Battler target,
     required int damage,
@@ -557,6 +576,7 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  /// Permite a los items equipados alterar o cancelar un estado que se va a aplicar.
   BattlerStatus? applyEquippedItemOutgoingStatusModifiers({
     required Battler target,
     required BattlerStatus status,
@@ -578,6 +598,7 @@ class Battler {
     return updatedStatus;
   }
 
+  /// Aplica a un dano saliente todos los modificadores provenientes de habilidades.
   int applyAbilityOutgoingDamageModifiers({
     required Battler target,
     required int damage,
@@ -599,6 +620,7 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  /// Aplica a un dano entrante todos los modificadores provenientes de estados.
   int applyIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -617,6 +639,7 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  /// Ejecuta hooks defensivos complejos de estados sobre un dano entrante.
   BattlerIncomingDamageResolution applyIncomingDamageEffects({
     required Battler source,
     required int damage,
@@ -656,6 +679,7 @@ class Battler {
     );
   }
 
+  /// Aplica a un dano entrante todos los modificadores de items equipados.
   int applyEquippedItemIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -677,6 +701,7 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  /// Permite a los items equipados alterar o cancelar un estado recibido.
   BattlerStatus? applyEquippedItemIncomingStatusModifiers({
     required Battler source,
     required BattlerStatus status,
@@ -698,6 +723,7 @@ class Battler {
     return updatedStatus;
   }
 
+  /// Aplica a un dano entrante todos los modificadores provenientes de habilidades.
   int applyAbilityIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -719,6 +745,7 @@ class Battler {
     return max(0, updatedDamage);
   }
 
+  /// Ejecuta efectos de estados que reaccionan despues de que el portador ataque.
   Battler applyAttackResolvedEffects({
     required Battler target,
     required int damageDealt,
@@ -740,6 +767,7 @@ class Battler {
     return updatedOwner._removeExpiredStatuses();
   }
 
+  /// Ejecuta efectos de items equipados que reaccionan despues de atacar.
   ItemEffectResolution applyEquippedItemAttackResolvedEffects({
     required Battler target,
     required int damageDealt,
@@ -767,6 +795,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta efectos de habilidades que reaccionan despues de atacar.
   BattlerAbilityEffectResolution applyAbilityAttackResolvedEffects({
     required Battler target,
     required int damageDealt,
@@ -809,6 +838,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta efectos de estados que reaccionan despues de recibir dano.
   Battler applyReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
@@ -830,6 +860,7 @@ class Battler {
     return updatedOwner._removeExpiredStatuses();
   }
 
+  /// Ejecuta efectos de items equipados que reaccionan despues de recibir dano.
   ItemEffectResolution applyEquippedItemReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
@@ -857,6 +888,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta efectos de habilidades que reaccionan despues de recibir dano.
   BattlerAbilityEffectResolution applyAbilityReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
@@ -899,6 +931,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta efectos de inicio de turno para todos los items equipados.
   ItemEffectResolution applyEquippedItemTurnStartEffects({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -926,6 +959,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta efectos de final de turno para todos los items equipados.
   ItemEffectResolution applyEquippedItemTurnEndEffects({
     required Battler opponent,
     required bool isOwnerTurn,
@@ -953,6 +987,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta efectos pasivos de todos los items equipados.
   ItemEffectResolution applyEquippedItemPassiveEffects({
     required Battler opponent,
   }) {
@@ -978,6 +1013,7 @@ class Battler {
     );
   }
 
+  /// Permite que los items modifiquen una habilidad justo antes de activarla manualmente.
   ItemAbilityPreparationResolution applyEquippedItemManualAbilityPreparation({
     required Battler opponent,
     required BattlerAbility ability,
@@ -1012,6 +1048,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta reacciones de items cuando una habilidad ya se ha resuelto.
   ItemEffectResolution applyEquippedItemAbilityResolvedEffects({
     required Battler opponent,
     required BattlerAbility previousAbility,
@@ -1044,6 +1081,7 @@ class Battler {
     );
   }
 
+  /// Ejecuta todos los efectos pasivos de habilidades activas o presentes.
   BattlerAbilityEffectResolution applyAbilityPassiveEffects({
     required Battler opponent,
   }) {
@@ -1075,6 +1113,7 @@ class Battler {
     );
   }
 
+  /// Permite a los items equipados interceptar un golpe letal antes de morir.
   Battler applyEquippedItemFatalDamageEffects({
     required int incomingDamage,
   }) {
@@ -1097,17 +1136,21 @@ class Battler {
     return updatedOwner._removeExpiredStatuses();
   }
 
+  /// Comprueba si el battler tiene dinero suficiente para pagar una cantidad.
   bool canAfford(int amount) => money >= amount;
 
+  /// Suma dinero sin permitir cantidades negativas.
   Battler earnMoney(int amount) {
     return copyWith(money: money + max(0, amount));
   }
 
+  /// Resta dinero sin permitir que el total baje de cero.
   Battler spendMoney(int amount) {
     final safeAmount = max(0, amount);
     return copyWith(money: max(0, money - safeAmount));
   }
 
+  /// Anade una habilidad nueva o mejora la existente si admite upgrade.
   Battler addAbility(BattlerAbility ability) {
     final existingIndex = abilities.indexWhere(
       (activeAbility) => activeAbility.id == ability.id,
@@ -1130,6 +1173,7 @@ class Battler {
     );
   }
 
+  /// Sustituye la version activa de una habilidad por la recibida.
   Battler updateAbility(BattlerAbility ability) {
     final updatedAbilities = List<BattlerAbility>.from(abilities);
     final existingIndex = updatedAbilities.indexWhere(
@@ -1143,6 +1187,7 @@ class Battler {
     );
   }
 
+  /// Resetea solo las habilidades manuales que pertenecen al contexto indicado.
   Battler resetAbilitiesForContext(
     BattlerAbilityActivationContext screenContext,
   ) {
@@ -1159,6 +1204,7 @@ class Battler {
     );
   }
 
+  /// Resetea por completo el estado runtime de todas las habilidades.
   Battler resetAllAbilities() {
     if (abilities.isEmpty) return this;
 
@@ -1169,6 +1215,7 @@ class Battler {
     );
   }
 
+  /// Activa o desactiva una habilidad manual y resuelve sus hooks asociados.
   BattlerAbilityEffectResolution toggleAbilityActivation({
     required BattlerAbilityId abilityId,
     required BattlerAbilityActivationContext screenContext,
@@ -1262,6 +1309,7 @@ class Battler {
     );
   }
 
+  /// Anade un item nuevo o mejora la copia ya poseida si admite upgrades.
   Battler addItem(Item item) {
     final ownedEquippedItem = equippedItemOfType(item.id);
     if (ownedEquippedItem != null && ownedEquippedItem.upgradeValue > 0) {
@@ -1291,6 +1339,7 @@ class Battler {
     );
   }
 
+  /// Elimina un item del battler, desequipandolo antes si hace falta.
   Battler removeItem(Item item) {
     if (equippedItems.contains(item)) {
       return unequipItem(item).removeItem(item);
@@ -1303,6 +1352,7 @@ class Battler {
     );
   }
 
+  /// Devuelve el item equipado que ocupa un slot concreto, si existe.
   Item? equippedItemForSlot(ItemSlot slot) {
     for (final item in equippedItems) {
       if (item.slot == slot) return item;
@@ -1310,6 +1360,7 @@ class Battler {
     return null;
   }
 
+  /// Busca en inventario el primer item de un tipo concreto.
   Item? inventoryItemOfType(ItemId itemId) {
     for (final item in inventoryItems) {
       if (item.id == itemId) return item;
@@ -1317,6 +1368,7 @@ class Battler {
     return null;
   }
 
+  /// Busca entre los items equipados el primero de un tipo concreto.
   Item? equippedItemOfType(ItemId itemId) {
     for (final item in equippedItems) {
       if (item.id == itemId) return item;
@@ -1324,6 +1376,7 @@ class Battler {
     return null;
   }
 
+  /// Convierte todos los items poseidos en instancias propias para poder diferenciarlos.
   Battler materializeOwnedItems() {
     final hasOnlyInstancedItems =
         inventoryItems.every((item) => item.isInstanced) &&
@@ -1340,6 +1393,7 @@ class Battler {
     );
   }
 
+  /// Equipa un item del inventario y libera el slot anterior si estaba ocupado.
   Battler equipItem(Item item) {
     if (!item.isEquippable) return this;
     if (!inventoryItems.contains(item)) return this;
@@ -1362,6 +1416,7 @@ class Battler {
     );
   }
 
+  /// Devuelve un item equipado al inventario sin alterar el resto del equipo.
   Battler unequipItem(Item item) {
     if (!equippedItems.contains(item)) return this;
 
@@ -1374,6 +1429,7 @@ class Battler {
     );
   }
 
+  /// Anade una flag de combate sin duplicarla.
   Battler addCombatFlag(String flag) {
     if (combatFlags.contains(flag)) return this;
 
@@ -1385,6 +1441,7 @@ class Battler {
     );
   }
 
+  /// Elimina una flag de combate concreta si estaba activa.
   Battler removeCombatFlag(String flag) {
     if (!combatFlags.contains(flag)) return this;
 
@@ -1394,12 +1451,14 @@ class Battler {
     );
   }
 
+  /// Limpia todas las flags temporales de combate.
   Battler clearCombatFlags() {
     if (combatFlags.isEmpty) return this;
 
     return copyWith(combatFlags: const <String>{});
   }
 
+  /// Elimina todos los estados que no deben sobrevivir fuera del combate.
   Battler clearCombatStatuses() {
     if (statuses.every((status) => status.persistsOutsideCombat)) {
       return this;
@@ -1414,6 +1473,7 @@ class Battler {
     );
   }
 
+  /// Devuelve el primer motivo por el que una activacion manual esta bloqueada.
   String? manualAbilityActivationBlockReason(
     BattlerAbilityActivationContext screenContext,
   ) {
@@ -1431,12 +1491,14 @@ class Battler {
     return null;
   }
 
+  /// Indica si puede activarse una habilidad manual en este contexto.
   bool canActivateManualAbilities(
     BattlerAbilityActivationContext screenContext,
   ) {
     return manualAbilityActivationBlockReason(screenContext) == null;
   }
 
+  /// Clona el battler cambiando cualquier parte de su estado y limitando la vida al maximo actual.
   Battler copyWith({
     String? name,
     String? iconEmoji,
@@ -1488,6 +1550,7 @@ class Battler {
     );
   }
 
+  /// Elimina automaticamente las instancias de estado que ya han caducado.
   Battler _removeExpiredStatuses() {
     if (statuses.every((status) => !status.isExpired)) return this;
 
@@ -1496,6 +1559,7 @@ class Battler {
     return copyWith(statuses: List<BattlerStatus>.unmodifiable(activeStatuses));
   }
 
+  /// Calcula una stat base aplicando bonus planos y el modificador porcentual de vida maxima.
   static int _calculateStat({
     required Map<BattlerStat, int> baseStats,
     required List<Item> equippedItems,
@@ -1525,6 +1589,7 @@ class Battler {
     );
   }
 
+  /// Calcula el income base mas los bonus planos aportados por el equipo.
   static int _calculateIncome({
     required int baseIncome,
     required List<Item> equippedItems,

@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Define una tienda de ruta con su catalogo y el multiplicador de precios aplicado.
 class ShopPathNode extends PathNode {
   final String showTitle;
   final String shopTitle;
@@ -7,6 +8,7 @@ class ShopPathNode extends PathNode {
   final List<Item> catalog;
   final double priceMultiplier;
 
+  /// Crea una tienda concreta con su catalogo y multiplicador de precio.
   ShopPathNode({
     required String label,
     required String tooltip,
@@ -30,6 +32,7 @@ class ShopPathNode extends PathNode {
           badgeLabel: badgeLabel,
         );
 
+  /// Clona el nodo cambiando solo el multiplicador para variantes premium o rebajadas.
   ShopPathNode withPriceMultiplier(double multiplier) {
     return ShopPathNode(
       label: label,

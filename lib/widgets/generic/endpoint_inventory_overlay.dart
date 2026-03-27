@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 const _inventoryTileExtent = 70.0;
 const _inventoryTileHeight = 84.0;

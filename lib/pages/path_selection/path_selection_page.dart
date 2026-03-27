@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 import '../../coordinators/run_node_flow_coordinator.dart';
 
 class PathSelectionPage extends StatefulWidget {

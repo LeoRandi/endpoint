@@ -4,6 +4,7 @@ TODOs:
 --Barra de fase de día no está alineada verticalmente con los iconos en el stack
 
 -Sistema de acompañantes
+--Implementar
 --Añadir al loot posibilidad de conseguir al acompañante
 --Manejar su inventario
 
@@ -30,7 +31,7 @@ TODOs:
 --Crear más tiendas diferenciadas(después de añadir los Items)
 
 -Eventos
---Crear más eventos, al menos 10-15
+--Crear más eventos, al menos 15[1/15]
 --implementar los efectos de cada uno
 
 -Enemigos

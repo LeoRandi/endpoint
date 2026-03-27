@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Describe un arquetipo inicial que altera stats, economia, items y habilidades del jugador.
 class ArchetypePathNode extends PathNode {
   final String playerIconEmoji;
   final List<Item> startingItems;
@@ -8,6 +9,7 @@ class ArchetypePathNode extends PathNode {
   final int moneyModifier;
   final int incomeModifier;
 
+  /// Crea un arquetipo inicial con sus bonus base y el loadout que entrega.
   ArchetypePathNode({
     required String label,
     required String tooltip,
@@ -34,6 +36,7 @@ class ArchetypePathNode extends PathNode {
           hasSignatureBorder: true,
         );
 
+  /// Aplica el arquetipo al jugador manteniendo su estado previo y sumando el loadout inicial.
   Battler applyTo(Battler player) {
     final updatedBaseStats = Map<BattlerStat, int>.from(player.baseStats);
 

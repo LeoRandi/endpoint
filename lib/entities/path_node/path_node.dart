@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Resume los tipos de escena que puede ofrecer un nodo de ruta.
 enum PathNodeType {
   archetype,
   encounter,
@@ -8,6 +9,7 @@ enum PathNodeType {
   event,
 }
 
+/// Modelo base de un nodo visible en la seleccion de ruta.
 class PathNode {
   final PathNodeType type;
   final String label;
@@ -17,8 +19,11 @@ class PathNode {
   final Color accent;
   final String badgeLabel;
   final bool hasSignatureBorder;
+
+  /// Devuelve el peso de aparicion del nodo a partir de su rareza.
   double get rollWeight => rarity.rollWeight;
 
+  /// Construye la forma mas generica de un nodo sin imponer un subtipo concreto.
   const PathNode.base({
     required this.type,
     required this.label,
@@ -30,6 +35,7 @@ class PathNode {
     this.hasSignatureBorder = false,
   });
 
+  /// Construye un nodo simple de tienda reutilizable en tests y casos ligeros.
   const PathNode.shop({
     String label = 'Tienda',
     String tooltip = 'Tienda de armas',
@@ -48,22 +54,7 @@ class PathNode {
           hasSignatureBorder: false,
         );
 
-  const PathNode.weaponShop({
-    String label = 'Tienda',
-    String tooltip = 'Tienda de armas',
-    String iconEmoji = '\u{2694}',
-    RarityTier rarity = RarityTier.gray,
-    Color accent = const Color(0xFF9EA7B3),
-    String badgeLabel = 'TIENDA',
-  }) : this.shop(
-          label: label,
-          tooltip: tooltip,
-          iconEmoji: iconEmoji,
-          rarity: rarity,
-          accent: accent,
-          badgeLabel: badgeLabel,
-        );
-
+  /// Construye un nodo simple de descanso reutilizable en tests y previews.
   const PathNode.campSite({
     String label = 'Zona de Descanso',
     String tooltip = 'Recupera toda tu vida',

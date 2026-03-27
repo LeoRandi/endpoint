@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});

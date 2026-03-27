@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 const _fontFamilyBody = 'Exo2';
 const _fontFamilyDisplay = 'Pixeboy';

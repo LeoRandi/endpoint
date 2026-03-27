@@ -7,6 +7,7 @@ import 'package:endpoint/main.dart';
 import 'package:endpoint/pages/battle/battle_page.dart';
 import 'package:endpoint/pages/path_selection/path_selection_page.dart';
 import 'package:endpoint/widgets/path/path_node_card.dart';
+import 'test_battler_factory.dart';
 
 void main() {
   testWidgets('main menu renders title and actions',
@@ -56,7 +57,7 @@ void main() {
         home: PathSelectionPage(
           availableNodes: [
             CombatPathNode(
-              enemy: Battler.legacy(
+              enemy: buildTestBattler(
                 name: 'Enemy',
                 attack: 4,
                 defense: 1,
@@ -90,7 +91,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: PathSelectionPage(
-          player: Battler.legacy(
+          player: buildTestBattler(
             name: 'Player',
             attack: 3,
             defense: 1,
@@ -129,13 +130,13 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: BattlePage(
-          enemy: Battler.legacy(
+          enemy: buildTestBattler(
             name: 'Enemy',
             attack: 6,
             defense: 5,
             health: 12,
           ),
-          player: Battler.legacy(
+          player: buildTestBattler(
             name: 'Player',
             attack: 9,
             defense: 4,
@@ -178,7 +179,7 @@ void main() {
                         builder: (_) => PathSelectionPage(
                           availableNodes: [
                             CombatPathNode(
-                              enemy: Battler.legacy(
+                              enemy: buildTestBattler(
                                 name: 'Enemy',
                                 attack: 4,
                                 defense: 1,
@@ -222,7 +223,7 @@ void main() {
       const MaterialApp(
         home: PathSelectionPage(
           availableNodes: [
-            PathNode.weaponShop(),
+            PathNode.shop(),
           ],
         ),
       ),
@@ -294,13 +295,13 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: BattlePage(
-          enemy: Battler.legacy(
+          enemy: buildTestBattler(
             name: 'Enemy',
             attack: 5,
             defense: 1,
             health: 10,
           ),
-          player: Battler.legacy(
+          player: buildTestBattler(
             name: 'Player',
             attack: 4,
             defense: 2,
@@ -341,13 +342,13 @@ void main() {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => BattlePage(
-                          enemy: Battler.legacy(
+                          enemy: buildTestBattler(
                             name: 'Enemy',
                             attack: 1,
                             defense: 0,
                             health: 1,
                           ),
-                          player: Battler.legacy(
+                          player: buildTestBattler(
                             name: 'Player',
                             attack: 1,
                             defense: 0,
@@ -388,7 +389,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: PathSelectionPage(
-          player: Battler.legacy(
+          player: buildTestBattler(
             name: 'Player',
             attack: 3,
             defense: 0,
@@ -396,7 +397,7 @@ void main() {
           ),
           availableNodes: [
             CombatPathNode(
-              enemy: Battler.legacy(
+              enemy: buildTestBattler(
                 name: 'Enemy',
                 attack: 2,
                 defense: 0,
@@ -447,7 +448,7 @@ void main() {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => PathSelectionPage(
-                          player: Battler.legacy(
+                          player: buildTestBattler(
                             name: 'Player',
                             attack: 1,
                             defense: 0,
@@ -455,7 +456,7 @@ void main() {
                           ),
                           availableNodes: [
                             CombatPathNode(
-                              enemy: Battler.legacy(
+                              enemy: buildTestBattler(
                                 name: 'Enemy',
                                 attack: 4,
                                 defense: 0,
@@ -465,7 +466,7 @@ void main() {
                               label: 'Enemy',
                             ),
                             CombatPathNode(
-                              enemy: Battler.legacy(
+                              enemy: buildTestBattler(
                                 name: 'Enemy',
                                 attack: 4,
                                 defense: 0,
@@ -475,7 +476,7 @@ void main() {
                               label: 'Enemy',
                             ),
                             CombatPathNode(
-                              enemy: Battler.legacy(
+                              enemy: buildTestBattler(
                                 name: 'Enemy',
                                 attack: 4,
                                 defense: 0,

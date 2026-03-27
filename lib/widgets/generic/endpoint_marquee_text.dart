@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 class EndpointMarqueeText extends StatefulWidget {
   final String data;

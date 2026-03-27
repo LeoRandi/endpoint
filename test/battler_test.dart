@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:endpoint/entities/_exports.dart';
 import 'package:endpoint/services/_exports.dart';
+import 'test_battler_factory.dart';
 
 void main() {
   test('default player starts without altered statuses', () {
@@ -9,19 +10,19 @@ void main() {
   });
 
   test('calculateDamageAgainst uses attack and defense with minimum 1', () {
-    final attacker = Battler.legacy(
+    final attacker = buildTestBattler(
       name: 'Attacker',
       attack: 8,
       defense: 2,
       health: 10,
     );
-    final target = Battler.legacy(
+    final target = buildTestBattler(
       name: 'Target',
       attack: 4,
       defense: 5,
       health: 10,
     );
-    final tank = Battler.legacy(
+    final tank = buildTestBattler(
       name: 'Tank',
       attack: 3,
       defense: 20,
@@ -33,13 +34,13 @@ void main() {
   });
 
   test('receiveAttack reduces health without going below zero', () {
-    final attacker = Battler.legacy(
+    final attacker = buildTestBattler(
       name: 'Attacker',
       attack: 12,
       defense: 1,
       health: 10,
     );
-    final target = Battler.legacy(
+    final target = buildTestBattler(
       name: 'Target',
       attack: 4,
       defense: 2,
@@ -53,7 +54,7 @@ void main() {
   });
 
   test('heal restores health without exceeding max health', () {
-    final battler = Battler.legacy(
+    final battler = buildTestBattler(
       name: 'Operative',
       attack: 6,
       defense: 3,
@@ -69,7 +70,7 @@ void main() {
   });
 
   test('addItem accepts duplicate item types as separate owned instances', () {
-    final battler = Battler.legacy(
+    final battler = buildTestBattler(
       name: 'Operative',
       attack: 6,
       defense: 3,
@@ -87,14 +88,14 @@ void main() {
   });
 
   test('calentando adds increasing bonus damage as turns are spent', () {
-    var attacker = Battler.legacy(
+    var attacker = buildTestBattler(
       name: 'Operative',
       attack: 8,
       defense: 2,
       health: 10,
       statuses: const [CalentandoStatus()],
     );
-    final target = Battler.legacy(
+    final target = buildTestBattler(
       name: 'Target',
       attack: 4,
       defense: 5,
@@ -122,13 +123,13 @@ void main() {
 
   test('quemadura deals remaining turns as end turn damage ignoring defense',
       () {
-    final enemy = Battler.legacy(
+    final enemy = buildTestBattler(
       name: 'Enemy',
       attack: 1,
       defense: 0,
       health: 10,
     );
-    var owner = Battler.legacy(
+    var owner = buildTestBattler(
       name: 'Operative',
       attack: 5,
       defense: 99,
@@ -149,7 +150,7 @@ void main() {
   });
 
   test('quemadura can stack as separate statuses', () {
-    final battler = Battler.legacy(
+    final battler = buildTestBattler(
       name: 'Operative',
       attack: 4,
       defense: 2,
@@ -166,13 +167,13 @@ void main() {
   });
 
   test('intoxicacion deals fixed end turn damage and does not expire', () {
-    final enemy = Battler.legacy(
+    final enemy = buildTestBattler(
       name: 'Enemy',
       attack: 1,
       defense: 0,
       health: 10,
     );
-    var owner = Battler.legacy(
+    var owner = buildTestBattler(
       name: 'Operative',
       attack: 5,
       defense: 99,
@@ -206,14 +207,14 @@ void main() {
   });
 
   test('attack item effect applies intoxicacion and increases its value', () {
-    final attacker = Battler.legacy(
+    final attacker = buildTestBattler(
       name: 'Operative',
       attack: 6,
       defense: 2,
       health: 10,
       equippedItems: const [toxicCatalystItem],
     );
-    final target = Battler.legacy(
+    final target = buildTestBattler(
       name: 'Target',
       attack: 4,
       defense: 1,
@@ -243,13 +244,13 @@ void main() {
   });
 
   test('receive item effect adds stacked quemadura to the attacker', () {
-    final attacker = Battler.legacy(
+    final attacker = buildTestBattler(
       name: 'Attacker',
       attack: 6,
       defense: 2,
       health: 14,
     );
-    final defender = Battler.legacy(
+    final defender = buildTestBattler(
       name: 'Defender',
       attack: 3,
       defense: 1,

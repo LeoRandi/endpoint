@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Define una escena de descanso con su texto y sus reglas de recuperacion.
 class CampSitePathNode extends PathNode {
   final String showTitle;
   final String sceneTitle;
@@ -7,6 +8,7 @@ class CampSitePathNode extends PathNode {
   final double recoveryFactor;
   final bool removeRandomDebuff;
 
+  /// Crea una escena de descanso con el texto y los efectos que usara el servicio.
   const CampSitePathNode({
     required String label,
     required String tooltip,

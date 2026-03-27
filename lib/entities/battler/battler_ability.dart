@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Enumera los ids estables usados para guardar y resolver presets de habilidades.
 enum BattlerAbilityId {
   defend,
   overclock,
@@ -12,11 +13,13 @@ enum BattlerAbilityId {
   hardReset,
 }
 
+/// Define en que pantalla puede activarse manualmente una habilidad.
 enum BattlerAbilityActivationContext {
   battle,
   pathSelection,
   shop;
 
+  /// Devuelve la etiqueta corta que usa la UI para mostrar este contexto.
   String get label {
     switch (this) {
       case BattlerAbilityActivationContext.battle:
@@ -29,19 +32,24 @@ enum BattlerAbilityActivationContext {
   }
 }
 
+/// Agrupa el estado final del usuario y del rival tras resolver un efecto de habilidad.
 class BattlerAbilityEffectResolution {
   final Battler owner;
   final Battler opponent;
 
+  /// Crea una resolucion inmutable con ambos combatientes ya actualizados.
   const BattlerAbilityEffectResolution({
     required this.owner,
     required this.opponent,
   });
 }
 
+/// Sirve como base comun para los hooks de habilidades activas y pasivas.
 abstract class BattlerAbilityEffect {
+  /// Construye un efecto sin estado propio para reutilizarlo en presets const.
   const BattlerAbilityEffect();
 
+  /// Resuelve lo que pasa al activar manualmente la habilidad.
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -51,6 +59,7 @@ abstract class BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Resuelve efectos que deben dispararse al inicio de turno.
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -60,6 +69,7 @@ abstract class BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Resuelve efectos que deben dispararse al final de turno.
   BattlerAbilityEffectResolution onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -69,6 +79,7 @@ abstract class BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Ajusta el dano que el portador va a infligir antes de aplicarlo.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -78,6 +89,7 @@ abstract class BattlerAbilityEffect {
     return damage;
   }
 
+  /// Ajusta el dano que el portador va a recibir antes de aplicarlo.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -87,6 +99,7 @@ abstract class BattlerAbilityEffect {
     return damage;
   }
 
+  /// Resuelve efectos posteriores a que el portador complete un ataque.
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -96,6 +109,7 @@ abstract class BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: target);
   }
 
+  /// Resuelve efectos posteriores a que el portador reciba dano.
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
     required Battler source,
@@ -105,6 +119,7 @@ abstract class BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: source);
   }
 
+  /// Aplica efectos pasivos que deben reevaluarse sin necesidad de un evento puntual.
   BattlerAbilityEffectResolution applyPassive({
     required Battler owner,
     required Battler opponent,
@@ -114,10 +129,14 @@ abstract class BattlerAbilityEffect {
   }
 }
 
+/// Hace que el siguiente ataque activo pegue mas y luego entre en cooldown.
 class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
+  /// Crea un efecto reutilizable para el preset de Escaner critico.
   const CriticalScannerAbilityEffect();
 
   @override
+
+  /// Suma el value actual solo mientras la habilidad siga activada.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -130,6 +149,8 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
   }
 
   @override
+
+  /// Consume la activacion al resolver el golpe y arranca su cooldown.
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -147,10 +168,14 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Premia atacar objetivos ya debilitados con dano extra constante.
 class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
+  /// Crea un efecto reutilizable para el preset de Caza de debilidades.
   const WeaknessHunterAbilityEffect();
 
   @override
+
+  /// Suma dano solo si el objetivo ya tiene al menos un debuff.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -166,10 +191,14 @@ class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Reduce el dano recibido mientras el portador siga con la vida al maximo.
 class GhostMeshAbilityEffect extends BattlerAbilityEffect {
+  /// Crea un efecto reutilizable para el preset de Malla Fantasma.
   const GhostMeshAbilityEffect();
 
   @override
+
+  /// Divide el dano entrante por el value cuando el usuario esta intacto.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -182,10 +211,14 @@ class GhostMeshAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Aplica Catalisis Cruel al rival y consume la activacion en combate.
 class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
+  /// Crea un efecto reutilizable para el preset de Catalisis Cruel.
   const CruelCatalysisAbilityEffect();
 
   @override
+
+  /// Coloca el debuff en el rival y pone la habilidad en cooldown.
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -204,10 +237,14 @@ class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Convierte el siguiente ataque en uno mas fuerte a cambio de Quemadura propia.
 class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
+  /// Crea un efecto reutilizable para el preset de Sobrecarga venosa.
   const VenousOverloadAbilityEffect();
 
   @override
+
+  /// Al activarse no cambia nada todavia porque el bonus se consume al atacar.
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -221,6 +258,8 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
   }
 
   @override
+
+  /// Suma el value actual solo mientras la preparacion siga activa.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -233,6 +272,8 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
   }
 
   @override
+
+  /// Tras pegar, se aplica Quemadura propia y la habilidad entra en cooldown.
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -258,10 +299,14 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Limpia debuffs purgables del usuario y cobra vida en proporcion al value.
 class HardResetAbilityEffect extends BattlerAbilityEffect {
+  /// Crea un efecto reutilizable para el preset de Reinicio en seco.
   const HardResetAbilityEffect();
 
   @override
+
+  /// Purga debuffs, luego hace dano propio y finalmente inicia el cooldown.
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -297,6 +342,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Describe una habilidad completa, incluyendo su estado runtime y su efecto.
 class BattlerAbility {
   final BattlerAbilityId id;
   final String name;
@@ -312,6 +358,7 @@ class BattlerAbility {
   final BattlerAbilityEffect? effect;
   final bool isImplemented;
 
+  /// Crea una habilidad inmutable lista para usarse como preset o como instancia runtime.
   const BattlerAbility({
     required this.id,
     required this.name,
@@ -329,48 +376,64 @@ class BattlerAbility {
   })  : assert(cooldownTurns >= 0),
         assert(remainingCooldownTurns >= 0);
 
+  /// Indica si esta habilidad tiene hooks propios que deben ejecutarse.
   bool get hasEffect => effect != null;
+
+  /// Indica si la habilidad puede activarse desde alguna pantalla.
   bool get canManuallyActivate => manualActivationContext != null;
+
+  /// Indica si la habilidad sigue esperando a que termine su cooldown.
   bool get isOnCooldown => remainingCooldownTurns > 0;
+
+  /// Devuelve el value base mas los bonus temporales ganados en combate.
   int get currentValue => value + runtimeValueBonus;
 
+  /// Devuelve el cooldown base en un formato corto para la interfaz.
   String get cooldownLabel {
     if (cooldownTurns <= 0) return 'Sin cooldown';
     if (cooldownTurns == 1) return '1 turno';
     return '$cooldownTurns turnos';
   }
 
+  /// Devuelve el estado actual del cooldown en un formato corto para la interfaz.
   String get remainingCooldownLabel {
     if (!isOnCooldown) return 'Disponible';
     if (remainingCooldownTurns == 1) return '1 turno';
     return '$remainingCooldownTurns turnos';
   }
 
+  /// Comprueba si esta habilidad pertenece al contexto manual indicado.
   bool canToggleOn(BattlerAbilityActivationContext screenContext) {
     return manualActivationContext == screenContext;
   }
 
+  /// Comprueba si puede activarse ahora mismo sin estar activa ni en cooldown.
   bool canActivateOn(BattlerAbilityActivationContext screenContext) {
     return canToggleOn(screenContext) && !isActive && !isOnCooldown;
   }
 
+  /// Comprueba si puede apagarse manualmente en el contexto actual.
   bool canDeactivateOn(BattlerAbilityActivationContext screenContext) {
     return canToggleOn(screenContext) && isActive;
   }
 
+  /// Devuelve una version mejorada sumando el upgradeValue al value base.
   BattlerAbility upgraded() {
     if (upgradeValue <= 0) return this;
 
     return copyWith(value: value + upgradeValue);
   }
 
+  /// Marca la habilidad como activa sin tocar todavia su cooldown.
   BattlerAbility activate() => copyWith(isActive: true);
 
+  /// Desactiva la habilidad y limpia cualquier bonus temporal asociado.
   BattlerAbility deactivate() => copyWith(
         isActive: false,
         runtimeValueBonus: 0,
       );
 
+  /// Entra en cooldown, se desactiva y limpia los bonus temporales.
   BattlerAbility startCooldown() {
     return copyWith(
       isActive: false,
@@ -379,6 +442,7 @@ class BattlerAbility {
     );
   }
 
+  /// Reduce en uno el cooldown al inicio de turno cuando proceda.
   BattlerAbility tickCooldown() {
     if (!isOnCooldown || isActive) return this;
 
@@ -387,6 +451,7 @@ class BattlerAbility {
     );
   }
 
+  /// Devuelve la habilidad a su estado limpio para salir de combate o resetear.
   BattlerAbility resetState() {
     return copyWith(
       isActive: false,
@@ -395,12 +460,14 @@ class BattlerAbility {
     );
   }
 
+  /// Acumula un bonus temporal al value sin alterar el preset base.
   BattlerAbility addRuntimeValueBonus(int amount) {
     if (amount == 0) return this;
 
     return copyWith(runtimeValueBonus: runtimeValueBonus + amount);
   }
 
+  /// Reduce el cooldown restante sin permitir valores negativos.
   BattlerAbility reduceCooldown(int amount) {
     if (amount <= 0 || !isOnCooldown) return this;
 
@@ -409,6 +476,7 @@ class BattlerAbility {
     );
   }
 
+  /// Clona la habilidad permitiendo cambiar cualquier parte de su estado.
   BattlerAbility copyWith({
     String? name,
     String? description,
@@ -447,45 +515,7 @@ class BattlerAbility {
     );
   }
 
-  static BattlerAbility fromLegacy(Object value) {
-    if (value is BattlerAbility) return value;
-    if (value is BattlerAbilityId) return presetForId(value);
-    if (value is! String) {
-      throw ArgumentError.value(value, 'value', 'Unsupported ability value.');
-    }
-
-    switch (value.trim().toLowerCase()) {
-      case 'defender':
-      case 'defend':
-        return defendAbility;
-      case 'overclock':
-        return overclockAbility;
-      case 'purge':
-        return purgeAbility;
-      case 'escaner critico':
-      case 'scanner critico':
-      case 'critical scanner':
-        return criticalScannerAbility;
-      case 'caza de debilidades':
-      case 'weakness hunter':
-        return weaknessHunterAbility;
-      case 'malla fantasma':
-      case 'ghost mesh':
-        return ghostMeshAbility;
-      case 'catalisis cruel':
-      case 'cruel catalysis':
-        return cruelCatalysisAbility;
-      case 'sobrecarga venosa':
-      case 'venous overload':
-        return venousOverloadAbility;
-      case 'reinicio en seco':
-      case 'hard reset':
-        return hardResetAbility;
-    }
-
-    throw ArgumentError.value(value, 'value', 'Unknown battler ability.');
-  }
-
+  /// Devuelve el preset canonico asociado a un id de habilidad.
   static BattlerAbility presetForId(BattlerAbilityId id) {
     switch (id) {
       case BattlerAbilityId.defend:
@@ -510,6 +540,7 @@ class BattlerAbility {
   }
 }
 
+/// Preset de la accion basica que permite pasar el turno sin efectos extra.
 const defendAbility = BattlerAbility(
   id: BattlerAbilityId.defend,
   name: 'Defender',
@@ -518,6 +549,7 @@ const defendAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Preset reservado para una futura mejora temporal de ataque.
 const overclockAbility = BattlerAbility(
   id: BattlerAbilityId.overclock,
   name: 'Overclock',
@@ -526,6 +558,7 @@ const overclockAbility = BattlerAbility(
   isImplemented: false,
 );
 
+/// Preset reservado para una futura habilidad ofensiva especial.
 const purgeAbility = BattlerAbility(
   id: BattlerAbilityId.purge,
   name: 'Purge',
@@ -534,6 +567,7 @@ const purgeAbility = BattlerAbility(
   isImplemented: false,
 );
 
+/// Preset que prepara un siguiente ataque potenciado y luego entra en cooldown.
 const criticalScannerAbility = BattlerAbility(
   id: BattlerAbilityId.criticalScanner,
   name: 'Escaner critico',
@@ -548,6 +582,7 @@ const criticalScannerAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Preset pasivo que castiga a los enemigos que ya tienen algun debuff.
 const weaknessHunterAbility = BattlerAbility(
   id: BattlerAbilityId.weaknessHunter,
   name: 'Caza de debilidades',
@@ -560,6 +595,7 @@ const weaknessHunterAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Preset pasivo defensivo que protege mientras la vida siga llena.
 const ghostMeshAbility = BattlerAbility(
   id: BattlerAbilityId.ghostMesh,
   name: 'Malla Fantasma',
@@ -571,6 +607,7 @@ const ghostMeshAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Preset manual que duplica la siguiente desventaja recibida por el objetivo.
 const cruelCatalysisAbility = BattlerAbility(
   id: BattlerAbilityId.cruelCatalysis,
   name: 'Catalisis Cruel',
@@ -584,6 +621,7 @@ const cruelCatalysisAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Preset manual que potencia un golpe y aplica Quemadura al propio usuario.
 const venousOverloadAbility = BattlerAbility(
   id: BattlerAbilityId.venousOverload,
   name: 'Sobrecarga venosa',
@@ -597,6 +635,7 @@ const venousOverloadAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Preset manual de ruta que purga debuffs purgables a cambio de vida.
 const hardResetAbility = BattlerAbility(
   id: BattlerAbilityId.hardReset,
   name: 'Reinicio en seco',

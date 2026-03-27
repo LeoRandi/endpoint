@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 const _operativeTileExtent = 70.0;
 const _operativeTileHeight = 84.0;

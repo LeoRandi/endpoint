@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:endpoint/entities/_exports.dart';
 import 'package:endpoint/pages/path_selection/path_selection_page.dart';
 import 'package:endpoint/widgets/path/path_node_card.dart';
+import 'test_battler_factory.dart';
 
 void main() {
   testWidgets(
@@ -12,7 +13,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: PathSelectionPage(
-            player: Battler.legacy(
+            player: buildTestBattler(
               name: 'Player',
               attack: 5,
               defense: 1,
@@ -21,7 +22,7 @@ void main() {
             ),
             availableNodes: [
               CombatPathNode(
-                enemy: Battler.legacy(
+                enemy: buildTestBattler(
                   name: 'Enemy',
                   attack: 1,
                   defense: 0,

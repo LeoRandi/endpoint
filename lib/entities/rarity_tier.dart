@@ -1,5 +1,6 @@
 import '_imports.dart';
 
+/// Agrupa el color, el peso de aparicion y el factor economico de cada rareza.
 enum RarityTier {
   gray(
     accent: Color(0xFF9EA7B3),
@@ -37,6 +38,7 @@ enum RarityTier {
   final int factor;
   final double rollWeight;
 
+  /// Crea una rareza con su color, factor y peso de aparicion asociados.
   const RarityTier({
     required this.accent,
     required this.label,
@@ -44,5 +46,6 @@ enum RarityTier {
     required this.rollWeight,
   });
 
+  /// Devuelve el precio minimo de tienda asociado a esta rareza.
   int get shopPriceBase => index + 1;
 }

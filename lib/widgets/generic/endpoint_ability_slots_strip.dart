@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 class EndpointAbilitySlotsStrip extends StatelessWidget {
   final List<BattlerAbility> abilities;

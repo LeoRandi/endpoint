@@ -1,4 +1,4 @@
-import '_imports.dart';
+import '../_imports.dart';
 
 class PathEventPage extends StatefulWidget {
   final Battler player;
@@ -53,7 +53,7 @@ class _PathEventPageState extends State<PathEventPage> {
               textAlign: TextAlign.center,
               maxLines: null,
               style: textMedium.copyWith(
-                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
+                color: EndpointPalette.softForeground.withAlpha(214),
               ),
             ),
             const SizedBox(height: 10),

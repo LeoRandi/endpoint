@@ -1,5 +1,6 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Enemigo gris basico usado como encuentro de entrada y referencia de dificultad minima.
 const grayEnemyBattler = Battler(
   name: 'SCRAP MITE',
   health: 48,
@@ -16,6 +17,7 @@ const grayEnemyBattler = Battler(
   equippedItems: [woodenStickItem],
 );
 
+/// Enemigo verde estandar con postura defensiva para la capa media inicial.
 const greenEnemyBattler = Battler(
   name: 'HOLLOW DRONE',
   health: 72,
@@ -33,6 +35,7 @@ const greenEnemyBattler = Battler(
   equippedItems: [guardShieldItem],
 );
 
+/// Enemigo azul que mezcla defensa y dano para el tramo medio de la run.
 const blueEnemyBattler = Battler(
   name: 'RIFT HOUND',
   health: 96,
@@ -53,6 +56,7 @@ const blueEnemyBattler = Battler(
   ],
 );
 
+/// Enemigo morado pensado para la noche, con mas vida y dos habilidades activas.
 const purpleEnemyBattler = Battler(
   name: 'NULL WARDEN',
   health: 128,
@@ -76,6 +80,7 @@ const purpleEnemyBattler = Battler(
   ],
 );
 
+/// Enemigo final amarillo con el kit mas completo del roster actual.
 const yellowEnemyBattler = Battler(
   name: 'SOLAR EXECUTOR',
   health: 168,
@@ -96,8 +101,10 @@ const yellowEnemyBattler = Battler(
   ],
 );
 
+/// Alias del enemigo por defecto usado en previews y valores fallback.
 const defaultEnemyBattler = greenEnemyBattler;
 
+/// Jugador base de la run antes de elegir arquetipo o conseguir equipo.
 const defaultPlayerBattler = Battler(
   name: 'ENDPOINT UNIT',
   health: 100,
@@ -111,21 +118,4 @@ const defaultPlayerBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [
-    weaknessHunterAbility,
-    ghostMeshAbility,
-    cruelCatalysisAbility,
-    venousOverloadAbility,
-    hardResetAbility,
-  ],
-  inventoryItems: [
-    crackedBatteryItem,
-    impactGlovesItem,
-    chemicalFilterItem,
-    billingModuleItem,
-    portableOvenItem,
-    parasiticCapacitorItem,
-    eclipseMantleItem,
-    operativeBlackBoxItem,
-  ],
 );

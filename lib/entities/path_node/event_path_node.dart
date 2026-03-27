@@ -1,11 +1,13 @@
-import '_imports.dart';
+import '../_imports.dart';
 
+/// Identifica cada evento para que la logica pueda resolverlo sin depender del texto visible.
 enum PathEventId {
   shadyTechnosurgeon,
   afterHoursTechnosurgeon,
   debtCollection,
 }
 
+/// Define un nodo de evento con su contenido base y el id que resuelve su efecto.
 class EventPathNode extends PathNode {
   final PathEventId id;
   final String showTitle;
@@ -13,6 +15,7 @@ class EventPathNode extends PathNode {
   final String description;
   final String outcomeText;
 
+  /// Crea un evento de ruta con el texto visible y el id que usara la logica.
   const EventPathNode({
     required this.id,
     required String label,
