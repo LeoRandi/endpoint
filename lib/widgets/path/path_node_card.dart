@@ -56,7 +56,7 @@ class PathNodeCard extends StatelessWidget {
                 children: [
                   if (hasSignatureBorder) _SignatureNodeFrame(accent: accent),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+                    padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
                     child: Column(
                       children: [
                         Container(
@@ -126,7 +126,7 @@ class _SignatureNodeFrame extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(6),
             child: DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),

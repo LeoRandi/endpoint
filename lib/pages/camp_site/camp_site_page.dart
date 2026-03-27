@@ -71,10 +71,10 @@ class _CampSitePageState extends State<CampSitePage> {
                 color: EndpointPalette.softForeground.withOpacity(0.84),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             EndpointPanel(
               backgroundColor: EndpointPalette.panelBackgroundSoft,
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
               child: Column(
                 children: [
                   EndpointText(

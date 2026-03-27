@@ -24,7 +24,7 @@ class PathActionButton extends StatelessWidget {
       borderRadius: 14,
       borderWidth: 1.4,
       iconSize: 18,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       textStyle: textMediumBold.copyWith(
         fontSize: 15,
         letterSpacing: 0.9,

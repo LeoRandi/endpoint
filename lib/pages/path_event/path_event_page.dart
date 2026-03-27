@@ -45,7 +45,7 @@ class _PathEventPageState extends State<PathEventPage> {
       content: EndpointPanel(
         accent: widget.node.accent,
         backgroundColor: EndpointPalette.panelBackgroundSoft,
-        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         child: Column(
           children: [
             EndpointText(
@@ -56,7 +56,7 @@ class _PathEventPageState extends State<PathEventPage> {
                 color: EndpointPalette.softForeground.withAlpha(214),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             EndpointText(
               _visitResult.outcomeText,
               textAlign: TextAlign.center,

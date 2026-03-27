@@ -95,7 +95,7 @@ class BattleController extends ChangeNotifier {
   void handleAttack() {
     if (!canUseActions) return;
 
-    final resolution = _resolver.resolveAttack(
+    final resolution = _resolveAttackAction(
       attacker: _player,
       defender: _enemy,
     );
@@ -139,7 +139,20 @@ class BattleController extends ChangeNotifier {
   void _resolveEnemyTurn() {
     if (_turn != BattleTurnState.enemy) return;
 
-    final resolution = _resolver.resolveAttack(
+    _tryResolveEnemyPreAttackAbility();
+    final abilityFinish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (abilityFinish != null) {
+      _finishCombat(
+        resultType: abilityFinish.resultType,
+        resultText: abilityFinish.resultText,
+      );
+      return;
+    }
+
+    final resolution = _resolveAttackAction(
       attacker: _enemy,
       defender: _player,
     );
@@ -153,6 +166,76 @@ class BattleController extends ChangeNotifier {
 
     // TODO: Add enemy ability selection once hostile AI supports more than basic attacks.
     _beginTurn(BattleTurnState.player);
+  }
+
+  void _tryResolveEnemyPreAttackAbility() {
+    final hardReset = _enemy.abilityById(BattlerAbilityId.hardReset);
+    if (hardReset == null ||
+        !hardReset.canActivateOn(BattlerAbilityActivationContext.pathSelection) ||
+        !_shouldEnemyUseHardReset()) {
+      return;
+    }
+
+    final resolution = _enemy.toggleAbilityActivation(
+      abilityId: hardReset.id,
+      screenContext: BattlerAbilityActivationContext.pathSelection,
+      opponent: _player,
+    );
+    _enemy = resolution.owner;
+    _player = resolution.opponent;
+  }
+
+  bool _shouldEnemyUseHardReset() {
+    return _enemy.statuses.any(
+      (status) =>
+          status.isPurgeable &&
+          (status is QuemaduraStatus || status is IntoxicacionStatus),
+    );
+  }
+
+  BattleAttackResolution _resolveAttackAction({
+    required Battler attacker,
+    required Battler defender,
+  }) {
+    var updatedAttacker = attacker.removeCombatFlag(
+      Battler.pendingBasicAttackFollowUpFlag,
+    );
+    var updatedDefender = defender;
+    var totalDamageDealt = 0;
+    final attackCount = attacker.basicAttackCount;
+
+    for (var attackIndex = 0; attackIndex < attackCount; attackIndex++) {
+      if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
+        break;
+      }
+
+      final hasFollowUp = attackIndex < attackCount - 1;
+      updatedAttacker = hasFollowUp
+          ? updatedAttacker.addCombatFlag(
+              Battler.pendingBasicAttackFollowUpFlag,
+            )
+          : updatedAttacker.removeCombatFlag(
+              Battler.pendingBasicAttackFollowUpFlag,
+            );
+
+      final resolution = _resolver.resolveAttack(
+        attacker: updatedAttacker,
+        defender: updatedDefender,
+      );
+      updatedAttacker = resolution.attacker.removeCombatFlag(
+        Battler.pendingBasicAttackFollowUpFlag,
+      );
+      updatedDefender = resolution.defender;
+      totalDamageDealt += resolution.damageDealt;
+    }
+
+    return BattleAttackResolution(
+      attacker: updatedAttacker.removeCombatFlag(
+        Battler.pendingBasicAttackFollowUpFlag,
+      ),
+      defender: updatedDefender,
+      damageDealt: totalDamageDealt,
+    );
   }
 
   void _finishCombat({

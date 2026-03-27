@@ -123,8 +123,8 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
                             ),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
+                                horizontal: 10,
+                                vertical: 8,
                               ),
                               child: EndpointText(
                                 widget.showTitle,

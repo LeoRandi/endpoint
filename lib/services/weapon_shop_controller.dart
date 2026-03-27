@@ -39,8 +39,8 @@ class WeaponShopController extends ChangeNotifier {
 
   String stockActionLabelFor(Item item) {
     if (!_stock.contains(item)) return 'Agotado';
-    if (canBuy(item)) return 'Comprar';
-    return 'Sin fondos';
+    if (canBuy(item)) return 'Comprar (${purchasePriceFor(item)}C)';
+    return 'Sin fondos (${purchasePriceFor(item)}C)';
   }
 
   String inventoryStatusLabelFor(Item item) {

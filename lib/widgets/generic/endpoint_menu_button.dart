@@ -23,7 +23,7 @@ class EndpointMenuButton extends StatelessWidget {
       borderWidth: 2,
       backgroundColor: EndpointPalette.menuButtonBackground,
       foregroundColor: EndpointPalette.softForeground,
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       textStyle: textLargeBold.copyWith(
         fontSize: 28,
         letterSpacing: 2,

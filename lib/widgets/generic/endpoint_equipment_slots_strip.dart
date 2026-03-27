@@ -175,7 +175,7 @@ class _EndpointEquipmentSlotTile extends StatelessWidget {
       border: Border.all(color: borderColor),
     );
     final content = Padding(
-      padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -202,10 +202,10 @@ class _EndpointEquipmentSlotTile extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           if (item != null)
             EndpointText(
-              item!.name,
+              item!.displayName,
               textAlign: TextAlign.center,
               style: textSmallBold.copyWith(
                 color: textColor,
@@ -214,13 +214,13 @@ class _EndpointEquipmentSlotTile extends StatelessWidget {
               ),
             )
           else
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
         ],
       ),
     );
 
     return HoldTooltip(
-      message: item?.description ?? slot.label,
+      message: item?.tooltipDescription ?? slot.label,
       child: onPressed == null
           ? DecoratedBox(
               decoration: decoration,

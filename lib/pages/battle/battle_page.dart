@@ -33,6 +33,7 @@ class _BattlePageState extends State<BattlePage> {
   bool _isPresentingVictoryRewards = false;
   BattleFlowResult? _pendingVictoryExitResult;
   Item? _pendingVictoryLootItem;
+  BattlerAbility? _pendingVictoryLootAbility;
   int _pendingVictoryMoneyReward = 0;
 
   @override
@@ -83,6 +84,7 @@ class _BattlePageState extends State<BattlePage> {
     setState(() {
       _pendingVictoryExitResult = exitResult;
       _pendingVictoryLootItem = rewards.lootItem;
+      _pendingVictoryLootAbility = rewards.lootAbility;
       _pendingVictoryMoneyReward = rewards.moneyReward;
     });
   }
@@ -109,6 +111,7 @@ class _BattlePageState extends State<BattlePage> {
       builder: (_) => BattleLootOverlay(
         player: exitResult.player,
         lootItem: resolvedRewards.lootItem,
+        lootAbility: resolvedRewards.lootAbility,
         moneyReward: resolvedRewards.moneyReward,
         enemyName: _controller.enemy.name,
       ),
@@ -172,6 +175,7 @@ class _BattlePageState extends State<BattlePage> {
       exitResult,
       rewards: BattleRewardBundle(
         lootItem: _pendingVictoryLootItem,
+        lootAbility: _pendingVictoryLootAbility,
         moneyReward: _pendingVictoryMoneyReward,
       ),
     );
@@ -518,7 +522,7 @@ class _BattleSide extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -588,7 +592,7 @@ class _TurnBanner extends StatelessWidget {
         glowOpacity: 0.04,
         blurRadius: 16,
         spreadRadius: 1,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -601,7 +605,7 @@ class _TurnBanner extends StatelessWidget {
                 letterSpacing: 1.5,
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             EndpointText(
               description,
               textAlign: TextAlign.center,
@@ -646,7 +650,7 @@ class _BattleCenterOverlay extends StatelessWidget {
           isCombatFinished: isCombatFinished,
         ),
         if (onAdvancePressed != null) ...[
-          const SizedBox(width: 10),
+          const SizedBox(width: 6),
           EndpointActionButton(
             label: '-->',
             onPressed: onAdvancePressed,
@@ -654,7 +658,7 @@ class _BattleCenterOverlay extends StatelessWidget {
             accent: EndpointPalette.rewardAccent,
             backgroundColor: EndpointPalette.panelBackgroundBattle,
             foregroundColor: EndpointPalette.softForegroundWarm,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             textStyle: textMediumBold.copyWith(
               fontSize: 13,
               letterSpacing: 1.1,
@@ -849,7 +853,7 @@ class _BattleStatusBar extends StatelessWidget {
           backgroundColor: EndpointPalette.panelBackgroundBattle,
           borderRadius: 10,
           glowOpacity: 0,
-          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+          padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: mirrorHorizontally
@@ -882,7 +886,7 @@ class _BattleStatusBar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   EndpointText(
                     factionLabel,
                     style: textSmallBold.copyWith(
@@ -964,17 +968,18 @@ class _BattleLoadoutStrip extends StatelessWidget {
       onAbilityPressed: onAbilityPressed,
       onAbilityHoldCompleted: onAbilityHoldCompleted,
       canHoldActivateAbility: canHoldActivateAbility,
+      holdDuration: const Duration(milliseconds: 500),
       enableTooltipLongPress: enableAbilityTooltipLongPress,
     );
     final children = mirrorHorizontally
         ? <Widget>[
             abilityStrip,
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             equipmentStrip,
           ]
         : <Widget>[
             equipmentStrip,
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             abilityStrip,
           ];
 
@@ -1021,7 +1026,7 @@ class _BattleSpriteDock extends StatelessWidget {
       backgroundColor: EndpointPalette.panelBackgroundBattle,
       borderRadius: 12,
       glowOpacity: 0.06,
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1031,7 +1036,7 @@ class _BattleSpriteDock extends StatelessWidget {
             size: 58,
             mirror: mirror,
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           EndpointText(
             label,
             style: textSmallBold.copyWith(

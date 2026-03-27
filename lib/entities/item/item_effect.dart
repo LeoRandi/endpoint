@@ -87,6 +87,25 @@ abstract class ItemEffect {
     return damage;
   }
 
+  /// Ajusta una stat ya calculada del portador para efectos persistentes de equipo.
+  int modifyCalculatedStat({
+    required Battler owner,
+    required Item item,
+    required BattlerStat stat,
+    required int value,
+  }) {
+    return value;
+  }
+
+  /// Ajusta cuantas veces se resuelve una accion de ataque basico.
+  int modifyBasicAttackCount({
+    required Battler owner,
+    required Item item,
+    required int count,
+  }) {
+    return count;
+  }
+
   /// Resuelve efectos posteriores a que el portador termine un ataque.
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -173,6 +192,41 @@ abstract class ItemEffect {
   }
 }
 
+/// Convierte el ataque basico en un doble golpe a cambio de reducir el ATK total.
+class SunglassesItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para las Gafas de Sol.
+  const SunglassesItemEffect()
+      : super(
+          description:
+              'Tu ATK total se reduce a la mitad, redondeado hacia arriba y con minimo 1. A cambio, cada accion de ataque basico se resuelve dos veces.',
+        );
+
+  @override
+
+  /// Reduce el ATK final del portador para equilibrar el doble golpe.
+  int modifyCalculatedStat({
+    required Battler owner,
+    required Item item,
+    required BattlerStat stat,
+    required int value,
+  }) {
+    if (stat != BattlerStat.attack) return value;
+
+    return max(1, (value + 1) ~/ 2);
+  }
+
+  @override
+
+  /// Anade un ataque extra a cada accion de ataque basico.
+  int modifyBasicAttackCount({
+    required Battler owner,
+    required Item item,
+    required int count,
+  }) {
+    return count + 1;
+  }
+}
+
 /// Aplica Intoxicacion al objetivo o refuerza la que ya tenga.
 class IntoxicarOnAttackItemEffect extends ItemEffect {
   final int amount;
@@ -187,6 +241,14 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
 
   @override
 
+  /// Genera la descripcion final usando el valor actual del objeto equipado.
+  String descriptionFor(Item item) {
+    final resolvedAmount = max(1, item.value > 0 ? item.value : amount);
+    return 'Al atacar: aplica o aumenta Intoxicacion en $resolvedAmount.';
+  }
+
+  @override
+
   /// Tras atacar, suma Intoxicacion existente o crea una nueva instancia.
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -194,20 +256,59 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
     required Item item,
     required int damageDealt,
   }) {
+    final resolvedAmount = max(1, item.value > 0 ? item.value : amount);
     final currentPoison = target.statusById('intoxicacion');
     final updatedTarget = currentPoison is IntoxicacionStatus
         ? target.applyStatus(
-            currentPoison.copyWith(value: currentPoison.value + amount),
+            currentPoison.copyWith(
+              value: currentPoison.value + resolvedAmount,
+            ),
             source: owner,
           )
         : target.applyStatus(
-            IntoxicacionStatus(value: amount),
+            IntoxicacionStatus(value: resolvedAmount),
             source: owner,
           );
 
     return ItemEffectResolution(
       owner: owner,
       opponent: updatedTarget,
+    );
+  }
+}
+
+/// Cura al portador al inicio de cada turno propio mientras siga equipado.
+class RegenerativeShieldItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para escudos con regeneracion pasiva.
+  const RegenerativeShieldItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, te curas una cantidad fija de vida.',
+        );
+
+  @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, recuperas ${item.value} HP.';
+  }
+
+  @override
+
+  /// Cura al portador al comenzar su propio turno.
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.heal(item.value),
+      opponent: opponent,
     );
   }
 }
@@ -226,6 +327,14 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
 
   @override
 
+  /// Genera la descripcion final usando la duracion actual del objeto equipado.
+  String descriptionFor(Item item) {
+    final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
+    return 'Al atacar: anade Quemadura durante $resolvedDuration turnos.';
+  }
+
+  @override
+
   /// Tras atacar, aplica una Quemadura nueva con la duracion configurada.
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -233,10 +342,11 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
     required Item item,
     required int damageDealt,
   }) {
+    final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
     return ItemEffectResolution(
       owner: owner,
       opponent: target.applyStatus(
-        QuemaduraStatus(remainingTurns: duration),
+        QuemaduraStatus(remainingTurns: resolvedDuration),
         source: owner,
       ),
     );
@@ -257,6 +367,14 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
 
   @override
 
+  /// Genera la descripcion final usando la duracion actual del objeto equipado.
+  String descriptionFor(Item item) {
+    final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
+    return 'Al recibir un ataque: anade Quemadura al agresor durante $resolvedDuration turnos.';
+  }
+
+  @override
+
   /// Tras recibir un golpe, aplica Quemadura al enemigo que lo causo.
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -264,10 +382,11 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
     required Item item,
     required int damageTaken,
   }) {
+    final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
     return ItemEffectResolution(
       owner: owner,
       opponent: source.applyStatus(
-        QuemaduraStatus(remainingTurns: duration),
+        QuemaduraStatus(remainingTurns: resolvedDuration),
         source: owner,
       ),
     );
@@ -582,6 +701,13 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
 
   @override
 
+  /// Genera la descripcion final usando la vida con la que deja al portador.
+  String descriptionFor(Item item) {
+    return 'Una vez por combate evita la muerte, te deja en ${max(1, item.value)} HP y refresca todas las habilidades.';
+  }
+
+  @override
+
   /// Intercepta el dano letal y aplica la proteccion una sola vez por combate.
   Battler onReceiveFatalDamage({
     required Battler owner,
@@ -592,15 +718,16 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
 
     final usedFlag = _itemFlag(item, 'black_box_used');
     final protectionFlag = _itemFlag(item, 'black_box_protection');
+    final recoveredHealth = max(1, item.value);
 
     if (owner.hasCombatFlag(protectionFlag)) {
-      return owner.copyWith(health: 1);
+      return owner.copyWith(health: recoveredHealth);
     }
 
     if (owner.hasCombatFlag(usedFlag)) return owner;
 
     return owner
-        .copyWith(health: 1)
+        .copyWith(health: recoveredHealth)
         .resetAllAbilities()
         .addCombatFlag(usedFlag)
         .addCombatFlag(protectionFlag);

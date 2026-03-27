@@ -161,7 +161,7 @@ class _EndpointStatusBadge extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 4,
-                      vertical: 1,
+                      vertical: 2,
                     ),
                     child: EndpointText(
                       badgeLabel,
@@ -212,7 +212,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: min(380, screenSize.width - 48),
@@ -226,7 +226,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
             padding: EdgeInsets.zero,
             child: Scrollbar(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -265,7 +265,18 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                         letterSpacing: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    if (status.hasTags) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: EndpointTagPillMarquee(
+                          tags: status.tags,
+                          accent: accent,
+                          idleAlignment: Alignment.center,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
                     EndpointText(
                       status.descriptionFor(battler),
                       textAlign: TextAlign.center,
@@ -275,7 +286,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                         height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     EndpointText(
                       'Duracion restante: ${status.remainingTurnsLabel}',
                       textAlign: TextAlign.center,

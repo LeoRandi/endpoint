@@ -1,7 +1,11 @@
 TODOs:
 
+-Arquetipos
+--Añadir más arquetipos, unos 7[3/7]
+--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.
+
 -Página de Selección de Camino
---Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)
+[--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
 --Barra de fase de día no está alineada verticalmente con los iconos en el stack
 
 -Sistema de acompañantes
@@ -15,20 +19,21 @@ TODOs:
 --Separar el scroll de equipamiento y de habilidades
 
 -Estados
---Añadir Tags
+[--Añadir Tags]
 --Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)[11/20]
 
 -Habilidades
---Añadir Tags
---Meter en el loot
+[--Añadir Tags]
+[--Meter en el loot]
 --Crear presets(al menos 50)[6/50]
 
 -Items
---Añadir Tags
+[--Añadir Tags]
 --Meter al menos 100-120[22/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
---Añadir slots de equipamiento
+--Añadir más slots de equipamiento
+[--Objetos duplicados=>Mejora?]
 
 -Tiendas
 [--Mejorar aspecto y diseño]
@@ -39,14 +44,14 @@ TODOs:
 --implementar los efectos de cada uno
 
 -Enemigos
---Crear Presets(al menos 40 distintos)[5/40]
+--Crear Presets(al menos 40 distintos)[17/40]
 --Equipar adecuadamente
 
 -Codex
 --Códice con todos los items y habilidades descubiertos por el jugador
 
 -General
---[APLICAR NUEVAS FONTS(Ya están importadas en el yaml)]
+[--APLICAR NUEVAS FONTS(Ya están importadas en el yaml)]
 --Sistema de guardado de partida
 --Volver a la pantalla del menú principal
 --Botón de Continuar
@@ -58,7 +63,9 @@ TODOs:
 
 ////
 ARREGLAR:
--No se repitan objetos iguales en las tiendas, si no encuentra más objetos que meter que meta los que pueda y .
+-El debuff de Intoxicación pone "inf" en el minitexto, por su duración infinita, pero en el caso de los estados que no se reducen cada turno debería mostrar el [value]
+-Equipar/desequipar en tienda desde tu inventario, para poder vender algo que tengas equipado, y eso.
+-BUG: Si el jugador muere en el mismo turno en el que mata al enemigo, le muestra la pantalla de loot y no cierra la run hasta que cierra esa pantalla.
 
 ////
 PROBAR:
@@ -74,9 +81,6 @@ PROBAR:
 
 ///
 IDEAS:
--Tienda que solo tiene objetos con la tag de Quemadura e Intoxicación, pero solo hasta rareza azul
--Tienda de tag Quemadura
--Tienda de tag Intoxicación
 -Tienda de habilidades básicas
 -Evento que te de una habilidad aleatoria pero te quite vida
 -Evento de minijuego, obligatorio para un roguelike

@@ -7,17 +7,31 @@ class ShopInventoryCriterion {
   final ItemSlot? requiredSlot;
   final RarityTier? exactRarity;
   final RarityTier? minimumRarity;
+  final RarityTier? maximumRarity;
   final BattlerStat? requiredPositiveModifierStat;
+  final List<EntityTag> requiredTags;
+  final bool matchAnyRequiredTag;
 
-  /// Crea un criterio declarativo que puede combinar slot, rareza y stat requerida.
-  const ShopInventoryCriterion({
+  /// Crea un criterio declarativo que puede combinar slot, rareza, tags y stat requerida.
+  ShopInventoryCriterion({
     required this.label,
     required this.description,
     this.requiredSlot,
     this.exactRarity,
     this.minimumRarity,
+    this.maximumRarity,
     this.requiredPositiveModifierStat,
-  }) : assert(exactRarity == null || minimumRarity == null);
+    this.requiredTags = const [],
+    this.matchAnyRequiredTag = false,
+  }) : assert(
+         exactRarity == null ||
+             (minimumRarity == null && maximumRarity == null),
+       ),
+       assert(
+         minimumRarity == null ||
+             maximumRarity == null ||
+             minimumRarity.index <= maximumRarity.index,
+       );
 
   /// Comprueba si un objeto concreto cumple todas las reglas del criterio.
   bool matches(Item item) {
@@ -30,9 +44,20 @@ class ShopInventoryCriterion {
     if (minimumRarity != null && item.rarity.index < minimumRarity!.index) {
       return false;
     }
+    if (maximumRarity != null && item.rarity.index > maximumRarity!.index) {
+      return false;
+    }
     if (requiredPositiveModifierStat != null &&
         item.modifier(requiredPositiveModifierStat!) <= 0) {
       return false;
+    }
+    if (requiredTags.isNotEmpty) {
+      final matchesTags = matchAnyRequiredTag
+          ? requiredTags.any(item.hasTag)
+          : requiredTags.every(item.hasTag);
+      if (!matchesTags) {
+        return false;
+      }
     }
 
     return true;

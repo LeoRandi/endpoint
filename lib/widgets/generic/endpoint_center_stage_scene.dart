@@ -41,7 +41,7 @@ class EndpointCenterStageScene extends StatelessWidget {
               if (backdrop != null) backdrop!,
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                   child: Column(
                     children: [
                       Align(
@@ -58,7 +58,7 @@ class EndpointCenterStageScene extends StatelessWidget {
                         accent: accent,
                         size: emojiSize,
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
                       EndpointText(
                         title,
                         textAlign: TextAlign.center,
@@ -67,7 +67,7 @@ class EndpointCenterStageScene extends StatelessWidget {
                           letterSpacing: 2.1,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       content,
                       const Spacer(),
                     ],

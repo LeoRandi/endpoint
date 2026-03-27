@@ -2,14 +2,17 @@ import '_imports.dart';
 
 class BattleRewardBundle {
   final Item? lootItem;
+  final BattlerAbility? lootAbility;
   final int moneyReward;
 
   const BattleRewardBundle({
     this.lootItem,
+    this.lootAbility,
     this.moneyReward = 0,
-  });
+  }) : assert(lootItem == null || lootAbility == null);
 
-  bool get hasRewards => lootItem != null || moneyReward > 0;
+  bool get hasRewards =>
+      lootItem != null || lootAbility != null || moneyReward > 0;
 }
 
 class BattleRewardService {
@@ -21,12 +24,14 @@ class BattleRewardService {
     required int victoryMoneyFactor,
     required RunRandomizer randomizer,
   }) {
+    final lootReward = _selectVictoryLoot(
+      enemy: enemy,
+      randomizer: randomizer,
+    );
+
     return BattleRewardBundle(
-      lootItem: _selectVictoryLoot(
-        enemy: enemy,
-        player: player,
-        randomizer: randomizer,
-      ),
+      lootItem: lootReward.lootItem,
+      lootAbility: lootReward.lootAbility,
       moneyReward: _buildVictoryMoneyReward(
         player: player,
         victoryMoneyFactor: victoryMoneyFactor,
@@ -53,25 +58,33 @@ class BattleRewardService {
     return max(0, player.income * victoryMoneyFactor);
   }
 
-  Item? _selectVictoryLoot({
+  BattleRewardBundle _selectVictoryLoot({
     required Battler enemy,
-    required Battler player,
     required RunRandomizer randomizer,
   }) {
-    final lootPool = <ItemId, Item>{
+    final lootItems = <ItemId, Item>{
       for (final item in [
         ...enemy.equippedItems,
         ...enemy.inventoryItems,
       ])
         item.id: item,
     }.values.toList(growable: false);
-    if (lootPool.isEmpty) return null;
+    final lootAbilities = <BattlerAbilityId, BattlerAbility>{
+      for (final ability in enemy.abilities)
+        ability.id: ability.resetState(),
+    }.values.toList(growable: false);
+    final totalLootCount = lootItems.length + lootAbilities.length;
+    if (totalLootCount <= 0) {
+      return const BattleRewardBundle();
+    }
 
-    final preferredPool = lootPool
-        .where((item) => !player.ownsItemOfType(item.id))
-        .toList(growable: false);
-    final resolvedPool = preferredPool.isNotEmpty ? preferredPool : lootPool;
+    final selectedIndex = randomizer.nextInt(totalLootCount);
+    if (selectedIndex < lootItems.length) {
+      return BattleRewardBundle(lootItem: lootItems[selectedIndex]);
+    }
 
-    return resolvedPool[randomizer.nextInt(resolvedPool.length)];
+    return BattleRewardBundle(
+      lootAbility: lootAbilities[selectedIndex - lootItems.length],
+    );
   }
 }

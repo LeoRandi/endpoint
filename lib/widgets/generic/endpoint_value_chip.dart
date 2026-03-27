@@ -29,13 +29,13 @@ class EndpointValueChip extends StatelessWidget {
         border: Border.all(color: accent.withOpacity(0.35)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
               Icon(icon, size: 14, color: accent),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
             ],
             EndpointText(
               text,

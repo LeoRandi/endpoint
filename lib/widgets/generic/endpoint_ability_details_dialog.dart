@@ -81,7 +81,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     EndpointText(
-                      ability.name,
+                      ability.displayName,
                       maxLines: null,
                       style: textLargeBold.copyWith(
                         color: foreground,
@@ -112,12 +112,12 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           EndpointPanel(
             accent: accent,
             backgroundColor: descriptionSurface,
             glowOpacity: 0.03,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
             child: EndpointText(
               ability.description,
               maxLines: null,
@@ -127,6 +127,25 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
               ),
             ),
           ),
+          if (ability.hasTags) ...[
+            const SizedBox(height: 12),
+            EndpointText(
+              'TAGS',
+              style: textSmallBold.copyWith(
+                fontSize: 10,
+                color: accent,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: EndpointTagPillMarquee(
+                tags: ability.tags,
+                accent: accent,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           EndpointText(
             _buildInfoText(ability),
@@ -137,24 +156,8 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
               letterSpacing: 1,
             ),
           ),
-          const SizedBox(height: 12),
-          EndpointPanel(
-            accent: accent,
-            backgroundColor: statusSurface,
-            glowOpacity: 0.03,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            child: EndpointText(
-              statusText,
-              maxLines: null,
-              style: textSmallBold.copyWith(
-                fontSize: 10,
-                color: EndpointPalette.softForeground.withOpacity(0.76),
-                letterSpacing: 0.9,
-              ),
-            ),
-          ),
           if (actionLabel != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
               child: EndpointActionButton(
@@ -170,10 +173,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
                 backgroundColor: actionSurface,
                 foregroundColor: foreground,
                 borderWidth: ability.isActive ? 1.6 : 1.3,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
               ),
             ),
@@ -189,13 +189,18 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
       'MEJORA +${ability.upgradeValue}',
       'RECARGA ${ability.remainingCooldownLabel}',
     ];
+
+    final preparts = parts.join('   ');
+    parts.clear();
+    parts.add(preparts);
+
     if (ability.runtimeValueBonus > 0) {
       parts.add('BONO +${ability.runtimeValueBonus}');
     }
     if (ability.isActive) {
-      parts.add('ESTADO ACTIVA');
+      parts.add('ESTADO: Activa');
     }
 
-    return parts.join('   ');
+    return parts.join('\n');
   }
 }

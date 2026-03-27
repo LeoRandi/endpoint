@@ -1,7 +1,10 @@
 import '../_imports.dart';
 
-const _shopInventoryTileExtent = 70.0;
-const _shopInventoryTileHeight = 84.0;
+const _shopInventoryTileExtent = 66.0;
+const _shopInventoryTileHeight = 80.0;
+const _shopEquippedTileExtent = 58.0;
+const _shopEquippedTileHeight = 70.0;
+const _shopEquippedEmojiSize = 15.0;
 
 class WeaponShopPage extends StatefulWidget {
   final Battler player;
@@ -56,7 +59,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
               item: item,
               accent: item.rarity.accent,
               price: _controller.purchasePriceFor(item),
-              priceLabel: 'COMPRA',
+              priceLabel: 'COMPRA (${_controller.purchasePriceFor(item)}C)',
               statusText: _controller.stockStatusLabelFor(item),
               actionLabel: _controller.stockActionLabelFor(item),
               onPrimaryAction: _controller.canBuy(item)
@@ -66,7 +69,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                     }
                   : null,
               isActionEnabled: _controller.canBuy(item),
-              enabledActionTooltip: 'Comprar objeto',
+              enabledActionTooltip:
+                  'Comprar objeto por ${_controller.purchasePriceFor(item)}C',
               disabledActionTooltip: 'No tienes dinero suficiente',
             );
           },
@@ -101,6 +105,27 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
               isActionEnabled: _controller.canSell(item),
               enabledActionTooltip: 'Vender objeto en esta tienda',
               disabledActionTooltip: 'El objeto ya no esta disponible',
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openEquippedItemDetails(Item item) async {
+    await showEndpointDialog<void>(
+      context: context,
+      barrierLabel: 'Detalle de objeto equipado',
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return EndpointItemDetailsDialog(
+              item: item,
+              accent: item.rarity.accent,
+              price: item.cost,
+              statusText: 'Estado actual: equipado',
             );
           },
         );
@@ -144,7 +169,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                     _ShopBackdrop(accent: accent),
                     SafeArea(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                         child: Column(
                           children: [
                             Align(
@@ -174,18 +199,14 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                             foreground: foreground,
                                           ),
                                         ),
-                                        const SizedBox(width: 16),
+                                        const SizedBox(width: 12),
                                         Expanded(
                                           child: EndpointPanel(
                                             accent: accent,
                                             backgroundColor: panelBackground,
                                             glowOpacity: 0.08,
                                             padding: const EdgeInsets.fromLTRB(
-                                              16,
-                                              14,
-                                              16,
-                                              14,
-                                            ),
+                                                8, 8, 8, 8),
                                             child: Column(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
@@ -258,18 +279,14 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: 12),
                                   Expanded(
                                     child: EndpointPanel(
                                       accent: accent,
                                       backgroundColor: panelBackground,
                                       glowOpacity: 0.06,
-                                      padding: const EdgeInsets.fromLTRB(
-                                        14,
-                                        12,
-                                        14,
-                                        14,
-                                      ),
+                                      padding:
+                                          const EdgeInsets.fromLTRB(8, 8, 8, 8),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -288,18 +305,6 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                                         '${player.inventoryItems.length} OBJETOS',
                                                     accent: accent,
                                                     foreground: foreground,
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  EndpointText(
-                                                    'Objetos guardados por ${player.name}. Vende desde aqui cualquier pieza no equipada.',
-                                                    maxLines: null,
-                                                    style:
-                                                        textSmallBold.copyWith(
-                                                      color: EndpointPalette
-                                                          .softForeground
-                                                          .withAlpha(194),
-                                                      fontSize: 11,
-                                                    ),
                                                   ),
                                                 ],
                                               );
@@ -334,6 +339,27 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                             },
                                           ),
                                           const SizedBox(height: 10),
+                                          Center(
+                                            child: EndpointEquipmentSlotsStrip(
+                                              battler: player,
+                                              layout: EndpointEquipmentLayout
+                                                  .standard,
+                                              tileExtent:
+                                                  _shopEquippedTileExtent,
+                                              tileHeight:
+                                                  _shopEquippedTileHeight,
+                                              emojiSize: _shopEquippedEmojiSize,
+                                              spacing: 6,
+                                              borderColor:
+                                                  accent.withAlpha(112),
+                                              backgroundColor: EndpointPalette
+                                                  .controlBackground,
+                                              textColor: foreground,
+                                              onItemPressed:
+                                                  _openEquippedItemDetails,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
                                           Expanded(
                                             child: player.inventoryItems.isEmpty
                                                 ? Center(
@@ -417,10 +443,12 @@ class _ShopInfoColumn extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EndpointEmojiSprite(
-            emoji: shop.iconEmoji,
-            accent: accent,
-            size: 74,
+          Center(
+            child: EndpointEmojiSprite(
+              emoji: shop.iconEmoji,
+              accent: accent,
+              size: 74,
+            ),
           ),
           const SizedBox(height: 10),
           EndpointText(
@@ -482,7 +510,7 @@ class _ShopOfferCard extends StatelessWidget {
             ),
             borderRadius: 14,
             glowOpacity: 0.05,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
             child: Row(
               children: [
                 _ShopOfferLead(
@@ -490,39 +518,39 @@ class _ShopOfferCard extends StatelessWidget {
                   emoji: item.iconEmoji,
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      EndpointText(
-                        item.name,
-                        overflow: TextOverflow.ellipsis,
-                        style: textMediumBold.copyWith(
-                          color: foreground,
-                          fontSize: 14,
-                          letterSpacing: 0.9,
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        EndpointText(
+                          item.displayName,
+                          overflow: TextOverflow.ellipsis,
+                          style: textMediumBold.copyWith(
+                            color: foreground,
+                            fontSize: 14,
+                            letterSpacing: 0.9,
+                          ),
                         ),
-                      ),
                       const SizedBox(height: 2),
                       EndpointText(
-                        '${item.rarity.label} | ${item.slot?.label ?? 'Consumible'}',
+                        '${item.slot?.label ?? 'Consumible'}',
                         overflow: TextOverflow.ellipsis,
                         style: textSmallBold.copyWith(
                           color: item.rarity.accent,
                           fontSize: 10,
                           letterSpacing: 1,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      EndpointText(
-                        item.description,
-                        overflow: TextOverflow.ellipsis,
-                        style: textSmallBold.copyWith(
-                          color: Colors.white.withAlpha(173),
-                          fontSize: 10,
                         ),
-                      ),
+                        const SizedBox(height: 2),
+                        EndpointText(
+                          item.tooltipDescription,
+                          overflow: TextOverflow.ellipsis,
+                          style: textSmallBold.copyWith(
+                            color: Colors.white.withAlpha(173),
+                            fontSize: 10,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -537,16 +565,6 @@ class _ShopOfferCard extends StatelessWidget {
                         color: accent,
                         fontSize: 12,
                         letterSpacing: 1.1,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    EndpointText(
-                      statusLabel,
-                      textAlign: TextAlign.right,
-                      style: textSmallBold.copyWith(
-                        color: Colors.white.withAlpha(179),
-                        fontSize: 10,
-                        letterSpacing: 0.8,
                       ),
                     ),
                   ],
@@ -661,6 +679,63 @@ class _ShopEconomyStrip extends StatelessWidget {
           foreground: EndpointPalette.soften(EndpointPalette.infoAccent),
         ),
       ],
+    );
+  }
+}
+
+class _ShopEquippedRow extends StatelessWidget {
+  final Battler player;
+  final Color accent;
+  final Color foreground;
+  final ValueChanged<Item> onItemPressed;
+
+  const _ShopEquippedRow({
+    required this.player,
+    required this.accent,
+    required this.foreground,
+    required this.onItemPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return EndpointPanel(
+      accent: accent,
+      backgroundColor: EndpointPalette.blend(
+        EndpointPalette.panelBackgroundSoft,
+        accent,
+        0.1,
+      ),
+      borderRadius: 12,
+      glowOpacity: 0.03,
+      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: EndpointText(
+                  'EQUIPADO',
+                  style: textSmallBold.copyWith(
+                    color: foreground,
+                    fontSize: 11,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              EndpointText(
+                '${player.equippedItems.length}/3',
+                style: textSmallBold.copyWith(
+                  color: accent,
+                  fontSize: 10,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 }

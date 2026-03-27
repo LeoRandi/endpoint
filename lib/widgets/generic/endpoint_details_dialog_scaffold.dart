@@ -28,7 +28,7 @@ class EndpointDetailsDialogScaffold extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -46,7 +46,7 @@ class EndpointDetailsDialogScaffold extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 child: Scrollbar(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
                     child: child,
                   ),
                 ),

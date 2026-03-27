@@ -100,7 +100,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                 _PathBackdrop(nodeCount: nodes.length),
                 SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                     child: Column(
                       children: [
                         _PathHeader(currentHour: currentHour),
@@ -184,7 +184,7 @@ class _PathHeader extends StatelessWidget {
     return EndpointPanel(
       backgroundColor: EndpointPalette.panelBackgroundSoft,
       borderRadius: 18,
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       child: _RunTimelineMeter(currentHour: currentHour),
     );
   }
@@ -234,29 +234,45 @@ class _PathBottomHud extends StatelessWidget {
                     ),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: avatarSize,
-                        height: avatarSize,
-                        child: EndpointEmojiSprite(
-                          emoji: player.iconEmoji,
-                          accent: EndpointPalette.primaryAccent,
-                          size: avatarSize,
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: avatarSize,
+                          height: avatarSize,
+                          child: EndpointEmojiSprite(
+                            emoji: player.iconEmoji,
+                            accent: EndpointPalette.primaryAccent,
+                            size: avatarSize,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      EndpointValueChip(
-                        icon: Icons.monetization_on_rounded,
-                        value: player.money,
-                        accent: EndpointPalette.warningAccent,
-                        foreground: EndpointPalette.softForegroundWarm,
-                        textStyle: chipTextStyle,
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            EndpointValueChip(
+                              icon: Icons.monetization_on_rounded,
+                              value: player.money,
+                              accent: EndpointPalette.warningAccent,
+                              foreground: EndpointPalette.softForegroundWarm,
+                              textStyle: chipTextStyle,
+                            ),
+                            const SizedBox(width: 8),
+                            EndpointValueChip(
+                              icon: Icons.trending_up_rounded,
+                              value: player.income,
+                              accent: EndpointPalette.infoAccent,
+                              foreground: EndpointPalette.soften(
+                                  EndpointPalette.infoAccent),
+                              textStyle: chipTextStyle,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(
@@ -306,7 +322,7 @@ class _PathPlayerStatus extends StatelessWidget {
         accent: accent,
         backgroundColor: EndpointPalette.panelBackgroundStrong,
         borderRadius: 16,
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
         child: Column(
           children: [
             Row(
@@ -357,14 +373,6 @@ class _PathPlayerStatus extends StatelessWidget {
                   value: player.defense,
                   accent: accent,
                   foreground: EndpointPalette.soften(accent, amount: 0.24),
-                  textStyle: statChipTextStyle,
-                ),
-                EndpointValueChip(
-                  icon: Icons.trending_up_rounded,
-                  value: player.income,
-                  accent: EndpointPalette.infoAccent,
-                  foreground:
-                      EndpointPalette.soften(EndpointPalette.infoAccent),
                   textStyle: statChipTextStyle,
                 ),
               ],

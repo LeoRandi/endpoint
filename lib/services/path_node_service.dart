@@ -6,6 +6,7 @@ class PathNodeService {
   static const sunriseStageIndex = 12;
   static const _centerShopPremiumChance = 0.78;
   static const _centerShopPremiumMultiplier = 1.2;
+  static const _dayEventRelativeWeight = 0.9;
 
   final RunRandomizer _randomizer;
   final PathEventService _pathEventService;
@@ -129,13 +130,22 @@ class PathNodeService {
   }
 
   List<_WeightedPathNode> _buildDaySideCandidates(Battler? player) {
+    final shopCandidates = _buildWeightedNodes(dayShopNodes);
+    final dayShopTotalWeight = _totalWeight(shopCandidates);
+    final eventCandidates = _scaleWeightedNodes(
+      _buildWeightedNodes(_filterEventNodes(dayEventNodes, player)),
+      targetTotalWeight: dayShopTotalWeight * _dayEventRelativeWeight,
+    );
+    final combatCandidates = _scaleWeightedNodes(
+      _buildWeightedNodes(
+        rareDayCombatNodes.where(_isAllowedDayCombatNode),
+      ),
+      targetTotalWeight: dayShopTotalWeight,
+    );
+
     return [
-      ...dayShopNodes.map(
-        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
-      ),
-      ..._filterEventNodes(dayEventNodes, player).map(
-        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
-      ),
+      ...shopCandidates,
+      ...eventCandidates,
       _WeightedPathNode(
         node: restZoneCampNode,
         weight: restZoneCampNode.rollWeight,
@@ -144,12 +154,7 @@ class PathNodeService {
         node: severeMedicationCampNode,
         weight: severeMedicationCampNode.rollWeight,
       ),
-      ...rareDayCombatNodes.map(
-        (node) => _WeightedPathNode(
-          node: node,
-          weight: _dayCombatWeight(node),
-        ),
-      ),
+      ...combatCandidates,
     ];
   }
 
@@ -236,14 +241,7 @@ class PathNodeService {
 
   ShopPathNode _buildCenterShopNode(List<ShopPathNode> shopPool) {
     final baseNode = _pickWeightedNode(
-      shopPool
-          .map(
-            (node) => _WeightedPathNode(
-              node: node,
-              weight: node.rollWeight,
-            ),
-          )
-          .toList(),
+      _buildWeightedNodes(shopPool),
     ) as ShopPathNode;
 
     final shouldApplyPremium = _randomizer.chance(_centerShopPremiumChance);
@@ -252,18 +250,58 @@ class PathNodeService {
     return baseNode.withPriceMultiplier(_centerShopPremiumMultiplier);
   }
 
-  double _dayCombatWeight(CombatPathNode node) {
-    switch (node.tier) {
-      case CombatNodeTier.gray:
-        return RarityTier.blue.rollWeight;
-      case CombatNodeTier.green:
-        return RarityTier.purple.rollWeight;
-      case CombatNodeTier.blue:
-        return RarityTier.yellow.rollWeight;
-      case CombatNodeTier.purple:
-      case CombatNodeTier.yellow:
-        return 0;
+  bool _isAllowedDayCombatNode(CombatPathNode node) {
+    return node.tier.index <= CombatNodeTier.green.index;
+  }
+
+  List<_WeightedPathNode> _buildWeightedNodes(Iterable<PathNode> nodes) {
+    return nodes
+        .map(
+          (node) => _WeightedPathNode(
+            node: node,
+            weight: node.rollWeight,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  List<_WeightedPathNode> _scaleWeightedNodes(
+    List<_WeightedPathNode> candidates, {
+    required double targetTotalWeight,
+  }) {
+    if (candidates.isEmpty || targetTotalWeight <= 0) {
+      return const <_WeightedPathNode>[];
     }
+
+    final currentTotalWeight = _totalWeight(candidates);
+    if (currentTotalWeight <= 0) {
+      final distributedWeight = targetTotalWeight / candidates.length;
+      return candidates
+          .map(
+            (candidate) => _WeightedPathNode(
+              node: candidate.node,
+              weight: distributedWeight,
+            ),
+          )
+          .toList(growable: false);
+    }
+
+    final scaleFactor = targetTotalWeight / currentTotalWeight;
+    return candidates
+        .map(
+          (candidate) => _WeightedPathNode(
+            node: candidate.node,
+            weight: candidate.weight * scaleFactor,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  double _totalWeight(Iterable<_WeightedPathNode> candidates) {
+    return candidates.fold<double>(
+      0,
+      (sum, candidate) => sum + candidate.weight,
+    );
   }
 
   List<PathNode> _pickDistinctWeightedNodes(

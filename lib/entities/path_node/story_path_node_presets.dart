@@ -4,7 +4,7 @@ import '../_imports.dart';
 final velozArchetypeNode = ArchetypePathNode(
   label: 'Veloz',
   tooltip:
-      'Cyber Latigos + Gafas de Sol. Perfil agil con un poco mas de ataque base. Empieza con 8C y 6 income.',
+      'Cyber Latigos + Gafas de Sol. Perfil agil de doble golpe que envenena con cada impacto. Empieza con 8C y 6 income.',
   iconEmoji: cyberWhipsItem.iconEmoji,
   playerIconEmoji: cyberWhipsItem.iconEmoji,
   accent: const Color(0xFF59B7FF),
@@ -27,7 +27,7 @@ final velozArchetypeNode = ArchetypePathNode(
 final inamovibleArchetypeNode = ArchetypePathNode(
   label: 'Inamovible',
   tooltip:
-      'Escudo + Amuleto de Bastion. Perfil resistente con mas defensa y aguante base. Empieza con 12C y 4 income.',
+      'Escudo + Amuleto de Bastion. Perfil resistente con regeneracion pasiva, mas defensa y Reinicio en seco. Empieza con 12C y 4 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
   accent: const Color(0xFF5AF78E),
@@ -42,13 +42,16 @@ final inamovibleArchetypeNode = ArchetypePathNode(
     shieldItem,
     bulwarkAmuletItem,
   ],
+  startingAbilities: const [
+    hardResetAbility,
+  ],
 );
 
 /// Arquetipo ofensivo que arranca con mas presion de dano.
 final imparableArchetypeNode = ArchetypePathNode(
   label: 'Imparable',
   tooltip:
-      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base. Empieza con 8C y 4 income.',
+      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base y Sobrecarga venosa de salida. Empieza con 8C y 4 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
   accent: const Color(0xFFF3D35C),
@@ -63,43 +66,92 @@ final imparableArchetypeNode = ArchetypePathNode(
     emberCharmItem,
   ],
   startingAbilities: const [
-    criticalScannerAbility,
+    venousOverloadAbility,
   ],
 );
 
 /// Criterio gris para tiendas de entrada con objetos baratos y comunes.
-const grayShopCriterion = ShopInventoryCriterion(
+final grayShopCriterion = ShopInventoryCriterion(
   label: 'RAREZA GRIS',
   description: 'Solo aparecen objetos grises de bajo valor.',
   exactRarity: RarityTier.gray,
 );
 
 /// Criterio defensivo basado en piezas equipables en el slot de soporte.
-const armorShopCriterion = ShopInventoryCriterion(
+final armorShopCriterion = ShopInventoryCriterion(
   label: 'ARMADURAS',
   description: 'Solo aparecen piezas de soporte y blindaje.',
   requiredSlot: ItemSlot.offHand,
 );
 
 /// Criterio de lujo reservado a reliquias amarillas.
-const luxuryShopCriterion = ShopInventoryCriterion(
+final luxuryShopCriterion = ShopInventoryCriterion(
   label: 'RELIQUIAS DE LUJO',
   description: 'Solo aparecen objetos de rareza amarilla.',
   exactRarity: RarityTier.yellow,
 );
 
 /// Criterio ofensivo amplio para mercados centrados en armas.
-const weaponShopCriterion = ShopInventoryCriterion(
+final weaponShopCriterion = ShopInventoryCriterion(
   label: 'ARMAS',
   description: 'Solo aparecen objetos equipables como arma.',
   requiredSlot: ItemSlot.weapon,
 );
 
 /// Criterio defensivo amplio para objetos que aportan defensa directa.
-const defenseShopCriterion = ShopInventoryCriterion(
+final defenseShopCriterion = ShopInventoryCriterion(
   label: 'DEFENSA',
   description: 'Solo aparecen objetos que otorgan defensa.',
   requiredPositiveModifierStat: BattlerStat.defense,
+);
+
+/// Criterio quimico que acepta objetos de Quemadura o Intoxicacion hasta azul.
+final burnOrPoisonShopCriterion = ShopInventoryCriterion(
+  label: 'QUEMADURA / INTOXICACION',
+  description:
+      'Solo aparecen objetos de Quemadura o Intoxicacion hasta rareza azul.',
+  requiredTags: [
+    EntityTag.quemadura,
+    EntityTag.intoxicacion,
+  ],
+  matchAnyRequiredTag: true,
+  maximumRarity: RarityTier.blue,
+);
+
+/// Criterio tematico reservado a objetos que interactuan con Quemadura.
+final burnShopCriterion = ShopInventoryCriterion(
+  label: 'QUEMADURA',
+  description: 'Solo aparecen objetos con la tag de Quemadura.',
+  requiredTags: [
+    EntityTag.quemadura,
+  ],
+);
+
+/// Criterio tematico reservado a objetos que interactuan con Intoxicacion.
+final poisonShopCriterion = ShopInventoryCriterion(
+  label: 'INTOXICACION',
+  description: 'Solo aparecen objetos con la tag de Intoxicacion.',
+  requiredTags: [
+    EntityTag.intoxicacion,
+  ],
+);
+
+/// Criterio azul para tiendas centradas en aplicar o manipular debuffs.
+final debuffShopCriterion = ShopInventoryCriterion(
+  label: 'DEBUFF',
+  description: 'Solo aparecen objetos con la tag de Debuff.',
+  requiredTags: [
+    EntityTag.debuff,
+  ],
+);
+
+/// Criterio azul para objetos que leen o explotan buffs.
+final buffShopCriterion = ShopInventoryCriterion(
+  label: 'BUFF',
+  description: 'Solo aparecen objetos con la tag de Buff.',
+  requiredTags: [
+    EntityTag.buff,
+  ],
 );
 
 /// Tienda gris de armas basicas para las primeras horas.
@@ -146,6 +198,34 @@ final luxuryRelicsNode = ShopPathNode(
   stockCriterion: luxuryShopCriterion,
 );
 
+/// Tienda amarilla centrada en herramientas que aplican o explotan Quemadura.
+final emberFoundryNode = ShopPathNode(
+  label: 'Forja de Ascuas',
+  tooltip: 'Todo el catalogo gira alrededor de la Quemadura',
+  iconEmoji: '\u{1F525}',
+  rarity: RarityTier.yellow,
+  accent: EntityTag.quemadura.accent,
+  badgeLabel: 'QUEMA',
+  showTitle: 'Forja de Ascuas',
+  shopTitle: 'FORJA DE ASCUAS',
+  shopSubtitle: 'Brasa embotellada, metal caliente y contratos inflamables.',
+  stockCriterion: burnShopCriterion,
+);
+
+/// Tienda amarilla centrada en herramientas de Intoxicacion.
+final toxinLabNode = ShopPathNode(
+  label: 'Laboratorio Toxico',
+  tooltip: 'Catalogo dedicado a la Intoxicacion y sus derivados',
+  iconEmoji: '\u2623',
+  rarity: RarityTier.yellow,
+  accent: EntityTag.intoxicacion.accent,
+  badgeLabel: 'TOXICO',
+  showTitle: 'Laboratorio Toxico',
+  shopTitle: 'LABORATORIO TOXICO',
+  shopSubtitle: 'Quimica corrosiva, filtros dudosos y venenos rentables.',
+  stockCriterion: poisonShopCriterion,
+);
+
 /// Evento verde diurno preparado para futuras mejoras temporales.
 final shadyTechnosurgeonNode = EventPathNode(
   id: PathEventId.shadyTechnosurgeon,
@@ -189,6 +269,50 @@ final velvetArmoryNode = ShopPathNode(
   shopTitle: 'VELVET ARMORY',
   shopSubtitle: 'Blindaje elegante para quien espera volver con vida.',
   stockCriterion: defenseShopCriterion,
+);
+
+/// Tienda morada nocturna de alquimia agresiva sin superar el stock azul.
+final chemicalExchangeNode = ShopPathNode(
+  label: 'Mercado Quimico',
+  tooltip: 'Quemadura e Intoxicacion de alta gama, sin pasar de azul',
+  iconEmoji: '\u{1F9EA}',
+  rarity: RarityTier.purple,
+  accent: RarityTier.purple.accent,
+  badgeLabel: 'QUIMICA',
+  showTitle: 'Mercado Quimico',
+  shopTitle: 'MERCADO QUIMICO',
+  shopSubtitle:
+      'Todo huele a disolvente. O peor',
+  stockCriterion: burnOrPoisonShopCriterion,
+);
+
+/// Tienda azul nocturna para piezas que aplican o manipulan debuffs.
+final debuffBrokerNode = ShopPathNode(
+  label: 'Broker de Debuffs',
+  tooltip: 'Mercancia especializada en desventajas persistentes',
+  iconEmoji: '\u26A0',
+  rarity: RarityTier.blue,
+  accent: EntityTag.debuff.accent,
+  badgeLabel: 'DEBUFF',
+  showTitle: 'Broker de Debuffs',
+  shopTitle: 'BROKER DE DEBUFFS',
+  shopSubtitle: 'Venden dolor recurrente, mitigacion selectiva y efectos sucios.',
+  stockCriterion: debuffShopCriterion,
+);
+
+/// Tienda azul nocturna para objetos que leen o castigan buffs.
+final buffParlorNode = ShopPathNode(
+  label: 'Salon de Buffs',
+  tooltip: 'Accesorios para explotar buffs o la ausencia de ellos',
+  iconEmoji: '\u2728',
+  rarity: RarityTier.blue,
+  accent: EntityTag.buff.accent,
+  badgeLabel: 'BUFF',
+  showTitle: 'Salon de Buffs',
+  shopTitle: 'SALON DE BUFFS',
+  shopSubtitle:
+      'Un escaparate pequeño pero muy especializado en mejoras corporales.',
+  stockCriterion: buffShopCriterion,
 );
 
 /// Evento azul nocturno reservado para efectos temporales mas agresivos.
@@ -260,6 +384,8 @@ final List<ShopPathNode> dayShopNodes = List.unmodifiable([
   scrapArsenalNode,
   bulwarkWorkshopNode,
   luxuryRelicsNode,
+  emberFoundryNode,
+  toxinLabNode,
 ]);
 
 /// Arquetipos mostrados siempre en la primera hora.
@@ -280,6 +406,11 @@ final List<ShopPathNode> nightShopNodes = List.unmodifiable([
   afterHoursArsenalNode,
   velvetArmoryNode,
   luxuryRelicsNode,
+  emberFoundryNode,
+  toxinLabNode,
+  chemicalExchangeNode,
+  debuffBrokerNode,
+  buffParlorNode,
 ]);
 
 /// Eventos candidatos para la noche, incluida la deuda si aplica.
@@ -291,24 +422,23 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
 
 /// Combates raros que pueden colarse de dia como amenaza extra.
 final List<CombatPathNode> rareDayCombatNodes = List.unmodifiable([
-  grayCombatNode,
-  greenCombatNode,
-  blueCombatNode,
+  ...grayCombatNodes,
+  ...greenCombatNodes,
 ]);
 
 /// Combates fijos del anochecer que marcan el salto de fase.
 final List<CombatPathNode> duskCombatNodes = List.unmodifiable([
   greenCombatNode,
   blueCombatNode,
-  greenCombatNode,
+  venomStitchCombatNode,
 ]);
 
 /// Combates posibles del tramo nocturno normal.
 final List<CombatPathNode> nightCombatNodes = List.unmodifiable([
-  greenCombatNode,
-  blueCombatNode,
-  blueCombatNode,
-  purpleCombatNode,
+  ...greenCombatNodes,
+  ...blueCombatNodes,
+  ...blueCombatNodes,
+  ...purpleCombatNodes,
 ]);
 
 /// Pool final de amanecer con el combate de cierre de run.

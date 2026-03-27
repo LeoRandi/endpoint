@@ -23,7 +23,7 @@ class EndpointInventoryItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HoldTooltip(
-      message: item.description,
+      message: item.tooltipDescription,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -33,7 +33,7 @@ class EndpointInventoryItemTile extends StatelessWidget {
             backgroundColor: backgroundColor,
             borderRadius: borderRadius,
             glowOpacity: glowOpacity,
-            padding: const EdgeInsets.fromLTRB(5, 5, 5, 6),
+            padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -58,9 +58,9 @@ class EndpointInventoryItemTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 EndpointText(
-                  item.name,
+                  item.displayName,
                   textAlign: TextAlign.center,
                   style: textSmallBold.copyWith(
                     color: textColor,

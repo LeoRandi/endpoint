@@ -5,6 +5,7 @@ const _rewardActionHeight = 56.0;
 class BattleLootOverlay extends StatefulWidget {
   final Battler player;
   final Item? lootItem;
+  final BattlerAbility? lootAbility;
   final int moneyReward;
   final String enemyName;
 
@@ -14,6 +15,7 @@ class BattleLootOverlay extends StatefulWidget {
     required this.moneyReward,
     required this.enemyName,
     this.lootItem,
+    this.lootAbility,
   });
 
   @override
@@ -25,7 +27,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   late bool _isLootCollected;
   late bool _isMoneyCollected;
 
-  bool get _hasPendingLoot => widget.lootItem != null && !_isLootCollected;
+  bool get _hasLootReward =>
+      widget.lootItem != null || widget.lootAbility != null;
+  bool get _hasPendingLoot => _hasLootReward && !_isLootCollected;
   bool get _hasPendingMoney => widget.moneyReward > 0 && !_isMoneyCollected;
   bool get _hasPendingRewards => _hasPendingLoot || _hasPendingMoney;
 
@@ -33,8 +37,21 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   void initState() {
     super.initState();
     _player = widget.player;
-    _isLootCollected = widget.lootItem == null;
+    _isLootCollected = !_hasLootReward;
     _isMoneyCollected = widget.moneyReward <= 0;
+  }
+
+  Battler _applyLoot(Battler player) {
+    var updatedPlayer = player;
+
+    if (widget.lootItem != null) {
+      updatedPlayer = updatedPlayer.addItem(widget.lootItem!);
+    }
+    if (widget.lootAbility != null) {
+      updatedPlayer = updatedPlayer.addAbility(widget.lootAbility!.resetState());
+    }
+
+    return updatedPlayer;
   }
 
   Future<void> _handleBackNavigation() async {
@@ -66,7 +83,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
       builder: (context) {
         return Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 360),
               child: EndpointPanel(
@@ -75,7 +92,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                 borderRadius: 18,
                 glowOpacity: 0.1,
                 blurRadius: 24,
-                padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +112,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                         color: EndpointPalette.softForeground.withOpacity(0.84),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -149,7 +166,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     if (!_hasPendingLoot) return;
 
     setState(() {
-      _player = _player.addItem(widget.lootItem!);
+      _player = _applyLoot(_player);
       _isLootCollected = true;
     });
   }
@@ -167,7 +184,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     var updatedPlayer = _player;
 
     if (_hasPendingLoot) {
-      updatedPlayer = updatedPlayer.addItem(widget.lootItem!);
+      updatedPlayer = _applyLoot(updatedPlayer);
     }
     if (_hasPendingMoney) {
       updatedPlayer = updatedPlayer.earnMoney(widget.moneyReward);
@@ -188,7 +205,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
       },
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
           child: EndpointPanel(
             accent: accent,
             backgroundColor: EndpointPalette.panelBackgroundBattleOpaque,
@@ -196,7 +213,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
             glowOpacity: 0.12,
             blurRadius: 28,
             spreadRadius: 3,
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -241,7 +258,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 EndpointText(
                   'TOCA CADA CARD PARA RECLAMARLA',
                   style: textSmallBold.copyWith(
@@ -256,8 +273,8 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                     children: [
                       if (widget.lootItem != null)
                         _BattleLootRewardCard(
-                          title: widget.lootItem!.name,
-                          subtitle: widget.lootItem!.description,
+                          title: widget.lootItem!.displayName,
+                          subtitle: widget.lootItem!.tooltipDescription,
                           accent: widget.lootItem!.rarity.accent,
                           emoji: widget.lootItem!.iconEmoji,
                           isCollected: _isLootCollected,
@@ -265,7 +282,20 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           pendingLabel: 'RECLAMAR',
                           onPressed: _collectLoot,
                         ),
-                      if (widget.lootItem != null && widget.moneyReward > 0)
+                      if (widget.lootItem != null && widget.lootAbility != null)
+                        const SizedBox(height: 12),
+                      if (widget.lootAbility != null)
+                        _BattleLootRewardCard(
+                          title: widget.lootAbility!.displayName,
+                          subtitle: widget.lootAbility!.description,
+                          accent: EndpointPalette.primaryAccent,
+                          icon: widget.lootAbility!.icon,
+                          isCollected: _isLootCollected,
+                          collectedLabel: 'APRENDIDA',
+                          pendingLabel: 'APRENDER',
+                          onPressed: _collectLoot,
+                        ),
+                      if (_hasLootReward && widget.moneyReward > 0)
                         const SizedBox(height: 12),
                       if (widget.moneyReward > 0)
                         _BattleLootRewardCard(
@@ -281,7 +311,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   height: _rewardActionHeight,
@@ -359,7 +389,7 @@ class _BattleLootRewardCard extends StatelessWidget {
                 : EndpointPalette.panelBackgroundSoft,
             borderRadius: 14,
             glowOpacity: isCollected ? 0.01 : 0.05,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
             child: Row(
               children: [
                 _BattleLootRewardLead(

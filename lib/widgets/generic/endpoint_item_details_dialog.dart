@@ -38,6 +38,9 @@ class EndpointItemDetailsDialog extends StatelessWidget {
       accent,
       0.16,
     );
+    final effectDescription = item.effect?.descriptionFor(item);
+    final shouldShowEffectPanel =
+        effectDescription != null && effectDescription != item.displayDescription;
 
     return EndpointDetailsDialogScaffold(
       accent: accent,
@@ -66,7 +69,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     EndpointText(
-                      item.name,
+                      item.displayName,
                       maxLines: null,
                       style: textLargeBold.copyWith(
                         color: foreground,
@@ -83,38 +86,39 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                         letterSpacing: 1.2,
                       ),
                     ),
+                    if (item.hasTags) ...[
                     const SizedBox(height: 4),
-                    EndpointText(
-                      '$priceLabel ${price}C',
-                      maxLines: null,
-                      style: textMediumNumericBold.copyWith(
-                        fontSize: 14,
-                        color: foreground,
+                      SizedBox(
+                        width: double.infinity,
+                        child: EndpointTagPillMarquee(
+                          tags: item.tags,
+                          accent: accent,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           EndpointText(
-            item.description,
+            item.displayDescription,
             maxLines: null,
             style: textMedium.copyWith(
               fontSize: 14,
               color: EndpointPalette.softForeground.withOpacity(0.84),
             ),
           ),
-          if (item.effect != null) ...[
+          if (shouldShowEffectPanel) ...[
             const SizedBox(height: 12),
             EndpointPanel(
               accent: accent,
               backgroundColor: effectSurface,
               glowOpacity: 0.03,
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
               child: EndpointText(
-                item.effect!.descriptionFor(item),
+                effectDescription!,
                 maxLines: null,
                 style: textSmallBold.copyWith(
                   fontSize: 10,
@@ -134,24 +138,8 @@ class EndpointItemDetailsDialog extends StatelessWidget {
               letterSpacing: 1,
             ),
           ),
-          const SizedBox(height: 12),
-          EndpointPanel(
-            accent: accent,
-            backgroundColor: statusSurface,
-            glowOpacity: 0.03,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            child: EndpointText(
-              statusText,
-              maxLines: null,
-              style: textSmallBold.copyWith(
-                fontSize: 10,
-                color: EndpointPalette.softForeground,
-                letterSpacing: 0.8,
-              ),
-            ),
-          ),
           if (actionLabel != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
               child: EndpointActionButton(
@@ -165,10 +153,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                 backgroundColor: statusSurface,
                 foregroundColor: foreground,
                 borderWidth: 1.3,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
               ),
             ),

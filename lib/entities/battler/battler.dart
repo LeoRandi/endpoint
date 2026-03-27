@@ -16,6 +16,8 @@ class Battler {
   static const combatActiveFlag = 'combat_active';
   static const manualAbilityActivatedThisTurnFlag =
       'manual_ability_activated_this_turn';
+  static const pendingBasicAttackFollowUpFlag =
+      'pending_basic_attack_follow_up';
 
   final String name;
   final String iconEmoji;
@@ -81,6 +83,24 @@ class Battler {
   /// Devuelve el vampirismo ya calculado con equipo y estados.
   int get vampirism => calculatedStat(BattlerStat.vampirism);
 
+  /// Indica cuantas veces se resuelve un ataque basico por cada accion.
+  int get basicAttackCount {
+    var updatedCount = 1;
+
+    for (final item in equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      updatedCount = effect.modifyBasicAttackCount(
+        owner: this,
+        item: item,
+        count: updatedCount,
+      );
+    }
+
+    return max(1, updatedCount);
+  }
+
   /// Calcula el income efectivo tras aplicar equipo y estados que lo alteran.
   int get income {
     var updatedIncome = _calculateIncome(
@@ -130,6 +150,11 @@ class Battler {
   /// Comprueba si una flag de combate concreta sigue activa.
   bool hasCombatFlag(String flag) => combatFlags.contains(flag);
 
+  /// Indica si el ataque basico actual todavia tiene impactos pendientes.
+  bool get hasPendingBasicAttackFollowUp {
+    return hasCombatFlag(pendingBasicAttackFollowUpFlag);
+  }
+
   /// Devuelve el valor base de una stat sin aplicar ningun modificador.
   int baseStat(BattlerStat stat) {
     return baseStats[stat] ?? 0;
@@ -175,6 +200,18 @@ class Battler {
       final resolvedStatus = status.resolved(this);
       updatedValue = resolvedStatus.modifyCalculatedStat(
         owner: this,
+        stat: stat,
+        value: updatedValue,
+      );
+    }
+
+    for (final item in equippedItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      updatedValue = effect.modifyCalculatedStat(
+        owner: this,
+        item: item,
         stat: stat,
         value: updatedValue,
       );
@@ -1311,8 +1348,10 @@ class Battler {
 
   /// Anade un item nuevo o mejora la copia ya poseida si admite upgrades.
   Battler addItem(Item item) {
+    final upgradeTemplate =
+        item.canUpgrade ? item : Item.presetForId(item.id);
     final ownedEquippedItem = equippedItemOfType(item.id);
-    if (ownedEquippedItem != null && ownedEquippedItem.upgradeValue > 0) {
+    if (ownedEquippedItem != null && upgradeTemplate.canUpgrade) {
       final updatedEquippedItems = List<Item>.from(equippedItems);
       final existingIndex = updatedEquippedItems.indexOf(ownedEquippedItem);
       updatedEquippedItems[existingIndex] = ownedEquippedItem.upgraded();
@@ -1322,7 +1361,7 @@ class Battler {
     }
 
     final ownedInventoryItem = inventoryItemOfType(item.id);
-    if (ownedInventoryItem != null && ownedInventoryItem.upgradeValue > 0) {
+    if (ownedInventoryItem != null && upgradeTemplate.canUpgrade) {
       final updatedInventoryItems = List<Item>.from(inventoryItems);
       final existingIndex = updatedInventoryItems.indexOf(ownedInventoryItem);
       updatedInventoryItems[existingIndex] = ownedInventoryItem.upgraded();

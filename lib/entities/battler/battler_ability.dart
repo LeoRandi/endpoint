@@ -29,6 +29,30 @@ enum BattlerAbilityActivationContext {
   }
 }
 
+const _ataqueAbilityTags = <EntityTag>[
+  EntityTag.ataque,
+];
+const _ataqueDebuffAbilityTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.debuff,
+];
+const _vidaDefensaAbilityTags = <EntityTag>[
+  EntityTag.vida,
+  EntityTag.defensa,
+];
+const _debuffAbilityTags = <EntityTag>[
+  EntityTag.debuff,
+];
+const _ataqueQuemaduraAbilityTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.debuff,
+  EntityTag.quemadura,
+];
+const _vidaDebuffAbilityTags = <EntityTag>[
+  EntityTag.vida,
+  EntityTag.debuff,
+];
+
 /// Agrupa el estado final del usuario y del rival tras resolver un efecto de habilidad.
 class BattlerAbilityEffectResolution {
   final Battler owner;
@@ -154,7 +178,7 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbility ability,
     required int damageDealt,
   }) {
-    if (!ability.isActive) {
+    if (!ability.isActive || owner.hasPendingBasicAttackFollowUp) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: target);
     }
 
@@ -277,7 +301,7 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbility ability,
     required int damageDealt,
   }) {
-    if (!ability.isActive) {
+    if (!ability.isActive || owner.hasPendingBasicAttackFollowUp) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: target);
     }
 
@@ -342,6 +366,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
 /// Describe una habilidad completa, incluyendo su estado runtime y su efecto.
 class BattlerAbility {
   final BattlerAbilityId id;
+  final List<EntityTag> tags;
   final String name;
   final String description;
   final IconData icon;
@@ -358,6 +383,7 @@ class BattlerAbility {
   /// Crea una habilidad inmutable lista para usarse como preset o como instancia runtime.
   const BattlerAbility({
     required this.id,
+    this.tags = const [],
     required this.name,
     required this.description,
     required this.icon,
@@ -376,6 +402,12 @@ class BattlerAbility {
   /// Indica si esta habilidad tiene hooks propios que deben ejecutarse.
   bool get hasEffect => effect != null;
 
+  /// Indica si la habilidad tiene al menos una tag visible o filtrable.
+  bool get hasTags => tags.isNotEmpty;
+
+  /// Comprueba si esta habilidad pertenece a una tag concreta.
+  bool hasTag(EntityTag tag) => tags.contains(tag);
+
   /// Indica si la habilidad puede activarse desde alguna pantalla.
   bool get canManuallyActivate => manualActivationContext != null;
 
@@ -387,6 +419,25 @@ class BattlerAbility {
 
   /// Devuelve el value base mas los bonus temporales ganados en combate.
   int get currentValue => value + runtimeValueBonus;
+
+  /// Indica cuantas mejoras visibles lleva esta habilidad respecto a su preset.
+  int get upgradeCount {
+    final baseAbility = presetForId(id);
+    final resolvedUpgradeValue =
+        upgradeValue > 0 ? upgradeValue : baseAbility.upgradeValue;
+    if (resolvedUpgradeValue <= 0 || value <= baseAbility.value) {
+      return 0;
+    }
+
+    return max(0, (value - baseAbility.value) ~/ resolvedUpgradeValue);
+  }
+
+  /// Devuelve el nombre visible incluyendo el sufijo de mejora cuando proceda.
+  String get displayName {
+    if (upgradeCount <= 0) return name;
+
+    return '$name +$upgradeCount';
+  }
 
   /// Devuelve el cooldown base en un formato corto para la interfaz.
   String get cooldownLabel {
@@ -424,9 +475,21 @@ class BattlerAbility {
 
   /// Devuelve una version mejorada sumando el upgradeValue al value base.
   BattlerAbility upgraded() {
-    if (upgradeValue <= 0) return this;
+    final upgradeTemplate = upgradeValue > 0 ? this : presetForId(id);
+    if (upgradeTemplate.upgradeValue <= 0) return this;
 
-    return copyWith(value: value + upgradeValue);
+    return copyWith(
+      tags: upgradeTemplate.tags,
+      name: upgradeTemplate.name,
+      description: upgradeTemplate.description,
+      icon: upgradeTemplate.icon,
+      cooldownTurns: upgradeTemplate.cooldownTurns,
+      value: value + upgradeTemplate.upgradeValue,
+      upgradeValue: upgradeTemplate.upgradeValue,
+      manualActivationContext: upgradeTemplate.manualActivationContext,
+      effect: upgradeTemplate.effect,
+      isImplemented: upgradeTemplate.isImplemented,
+    );
   }
 
   /// Marca la habilidad como activa sin tocar todavia su cooldown.
@@ -483,6 +546,7 @@ class BattlerAbility {
 
   /// Clona la habilidad permitiendo cambiar cualquier parte de su estado.
   BattlerAbility copyWith({
+    List<EntityTag>? tags,
     String? name,
     String? description,
     IconData? icon,
@@ -500,6 +564,7 @@ class BattlerAbility {
   }) {
     return BattlerAbility(
       id: id,
+      tags: tags ?? this.tags,
       name: name ?? this.name,
       description: description ?? this.description,
       icon: icon ?? this.icon,
@@ -542,6 +607,7 @@ class BattlerAbility {
 /// Preset que prepara un siguiente ataque potenciado y luego entra en cooldown.
 const criticalScannerAbility = BattlerAbility(
   id: BattlerAbilityId.criticalScanner,
+  tags: _ataqueAbilityTags,
   name: 'Escaner critico',
   description:
       'Activacion manual en combate. El siguiente ataque inflige dano adicional igual a su value.',
@@ -557,6 +623,7 @@ const criticalScannerAbility = BattlerAbility(
 /// Preset pasivo que castiga a los enemigos que ya tienen algun debuff.
 const weaknessHunterAbility = BattlerAbility(
   id: BattlerAbilityId.weaknessHunter,
+  tags: _ataqueDebuffAbilityTags,
   name: 'Caza de debilidades',
   description:
       'Pasiva. Tus ataques infligen dano adicional si el objetivo ya tiene al menos un debuff.',
@@ -570,6 +637,7 @@ const weaknessHunterAbility = BattlerAbility(
 /// Preset pasivo defensivo que protege mientras la vida siga llena.
 const ghostMeshAbility = BattlerAbility(
   id: BattlerAbilityId.ghostMesh,
+  tags: _vidaDefensaAbilityTags,
   name: 'Malla Fantasma',
   description:
       'Pasiva. Si tu vida esta al maximo, el dano recibido por ataques se reduce a la mitad, redondeando hacia arriba.',
@@ -582,6 +650,7 @@ const ghostMeshAbility = BattlerAbility(
 /// Preset manual que duplica la siguiente desventaja recibida por el objetivo.
 const cruelCatalysisAbility = BattlerAbility(
   id: BattlerAbilityId.cruelCatalysis,
+  tags: _debuffAbilityTags,
   name: 'Catalisis Cruel',
   description:
       'Activacion manual en combate. Aplica al enemigo un debuff que duplica el valor de la siguiente desventaja que reciba.',
@@ -596,6 +665,7 @@ const cruelCatalysisAbility = BattlerAbility(
 /// Preset manual que potencia un golpe y aplica Quemadura al propio usuario.
 const venousOverloadAbility = BattlerAbility(
   id: BattlerAbilityId.venousOverload,
+  tags: _ataqueQuemaduraAbilityTags,
   name: 'Sobrecarga venosa',
   description:
       'Activacion manual en combate. El siguiente ataque inflige dano adicional igual a su value, pero te aplica Quemadura por value/2 turnos.',
@@ -610,6 +680,7 @@ const venousOverloadAbility = BattlerAbility(
 /// Preset manual de ruta que purga debuffs purgables a cambio de vida.
 const hardResetAbility = BattlerAbility(
   id: BattlerAbilityId.hardReset,
+  tags: _vidaDebuffAbilityTags,
   name: 'Reinicio en seco',
   description:
       'Activacion manual en ruta. Elimina debuffs propios y luego te inflige dano igual al 10% de tu vida maxima por cada punto de value.',

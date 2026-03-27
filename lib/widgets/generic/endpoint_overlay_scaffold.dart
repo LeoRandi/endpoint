@@ -40,7 +40,7 @@ class EndpointOverlayScaffold extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset),
+          padding: EdgeInsets.fromLTRB(12, 12, 12, bottomInset),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: maxWidth,
@@ -53,7 +53,7 @@ class EndpointOverlayScaffold extends StatelessWidget {
               glowOpacity: 0.12,
               blurRadius: 22,
               spreadRadius: 2,
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

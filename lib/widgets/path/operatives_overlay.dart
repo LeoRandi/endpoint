@@ -181,7 +181,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     return SafeArea(
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(8),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: 500,
@@ -194,7 +194,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
               glowOpacity: 0.12,
               blurRadius: 22,
               spreadRadius: 2,
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -342,7 +342,7 @@ class _OperativeIconCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Ink(
             width: 54,
-            padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
             decoration: BoxDecoration(
               color: EndpointPalette.blend(
                 EndpointPalette.panelBackgroundSoft,
@@ -366,7 +366,7 @@ class _OperativeIconCard extends StatelessWidget {
                   accent: EndpointPalette.primaryAccent,
                   size: 28,
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 EndpointText(
                   isPlayer ? 'TU' : 'OP',
                   style: textSmallBold.copyWith(
