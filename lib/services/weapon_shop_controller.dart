@@ -8,6 +8,7 @@ class WeaponShopController extends ChangeNotifier {
   WeaponShopController({
     required Battler player,
     required ShopInventoryCriterion stockCriterion,
+    required RunHourPhase phase,
     required RunRandomizer randomizer,
     this.priceMultiplier = 1,
     WeaponShopStockService stockService = const WeaponShopStockService(),
@@ -15,6 +16,7 @@ class WeaponShopController extends ChangeNotifier {
         _stock = List<Item>.from(
           stockService.buildInitialStock(
             criterion: stockCriterion,
+            phase: phase,
             randomizer: randomizer,
           ),
         );
@@ -44,6 +46,9 @@ class WeaponShopController extends ChangeNotifier {
   }
 
   String inventoryStatusLabelFor(Item item) {
+    if (_player.equippedItems.contains(item)) {
+      return 'Estado actual: equipado. Para venderlo, primero desequipalo.';
+    }
     if (!_player.inventoryItems.contains(item)) {
       return 'El objeto ya no esta en tu inventario.';
     }
@@ -56,6 +61,81 @@ class WeaponShopController extends ChangeNotifier {
   }
 
   bool canSell(Item item) => _player.inventoryItems.contains(item);
+
+  String inventorySellTooltipFor(Item item) {
+    if (_player.equippedItems.contains(item)) {
+      return 'Desequipalo antes de venderlo';
+    }
+    if (!_player.inventoryItems.contains(item)) {
+      return 'El objeto ya no esta disponible';
+    }
+
+    return 'Vender objeto en esta tienda';
+  }
+
+  String? inventorySecondaryActionLabelFor(Item item) {
+    if (!canEquipFromInventory(item)) return null;
+    return 'Equipar';
+  }
+
+  String equippedStatusLabelFor(Item item) {
+    if (_player.equippedItems.contains(item)) {
+      return 'Estado actual: equipado.';
+    }
+    if (_player.inventoryItems.contains(item)) {
+      return 'Estado actual: en inventario.';
+    }
+
+    return 'El objeto ya no esta disponible.';
+  }
+
+  String? equippedSecondaryActionLabelFor(Item item) {
+    if (!canUnequip(item)) return null;
+    return 'Quitar';
+  }
+
+  bool canEquipFromInventory(Item item) {
+    return item.isEquippable && _player.inventoryItems.contains(item);
+  }
+
+  bool canUnequip(Item item) => _player.equippedItems.contains(item);
+
+  String inventorySecondaryActionTooltipFor(Item item) {
+    if (!item.isEquippable) return 'Este objeto no se puede equipar';
+    if (_player.equippedItems.contains(item)) {
+      return 'El objeto ya esta equipado';
+    }
+    if (!_player.inventoryItems.contains(item)) {
+      return 'El objeto ya no esta en tu inventario';
+    }
+
+    return 'Equipar objeto al operativo';
+  }
+
+  String equippedSecondaryActionTooltipFor(Item item) {
+    if (_player.inventoryItems.contains(item)) {
+      return 'El objeto ya esta en tu inventario';
+    }
+    if (!_player.equippedItems.contains(item)) {
+      return 'El objeto ya no esta equipado';
+    }
+
+    return 'Quitar objeto del equipo activo';
+  }
+
+  void equipInventoryItem(Item item) {
+    if (!canEquipFromInventory(item)) return;
+
+    _player = _player.equipItem(item);
+    notifyListeners();
+  }
+
+  void unequipItem(Item item) {
+    if (!canUnequip(item)) return;
+
+    _player = _player.unequipItem(item);
+    notifyListeners();
+  }
 
   void buyItem(Item item) {
     if (!canBuy(item)) return;

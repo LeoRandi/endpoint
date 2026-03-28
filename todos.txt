@@ -1,7 +1,7 @@
 TODOs:
 
 -Arquetipos
---Añadir más arquetipos, unos 7[3/7]
+--Añadir más arquetipos, unos 7 en total[3/7]
 --Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.
 
 -Página de Selección de Camino
@@ -29,7 +29,7 @@ TODOs:
 
 -Items
 [--Añadir Tags]
---Meter al menos 100-120[22/100]
+--Meter al menos 100-120[37/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 --Añadir más slots de equipamiento
@@ -64,7 +64,6 @@ TODOs:
 ////
 ARREGLAR:
 -El debuff de Intoxicación pone "inf" en el minitexto, por su duración infinita, pero en el caso de los estados que no se reducen cada turno debería mostrar el [value]
--Equipar/desequipar en tienda desde tu inventario, para poder vender algo que tengas equipado, y eso.
 -BUG: Si el jugador muere en el mismo turno en el que mata al enemigo, le muestra la pantalla de loot y no cierra la run hasta que cierra esa pantalla.
 
 ////

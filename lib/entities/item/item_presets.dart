@@ -47,6 +47,28 @@ const _ataqueVidaTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.vida,
 ];
+const _ataqueDebuffTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.debuff,
+];
+const _ataqueDebuffDefensaTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.debuff,
+  EntityTag.defensa,
+];
+const _defensaDebuffTags = <EntityTag>[
+  EntityTag.defensa,
+  EntityTag.debuff,
+];
+const _defensaBuffTags = <EntityTag>[
+  EntityTag.defensa,
+  EntityTag.buff,
+];
+const _ataqueDefensaBuffTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.defensa,
+  EntityTag.buff,
+];
 
 /// Arma gris sencilla para encuentros y tiendas de bajo nivel.
 const woodenStickItem = Item(
@@ -303,6 +325,270 @@ const reactiveCasingItem = Item(
   effect: QuemaduraOnHitReceivedItemEffect(),
 );
 
+/// Arma gris de control ligero que debilita el siguiente golpe enemigo.
+const stunBatonItem = Item(
+  id: ItemId.stunBaton,
+  tags: _ataqueDebuffTags,
+  name: 'Porra de Aturdimiento',
+  description: '+1 ATK. Al atacar: aplica Conmocion al enemigo.',
+  iconEmoji: '\u{1F50C}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.conmocion,
+    trigger: ItemStatusEffectTrigger.attackTarget,
+  ),
+);
+
+/// Armadura gris basica que refresca un pequeno escudo temporal cada turno.
+const emergencyPlatingItem = Item(
+  id: ItemId.emergencyPlating,
+  tags: _defensaBuffTags,
+  name: 'Placa de Emergencia',
+  description: '+1 DEF. Al inicio de tu turno, recuperas Blindaje Temporal.',
+  iconEmoji: '\u{1F6E1}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.defense: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.defense: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.blindajeTemporal,
+    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
+  ),
+);
+
+/// Accesorio gris reactivo que silencia al agresor.
+const pocketJammerItem = Item(
+  id: ItemId.pocketJammer,
+  tags: _defensaDebuffTags,
+  name: 'Interferidor de Bolsillo',
+  description: 'Al recibir dano: aplica Interferencia al agresor.',
+  iconEmoji: '\u{1F4F6}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.interferencia,
+    trigger: ItemStatusEffectTrigger.receiveDamageSource,
+  ),
+);
+
+/// Arma verde orientada a romper defensas de forma estable.
+const serratedEdgeItem = Item(
+  id: ItemId.serratedEdge,
+  tags: _ataqueDebuffDefensaTags,
+  name: 'Sierra Dentada',
+  description: '+1 ATK. Al atacar: aplica Fragilidad al enemigo.',
+  iconEmoji: '\u2692',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.green,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.fragilidad,
+    trigger: ItemStatusEffectTrigger.attackTarget,
+  ),
+);
+
+/// Armadura verde que estabiliza un Escudo de Energia constante.
+const containmentCoilItem = Item(
+  id: ItemId.containmentCoil,
+  tags: _defensaBuffTags,
+  name: 'Bobina de Contencion',
+  description: '+1 DEF. Al inicio de tu turno, recuperas Escudo de Energia.',
+  iconEmoji: '\u26A1',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.green,
+  baseCost: 4,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.defense: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.defense: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.escudoDeEnergia,
+    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
+  ),
+);
+
+/// Accesorio verde que acelera el escalado ofensivo golpe a golpe.
+const thermalTurbineItem = Item(
+  id: ItemId.thermalTurbine,
+  tags: _ataqueBuffTags,
+  name: 'Turbina Termica',
+  description: 'Al atacar: genera o aumenta Calentando.',
+  iconEmoji: '\u{1F525}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.green,
+  baseCost: 4,
+  value: 1,
+  upgradeValue: 1,
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.calentando,
+    trigger: ItemStatusEffectTrigger.attackOwnerReinforce,
+  ),
+);
+
+/// Arma azul que castiga el uso de habilidades del rival.
+const pulseCarbineItem = Item(
+  id: ItemId.pulseCarbine,
+  tags: _ataqueDebuffTags,
+  name: 'Carabina de Pulsos',
+  description: '+2 ATK. Al atacar: aplica Interferencia al enemigo.',
+  iconEmoji: '\u{1F52B}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.interferencia,
+    trigger: ItemStatusEffectTrigger.attackTarget,
+  ),
+);
+
+/// Armadura azul que transforma dano de estado en margen contra golpes directos.
+const phaseVeilItem = Item(
+  id: ItemId.phaseVeil,
+  tags: _defensaBuffTags,
+  name: 'Velo de Fase',
+  description: '+2 DEF. Al inicio de tu turno, recuperas Escudo de Fase.',
+  iconEmoji: '\u{1F300}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.defense: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.defense: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.escudoDeFase,
+    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
+  ),
+);
+
+/// Accesorio azul que garantiza acceso continuo al motor de Inercia.
+const inertialCoreItem = Item(
+  id: ItemId.inertialCore,
+  tags: _ataqueDefensaBuffTags,
+  name: 'Nucleo Inercial',
+  description: 'Al inicio de tu turno, si no lo tienes, ganas Inercia.',
+  iconEmoji: '\u{1F9F2}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 1,
+  upgradeValue: 1,
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.inercia,
+    trigger: ItemStatusEffectTrigger.turnStartOwnerIfMissing,
+  ),
+);
+
+/// Arma morada que convierte cada impacto en reserva de ataque acumulable.
+const impulseSpearItem = Item(
+  id: ItemId.impulseSpear,
+  tags: _ataqueBuffTags,
+  name: 'Lanza de Impulso',
+  description: '+2 ATK. Al atacar: ganas Reserva de Inercia: ATK.',
+  iconEmoji: '\u{1F5E1}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.inerciaAtaque,
+    trigger: ItemStatusEffectTrigger.attackOwner,
+  ),
+);
+
+/// Armadura morada que convierte castigo en una reserva defensiva creciente.
+const reboundHarnessItem = Item(
+  id: ItemId.reboundHarness,
+  tags: _defensaBuffTags,
+  name: 'Arnes de Rebote',
+  description: '+2 DEF. Al recibir dano: ganas Reserva de Inercia: DEF.',
+  iconEmoji: '\u{1F9E5}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.defense: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.defense: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.inerciaDefensa,
+    trigger: ItemStatusEffectTrigger.receiveDamageOwner,
+  ),
+);
+
+/// Accesorio morado que devuelve una conmocion potente al agresor.
+const concussionPrismItem = Item(
+  id: ItemId.concussionPrism,
+  tags: _defensaDebuffTags,
+  name: 'Prisma Concusivo',
+  description: 'Al recibir dano: aplica Conmocion al agresor.',
+  iconEmoji: '\u{1F48E}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  value: 3,
+  upgradeValue: 1,
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.conmocion,
+    trigger: ItemStatusEffectTrigger.receiveDamageSource,
+  ),
+);
+
 /// Blindaje azul de defensa plana alta.
 const platedJacketItem = Item(
   id: ItemId.platedJacket,
@@ -321,6 +607,72 @@ const platedJacketItem = Item(
   upgradeStatModifiers: {
     BattlerStat.defense: 4,
   },
+);
+
+/// Arma amarilla que acelera de verdad las cadenas de Calentando.
+const overloadInjectorItem = Item(
+  id: ItemId.overloadInjector,
+  tags: _ataqueBuffTags,
+  name: 'Inyector de Sobrecarga',
+  description: '+3 ATK. Al atacar: genera o aumenta Calentando.',
+  iconEmoji: '\u{1F489}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.yellow,
+  baseCost: 10,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 3,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.calentando,
+    trigger: ItemStatusEffectTrigger.attackOwnerReinforce,
+  ),
+);
+
+/// Armadura amarilla que garantiza una Inercia de alto valor si se pierde.
+const vectorBulwarkItem = Item(
+  id: ItemId.vectorBulwark,
+  tags: _ataqueDefensaBuffTags,
+  name: 'Bastion Vectorial',
+  description: '+3 DEF. Al inicio de tu turno, si no lo tienes, ganas Inercia.',
+  iconEmoji: '\u{1F9FF}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.yellow,
+  baseCost: 10,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.defense: 3,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.defense: 1,
+  },
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.inercia,
+    trigger: ItemStatusEffectTrigger.turnStartOwnerIfMissing,
+  ),
+);
+
+/// Accesorio amarillo que rellena un Blindaje Temporal grande al arrancar turno.
+const contingencySealItem = Item(
+  id: ItemId.contingencySeal,
+  tags: _defensaBuffTags,
+  name: 'Sello de Contingencia',
+  description: 'Al inicio de tu turno, recuperas Blindaje Temporal.',
+  iconEmoji: '\u2726',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.yellow,
+  baseCost: 10,
+  value: 4,
+  upgradeValue: 1,
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.blindajeTemporal,
+    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
+  ),
 );
 
 /// Arma amarilla de dano alto para el tramo final.
@@ -493,6 +845,21 @@ const itemPresets = <Item>[
   emberCharmItem,
   chemicalFilterItem,
   billingModuleItem,
+  stunBatonItem,
+  emergencyPlatingItem,
+  pocketJammerItem,
+  serratedEdgeItem,
+  containmentCoilItem,
+  thermalTurbineItem,
+  pulseCarbineItem,
+  phaseVeilItem,
+  inertialCoreItem,
+  impulseSpearItem,
+  reboundHarnessItem,
+  concussionPrismItem,
+  overloadInjectorItem,
+  vectorBulwarkItem,
+  contingencySealItem,
   ironSwordItem,
   guardShieldItem,
   platedJacketItem,

@@ -12,6 +12,12 @@ class EndpointItemDetailsDialog extends StatelessWidget {
   final bool isActionEnabled;
   final String enabledActionTooltip;
   final String disabledActionTooltip;
+  final String? secondaryActionLabel;
+  final IconData secondaryActionIcon;
+  final VoidCallback? onSecondaryAction;
+  final bool isSecondaryActionEnabled;
+  final String enabledSecondaryActionTooltip;
+  final String disabledSecondaryActionTooltip;
 
   const EndpointItemDetailsDialog({
     super.key,
@@ -26,6 +32,12 @@ class EndpointItemDetailsDialog extends StatelessWidget {
     this.isActionEnabled = false,
     this.enabledActionTooltip = '',
     this.disabledActionTooltip = '',
+    this.secondaryActionLabel,
+    this.secondaryActionIcon = Icons.swap_vert_rounded,
+    this.onSecondaryAction,
+    this.isSecondaryActionEnabled = false,
+    this.enabledSecondaryActionTooltip = '',
+    this.disabledSecondaryActionTooltip = '',
   });
 
   @override
@@ -37,6 +49,11 @@ class EndpointItemDetailsDialog extends StatelessWidget {
       EndpointPalette.panelBackgroundGold,
       accent,
       0.16,
+    );
+    final secondaryActionSurface = EndpointPalette.blend(
+      EndpointPalette.panelBackground,
+      accent,
+      0.08,
     );
     final effectDescription = item.effect?.descriptionFor(item);
     final shouldShowEffectPanel =
@@ -138,23 +155,55 @@ class EndpointItemDetailsDialog extends StatelessWidget {
               letterSpacing: 1,
             ),
           ),
-          if (actionLabel != null) ...[
+          if (actionLabel != null || secondaryActionLabel != null) ...[
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
-              child: EndpointActionButton(
-                label: actionLabel!,
-                icon: actionIcon,
-                onPressed: isActionEnabled ? onPrimaryAction : null,
-                tooltip: isActionEnabled
-                    ? enabledActionTooltip
-                    : disabledActionTooltip,
-                accent: accent,
-                backgroundColor: statusSurface,
-                foregroundColor: foreground,
-                borderWidth: 1.3,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (secondaryActionLabel != null)
+                    EndpointActionButton(
+                      label: secondaryActionLabel!,
+                      icon: secondaryActionIcon,
+                      onPressed:
+                          isSecondaryActionEnabled ? onSecondaryAction : null,
+                      tooltip: isSecondaryActionEnabled
+                          ? enabledSecondaryActionTooltip
+                          : disabledSecondaryActionTooltip,
+                      accent: accent,
+                      backgroundColor: secondaryActionSurface,
+                      foregroundColor: foreground,
+                      borderWidth: 1.2,
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      textStyle: textSmallBold.copyWith(letterSpacing: 1.1),
+                      iconSize: 18,
+                      useMarquee: false,
+                      width: actionLabel != null ? 118 : null,
+                    ),
+                  if (actionLabel != null)
+                    EndpointActionButton(
+                      label: actionLabel!,
+                      icon: actionIcon,
+                      onPressed: isActionEnabled ? onPrimaryAction : null,
+                      tooltip: isActionEnabled
+                          ? enabledActionTooltip
+                          : disabledActionTooltip,
+                      accent: accent,
+                      backgroundColor: statusSurface,
+                      foregroundColor: foreground,
+                      borderWidth: 1.3,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
+                    ),
+                ],
               ),
             ),
           ],

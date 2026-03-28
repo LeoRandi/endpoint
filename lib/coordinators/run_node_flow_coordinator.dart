@@ -48,6 +48,7 @@ class RunNodeFlowCoordinator {
             player: session.player,
             shop: shopNode,
             randomizer: session.randomizer,
+            phase: session.currentHour.phase,
           ),
           onCompleted: session.completeWeaponShopVisit,
         );

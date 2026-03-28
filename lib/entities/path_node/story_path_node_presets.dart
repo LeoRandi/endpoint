@@ -383,7 +383,6 @@ final severeMedicationCampNode = CampSitePathNode(
 final List<ShopPathNode> dayShopNodes = List.unmodifiable([
   scrapArsenalNode,
   bulwarkWorkshopNode,
-  luxuryRelicsNode,
   emberFoundryNode,
   toxinLabNode,
 ]);

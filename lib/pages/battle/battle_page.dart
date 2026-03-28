@@ -953,38 +953,7 @@ class _BattleLoadoutStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final equipmentStrip = EndpointEquipmentSlotsStrip(
-      battler: battler,
-      layout: EndpointEquipmentLayout.standard,
-      tileExtent: 54,
-      tileHeight: 66,
-      emojiSize: 14,
-      borderColor: accent.withAlpha(87),
-      onItemPressed: onItemPressed,
-    );
-    final abilityStrip = EndpointAbilitySlotsStrip(
-      abilities: abilities,
-      accent: accent,
-      onAbilityPressed: onAbilityPressed,
-      onAbilityHoldCompleted: onAbilityHoldCompleted,
-      canHoldActivateAbility: canHoldActivateAbility,
-      holdDuration: const Duration(milliseconds: 500),
-      enableTooltipLongPress: enableAbilityTooltipLongPress,
-    );
-    final children = mirrorHorizontally
-        ? <Widget>[
-            abilityStrip,
-            const SizedBox(width: 8),
-            equipmentStrip,
-          ]
-        : <Widget>[
-            equipmentStrip,
-            const SizedBox(width: 8),
-            abilityStrip,
-          ];
-
-    return SizedBox(
-      height: 66,
+    final equipmentStrip = Expanded(
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
@@ -992,15 +961,107 @@ class _BattleLoadoutStrip extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: children,
+                child: EndpointEquipmentSlotsStrip(
+                  battler: battler,
+                  layout: EndpointEquipmentLayout.standard,
+                  tileExtent: 54,
+                  tileHeight: 66,
+                  emojiSize: 14,
+                  borderColor: accent.withAlpha(87),
+                  onItemPressed: onItemPressed,
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+    final abilityStrip = Expanded(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Center(
+                child: EndpointAbilitySlotsStrip(
+                  abilities: abilities,
+                  accent: accent,
+                  onAbilityPressed: onAbilityPressed,
+                  onAbilityHoldCompleted: onAbilityHoldCompleted,
+                  canHoldActivateAbility: canHoldActivateAbility,
+                  holdDuration: const Duration(milliseconds: 500),
+                  enableTooltipLongPress: enableAbilityTooltipLongPress,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    final separator = _BattleLoadoutDivider(accent: accent);
+    final children = mirrorHorizontally
+        ? <Widget>[
+            abilityStrip,
+            const SizedBox(width: 8),
+            separator,
+            const SizedBox(width: 8),
+            equipmentStrip,
+          ]
+        : <Widget>[
+            equipmentStrip,
+            const SizedBox(width: 8),
+            separator,
+            const SizedBox(width: 8),
+            abilityStrip,
+          ];
+
+    return SizedBox(
+      height: 66,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _BattleLoadoutDivider extends StatelessWidget {
+  final Color accent;
+
+  const _BattleLoadoutDivider({
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 10,
+      height: 54,
+      child: Center(
+        child: Container(
+          width: 3,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                accent.withAlpha(18),
+                accent.withAlpha(184),
+                accent.withAlpha(18),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withAlpha(56),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

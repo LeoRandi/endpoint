@@ -758,6 +758,285 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
   }
 }
 
+/// Enumera los estados "nuevos" que pueden ser aplicados por objetos.
+enum ItemStatusEffectKind {
+  blindajeTemporal,
+  calentando,
+  conmocion,
+  escudoDeEnergia,
+  escudoDeFase,
+  fragilidad,
+  inercia,
+  inerciaAtaque,
+  inerciaDefensa,
+  interferencia,
+}
+
+/// Identifica en que momento del combate un objeto genera uno de esos estados.
+enum ItemStatusEffectTrigger {
+  attackTarget,
+  attackOwner,
+  attackOwnerReinforce,
+  receiveDamageSource,
+  receiveDamageOwner,
+  turnStartOwnerRefreshMinimum,
+  turnStartOwnerIfMissing,
+}
+
+/// Aplica estados reutilizando una unica pieza de logica segun trigger y tipo.
+class StatusItemEffect extends ItemEffect {
+  final ItemStatusEffectKind kind;
+  final ItemStatusEffectTrigger trigger;
+
+  /// Crea un efecto parametrico para objetos que solo introducen estados.
+  const StatusItemEffect({
+    required this.kind,
+    required this.trigger,
+  }) : super(
+          description: 'Aplica un estado contextual.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final phrase = _statusPhrase(item);
+
+    switch (trigger) {
+      case ItemStatusEffectTrigger.attackTarget:
+        return 'Al atacar: aplica $phrase al enemigo.';
+      case ItemStatusEffectTrigger.attackOwner:
+        return 'Al atacar: ganas $phrase.';
+      case ItemStatusEffectTrigger.attackOwnerReinforce:
+        return 'Al atacar: genera o aumenta $phrase.';
+      case ItemStatusEffectTrigger.receiveDamageSource:
+        return 'Al recibir dano: aplica $phrase al agresor.';
+      case ItemStatusEffectTrigger.receiveDamageOwner:
+        return 'Al recibir dano: ganas $phrase.';
+      case ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum:
+        return 'Al inicio de tu turno, recuperas $phrase.';
+      case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
+        return 'Al inicio de tu turno, si no lo tienes, ganas $phrase.';
+    }
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    switch (trigger) {
+      case ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum:
+      case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
+        return ItemEffectResolution(
+          owner: _applyToOwner(
+            owner: owner,
+            source: owner,
+            item: item,
+          ),
+          opponent: opponent,
+        );
+      case ItemStatusEffectTrigger.attackTarget:
+      case ItemStatusEffectTrigger.attackOwner:
+      case ItemStatusEffectTrigger.attackOwnerReinforce:
+      case ItemStatusEffectTrigger.receiveDamageSource:
+      case ItemStatusEffectTrigger.receiveDamageOwner:
+        return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    switch (trigger) {
+      case ItemStatusEffectTrigger.attackTarget:
+        return ItemEffectResolution(
+          owner: owner,
+          opponent: target.applyStatus(
+            _buildStatus(item),
+            source: owner,
+          ),
+        );
+      case ItemStatusEffectTrigger.attackOwner:
+      case ItemStatusEffectTrigger.attackOwnerReinforce:
+        return ItemEffectResolution(
+          owner: _applyToOwner(
+            owner: owner,
+            source: owner,
+            item: item,
+          ),
+          opponent: target,
+        );
+      case ItemStatusEffectTrigger.receiveDamageSource:
+      case ItemStatusEffectTrigger.receiveDamageOwner:
+      case ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum:
+      case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
+        return ItemEffectResolution(owner: owner, opponent: target);
+    }
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    switch (trigger) {
+      case ItemStatusEffectTrigger.receiveDamageSource:
+        return ItemEffectResolution(
+          owner: owner,
+          opponent: source.applyStatus(
+            _buildStatus(item),
+            source: owner,
+          ),
+        );
+      case ItemStatusEffectTrigger.receiveDamageOwner:
+        return ItemEffectResolution(
+          owner: _applyToOwner(
+            owner: owner,
+            source: owner,
+            item: item,
+          ),
+          opponent: source,
+        );
+      case ItemStatusEffectTrigger.attackTarget:
+      case ItemStatusEffectTrigger.attackOwner:
+      case ItemStatusEffectTrigger.attackOwnerReinforce:
+      case ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum:
+      case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
+        return ItemEffectResolution(owner: owner, opponent: source);
+    }
+  }
+
+  Battler _applyToOwner({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+  }) {
+    final status = _buildStatus(item);
+
+    switch (trigger) {
+      case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
+        if (owner.hasStatus(status.id)) return owner;
+
+        return owner.applyStatus(
+          status,
+          source: source,
+        );
+      case ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum:
+        final currentStatus = owner.statusById(status.id);
+        if (currentStatus != null && currentStatus.resolved(owner).value >= status.value) {
+          return owner;
+        }
+
+        final refreshedOwner =
+            currentStatus == null ? owner : owner.removeStatus(status.id);
+        return refreshedOwner.applyStatus(
+          status,
+          source: source,
+        );
+      case ItemStatusEffectTrigger.attackOwnerReinforce:
+        if (kind != ItemStatusEffectKind.calentando) {
+          return owner.applyStatus(
+            status,
+            source: source,
+          );
+        }
+
+        final currentStatus = owner.statusById('calentando');
+        if (currentStatus is! CalentandoStatus) {
+          return owner.applyStatus(
+            status,
+            source: source,
+          );
+        }
+
+        return owner.applyStatus(
+          currentStatus.copyWith(
+            value: currentStatus.value + status.value,
+            remainingTurns: max(
+              currentStatus.remainingTurns,
+              status.remainingTurns,
+            ),
+          ),
+          applyEquipmentModifiers: false,
+        );
+      case ItemStatusEffectTrigger.attackOwner:
+      case ItemStatusEffectTrigger.receiveDamageOwner:
+        return owner.applyStatus(
+          status,
+          source: source,
+        );
+      case ItemStatusEffectTrigger.attackTarget:
+      case ItemStatusEffectTrigger.receiveDamageSource:
+        return owner;
+    }
+  }
+
+  BattlerStatus _buildStatus(Item item) {
+    final resolvedValue = max(1, item.value);
+
+    switch (kind) {
+      case ItemStatusEffectKind.blindajeTemporal:
+        return BlindajeTemporalStatus(value: resolvedValue);
+      case ItemStatusEffectKind.calentando:
+        return CalentandoStatus(value: resolvedValue);
+      case ItemStatusEffectKind.conmocion:
+        return ConmocionStatus(value: resolvedValue);
+      case ItemStatusEffectKind.escudoDeEnergia:
+        return EscudoDeEnergiaStatus(value: resolvedValue);
+      case ItemStatusEffectKind.escudoDeFase:
+        return EscudoDeFaseStatus(value: resolvedValue);
+      case ItemStatusEffectKind.fragilidad:
+        return FragilidadStatus(remainingTurns: resolvedValue);
+      case ItemStatusEffectKind.inercia:
+        return InerciaStatus(value: resolvedValue);
+      case ItemStatusEffectKind.inerciaAtaque:
+        return InerciaAtaqueStatus(value: resolvedValue);
+      case ItemStatusEffectKind.inerciaDefensa:
+        return InerciaDefensaStatus(value: resolvedValue);
+      case ItemStatusEffectKind.interferencia:
+        return InterferenciaStatus(remainingTurns: resolvedValue);
+    }
+  }
+
+  String _statusPhrase(Item item) {
+    final resolvedValue = max(1, item.value);
+
+    switch (kind) {
+      case ItemStatusEffectKind.blindajeTemporal:
+        return 'Blindaje Temporal ($resolvedValue de absorcion)';
+      case ItemStatusEffectKind.calentando:
+        return 'Calentando (+$resolvedValue dano)';
+      case ItemStatusEffectKind.conmocion:
+        return 'Conmocion (-$resolvedValue dano en el siguiente ataque)';
+      case ItemStatusEffectKind.escudoDeEnergia:
+        return 'Escudo de Energia ($resolvedValue)';
+      case ItemStatusEffectKind.escudoDeFase:
+        return 'Escudo de Fase ($resolvedValue)';
+      case ItemStatusEffectKind.fragilidad:
+        return 'Fragilidad durante $resolvedValue turnos';
+      case ItemStatusEffectKind.inercia:
+        return 'Inercia (+$resolvedValue por acumulacion)';
+      case ItemStatusEffectKind.inerciaAtaque:
+        return 'Reserva de Inercia: ATK (+$resolvedValue)';
+      case ItemStatusEffectKind.inerciaDefensa:
+        return 'Reserva de Inercia: DEF (+$resolvedValue)';
+      case ItemStatusEffectKind.interferencia:
+        return 'Interferencia durante $resolvedValue turnos';
+    }
+  }
+}
+
 /// Comprueba si una habilidad ha pasado de estar lista a estar en cooldown.
 bool _enteredCooldown(
   BattlerAbility previousAbility,

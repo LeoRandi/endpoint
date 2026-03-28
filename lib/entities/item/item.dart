@@ -25,6 +25,21 @@ enum ItemId {
   toxicCatalyst,
   emberCharm,
   reactiveCasing,
+  stunBaton,
+  emergencyPlating,
+  pocketJammer,
+  serratedEdge,
+  containmentCoil,
+  thermalTurbine,
+  pulseCarbine,
+  phaseVeil,
+  inertialCore,
+  impulseSpear,
+  reboundHarness,
+  concussionPrism,
+  overloadInjector,
+  vectorBulwark,
+  contingencySeal,
 }
 
 /// Define los huecos equipables disponibles en el loadout del battler.

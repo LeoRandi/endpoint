@@ -10,12 +10,14 @@ class WeaponShopPage extends StatefulWidget {
   final Battler player;
   final ShopPathNode shop;
   final RunRandomizer randomizer;
+  final RunHourPhase phase;
 
   const WeaponShopPage({
     super.key,
     required this.player,
     required this.shop,
     required this.randomizer,
+    required this.phase,
   });
 
   @override
@@ -31,6 +33,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
     _controller = WeaponShopController(
       player: widget.player,
       stockCriterion: widget.shop.stockCriterion,
+      phase: widget.phase,
       randomizer: widget.randomizer,
       priceMultiplier: widget.shop.priceMultiplier,
     );
@@ -103,8 +106,22 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                     }
                   : null,
               isActionEnabled: _controller.canSell(item),
-              enabledActionTooltip: 'Vender objeto en esta tienda',
-              disabledActionTooltip: 'El objeto ya no esta disponible',
+              enabledActionTooltip: _controller.inventorySellTooltipFor(item),
+              disabledActionTooltip: _controller.inventorySellTooltipFor(item),
+              secondaryActionLabel:
+                  _controller.inventorySecondaryActionLabelFor(item),
+              secondaryActionIcon: Icons.arrow_upward_rounded,
+              onSecondaryAction: _controller.canEquipFromInventory(item)
+                  ? () {
+                      _controller.equipInventoryItem(item);
+                    }
+                  : null,
+              isSecondaryActionEnabled:
+                  _controller.canEquipFromInventory(item),
+              enabledSecondaryActionTooltip:
+                  _controller.inventorySecondaryActionTooltipFor(item),
+              disabledSecondaryActionTooltip:
+                  _controller.inventorySecondaryActionTooltipFor(item),
             );
           },
         );
@@ -125,7 +142,20 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
               item: item,
               accent: item.rarity.accent,
               price: item.cost,
-              statusText: 'Estado actual: equipado',
+              statusText: _controller.equippedStatusLabelFor(item),
+              secondaryActionLabel:
+                  _controller.equippedSecondaryActionLabelFor(item),
+              secondaryActionIcon: Icons.arrow_downward_rounded,
+              onSecondaryAction: _controller.canUnequip(item)
+                  ? () {
+                      _controller.unequipItem(item);
+                    }
+                  : null,
+              isSecondaryActionEnabled: _controller.canUnequip(item),
+              enabledSecondaryActionTooltip:
+                  _controller.equippedSecondaryActionTooltipFor(item),
+              disabledSecondaryActionTooltip:
+                  _controller.equippedSecondaryActionTooltipFor(item),
             );
           },
         );
