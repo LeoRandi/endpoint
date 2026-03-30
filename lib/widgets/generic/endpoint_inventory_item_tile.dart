@@ -3,6 +3,7 @@ import '../_imports.dart';
 class EndpointInventoryItemTile extends StatelessWidget {
   final Item item;
   final VoidCallback? onPressed;
+  final Color? accent;
   final Color backgroundColor;
   final double borderRadius;
   final double glowOpacity;
@@ -13,6 +14,7 @@ class EndpointInventoryItemTile extends StatelessWidget {
     super.key,
     required this.item,
     this.onPressed,
+    this.accent,
     this.backgroundColor = EndpointPalette.panelBackgroundSoft,
     this.borderRadius = 12,
     this.glowOpacity = 0.03,
@@ -22,6 +24,8 @@ class EndpointInventoryItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedAccent = accent ?? item.rarity.accent;
+
     return HoldTooltip(
       message: item.tooltipDescription,
       child: Material(
@@ -30,6 +34,7 @@ class EndpointInventoryItemTile extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(borderRadius),
           child: EndpointPanel(
+            accent: resolvedAccent,
             backgroundColor: backgroundColor,
             borderRadius: borderRadius,
             glowOpacity: glowOpacity,

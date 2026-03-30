@@ -116,8 +116,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                       _controller.equipInventoryItem(item);
                     }
                   : null,
-              isSecondaryActionEnabled:
-                  _controller.canEquipFromInventory(item),
+              isSecondaryActionEnabled: _controller.canEquipFromInventory(item),
               enabledSecondaryActionTooltip:
                   _controller.inventorySecondaryActionTooltipFor(item),
               disabledSecondaryActionTooltip:
@@ -169,7 +168,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
+      onPopInvoked: (didPop) {
         if (didPop) return;
         _closeShop();
       },
@@ -276,7 +275,6 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                                                 stock[index];
                                                             return _ShopOfferCard(
                                                               item: item,
-                                                              accent: accent,
                                                               foreground:
                                                                   foreground,
                                                               price: _controller
@@ -508,7 +506,6 @@ class _ShopOfferCard extends StatelessWidget {
   final Item item;
   final int price;
   final String statusLabel;
-  final Color accent;
   final Color foreground;
   final VoidCallback onPressed;
 
@@ -516,13 +513,14 @@ class _ShopOfferCard extends StatelessWidget {
     required this.item,
     required this.price,
     required this.statusLabel,
-    required this.accent,
     required this.foreground,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
+    final itemAccent = item.rarity.accent;
+
     return SizedBox(
       width: double.infinity,
       height: 74,
@@ -532,10 +530,10 @@ class _ShopOfferCard extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(14),
           child: EndpointPanel(
-            accent: accent,
+            accent: itemAccent,
             backgroundColor: EndpointPalette.blend(
               EndpointPalette.panelBackgroundSoft,
-              accent,
+              itemAccent,
               0.14,
             ),
             borderRadius: 14,
@@ -544,24 +542,24 @@ class _ShopOfferCard extends StatelessWidget {
             child: Row(
               children: [
                 _ShopOfferLead(
-                  accent: accent,
+                  accent: itemAccent,
                   emoji: item.iconEmoji,
                 ),
                 const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        EndpointText(
-                          item.displayName,
-                          overflow: TextOverflow.ellipsis,
-                          style: textMediumBold.copyWith(
-                            color: foreground,
-                            fontSize: 14,
-                            letterSpacing: 0.9,
-                          ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EndpointText(
+                        item.displayName,
+                        overflow: TextOverflow.ellipsis,
+                        style: textMediumBold.copyWith(
+                          color: foreground,
+                          fontSize: 14,
+                          letterSpacing: 0.9,
                         ),
+                      ),
                       const SizedBox(height: 2),
                       EndpointText(
                         '${item.slot?.label ?? 'Consumible'}',
@@ -571,16 +569,16 @@ class _ShopOfferCard extends StatelessWidget {
                           fontSize: 10,
                           letterSpacing: 1,
                         ),
+                      ),
+                      const SizedBox(height: 2),
+                      EndpointText(
+                        item.tooltipDescription,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: Colors.white.withAlpha(173),
+                          fontSize: 10,
                         ),
-                        const SizedBox(height: 2),
-                        EndpointText(
-                          item.tooltipDescription,
-                          overflow: TextOverflow.ellipsis,
-                          style: textSmallBold.copyWith(
-                            color: Colors.white.withAlpha(173),
-                            fontSize: 10,
-                          ),
-                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -592,7 +590,7 @@ class _ShopOfferCard extends StatelessWidget {
                     EndpointText(
                       '${price}C',
                       style: textSmallNumericBold.copyWith(
-                        color: accent,
+                        color: itemAccent,
                         fontSize: 12,
                         letterSpacing: 1.1,
                       ),
@@ -709,63 +707,6 @@ class _ShopEconomyStrip extends StatelessWidget {
           foreground: EndpointPalette.soften(EndpointPalette.infoAccent),
         ),
       ],
-    );
-  }
-}
-
-class _ShopEquippedRow extends StatelessWidget {
-  final Battler player;
-  final Color accent;
-  final Color foreground;
-  final ValueChanged<Item> onItemPressed;
-
-  const _ShopEquippedRow({
-    required this.player,
-    required this.accent,
-    required this.foreground,
-    required this.onItemPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return EndpointPanel(
-      accent: accent,
-      backgroundColor: EndpointPalette.blend(
-        EndpointPalette.panelBackgroundSoft,
-        accent,
-        0.1,
-      ),
-      borderRadius: 12,
-      glowOpacity: 0.03,
-      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: EndpointText(
-                  'EQUIPADO',
-                  style: textSmallBold.copyWith(
-                    color: foreground,
-                    fontSize: 11,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
-              EndpointText(
-                '${player.equippedItems.length}/3',
-                style: textSmallBold.copyWith(
-                  color: accent,
-                  fontSize: 10,
-                  letterSpacing: 1.1,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
     );
   }
 }

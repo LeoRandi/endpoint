@@ -109,6 +109,17 @@ abstract class BattlerStatus {
     return '$remainingTurns turnos';
   }
 
+  /// Devuelve el minitexto compacto que usan los badges de combate.
+  /// Los estados indefinidos muestran su value efectivo porque ese es el
+  /// numero relevante para leer su impacto de un vistazo.
+  String badgeLabelFor(Battler owner) {
+    if (isIndefinite) {
+      return '${resolved(owner).value}';
+    }
+
+    return '$remainingTurns';
+  }
+
   /// Clona el estado cambiando solo los campos runtime necesarios.
   BattlerStatus copyWith({
     int? remainingTurns,

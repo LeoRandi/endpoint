@@ -231,7 +231,6 @@ class _BattlePageState extends State<BattlePage> {
   Future<void> _handleOpenAbilityDetails(
     Battler battler,
     BattlerAbility ability, {
-    required Color accent,
     required bool canControlOwner,
   }) async {
     if (_pendingVictoryExitResult != null) return;
@@ -250,7 +249,7 @@ class _BattlePageState extends State<BattlePage> {
 
             return EndpointAbilityDetailsDialog(
               ability: currentAbility,
-              accent: accent,
+              accent: currentAbility.accent,
               statusText: _abilityStatusTextFor(
                 currentAbility,
                 canControlOwner: canControlOwner,
@@ -424,7 +423,6 @@ class _BattlePageState extends State<BattlePage> {
                                       _handleOpenAbilityDetails(
                                     _controller.enemy,
                                     ability,
-                                    accent: enemyAccent,
                                     canControlOwner: false,
                                   ),
                                 ),
@@ -463,7 +461,6 @@ class _BattlePageState extends State<BattlePage> {
                                       _handleOpenAbilityDetails(
                                     _controller.player,
                                     ability,
-                                    accent: playerAccent,
                                     canControlOwner: true,
                                   ),
                                 ),

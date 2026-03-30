@@ -193,27 +193,28 @@ class _EndpointAbilityOrbState extends State<EndpointAbilityOrb>
   @override
   Widget build(BuildContext context) {
     final currentAbility = widget.ability;
+    final resolvedAccent = currentAbility?.accent ?? widget.accent;
     final isActive = currentAbility?.isActive ?? false;
     final isOnCooldown = currentAbility?.isOnCooldown ?? false;
     final tooltip = currentAbility?.description ?? widget.emptyTooltip;
     final borderColor = currentAbility == null
-        ? widget.accent.withAlpha(87)
+        ? resolvedAccent.withAlpha(87)
         : isActive
-            ? widget.accent
-            : widget.accent.withAlpha(isOnCooldown ? 117 : 158);
+            ? resolvedAccent
+            : resolvedAccent.withAlpha(isOnCooldown ? 117 : 158);
     final fillColor = currentAbility == null
-        ? widget.accent.withAlpha(31)
+        ? resolvedAccent.withAlpha(31)
         : isActive
-            ? widget.accent.withAlpha(209)
-            : widget.accent.withAlpha(isOnCooldown ? 51 : 107);
+            ? resolvedAccent.withAlpha(209)
+            : resolvedAccent.withAlpha(isOnCooldown ? 51 : 107);
     final iconColor = currentAbility == null
-        ? widget.accent.withAlpha(82)
+        ? resolvedAccent.withAlpha(82)
         : isActive
             ? EndpointPalette.panelBackground
-            : widget.accent.withAlpha(isOnCooldown ? 168 : 240);
+            : resolvedAccent.withAlpha(isOnCooldown ? 168 : 240);
     final shadowColor = isActive
-        ? widget.accent.withAlpha(61)
-        : widget.accent.withAlpha(isOnCooldown ? 20 : 36);
+        ? resolvedAccent.withAlpha(61)
+        : resolvedAccent.withAlpha(isOnCooldown ? 20 : 36);
     final decoration = BoxDecoration(
       shape: BoxShape.circle,
       color: EndpointPalette.panelBackgroundBattle,
@@ -268,7 +269,7 @@ class _EndpointAbilityOrbState extends State<EndpointAbilityOrb>
                         bottom: widget.size * 0.14,
                         child: _AbilityHoldProgressBar(
                           progress: holdProgress,
-                          accent: widget.accent,
+                          accent: resolvedAccent,
                         ),
                       ),
                   ],
@@ -281,7 +282,7 @@ class _EndpointAbilityOrbState extends State<EndpointAbilityOrb>
                 right: -2,
                 child: _AbilityBadge(
                   label: '${currentAbility.remainingCooldownTurns}',
-                  accent: widget.accent,
+                  accent: resolvedAccent,
                   backgroundColor: EndpointPalette.panelBackground,
                 ),
               )
@@ -291,8 +292,8 @@ class _EndpointAbilityOrbState extends State<EndpointAbilityOrb>
                 right: -2,
                 child: _AbilityBadge(
                   label: 'ON',
-                  accent: widget.accent,
-                  backgroundColor: widget.accent,
+                  accent: resolvedAccent,
+                  backgroundColor: resolvedAccent,
                   foregroundColor: EndpointPalette.panelBackground,
                 ),
               ),

@@ -366,6 +366,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
 /// Describe una habilidad completa, incluyendo su estado runtime y su efecto.
 class BattlerAbility {
   final BattlerAbilityId id;
+  final RarityTier rarity;
   final List<EntityTag> tags;
   final String name;
   final String description;
@@ -383,6 +384,7 @@ class BattlerAbility {
   /// Crea una habilidad inmutable lista para usarse como preset o como instancia runtime.
   const BattlerAbility({
     required this.id,
+    this.rarity = RarityTier.gray,
     this.tags = const [],
     required this.name,
     required this.description,
@@ -407,6 +409,9 @@ class BattlerAbility {
 
   /// Comprueba si esta habilidad pertenece a una tag concreta.
   bool hasTag(EntityTag tag) => tags.contains(tag);
+
+  /// Reexpone el color de rareza para que la UI no tenga que duplicar este lookup.
+  Color get accent => rarity.accent;
 
   /// Indica si la habilidad puede activarse desde alguna pantalla.
   bool get canManuallyActivate => manualActivationContext != null;
@@ -479,6 +484,7 @@ class BattlerAbility {
     if (upgradeTemplate.upgradeValue <= 0) return this;
 
     return copyWith(
+      rarity: upgradeTemplate.rarity,
       tags: upgradeTemplate.tags,
       name: upgradeTemplate.name,
       description: upgradeTemplate.description,
@@ -546,6 +552,7 @@ class BattlerAbility {
 
   /// Clona la habilidad permitiendo cambiar cualquier parte de su estado.
   BattlerAbility copyWith({
+    RarityTier? rarity,
     List<EntityTag>? tags,
     String? name,
     String? description,
@@ -564,6 +571,7 @@ class BattlerAbility {
   }) {
     return BattlerAbility(
       id: id,
+      rarity: rarity ?? this.rarity,
       tags: tags ?? this.tags,
       name: name ?? this.name,
       description: description ?? this.description,
@@ -607,6 +615,7 @@ class BattlerAbility {
 /// Preset que prepara un siguiente ataque potenciado y luego entra en cooldown.
 const criticalScannerAbility = BattlerAbility(
   id: BattlerAbilityId.criticalScanner,
+  rarity: RarityTier.blue,
   tags: _ataqueAbilityTags,
   name: 'Escaner critico',
   description:
@@ -650,6 +659,7 @@ const ghostMeshAbility = BattlerAbility(
 /// Preset manual que duplica la siguiente desventaja recibida por el objetivo.
 const cruelCatalysisAbility = BattlerAbility(
   id: BattlerAbilityId.cruelCatalysis,
+  rarity: RarityTier.yellow,
   tags: _debuffAbilityTags,
   name: 'Catalisis Cruel',
   description:

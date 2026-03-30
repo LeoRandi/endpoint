@@ -35,9 +35,26 @@ class RunNodeFlowCoordinator {
         );
         return;
       case PathNodeType.archetype:
-        session.completeArchetypeSelection(
-          (node as ArchetypePathNode).applyTo(session.player),
+        final archetypeNode = node as ArchetypePathNode;
+        final projectedPlayer = archetypeNode.applyTo(session.player);
+        final shouldConfirm = await showEndpointDialog<bool>(
+          context: context,
+          barrierLabel: 'Seleccionar arquetipo',
+          barrierColor: EndpointPalette.overlayScrimStrong,
+          builder: (context) {
+            return ArchetypeSelectionDialog(
+              player: session.player,
+              archetype: archetypeNode,
+              projectedPlayer: projectedPlayer,
+            );
+          },
         );
+        if (shouldConfirm == true) {
+          session.completeArchetypeSelection(projectedPlayer);
+          return;
+        }
+
+        session.cancelNodeResolution();
         return;
       case PathNodeType.shop:
         final shopNode = node as ShopPathNode;

@@ -56,7 +56,7 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
 
             return EndpointAbilityDetailsDialog(
               ability: currentAbility,
-              accent: widget.accent,
+              accent: currentAbility.accent,
               statusText: _statusTextFor(currentAbility),
               actionLabel: _actionLabelFor(currentAbility),
               onPrimaryAction: _isActionEnabled(currentAbility)
@@ -155,7 +155,6 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
 
                 return _AbilityOverlayTile(
                   ability: ability,
-                  accent: widget.accent,
                   onPressed: () => _openAbilityDetails(ability),
                 );
               },
@@ -166,12 +165,10 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
 
 class _AbilityOverlayTile extends StatelessWidget {
   final BattlerAbility ability;
-  final Color accent;
   final VoidCallback onPressed;
 
   const _AbilityOverlayTile({
     required this.ability,
-    required this.accent,
     required this.onPressed,
   });
 
@@ -185,7 +182,6 @@ class _AbilityOverlayTile extends StatelessWidget {
         child: Center(
           child: EndpointAbilityOrb(
             ability: ability,
-            accent: accent,
             size: 58,
           ),
         ),

@@ -111,7 +111,7 @@ class _EndpointStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = status.type.accent;
-    final badgeLabel = status.isIndefinite ? 'INF' : '${status.remainingTurns}';
+    final badgeLabel = status.badgeLabelFor(battler);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -129,12 +129,12 @@ class _EndpointStatusBadge extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: EndpointPalette.panelBackground,
                     border: Border.all(
-                      color: accent.withOpacity(0.88),
+                      color: accent.withAlpha(224),
                       width: 1.4,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: accent.withOpacity(0.16),
+                        color: accent.withAlpha(41),
                         blurRadius: 12,
                       ),
                     ],
@@ -235,8 +235,8 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                       height: 58,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: accent.withOpacity(0.16),
-                        border: Border.all(color: accent.withOpacity(0.7)),
+                        color: accent.withAlpha(41),
+                        border: Border.all(color: accent.withAlpha(179)),
                       ),
                       child: Icon(
                         status.icon,
@@ -282,7 +282,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                       textAlign: TextAlign.center,
                       maxLines: null,
                       style: textMedium.copyWith(
-                        color: EndpointPalette.softForeground.withOpacity(0.86),
+                        color: EndpointPalette.softForeground.withAlpha(219),
                         height: 1.3,
                       ),
                     ),

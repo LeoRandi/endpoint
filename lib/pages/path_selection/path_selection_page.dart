@@ -407,10 +407,10 @@ class _RunTimelineMeter extends StatelessWidget {
           Container(
             height: 12,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.34),
+              color: Colors.black.withAlpha(87),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: EndpointPalette.primaryAccent.withOpacity(0.2),
+                color: EndpointPalette.primaryAccent.withAlpha(51),
               ),
             ),
           ),
@@ -510,10 +510,10 @@ class _PathBackdropPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = EndpointPalette.primaryAccent.withOpacity(0.07)
+      ..color = EndpointPalette.primaryAccent.withAlpha(18)
       ..strokeWidth = 1;
     final pathPaint = Paint()
-      ..color = EndpointPalette.primaryAccent.withOpacity(0.14)
+      ..color = EndpointPalette.primaryAccent.withAlpha(36)
       ..strokeWidth = 2.4
       ..style = PaintingStyle.stroke;
 

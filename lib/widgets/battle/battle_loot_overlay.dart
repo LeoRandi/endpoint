@@ -48,7 +48,8 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
       updatedPlayer = updatedPlayer.addItem(widget.lootItem!);
     }
     if (widget.lootAbility != null) {
-      updatedPlayer = updatedPlayer.addAbility(widget.lootAbility!.resetState());
+      updatedPlayer =
+          updatedPlayer.addAbility(widget.lootAbility!.resetState());
     }
 
     return updatedPlayer;
@@ -288,7 +289,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                         _BattleLootRewardCard(
                           title: widget.lootAbility!.displayName,
                           subtitle: widget.lootAbility!.description,
-                          accent: EndpointPalette.primaryAccent,
+                          accent: widget.lootAbility!.accent,
                           icon: widget.lootAbility!.icon,
                           isCollected: _isLootCollected,
                           collectedLabel: 'APRENDIDA',
