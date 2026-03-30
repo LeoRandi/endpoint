@@ -23,15 +23,15 @@ class ShopInventoryCriterion {
     this.requiredPositiveModifierStat,
     this.requiredTags = const [],
     this.matchAnyRequiredTag = false,
-  }) : assert(
-         exactRarity == null ||
-             (minimumRarity == null && maximumRarity == null),
-       ),
-       assert(
-         minimumRarity == null ||
-             maximumRarity == null ||
-             minimumRarity.index <= maximumRarity.index,
-       );
+  })  : assert(
+          exactRarity == null ||
+              (minimumRarity == null && maximumRarity == null),
+        ),
+        assert(
+          minimumRarity == null ||
+              maximumRarity == null ||
+              minimumRarity.index <= maximumRarity.index,
+        );
 
   /// Comprueba si un objeto concreto cumple todas las reglas del criterio.
   bool matches(Item item) {
@@ -74,6 +74,7 @@ class ShopPathNode extends PathNode {
 
   /// Crea una tienda concreta con su criterio de stock y multiplicador de precio.
   ShopPathNode({
+    String? nodeId,
     required String label,
     required String tooltip,
     required String iconEmoji,
@@ -87,6 +88,7 @@ class ShopPathNode extends PathNode {
     this.priceMultiplier = 1,
   }) : super.base(
           type: PathNodeType.shop,
+          nodeId: nodeId ?? 'shop:$label',
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,
@@ -98,6 +100,7 @@ class ShopPathNode extends PathNode {
   /// Clona el nodo cambiando solo el multiplicador para variantes premium o rebajadas.
   ShopPathNode withPriceMultiplier(double multiplier) {
     return ShopPathNode(
+      nodeId: nodeId,
       label: label,
       tooltip: tooltip,
       iconEmoji: iconEmoji,

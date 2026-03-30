@@ -226,7 +226,8 @@ class Item {
       value: value + upgradeTemplate.upgradeValue,
       upgradeValue: upgradeTemplate.upgradeValue,
       incomePerValueUnit: upgradeTemplate.incomePerValueUnit,
-      maxHealthPercentPerValueUnit: upgradeTemplate.maxHealthPercentPerValueUnit,
+      maxHealthPercentPerValueUnit:
+          upgradeTemplate.maxHealthPercentPerValueUnit,
       statModifiers: updatedStatModifiers,
       upgradeStatModifiers: upgradeTemplate.upgradeStatModifiers,
       effect: upgradeTemplate.effect,
@@ -300,8 +301,9 @@ class Item {
 
   /// Recupera el preset canonico asociado al id estable del objeto.
   static Item presetForId(ItemId id) {
-    for (final item in itemPresets) {
-      if (item.id == id) return item;
+    final preset = itemPresetRegistry[id];
+    if (preset != null) {
+      return preset;
     }
 
     throw StateError('No existe preset para el objeto ${id.name}.');

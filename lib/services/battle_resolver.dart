@@ -13,51 +13,67 @@ class BattleAttackResolution {
 }
 
 class BattleResolver {
-  const BattleResolver();
+  final BattlerEffectPipeline _effectPipeline;
+
+  const BattleResolver({
+    BattlerEffectPipeline effectPipeline = const BattlerEffectPipeline(),
+  }) : _effectPipeline = effectPipeline;
 
   BattleAttackResolution resolveAttack({
     required Battler attacker,
     required Battler defender,
   }) {
     final baseDamage = attacker.calculateDamageAgainst(defender);
-    final outgoingStatusModifiedDamage = attacker.applyOutgoingDamageModifiers(
+    final outgoingStatusModifiedDamage =
+        _effectPipeline.applyOutgoingDamageModifiers(
+      owner: attacker,
       target: defender,
       damage: baseDamage,
     );
     final outgoingAbilityModifiedDamage =
-        attacker.applyAbilityOutgoingDamageModifiers(
+        _effectPipeline.applyAbilityOutgoingDamageModifiers(
+      owner: attacker,
       target: defender,
       damage: outgoingStatusModifiedDamage,
     );
     final outgoingModifiedDamage =
-        attacker.applyEquippedItemOutgoingDamageModifiers(
+        _effectPipeline.applyEquippedItemOutgoingDamageModifiers(
+      owner: attacker,
       target: defender,
       damage: outgoingAbilityModifiedDamage,
     );
-    final incomingStatusModifiedDamage = defender.applyIncomingDamageModifiers(
+    final incomingStatusModifiedDamage =
+        _effectPipeline.applyIncomingDamageModifiers(
+      owner: defender,
       source: attacker,
       damage: outgoingModifiedDamage,
     );
     final incomingAbilityModifiedDamage =
-        defender.applyAbilityIncomingDamageModifiers(
+        _effectPipeline.applyAbilityIncomingDamageModifiers(
+      owner: defender,
       source: attacker,
       damage: incomingStatusModifiedDamage,
     );
-    final damageDealt = defender.applyEquippedItemIncomingDamageModifiers(
+    final damageDealt =
+        _effectPipeline.applyEquippedItemIncomingDamageModifiers(
+      owner: defender,
       source: attacker,
       damage: incomingAbilityModifiedDamage,
     );
-    final defenderAfterDamage = defender.receiveDirectDamage(
-      damageDealt,
+    final defenderAfterDamage = _effectPipeline.receiveDirectDamage(
+      owner: defender,
+      damage: damageDealt,
       source: attacker,
     );
-    var updatedAttacker = attacker.applyAttackResolvedEffects(
+    var updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
+      owner: attacker,
       target: defenderAfterDamage,
       damageDealt: damageDealt,
     );
     var updatedDefender = defenderAfterDamage;
     final attackAbilityResolution =
-        updatedAttacker.applyAbilityAttackResolvedEffects(
+        _effectPipeline.applyAbilityAttackResolvedEffects(
+      owner: updatedAttacker,
       target: updatedDefender,
       damageDealt: damageDealt,
     );
@@ -65,26 +81,30 @@ class BattleResolver {
     updatedDefender = attackAbilityResolution.opponent;
 
     final attackItemResolution =
-        updatedAttacker.applyEquippedItemAttackResolvedEffects(
+        _effectPipeline.applyEquippedItemAttackResolvedEffects(
+      owner: updatedAttacker,
       target: updatedDefender,
       damageDealt: damageDealt,
     );
     updatedAttacker = attackItemResolution.owner;
     updatedDefender = attackItemResolution.opponent;
 
-    updatedDefender = updatedDefender.applyReceiveDamageResolvedEffects(
+    updatedDefender = _effectPipeline.applyReceiveDamageResolvedEffects(
+      owner: updatedDefender,
       source: updatedAttacker,
       damageTaken: damageDealt,
     );
     final receiveAbilityResolution =
-        updatedDefender.applyAbilityReceiveDamageResolvedEffects(
+        _effectPipeline.applyAbilityReceiveDamageResolvedEffects(
+      owner: updatedDefender,
       source: updatedAttacker,
       damageTaken: damageDealt,
     );
     updatedDefender = receiveAbilityResolution.owner;
     updatedAttacker = receiveAbilityResolution.opponent;
     final receiveItemResolution =
-        updatedDefender.applyEquippedItemReceiveDamageResolvedEffects(
+        _effectPipeline.applyEquippedItemReceiveDamageResolvedEffects(
+      owner: updatedDefender,
       source: updatedAttacker,
       damageTaken: damageDealt,
     );

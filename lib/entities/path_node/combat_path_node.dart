@@ -41,6 +41,7 @@ class CombatPathNode extends PathNode {
 
   /// Crea un nodo de combate ya conectado a un enemigo y a su tier de recompensas.
   CombatPathNode({
+    String? nodeId,
     required this.enemy,
     required this.tier,
     required String label,
@@ -48,6 +49,7 @@ class CombatPathNode extends PathNode {
     String iconEmoji = '\u{1F47E}',
   }) : super.base(
           type: PathNodeType.encounter,
+          nodeId: nodeId ?? 'encounter:$label',
           label: label,
           tooltip: tooltip ?? label,
           iconEmoji: iconEmoji,

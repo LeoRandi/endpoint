@@ -49,6 +49,35 @@ class PathNodeService {
       buildNodes: (_, __) => sunriseCombatNodes.take(1).toList(growable: false),
     ),
   ];
+  late final List<_WeightedPathNode> _dayShopCandidates =
+      _buildWeightedNodes(dayShopNodes);
+  late final List<_WeightedPathNode> _nightShopCandidates =
+      _buildWeightedNodes(nightShopNodes);
+  late final double _dayShopTotalWeight = _totalWeight(_dayShopCandidates);
+  late final List<_WeightedPathNode> _rareDayCombatCandidates =
+      _scaleWeightedNodes(
+    _buildWeightedNodes(
+      rareDayCombatNodes.where(_isAllowedDayCombatNode),
+    ),
+    targetTotalWeight: _dayShopTotalWeight,
+  );
+  late final List<_WeightedPathNode> _nightCombatCandidates =
+      List<_WeightedPathNode>.unmodifiable(
+    nightCombatNodes.map(
+      (node) => _WeightedPathNode(
+        node: node,
+        weight: node.rollWeight * 1.35,
+      ),
+    ),
+  );
+  late final _WeightedPathNode _restZoneCandidate = _WeightedPathNode(
+    node: restZoneCampNode,
+    weight: restZoneCampNode.rollWeight,
+  );
+  late final _WeightedPathNode _severeMedicationCandidate = _WeightedPathNode(
+    node: severeMedicationCampNode,
+    weight: severeMedicationCampNode.rollWeight,
+  );
 
   PathNodeService({
     required RunRandomizer randomizer,
@@ -130,56 +159,29 @@ class PathNodeService {
   }
 
   List<_WeightedPathNode> _buildDaySideCandidates(Battler? player) {
-    final shopCandidates = _buildWeightedNodes(dayShopNodes);
-    final dayShopTotalWeight = _totalWeight(shopCandidates);
     final eventCandidates = _scaleWeightedNodes(
       _buildWeightedNodes(_filterEventNodes(dayEventNodes, player)),
-      targetTotalWeight: dayShopTotalWeight * _dayEventRelativeWeight,
-    );
-    final combatCandidates = _scaleWeightedNodes(
-      _buildWeightedNodes(
-        rareDayCombatNodes.where(_isAllowedDayCombatNode),
-      ),
-      targetTotalWeight: dayShopTotalWeight,
+      targetTotalWeight: _dayShopTotalWeight * _dayEventRelativeWeight,
     );
 
     return [
-      ...shopCandidates,
+      ..._dayShopCandidates,
       ...eventCandidates,
-      _WeightedPathNode(
-        node: restZoneCampNode,
-        weight: restZoneCampNode.rollWeight,
-      ),
-      _WeightedPathNode(
-        node: severeMedicationCampNode,
-        weight: severeMedicationCampNode.rollWeight,
-      ),
-      ...combatCandidates,
+      _restZoneCandidate,
+      _severeMedicationCandidate,
+      ..._rareDayCombatCandidates,
     ];
   }
 
   List<_WeightedPathNode> _buildNightSideCandidates(Battler? player) {
     return [
-      ...nightCombatNodes.map(
-        (node) => _WeightedPathNode(
-          node: node,
-          weight: node.rollWeight * 1.35,
-        ),
-      ),
-      ...nightShopNodes.map(
-        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
-      ),
+      ..._nightCombatCandidates,
+      ..._nightShopCandidates,
       ..._filterEventNodes(nightEventNodes, player).map(
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
-      _WeightedPathNode(
-        node: restZoneCampNode,
-        weight: restZoneCampNode.rollWeight,
-      ),
-      _WeightedPathNode(
-        node: severeMedicationCampNode,
-        weight: severeMedicationCampNode.rollWeight,
-      ),
+      _restZoneCandidate,
+      _severeMedicationCandidate,
     ];
   }
 
@@ -241,7 +243,7 @@ class PathNodeService {
 
   ShopPathNode _buildCenterShopNode(List<ShopPathNode> shopPool) {
     final baseNode = _pickWeightedNode(
-      _buildWeightedNodes(shopPool),
+      _weightedShopCandidatesFor(shopPool),
     ) as ShopPathNode;
 
     final shouldApplyPremium = _randomizer.chance(_centerShopPremiumChance);
@@ -263,6 +265,18 @@ class PathNodeService {
           ),
         )
         .toList(growable: false);
+  }
+
+  List<_WeightedPathNode> _weightedShopCandidatesFor(
+      List<ShopPathNode> shopPool) {
+    if (identical(shopPool, dayShopNodes)) {
+      return _dayShopCandidates;
+    }
+    if (identical(shopPool, nightShopNodes)) {
+      return _nightShopCandidates;
+    }
+
+    return _buildWeightedNodes(shopPool);
   }
 
   List<_WeightedPathNode> _scaleWeightedNodes(
@@ -327,7 +341,7 @@ class PathNodeService {
   }
 
   String _nodeKey(PathNode node) {
-    return '${node.type.name}:${node.label}';
+    return node.nodeId;
   }
 
   PathNode _pickWeightedNode(List<_WeightedPathNode> candidates) {

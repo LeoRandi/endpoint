@@ -9,6 +9,7 @@ enum BattleTurnState {
 class BattleController extends ChangeNotifier {
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
+  final BattlerEffectPipeline _effectPipeline;
   final RunRandomizer _randomizer;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
@@ -28,6 +29,7 @@ class BattleController extends ChangeNotifier {
     required this.enemyTurnDelay,
     required this.combatEndDelay,
     RunRandomizer? randomizer,
+    BattlerEffectPipeline effectPipeline = const BattlerEffectPipeline(),
     BattleResolver resolver = const BattleResolver(),
     BattleTurnEngine turnEngine = const BattleTurnEngine(),
   })  : _enemy = enemy
@@ -39,6 +41,7 @@ class BattleController extends ChangeNotifier {
             .clearCombatFlags()
             .addCombatFlag(Battler.combatActiveFlag),
         _resolver = resolver,
+        _effectPipeline = effectPipeline,
         _randomizer = randomizer ?? RunRandomizer(),
         _turnEngine = turnEngine {
     _beginTurn(BattleTurnState.player, notify: false);
@@ -82,7 +85,8 @@ class BattleController extends ChangeNotifier {
   void togglePlayerAbility(BattlerAbility ability) {
     if (!canUseActions) return;
 
-    final resolution = _player.toggleAbilityActivation(
+    final resolution = _effectPipeline.toggleAbilityActivation(
+      owner: _player,
       abilityId: ability.id,
       screenContext: BattlerAbilityActivationContext.battle,
       opponent: _enemy,
@@ -171,12 +175,14 @@ class BattleController extends ChangeNotifier {
   void _tryResolveEnemyPreAttackAbility() {
     final hardReset = _enemy.abilityById(BattlerAbilityId.hardReset);
     if (hardReset == null ||
-        !hardReset.canActivateOn(BattlerAbilityActivationContext.pathSelection) ||
+        !hardReset
+            .canActivateOn(BattlerAbilityActivationContext.pathSelection) ||
         !_shouldEnemyUseHardReset()) {
       return;
     }
 
-    final resolution = _enemy.toggleAbilityActivation(
+    final resolution = _effectPipeline.toggleAbilityActivation(
+      owner: _enemy,
       abilityId: hardReset.id,
       screenContext: BattlerAbilityActivationContext.pathSelection,
       opponent: _player,

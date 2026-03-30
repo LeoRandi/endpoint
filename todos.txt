@@ -1,4 +1,6 @@
 TODOs:
+-Diseño
+--Añadir color de tier para la card de cada item o habilidad
 
 -Arquetipos
 --Añadir más arquetipos, unos 7 en total[3/7]
@@ -16,7 +18,7 @@ TODOs:
 -Combate
 [--Añadir estados alterados]
 --Arreglar nombre de enemigo y datos visibles durante el combate
---Separar el scroll de equipamiento y de habilidades
+[--Separar el scroll de equipamiento y de habilidades]
 
 -Estados
 [--Añadir Tags]
@@ -34,6 +36,7 @@ TODOs:
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 --Añadir más slots de equipamiento
 [--Objetos duplicados=>Mejora?]
+--Añadir algún indicio de que se va a mejorar el item, no a añadir, o una animación de algún tipo
 
 -Tiendas
 [--Mejorar aspecto y diseño]

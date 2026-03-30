@@ -114,7 +114,8 @@ const sunglassesItem = Item(
   id: ItemId.sunglasses,
   tags: _ataqueDefensaTags,
   name: 'Gafas de Sol',
-  description: '+1 DEF. Mitad de ATK, pero cada ataque basico golpea dos veces.',
+  description:
+      '+1 DEF. Mitad de ATK, pero cada ataque basico golpea dos veces.',
   iconEmoji: '\u{1F453}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.gray,
@@ -873,3 +874,8 @@ const itemPresets = <Item>[
   midnightCloakItem,
   voidInjectorItem,
 ];
+
+/// Registro canonico por id para resolver presets sin recorrer toda la lista.
+final Map<ItemId, Item> itemPresetRegistry = Map<ItemId, Item>.unmodifiable({
+  for (final item in itemPresets) item.id: item,
+});

@@ -23,7 +23,11 @@ class BattleTurnResolution {
 }
 
 class BattleTurnEngine {
-  const BattleTurnEngine();
+  final BattlerEffectPipeline _effectPipeline;
+
+  const BattleTurnEngine({
+    BattlerEffectPipeline effectPipeline = const BattlerEffectPipeline(),
+  }) : _effectPipeline = effectPipeline;
 
   BattleTurnResolution beginTurn({
     required bool isPlayerTurn,
@@ -44,36 +48,44 @@ class BattleTurnEngine {
     updatedEnemy = updatedEnemy.progressAbilityCooldownsOnTurnStart(
       isOwnerTurn: !isPlayerTurn,
     );
-    updatedPlayer = updatedPlayer.applyStatusTurnStart(
+    updatedPlayer = _effectPipeline.applyStatusTurnStart(
+      owner: updatedPlayer,
       opponent: updatedEnemy,
       isOwnerTurn: isPlayerTurn,
       randomizer: randomizer,
     );
-    updatedEnemy = updatedEnemy.applyStatusTurnStart(
+    updatedEnemy = _effectPipeline.applyStatusTurnStart(
+      owner: updatedEnemy,
       opponent: updatedPlayer,
       isOwnerTurn: !isPlayerTurn,
       randomizer: randomizer,
     );
-    final playerAbilityResolution = updatedPlayer.applyAbilityTurnStartEffects(
+    final playerAbilityResolution =
+        _effectPipeline.applyAbilityTurnStartEffects(
+      owner: updatedPlayer,
       opponent: updatedEnemy,
       isOwnerTurn: isPlayerTurn,
     );
     updatedPlayer = playerAbilityResolution.owner;
     updatedEnemy = playerAbilityResolution.opponent;
-    final enemyAbilityResolution = updatedEnemy.applyAbilityTurnStartEffects(
+    final enemyAbilityResolution = _effectPipeline.applyAbilityTurnStartEffects(
+      owner: updatedEnemy,
       opponent: updatedPlayer,
       isOwnerTurn: !isPlayerTurn,
     );
     updatedEnemy = enemyAbilityResolution.owner;
     updatedPlayer = enemyAbilityResolution.opponent;
     final playerItemResolution =
-        updatedPlayer.applyEquippedItemTurnStartEffects(
+        _effectPipeline.applyEquippedItemTurnStartEffects(
+      owner: updatedPlayer,
       opponent: updatedEnemy,
       isOwnerTurn: isPlayerTurn,
     );
     updatedPlayer = playerItemResolution.owner;
     updatedEnemy = playerItemResolution.opponent;
-    final enemyItemResolution = updatedEnemy.applyEquippedItemTurnStartEffects(
+    final enemyItemResolution =
+        _effectPipeline.applyEquippedItemTurnStartEffects(
+      owner: updatedEnemy,
       opponent: updatedPlayer,
       isOwnerTurn: !isPlayerTurn,
     );
@@ -96,35 +108,42 @@ class BattleTurnEngine {
     required Battler enemy,
     RunRandomizer? randomizer,
   }) {
-    var updatedPlayer = player.applyStatusTurnEnd(
+    var updatedPlayer = _effectPipeline.applyStatusTurnEnd(
+      owner: player,
       opponent: enemy,
       isOwnerTurn: didPlayerAct,
       randomizer: randomizer,
     );
-    var updatedEnemy = enemy.applyStatusTurnEnd(
+    var updatedEnemy = _effectPipeline.applyStatusTurnEnd(
+      owner: enemy,
       opponent: updatedPlayer,
       isOwnerTurn: !didPlayerAct,
       randomizer: randomizer,
     );
-    final playerAbilityResolution = updatedPlayer.applyAbilityTurnEndEffects(
+    final playerAbilityResolution = _effectPipeline.applyAbilityTurnEndEffects(
+      owner: updatedPlayer,
       opponent: updatedEnemy,
       isOwnerTurn: didPlayerAct,
     );
     updatedPlayer = playerAbilityResolution.owner;
     updatedEnemy = playerAbilityResolution.opponent;
-    final enemyAbilityResolution = updatedEnemy.applyAbilityTurnEndEffects(
+    final enemyAbilityResolution = _effectPipeline.applyAbilityTurnEndEffects(
+      owner: updatedEnemy,
       opponent: updatedPlayer,
       isOwnerTurn: !didPlayerAct,
     );
     updatedEnemy = enemyAbilityResolution.owner;
     updatedPlayer = enemyAbilityResolution.opponent;
-    final playerItemResolution = updatedPlayer.applyEquippedItemTurnEndEffects(
+    final playerItemResolution =
+        _effectPipeline.applyEquippedItemTurnEndEffects(
+      owner: updatedPlayer,
       opponent: updatedEnemy,
       isOwnerTurn: didPlayerAct,
     );
     updatedPlayer = playerItemResolution.owner;
     updatedEnemy = playerItemResolution.opponent;
-    final enemyItemResolution = updatedEnemy.applyEquippedItemTurnEndEffects(
+    final enemyItemResolution = _effectPipeline.applyEquippedItemTurnEndEffects(
+      owner: updatedEnemy,
       opponent: updatedPlayer,
       isOwnerTurn: !didPlayerAct,
     );

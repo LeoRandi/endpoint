@@ -18,6 +18,7 @@ class EventPathNode extends PathNode {
   /// Crea un evento de ruta con el texto visible y el id que usara la logica.
   const EventPathNode({
     required this.id,
+    required String nodeId,
     required String label,
     required String tooltip,
     required String iconEmoji,
@@ -30,6 +31,7 @@ class EventPathNode extends PathNode {
     required this.outcomeText,
   }) : super.base(
           type: PathNodeType.event,
+          nodeId: nodeId,
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,

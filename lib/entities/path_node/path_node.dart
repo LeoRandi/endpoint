@@ -12,6 +12,7 @@ enum PathNodeType {
 /// Modelo base de un nodo visible en la seleccion de ruta.
 class PathNode {
   final PathNodeType type;
+  final String nodeId;
   final String label;
   final String tooltip;
   final String iconEmoji;
@@ -26,6 +27,7 @@ class PathNode {
   /// Construye la forma mas generica de un nodo sin imponer un subtipo concreto.
   const PathNode.base({
     required this.type,
+    required this.nodeId,
     required this.label,
     required this.tooltip,
     required this.iconEmoji,
@@ -37,6 +39,7 @@ class PathNode {
 
   /// Construye un nodo simple de tienda reutilizable en tests y casos ligeros.
   const PathNode.shop({
+    String nodeId = 'shop_preview',
     String label = 'Tienda',
     String tooltip = 'Tienda de armas',
     String iconEmoji = '\u{2694}',
@@ -45,6 +48,7 @@ class PathNode {
     String badgeLabel = 'TIENDA',
   }) : this.base(
           type: PathNodeType.shop,
+          nodeId: nodeId,
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,
@@ -56,11 +60,13 @@ class PathNode {
 
   /// Construye un nodo simple de descanso reutilizable en tests y previews.
   const PathNode.campSite({
+    String nodeId = 'camp_site_preview',
     String label = 'Zona de Descanso',
     String tooltip = 'Recupera toda tu vida',
     String iconEmoji = '\u{1F6CF}',
   }) : this.base(
           type: PathNodeType.campSite,
+          nodeId: nodeId,
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,

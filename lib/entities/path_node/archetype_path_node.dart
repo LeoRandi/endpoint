@@ -11,6 +11,7 @@ class ArchetypePathNode extends PathNode {
 
   /// Crea un arquetipo inicial con sus bonus base y el loadout que entrega.
   ArchetypePathNode({
+    String? nodeId,
     required String label,
     required String tooltip,
     required String iconEmoji,
@@ -27,6 +28,7 @@ class ArchetypePathNode extends PathNode {
             List<BattlerAbility>.unmodifiable(startingAbilities),
         super.base(
           type: PathNodeType.archetype,
+          nodeId: nodeId ?? 'archetype:$label',
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,

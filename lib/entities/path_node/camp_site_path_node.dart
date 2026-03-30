@@ -10,6 +10,7 @@ class CampSitePathNode extends PathNode {
 
   /// Crea una escena de descanso con el texto y los efectos que usara el servicio.
   const CampSitePathNode({
+    required String nodeId,
     required String label,
     required String tooltip,
     required String iconEmoji,
@@ -23,6 +24,7 @@ class CampSitePathNode extends PathNode {
     this.removeRandomDebuff = false,
   }) : super.base(
           type: PathNodeType.campSite,
+          nodeId: nodeId,
           label: label,
           tooltip: tooltip,
           iconEmoji: iconEmoji,

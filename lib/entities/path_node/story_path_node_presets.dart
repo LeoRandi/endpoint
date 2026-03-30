@@ -2,6 +2,7 @@ import '../_imports.dart';
 
 /// Arquetipo agil orientado a ataque ligero y economia temprana.
 final velozArchetypeNode = ArchetypePathNode(
+  nodeId: 'archetype_veloz',
   label: 'Veloz',
   tooltip:
       'Cyber Latigos + Gafas de Sol. Perfil agil de doble golpe que envenena con cada impacto. Empieza con 8C y 6 income.',
@@ -25,6 +26,7 @@ final velozArchetypeNode = ArchetypePathNode(
 
 /// Arquetipo defensivo centrado en vida, defensa y estabilidad.
 final inamovibleArchetypeNode = ArchetypePathNode(
+  nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
       'Escudo + Amuleto de Bastion. Perfil resistente con regeneracion pasiva, mas defensa y Reinicio en seco. Empieza con 12C y 4 income.',
@@ -49,6 +51,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
 
 /// Arquetipo ofensivo que arranca con mas presion de dano.
 final imparableArchetypeNode = ArchetypePathNode(
+  nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
       'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base y Sobrecarga venosa de salida. Empieza con 8C y 4 income.',
@@ -156,6 +159,7 @@ final buffShopCriterion = ShopInventoryCriterion(
 
 /// Tienda gris de armas basicas para las primeras horas.
 final scrapArsenalNode = ShopPathNode(
+  nodeId: 'shop_scrap_arsenal',
   label: 'Arsenal de Chatarra',
   tooltip: 'Armas funcionales antes del anochecer',
   iconEmoji: '\u2694',
@@ -171,6 +175,7 @@ final scrapArsenalNode = ShopPathNode(
 
 /// Tienda verde de piezas defensivas para estabilizar la run.
 final bulwarkWorkshopNode = ShopPathNode(
+  nodeId: 'shop_bulwark_workshop',
   label: 'Taller Blindado',
   tooltip: 'Protecciones para aguantar hasta la noche',
   iconEmoji: '\u{1F6E1}',
@@ -185,6 +190,7 @@ final bulwarkWorkshopNode = ShopPathNode(
 
 /// Tienda amarilla de reliquias caras y poderosas.
 final luxuryRelicsNode = ShopPathNode(
+  nodeId: 'shop_luxury_relics',
   label: 'Reliquias de Lujo',
   tooltip: 'Objetos de gran calidad y procedencia dudosa',
   iconEmoji: '\u{1F48E}',
@@ -200,6 +206,7 @@ final luxuryRelicsNode = ShopPathNode(
 
 /// Tienda amarilla centrada en herramientas que aplican o explotan Quemadura.
 final emberFoundryNode = ShopPathNode(
+  nodeId: 'shop_ember_foundry',
   label: 'Forja de Ascuas',
   tooltip: 'Todo el catalogo gira alrededor de la Quemadura',
   iconEmoji: '\u{1F525}',
@@ -214,6 +221,7 @@ final emberFoundryNode = ShopPathNode(
 
 /// Tienda amarilla centrada en herramientas de Intoxicacion.
 final toxinLabNode = ShopPathNode(
+  nodeId: 'shop_toxin_lab',
   label: 'Laboratorio Toxico',
   tooltip: 'Catalogo dedicado a la Intoxicacion y sus derivados',
   iconEmoji: '\u2623',
@@ -229,6 +237,7 @@ final toxinLabNode = ShopPathNode(
 /// Evento verde diurno preparado para futuras mejoras temporales.
 final shadyTechnosurgeonNode = EventPathNode(
   id: PathEventId.shadyTechnosurgeon,
+  nodeId: 'event_shady_technosurgeon',
   label: 'Shady Technosurgeon',
   tooltip: 'Un cirujano de callejon ofrece ajustes temporales',
   iconEmoji: '\u2695',
@@ -245,6 +254,7 @@ final shadyTechnosurgeonNode = EventPathNode(
 
 /// Tienda morada nocturna centrada en armas mas agresivas.
 final afterHoursArsenalNode = ShopPathNode(
+  nodeId: 'shop_after_hours_arsenal',
   label: 'Arsenal After Hours',
   tooltip: 'El mercado nocturno mueve armas mas agresivas',
   iconEmoji: '\u{1F52A}',
@@ -259,6 +269,7 @@ final afterHoursArsenalNode = ShopPathNode(
 
 /// Tienda azul nocturna de blindajes y soportes defensivos.
 final velvetArmoryNode = ShopPathNode(
+  nodeId: 'shop_velvet_armory',
   label: 'Velvet Armory',
   tooltip: 'Protecciones discretas para aguantar la noche',
   iconEmoji: '\u{1F9E5}',
@@ -273,6 +284,7 @@ final velvetArmoryNode = ShopPathNode(
 
 /// Tienda morada nocturna de alquimia agresiva sin superar el stock azul.
 final chemicalExchangeNode = ShopPathNode(
+  nodeId: 'shop_chemical_exchange',
   label: 'Mercado Quimico',
   tooltip: 'Quemadura e Intoxicacion de alta gama, sin pasar de azul',
   iconEmoji: '\u{1F9EA}',
@@ -281,13 +293,13 @@ final chemicalExchangeNode = ShopPathNode(
   badgeLabel: 'QUIMICA',
   showTitle: 'Mercado Quimico',
   shopTitle: 'MERCADO QUIMICO',
-  shopSubtitle:
-      'Todo huele a disolvente. O peor',
+  shopSubtitle: 'Todo huele a disolvente. O peor',
   stockCriterion: burnOrPoisonShopCriterion,
 );
 
 /// Tienda azul nocturna para piezas que aplican o manipulan debuffs.
 final debuffBrokerNode = ShopPathNode(
+  nodeId: 'shop_debuff_broker',
   label: 'Broker de Debuffs',
   tooltip: 'Mercancia especializada en desventajas persistentes',
   iconEmoji: '\u26A0',
@@ -296,12 +308,14 @@ final debuffBrokerNode = ShopPathNode(
   badgeLabel: 'DEBUFF',
   showTitle: 'Broker de Debuffs',
   shopTitle: 'BROKER DE DEBUFFS',
-  shopSubtitle: 'Venden dolor recurrente, mitigacion selectiva y efectos sucios.',
+  shopSubtitle:
+      'Venden dolor recurrente, mitigacion selectiva y efectos sucios.',
   stockCriterion: debuffShopCriterion,
 );
 
 /// Tienda azul nocturna para objetos que leen o castigan buffs.
 final buffParlorNode = ShopPathNode(
+  nodeId: 'shop_buff_parlor',
   label: 'Salon de Buffs',
   tooltip: 'Accesorios para explotar buffs o la ausencia de ellos',
   iconEmoji: '\u2728',
@@ -318,6 +332,7 @@ final buffParlorNode = ShopPathNode(
 /// Evento azul nocturno reservado para efectos temporales mas agresivos.
 final afterHoursTechnosurgeonNode = EventPathNode(
   id: PathEventId.afterHoursTechnosurgeon,
+  nodeId: 'event_after_hours_technosurgeon',
   label: 'Technosurgeon Nocturno',
   tooltip: 'Un especialista trasnochado ofrece modificaciones ilegales',
   iconEmoji: '\u2699',
@@ -335,6 +350,7 @@ final afterHoursTechnosurgeonNode = EventPathNode(
 /// Evento azul condicionado por Deuda que intenta cobrar la cuota pendiente.
 final debtCollectionNode = EventPathNode(
   id: PathEventId.debtCollection,
+  nodeId: 'event_debt_collection',
   label: 'Oficina de Cobros',
   tooltip: 'Un recaudador intenta cerrar tu deuda operativa',
   iconEmoji: '\u{1F4B8}',
@@ -351,6 +367,7 @@ final debtCollectionNode = EventPathNode(
 
 /// Nodo de descanso completo que recupera toda la vida.
 final restZoneCampNode = CampSitePathNode(
+  nodeId: 'camp_rest_zone',
   label: 'Zona de Descanso',
   tooltip: 'Recupera toda tu vida en un refugio seguro',
   iconEmoji: '\u{1F6CF}',
@@ -365,6 +382,7 @@ final restZoneCampNode = CampSitePathNode(
 
 /// Nodo de tratamiento parcial que cura y purga un debuff aleatorio.
 final severeMedicationCampNode = CampSitePathNode(
+  nodeId: 'camp_severe_medication',
   label: 'Medicacion Severa',
   tooltip: 'Recupera 33% de tu vida maxima y elimina un debuff aleatorio',
   iconEmoji: '\u{1F489}',
@@ -444,3 +462,28 @@ final List<CombatPathNode> nightCombatNodes = List.unmodifiable([
 final List<CombatPathNode> sunriseCombatNodes = List.unmodifiable([
   yellowCombatNode,
 ]);
+
+/// Registro canonico de nodos por id para evitar identidades basadas en texto visible.
+final Map<String, PathNode> pathNodeRegistry =
+    Map<String, PathNode>.unmodifiable({
+  for (final node in <PathNode>[
+    ...openingArchetypeNodes,
+    ...dayShopNodes,
+    ...dayEventNodes,
+    ...nightShopNodes,
+    ...nightEventNodes,
+    ...grayCombatNodes,
+    ...greenCombatNodes,
+    ...blueCombatNodes,
+    ...purpleCombatNodes,
+    ...sunriseCombatNodes,
+    restZoneCampNode,
+    severeMedicationCampNode,
+  ])
+    node.nodeId: node,
+});
+
+/// Vista lineal del registro canonico, util para tooling y futuros validadores.
+final List<PathNode> allPathNodes = List<PathNode>.unmodifiable(
+  pathNodeRegistry.values,
+);

@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/battler_effect_pipeline.dart';
 
 class EndpointAbilitiesOverlay extends StatefulWidget {
   final Battler player;
@@ -34,6 +35,7 @@ class EndpointAbilitiesOverlay extends StatefulWidget {
 }
 
 class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
+  static const _effectPipeline = BattlerEffectPipeline();
   late Battler _player;
 
   @override
@@ -59,7 +61,9 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
               actionLabel: _actionLabelFor(currentAbility),
               onPrimaryAction: _isActionEnabled(currentAbility)
                   ? () {
-                      final resolution = _player.toggleAbilityActivation(
+                      final resolution =
+                          _effectPipeline.toggleAbilityActivation(
+                        owner: _player,
                         abilityId: currentAbility.id,
                         screenContext: widget.screenContext,
                       );
