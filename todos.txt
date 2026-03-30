@@ -3,6 +3,7 @@ TODOs:
 --Bajar Income base a la mitad o algo
 
 -Diseño
+--Añadir color a cada buzzword, y que se coloreen automático en textos?
 [--Añadir color de tier para la card de cada item o habilidad]
 
 -Arquetipos
@@ -19,7 +20,7 @@ TODOs:
 --Manejar su inventario
 
 -Combate
---Quitar defensa->generación de escudo?
+--Quitar defensa->defensa = escudo extra todos los combates
 --Nuevas mecánicas de combate:
 ---4 tipos de ataque(piedra papel tijera style) + super?
 ---Tipo pokemon?
