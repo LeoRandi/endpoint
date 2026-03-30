@@ -16,6 +16,12 @@ TODOs:
 --Manejar su inventario
 
 -Combate
+--Nuevas mecánicas de combate:
+---4 tipos de ataque(piedra papel tijera style) + super?
+---Tipo pokemon?
+---rythm based?
+---Combos?
+---Movesets en base al arma escogida?
 [--Añadir estados alterados]
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
@@ -68,7 +74,6 @@ TODOs:
 ////
 ARREGLAR:
 -BUG: Si el jugador muere en el mismo turno en el que mata al enemigo, le muestra la pantalla de loot y no cierra la run hasta que cierra esa pantalla.
--Calentando(Buff) debe quitarse al final del combate, igual que Intoxicación(debuff)
 
 ////
 PROBAR:
