@@ -1,4 +1,7 @@
 TODOs:
+-Economía
+--Bajar Income base a la mitad o algo
+
 -Diseño
 [--Añadir color de tier para la card de cada item o habilidad]
 
@@ -16,6 +19,7 @@ TODOs:
 --Manejar su inventario
 
 -Combate
+--Quitar defensa->generación de escudo?
 --Nuevas mecánicas de combate:
 ---4 tipos de ataque(piedra papel tijera style) + super?
 ---Tipo pokemon?
