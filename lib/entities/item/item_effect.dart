@@ -67,6 +67,14 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Resuelve efectos puntuales al terminar el combate antes de limpiar flags y cooldowns.
+  Battler onCombatEnd({
+    required Battler owner,
+    required Item item,
+  }) {
+    return owner;
+  }
+
   /// Ajusta el dano saliente del portador antes de que se aplique.
   int modifyOutgoingDamage({
     required Battler owner,
@@ -934,7 +942,8 @@ class StatusItemEffect extends ItemEffect {
         );
       case ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum:
         final currentStatus = owner.statusById(status.id);
-        if (currentStatus != null && currentStatus.resolved(owner).value >= status.value) {
+        if (currentStatus != null &&
+            currentStatus.resolved(owner).value >= status.value) {
           return owner;
         }
 

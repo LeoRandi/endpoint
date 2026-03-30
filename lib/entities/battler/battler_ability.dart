@@ -100,6 +100,14 @@ abstract class BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Resuelve efectos puntuales al terminar el combate antes de resetear runtime.
+  Battler onCombatEnd({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    return owner;
+  }
+
   /// Ajusta el dano que el portador va a infligir antes de aplicarlo.
   int modifyOutgoingDamage({
     required Battler owner,

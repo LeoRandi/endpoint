@@ -4,6 +4,7 @@ class PathNodeService {
   static const startStageIndex = 0;
   static const duskStageIndex = 6;
   static const sunriseStageIndex = 12;
+  static const _openingArchetypeCount = 3;
   static const _centerShopPremiumChance = 0.78;
   static const _centerShopPremiumMultiplier = 1.2;
   static const _dayEventRelativeWeight = 0.9;
@@ -16,7 +17,7 @@ class PathNodeService {
       phase: RunHourPhase.day,
       titleBuilder: (_) => 'HORA 1',
       subtitle: 'Elige el arquetipo con el que abrira la run.',
-      buildNodes: (_, __) => openingArchetypeNodes,
+      buildNodes: (_, __) => _buildOpeningArchetypeNodes(),
     ),
     _RunStageDefinition(
       matches: (stageIndex) =>
@@ -119,6 +120,13 @@ class PathNodeService {
   _RunStageDefinition _definitionFor(int stageIndex) {
     return _stageDefinitions.firstWhere(
       (definition) => definition.matches(stageIndex),
+    );
+  }
+
+  List<PathNode> _buildOpeningArchetypeNodes() {
+    return _randomizer.pickDistinct(
+      openingArchetypeNodes,
+      _openingArchetypeCount,
     );
   }
 

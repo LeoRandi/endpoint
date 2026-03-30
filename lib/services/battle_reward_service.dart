@@ -42,12 +42,7 @@ class BattleRewardService {
   BattleFlowResult sanitizeExitResult(BattleFlowResult exitResult) {
     return BattleFlowResult(
       type: exitResult.type,
-      player: exitResult.player
-          .clearCombatStatuses()
-          .resetAbilitiesForContext(
-            BattlerAbilityActivationContext.battle,
-          )
-          .clearCombatFlags(),
+      player: exitResult.player.finalizeCombatState(),
     );
   }
 
@@ -70,8 +65,7 @@ class BattleRewardService {
         item.id: item,
     }.values.toList(growable: false);
     final lootAbilities = <BattlerAbilityId, BattlerAbility>{
-      for (final ability in enemy.abilities)
-        ability.id: ability.resetState(),
+      for (final ability in enemy.abilities) ability.id: ability.resetState(),
     }.values.toList(growable: false);
     final totalLootCount = lootItems.length + lootAbilities.length;
     if (totalLootCount <= 0) {

@@ -404,29 +404,39 @@ class _RunTimelineMeter extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
-            height: 12,
-            decoration: BoxDecoration(
-              color: Colors.black.withAlpha(87),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: EndpointPalette.primaryAccent.withAlpha(51),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.center,
+              child: Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(87),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: EndpointPalette.primaryAccent.withAlpha(51),
+                  ),
+                ),
               ),
             ),
           ),
-          FractionallySizedBox(
-            widthFactor: progress,
-            child: Container(
-              height: 12,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(999),
-                gradient: const LinearGradient(
-                  colors: [
-                    EndpointPalette.primaryAccent,
-                    EndpointPalette.shopAccent,
-                    EndpointPalette.infoAccent,
-                    EndpointPalette.warningAccent,
-                  ],
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: progress,
+                child: Container(
+                  height: 12,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: const LinearGradient(
+                      colors: [
+                        EndpointPalette.primaryAccent,
+                        EndpointPalette.shopAccent,
+                        EndpointPalette.infoAccent,
+                        EndpointPalette.warningAccent,
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

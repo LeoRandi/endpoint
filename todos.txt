@@ -8,7 +8,7 @@ TODOs:
 
 -Página de Selección de Camino
 [--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
---Barra de fase de día no está alineada verticalmente con los iconos en el stack
+[--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
 
 -Sistema de acompañantes
 --Implementar
@@ -69,7 +69,6 @@ TODOs:
 ARREGLAR:
 -BUG: Si el jugador muere en el mismo turno en el que mata al enemigo, le muestra la pantalla de loot y no cierra la run hasta que cierra esa pantalla.
 -Calentando(Buff) debe quitarse al final del combate, igual que Intoxicación(debuff)
--Espada del Arquetipo de Imparable debe ser nerfeada heavy lmao
 
 ////
 PROBAR:

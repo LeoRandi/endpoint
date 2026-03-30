@@ -32,6 +32,18 @@ class BattlerEffectPipeline {
     return resolution.owner.receiveDamage(resolution.damage);
   }
 
+  Battler applyCombatEndEffects({
+    required Battler owner,
+  }) {
+    final ownerAfterStatuses = applyStatusCombatEndEffects(owner: owner);
+    final ownerAfterItems = applyEquippedItemCombatEndEffects(
+      owner: ownerAfterStatuses,
+    );
+    return applyAbilityCombatEndEffects(
+      owner: ownerAfterItems,
+    );
+  }
+
   Battler applyStatusTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -50,6 +62,30 @@ class BattlerEffectPipeline {
         opponent: opponent,
         isOwnerTurn: isOwnerTurn,
         randomizer: randomizer,
+      );
+    }
+
+    return updatedOwner.pruneExpiredStatuses();
+  }
+
+  Battler applyStatusCombatEndEffects({
+    required Battler owner,
+  }) {
+    if (owner.statuses.isEmpty) return owner;
+
+    var updatedOwner = owner;
+    final activeStatuses = List<BattlerStatus>.from(owner.statuses);
+
+    for (final status in activeStatuses) {
+      final matchingIndex = _findMatchingStatusIndex(
+        statuses: updatedOwner.statuses,
+        target: status,
+      );
+      if (matchingIndex < 0) continue;
+
+      final currentStatus = updatedOwner.statuses[matchingIndex];
+      updatedOwner = currentStatus.onCombatEnd(
+        owner: updatedOwner,
       );
     }
 
@@ -614,6 +650,24 @@ class BattlerEffectPipeline {
     );
   }
 
+  Battler applyEquippedItemCombatEndEffects({
+    required Battler owner,
+  }) {
+    var updatedOwner = owner;
+
+    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      updatedOwner = effect.onCombatEnd(
+        owner: updatedOwner,
+        item: item,
+      );
+    }
+
+    return updatedOwner.pruneExpiredStatuses();
+  }
+
   ItemEffectResolution applyEquippedItemPassiveEffects({
     required Battler owner,
     required Battler opponent,
@@ -738,6 +792,28 @@ class BattlerEffectPipeline {
       owner: updatedOwner.pruneExpiredStatuses(),
       opponent: updatedOpponent.pruneExpiredStatuses(),
     );
+  }
+
+  Battler applyAbilityCombatEndEffects({
+    required Battler owner,
+  }) {
+    if (owner.abilities.isEmpty) return owner;
+
+    var updatedOwner = owner;
+    final activeAbilities = List<BattlerAbility>.from(owner.abilities);
+
+    for (final ability in activeAbilities) {
+      final currentAbility = updatedOwner.abilityById(ability.id);
+      final effect = currentAbility?.effect;
+      if (currentAbility == null || effect == null) continue;
+
+      updatedOwner = effect.onCombatEnd(
+        owner: updatedOwner,
+        ability: currentAbility,
+      );
+    }
+
+    return updatedOwner.pruneExpiredStatuses();
   }
 
   Battler applyEquippedItemFatalDamageEffects({

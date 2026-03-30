@@ -405,7 +405,7 @@ final List<ShopPathNode> dayShopNodes = List.unmodifiable([
   toxinLabNode,
 ]);
 
-/// Arquetipos mostrados siempre en la primera hora.
+/// Pool completo de arquetipos que puede ofrecer la primera hora.
 final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
   velozArchetypeNode,
   inamovibleArchetypeNode,

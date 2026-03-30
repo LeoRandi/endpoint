@@ -835,6 +835,11 @@ class Battler {
     );
   }
 
+  /// Ejecuta todos los hooks de fin de combate antes de limpiar estado runtime.
+  Battler applyCombatEndEffects() {
+    return _effectPipeline.applyCombatEndEffects(owner: this);
+  }
+
   /// Permite a los items equipados interceptar un golpe letal antes de morir.
   Battler applyEquippedItemFatalDamageEffects({
     required int incomingDamage,
@@ -1092,6 +1097,19 @@ class Battler {
             .toList(growable: false),
       ),
     );
+  }
+
+  /// Cierra el estado de combate una sola vez y deja el battler listo para volver a ruta.
+  Battler finalizeCombatState() {
+    final ownerAfterHooks =
+        hasCombatFlag(combatActiveFlag) ? applyCombatEndEffects() : this;
+
+    return ownerAfterHooks
+        .clearCombatStatuses()
+        .resetAbilitiesForContext(
+          BattlerAbilityActivationContext.battle,
+        )
+        .clearCombatFlags();
   }
 
   /// Devuelve el primer motivo por el que una activacion manual esta bloqueada.

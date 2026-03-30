@@ -195,6 +195,13 @@ abstract class BattlerStatus {
     return owner;
   }
 
+  /// Resuelve efectos puntuales al terminar el combate antes de limpiar estado runtime.
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    return owner;
+  }
+
   /// Permite absorber o modificar dano entrante segun su tipo.
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -376,6 +383,15 @@ class CalentandoStatus extends BattlerStatus {
       applyEquipmentModifiers: false,
     );
   }
+
+  @override
+
+  /// Calentando es un boost exclusivamente de combate y desaparece al salir.
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    return owner.removeStatusInstance(this);
+  }
 }
 
 /// Debuff que hace dano al final de turno segun los turnos que le queden.
@@ -537,6 +553,15 @@ class IntoxicacionStatus extends BattlerStatus {
           currentStatus.value,
           source: opponent,
         );
+  }
+
+  @override
+
+  /// La Intoxicacion no debe mantenerse cuando el combate ya ha terminado.
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    return owner.removeStatusInstance(this);
   }
 }
 

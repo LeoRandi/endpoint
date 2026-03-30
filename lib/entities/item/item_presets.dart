@@ -276,18 +276,18 @@ const ironSwordItem = Item(
   id: ItemId.ironSword,
   tags: _ataqueTags,
   name: 'Espada de Hierro',
-  description: '+5 ATK mientras este equipada.',
+  description: '+3 ATK mientras este equipada.',
   iconEmoji: '\u2694',
   slot: ItemSlot.weapon,
   rarity: RarityTier.green,
   baseCost: 4,
-  value: 5,
-  upgradeValue: 5,
+  value: 3,
+  upgradeValue: 3,
   statModifiers: {
-    BattlerStat.attack: 5,
+    BattlerStat.attack: 3,
   },
   upgradeStatModifiers: {
-    BattlerStat.attack: 5,
+    BattlerStat.attack: 3,
   },
 );
 

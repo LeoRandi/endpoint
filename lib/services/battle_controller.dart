@@ -121,6 +121,8 @@ class BattleController extends ChangeNotifier {
     if (isCombatFinished) return;
 
     _cancelTimers();
+    _player = _player.finalizeCombatState();
+    _enemy = _enemy.finalizeCombatState();
     _turn = BattleTurnState.finished;
     _resultText = 'Retirada confirmada.';
     _pendingExitResult = BattleFlowResult(
@@ -249,6 +251,8 @@ class BattleController extends ChangeNotifier {
     required String resultText,
   }) {
     _cancelTimers();
+    _player = _player.finalizeCombatState();
+    _enemy = _enemy.finalizeCombatState();
     _turn = BattleTurnState.finished;
     _resultText = resultText;
     notifyListeners();
