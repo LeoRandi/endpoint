@@ -12,6 +12,13 @@ enum BattlerStat {
   vampirism,
 }
 
+/// Enumera las recompensas permanentes que el jugador puede escoger al subir de nivel.
+enum BattlerLevelReward {
+  income,
+  attack,
+  health,
+}
+
 /// Enumera las flags globales del runtime de combate del battler.
 enum BattlerCombatFlag {
   combatActive,
@@ -101,6 +108,7 @@ class _BattlerDerivedState {
   final Map<BattlerStat, int> calculatedStats;
   final int income;
   final int basicAttackCount;
+  final int equippedItemCost;
   final Map<BattlerStatusId, List<BattlerStatus>> statusesById;
   final Map<BattlerStatusHook, List<BattlerStatus>> statusesByHook;
   final Map<BattlerAbilityId, BattlerAbility> abilitiesById;
@@ -115,6 +123,7 @@ class _BattlerDerivedState {
     required this.calculatedStats,
     required this.income,
     required this.basicAttackCount,
+    required this.equippedItemCost,
     required this.statusesById,
     required this.statusesByHook,
     required this.abilitiesById,
@@ -151,9 +160,11 @@ class _BattlerDerivedState {
     final equippedItemsByHook = <ItemEffectHook, List<Item>>{};
     var hasItemEffects = false;
     var basicAttackCount = 1;
+    var equippedItemCost = 0;
 
     for (final item in owner.equippedItems) {
       equippedItemsByType.putIfAbsent(item.id, () => item);
+      equippedItemCost += item.equipmentCost;
       if (item.slot != null) {
         equippedItemsBySlot.putIfAbsent(item.slot!, () => item);
       }
@@ -237,6 +248,7 @@ class _BattlerDerivedState {
       calculatedStats: Map<BattlerStat, int>.unmodifiable(calculatedStats),
       income: max(0, income),
       basicAttackCount: max(1, basicAttackCount),
+      equippedItemCost: max(0, equippedItemCost),
       statusesById: Map<BattlerStatusId, List<BattlerStatus>>.unmodifiable(
         statusesById.map(
           (statusId, statuses) => MapEntry(
@@ -263,6 +275,13 @@ class _BattlerDerivedState {
 
 /// Representa el estado completo de un combatiente, incluyendo economia, equipo y hooks runtime.
 class Battler {
+  static const defaultEquipmentCapacity = 3;
+  /// Marca el nivel operativo inicial que tiene cualquier battler controlado por la run.
+  static const initialLevel = 1;
+  /// Limita la progresion total para evitar escalado indefinido mientras no exista postgame.
+  static const maximumLevel = 10;
+  /// Define el coste en XP de la primera subida de nivel antes de aplicar crecimiento.
+  static const initialLevelUpExperienceCost = 2;
   static const combatActiveFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.combatActive,
   );
@@ -281,6 +300,9 @@ class Battler {
   final int health;
   final int money;
   final int baseIncome;
+  final int equipmentCapacity;
+  final int level;
+  final int experience;
   final Map<BattlerStat, int> baseStats;
   final List<BattlerAbility> abilities;
   final List<BattlerStatus> statuses;
@@ -308,6 +330,9 @@ class Battler {
     required this.health,
     this.money = 0,
     int income = 0,
+    this.equipmentCapacity = defaultEquipmentCapacity,
+    this.level = initialLevel,
+    this.experience = 0,
     required this.baseStats,
     this.abilities = const [],
     this.statuses = const [],
@@ -315,7 +340,9 @@ class Battler {
     this.equippedItems = const [],
     this.combatFlags = const <CombatRuntimeFlag>{},
   })  : baseIncome = income,
-        assert(health >= 0);
+        assert(health >= 0),
+        assert(level >= initialLevel),
+        assert(experience >= 0);
 
   /// Devuelve la vida maxima base sin modificadores de equipo ni estados.
   int get baseMaxHealth => baseStat(BattlerStat.health);
@@ -356,11 +383,46 @@ class Battler {
   /// Indica cuantas veces se resuelve un ataque basico por cada accion.
   int get basicAttackCount => _derivedState.basicAttackCount;
 
+  /// Devuelve el coste total consumido por los objetos actualmente equipados.
+  int get equippedItemCost => _derivedState.equippedItemCost;
+
+  /// Devuelve cuantos puntos de capacidad de equipo siguen libres.
+  int get remainingEquipmentCapacity =>
+      max(0, equipmentCapacity - equippedItemCost);
+
+  /// Indica si el battler ya alcanzo el techo de progresion actual.
+  bool get isAtMaxLevel => level >= maximumLevel;
+
+  /// Devuelve el coste de XP que exige el siguiente nivel del battler.
+  int get experienceToNextLevel {
+    if (isAtMaxLevel) return 0;
+
+    return _experienceCostForLevel(level);
+  }
+
+  /// Devuelve la XP visible de este nivel, limitada al coste del siguiente salto.
+  int get displayedExperience {
+    if (isAtMaxLevel) return 0;
+
+    return min(experience, experienceToNextLevel);
+  }
+
+  /// Indica si el battler ya tiene suficiente XP acumulada para abrir la subida de nivel.
+  bool get canLevelUp => !isAtMaxLevel && experience >= experienceToNextLevel;
+
   /// Calcula el income efectivo tras aplicar equipo y estados que lo alteran.
   int get income => _derivedState.income;
 
   /// Indica si este battler ya no tiene vida.
   bool get isDefeated => health <= 0;
+
+  /// Suma XP persistente fuera del combate y deja el exceso acumulado para futuros niveles.
+  Battler gainExperience(int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || isAtMaxLevel) return this;
+
+    return copyWith(experience: experience + safeAmount);
+  }
 
   /// Comprueba si el battler posee exactamente esa instancia de item.
   bool ownsItem(Item item) {
@@ -432,6 +494,25 @@ class Battler {
   bool hasStatus(BattlerStatusId statusId) {
     return statusById(statusId) != null;
   }
+
+  /// Explica por que un objeto no puede equiparse en el estado actual del battler.
+  String? equipItemBlockReason(Item item) {
+    if (!item.isEquippable) return 'Este objeto no se puede equipar';
+    if (equippedItems.contains(item)) return 'El objeto ya esta equipado';
+    if (!inventoryItems.contains(item)) {
+      return 'El objeto ya no esta en tu inventario';
+    }
+
+    final nextCost = equippedItemCost + item.equipmentCost;
+    if (nextCost > equipmentCapacity) {
+      return 'Capacidad insuficiente: $nextCost/$equipmentCapacity';
+    }
+
+    return null;
+  }
+
+  /// Indica si el objeto cabe dentro de la capacidad de equipo disponible.
+  bool canEquipItem(Item item) => equipItemBlockReason(item) == null;
 
   /// Devuelve solo los items equipados que declararon el hook pedido en su efecto.
   List<Item> equippedItemsForHook(ItemEffectHook hook) {
@@ -1155,21 +1236,12 @@ class Battler {
     );
   }
 
-  /// Equipa un item del inventario y libera el slot anterior si estaba ocupado.
+  /// Equipa un item del inventario si su coste cabe dentro de la capacidad disponible.
   Battler equipItem(Item item) {
-    if (!item.isEquippable) return this;
-    if (!inventoryItems.contains(item)) return this;
-    if (equippedItems.contains(item)) return this;
+    if (!canEquipItem(item)) return this;
 
     final updatedInventoryItems = List<Item>.from(inventoryItems)..remove(item);
     final updatedEquippedItems = List<Item>.from(equippedItems);
-    final occupiedSlotItem = equippedItemForSlot(item.slot!);
-
-    if (occupiedSlotItem != null) {
-      updatedEquippedItems.remove(occupiedSlotItem);
-      updatedInventoryItems.add(occupiedSlotItem);
-    }
-
     updatedEquippedItems.add(item);
 
     return copyWith(
@@ -1274,6 +1346,48 @@ class Battler {
     return manualAbilityActivationBlockReason(screenContext) == null;
   }
 
+  /// Consume una subida de nivel pendiente, aplica la mejora base y la recompensa elegida.
+  Battler applyLevelReward(BattlerLevelReward reward) {
+    if (!canLevelUp) return this;
+
+    final requiredExperience = experienceToNextLevel;
+    final nextLevel = min(maximumLevel, level + 1);
+    final updatedBaseStats = Map<BattlerStat, int>.from(baseStats);
+    var attackGain = 1;
+    var healthGain = 10;
+    var incomeGain = 0;
+
+    switch (reward) {
+      case BattlerLevelReward.income:
+        incomeGain = 1;
+        break;
+      case BattlerLevelReward.attack:
+        attackGain += 1;
+        break;
+      case BattlerLevelReward.health:
+        healthGain += 10;
+        break;
+    }
+
+    updatedBaseStats[BattlerStat.attack] =
+        max(0, (updatedBaseStats[BattlerStat.attack] ?? 0) + attackGain);
+    updatedBaseStats[BattlerStat.health] =
+        max(0, (updatedBaseStats[BattlerStat.health] ?? 0) + healthGain);
+
+    final remainingExperience = nextLevel >= maximumLevel
+        ? 0
+        : max(0, experience - requiredExperience);
+
+    return copyWith(
+      health: health + healthGain,
+      income: baseIncome + incomeGain,
+      equipmentCapacity: equipmentCapacity + 1,
+      level: nextLevel,
+      experience: remainingExperience,
+      baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
+    );
+  }
+
   /// Clona el battler cambiando cualquier parte de su estado y limitando la vida al maximo actual.
   Battler copyWith({
     String? name,
@@ -1281,6 +1395,9 @@ class Battler {
     int? health,
     int? money,
     int? income,
+    int? equipmentCapacity,
+    int? level,
+    int? experience,
     Map<BattlerStat, int>? baseStats,
     List<BattlerAbility>? abilities,
     List<BattlerStatus>? statuses,
@@ -1310,6 +1427,9 @@ class Battler {
       health: max(0, health ?? this.health),
       money: max(0, money ?? this.money),
       income: max(0, income ?? baseIncome),
+      equipmentCapacity: max(0, equipmentCapacity ?? this.equipmentCapacity),
+      level: max(initialLevel, level ?? this.level),
+      experience: max(0, experience ?? this.experience),
       baseStats: resolvedBaseStats,
       abilities: resolvedAbilities,
       statuses: resolvedStatuses,
@@ -1371,12 +1491,25 @@ class Battler {
     return max(0, baseIncome + equipmentBonus);
   }
 
+  /// Calcula el coste de XP del siguiente nivel aplicando crecimiento del 50% y redondeo hacia arriba.
+  static int _experienceCostForLevel(int level) {
+    var cost = initialLevelUpExperienceCost;
+    for (var currentLevel = initialLevel; currentLevel < level; currentLevel++) {
+      cost = (cost * 1.5).ceil();
+    }
+
+    return max(initialLevelUpExperienceCost, cost);
+  }
+
   static Battler _buildResolved({
     required String name,
     required String iconEmoji,
     required int health,
     required int money,
     required int income,
+    required int equipmentCapacity,
+    required int level,
+    required int experience,
     required Map<BattlerStat, int> baseStats,
     required List<BattlerAbility> abilities,
     required List<BattlerStatus> statuses,
@@ -1390,6 +1523,11 @@ class Battler {
       health: health,
       money: money,
       income: income,
+      equipmentCapacity: equipmentCapacity,
+      level: min(maximumLevel, max(initialLevel, level)),
+      experience: min(maximumLevel, max(initialLevel, level)) >= maximumLevel
+          ? 0
+          : max(0, experience),
       baseStats: baseStats,
       abilities: abilities,
       statuses: statuses,
@@ -1408,6 +1546,11 @@ class Battler {
       health: clampedHealth,
       money: money,
       income: income,
+      equipmentCapacity: equipmentCapacity,
+      level: min(maximumLevel, max(initialLevel, level)),
+      experience: min(maximumLevel, max(initialLevel, level)) >= maximumLevel
+          ? 0
+          : max(0, experience),
       baseStats: baseStats,
       abilities: abilities,
       statuses: statuses,

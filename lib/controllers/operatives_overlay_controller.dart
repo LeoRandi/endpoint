@@ -65,7 +65,12 @@ class OperativesOverlayController extends ChangeNotifier {
 
   /// Indica si la accion primaria del dialogo del jugador esta disponible.
   bool isActionEnabled(Item item) {
-    return actionLabelFor(item) != null;
+    if (_player.equippedItems.contains(item)) return true;
+    if (_player.inventoryItems.contains(item)) {
+      return _player.canEquipItem(item);
+    }
+
+    return false;
   }
 
   /// Explica la accion primaria disponible para un item del jugador.
@@ -73,13 +78,13 @@ class OperativesOverlayController extends ChangeNotifier {
     if (_player.equippedItems.contains(item)) {
       return 'Quitar objeto del equipo activo';
     }
-    return 'Equipar objeto al jugador';
+    final nextCost = _player.equippedItemCost + item.equipmentCost;
+    return 'Equipar objeto al jugador ($nextCost/${_player.equipmentCapacity})';
   }
 
   /// Explica por que un item del jugador no admite accion primaria.
   String disabledActionTooltipFor(Item item) {
-    if (!item.isEquippable) return 'Este objeto no se puede equipar';
-    return 'El objeto ya no esta disponible';
+    return _player.equipItemBlockReason(item) ?? 'El objeto ya no esta disponible';
   }
 
   /// Devuelve la etiqueta del boton de quitar cuando el item equipado puede volver al inventario.
@@ -106,7 +111,9 @@ class OperativesOverlayController extends ChangeNotifier {
   void handlePrimaryAction(Item item) {
     final updatedPlayer = _player.equippedItems.contains(item)
         ? _player.unequipItem(item)
-        : _player.equipItem(item);
+        : _player.canEquipItem(item)
+            ? _player.equipItem(item)
+            : _player;
 
     _replacePlayer(updatedPlayer);
   }

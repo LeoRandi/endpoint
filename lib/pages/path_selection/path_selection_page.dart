@@ -28,6 +28,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   static const _flowCoordinator = RunNodeFlowCoordinator();
 
   late final RunSessionController _sessionController;
+  bool _isPresentingRunOutcome = false;
 
   @override
   void initState() {
@@ -49,6 +50,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   }
 
   Future<void> _handleOpenAbilities() async {
+    if (_sessionController.isRunComplete) return;
+
     await showEndpointOverlay<void>(
       context: context,
       builder: (_) => EndpointAbilitiesOverlay(
@@ -59,9 +62,14 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         onPlayerChanged: _sessionController.updatePlayer,
       ),
     );
+    if (!mounted) return;
+
+    await _maybePresentRunOutcome();
   }
 
   Future<void> _handleOpenOperatives() async {
+    if (_sessionController.isRunComplete) return;
+
     await showEndpointOverlay<void>(
       context: context,
       barrierColor: EndpointPalette.overlayScrimStrong,
@@ -70,6 +78,9 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         onPlayerChanged: _sessionController.updatePlayer,
       ),
     );
+    if (!mounted) return;
+
+    await _maybePresentRunOutcome();
   }
 
   Future<void> _handleNodePressed(PathNode node) async {
@@ -79,6 +90,61 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       node: node,
       session: _sessionController,
     );
+    if (!mounted) return;
+
+    if (_sessionController.isRunComplete) {
+      await _maybePresentRunOutcome();
+      return;
+    }
+
+    await _maybePresentPendingLevelUps();
+  }
+
+  /// Presenta todas las subidas pendientes una tras otra para consumir overflow de XP si lo hubiera.
+  Future<void> _maybePresentPendingLevelUps() async {
+    while (mounted && _sessionController.player.canLevelUp) {
+      final player = _sessionController.player;
+      final reward = await showEndpointDialog<BattlerLevelReward>(
+        context: context,
+        barrierLabel: 'Seleccionar recompensa de nivel',
+        barrierDismissible: false,
+        barrierColor: EndpointPalette.overlayScrimStrong,
+        builder: (context) => LevelUpRewardDialog(player: player),
+      );
+      if (!mounted || reward == null) return;
+
+      _sessionController.updatePlayer(
+        player.applyLevelReward(reward),
+      );
+    }
+  }
+
+  /// Presenta la pantalla final cuando la run ya se ha cerrado por victoria, derrota o retirada.
+  Future<void> _maybePresentRunOutcome() async {
+    if (!mounted || _isPresentingRunOutcome || !_sessionController.isRunComplete) {
+      return;
+    }
+
+    final completionType = _sessionController.completionType;
+    if (completionType == null) return;
+    if (completionType == RunCompletionType.retreated) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    _isPresentingRunOutcome = true;
+    await Navigator.of(context).push<void>(
+      buildEndpointSceneRoute<void>(
+        RunOutcomePage(
+          completionType: completionType,
+          player: _sessionController.player,
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    _isPresentingRunOutcome = false;
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
@@ -93,6 +159,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             final nodes = _sessionController.nodes;
             final currentHour = _sessionController.currentHour;
             final isOpeningNode = _sessionController.isResolvingNode;
+            final hasEndedRun = _sessionController.isRunComplete;
 
             return Stack(
               fit: StackFit.expand,
@@ -135,7 +202,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                           width: nodeWidth,
                                           child: PathNodeCard(
                                             node: nodes[index],
-                                            onPressed: isOpeningNode
+                                            onPressed: isOpeningNode || hasEndedRun
                                                 ? null
                                                 : () => _handleNodePressed(
                                                       nodes[index],
@@ -375,8 +442,34 @@ class _PathPlayerStatus extends StatelessWidget {
                   foreground: EndpointPalette.soften(accent, amount: 0.24),
                   textStyle: statChipTextStyle,
                 ),
+                EndpointValueChip(
+                  label: 'LV',
+                  value: player.level,
+                  accent: EndpointPalette.rewardAccent,
+                  foreground: EndpointPalette.softForegroundWarm,
+                  textStyle: statChipTextStyle,
+                ),
               ],
             ),
+            if (!player.isAtMaxLevel) ...[
+              const SizedBox(height: 10),
+              EndpointText(
+                'XP ${player.displayedExperience}/${player.experienceToNextLevel}',
+                style: textSmallBold.copyWith(
+                  color: EndpointPalette.rewardAccent,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ] else ...[
+              const SizedBox(height: 10),
+              EndpointText(
+                'NIVEL MAXIMO',
+                style: textSmallBold.copyWith(
+                  color: EndpointPalette.rewardAccent,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ],
           ],
         ),
       ),

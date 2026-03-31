@@ -562,7 +562,7 @@ class _ShopOfferCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       EndpointText(
-                        '${item.slot?.label ?? 'Consumible'}',
+                        'COSTE ${item.equipmentCost}',
                         overflow: TextOverflow.ellipsis,
                         style: textSmallBold.copyWith(
                           color: item.rarity.accent,

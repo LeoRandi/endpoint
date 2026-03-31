@@ -53,7 +53,7 @@ class WeaponShopController extends ChangeNotifier {
       return 'El objeto ya no esta en tu inventario.';
     }
 
-    return 'Valor de venta en esta tienda: ${sellPriceFor(item)}C.';
+    return 'Valor de venta: ${sellPriceFor(item)}C. Coste de equipo: ${item.equipmentCost}.';
   }
 
   String inventoryActionLabelFor(Item item) {
@@ -95,21 +95,19 @@ class WeaponShopController extends ChangeNotifier {
   }
 
   bool canEquipFromInventory(Item item) {
-    return item.isEquippable && _player.inventoryItems.contains(item);
+    return _player.canEquipItem(item);
   }
 
   bool canUnequip(Item item) => _player.equippedItems.contains(item);
 
   String inventorySecondaryActionTooltipFor(Item item) {
-    if (!item.isEquippable) return 'Este objeto no se puede equipar';
-    if (_player.equippedItems.contains(item)) {
-      return 'El objeto ya esta equipado';
-    }
-    if (!_player.inventoryItems.contains(item)) {
-      return 'El objeto ya no esta en tu inventario';
+    final blockReason = _player.equipItemBlockReason(item);
+    if (blockReason != null) {
+      return blockReason;
     }
 
-    return 'Equipar objeto al operativo';
+    final nextCost = _player.equippedItemCost + item.equipmentCost;
+    return 'Equipar objeto al operativo ($nextCost/${_player.equipmentCapacity})';
   }
 
   String equippedSecondaryActionTooltipFor(Item item) {

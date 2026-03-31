@@ -1,5 +1,12 @@
 import '_imports.dart';
 
+/// Distingue como ha terminado la run para decidir la pantalla final adecuada.
+enum RunCompletionType {
+  victory,
+  defeat,
+  retreated,
+}
+
 class RunState {
   final Battler player;
   final RunHourSnapshot currentHour;
@@ -8,6 +15,7 @@ class RunState {
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
   final bool isRunComplete;
+  final RunCompletionType? completionType;
 
   const RunState({
     required this.player,
@@ -17,6 +25,7 @@ class RunState {
     required this.battleEnemyTurnDelay,
     required this.battleCombatEndDelay,
     this.isRunComplete = false,
+    this.completionType,
   });
 
   RunState copyWith({
@@ -27,6 +36,7 @@ class RunState {
     Duration? battleEnemyTurnDelay,
     Duration? battleCombatEndDelay,
     bool? isRunComplete,
+    RunCompletionType? completionType,
   }) {
     return RunState(
       player: player ?? this.player,
@@ -36,6 +46,7 @@ class RunState {
       battleEnemyTurnDelay: battleEnemyTurnDelay ?? this.battleEnemyTurnDelay,
       battleCombatEndDelay: battleCombatEndDelay ?? this.battleCombatEndDelay,
       isRunComplete: isRunComplete ?? this.isRunComplete,
+      completionType: completionType ?? this.completionType,
     );
   }
 }

@@ -93,6 +93,9 @@ class BattleController extends ChangeNotifier {
     );
     _player = resolution.owner;
     _enemy = resolution.opponent;
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
     notifyListeners();
   }
 
@@ -106,6 +109,9 @@ class BattleController extends ChangeNotifier {
 
     _player = resolution.attacker;
     _enemy = resolution.defender;
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
 
     if (_completeTurn(BattleTurnState.player)) {
       return;
@@ -146,6 +152,9 @@ class BattleController extends ChangeNotifier {
     if (_turn != BattleTurnState.enemy) return;
 
     _tryResolveEnemyPreAttackAbility();
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
     final abilityFinish = _turnEngine.finishFor(
       player: _player,
       enemy: _enemy,
@@ -165,6 +174,9 @@ class BattleController extends ChangeNotifier {
 
     _enemy = resolution.attacker;
     _player = resolution.defender;
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
 
     if (_completeTurn(BattleTurnState.enemy)) {
       return;
@@ -250,6 +262,8 @@ class BattleController extends ChangeNotifier {
     required BattleFlowResultType resultType,
     required String resultText,
   }) {
+    if (_turn == BattleTurnState.finished) return;
+
     _cancelTimers();
     _player = _player.finalizeCombatState();
     _enemy = _enemy.finalizeCombatState();
@@ -271,6 +285,23 @@ class BattleController extends ChangeNotifier {
     _combatExitTimer?.cancel();
     _enemyTurnTimer = null;
     _combatExitTimer = null;
+  }
+
+  /// Revisa tras cada mutacion sensible si el jugador ya debe perder sin esperar a otra fase.
+  bool _finishImmediatelyIfPlayerIsDown() {
+    final finish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (finish == null || finish.resultType == BattleFlowResultType.victory) {
+      return false;
+    }
+
+    _finishCombat(
+      resultType: finish.resultType,
+      resultText: finish.resultText,
+    );
+    return true;
   }
 
   void _beginTurn(BattleTurnState nextTurn, {bool notify = true}) {

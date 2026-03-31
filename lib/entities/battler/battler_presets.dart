@@ -343,11 +343,11 @@ const Battler defaultEnemyBattler = greenEnemyBattler;
 /// Jugador base de la run antes de elegir arquetipo o conseguir equipo.
 const defaultPlayerBattler = Battler(
   name: 'ENDPOINT UNIT',
-  health: 100,
+  health: 45,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 100,
+    BattlerStat.health: 45,
     BattlerStat.attack: 10,
     BattlerStat.defense: 5,
     BattlerStat.thorns: 0,

@@ -63,9 +63,18 @@ class RunSessionController extends ChangeNotifier {
   RunHourSnapshot get currentHour => _state.currentHour;
   bool get isResolvingNode => _isResolvingNode;
   bool get isRunComplete => _state.isRunComplete;
+  RunCompletionType? get completionType => _state.completionType;
 
+  /// Actualiza el jugador fuera de una escena y corta la run al instante si ya no sigue vivo.
   void updatePlayer(Battler player) {
-    _state = _state.copyWith(player: player);
+    final resolvedCompletionType = _resolveCompletionType(
+      updatedPlayer: player,
+    );
+    _state = _state.copyWith(
+      player: player,
+      isRunComplete: resolvedCompletionType != null,
+      completionType: resolvedCompletionType,
+    );
     notifyListeners();
   }
 
@@ -97,8 +106,20 @@ class RunSessionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void completeEncounter(BattleFlowResult result) {
-    _completeScene(updatedPlayer: result.player);
+  void completeEncounter({
+    required BattleFlowResult result,
+    required CombatPathNode node,
+  }) {
+    final updatedPlayer = result.type == BattleFlowResultType.victory
+        ? _applyEncounterExperience(
+            player: result.player,
+            node: node,
+          )
+        : result.player;
+    _completeScene(
+      updatedPlayer: updatedPlayer,
+      forcedCompletionType: _completionTypeForBattleResult(result.type),
+    );
   }
 
   void completeCampVisit(CampSiteVisitResult result) {
@@ -119,15 +140,16 @@ class RunSessionController extends ChangeNotifier {
 
   void _completeScene({
     required Battler updatedPlayer,
+    RunCompletionType? forcedCompletionType,
   }) {
-    final hasCompletedRun =
-        _state.stageIndex >= PathNodeService.sunriseStageIndex ||
-            updatedPlayer.isDefeated;
+    final resolvedCompletionType =
+        forcedCompletionType ?? _resolveCompletionType(updatedPlayer: updatedPlayer);
 
-    if (hasCompletedRun) {
+    if (resolvedCompletionType != null) {
       _state = _state.copyWith(
         player: updatedPlayer,
         isRunComplete: true,
+        completionType: resolvedCompletionType,
       );
       _isResolvingNode = false;
       notifyListeners();
@@ -140,5 +162,49 @@ class RunSessionController extends ChangeNotifier {
     );
     _isResolvingNode = false;
     refreshNodes();
+  }
+
+  /// Entrega la XP del encuentro segun su rareza y deja fuera al boss amarillo final.
+  Battler _applyEncounterExperience({
+    required Battler player,
+    required CombatPathNode node,
+  }) {
+    final awardedExperience = switch (node.tier) {
+      CombatNodeTier.purple => 2,
+      CombatNodeTier.yellow => 0,
+      CombatNodeTier.gray ||
+      CombatNodeTier.green ||
+      CombatNodeTier.blue => 1,
+    };
+
+    return player.gainExperience(awardedExperience);
+  }
+
+  /// Convierte el resultado bruto del combate en un cierre de run forzado cuando procede.
+  RunCompletionType? _completionTypeForBattleResult(
+    BattleFlowResultType resultType,
+  ) {
+    switch (resultType) {
+      case BattleFlowResultType.victory:
+        return null;
+      case BattleFlowResultType.defeat:
+        return RunCompletionType.defeat;
+      case BattleFlowResultType.retreated:
+        return RunCompletionType.retreated;
+    }
+  }
+
+  /// Decide si el estado actual del jugador ya implica victoria o derrota de la run.
+  RunCompletionType? _resolveCompletionType({
+    required Battler updatedPlayer,
+  }) {
+    if (updatedPlayer.isDefeated) {
+      return RunCompletionType.defeat;
+    }
+    if (_state.stageIndex >= PathNodeService.sunriseStageIndex) {
+      return RunCompletionType.victory;
+    }
+
+    return null;
   }
 }

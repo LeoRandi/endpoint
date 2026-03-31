@@ -76,6 +76,7 @@ class Item {
   final ItemSlot? slot;
   final RarityTier rarity;
   final int baseCost;
+  final int? equipCost;
   final int value;
   final int upgradeValue;
   final int incomePerValueUnit;
@@ -95,6 +96,7 @@ class Item {
     this.slot,
     this.rarity = RarityTier.gray,
     required this.baseCost,
+    this.equipCost,
     this.value = 0,
     this.upgradeValue = 0,
     this.incomePerValueUnit = 0,
@@ -125,6 +127,9 @@ class Item {
 
   /// Devuelve el coste base propio del objeto para compra y reventa.
   int get cost => baseCost;
+
+  /// Devuelve el coste de equipo efectivo del objeto para el presupuesto del loadout.
+  int get equipmentCost => equipCost ?? _defaultEquipmentCostFor(rarity);
 
   /// Calcula el income que aporta el objeto a partir de su valor actual.
   int get incomeModifier => value * incomePerValueUnit;
@@ -244,6 +249,7 @@ class Item {
     bool clearSlot = false,
     RarityTier? rarity,
     int? baseCost,
+    int? equipCost,
     int? value,
     int? upgradeValue,
     int? incomePerValueUnit,
@@ -263,6 +269,7 @@ class Item {
       slot: clearSlot ? null : slot ?? this.slot,
       rarity: rarity ?? this.rarity,
       baseCost: baseCost ?? this.baseCost,
+      equipCost: equipCost ?? this.equipCost,
       value: value ?? this.value,
       upgradeValue: upgradeValue ?? this.upgradeValue,
       incomePerValueUnit: incomePerValueUnit ?? this.incomePerValueUnit,
@@ -323,6 +330,20 @@ class Item {
         return 'REDUCCION';
       case BattlerStat.vampirism:
         return 'VAMPIRISMO';
+    }
+  }
+
+  /// Resuelve el coste por defecto de equipo segun la rareza actual del objeto.
+  static int _defaultEquipmentCostFor(RarityTier rarity) {
+    switch (rarity) {
+      case RarityTier.yellow:
+        return 3;
+      case RarityTier.purple:
+        return 2;
+      case RarityTier.gray:
+      case RarityTier.green:
+      case RarityTier.blue:
+        return 1;
     }
   }
 

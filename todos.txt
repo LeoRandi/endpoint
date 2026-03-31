@@ -46,9 +46,11 @@ TODOs:
 --Meter al menos 100-120[37/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
---Añadir más slots de equipamiento
+[--Cambiar sistema de equipamiento]
+[---Slots por tamaño?]
 [--Objetos duplicados=>Mejora?]
 --Añadir algún indicio de que se va a mejorar el item, no a añadir, o una animación de algún tipo
+--Equipar/desequipar arrastrando
 
 -Tiendas
 [--Mejorar aspecto y diseño]
@@ -94,6 +96,7 @@ PROBAR:
 
 ///
 IDEAS:
+-Reducir la probabilidad de drop de objeto/habilidad a un 60/50%, excepto si pasas por un EVENTO NUEVO que te sube esa chance al 100% si pagas 10 de money, o te mete el estado de Deuda hasta que pagues
 -Tienda de habilidades básicas
 -Evento que te de una habilidad aleatoria pero te quite vida
 -Evento de minijuego, obligatorio para un roguelike

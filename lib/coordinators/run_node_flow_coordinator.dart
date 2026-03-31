@@ -30,8 +30,10 @@ class RunNodeFlowCoordinator {
             combatEndDelay: session.state.battleCombatEndDelay,
             returnResultToCaller: true,
           ),
-          onCompleted: session.completeEncounter,
-          shouldPopToRoot: (result) => result.shouldExitRun,
+          onCompleted: (result) => session.completeEncounter(
+            result: result,
+            node: encounterNode,
+          ),
         );
         return;
       case PathNodeType.archetype:
@@ -112,7 +114,6 @@ class RunNodeFlowCoordinator {
     required RunSessionController session,
     required Widget page,
     required void Function(T result) onCompleted,
-    bool Function(T result)? shouldPopToRoot,
   }) async {
     final result = await Navigator.of(context).push<T>(
       buildEndpointSceneRoute<T>(page),
@@ -123,14 +124,7 @@ class RunNodeFlowCoordinator {
       session.cancelNodeResolution();
       return;
     }
-    if (shouldPopToRoot?.call(result) ?? false) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
-    }
 
     onCompleted(result);
-    if (session.isRunComplete && context.mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
   }
 }

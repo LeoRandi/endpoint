@@ -166,14 +166,15 @@ class BattleTurnEngine {
     );
   }
 
+  /// Decide el resultado del combate priorizando siempre la muerte del jugador.
   BattleCombatFinish? finishFor({
     required Battler player,
     required Battler enemy,
   }) {
-    if (enemy.isDefeated) {
+    if (player.isDefeated && enemy.isDefeated) {
       return const BattleCombatFinish(
-        resultType: BattleFlowResultType.victory,
-        resultText: 'Objetivo neutralizado.',
+        resultType: BattleFlowResultType.defeat,
+        resultText: 'La unidad y el objetivo han caido.',
       );
     }
 
@@ -181,6 +182,13 @@ class BattleTurnEngine {
       return const BattleCombatFinish(
         resultType: BattleFlowResultType.defeat,
         resultText: 'La unidad ha caido.',
+      );
+    }
+
+    if (enemy.isDefeated) {
+      return const BattleCombatFinish(
+        resultType: BattleFlowResultType.victory,
+        resultText: 'Objetivo neutralizado.',
       );
     }
 

@@ -527,7 +527,7 @@ class _ArchetypeItemCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 EndpointText(
-                  '${item.rarity.label}  |  ${item.slot?.label ?? 'Consumible'}',
+                  '${item.rarity.label}  |  COSTE ${item.equipmentCost}',
                   maxLines: null,
                   style: textSmallBold.copyWith(
                     color: accent,
