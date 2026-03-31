@@ -152,10 +152,10 @@ class _ButtonContent extends StatelessWidget {
     final children = <Widget>[
       Icon(icon, size: iconSize),
       spacing,
-      if (layoutAxis == Axis.vertical)
-        Flexible(child: labelWidget)
-      else
-        Expanded(child: labelWidget),
+      Flexible(
+        fit: FlexFit.loose,
+        child: labelWidget,
+      ),
     ];
 
     return Flex(

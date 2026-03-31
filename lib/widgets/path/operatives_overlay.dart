@@ -156,129 +156,154 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                   maxWidth: 500,
                   maxHeight: min(size.height - 28, 620),
                 ),
-                child: EndpointPanel(
-                  accent: EndpointPalette.primaryAccent,
-                  backgroundColor: EndpointPalette.panelBackgroundOpaque,
-                  borderRadius: 18,
-                  glowOpacity: 0.12,
-                  blurRadius: 22,
-                  spreadRadius: 2,
-                  padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                child: Stack(
+                  children: [
+                    EndpointPanel(
+                      accent: EndpointPalette.primaryAccent,
+                      backgroundColor: EndpointPalette.panelBackgroundOpaque,
+                      borderRadius: 18,
+                      glowOpacity: 0.12,
+                      blurRadius: 22,
+                      spreadRadius: 2,
+                      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: EndpointText(
-                              'OPERATIVOS',
-                              style: textTitleMediumBold.copyWith(
-                                color: EndpointPalette.softForeground,
-                                letterSpacing: 1.8,
-                              ),
-                            ),
-                          ),
-                          EndpointSceneCloseButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            tooltip: 'Cerrar operativos',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 60,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
+                          Row(
                             children: [
-                              for (int index = 0;
-                                  index < operatives.length;
-                                  index++) ...[
-                                if (index > 0) const SizedBox(width: 8),
-                                _OperativeIconCard(
-                                  battler: operatives[index],
-                                  isSelected: _controller.selectedIndex == index,
-                                  isPlayer: index == 0,
-                                  onPressed: () {
-                                    _controller.selectOperative(index);
-                                  },
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      _EquipmentRow(
-                        battler: selectedOperative,
-                        isPlayer: _controller.isPlayerSelected,
-                        onItemPressed: (item) => _openEquippedItemDetails(
-                          item,
-                          owner: selectedOperative,
-                          canUnequip: _controller.isPlayerSelected,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          EndpointText(
-                            'OBJETOS DEL JUGADOR',
-                            style: textSmallBold.copyWith(
-                              color: EndpointPalette.primaryAccent,
-                              letterSpacing: 1.4,
-                            ),
-                          ),
-                          const Spacer(),
-                          EndpointText(
-                            '${player.inventoryItems.length}',
-                            style: textSmallBold.copyWith(
-                              color: Colors.white.withOpacity(0.76),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Expanded(
-                        child: player.inventoryItems.isEmpty
-                            ? Center(
+                              Expanded(
                                 child: EndpointText(
-                                  'No llevas ningun objeto.',
-                                  textAlign: TextAlign.center,
-                                  style: textSmallBold.copyWith(
-                                    color: Colors.white.withOpacity(0.72),
+                                  'OPERATIVOS',
+                                  style: textTitleMediumBold.copyWith(
+                                    color: EndpointPalette.softForeground,
+                                    letterSpacing: 1.8,
                                   ),
                                 ),
-                              )
-                            : LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return GridView.builder(
-                                    itemCount: player.inventoryItems.length,
-                                    gridDelegate:
-                                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                                      maxCrossAxisExtent: _operativeTileExtent,
-                                      crossAxisSpacing: 8,
-                                      mainAxisSpacing: 8,
-                                      mainAxisExtent: _operativeTileHeight,
+                              ),
+                              EndpointSceneCloseButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                tooltip: 'Cerrar operativos',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 60,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  for (int index = 0;
+                                      index < operatives.length;
+                                      index++) ...[
+                                    if (index > 0) const SizedBox(width: 8),
+                                    _OperativeIconCard(
+                                      battler: operatives[index],
+                                      isSelected:
+                                          _controller.selectedIndex == index,
+                                      isPlayer: index == 0,
+                                      onPressed: () {
+                                        _controller.selectOperative(index);
+                                      },
                                     ),
-                                    itemBuilder: (context, index) {
-                                      final item = player.inventoryItems[index];
-                                      return EndpointInventoryItemTile(
-                                        item: item,
-                                        onPressed: () => _openItemDetails(item),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          _EquipmentRow(
+                            battler: selectedOperative,
+                            isPlayer: _controller.isPlayerSelected,
+                            onItemPressed: (item) => _openEquippedItemDetails(
+                              item,
+                              owner: selectedOperative,
+                              canUnequip: _controller.isPlayerSelected,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              EndpointText(
+                                'OBJETOS DEL JUGADOR',
+                                style: textSmallBold.copyWith(
+                                  color: EndpointPalette.primaryAccent,
+                                  letterSpacing: 1.4,
+                                ),
+                              ),
+                              const Spacer(),
+                              EndpointText(
+                                '${player.inventoryItems.length}',
+                                style: textSmallBold.copyWith(
+                                  color: Colors.white.withOpacity(0.76),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Expanded(
+                            child: player.inventoryItems.isEmpty
+                                ? Center(
+                                    child: EndpointText(
+                                      'No llevas ningun objeto.',
+                                      textAlign: TextAlign.center,
+                                      style: textSmallBold.copyWith(
+                                        color: Colors.white.withOpacity(0.72),
+                                      ),
+                                    ),
+                                  )
+                                : LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return GridView.builder(
+                                        itemCount: player.inventoryItems.length,
+                                        gridDelegate:
+                                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                                          maxCrossAxisExtent:
+                                              _operativeTileExtent,
+                                          crossAxisSpacing: 8,
+                                          mainAxisSpacing: 8,
+                                          mainAxisExtent: _operativeTileHeight,
+                                        ),
+                                        itemBuilder: (context, index) {
+                                          final item =
+                                              player.inventoryItems[index];
+                                          return EndpointInventoryItemTile(
+                                            item: item,
+                                            onPressed: () =>
+                                                _openItemDetails(item),
+                                          );
+                                        },
                                       );
                                     },
-                                  );
-                                },
-                              ),
+                                  ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Positioned(
+                      left: 12,
+                      bottom: 12,
+                      child: _OperativesSketchButton(
+                        onPressed: _openSketchPad,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Abre una ventana secundaria con un lienzo efimero para trazar desde el overlay de operativos.
+  Future<void> _openSketchPad() async {
+    await showEndpointOverlay<void>(
+      context: context,
+      barrierLabel: 'Abrir lienzo operativo',
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      builder: (_) => const OperativeSketchOverlay(),
     );
   }
 }
@@ -391,6 +416,69 @@ class _EquipmentRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Boton flotante que abre el lienzo secundario desde el overlay de operativos.
+class _OperativesSketchButton extends StatelessWidget {
+  final Future<void> Function() onPressed;
+
+  /// Recibe la accion que debe dispararse al pulsar el acceso rapido de dibujo.
+  const _OperativesSketchButton({
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return HoldTooltip(
+      message: 'Abrir lienzo efimero',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(999),
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+            decoration: BoxDecoration(
+              color: EndpointPalette.blend(
+                EndpointPalette.panelBackground,
+                EndpointPalette.infoAccent,
+                0.12,
+              ),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: EndpointPalette.infoAccent.withOpacity(0.72),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: EndpointPalette.infoAccent.withOpacity(0.14),
+                  blurRadius: 14,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.gesture_rounded,
+                  size: 18,
+                  color: EndpointPalette.infoAccent,
+                ),
+                const SizedBox(width: 6),
+                EndpointText(
+                  'Dibujar',
+                  style: textSmallBold.copyWith(
+                    color: EndpointPalette.softForeground,
+                    letterSpacing: 0.9,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
