@@ -1,10 +1,9 @@
 import '../_imports.dart';
 
-const _sketchStrokeLifetime = Duration(seconds: 4);
 const _sketchCanvasBorderRadius = 18.0;
 const _sketchNoiseSeed = 4312;
 
-/// Overlay autocontenido que ofrece un lienzo efimero para dibujar con el dedo.
+/// Overlay autocontenido que ofrece un lienzo persistente para dibujar con el dedo.
 class OperativeSketchOverlay extends StatefulWidget {
   /// Construye el overlay de dibujo reutilizando la estetica de paneles de la app.
   const OperativeSketchOverlay({super.key});
@@ -18,22 +17,20 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     EndpointPalette.primaryAccent,
     EndpointPalette.dangerAccent,
     EndpointPalette.warningAccent,
-    EndpointPalette.infoAccent,
     EndpointPalette.rewardAccent,
   ];
 
-  final Random _randomizer = Random();
   final List<_SketchStroke> _strokes = <_SketchStroke>[];
-  final Map<int, Timer> _strokeTimers = <int, Timer>{};
   late final List<_SketchNoiseDot> _noiseDots = _buildNoiseDots();
+  Color _selectedBrushColor = _brushColors.first;
   int _nextStrokeId = 0;
   int? _activeStrokeId;
 
-  /// Inicia un trazo nuevo con un color vivo elegido al azar dentro de la paleta del juego.
+  /// Inicia un trazo nuevo usando el color seleccionado en la paleta visible.
   void _handlePanStart(DragStartDetails details) {
     final stroke = _SketchStroke(
       id: _nextStrokeId++,
-      color: _pickBrushColor(),
+      color: _selectedBrushColor,
       points: <Offset>[details.localPosition],
     );
     setState(() {
@@ -60,49 +57,25 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     });
   }
 
-  /// Cierra el trazo activo y programa su borrado automatico unos segundos despues.
+  /// Cierra el trazo activo al terminar el gesto y deja el contenido en pantalla.
   void _handlePanEnd(DragEndDetails details) {
-    final activeStrokeId = _activeStrokeId;
     _activeStrokeId = null;
-    if (activeStrokeId == null) return;
-
-    _scheduleStrokeRemoval(activeStrokeId);
   }
 
-  /// Programa el borrado diferido de un trazo concreto para mantener el lienzo efimero.
-  void _scheduleStrokeRemoval(int strokeId) {
-    _strokeTimers.remove(strokeId)?.cancel();
-    _strokeTimers[strokeId] = Timer(
-      _sketchStrokeLifetime,
-      () => _removeStroke(strokeId),
-    );
-  }
-
-  /// Elimina un trazo concreto si sigue presente y limpia su temporizador asociado.
-  void _removeStroke(int strokeId) {
-    _strokeTimers.remove(strokeId)?.cancel();
-    if (!mounted) return;
-
-    setState(() {
-      _strokes.removeWhere((stroke) => stroke.id == strokeId);
-    });
-  }
-
-  /// Limpia manualmente todos los trazos y cancela cualquier borrado pendiente.
+  /// Limpia manualmente todos los trazos visibles del lienzo.
   void _clearStrokes() {
-    for (final timer in _strokeTimers.values) {
-      timer.cancel();
-    }
-    _strokeTimers.clear();
     setState(() {
       _strokes.clear();
       _activeStrokeId = null;
     });
   }
 
-  /// Devuelve un color de pincel saturado a partir de los acentos principales de la interfaz.
-  Color _pickBrushColor() {
-    return _brushColors[_randomizer.nextInt(_brushColors.length)];
+  /// Cambia el color del pincel que usara el siguiente trazo del jugador.
+  void _selectBrushColor(Color color) {
+    if (_selectedBrushColor == color) return;
+    setState(() {
+      _selectedBrushColor = color;
+    });
   }
 
   /// Precalcula el ruido de fondo en coordenadas relativas para que la textura no parpadee.
@@ -125,22 +98,14 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     });
   }
 
-  /// Libera todos los temporizadores diferidos cuando el overlay desaparece.
-  @override
-  void dispose() {
-    for (final timer in _strokeTimers.values) {
-      timer.cancel();
-    }
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return EndpointOverlayScaffold(
       title: 'TRAZADO',
-      subtitle: 'Dibuja con el dedo. Cada trazo se borra solo al poco tiempo.',
+      subtitle:
+          'Dibuja con el dedo. Elige color y limpia manualmente cuando quieras.',
       sectionLabel: 'LIENZO',
-      sectionValue: 'EFIMERO',
+      sectionValue: 'MANUAL',
       closeTooltip: 'Cerrar lienzo',
       accent: EndpointPalette.infoAccent,
       bottomInset: 28,
@@ -200,16 +165,30 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
             ),
           ),
           const SizedBox(height: 10),
+          EndpointText(
+            'Los trazos permanecen en pantalla hasta que limpies el lienzo.',
+            maxLines: null,
+            style: textSmallBold.copyWith(
+              color: Colors.white.withValues(alpha: 0.74),
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(
-                child: EndpointText(
-                  'Los trazos usan colores vivos del interfaz y desaparecen solos.',
-                  maxLines: null,
-                  style: textSmallBold.copyWith(
-                    color: Colors.white.withValues(alpha: 0.74),
-                    letterSpacing: 0.6,
-                  ),
+              Flexible(
+                fit: FlexFit.loose,
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final color in _brushColors)
+                      _SketchBrushSwatch(
+                        color: color,
+                        isSelected: _selectedBrushColor == color,
+                        onPressed: () => _selectBrushColor(color),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(width: 10),
@@ -231,6 +210,53 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   }
 }
 
+/// Boton circular que permite escoger uno de los colores vivos del pincel.
+class _SketchBrushSwatch extends StatelessWidget {
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onPressed;
+
+  /// Construye una muestra de color pulsable y marca visualmente la seleccion activa.
+  const _SketchBrushSwatch({
+    required this.color,
+    required this.isSelected,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkResponse(
+        onTap: onPressed,
+        radius: 22,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+            border: Border.all(
+              color: isSelected
+                  ? EndpointPalette.softForeground
+                  : Colors.white.withValues(alpha: 0.26),
+              width: isSelected ? 2.2 : 1.1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: isSelected ? 0.42 : 0.18),
+                blurRadius: isSelected ? 12 : 6,
+                spreadRadius: isSelected ? 1 : 0,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Describe un trazo individual del usuario junto al color que se le ha asignado.
 class _SketchStroke {
   final int id;
@@ -244,7 +270,7 @@ class _SketchStroke {
     required this.points,
   });
 
-  /// Clona el trazo para actualizar su geometria sin perder su identidad efimera.
+  /// Clona el trazo para actualizar su geometria sin perder su identidad.
   _SketchStroke copyWith({
     List<Offset>? points,
   }) {
@@ -270,7 +296,7 @@ class _SketchNoiseDot {
   });
 }
 
-/// Pinta el fondo granular del lienzo y los trazos efimeros activos del usuario.
+/// Pinta el fondo granular del lienzo y los trazos persistentes activos del usuario.
 class _OperativeSketchPainter extends CustomPainter {
   final List<_SketchStroke> strokes;
   final List<_SketchNoiseDot> noiseDots;
