@@ -60,6 +60,14 @@ class OperativeSketchRecognitionResult {
   /// Indica de forma explicita si el escaneo encontro al menos una figura conocida.
   bool get hasMatch => matches.isNotEmpty;
 
+  /// Resume cuantas figuras reconocibles se han detectado en total.
+  int get totalCount {
+    return matches.fold<int>(
+      0,
+      (sum, match) => sum + match.count,
+    );
+  }
+
   /// Devuelve la secuencia de textos que el overlay mostrara uno detras de otro.
   List<String> get displayLabels {
     return matches.map((match) => match.displayLabel).toList(growable: false);
@@ -69,7 +77,13 @@ class OperativeSketchRecognitionResult {
 /// Helper que rasteriza el dibujo, separa regiones cerradas y clasifica su silueta.
 class OperativeSketchRecognitionHelper {
   static const int _gridResolution = 96;
-  static const int _minimumRegionCellCount = 10;
+  static const int _minimumRegionCellCount = 6;
+  static const double _minimumStrokeClosureDistance = 10;
+  static const double _strokeClosureDistanceFactor = 0.22;
+  static const double _minimumRecognizableHullSide = 6;
+  static const double _minimumRecognizableArea = 20;
+  static const int _inscribedFitIterations = 16;
+  static const int _circleFitSampleCount = 24;
   static const List<OperativeSketchRecognitionKind> _priorityOrder =
       <OperativeSketchRecognitionKind>[
     OperativeSketchRecognitionKind.triangle,
@@ -87,11 +101,7 @@ class OperativeSketchRecognitionHelper {
     required Size canvasSize,
   }) {
     if (canvasSize.isEmpty) {
-      return const OperativeSketchRecognitionResult(
-        kind: OperativeSketchRecognitionKind.none,
-        count: 0,
-        matches: <OperativeSketchRecognitionMatch>[],
-      );
+      return _emptyResult;
     }
 
     final sanitizedStrokes = strokes
@@ -99,38 +109,42 @@ class OperativeSketchRecognitionHelper {
         .where((stroke) => stroke.length >= 2)
         .toList(growable: false);
     if (sanitizedStrokes.isEmpty) {
-      return const OperativeSketchRecognitionResult(
-        kind: OperativeSketchRecognitionKind.none,
-        count: 0,
-        matches: <OperativeSketchRecognitionMatch>[],
-      );
+      return _emptyResult;
     }
 
-    final rasterGrid = _SketchRasterGrid.fromStrokes(
+    final regionDetections = _scanClosedRegions(
       strokes: sanitizedStrokes,
       canvasSize: canvasSize,
-      resolution: _gridResolution,
     );
-    final regions = _extractClosedRegions(rasterGrid);
-    if (regions.isEmpty) {
-      return const OperativeSketchRecognitionResult(
-        kind: OperativeSketchRecognitionKind.none,
-        count: 0,
-        matches: <OperativeSketchRecognitionMatch>[],
-      );
-    }
+    final strokeDetections = _scanClosedStrokes(sanitizedStrokes);
+    final mergedDetections = _mergeDetections(
+      primaryDetections: regionDetections,
+      secondaryDetections: strokeDetections,
+    );
+    final combinedCounts = _countDetections(mergedDetections);
 
-    final counts = <OperativeSketchRecognitionKind, int>{
+    return _resultFromCounts(combinedCounts);
+  }
+
+  /// Devuelve el mapa vacio reutilizable para acumular coincidencias por tipo.
+  Map<OperativeSketchRecognitionKind, int> _emptyCounts() {
+    return <OperativeSketchRecognitionKind, int>{
       for (final kind in _priorityOrder) kind: 0,
     };
+  }
 
-    for (final region in regions) {
-      final kind = _classifyRegion(region, rasterGrid);
-      if (kind == OperativeSketchRecognitionKind.none) continue;
-      counts[kind] = counts[kind]! + 1;
-    }
+  /// Devuelve un resultado vacio comun cuando no hay ninguna forma reconocible.
+  static const OperativeSketchRecognitionResult _emptyResult =
+      OperativeSketchRecognitionResult(
+    kind: OperativeSketchRecognitionKind.none,
+    count: 0,
+    matches: <OperativeSketchRecognitionMatch>[],
+  );
 
-    final dominantKind = _pickDominantKind(counts);
+  /// Convierte un mapa de contadores en el resultado publico que consume la UI.
+  OperativeSketchRecognitionResult _resultFromCounts(
+    Map<OperativeSketchRecognitionKind, int> counts,
+  ) {
     final matches = _priorityOrder
         .where((kind) => (counts[kind] ?? 0) > 0)
         .map(
@@ -140,6 +154,11 @@ class OperativeSketchRecognitionHelper {
           ),
         )
         .toList(growable: false);
+    if (matches.isEmpty) {
+      return _emptyResult;
+    }
+
+    final dominantKind = _pickDominantKind(counts);
     return OperativeSketchRecognitionResult(
       kind: dominantKind,
       count: counts[dominantKind] ?? 0,
@@ -177,6 +196,225 @@ class OperativeSketchRecognitionHelper {
     }
 
     return bestKind;
+  }
+
+  /// Ejecuta el recognizer tradicional basado en regiones cerradas rasterizadas.
+  List<_SketchRecognitionDetection> _scanClosedRegions({
+    required List<List<Offset>> strokes,
+    required Size canvasSize,
+  }) {
+    final detections = <_SketchRecognitionDetection>[];
+    final rasterGrid = _SketchRasterGrid.fromStrokes(
+      strokes: strokes,
+      canvasSize: canvasSize,
+      resolution: _gridResolution,
+    );
+    final regions = _extractClosedRegions(rasterGrid);
+    if (regions.isEmpty) {
+      return detections;
+    }
+
+    for (final region in regions) {
+      final kind = _classifyRegion(region, rasterGrid);
+      if (kind == OperativeSketchRecognitionKind.none) continue;
+      final detection = _buildRegionDetection(
+        region: region,
+        grid: rasterGrid,
+        kind: kind,
+      );
+      if (detection != null) {
+        detections.add(detection);
+      }
+    }
+
+    return detections;
+  }
+
+  /// Escanea cada trazo cerrado como contorno independiente para detectar formas tocandose.
+  List<_SketchRecognitionDetection> _scanClosedStrokes(
+    List<List<Offset>> strokes,
+  ) {
+    final detections = <_SketchRecognitionDetection>[];
+
+    for (final stroke in strokes) {
+      final kind = _classifyClosedStroke(stroke);
+      if (kind == OperativeSketchRecognitionKind.none) continue;
+      final detection = _buildStrokeDetection(stroke: stroke, kind: kind);
+      if (detection != null) {
+        detections.add(detection);
+      }
+    }
+
+    return detections;
+  }
+
+  /// Convierte una region valida en una deteccion geometrica util para fusionar resultados.
+  _SketchRecognitionDetection? _buildRegionDetection({
+    required _SketchRegion region,
+    required _SketchRasterGrid grid,
+    required OperativeSketchRecognitionKind kind,
+  }) {
+    final borderPoints = _buildRegionBorderPoints(region, grid);
+    if (borderPoints.length < 3) return null;
+
+    final hull = _computeConvexHull(borderPoints);
+    return _buildDetectionFromHull(
+      kind: kind,
+      hull: hull,
+      source: _SketchRecognitionSource.region,
+    );
+  }
+
+  /// Convierte un trazo valido en una deteccion geometrica util para fusionar resultados.
+  _SketchRecognitionDetection? _buildStrokeDetection({
+    required List<Offset> stroke,
+    required OperativeSketchRecognitionKind kind,
+  }) {
+    final hull = _computeConvexHull(stroke);
+    return _buildDetectionFromHull(
+      kind: kind,
+      hull: hull,
+      source: _SketchRecognitionSource.stroke,
+    );
+  }
+
+  /// Empaqueta la geometria minima necesaria para decidir si dos lecturas son la misma figura.
+  _SketchRecognitionDetection? _buildDetectionFromHull({
+    required OperativeSketchRecognitionKind kind,
+    required List<Offset> hull,
+    required _SketchRecognitionSource source,
+  }) {
+    if (kind == OperativeSketchRecognitionKind.none || hull.length < 3) {
+      return null;
+    }
+
+    final bounds = _computeBounds(hull);
+    final area = _polygonArea(hull).abs();
+    if (area <= 0 || bounds.width <= 0 || bounds.height <= 0) {
+      return null;
+    }
+
+    return _SketchRecognitionDetection(
+      kind: kind,
+      source: source,
+      bounds: bounds,
+      area: area,
+      center: _computePolygonCentroid(hull),
+    );
+  }
+
+  /// Fusiona region y trazo, descartando detecciones que representan la misma figura.
+  List<_SketchRecognitionDetection> _mergeDetections({
+    required List<_SketchRecognitionDetection> primaryDetections,
+    required List<_SketchRecognitionDetection> secondaryDetections,
+  }) {
+    final merged = List<_SketchRecognitionDetection>.from(primaryDetections);
+
+    for (final candidate in secondaryDetections) {
+      final duplicateIndex = merged.indexWhere(
+        (existing) => _areDuplicateDetections(existing, candidate),
+      );
+      if (duplicateIndex < 0) {
+        merged.add(candidate);
+        continue;
+      }
+
+      merged[duplicateIndex] = _pickPreferredDetection(
+        merged[duplicateIndex],
+        candidate,
+      );
+    }
+
+    return merged;
+  }
+
+  /// Traduce la lista final de detecciones en el mapa compacto que consume la UI.
+  Map<OperativeSketchRecognitionKind, int> _countDetections(
+    List<_SketchRecognitionDetection> detections,
+  ) {
+    final counts = _emptyCounts();
+    for (final detection in detections) {
+      counts[detection.kind] = counts[detection.kind]! + 1;
+    }
+    return counts;
+  }
+
+  /// Decide si dos lecturas vienen probablemente de la misma forma dibujada.
+  bool _areDuplicateDetections(
+    _SketchRecognitionDetection first,
+    _SketchRecognitionDetection second,
+  ) {
+    final intersectionArea = _rectIntersectionArea(first.bounds, second.bounds);
+    if (intersectionArea <= 0) return false;
+
+    final overlapRatio = intersectionArea /
+        max(1.0, min(_rectArea(first.bounds), _rectArea(second.bounds)));
+    final areaRatio = min(first.area, second.area) / max(first.area, second.area);
+    final centerDistance = (first.center - second.center).distance;
+    final minDiagonal =
+        min(_rectDiagonal(first.bounds), _rectDiagonal(second.bounds));
+    final sameKind = first.kind == second.kind;
+    final bothCircles = sameKind &&
+        first.kind == OperativeSketchRecognitionKind.circle &&
+        second.kind == OperativeSketchRecognitionKind.circle;
+
+    if (overlapRatio < (bothCircles ? 0.34 : (sameKind ? 0.52 : 0.72))) {
+      return false;
+    }
+    if (areaRatio < (bothCircles ? 0.22 : (sameKind ? 0.44 : 0.62))) {
+      return false;
+    }
+    if (centerDistance >
+        max(bothCircles ? 9.0 : 6.0, minDiagonal * (bothCircles ? 0.42 : 0.32))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Elige cual de las dos lecturas superpuestas es mas fiable para conservarla.
+  _SketchRecognitionDetection _pickPreferredDetection(
+    _SketchRecognitionDetection first,
+    _SketchRecognitionDetection second,
+  ) {
+    final firstScore = _duplicatePreferenceScore(first);
+    final secondScore = _duplicatePreferenceScore(second);
+    if (firstScore > secondScore) return first;
+    if (secondScore > firstScore) return second;
+    return first.area >= second.area ? first : second;
+  }
+
+  /// Prioriza poligonos sobre circulos y regiones sobre trazos cuando hay empate.
+  int _duplicatePreferenceScore(_SketchRecognitionDetection detection) {
+    final sourceScore =
+        detection.source == _SketchRecognitionSource.region ? 4 : 0;
+    switch (detection.kind) {
+      case OperativeSketchRecognitionKind.none:
+        return sourceScore;
+      case OperativeSketchRecognitionKind.circle:
+        return 18 + sourceScore;
+      case OperativeSketchRecognitionKind.rhombus:
+        return 28 + sourceScore;
+      case OperativeSketchRecognitionKind.triangle:
+      case OperativeSketchRecognitionKind.square:
+        return 30 + sourceScore;
+    }
+  }
+
+  /// Calcula el area de solape entre dos rectangulos para medir duplicados.
+  double _rectIntersectionArea(Rect first, Rect second) {
+    final overlap = first.intersect(second);
+    if (overlap.width <= 0 || overlap.height <= 0) return 0;
+    return overlap.width * overlap.height;
+  }
+
+  /// Devuelve el area de un rectangulo para normalizar el solape.
+  double _rectArea(Rect rect) => rect.width * rect.height;
+
+  /// Calcula la diagonal del rectangulo para comparar distancias entre centros.
+  double _rectDiagonal(Rect rect) {
+    return sqrt((rect.width * rect.width) + (rect.height * rect.height))
+        .toDouble();
   }
 
   /// Localiza las regiones vacias que han quedado cerradas por los trazos del usuario.
@@ -290,7 +528,7 @@ class OperativeSketchRecognitionHelper {
     _SketchRasterGrid grid,
   ) {
     final borderPoints = _buildRegionBorderPoints(region, grid);
-    if (borderPoints.length < 9) {
+    if (borderPoints.length < 6) {
       return OperativeSketchRecognitionKind.none;
     }
 
@@ -302,12 +540,14 @@ class OperativeSketchRecognitionHelper {
     final hullBounds = _computeBounds(hull);
     final shortestHullSide =
         min(hullBounds.width, hullBounds.height).toDouble();
-    if (shortestHullSide < 8 || hullBounds.width < 8 || hullBounds.height < 8) {
+    if (shortestHullSide < _minimumRecognizableHullSide ||
+        hullBounds.width < _minimumRecognizableHullSide ||
+        hullBounds.height < _minimumRecognizableHullSide) {
       return OperativeSketchRecognitionKind.none;
     }
 
     final hullArea = _polygonArea(hull).abs();
-    if (hullArea < 40) {
+    if (hullArea < _minimumRecognizableArea) {
       return OperativeSketchRecognitionKind.none;
     }
 
@@ -346,6 +586,15 @@ class OperativeSketchRecognitionHelper {
       }
     }
 
+    final fittedKind = _classifyByLargestFittedShape(
+      hull: hull,
+      hullBounds: hullBounds,
+      hullArea: hullArea,
+    );
+    if (fittedKind != OperativeSketchRecognitionKind.none) {
+      return fittedKind;
+    }
+
     if (_matchesCircleGeometry(
       borderPoints: borderPoints,
       hull: hull,
@@ -357,6 +606,480 @@ class OperativeSketchRecognitionHelper {
     }
 
     return OperativeSketchRecognitionKind.none;
+  }
+
+  /// Clasifica un unico trazo cerrado sin depender de que exista una region interior separable.
+  OperativeSketchRecognitionKind _classifyClosedStroke(List<Offset> stroke) {
+    if (stroke.length < 4) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    final strokeBounds = _computeBounds(stroke);
+    final shortestStrokeSide =
+        min(strokeBounds.width, strokeBounds.height).toDouble();
+    if (shortestStrokeSide < _minimumRecognizableHullSide ||
+        strokeBounds.width < _minimumRecognizableHullSide ||
+        strokeBounds.height < _minimumRecognizableHullSide) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    final closureThreshold = max(
+      _minimumStrokeClosureDistance,
+      shortestStrokeSide * _strokeClosureDistanceFactor,
+    ).toDouble();
+    if ((stroke.first - stroke.last).distance > closureThreshold) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    final hull = _computeConvexHull(stroke);
+    if (hull.length < 3) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    final hullBounds = _computeBounds(hull);
+    final shortestHullSide =
+        min(hullBounds.width, hullBounds.height).toDouble();
+    if (shortestHullSide < _minimumRecognizableHullSide ||
+        hullBounds.width < _minimumRecognizableHullSide ||
+        hullBounds.height < _minimumRecognizableHullSide) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    final hullArea = _polygonArea(hull).abs();
+    if (hullArea < _minimumRecognizableArea) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    final epsilonCandidates = <double>[
+      max(1.2, shortestHullSide * 0.06).toDouble(),
+      max(1.8, shortestHullSide * 0.08).toDouble(),
+      max(2.4, shortestHullSide * 0.1).toDouble(),
+      max(3.0, shortestHullSide * 0.12).toDouble(),
+    ];
+
+    for (final epsilon in epsilonCandidates) {
+      final simplifiedHull = _simplifyClosedPolygon(hull, epsilon);
+      final corners = _deduplicatePolygonVertices(simplifiedHull);
+
+      if (corners.length == 3 &&
+          _passesTriangleGeometry(
+            corners: corners,
+            hullBounds: hullBounds,
+            hullArea: hullArea,
+            regionArea: hullArea,
+          )) {
+        return OperativeSketchRecognitionKind.triangle;
+      }
+
+      if (corners.length == 4) {
+        final quadrilateralKind = _classifyQuadrilateral(
+          corners: corners,
+          hullBounds: hullBounds,
+          hullArea: hullArea,
+          regionArea: hullArea,
+        );
+        if (quadrilateralKind != OperativeSketchRecognitionKind.none) {
+          return quadrilateralKind;
+        }
+      }
+    }
+
+    final fittedKind = _classifyByLargestFittedShape(
+      hull: hull,
+      hullBounds: hullBounds,
+      hullArea: hullArea,
+    );
+    if (fittedKind != OperativeSketchRecognitionKind.none) {
+      return fittedKind;
+    }
+
+    if (_matchesCircleGeometry(
+      borderPoints: stroke,
+      hull: hull,
+      hullBounds: hullBounds,
+      hullArea: hullArea,
+      regionArea: hullArea,
+    )) {
+      return OperativeSketchRecognitionKind.circle;
+    }
+
+    return OperativeSketchRecognitionKind.none;
+  }
+
+  /// Busca la forma ideal mas grande que puede inscribirse dentro de la silueta.
+  OperativeSketchRecognitionKind _classifyByLargestFittedShape({
+    required List<Offset> hull,
+    required Rect hullBounds,
+    required double hullArea,
+  }) {
+    if (hull.length < 3 || hullArea <= 0) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    final candidates = <_SketchInscribedFit>[
+      _findLargestInscribedFit(
+        kind: OperativeSketchRecognitionKind.triangle,
+        hull: hull,
+        hullBounds: hullBounds,
+        hullArea: hullArea,
+      ),
+      _findLargestInscribedFit(
+        kind: OperativeSketchRecognitionKind.square,
+        hull: hull,
+        hullBounds: hullBounds,
+        hullArea: hullArea,
+      ),
+      _findLargestInscribedFit(
+        kind: OperativeSketchRecognitionKind.circle,
+        hull: hull,
+        hullBounds: hullBounds,
+        hullArea: hullArea,
+      ),
+    ]..sort((left, right) => right.area.compareTo(left.area));
+
+    final bestFit = candidates.firstWhere(
+      (candidate) => candidate.area > 0,
+      orElse: () => const _SketchInscribedFit(
+        kind: OperativeSketchRecognitionKind.none,
+        area: 0,
+        coverage: 0,
+      ),
+    );
+    if (bestFit.kind == OperativeSketchRecognitionKind.none ||
+        !_passesInscribedFitThreshold(bestFit, hullBounds)) {
+      return OperativeSketchRecognitionKind.none;
+    }
+
+    return bestFit.kind;
+  }
+
+  /// Encuentra el candidato inscrito de mayor area para una familia concreta.
+  _SketchInscribedFit _findLargestInscribedFit({
+    required OperativeSketchRecognitionKind kind,
+    required List<Offset> hull,
+    required Rect hullBounds,
+    required double hullArea,
+  }) {
+    if (kind == OperativeSketchRecognitionKind.none ||
+        kind == OperativeSketchRecognitionKind.rhombus) {
+      return const _SketchInscribedFit(
+        kind: OperativeSketchRecognitionKind.none,
+        area: 0,
+        coverage: 0,
+      );
+    }
+
+    final candidateCenters = _buildCandidateFitCenters(hull, hullBounds);
+    if (candidateCenters.isEmpty) {
+      return const _SketchInscribedFit(
+        kind: OperativeSketchRecognitionKind.none,
+        area: 0,
+        coverage: 0,
+      );
+    }
+
+    final maxRadius = sqrt(
+      (hullBounds.width * hullBounds.width) +
+          (hullBounds.height * hullBounds.height),
+    ).toDouble();
+    final rotations = _fitRotationsFor(kind);
+    var bestArea = 0.0;
+
+    for (final center in candidateCenters) {
+      if (!_isPointInsideConvexPolygon(center, hull)) continue;
+
+      for (final rotation in rotations) {
+        final radius = _findLargestInscribedRadius(
+          kind: kind,
+          center: center,
+          rotation: rotation,
+          hull: hull,
+          maxRadius: maxRadius,
+        );
+        if (radius <= 0) continue;
+
+        final area = _shapeAreaFromRadius(kind, radius);
+        if (area > bestArea) {
+          bestArea = area;
+        }
+      }
+    }
+
+    if (bestArea <= 0) {
+      return const _SketchInscribedFit(
+        kind: OperativeSketchRecognitionKind.none,
+        area: 0,
+        coverage: 0,
+      );
+    }
+
+    return _SketchInscribedFit(
+      kind: kind,
+      area: bestArea,
+      coverage: bestArea / hullArea,
+    );
+  }
+
+  /// Genera centros cercanos al centroide para compensar dibujos descentrados.
+  List<Offset> _buildCandidateFitCenters(
+    List<Offset> hull,
+    Rect hullBounds,
+  ) {
+    final polygonCentroid = _computePolygonCentroid(hull);
+    final averagePoint = _averagePoint(hull);
+    final stepX = max(0.75, hullBounds.width * 0.08).toDouble();
+    final stepY = max(0.75, hullBounds.height * 0.08).toDouble();
+    final offsets = <Offset>[
+      Offset.zero,
+      Offset(stepX, 0),
+      Offset(-stepX, 0),
+      Offset(0, stepY),
+      Offset(0, -stepY),
+      Offset(stepX, stepY),
+      Offset(stepX, -stepY),
+      Offset(-stepX, stepY),
+      Offset(-stepX, -stepY),
+    ];
+
+    final candidateCenters = <Offset>[];
+    for (final baseCenter in <Offset>[
+      polygonCentroid,
+      hullBounds.center,
+      averagePoint,
+    ]) {
+      for (final offset in offsets) {
+        final candidate = baseCenter + offset;
+        if (_isPointInsideConvexPolygon(candidate, hull)) {
+          candidateCenters.add(candidate);
+        }
+      }
+    }
+
+    return _deduplicateOffsets(candidateCenters, minimumDistance: 0.8);
+  }
+
+  /// Devuelve las rotaciones que se evaluaran para buscar la mejor forma inscrita.
+  List<double> _fitRotationsFor(OperativeSketchRecognitionKind kind) {
+    switch (kind) {
+      case OperativeSketchRecognitionKind.triangle:
+        return List<double>.generate(
+          24,
+          (index) => index * (pi / 12),
+          growable: false,
+        );
+      case OperativeSketchRecognitionKind.square:
+        return List<double>.generate(
+          12,
+          (index) => index * (pi / 24),
+          growable: false,
+        );
+      case OperativeSketchRecognitionKind.circle:
+        return const <double>[0];
+      case OperativeSketchRecognitionKind.none:
+      case OperativeSketchRecognitionKind.rhombus:
+        return const <double>[];
+    }
+  }
+
+  /// Busca por biseccion el tamano maximo que cabe dentro de la envolvente convexa.
+  double _findLargestInscribedRadius({
+    required OperativeSketchRecognitionKind kind,
+    required Offset center,
+    required double rotation,
+    required List<Offset> hull,
+    required double maxRadius,
+  }) {
+    var low = 0.0;
+    var high = maxRadius;
+
+    for (int iteration = 0;
+        iteration < _inscribedFitIterations;
+        iteration++) {
+      final radius = (low + high) / 2;
+      final samplePoints = _buildShapeSamplePoints(
+        kind: kind,
+        center: center,
+        radius: radius,
+        rotation: rotation,
+      );
+      if (_allPointsInsideConvexPolygon(samplePoints, hull)) {
+        low = radius;
+      } else {
+        high = radius;
+      }
+    }
+
+    return low;
+  }
+
+  /// Construye puntos de control suficientes para comprobar si la forma cabe entera.
+  List<Offset> _buildShapeSamplePoints({
+    required OperativeSketchRecognitionKind kind,
+    required Offset center,
+    required double radius,
+    required double rotation,
+  }) {
+    switch (kind) {
+      case OperativeSketchRecognitionKind.triangle:
+        return List<Offset>.generate(3, (index) {
+          final angle = rotation - (pi / 2) + (index * ((2 * pi) / 3));
+          return Offset(
+            center.dx + (cos(angle) * radius),
+            center.dy + (sin(angle) * radius),
+          );
+        }, growable: false);
+      case OperativeSketchRecognitionKind.square:
+        return List<Offset>.generate(4, (index) {
+          final angle = rotation + (pi / 4) + (index * (pi / 2));
+          return Offset(
+            center.dx + (cos(angle) * radius),
+            center.dy + (sin(angle) * radius),
+          );
+        }, growable: false);
+      case OperativeSketchRecognitionKind.circle:
+        return List<Offset>.generate(_circleFitSampleCount, (index) {
+          final angle = rotation + (index * ((2 * pi) / _circleFitSampleCount));
+          return Offset(
+            center.dx + (cos(angle) * radius),
+            center.dy + (sin(angle) * radius),
+          );
+        }, growable: false);
+      case OperativeSketchRecognitionKind.none:
+      case OperativeSketchRecognitionKind.rhombus:
+        return const <Offset>[];
+    }
+  }
+
+  /// Convierte el radio circunscrito comun a un area comparable entre familias.
+  double _shapeAreaFromRadius(
+    OperativeSketchRecognitionKind kind,
+    double radius,
+  ) {
+    switch (kind) {
+      case OperativeSketchRecognitionKind.triangle:
+        return (3 * sqrt(3) / 4) * radius * radius;
+      case OperativeSketchRecognitionKind.square:
+        return 2 * radius * radius;
+      case OperativeSketchRecognitionKind.circle:
+        return pi * radius * radius;
+      case OperativeSketchRecognitionKind.none:
+      case OperativeSketchRecognitionKind.rhombus:
+        return 0;
+    }
+  }
+
+  /// Decide si la mejor forma inscrita ocupa suficiente area como para aceptarla.
+  bool _passesInscribedFitThreshold(
+    _SketchInscribedFit fit,
+    Rect hullBounds,
+  ) {
+    final aspectRatio = hullBounds.width / max(1.0, hullBounds.height);
+    switch (fit.kind) {
+      case OperativeSketchRecognitionKind.triangle:
+        return fit.coverage >= 0.34;
+      case OperativeSketchRecognitionKind.square:
+        return fit.coverage >= 0.58 &&
+            aspectRatio >= 0.62 &&
+            aspectRatio <= 1.62;
+      case OperativeSketchRecognitionKind.circle:
+        return fit.coverage >= 0.52 &&
+            aspectRatio >= 0.55 &&
+            aspectRatio <= 1.85;
+      case OperativeSketchRecognitionKind.none:
+      case OperativeSketchRecognitionKind.rhombus:
+        return false;
+    }
+  }
+
+  /// Indica si todos los puntos de control siguen dentro de un poligono convexo.
+  bool _allPointsInsideConvexPolygon(
+    List<Offset> points,
+    List<Offset> polygon,
+  ) {
+    if (points.isEmpty) return false;
+    return points.every((point) => _isPointInsideConvexPolygon(point, polygon));
+  }
+
+  /// Comprueba inclusion en una envolvente convexa tolerando puntos sobre el borde.
+  bool _isPointInsideConvexPolygon(Offset point, List<Offset> polygon) {
+    if (polygon.length < 3) return false;
+
+    int sign = 0;
+    for (int index = 0; index < polygon.length; index++) {
+      final current = polygon[index];
+      final next = polygon[(index + 1) % polygon.length];
+      final cross = _cross(current, next, point);
+      if (cross.abs() <= 0.12) {
+        continue;
+      }
+
+      final currentSign = cross > 0 ? 1 : -1;
+      if (sign == 0) {
+        sign = currentSign;
+        continue;
+      }
+      if (sign != currentSign) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Calcula el centroide del poligono o una media de respaldo si el area es minima.
+  Offset _computePolygonCentroid(List<Offset> polygon) {
+    double signedAreaTwice = 0;
+    double centroidX = 0;
+    double centroidY = 0;
+
+    for (int index = 0; index < polygon.length; index++) {
+      final current = polygon[index];
+      final next = polygon[(index + 1) % polygon.length];
+      final cross = (current.dx * next.dy) - (next.dx * current.dy);
+      signedAreaTwice += cross;
+      centroidX += (current.dx + next.dx) * cross;
+      centroidY += (current.dy + next.dy) * cross;
+    }
+
+    if (signedAreaTwice.abs() <= 0.0001) {
+      return _averagePoint(polygon);
+    }
+
+    return Offset(
+      centroidX / (3 * signedAreaTwice),
+      centroidY / (3 * signedAreaTwice),
+    );
+  }
+
+  /// Devuelve la media simple de varios puntos cuando no hace falta ponderacion.
+  Offset _averagePoint(List<Offset> points) {
+    if (points.isEmpty) return Offset.zero;
+
+    double sumX = 0;
+    double sumY = 0;
+    for (final point in points) {
+      sumX += point.dx;
+      sumY += point.dy;
+    }
+
+    return Offset(sumX / points.length, sumY / points.length);
+  }
+
+  /// Elimina centros casi repetidos para no recalcular la misma solucion.
+  List<Offset> _deduplicateOffsets(
+    List<Offset> points, {
+    required double minimumDistance,
+  }) {
+    final deduplicated = <Offset>[];
+    for (final point in points) {
+      final hasNearPoint = deduplicated.any(
+        (candidate) => (candidate - point).distance < minimumDistance,
+      );
+      if (!hasNearPoint) {
+        deduplicated.add(point);
+      }
+    }
+    return deduplicated;
   }
 
   /// Extrae puntos frontera de la region para reconstruir su silueta aproximada.
@@ -520,24 +1243,24 @@ class OperativeSketchRecognitionHelper {
       (corners[2] - corners[0]).distance,
     ]..sort();
 
-    if (sideLengths.first < 6) return false;
-    if (sideLengths.first / sideLengths.last < 0.34) return false;
+    if (sideLengths.first < 4.2) return false;
+    if (sideLengths.first / sideLengths.last < 0.18) return false;
 
     final triangleArea = _polygonArea(corners).abs();
-    if (triangleArea < 32) return false;
+    if (triangleArea < 14) return false;
 
     final triangleCoverage = triangleArea /
         max(1.0, hullBounds.width * hullBounds.height).toDouble();
-    if (triangleCoverage < 0.22) return false;
+    if (triangleCoverage < 0.12) return false;
 
     final hullMatch = triangleArea / hullArea;
-    if (hullMatch < 0.78 || hullMatch > 1.14) return false;
+    if (hullMatch < 0.6 || hullMatch > 1.34) return false;
 
     final fillRatio = regionArea / triangleArea;
-    if (fillRatio < 0.56 || fillRatio > 1.38) return false;
+    if (fillRatio < 0.34 || fillRatio > 1.72) return false;
 
     final angles = _polygonAngles(corners);
-    return angles.every((angle) => angle >= 18 && angle <= 144);
+    return angles.every((angle) => angle >= 10 && angle <= 170);
   }
 
   /// Decide si un cuadrilatero se acerca mas a un cuadrado, un rombo o a nada.
@@ -804,6 +1527,42 @@ class OperativeSketchRecognitionHelper {
     Offset(0, 1),
     Offset(0, -1),
   ];
+}
+
+/// Indica de donde procede una deteccion para resolver duplicados con preferencia.
+enum _SketchRecognitionSource {
+  region,
+  stroke,
+}
+
+/// Representa una figura ya clasificada junto a su huella geometrica.
+class _SketchRecognitionDetection {
+  final OperativeSketchRecognitionKind kind;
+  final _SketchRecognitionSource source;
+  final Rect bounds;
+  final double area;
+  final Offset center;
+
+  const _SketchRecognitionDetection({
+    required this.kind,
+    required this.source,
+    required this.bounds,
+    required this.area,
+    required this.center,
+  });
+}
+
+/// Resume una forma perfecta ya inscrita para poder compararla con otras.
+class _SketchInscribedFit {
+  final OperativeSketchRecognitionKind kind;
+  final double area;
+  final double coverage;
+
+  const _SketchInscribedFit({
+    required this.kind,
+    required this.area,
+    required this.coverage,
+  });
 }
 
 /// Rejilla binaria del lienzo donde los trazos actuan como paredes entre regiones.

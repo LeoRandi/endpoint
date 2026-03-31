@@ -7,6 +7,7 @@ const _sketchRecognitionDelay = Duration(seconds: 2);
 const _sketchRecognitionFeedbackLifetime = Duration(seconds: 1);
 const _sketchRecognitionFeedbackGap = Duration(milliseconds: 500);
 const _sketchRecognitionMissAccent = Color(0xFFC178FF);
+const _sketchEraserRadius = 18.0;
 
 /// Overlay autocontenido que ofrece un lienzo persistente para dibujar con el dedo.
 class OperativeSketchOverlay extends StatefulWidget {
@@ -22,7 +23,6 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     EndpointPalette.primaryAccent,
     EndpointPalette.dangerAccent,
     EndpointPalette.warningAccent,
-    EndpointPalette.rewardAccent,
   ];
 
   final OperativeSketchRecognitionHelper _recognitionHelper =
@@ -34,14 +34,33 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   _SketchRecognitionFeedback? _recognitionFeedback;
   Size? _canvasSize;
   Color _selectedBrushColor = _brushColors.first;
+  _SketchToolMode _toolMode = _SketchToolMode.paint;
   int _recognitionFeedbackVersion = 0;
   int _nextStrokeId = 0;
   int? _activeStrokeId;
+  Offset? _lastDragPosition;
+  bool _gestureChangedCanvas = false;
+  OperativeSketchRecognitionResult _lastRecognitionResult =
+      const OperativeSketchRecognitionResult(
+        kind: OperativeSketchRecognitionKind.none,
+        count: 0,
+        matches: <OperativeSketchRecognitionMatch>[],
+      );
 
   /// Inicia un trazo nuevo usando el color seleccionado en la paleta visible.
   void _handlePanStart(DragStartDetails details) {
     _cancelRecognitionTimer();
     _dismissRecognitionFeedback();
+    _lastDragPosition = details.localPosition;
+    _gestureChangedCanvas = false;
+    if (_toolMode == _SketchToolMode.erase) {
+      _gestureChangedCanvas = _eraseBetween(
+        details.localPosition,
+        details.localPosition,
+      );
+      return;
+    }
+
     final stroke = _SketchStroke(
       id: _nextStrokeId++,
       color: _selectedBrushColor,
@@ -50,11 +69,25 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     setState(() {
       _strokes.add(stroke);
       _activeStrokeId = stroke.id;
+      _lastRecognitionResult = const OperativeSketchRecognitionResult(
+        kind: OperativeSketchRecognitionKind.none,
+        count: 0,
+        matches: <OperativeSketchRecognitionMatch>[],
+      );
     });
   }
 
   /// Anade nuevos puntos al trazo activo mientras el usuario arrastra el dedo.
   void _handlePanUpdate(DragUpdateDetails details) {
+    if (_toolMode == _SketchToolMode.erase) {
+      final start = _lastDragPosition ?? details.localPosition;
+      if (_eraseBetween(start, details.localPosition)) {
+        _gestureChangedCanvas = true;
+      }
+      _lastDragPosition = details.localPosition;
+      return;
+    }
+
     final activeStrokeId = _activeStrokeId;
     if (activeStrokeId == null) return;
 
@@ -73,6 +106,17 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Cierra el trazo activo al terminar el gesto y deja el contenido en pantalla.
   void _handlePanEnd(DragEndDetails details) {
+    _lastDragPosition = null;
+    if (_toolMode == _SketchToolMode.erase) {
+      _activeStrokeId = null;
+      final shouldScan = _gestureChangedCanvas;
+      _gestureChangedCanvas = false;
+      if (shouldScan) {
+        _scheduleRecognitionScan();
+      }
+      return;
+    }
+
     _activeStrokeId = null;
     _scheduleRecognitionScan();
   }
@@ -84,15 +128,137 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     setState(() {
       _strokes.clear();
       _activeStrokeId = null;
+      _lastRecognitionResult = const OperativeSketchRecognitionResult(
+        kind: OperativeSketchRecognitionKind.none,
+        count: 0,
+        matches: <OperativeSketchRecognitionMatch>[],
+      );
     });
   }
 
   /// Cambia el color del pincel que usara el siguiente trazo del jugador.
   void _selectBrushColor(Color color) {
-    if (_selectedBrushColor == color) return;
+    if (_selectedBrushColor == color && _toolMode == _SketchToolMode.paint) {
+      return;
+    }
     setState(() {
       _selectedBrushColor = color;
+      _toolMode = _SketchToolMode.paint;
     });
+  }
+
+  /// Alterna entre trazar lineas nuevas y borrar las ya existentes.
+  void _toggleToolMode() {
+    setState(() {
+      _toolMode = _toolMode == _SketchToolMode.paint
+          ? _SketchToolMode.erase
+          : _SketchToolMode.paint;
+    });
+  }
+
+  /// Borra los puntos tocados por el gesto actual y divide el trazo si hace falta.
+  bool _eraseBetween(Offset start, Offset end) {
+    if (_strokes.isEmpty) return false;
+
+    final updatedStrokes = <_SketchStroke>[];
+    var didChange = false;
+
+    for (final stroke in _strokes) {
+      final remainingSegments = _eraseStrokeSegment(
+        stroke: stroke,
+        start: start,
+        end: end,
+      );
+      final strokeWasChanged = remainingSegments.isEmpty ||
+          remainingSegments.length != 1 ||
+          remainingSegments.first.id != stroke.id;
+      if (strokeWasChanged) {
+        didChange = true;
+      }
+      updatedStrokes.addAll(remainingSegments);
+    }
+
+    if (!didChange) {
+      return false;
+    }
+
+    setState(() {
+      _strokes
+        ..clear()
+        ..addAll(updatedStrokes);
+      _lastRecognitionResult = const OperativeSketchRecognitionResult(
+        kind: OperativeSketchRecognitionKind.none,
+        count: 0,
+        matches: <OperativeSketchRecognitionMatch>[],
+      );
+    });
+    return true;
+  }
+
+  /// Recorta de un trazo la porcion atravesada por el borrador y conserva el resto.
+  List<_SketchStroke> _eraseStrokeSegment({
+    required _SketchStroke stroke,
+    required Offset start,
+    required Offset end,
+  }) {
+    if (stroke.points.isEmpty) return const <_SketchStroke>[];
+
+    final keptPointGroups = <List<Offset>>[];
+    var currentGroup = <Offset>[];
+    var touched = false;
+
+    for (final point in stroke.points) {
+      final shouldErase =
+          _distanceToSegment(point, start, end) <= _sketchEraserRadius;
+      if (shouldErase) {
+        touched = true;
+        if (currentGroup.isNotEmpty) {
+          keptPointGroups.add(List<Offset>.from(currentGroup));
+          currentGroup = <Offset>[];
+        }
+        continue;
+      }
+
+      currentGroup.add(point);
+    }
+
+    if (currentGroup.isNotEmpty) {
+      keptPointGroups.add(List<Offset>.from(currentGroup));
+    }
+
+    if (!touched) {
+      return <_SketchStroke>[stroke];
+    }
+
+    return keptPointGroups
+        .map(
+          (points) => _SketchStroke(
+            id: _nextStrokeId++,
+            color: stroke.color,
+            points: points,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Calcula la distancia minima entre el borrador y un punto concreto del trazo.
+  double _distanceToSegment(Offset point, Offset start, Offset end) {
+    final segment = end - start;
+    final segmentLengthSquared =
+        (segment.dx * segment.dx) + (segment.dy * segment.dy);
+    if (segmentLengthSquared == 0) {
+      return (point - start).distance;
+    }
+
+    final projection = (((point.dx - start.dx) * segment.dx) +
+            ((point.dy - start.dy) * segment.dy)) /
+        segmentLengthSquared;
+    final clampedProjection = projection.clamp(0.0, 1.0).toDouble();
+    final closestPoint = Offset(
+      start.dx + (segment.dx * clampedProjection),
+      start.dy + (segment.dy * clampedProjection),
+    );
+    return (point - closestPoint).distance;
   }
 
   /// Programa un escaneo diferido cuando el usuario deja el lienzo en reposo.
@@ -120,6 +286,9 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
       strokes: _strokes.map((stroke) => stroke.points),
       canvasSize: canvasSize,
     );
+    setState(() {
+      _lastRecognitionResult = result;
+    });
     if (result.hasMatch) {
       _showRecognitionFeedbackSequence(
         labels: result.displayLabels,
@@ -129,6 +298,12 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     }
 
     _showRecognitionFeedback(label: '?', color: _sketchRecognitionMissAccent);
+  }
+
+  /// Permite lanzar el escaneo bajo demanda desde el nuevo boton de comprobacion.
+  void _handleCheckPressed() {
+    _cancelRecognitionTimer();
+    _runRecognitionScan();
   }
 
   /// Muestra una pista flotante corta para comunicar el resultado del reconocimiento.
@@ -246,7 +421,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     return EndpointOverlayScaffold(
       title: 'TRAZADO',
       subtitle:
-          'Dibuja con el dedo. Elige color y limpia manualmente cuando quieras.',
+          'Dibuja con el dedo, cambia de color o activa el borrador cuando lo necesites.',
       sectionLabel: 'LIENZO',
       sectionValue: 'MANUAL',
       closeTooltip: 'Cerrar lienzo',
@@ -337,7 +512,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
           ),
           const SizedBox(height: 10),
           EndpointText(
-            'Los trazos permanecen en pantalla hasta que limpies el lienzo.',
+            'Los trazos permanecen en pantalla hasta que limpies el lienzo o uses el borrador.',
             maxLines: null,
             style: textSmallBold.copyWith(
               color: Colors.white.withValues(alpha: 0.74),
@@ -356,22 +531,37 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
                     for (final color in _brushColors)
                       _SketchBrushSwatch(
                         color: color,
-                        isSelected: _selectedBrushColor == color,
+                        isSelected: _toolMode == _SketchToolMode.paint &&
+                            _selectedBrushColor == color,
                         onPressed: () => _selectBrushColor(color),
                       ),
+                    _SketchToolToggleButton(
+                      isEraseMode: _toolMode == _SketchToolMode.erase,
+                      onPressed: _toggleToolMode,
+                    ),
                   ],
                 ),
               ),
               const SizedBox(width: 10),
-              EndpointActionButton(
-                label: 'Limpiar',
-                icon: Icons.layers_clear_rounded,
-                onPressed: _strokes.isEmpty ? null : _clearStrokes,
-                tooltip: 'Borrar todos los trazos activos',
-                accent: EndpointPalette.infoAccent,
-                backgroundColor: EndpointPalette.closeButtonBackground,
-                foregroundColor: EndpointPalette.softForeground,
-                useMarquee: false,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  EndpointActionButton(
+                    label: 'Limpiar',
+                    icon: Icons.layers_clear_rounded,
+                    onPressed: _strokes.isEmpty ? null : _clearStrokes,
+                    tooltip: 'Borrar todos los trazos activos',
+                    accent: EndpointPalette.infoAccent,
+                    backgroundColor: EndpointPalette.closeButtonBackground,
+                    foregroundColor: EndpointPalette.softForeground,
+                    useMarquee: false,
+                  ),
+                  const SizedBox(width: 8),
+                  _SketchCheckButton(
+                    count: _lastRecognitionResult.totalCount,
+                    onPressed: _strokes.isEmpty ? null : _handleCheckPressed,
+                  ),
+                ],
               ),
             ],
           ),
@@ -379,6 +569,12 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
       ),
     );
   }
+}
+
+/// Alterna el comportamiento del gesto entre dibujar y borrar.
+enum _SketchToolMode {
+  paint,
+  erase,
 }
 
 /// Modelo breve que describe el ultimo resultado de reconocimiento mostrado.
@@ -506,6 +702,145 @@ class _SketchBrushSwatch extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Boton de paleta que conmuta entre pincel y borrador sin salir del overlay.
+class _SketchToolToggleButton extends StatelessWidget {
+  final bool isEraseMode;
+  final VoidCallback onPressed;
+
+  /// Construye el acceso rapido al borrador manteniendo el lenguaje visual de la paleta.
+  const _SketchToolToggleButton({
+    required this.isEraseMode,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent =
+        isEraseMode ? EndpointPalette.warningAccent : EndpointPalette.infoAccent;
+    final backgroundColor = isEraseMode
+        ? EndpointPalette.blend(
+            EndpointPalette.panelBackground,
+            EndpointPalette.warningAccent,
+            0.22,
+          )
+        : EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.74);
+
+    return Tooltip(
+      message: isEraseMode ? 'Cambiar a pintar' : 'Activar borrador',
+      child: Material(
+        color: Colors.transparent,
+        child: InkResponse(
+          onTap: onPressed,
+          radius: 22,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: backgroundColor,
+              border: Border.all(
+                color: isEraseMode
+                    ? accent
+                    : Colors.white.withValues(alpha: 0.26),
+                width: isEraseMode ? 2 : 1.1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: isEraseMode ? 0.3 : 0.12),
+                  blurRadius: isEraseMode ? 12 : 6,
+                  spreadRadius: isEraseMode ? 1 : 0,
+                ),
+              ],
+            ),
+            child: Icon(
+              isEraseMode
+                  ? Icons.cleaning_services_rounded
+                  : Icons.brush_rounded,
+              size: 16,
+              color: isEraseMode
+                  ? EndpointPalette.softForegroundWarm
+                  : EndpointPalette.softForeground,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Boton de comprobacion manual que refleja el total reconocido en un badge.
+class _SketchCheckButton extends StatelessWidget {
+  final int count;
+  final VoidCallback? onPressed;
+
+  /// Construye el acceso rapido de chequeo y deja el total combinado siempre visible.
+  const _SketchCheckButton({
+    required this.count,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final badgeAccent = count > 0
+        ? EndpointPalette.warningAccent
+        : EndpointPalette.neutralAccent;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        EndpointActionButton(
+          label: 'CHECK',
+          icon: Icons.fact_check_rounded,
+          onPressed: onPressed,
+          tooltip: onPressed == null
+              ? 'Dibuja algo antes de lanzar el chequeo'
+              : 'Escanear el lienzo y actualizar el conteo',
+          accent: EndpointPalette.warningAccent,
+          backgroundColor: EndpointPalette.blend(
+            EndpointPalette.panelBackground,
+            EndpointPalette.warningAccent,
+            0.1,
+          ),
+          foregroundColor: EndpointPalette.softForegroundWarm,
+          useMarquee: false,
+        ),
+        Positioned(
+          top: -6,
+          right: -6,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: EndpointPalette.panelBackgroundOpaque,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: badgeAccent.withValues(alpha: 0.88),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: badgeAccent.withValues(alpha: 0.18),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              child: EndpointText(
+                '$count',
+                style: textSmallNumericBold.copyWith(
+                  color: badgeAccent,
+                  fontSize: 10,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
