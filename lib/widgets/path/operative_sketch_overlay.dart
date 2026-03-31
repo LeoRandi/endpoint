@@ -5,6 +5,7 @@ const _sketchCanvasBorderRadius = 18.0;
 const _sketchNoiseSeed = 4312;
 const _sketchRecognitionDelay = Duration(seconds: 2);
 const _sketchRecognitionFeedbackLifetime = Duration(seconds: 1);
+const _sketchRecognitionFeedbackGap = Duration(milliseconds: 500);
 const _sketchRecognitionMissAccent = Color(0xFFC178FF);
 
 /// Overlay autocontenido que ofrece un lienzo persistente para dibujar con el dedo.
@@ -119,9 +120,9 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
       strokes: _strokes.map((stroke) => stroke.points),
       canvasSize: canvasSize,
     );
-    if (result.hasTriangle) {
-      _showRecognitionFeedback(
-        label: 'OK',
+    if (result.hasMatch) {
+      _showRecognitionFeedbackSequence(
+        labels: result.displayLabels,
         color: EndpointPalette.warningAccent,
       );
       return;
@@ -150,6 +151,57 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
         if (_recognitionFeedback?.version == feedback.version) {
           _recognitionFeedback = null;
         }
+      });
+    });
+  }
+
+  /// Reproduce varias pistas una detras de otra dejando una pausa corta entre mensajes.
+  void _showRecognitionFeedbackSequence({
+    required List<String> labels,
+    required Color color,
+  }) {
+    if (labels.isEmpty) return;
+
+    _feedbackTimer?.cancel();
+    _playRecognitionFeedbackAt(
+      labels: labels,
+      color: color,
+      index: 0,
+    );
+  }
+
+  /// Muestra un mensaje concreto de la secuencia y programa el siguiente cuando toca.
+  void _playRecognitionFeedbackAt({
+    required List<String> labels,
+    required Color color,
+    required int index,
+  }) {
+    if (!mounted || index >= labels.length) return;
+
+    final feedback = _SketchRecognitionFeedback(
+      label: labels[index],
+      color: color,
+      version: ++_recognitionFeedbackVersion,
+    );
+    setState(() {
+      _recognitionFeedback = feedback;
+    });
+
+    _feedbackTimer = Timer(_sketchRecognitionFeedbackLifetime, () {
+      if (!mounted) return;
+      setState(() {
+        if (_recognitionFeedback?.version == feedback.version) {
+          _recognitionFeedback = null;
+        }
+      });
+
+      if (index + 1 >= labels.length) return;
+      _feedbackTimer = Timer(_sketchRecognitionFeedbackGap, () {
+        _playRecognitionFeedbackAt(
+          labels: labels,
+          color: color,
+          index: index + 1,
+        );
       });
     });
   }
@@ -347,7 +399,7 @@ class _SketchRecognitionFeedback {
 class _SketchRecognitionFeedbackBanner extends StatelessWidget {
   final _SketchRecognitionFeedback? feedback;
 
-  /// Construye el banner que dibuja el ultimo OK o ? emitido por el helper.
+  /// Construye el banner que dibuja la ultima forma detectada o el ? de error.
   const _SketchRecognitionFeedbackBanner({
     required this.feedback,
   });
