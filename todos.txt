@@ -1,4 +1,9 @@
 TODOs:
+-Dibujo
+--Crear dibujos básicos y aplicarlos al combate
+--Crear dibujos avanzados para cada item
+--Sistema de guardar favorito + quick draw
+
 -Economía
 --Bajar Income base a la mitad o algo
 
@@ -22,11 +27,7 @@ TODOs:
 -Combate
 --Quitar defensa->defensa = escudo extra todos los combates?
 --Nuevas mecánicas de combate:
----4 tipos de ataque(piedra papel tijera style) + super?
----Tipo pokemon?
----rythm based?
----Combos?
----Movesets en base al arma escogida?
+---Dibujos - Formas básicas mas las que da adicional el equipamiento
 [--Añadir estados alterados]
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
@@ -42,6 +43,7 @@ TODOs:
 
 -Items
 [--Añadir Tags]
+--Añadir formas que de cada equipamiento
 --Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo
 --Meter al menos 100-120[37/100]
 --Repartirlos bien en eventos/enemigos/tiendas
