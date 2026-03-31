@@ -80,7 +80,6 @@ TODOs:
 
 ////
 ARREGLAR:
--BUG: Si el jugador muere en el mismo turno en el que mata al enemigo, le muestra la pantalla de loot y no cierra la run hasta que cierra esa pantalla.
 
 ////
 PROBAR:
