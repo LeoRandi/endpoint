@@ -135,7 +135,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
               glowOpacity: 0.03,
               padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
               child: EndpointText(
-                effectDescription!,
+                effectDescription,
                 maxLines: null,
                 style: textSmallBold.copyWith(
                   fontSize: 10,

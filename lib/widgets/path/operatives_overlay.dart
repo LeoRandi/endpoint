@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import 'package:flutter/foundation.dart';
 
 const _operativeTileExtent = 70.0;
 const _operativeTileHeight = 84.0;
@@ -20,18 +21,42 @@ class OperativesOverlay extends StatefulWidget {
 }
 
 class _OperativesOverlayState extends State<OperativesOverlay> {
-  int _selectedIndex = 0;
-  late Battler _player;
+  late OperativesOverlayController _controller;
 
   @override
   void initState() {
     super.initState();
-    _player = widget.player.materializeOwnedItems();
+    _controller = _buildController();
   }
 
-  List<Battler> get _operatives => [_player, ...widget.companions];
-  Battler get _selectedOperative => _operatives[_selectedIndex];
-  bool get _isPlayerSelected => _selectedIndex == 0;
+  /// Reconstruye el controlador cuando cambia el jugador visible o la lista de acompanantes.
+  @override
+  void didUpdateWidget(covariant OperativesOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.player == widget.player &&
+        listEquals(oldWidget.companions, widget.companions) &&
+        oldWidget.onPlayerChanged == widget.onPlayerChanged) {
+      return;
+    }
+
+    _controller.dispose();
+    _controller = _buildController();
+  }
+
+  /// Crea el controlador que centraliza seleccion y equipo dentro del overlay.
+  OperativesOverlayController _buildController() {
+    return OperativesOverlayController(
+      player: widget.player,
+      companions: widget.companions,
+      onPlayerChanged: widget.onPlayerChanged,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   Future<void> _openItemDetails(Item item) async {
     await showEndpointDialog<void>(
@@ -39,23 +64,23 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
       barrierLabel: 'Detalle de objeto',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
             return EndpointItemDetailsDialog(
               item: item,
               accent: item.rarity.accent,
               price: item.cost,
-              statusText: _statusLabelFor(item),
-              actionLabel: _actionLabelFor(item),
-              onPrimaryAction: _isActionEnabled(item)
+              statusText: _controller.statusLabelFor(item),
+              actionLabel: _controller.actionLabelFor(item),
+              onPrimaryAction: _controller.isActionEnabled(item)
                   ? () {
-                      _handlePrimaryAction(item);
-                      setDialogState(() {});
+                      _controller.handlePrimaryAction(item);
                     }
                   : null,
-              isActionEnabled: _isActionEnabled(item),
-              enabledActionTooltip: _enabledActionTooltipFor(item),
-              disabledActionTooltip: _disabledActionTooltipFor(item),
+              isActionEnabled: _controller.isActionEnabled(item),
+              enabledActionTooltip: _controller.enabledActionTooltipFor(item),
+              disabledActionTooltip: _controller.disabledActionTooltipFor(item),
             );
           },
         );
@@ -73,26 +98,35 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
       barrierLabel: 'Detalle de objeto equipado',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final detailBattler = canUnequip ? _player : owner;
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final detailBattler = canUnequip ? _controller.player : owner;
 
             return EndpointItemDetailsDialog(
               item: item,
               accent: item.rarity.accent,
               price: item.cost,
-              statusText: _statusLabelForOwner(detailBattler, item),
-              actionLabel:
-                  _unequipActionLabelFor(detailBattler, item, canUnequip),
-              onPrimaryAction:
-                  _isUnequipEnabled(detailBattler, item, canUnequip)
+              statusText: _controller.statusLabelForOwner(detailBattler, item),
+              actionLabel: _controller.unequipActionLabelFor(
+                detailBattler,
+                item,
+                canUnequip,
+              ),
+              onPrimaryAction: _controller.isUnequipEnabled(
+                detailBattler,
+                item,
+                canUnequip,
+              )
                       ? () {
-                          _handleUnequipItem(item);
-                          setDialogState(() {});
+                          _controller.handleUnequipItem(item);
                         }
                       : null,
-              isActionEnabled:
-                  _isUnequipEnabled(detailBattler, item, canUnequip),
+              isActionEnabled: _controller.isUnequipEnabled(
+                detailBattler,
+                item,
+                canUnequip,
+              ),
               enabledActionTooltip: 'Quitar objeto del equipo activo',
               disabledActionTooltip: 'El objeto ya no esta equipado',
             );
@@ -102,214 +136,149 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     );
   }
 
-  String _statusLabelFor(Item item) {
-    return _statusLabelForOwner(_player, item);
-  }
-
-  String? _actionLabelFor(Item item) {
-    if (!item.isEquippable) return null;
-    if (_player.equippedItems.contains(item)) return 'Quitar';
-    if (_player.inventoryItems.contains(item)) return 'Equipar';
-    return null;
-  }
-
-  bool _isActionEnabled(Item item) {
-    return _actionLabelFor(item) != null;
-  }
-
-  String _enabledActionTooltipFor(Item item) {
-    if (_player.equippedItems.contains(item)) {
-      return 'Quitar objeto del equipo activo';
-    }
-    return 'Equipar objeto al jugador';
-  }
-
-  String _disabledActionTooltipFor(Item item) {
-    if (!item.isEquippable) return 'Este objeto no se puede equipar';
-    return 'El objeto ya no esta disponible';
-  }
-
-  String _statusLabelForOwner(Battler owner, Item item) {
-    if (owner.equippedItems.contains(item)) {
-      return 'Estado actual: equipado';
-    }
-    if (owner.inventoryItems.contains(item)) {
-      return 'Estado actual: en inventario';
-    }
-    return 'Estado actual: no disponible';
-  }
-
-  String? _unequipActionLabelFor(
-    Battler owner,
-    Item item,
-    bool canUnequip,
-  ) {
-    if (!canUnequip) return null;
-    if (owner.equippedItems.contains(item)) return 'Quitar';
-    return null;
-  }
-
-  bool _isUnequipEnabled(Battler owner, Item item, bool canUnequip) {
-    return canUnequip && owner.equippedItems.contains(item);
-  }
-
-  void _handlePrimaryAction(Item item) {
-    final updatedPlayer = _player.equippedItems.contains(item)
-        ? _player.unequipItem(item)
-        : _player.equipItem(item);
-
-    setState(() {
-      _player = updatedPlayer;
-    });
-    widget.onPlayerChanged?.call(updatedPlayer);
-  }
-
-  void _handleUnequipItem(Item item) {
-    if (!_player.equippedItems.contains(item)) return;
-
-    final updatedPlayer = _player.unequipItem(item);
-    setState(() {
-      _player = updatedPlayer;
-    });
-    widget.onPlayerChanged?.call(updatedPlayer);
-  }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 500,
-              maxHeight: min(size.height - 28, 620),
-            ),
-            child: EndpointPanel(
-              accent: EndpointPalette.primaryAccent,
-              backgroundColor: EndpointPalette.panelBackgroundOpaque,
-              borderRadius: 18,
-              glowOpacity: 0.12,
-              blurRadius: 22,
-              spreadRadius: 2,
-              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final operatives = _controller.operatives;
+        final selectedOperative = _controller.selectedOperative;
+        final player = _controller.player;
+
+        return SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 500,
+                  maxHeight: min(size.height - 28, 620),
+                ),
+                child: EndpointPanel(
+                  accent: EndpointPalette.primaryAccent,
+                  backgroundColor: EndpointPalette.panelBackgroundOpaque,
+                  borderRadius: 18,
+                  glowOpacity: 0.12,
+                  blurRadius: 22,
+                  spreadRadius: 2,
+                  padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: EndpointText(
-                          'OPERATIVOS',
-                          style: textTitleMediumBold.copyWith(
-                            color: EndpointPalette.softForeground,
-                            letterSpacing: 1.8,
-                          ),
-                        ),
-                      ),
-                      EndpointSceneCloseButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        tooltip: 'Cerrar operativos',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 60,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                      Row(
                         children: [
-                          for (int index = 0;
-                              index < _operatives.length;
-                              index++) ...[
-                            if (index > 0) const SizedBox(width: 8),
-                            _OperativeIconCard(
-                              battler: _operatives[index],
-                              isSelected: _selectedIndex == index,
-                              isPlayer: index == 0,
-                              onPressed: () {
-                                setState(() {
-                                  _selectedIndex = index;
-                                });
-                              },
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _EquipmentRow(
-                    battler: _selectedOperative,
-                    isPlayer: _isPlayerSelected,
-                    onItemPressed: (item) => _openEquippedItemDetails(
-                      item,
-                      owner: _selectedOperative,
-                      canUnequip: _isPlayerSelected,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      EndpointText(
-                        'OBJETOS DEL JUGADOR',
-                        style: textSmallBold.copyWith(
-                          color: EndpointPalette.primaryAccent,
-                          letterSpacing: 1.4,
-                        ),
-                      ),
-                      const Spacer(),
-                      EndpointText(
-                        '${_player.inventoryItems.length}',
-                        style: textSmallBold.copyWith(
-                          color: Colors.white.withOpacity(0.76),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Expanded(
-                    child: _player.inventoryItems.isEmpty
-                        ? Center(
+                          Expanded(
                             child: EndpointText(
-                              'No llevas ningun objeto.',
-                              textAlign: TextAlign.center,
-                              style: textSmallBold.copyWith(
-                                color: Colors.white.withOpacity(0.72),
+                              'OPERATIVOS',
+                              style: textTitleMediumBold.copyWith(
+                                color: EndpointPalette.softForeground,
+                                letterSpacing: 1.8,
                               ),
                             ),
-                          )
-                        : LayoutBuilder(
-                            builder: (context, constraints) {
-                              return GridView.builder(
-                                itemCount: _player.inventoryItems.length,
-                                gridDelegate:
-                                    const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: _operativeTileExtent,
-                                  crossAxisSpacing: 8,
-                                  mainAxisSpacing: 8,
-                                  mainAxisExtent: _operativeTileHeight,
+                          ),
+                          EndpointSceneCloseButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            tooltip: 'Cerrar operativos',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 60,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              for (int index = 0;
+                                  index < operatives.length;
+                                  index++) ...[
+                                if (index > 0) const SizedBox(width: 8),
+                                _OperativeIconCard(
+                                  battler: operatives[index],
+                                  isSelected: _controller.selectedIndex == index,
+                                  isPlayer: index == 0,
+                                  onPressed: () {
+                                    _controller.selectOperative(index);
+                                  },
                                 ),
-                                itemBuilder: (context, index) {
-                                  final item = _player.inventoryItems[index];
-                                  return EndpointInventoryItemTile(
-                                    item: item,
-                                    onPressed: () => _openItemDetails(item),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      _EquipmentRow(
+                        battler: selectedOperative,
+                        isPlayer: _controller.isPlayerSelected,
+                        onItemPressed: (item) => _openEquippedItemDetails(
+                          item,
+                          owner: selectedOperative,
+                          canUnequip: _controller.isPlayerSelected,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          EndpointText(
+                            'OBJETOS DEL JUGADOR',
+                            style: textSmallBold.copyWith(
+                              color: EndpointPalette.primaryAccent,
+                              letterSpacing: 1.4,
+                            ),
+                          ),
+                          const Spacer(),
+                          EndpointText(
+                            '${player.inventoryItems.length}',
+                            style: textSmallBold.copyWith(
+                              color: Colors.white.withOpacity(0.76),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: player.inventoryItems.isEmpty
+                            ? Center(
+                                child: EndpointText(
+                                  'No llevas ningun objeto.',
+                                  textAlign: TextAlign.center,
+                                  style: textSmallBold.copyWith(
+                                    color: Colors.white.withOpacity(0.72),
+                                  ),
+                                ),
+                              )
+                            : LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return GridView.builder(
+                                    itemCount: player.inventoryItems.length,
+                                    gridDelegate:
+                                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                                      maxCrossAxisExtent: _operativeTileExtent,
+                                      crossAxisSpacing: 8,
+                                      mainAxisSpacing: 8,
+                                      mainAxisExtent: _operativeTileHeight,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      final item = player.inventoryItems[index];
+                                      return EndpointInventoryItemTile(
+                                        item: item,
+                                        onPressed: () => _openItemDetails(item),
+                                      );
+                                    },
                                   );
                                 },
-                              );
-                            },
-                          ),
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

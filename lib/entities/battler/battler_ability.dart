@@ -29,6 +29,18 @@ enum BattlerAbilityActivationContext {
   }
 }
 
+/// Enumera los puntos del ciclo de combate en los que una habilidad puede aportar hooks.
+enum BattlerAbilityHook {
+  turnStart,
+  turnEnd,
+  combatEnd,
+  outgoingDamageModifier,
+  incomingDamageModifier,
+  attackResolved,
+  receiveDamageResolved,
+  passive,
+}
+
 const _ataqueAbilityTags = <EntityTag>[
   EntityTag.ataque,
 ];
@@ -67,8 +79,12 @@ class BattlerAbilityEffectResolution {
 
 /// Sirve como base comun para los hooks de habilidades activas y pasivas.
 abstract class BattlerAbilityEffect {
+  final Set<BattlerAbilityHook> hooks;
+
   /// Construye un efecto sin estado propio para reutilizarlo en presets const.
-  const BattlerAbilityEffect();
+  const BattlerAbilityEffect({
+    this.hooks = const <BattlerAbilityHook>{},
+  });
 
   /// Resuelve lo que pasa al activar manualmente la habilidad.
   BattlerAbilityEffectResolution onManualActivation({
@@ -161,7 +177,13 @@ abstract class BattlerAbilityEffect {
 /// Hace que el siguiente ataque activo pegue mas y luego entre en cooldown.
 class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Escaner critico.
-  const CriticalScannerAbilityEffect();
+  const CriticalScannerAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.outgoingDamageModifier,
+            BattlerAbilityHook.attackResolved,
+          },
+        );
 
   @override
 
@@ -200,7 +222,12 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
 /// Premia atacar objetivos ya debilitados con dano extra constante.
 class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Caza de debilidades.
-  const WeaknessHunterAbilityEffect();
+  const WeaknessHunterAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.outgoingDamageModifier,
+          },
+        );
 
   @override
 
@@ -223,7 +250,12 @@ class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
 /// Reduce el dano recibido mientras el portador siga con la vida al maximo.
 class GhostMeshAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Malla Fantasma.
-  const GhostMeshAbilityEffect();
+  const GhostMeshAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.incomingDamageModifier,
+          },
+        );
 
   @override
 
@@ -269,7 +301,13 @@ class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
 /// Convierte el siguiente ataque en uno mas fuerte a cambio de Quemadura propia.
 class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Sobrecarga venosa.
-  const VenousOverloadAbilityEffect();
+  const VenousOverloadAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.outgoingDamageModifier,
+            BattlerAbilityHook.attackResolved,
+          },
+        );
 
   @override
 
@@ -411,6 +449,10 @@ class BattlerAbility {
 
   /// Indica si esta habilidad tiene hooks propios que deben ejecutarse.
   bool get hasEffect => effect != null;
+
+  /// Expone los hooks activos del efecto para que el battler pueda indexarlos.
+  Set<BattlerAbilityHook> get hookBindings =>
+      effect?.hooks ?? const <BattlerAbilityHook>{};
 
   /// Indica si la habilidad tiene al menos una tag visible o filtrable.
   bool get hasTags => tags.isNotEmpty;

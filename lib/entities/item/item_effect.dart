@@ -21,6 +21,25 @@ enum ItemAbilityResolutionContext {
   turnEnd,
 }
 
+/// Enumera los puntos del ciclo de combate en los que un item equipado puede intervenir.
+enum ItemEffectHook {
+  turnStart,
+  turnEnd,
+  combatEnd,
+  outgoingDamageModifier,
+  incomingDamageModifier,
+  calculatedStatModifier,
+  basicAttackCountModifier,
+  attackResolved,
+  receiveDamageResolved,
+  passive,
+  manualAbilityPreparation,
+  abilityResolved,
+  outgoingStatusModifier,
+  incomingStatusModifier,
+  fatalDamage,
+}
+
 /// Devuelve el estado resultante cuando un item modifica una activacion manual.
 class ItemAbilityPreparationResolution {
   final Battler owner;
@@ -38,10 +57,12 @@ class ItemAbilityPreparationResolution {
 /// Sirve como base comun para todos los hooks reactivos de los objetos equipados.
 abstract class ItemEffect {
   final String description;
+  final Set<ItemEffectHook> hooks;
 
   /// Crea un efecto reutilizable con la descripcion base del item.
   const ItemEffect({
     required this.description,
+    this.hooks = const <ItemEffectHook>{},
   });
 
   /// Devuelve la descripcion mostrada por la UI, pudiendo usar el value del item.
@@ -207,6 +228,10 @@ class SunglassesItemEffect extends ItemEffect {
       : super(
           description:
               'Tu ATK total se reduce a la mitad, redondeado hacia arriba y con minimo 1. A cambio, cada accion de ataque basico se resuelve dos veces.',
+          hooks: const {
+            ItemEffectHook.calculatedStatModifier,
+            ItemEffectHook.basicAttackCountModifier,
+          },
         );
 
   @override
@@ -245,6 +270,9 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
   }) : super(
           description:
               'Al atacar: intoxica el enemigo en 1, o aumenta su valor de Intoxicacion en 1.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
         );
 
   @override
@@ -265,7 +293,7 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
     required int damageDealt,
   }) {
     final resolvedAmount = max(1, item.value > 0 ? item.value : amount);
-    final currentPoison = target.statusById('intoxicacion');
+    final currentPoison = target.statusById(IntoxicacionStatus.statusId);
     final updatedTarget = currentPoison is IntoxicacionStatus
         ? target.applyStatus(
             currentPoison.copyWith(
@@ -292,6 +320,9 @@ class RegenerativeShieldItemEffect extends ItemEffect {
       : super(
           description:
               'Al inicio de tu turno, te curas una cantidad fija de vida.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
         );
 
   @override
@@ -331,6 +362,9 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
   }) : super(
           description:
               'Al atacar: anade un efecto de Quemadura de 3 turnos de duracion.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
         );
 
   @override
@@ -371,6 +405,9 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
   }) : super(
           description:
               'Al recibir un ataque: anade un efecto de Quemadura de 4 turnos de duracion.',
+          hooks: const {
+            ItemEffectHook.receiveDamageResolved,
+          },
         );
 
   @override
@@ -408,6 +445,9 @@ class CrackedBatteryItemEffect extends ItemEffect {
       : super(
           description:
               'La primera habilidad manual que se resuelve en combate reduce su cooldown restante.',
+          hooks: const {
+            ItemEffectHook.abilityResolved,
+          },
         );
 
   @override
@@ -439,7 +479,10 @@ class CrackedBatteryItemEffect extends ItemEffect {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final usedFlag = _itemFlag(item, 'battery_used');
+    final usedFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.crackedBatteryUsed,
+    );
     if (owner.hasCombatFlag(usedFlag)) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
@@ -459,6 +502,9 @@ class ImpactGlovesItemEffect extends ItemEffect {
       : super(
           description:
               'Tus ataques infligen dano adicional si el objetivo no tiene buffs.',
+          hooks: const {
+            ItemEffectHook.outgoingDamageModifier,
+          },
         );
 
   @override
@@ -493,6 +539,9 @@ class ChemicalFilterItemEffect extends ItemEffect {
       : super(
           description:
               'Reduce la Quemadura e Intoxicacion recibidas al aplicarse.',
+          hooks: const {
+            ItemEffectHook.incomingStatusModifier,
+          },
         );
 
   @override
@@ -556,6 +605,10 @@ class PortableOvenItemEffect extends ItemEffect {
       : super(
           description:
               'Tus Quemaduras duran mas, pero te quemas al final de tu turno.',
+          hooks: const {
+            ItemEffectHook.turnEnd,
+            ItemEffectHook.outgoingStatusModifier,
+          },
         );
 
   @override
@@ -611,6 +664,9 @@ class ParasiticCapacitorItemEffect extends ItemEffect {
       : super(
           description:
               'Cuando una habilidad entra en cooldown, recuperas vida.',
+          hooks: const {
+            ItemEffectHook.abilityResolved,
+          },
         );
 
   @override
@@ -649,6 +705,9 @@ class EclipseMantleItemEffect extends ItemEffect {
       : super(
           description:
               'La primera activacion manual de cada combate obtiene un bonus al value.',
+          hooks: const {
+            ItemEffectHook.manualAbilityPreparation,
+          },
         );
 
   @override
@@ -677,7 +736,10 @@ class EclipseMantleItemEffect extends ItemEffect {
       );
     }
 
-    final usedFlag = _itemFlag(item, 'eclipse_used');
+    final usedFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.eclipseMantleUsed,
+    );
     if (owner.hasCombatFlag(usedFlag)) {
       return ItemAbilityPreparationResolution(
         owner: owner,
@@ -705,6 +767,10 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
       : super(
           description:
               'Una vez por combate evita la muerte, deja 1 HP y refresca todas las habilidades.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.fatalDamage,
+          },
         );
 
   @override
@@ -724,8 +790,14 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
   }) {
     if (!owner.hasCombatFlag(Battler.combatActiveFlag)) return owner;
 
-    final usedFlag = _itemFlag(item, 'black_box_used');
-    final protectionFlag = _itemFlag(item, 'black_box_protection');
+    final usedFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.operativeBlackBoxUsed,
+    );
+    final protectionFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.operativeBlackBoxProtection,
+    );
     final recoveredHealth = max(1, item.value);
 
     if (owner.hasCombatFlag(protectionFlag)) {
@@ -754,7 +826,10 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final protectionFlag = _itemFlag(item, 'black_box_protection');
+    final protectionFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.operativeBlackBoxProtection,
+    );
     if (!owner.hasCombatFlag(protectionFlag)) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
@@ -802,6 +877,20 @@ class StatusItemEffect extends ItemEffect {
     required this.trigger,
   }) : super(
           description: 'Aplica un estado contextual.',
+          hooks: trigger == ItemStatusEffectTrigger.attackTarget ||
+                  trigger == ItemStatusEffectTrigger.attackOwner ||
+                  trigger == ItemStatusEffectTrigger.attackOwnerReinforce
+              ? const {
+                  ItemEffectHook.attackResolved,
+                }
+              : trigger == ItemStatusEffectTrigger.receiveDamageSource ||
+                      trigger == ItemStatusEffectTrigger.receiveDamageOwner
+                  ? const {
+                      ItemEffectHook.receiveDamageResolved,
+                    }
+                  : const {
+                      ItemEffectHook.turnStart,
+                    },
         );
 
   @override
@@ -961,7 +1050,7 @@ class StatusItemEffect extends ItemEffect {
           );
         }
 
-        final currentStatus = owner.statusById('calentando');
+        final currentStatus = owner.statusById(CalentandoStatus.statusId);
         if (currentStatus is! CalentandoStatus) {
           return owner.applyStatus(
             status,
@@ -1055,6 +1144,14 @@ bool _enteredCooldown(
 }
 
 /// Genera flags de combate estables para que cada item controle usos por instancia.
-String _itemFlag(Item item, String suffix) {
-  return '${item.instanceId ?? item.id.name}_$suffix';
+/// Genera una flag runtime tipada para aislar usos de efectos por item o por instancia.
+CombatRuntimeFlag _itemCombatFlag(
+  Item item,
+  ItemCombatFlagKind flag,
+) {
+  return CombatRuntimeFlag.item(
+    flag: flag,
+    itemId: item.id,
+    itemInstanceId: item.instanceId,
+  );
 }

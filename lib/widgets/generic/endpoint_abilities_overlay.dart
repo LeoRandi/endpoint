@@ -1,5 +1,4 @@
 import '../_imports.dart';
-import '../../services/battler_effect_pipeline.dart';
 
 class EndpointAbilitiesOverlay extends StatefulWidget {
   final Battler player;
@@ -35,13 +34,41 @@ class EndpointAbilitiesOverlay extends StatefulWidget {
 }
 
 class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
-  static const _effectPipeline = BattlerEffectPipeline();
-  late Battler _player;
+  late AbilitiesOverlayController _controller;
 
   @override
   void initState() {
     super.initState();
-    _player = widget.player;
+    _controller = _buildController();
+  }
+
+  /// Reconstruye el controlador cuando cambia el battler visible o el contexto de activacion.
+  @override
+  void didUpdateWidget(covariant EndpointAbilitiesOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.player == widget.player &&
+        oldWidget.screenContext == widget.screenContext &&
+        oldWidget.onPlayerChanged == widget.onPlayerChanged) {
+      return;
+    }
+
+    _controller.dispose();
+    _controller = _buildController();
+  }
+
+  /// Crea el controlador que concentra la logica de activacion de este overlay.
+  AbilitiesOverlayController _buildController() {
+    return AbilitiesOverlayController(
+      player: widget.player,
+      screenContext: widget.screenContext,
+      onPlayerChanged: widget.onPlayerChanged,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _openAbilityDetails(BattlerAbility ability) async {
@@ -50,35 +77,27 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
       barrierLabel: 'Detalle de habilidad',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final currentAbility = _player.abilityById(ability.id) ?? ability;
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final currentAbility = _controller.abilityState(ability);
 
             return EndpointAbilityDetailsDialog(
               ability: currentAbility,
               accent: currentAbility.accent,
-              statusText: _statusTextFor(currentAbility),
-              actionLabel: _actionLabelFor(currentAbility),
-              onPrimaryAction: _isActionEnabled(currentAbility)
+              statusText: _controller.statusTextFor(currentAbility),
+              actionLabel: _controller.actionLabelFor(currentAbility),
+              onPrimaryAction: _controller.isActionEnabled(currentAbility)
                   ? () {
-                      final resolution =
-                          _effectPipeline.toggleAbilityActivation(
-                        owner: _player,
-                        abilityId: currentAbility.id,
-                        screenContext: widget.screenContext,
-                      );
-                      setState(() {
-                        _player = resolution.owner;
-                      });
-                      widget.onPlayerChanged?.call(_player);
-                      setDialogState(() {});
+                      _controller.toggleAbility(currentAbility);
                     }
                   : null,
-              isActionEnabled: _isActionEnabled(currentAbility),
+              isActionEnabled: _controller.isActionEnabled(currentAbility),
               enabledActionTooltip: currentAbility.isActive
                   ? 'Desactivar habilidad manual'
                   : 'Activar habilidad manual',
-              disabledActionTooltip: _disabledActionTooltipFor(currentAbility),
+              disabledActionTooltip:
+                  _controller.disabledActionTooltipFor(currentAbility),
             );
           },
         );
@@ -86,79 +105,52 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
     );
   }
 
-  String _statusTextFor(BattlerAbility ability) {
-    final status = ability.isActive
-        ? 'Estado actual: activa.'
-        : ability.isOnCooldown
-            ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
-            : 'Estado actual: lista.';
-    final activation = ability.manualActivationContext == null
-        ? 'Se aplica sin activacion manual.'
-        : 'Se puede activar manualmente en ${ability.manualActivationContext!.label}.';
-
-    return '$status $activation';
-  }
-
-  String? _actionLabelFor(BattlerAbility ability) {
-    if (!ability.canToggleOn(widget.screenContext)) return null;
-    return ability.isActive ? 'Desactivar' : 'Activar';
-  }
-
-  bool _isActionEnabled(BattlerAbility ability) {
-    if (!ability.canToggleOn(widget.screenContext)) return false;
-    if (ability.isActive) return true;
-    return !ability.isOnCooldown && ability.isImplemented;
-  }
-
-  String _disabledActionTooltipFor(BattlerAbility ability) {
-    if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
-    if (ability.isOnCooldown) {
-      return 'Recarga restante: ${ability.remainingCooldownLabel}';
-    }
-    return 'No se puede activar desde esta pantalla';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final abilities = _player.abilities;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final abilities = _controller.abilities;
 
-    return EndpointOverlayScaffold(
-      title: widget.title,
-      subtitle: widget.subtitle,
-      sectionLabel: 'HABILIDADES',
-      sectionValue: '${abilities.length}',
-      closeTooltip: widget.closeTooltip,
-      accent: widget.accent,
-      bottomInset: widget.bottomInset,
-      maxWidth: widget.maxWidth,
-      maxHeight: widget.maxHeight,
-      child: abilities.isEmpty
-          ? Center(
-              child: EndpointText(
-                widget.emptyText,
-                textAlign: TextAlign.center,
-                style: textSmallBold.copyWith(
-                  color: Colors.white.withOpacity(0.72),
+        return EndpointOverlayScaffold(
+          title: widget.title,
+          subtitle: widget.subtitle,
+          sectionLabel: 'HABILIDADES',
+          sectionValue: '${abilities.length}',
+          closeTooltip: widget.closeTooltip,
+          accent: widget.accent,
+          bottomInset: widget.bottomInset,
+          maxWidth: widget.maxWidth,
+          maxHeight: widget.maxHeight,
+          child: abilities.isEmpty
+              ? Center(
+                  child: EndpointText(
+                    widget.emptyText,
+                    textAlign: TextAlign.center,
+                    style: textSmallBold.copyWith(
+                      color: Colors.white.withOpacity(0.72),
+                    ),
+                  ),
+                )
+              : GridView.builder(
+                  itemCount: abilities.length,
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 92,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    mainAxisExtent: 82,
+                  ),
+                  itemBuilder: (context, index) {
+                    final ability = abilities[index];
+
+                    return _AbilityOverlayTile(
+                      ability: ability,
+                      onPressed: () => _openAbilityDetails(ability),
+                    );
+                  },
                 ),
-              ),
-            )
-          : GridView.builder(
-              itemCount: abilities.length,
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 92,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                mainAxisExtent: 82,
-              ),
-              itemBuilder: (context, index) {
-                final ability = abilities[index];
-
-                return _AbilityOverlayTile(
-                  ability: ability,
-                  onPressed: () => _openAbilityDetails(ability),
-                );
-              },
-            ),
+        );
+      },
     );
   }
 }

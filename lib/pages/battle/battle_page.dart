@@ -27,109 +27,73 @@ class BattlePage extends StatefulWidget {
 }
 
 class _BattlePageState extends State<BattlePage> {
-  final BattleRewardService _rewardService = const BattleRewardService();
-  late final BattleController _controller;
-  late final RunRandomizer _randomizer;
-  bool _isPresentingVictoryRewards = false;
-  BattleFlowResult? _pendingVictoryExitResult;
-  Item? _pendingVictoryLootItem;
-  BattlerAbility? _pendingVictoryLootAbility;
-  int _pendingVictoryMoneyReward = 0;
+  late final BattleSceneController _sceneController;
 
   @override
   void initState() {
     super.initState();
-    _randomizer = widget.randomizer ?? RunRandomizer();
-    _controller = BattleController(
+    _sceneController = BattleSceneController(
       enemy: widget.enemy,
       player: widget.player,
-      randomizer: _randomizer,
       enemyTurnDelay: widget.enemyTurnDelay,
       combatEndDelay: widget.combatEndDelay,
-    )..addListener(_handleControllerChanged);
+      victoryMoneyFactor: widget.victoryMoneyFactor,
+      randomizer: widget.randomizer,
+    )..addListener(_handleSceneChanged);
   }
 
   @override
   void dispose() {
-    _controller
-      ..removeListener(_handleControllerChanged)
+    _sceneController
+      ..removeListener(_handleSceneChanged)
       ..dispose();
     super.dispose();
   }
 
-  void _handleControllerChanged() {
-    final exitResult = _controller.consumePendingExitResult();
-    if (exitResult == null || !mounted) return;
+  /// Sincroniza la navegacion real con las salidas diferidas que publica el controlador de escena.
+  void _handleSceneChanged() {
+    if (!mounted) return;
 
-    _handleBattleExit(exitResult);
-  }
-
-  Future<void> _handleBattleExit(BattleFlowResult exitResult) async {
-    if (exitResult.type != BattleFlowResultType.victory) {
+    final exitResult = _sceneController.consumeImmediateExitResult();
+    if (exitResult != null) {
       _completeBattleExit(exitResult);
       return;
     }
 
-    final rewards = _rewardService.buildVictoryRewards(
-      enemy: _controller.enemy,
-      player: exitResult.player,
-      victoryMoneyFactor: widget.victoryMoneyFactor,
-      randomizer: _randomizer,
-    );
-    if (!rewards.hasRewards) {
-      _completeBattleExit(exitResult);
-      return;
+    if (_sceneController.hasPendingVictoryRewards &&
+        !_sceneController.isPresentingRewards) {
+      _handleOpenPendingRewards();
     }
-
-    setState(() {
-      _pendingVictoryExitResult = exitResult;
-      _pendingVictoryLootItem = rewards.lootItem;
-      _pendingVictoryLootAbility = rewards.lootAbility;
-      _pendingVictoryMoneyReward = rewards.moneyReward;
-    });
   }
 
-  Future<BattleFlowResult> _presentVictoryRewards(
-    BattleFlowResult exitResult, {
-    BattleRewardBundle? rewards,
-  }) async {
-    final resolvedRewards = rewards ??
-        _rewardService.buildVictoryRewards(
-          enemy: _controller.enemy,
-          player: exitResult.player,
-          victoryMoneyFactor: widget.victoryMoneyFactor,
-          randomizer: _randomizer,
-        );
-    if (!resolvedRewards.hasRewards) {
-      return exitResult;
+  /// Abre el overlay de botin cuando la salida de victoria requiere una decision visual previa.
+  Future<Battler?> _presentVictoryRewards(
+    BattleSceneExitRequest request,
+  ) async {
+    if (!request.rewards.hasRewards) {
+      return request.exitResult.player;
     }
 
-    final rewardedPlayer = await showEndpointOverlay<Battler>(
+    return showEndpointOverlay<Battler>(
       context: context,
       barrierDismissible: false,
       barrierColor: EndpointPalette.overlayScrimStrong,
       builder: (_) => BattleLootOverlay(
-        player: exitResult.player,
-        lootItem: resolvedRewards.lootItem,
-        lootAbility: resolvedRewards.lootAbility,
-        moneyReward: resolvedRewards.moneyReward,
-        enemyName: _controller.enemy.name,
+        player: request.exitResult.player,
+        lootItem: request.rewards.lootItem,
+        lootAbility: request.rewards.lootAbility,
+        moneyReward: request.rewards.moneyReward,
+        enemyName: _sceneController.enemy.name,
       ),
-    );
-
-    return BattleFlowResult(
-      type: exitResult.type,
-      player: rewardedPlayer ?? exitResult.player,
     );
   }
 
   void _completeBattleExit(BattleFlowResult exitResult) {
-    final resolvedResult = _rewardService.sanitizeExitResult(exitResult);
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) return;
 
     if (widget.returnResultToCaller) {
-      navigator.pop(resolvedResult);
+      navigator.pop(exitResult);
       return;
     }
 
@@ -137,61 +101,32 @@ class _BattlePageState extends State<BattlePage> {
   }
 
   void _handlePlayerAttack() {
-    _controller.handleAttack();
-  }
-
-  /// Devuelve solo las habilidades que tienen sentido dentro de la interfaz de combate.
-  List<BattlerAbility> _battleVisibleAbilities(Battler battler) {
-    return battler.abilities
-        .where(
-          (ability) =>
-              ability.appearsInContext(BattlerAbilityActivationContext.battle),
-        )
-        .toList(growable: false);
-  }
-
-  /// Indica si una habilidad puede activarse ahora mismo desde una pulsacion mantenida.
-  bool _canQuickActivateAbility(BattlerAbility ability) {
-    return !ability.isActive &&
-        _isAbilityActionEnabled(ability, canControlOwner: true);
-  }
-
-  /// Activa una habilidad manual de combate sin abrir antes su dialogo de detalle.
-  void _handleQuickActivateAbility(BattlerAbility ability) {
-    if (!_canQuickActivateAbility(ability)) return;
-
-    _controller.togglePlayerAbility(ability);
+    _sceneController.handlePlayerAttack();
   }
 
   Future<void> _handleOpenPendingRewards() async {
-    final exitResult = _pendingVictoryExitResult;
-    if (exitResult == null || _isPresentingVictoryRewards) return;
+    final request = _sceneController.pendingRewardExitRequest;
+    if (request == null || _sceneController.isPresentingRewards) return;
 
-    setState(() {
-      _isPresentingVictoryRewards = true;
-    });
-
-    final rewardedResult = await _presentVictoryRewards(
-      exitResult,
-      rewards: BattleRewardBundle(
-        lootItem: _pendingVictoryLootItem,
-        lootAbility: _pendingVictoryLootAbility,
-        moneyReward: _pendingVictoryMoneyReward,
-      ),
-    );
+    _sceneController.beginRewardPresentation();
+    final rewardedPlayer = await _presentVictoryRewards(request);
     if (!mounted) return;
 
-    _completeBattleExit(rewardedResult);
+    _sceneController.completeRewardPresentation(rewardedPlayer);
+    final exitResult = _sceneController.consumeImmediateExitResult();
+    if (exitResult != null) {
+      _completeBattleExit(exitResult);
+    }
   }
 
   Future<void> _handleOpenItems() async {
-    if (!_controller.canUseActions || _pendingVictoryExitResult != null) return;
+    if (!_sceneController.canOpenItemsOverlay()) return;
 
     await showEndpointOverlay<void>(
       context: context,
       builder: (_) => BattleItemsDialog(
-        player: _controller.player,
-        items: _controller.player.inventoryItems,
+        player: _sceneController.player,
+        items: _sceneController.player.inventoryItems,
       ),
       barrierColor: EndpointPalette.overlayScrimSoft,
     );
@@ -201,7 +136,7 @@ class _BattlePageState extends State<BattlePage> {
     Battler battler,
     Item item,
   ) async {
-    if (_pendingVictoryExitResult != null) return;
+    if (_sceneController.hasPendingVictoryRewards) return;
 
     await showEndpointDialog<void>(
       context: context,
@@ -212,69 +147,59 @@ class _BattlePageState extends State<BattlePage> {
           item: item,
           accent: item.rarity.accent,
           price: item.cost,
-          statusText: _statusLabelFor(battler, item),
+          statusText: _sceneController.statusLabelFor(battler, item),
         );
       },
     );
   }
 
-  String _statusLabelFor(Battler battler, Item item) {
-    if (battler.equippedItems.contains(item)) {
-      return 'Estado actual: equipado';
-    }
-    if (battler.inventoryItems.contains(item)) {
-      return 'Estado actual: en inventario';
-    }
-    return 'Estado actual: no disponible';
-  }
-
   Future<void> _handleOpenAbilityDetails(
-    Battler battler,
     BattlerAbility ability, {
     required bool canControlOwner,
   }) async {
-    if (_pendingVictoryExitResult != null) return;
+    if (_sceneController.hasPendingVictoryRewards) return;
 
     await showEndpointDialog<void>(
       context: context,
       barrierLabel: 'Detalle de habilidad',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
+        return AnimatedBuilder(
+          animation: _sceneController.battleController,
+          builder: (context, _) {
             final currentOwner =
-                canControlOwner ? _controller.player : _controller.enemy;
+                canControlOwner ? _sceneController.player : _sceneController.enemy;
             final currentAbility =
                 currentOwner.abilityById(ability.id) ?? ability;
 
             return EndpointAbilityDetailsDialog(
               ability: currentAbility,
               accent: currentAbility.accent,
-              statusText: _abilityStatusTextFor(
+              statusText: _sceneController.abilityStatusTextFor(
                 currentAbility,
                 canControlOwner: canControlOwner,
               ),
-              actionLabel: _abilityActionLabelFor(
+              actionLabel: _sceneController.abilityActionLabelFor(
                 currentAbility,
                 canControlOwner: canControlOwner,
               ),
-              onPrimaryAction: _isAbilityActionEnabled(
+              onPrimaryAction: _sceneController.isAbilityActionEnabled(
                 currentAbility,
                 canControlOwner: canControlOwner,
               )
                   ? () {
-                      _controller.togglePlayerAbility(currentAbility);
-                      setDialogState(() {});
+                      _sceneController.togglePlayerAbility(currentAbility);
                     }
                   : null,
-              isActionEnabled: _isAbilityActionEnabled(
+              isActionEnabled: _sceneController.isAbilityActionEnabled(
                 currentAbility,
                 canControlOwner: canControlOwner,
               ),
               enabledActionTooltip: currentAbility.isActive
                   ? 'Desactivar habilidad manual'
                   : 'Activar habilidad manual',
-              disabledActionTooltip: _disabledAbilityActionTooltipFor(
+              disabledActionTooltip:
+                  _sceneController.disabledAbilityActionTooltipFor(
                 currentAbility,
                 canControlOwner: canControlOwner,
               ),
@@ -285,79 +210,9 @@ class _BattlePageState extends State<BattlePage> {
     );
   }
 
-  String _abilityStatusTextFor(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    final stateText = ability.isActive
-        ? 'Estado actual: activa.'
-        : ability.isOnCooldown
-            ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
-            : 'Estado actual: lista.';
-    final ownershipText =
-        canControlOwner ? 'Pertenece al jugador.' : 'Pertenece al enemigo.';
-    final activationText = ability.manualActivationContext == null
-        ? 'Se aplica sin activacion manual.'
-        : 'Se puede activar manualmente en ${ability.manualActivationContext!.label}.';
-
-    return '$stateText $ownershipText $activationText';
-  }
-
-  String? _abilityActionLabelFor(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    if (!canControlOwner ||
-        !ability.canToggleOn(BattlerAbilityActivationContext.battle)) {
-      return null;
-    }
-
-    return ability.isActive ? 'Desactivar' : 'Activar';
-  }
-
-  bool _isAbilityActionEnabled(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    if (!canControlOwner ||
-        !ability.canToggleOn(BattlerAbilityActivationContext.battle) ||
-        !_controller.canUseActions) {
-      return false;
-    }
-    if (ability.isActive) return true;
-    if (!_controller.player.canActivateManualAbilities(
-      BattlerAbilityActivationContext.battle,
-    )) {
-      return false;
-    }
-
-    return !ability.isOnCooldown && ability.isImplemented;
-  }
-
-  String _disabledAbilityActionTooltipFor(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    if (!canControlOwner) return 'Solo puedes gestionar habilidades propias';
-    if (!_controller.canUseActions) {
-      return 'Solo puedes gestionar habilidades en tu turno';
-    }
-    final blockReason = _controller.player.manualAbilityActivationBlockReason(
-      BattlerAbilityActivationContext.battle,
-    );
-    if (blockReason != null && !ability.isActive) {
-      return blockReason;
-    }
-    if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
-    if (ability.isOnCooldown) {
-      return 'Recarga restante: ${ability.remainingCooldownLabel}';
-    }
-    return 'No se puede activar desde esta pantalla';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final hasPendingVictoryRewards = _pendingVictoryExitResult != null;
+    final battleController = _sceneController.battleController;
 
     return PopScope(
       canPop: false,
@@ -367,40 +222,40 @@ class _BattlePageState extends State<BattlePage> {
           child: DecoratedBox(
             decoration: const BoxDecoration(gradient: EndpointGradients.battle),
             child: SafeArea(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  const enemyAccent = EndpointPalette.dangerAccent;
-                  const playerAccent = EndpointPalette.primaryAccent;
-                  final enemyBackground = [
-                    EndpointPalette.blend(
-                      EndpointPalette.panelBackgroundBattle,
-                      enemyAccent,
-                      0.42,
-                    ),
-                    EndpointPalette.blend(
-                      EndpointPalette.scaffoldBackground,
-                      enemyAccent,
-                      0.12,
-                    ),
-                  ];
-                  final playerBackground = [
-                    EndpointPalette.blend(
-                      EndpointPalette.panelBackground,
-                      playerAccent,
-                      0.1,
-                    ),
-                    EndpointPalette.blend(
-                      EndpointPalette.scaffoldBackground,
-                      playerAccent,
-                      0.04,
-                    ),
-                  ];
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  AnimatedBuilder(
+                    animation: battleController,
+                    builder: (context, _) {
+                      const enemyAccent = EndpointPalette.dangerAccent;
+                      const playerAccent = EndpointPalette.primaryAccent;
+                      final enemyBackground = [
+                        EndpointPalette.blend(
+                          EndpointPalette.panelBackgroundBattle,
+                          enemyAccent,
+                          0.42,
+                        ),
+                        EndpointPalette.blend(
+                          EndpointPalette.scaffoldBackground,
+                          enemyAccent,
+                          0.12,
+                        ),
+                      ];
+                      final playerBackground = [
+                        EndpointPalette.blend(
+                          EndpointPalette.panelBackground,
+                          playerAccent,
+                          0.1,
+                        ),
+                        EndpointPalette.blend(
+                          EndpointPalette.scaffoldBackground,
+                          playerAccent,
+                          0.04,
+                        ),
+                      ];
 
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Column(
+                      return Column(
                         children: [
                           Expanded(
                             child: _BattleSide(
@@ -410,18 +265,16 @@ class _BattlePageState extends State<BattlePage> {
                               background: enemyBackground,
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
-                                  enemy: _controller.enemy,
-                                  visibleAbilities: _battleVisibleAbilities(
-                                    _controller.enemy,
-                                  ),
+                                  enemy: _sceneController.enemy,
+                                  visibleAbilities: _sceneController
+                                      .visibleAbilitiesFor(_sceneController.enemy),
                                   onOpenEquippedItemDetails: (item) =>
                                       _handleOpenEquippedItemDetails(
-                                    _controller.enemy,
+                                    _sceneController.enemy,
                                     item,
                                   ),
                                   onOpenAbilityDetails: (ability) =>
                                       _handleOpenAbilityDetails(
-                                    _controller.enemy,
                                     ability,
                                     canControlOwner: false,
                                   ),
@@ -441,25 +294,23 @@ class _BattlePageState extends State<BattlePage> {
                               background: playerBackground,
                               child: SizedBox.expand(
                                 child: _PlayerBattleHud(
-                                  player: _controller.player,
-                                  visibleAbilities: _battleVisibleAbilities(
-                                    _controller.player,
-                                  ),
-                                  isEnabled: _controller.canUseActions,
+                                  player: _sceneController.player,
+                                  visibleAbilities: _sceneController
+                                      .visibleAbilitiesFor(_sceneController.player),
+                                  isEnabled: _sceneController.canUseActions,
                                   onAttack: _handlePlayerAttack,
                                   onOpenItems: _handleOpenItems,
                                   onQuickActivateAbility:
-                                      _handleQuickActivateAbility,
+                                      _sceneController.quickActivateAbility,
                                   canQuickActivateAbility:
-                                      _canQuickActivateAbility,
+                                      _sceneController.canQuickActivateAbility,
                                   onOpenEquippedItemDetails: (item) =>
                                       _handleOpenEquippedItemDetails(
-                                    _controller.player,
+                                    _sceneController.player,
                                     item,
                                   ),
                                   onOpenAbilityDetails: (ability) =>
                                       _handleOpenAbilityDetails(
-                                    _controller.player,
                                     ability,
                                     canControlOwner: true,
                                   ),
@@ -468,22 +319,34 @@ class _BattlePageState extends State<BattlePage> {
                             ),
                           ),
                         ],
-                      ),
-                      Center(
-                        child: _BattleCenterOverlay(
-                          title: _controller.turnTitle,
-                          description: _controller.turnDescription,
-                          isEnemyTurn:
-                              _controller.turn == BattleTurnState.enemy,
-                          isCombatFinished: _controller.isCombatFinished,
-                          onAdvancePressed: hasPendingVictoryRewards
-                              ? _handleOpenPendingRewards
-                              : null,
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                      );
+                    },
+                  ),
+                  Center(
+                    child: AnimatedBuilder(
+                      animation: battleController,
+                      builder: (context, _) {
+                        return AnimatedBuilder(
+                          animation: _sceneController,
+                          builder: (context, _) {
+                            return _BattleCenterOverlay(
+                              title: _sceneController.turnTitle,
+                              description: _sceneController.turnDescription,
+                              isEnemyTurn:
+                                  _sceneController.turn == BattleTurnState.enemy,
+                              isCombatFinished:
+                                  _sceneController.isCombatFinished,
+                              onAdvancePressed:
+                                  _sceneController.hasPendingVictoryRewards
+                                      ? _handleOpenPendingRewards
+                                      : null,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

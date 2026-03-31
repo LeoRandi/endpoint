@@ -20,7 +20,7 @@ TODOs:
 --Manejar su inventario
 
 -Combate
---Quitar defensa->defensa = escudo extra todos los combates
+--Quitar defensa->defensa = escudo extra todos los combates?
 --Nuevas mecánicas de combate:
 ---4 tipos de ataque(piedra papel tijera style) + super?
 ---Tipo pokemon?

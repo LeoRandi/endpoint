@@ -50,10 +50,11 @@ class BattlerEffectPipeline {
     required bool isOwnerTurn,
     RunRandomizer? randomizer,
   }) {
-    if (owner.statuses.isEmpty) return owner;
-
+    final activeStatuses = List<BattlerStatus>.from(
+      owner.statusesForHook(BattlerStatusHook.turnStart),
+    );
+    if (activeStatuses.isEmpty) return owner;
     var updatedOwner = owner;
-    final activeStatuses = List<BattlerStatus>.from(owner.statuses);
 
     for (final status in activeStatuses) {
       final resolvedStatus = status.resolved(updatedOwner);
@@ -71,10 +72,11 @@ class BattlerEffectPipeline {
   Battler applyStatusCombatEndEffects({
     required Battler owner,
   }) {
-    if (owner.statuses.isEmpty) return owner;
-
+    final activeStatuses = List<BattlerStatus>.from(
+      owner.statusesForHook(BattlerStatusHook.combatEnd),
+    );
+    if (activeStatuses.isEmpty) return owner;
     var updatedOwner = owner;
-    final activeStatuses = List<BattlerStatus>.from(owner.statuses);
 
     for (final status in activeStatuses) {
       final matchingIndex = _findMatchingStatusIndex(
@@ -97,16 +99,18 @@ class BattlerEffectPipeline {
     required Battler opponent,
     required bool isOwnerTurn,
   }) {
-    if (owner.abilities.isEmpty) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.turnStart),
+    );
+    if (activeAbilityIds.isEmpty) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
     var updatedOwner = owner;
     var updatedOpponent = opponent;
-    final activeAbilities = List<BattlerAbility>.from(owner.abilities);
 
-    for (final ability in activeAbilities) {
-      final previousAbility = updatedOwner.abilityById(ability.id);
+    for (final abilityId in activeAbilityIds) {
+      final previousAbility = updatedOwner.abilityById(abilityId);
       final effect = previousAbility?.effect;
       if (previousAbility == null || effect == null) continue;
 
@@ -141,10 +145,11 @@ class BattlerEffectPipeline {
     required bool isOwnerTurn,
     RunRandomizer? randomizer,
   }) {
-    if (owner.statuses.isEmpty) return owner;
-
+    final activeStatuses = List<BattlerStatus>.from(
+      owner.statusesForHook(BattlerStatusHook.turnEnd),
+    );
+    if (activeStatuses.isEmpty) return owner;
     var updatedOwner = owner;
-    final activeStatuses = List<BattlerStatus>.from(owner.statuses);
 
     for (final status in activeStatuses) {
       final resolvedStatus = status.resolved(updatedOwner);
@@ -164,16 +169,18 @@ class BattlerEffectPipeline {
     required Battler opponent,
     required bool isOwnerTurn,
   }) {
-    if (owner.abilities.isEmpty) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.turnEnd),
+    );
+    if (activeAbilityIds.isEmpty) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
     var updatedOwner = owner;
     var updatedOpponent = opponent;
-    final activeAbilities = List<BattlerAbility>.from(owner.abilities);
 
-    for (final ability in activeAbilities) {
-      final previousAbility = updatedOwner.abilityById(ability.id);
+    for (final abilityId in activeAbilityIds) {
+      final previousAbility = updatedOwner.abilityById(abilityId);
       final effect = previousAbility?.effect;
       if (previousAbility == null || effect == null) continue;
 
@@ -209,7 +216,8 @@ class BattlerEffectPipeline {
   }) {
     var updatedDamage = damage;
 
-    for (final status in owner.statuses) {
+    for (final status
+        in owner.statusesForHook(BattlerStatusHook.outgoingDamageModifier)) {
       final resolvedStatus = status.resolved(owner);
       updatedDamage = resolvedStatus.modifyOutgoingDamage(
         owner: owner,
@@ -228,7 +236,8 @@ class BattlerEffectPipeline {
   }) {
     var updatedDamage = damage;
 
-    for (final item in owner.equippedItems) {
+    for (final item
+        in owner.equippedItemsForHook(ItemEffectHook.outgoingDamageModifier)) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -250,7 +259,8 @@ class BattlerEffectPipeline {
   }) {
     BattlerStatus? updatedStatus = status;
 
-    for (final item in owner.equippedItems) {
+    for (final item
+        in owner.equippedItemsForHook(ItemEffectHook.outgoingStatusModifier)) {
       final effect = item.effect;
       if (effect == null || updatedStatus == null) continue;
 
@@ -272,7 +282,10 @@ class BattlerEffectPipeline {
   }) {
     var updatedDamage = damage;
 
-    for (final ability in owner.abilities) {
+    for (final abilityId
+        in owner.abilityIdsForHook(BattlerAbilityHook.outgoingDamageModifier)) {
+      final ability = owner.abilityById(abilityId);
+      if (ability == null) continue;
       final effect = ability.effect;
       if (effect == null) continue;
 
@@ -294,7 +307,8 @@ class BattlerEffectPipeline {
   }) {
     var updatedDamage = damage;
 
-    for (final status in owner.statuses) {
+    for (final status
+        in owner.statusesForHook(BattlerStatusHook.incomingDamageModifier)) {
       final resolvedStatus = status.resolved(owner);
       updatedDamage = resolvedStatus.modifyIncomingDamage(
         owner: owner,
@@ -314,7 +328,9 @@ class BattlerEffectPipeline {
   }) {
     var updatedOwner = owner;
     var updatedDamage = damage;
-    final activeStatuses = List<BattlerStatus>.from(owner.statuses);
+    final activeStatuses = List<BattlerStatus>.from(
+      owner.statusesForHook(BattlerStatusHook.incomingDamageEffect),
+    );
 
     for (final status in activeStatuses) {
       final matchingIndex = _findMatchingStatusIndex(
@@ -349,7 +365,8 @@ class BattlerEffectPipeline {
   }) {
     var updatedDamage = damage;
 
-    for (final item in owner.equippedItems) {
+    for (final item
+        in owner.equippedItemsForHook(ItemEffectHook.incomingDamageModifier)) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -371,7 +388,8 @@ class BattlerEffectPipeline {
   }) {
     BattlerStatus? updatedStatus = status;
 
-    for (final item in owner.equippedItems) {
+    for (final item
+        in owner.equippedItemsForHook(ItemEffectHook.incomingStatusModifier)) {
       final effect = item.effect;
       if (effect == null || updatedStatus == null) continue;
 
@@ -393,7 +411,10 @@ class BattlerEffectPipeline {
   }) {
     var updatedDamage = damage;
 
-    for (final ability in owner.abilities) {
+    for (final abilityId
+        in owner.abilityIdsForHook(BattlerAbilityHook.incomingDamageModifier)) {
+      final ability = owner.abilityById(abilityId);
+      if (ability == null) continue;
       final effect = ability.effect;
       if (effect == null) continue;
 
@@ -413,10 +434,11 @@ class BattlerEffectPipeline {
     required Battler target,
     required int damageDealt,
   }) {
-    if (owner.statuses.isEmpty) return owner;
-
+    final activeStatuses = List<BattlerStatus>.from(
+      owner.statusesForHook(BattlerStatusHook.attackResolved),
+    );
+    if (activeStatuses.isEmpty) return owner;
     var updatedOwner = owner;
-    final activeStatuses = List<BattlerStatus>.from(owner.statuses);
 
     for (final status in activeStatuses) {
       final resolvedStatus = status.resolved(updatedOwner);
@@ -438,7 +460,11 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedTarget = target;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.attackResolved),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -463,16 +489,18 @@ class BattlerEffectPipeline {
     required Battler target,
     required int damageDealt,
   }) {
-    if (owner.abilities.isEmpty) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.attackResolved),
+    );
+    if (activeAbilityIds.isEmpty) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: target);
     }
 
     var updatedOwner = owner;
     var updatedTarget = target;
-    final activeAbilities = List<BattlerAbility>.from(owner.abilities);
 
-    for (final ability in activeAbilities) {
-      final previousAbility = updatedOwner.abilityById(ability.id);
+    for (final abilityId in activeAbilityIds) {
+      final previousAbility = updatedOwner.abilityById(abilityId);
       final effect = previousAbility?.effect;
       if (previousAbility == null || effect == null) continue;
 
@@ -506,10 +534,11 @@ class BattlerEffectPipeline {
     required Battler source,
     required int damageTaken,
   }) {
-    if (owner.statuses.isEmpty) return owner;
-
+    final activeStatuses = List<BattlerStatus>.from(
+      owner.statusesForHook(BattlerStatusHook.receiveDamageResolved),
+    );
+    if (activeStatuses.isEmpty) return owner;
     var updatedOwner = owner;
-    final activeStatuses = List<BattlerStatus>.from(owner.statuses);
 
     for (final status in activeStatuses) {
       final resolvedStatus = status.resolved(updatedOwner);
@@ -531,7 +560,11 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedSource = source;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.receiveDamageResolved),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -556,16 +589,18 @@ class BattlerEffectPipeline {
     required Battler source,
     required int damageTaken,
   }) {
-    if (owner.abilities.isEmpty) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.receiveDamageResolved),
+    );
+    if (activeAbilityIds.isEmpty) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: source);
     }
 
     var updatedOwner = owner;
     var updatedSource = source;
-    final activeAbilities = List<BattlerAbility>.from(owner.abilities);
 
-    for (final ability in activeAbilities) {
-      final previousAbility = updatedOwner.abilityById(ability.id);
+    for (final abilityId in activeAbilityIds) {
+      final previousAbility = updatedOwner.abilityById(abilityId);
       final effect = previousAbility?.effect;
       if (previousAbility == null || effect == null) continue;
 
@@ -602,7 +637,11 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.turnStart),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -630,7 +669,11 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.turnEnd),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -655,7 +698,11 @@ class BattlerEffectPipeline {
   }) {
     var updatedOwner = owner;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.combatEnd),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -675,7 +722,11 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.passive),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -704,7 +755,11 @@ class BattlerEffectPipeline {
     var updatedOpponent = opponent;
     var updatedAbility = ability;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.manualAbilityPreparation),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -738,7 +793,11 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.abilityResolved),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -766,16 +825,18 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler opponent,
   }) {
-    if (owner.abilities.isEmpty) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.passive),
+    );
+    if (activeAbilityIds.isEmpty) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
     var updatedOwner = owner;
     var updatedOpponent = opponent;
-    final activeAbilities = List<BattlerAbility>.from(owner.abilities);
 
-    for (final ability in activeAbilities) {
-      final resolvedAbility = updatedOwner.abilityById(ability.id);
+    for (final abilityId in activeAbilityIds) {
+      final resolvedAbility = updatedOwner.abilityById(abilityId);
       final effect = resolvedAbility?.effect;
       if (resolvedAbility == null || effect == null) continue;
 
@@ -797,13 +858,14 @@ class BattlerEffectPipeline {
   Battler applyAbilityCombatEndEffects({
     required Battler owner,
   }) {
-    if (owner.abilities.isEmpty) return owner;
-
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.combatEnd),
+    );
+    if (activeAbilityIds.isEmpty) return owner;
     var updatedOwner = owner;
-    final activeAbilities = List<BattlerAbility>.from(owner.abilities);
 
-    for (final ability in activeAbilities) {
-      final currentAbility = updatedOwner.abilityById(ability.id);
+    for (final abilityId in activeAbilityIds) {
+      final currentAbility = updatedOwner.abilityById(abilityId);
       final effect = currentAbility?.effect;
       if (currentAbility == null || effect == null) continue;
 
@@ -822,7 +884,11 @@ class BattlerEffectPipeline {
   }) {
     var updatedOwner = owner;
 
-    for (final item in List<Item>.from(updatedOwner.equippedItems)) {
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.fatalDamage),
+    );
+
+    for (final item in activeItems) {
       final effect = item.effect;
       if (effect == null) continue;
 

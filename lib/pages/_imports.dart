@@ -2,6 +2,7 @@ export 'dart:async';
 export 'dart:math';
 
 export '../app/_exports.dart';
+export '../controllers/_exports.dart';
 export '../entities/_exports.dart';
 export '../services/_exports.dart';
 export '../utils/generic/_exports.dart';

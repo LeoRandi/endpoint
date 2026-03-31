@@ -12,16 +12,103 @@ enum BattlerStat {
   vampirism,
 }
 
+/// Enumera las flags globales del runtime de combate del battler.
+enum BattlerCombatFlag {
+  combatActive,
+  manualAbilityActivatedThisTurn,
+  pendingBasicAttackFollowUp,
+}
+
+/// Enumera las flags runtime que usan los items para limitar activaciones por combate.
+enum ItemCombatFlagKind {
+  crackedBatteryUsed,
+  eclipseMantleUsed,
+  operativeBlackBoxUsed,
+  operativeBlackBoxProtection,
+}
+
+/// Identifica una flag runtime concreta sin depender de claves String concatenadas.
+class CombatRuntimeFlag {
+  final BattlerCombatFlag? battlerFlag;
+  final ItemCombatFlagKind? itemFlag;
+  final ItemId? itemId;
+  final String? itemInstanceId;
+
+  /// Crea una flag global asociada solo al battler.
+  const CombatRuntimeFlag.battler(BattlerCombatFlag flag)
+      : battlerFlag = flag,
+        itemFlag = null,
+        itemId = null,
+        itemInstanceId = null;
+
+  /// Crea una flag asociada a un item concreto o a una de sus instancias.
+  const CombatRuntimeFlag.item({
+    required ItemCombatFlagKind flag,
+    required ItemId itemId,
+    String? itemInstanceId,
+  })  : battlerFlag = null,
+        itemFlag = flag,
+        itemId = itemId,
+        itemInstanceId = itemInstanceId;
+
+  /// Compara dos flags por su identidad tipada y por el item al que pertenezcan.
+  @override
+  bool operator ==(Object other) {
+    return other is CombatRuntimeFlag &&
+        other.battlerFlag == battlerFlag &&
+        other.itemFlag == itemFlag &&
+        other.itemId == itemId &&
+        other.itemInstanceId == itemInstanceId;
+  }
+
+  /// Calcula el hash estable que permite almacenar la flag en `Set` y `Map`.
+  @override
+  int get hashCode => Object.hash(
+        battlerFlag,
+        itemFlag,
+        itemId,
+        itemInstanceId,
+      );
+}
+
+/// Registra un valor dentro de todos los buckets tipados que declara para sus hooks.
+void _appendHookBindings<K extends Object, V>(
+  Map<K, List<V>> index,
+  Iterable<K> hooks,
+  V value,
+) {
+  for (final hook in hooks) {
+    (index[hook] ??= <V>[]).add(value);
+  }
+}
+
+/// Convierte un indice mutable de hooks en una estructura inmutable reutilizable por frame.
+Map<K, List<V>> _freezeHookIndex<K extends Object, V>(
+  Map<K, List<V>> index,
+) {
+  return Map<K, List<V>>.unmodifiable(
+    index.map(
+      (hook, values) => MapEntry(
+        hook,
+        List<V>.unmodifiable(values),
+      ),
+    ),
+  );
+}
+
 /// Agrupa los valores derivados e indices que se leen muchas veces por frame o por turno.
 class _BattlerDerivedState {
   final Map<BattlerStat, int> calculatedStats;
   final int income;
   final int basicAttackCount;
-  final Map<String, List<BattlerStatus>> statusesById;
+  final Map<BattlerStatusId, List<BattlerStatus>> statusesById;
+  final Map<BattlerStatusHook, List<BattlerStatus>> statusesByHook;
   final Map<BattlerAbilityId, BattlerAbility> abilitiesById;
+  final Map<BattlerAbilityHook, List<BattlerAbilityId>> abilityIdsByHook;
   final Map<ItemId, Item> inventoryItemsByType;
   final Map<ItemId, Item> equippedItemsByType;
   final Map<ItemSlot, Item> equippedItemsBySlot;
+  final Map<ItemEffectHook, List<Item>> equippedItemsByHook;
   final bool hasItemEffects;
 
   const _BattlerDerivedState._({
@@ -29,22 +116,31 @@ class _BattlerDerivedState {
     required this.income,
     required this.basicAttackCount,
     required this.statusesById,
+    required this.statusesByHook,
     required this.abilitiesById,
+    required this.abilityIdsByHook,
     required this.inventoryItemsByType,
     required this.equippedItemsByType,
     required this.equippedItemsBySlot,
+    required this.equippedItemsByHook,
     required this.hasItemEffects,
   });
 
   factory _BattlerDerivedState.build(Battler owner) {
-    final statusesById = <String, List<BattlerStatus>>{};
+    final statusesById = <BattlerStatusId, List<BattlerStatus>>{};
+    final statusesByHook = <BattlerStatusHook, List<BattlerStatus>>{};
     for (final status in owner.statuses) {
       (statusesById[status.id] ??= <BattlerStatus>[]).add(status);
+      _appendHookBindings(statusesByHook, status.hooks, status);
     }
 
     final abilitiesById = <BattlerAbilityId, BattlerAbility>{
       for (final ability in owner.abilities) ability.id: ability,
     };
+    final abilityIdsByHook = <BattlerAbilityHook, List<BattlerAbilityId>>{};
+    for (final ability in owner.abilities) {
+      _appendHookBindings(abilityIdsByHook, ability.hookBindings, ability.id);
+    }
     final inventoryItemsByType = <ItemId, Item>{};
     for (final item in owner.inventoryItems) {
       inventoryItemsByType.putIfAbsent(item.id, () => item);
@@ -52,6 +148,7 @@ class _BattlerDerivedState {
 
     final equippedItemsByType = <ItemId, Item>{};
     final equippedItemsBySlot = <ItemSlot, Item>{};
+    final equippedItemsByHook = <ItemEffectHook, List<Item>>{};
     var hasItemEffects = false;
     var basicAttackCount = 1;
 
@@ -65,14 +162,29 @@ class _BattlerDerivedState {
       if (effect == null) continue;
 
       hasItemEffects = true;
-      basicAttackCount = effect.modifyBasicAttackCount(
-        owner: owner,
-        item: item,
-        count: basicAttackCount,
-      );
+      _appendHookBindings(equippedItemsByHook, effect.hooks, item);
+      if (effect.hooks.contains(ItemEffectHook.basicAttackCountModifier)) {
+        basicAttackCount = effect.modifyBasicAttackCount(
+          owner: owner,
+          item: item,
+          count: basicAttackCount,
+        );
+      }
     }
 
-    final resolvedStatuses = owner.statuses
+    final incomeStatuses =
+        statusesByHook[BattlerStatusHook.incomeModifier] ??
+            const <BattlerStatus>[];
+    final statStatuses =
+        statusesByHook[BattlerStatusHook.calculatedStatModifier] ??
+            const <BattlerStatus>[];
+    final statItems =
+        equippedItemsByHook[ItemEffectHook.calculatedStatModifier] ??
+            const <Item>[];
+    final resolvedIncomeStatuses = incomeStatuses
+        .map((status) => status.resolved(owner))
+        .toList(growable: false);
+    final resolvedStatStatuses = statStatuses
         .map((status) => status.resolved(owner))
         .toList(growable: false);
     final calculatedStats = <BattlerStat, int>{
@@ -88,7 +200,7 @@ class _BattlerDerivedState {
       baseIncome: owner.baseIncome,
       equippedItems: owner.equippedItems,
     );
-    for (final status in resolvedStatuses) {
+    for (final status in resolvedIncomeStatuses) {
       income = status.modifyIncome(
         owner: owner,
         income: income,
@@ -98,7 +210,7 @@ class _BattlerDerivedState {
     for (final stat in BattlerStat.values) {
       var updatedValue = calculatedStats[stat] ?? 0;
 
-      for (final status in resolvedStatuses) {
+      for (final status in resolvedStatStatuses) {
         updatedValue = status.modifyCalculatedStat(
           owner: owner,
           stat: stat,
@@ -106,7 +218,7 @@ class _BattlerDerivedState {
         );
       }
 
-      for (final item in owner.equippedItems) {
+      for (final item in statItems) {
         final effect = item.effect;
         if (effect == null) continue;
 
@@ -125,7 +237,7 @@ class _BattlerDerivedState {
       calculatedStats: Map<BattlerStat, int>.unmodifiable(calculatedStats),
       income: max(0, income),
       basicAttackCount: max(1, basicAttackCount),
-      statusesById: Map<String, List<BattlerStatus>>.unmodifiable(
+      statusesById: Map<BattlerStatusId, List<BattlerStatus>>.unmodifiable(
         statusesById.map(
           (statusId, statuses) => MapEntry(
             statusId,
@@ -133,14 +245,17 @@ class _BattlerDerivedState {
           ),
         ),
       ),
+      statusesByHook: _freezeHookIndex(statusesByHook),
       abilitiesById: Map<BattlerAbilityId, BattlerAbility>.unmodifiable(
         abilitiesById,
       ),
+      abilityIdsByHook: _freezeHookIndex(abilityIdsByHook),
       inventoryItemsByType:
           Map<ItemId, Item>.unmodifiable(inventoryItemsByType),
       equippedItemsByType: Map<ItemId, Item>.unmodifiable(equippedItemsByType),
       equippedItemsBySlot:
           Map<ItemSlot, Item>.unmodifiable(equippedItemsBySlot),
+      equippedItemsByHook: _freezeHookIndex(equippedItemsByHook),
       hasItemEffects: hasItemEffects,
     );
   }
@@ -148,11 +263,15 @@ class _BattlerDerivedState {
 
 /// Representa el estado completo de un combatiente, incluyendo economia, equipo y hooks runtime.
 class Battler {
-  static const combatActiveFlag = 'combat_active';
-  static const manualAbilityActivatedThisTurnFlag =
-      'manual_ability_activated_this_turn';
-  static const pendingBasicAttackFollowUpFlag =
-      'pending_basic_attack_follow_up';
+  static const combatActiveFlag = CombatRuntimeFlag.battler(
+    BattlerCombatFlag.combatActive,
+  );
+  static const manualAbilityActivatedThisTurnFlag = CombatRuntimeFlag.battler(
+    BattlerCombatFlag.manualAbilityActivatedThisTurn,
+  );
+  static const pendingBasicAttackFollowUpFlag = CombatRuntimeFlag.battler(
+    BattlerCombatFlag.pendingBasicAttackFollowUp,
+  );
   static const BattlerEffectPipeline _effectPipeline = BattlerEffectPipeline();
   static final Expando<_BattlerDerivedState> _derivedStateCache =
       Expando<_BattlerDerivedState>('battlerDerivedState');
@@ -167,7 +286,7 @@ class Battler {
   final List<BattlerStatus> statuses;
   final List<Item> inventoryItems;
   final List<Item> equippedItems;
-  final Set<String> combatFlags;
+  final Set<CombatRuntimeFlag> combatFlags;
 
   // Los presets de juego dependen de constructores const, asi que la cache de
   // derivados vive fuera de la instancia y se rellena a demanda por identidad.
@@ -194,7 +313,7 @@ class Battler {
     this.statuses = const [],
     this.inventoryItems = const [],
     this.equippedItems = const [],
-    this.combatFlags = const <String>{},
+    this.combatFlags = const <CombatRuntimeFlag>{},
   })  : baseIncome = income,
         assert(health >= 0);
 
@@ -269,7 +388,7 @@ class Battler {
   bool get hasItemEffects => _derivedState.hasItemEffects;
 
   /// Comprueba si una flag de combate concreta sigue activa.
-  bool hasCombatFlag(String flag) => combatFlags.contains(flag);
+  bool hasCombatFlag(CombatRuntimeFlag flag) => combatFlags.contains(flag);
 
   /// Indica si el ataque basico actual todavia tiene impactos pendientes.
   bool get hasPendingBasicAttackFollowUp {
@@ -282,7 +401,7 @@ class Battler {
   }
 
   /// Busca el primer estado activo con el id indicado.
-  BattlerStatus? statusById(String statusId) {
+  BattlerStatus? statusById(BattlerStatusId statusId) {
     final matchingStatuses = _derivedState.statusesById[statusId];
     if (matchingStatuses == null || matchingStatuses.isEmpty) return null;
 
@@ -290,8 +409,13 @@ class Battler {
   }
 
   /// Devuelve todas las instancias activas que comparten un mismo id de estado.
-  List<BattlerStatus> statusesById(String statusId) {
+  List<BattlerStatus> statusesById(BattlerStatusId statusId) {
     return _derivedState.statusesById[statusId] ?? const <BattlerStatus>[];
+  }
+
+  /// Devuelve solo los estados que declararon el hook pedido en su metadata tipada.
+  List<BattlerStatus> statusesForHook(BattlerStatusHook hook) {
+    return _derivedState.statusesByHook[hook] ?? const <BattlerStatus>[];
   }
 
   /// Busca la habilidad activa con el id indicado.
@@ -299,9 +423,19 @@ class Battler {
     return _derivedState.abilitiesById[abilityId];
   }
 
+  /// Devuelve los ids de habilidad que registraron un hook concreto para el pipeline.
+  List<BattlerAbilityId> abilityIdsForHook(BattlerAbilityHook hook) {
+    return _derivedState.abilityIdsByHook[hook] ?? const <BattlerAbilityId>[];
+  }
+
   /// Comprueba si existe al menos una instancia del estado indicado.
-  bool hasStatus(String statusId) {
+  bool hasStatus(BattlerStatusId statusId) {
     return statusById(statusId) != null;
+  }
+
+  /// Devuelve solo los items equipados que declararon el hook pedido en su efecto.
+  List<Item> equippedItemsForHook(ItemEffectHook hook) {
+    return _derivedState.equippedItemsByHook[hook] ?? const <Item>[];
   }
 
   /// Calcula una stat final aplicando equipo y despues modificadores de estados.
@@ -402,7 +536,9 @@ class Battler {
       return updatedOwner;
     }
 
-    final activeStatuses = List<BattlerStatus>.from(updatedOwner.statuses);
+    final activeStatuses = List<BattlerStatus>.from(
+      updatedOwner.statusesForHook(BattlerStatusHook.statusApplied),
+    );
 
     for (final activeStatus in activeStatuses) {
       if (instancedStatus == null) break;
@@ -449,7 +585,7 @@ class Battler {
   }
 
   /// Elimina todas las instancias del estado indicado.
-  Battler removeStatus(String statusId) {
+  Battler removeStatus(BattlerStatusId statusId) {
     if (!hasStatus(statusId)) return this;
 
     final updatedStatuses = statuses
@@ -1056,11 +1192,11 @@ class Battler {
   }
 
   /// Anade una flag de combate sin duplicarla.
-  Battler addCombatFlag(String flag) {
+  Battler addCombatFlag(CombatRuntimeFlag flag) {
     if (combatFlags.contains(flag)) return this;
 
     return copyWith(
-      combatFlags: Set<String>.unmodifiable({
+      combatFlags: Set<CombatRuntimeFlag>.unmodifiable({
         ...combatFlags,
         flag,
       }),
@@ -1068,12 +1204,12 @@ class Battler {
   }
 
   /// Elimina una flag de combate concreta si estaba activa.
-  Battler removeCombatFlag(String flag) {
+  Battler removeCombatFlag(CombatRuntimeFlag flag) {
     if (!combatFlags.contains(flag)) return this;
 
-    final updatedFlags = Set<String>.from(combatFlags)..remove(flag);
+    final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags)..remove(flag);
     return copyWith(
-      combatFlags: Set<String>.unmodifiable(updatedFlags),
+      combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
     );
   }
 
@@ -1081,7 +1217,7 @@ class Battler {
   Battler clearCombatFlags() {
     if (combatFlags.isEmpty) return this;
 
-    return copyWith(combatFlags: const <String>{});
+    return copyWith(combatFlags: const <CombatRuntimeFlag>{});
   }
 
   /// Elimina todos los estados que no deben sobrevivir fuera del combate.
@@ -1116,7 +1252,8 @@ class Battler {
   String? manualAbilityActivationBlockReason(
     BattlerAbilityActivationContext screenContext,
   ) {
-    for (final status in statuses) {
+    for (final status
+        in statusesForHook(BattlerStatusHook.manualAbilityActivationBlocker)) {
       final resolvedStatus = status.resolved(this);
       final blockReason = resolvedStatus.manualAbilityActivationBlockReason(
         owner: this,
@@ -1149,7 +1286,7 @@ class Battler {
     List<BattlerStatus>? statuses,
     List<Item>? inventoryItems,
     List<Item>? equippedItems,
-    Set<String>? combatFlags,
+    Set<CombatRuntimeFlag>? combatFlags,
   }) {
     final resolvedBaseStats = baseStats ?? this.baseStats;
     final resolvedAbilities = List<BattlerAbility>.unmodifiable(
@@ -1164,7 +1301,7 @@ class Battler {
     final resolvedEquippedItems = List<Item>.unmodifiable(
       equippedItems ?? this.equippedItems,
     );
-    final resolvedCombatFlags = Set<String>.unmodifiable(
+    final resolvedCombatFlags = Set<CombatRuntimeFlag>.unmodifiable(
       combatFlags ?? this.combatFlags,
     );
     return _buildResolved(
@@ -1245,7 +1382,7 @@ class Battler {
     required List<BattlerStatus> statuses,
     required List<Item> inventoryItems,
     required List<Item> equippedItems,
-    required Set<String> combatFlags,
+    required Set<CombatRuntimeFlag> combatFlags,
   }) {
     final candidate = Battler(
       name: name,

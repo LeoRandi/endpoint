@@ -13,6 +13,40 @@ enum DamageKind {
   debuff,
 }
 
+/// Enumera las identidades estables de los estados para evitar lookups por texto.
+enum BattlerStatusId {
+  calentando,
+  quemadura,
+  intoxicacion,
+  catalisisCruel,
+  fragilidad,
+  interferencia,
+  blindajeTemporal,
+  conmocion,
+  escudoDeEnergia,
+  escudoDeFase,
+  inercia,
+  inerciaAtaque,
+  inerciaDefensa,
+  deuda,
+}
+
+/// Enumera los puntos del ciclo de combate en los que un estado puede intervenir.
+enum BattlerStatusHook {
+  incomeModifier,
+  calculatedStatModifier,
+  manualAbilityActivationBlocker,
+  turnStart,
+  turnEnd,
+  combatEnd,
+  incomingDamageEffect,
+  outgoingDamageModifier,
+  incomingDamageModifier,
+  attackResolved,
+  receiveDamageResolved,
+  statusApplied,
+}
+
 /// Agrupa el estado del portador y el dano final tras procesar hooks defensivos.
 class BattlerIncomingDamageResolution {
   final Battler owner;
@@ -60,10 +94,11 @@ extension BattlerStatusTypePresentation on BattlerStatusType {
 
 /// Sirve como base comun para todos los estados y sus hooks de combate.
 abstract class BattlerStatus {
-  final String id;
+  final BattlerStatusId id;
   final String name;
   final BattlerStatusType type;
   final List<EntityTag> tags;
+  final Set<BattlerStatusHook> hooks;
   final IconData icon;
   final String description;
   final int remainingTurns;
@@ -75,6 +110,7 @@ abstract class BattlerStatus {
     required this.name,
     required this.type,
     this.tags = const [],
+    this.hooks = const <BattlerStatusHook>{},
     required this.icon,
     required this.description,
     required this.remainingTurns,
@@ -314,6 +350,7 @@ const _debuffEconomiaStatusTags = <EntityTag>[
 
 /// Buff ofensivo que aumenta su dano bonus al final de cada turno propio.
 class CalentandoStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.calentando;
   static const defaultDuration = 5;
   static const defaultValue = 1;
 
@@ -322,10 +359,15 @@ class CalentandoStatus extends BattlerStatus {
     int remainingTurns = defaultDuration,
     int value = defaultValue,
   }) : super(
-          id: 'calentando',
+          id: statusId,
           name: 'Calentando',
           type: BattlerStatusType.buff,
           tags: _buffAtaqueStatusTags,
+          hooks: const {
+            BattlerStatusHook.outgoingDamageModifier,
+            BattlerStatusHook.turnEnd,
+            BattlerStatusHook.combatEnd,
+          },
           icon: Icons.local_fire_department_rounded,
           description: 'El usuario suma su value al dano total al atacar.',
           remainingTurns: remainingTurns,
@@ -396,6 +438,7 @@ class CalentandoStatus extends BattlerStatus {
 
 /// Debuff que hace dano al final de turno segun los turnos que le queden.
 class QuemaduraStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.quemadura;
   static const defaultDuration = 3;
 
   /// Crea una instancia de Quemadura cuya fuerza sigue su duracion restante.
@@ -403,10 +446,13 @@ class QuemaduraStatus extends BattlerStatus {
     int remainingTurns = defaultDuration,
     int? value,
   }) : super(
-          id: 'quemadura',
+          id: statusId,
           name: 'Quemadura',
           type: BattlerStatusType.debuff,
           tags: _debuffQuemaduraStatusTags,
+          hooks: const {
+            BattlerStatusHook.turnEnd,
+          },
           icon: Icons.whatshot_rounded,
           description:
               'Al final del turno del objetivo, este estado inflige dano igual a su duracion restante.',
@@ -481,6 +527,7 @@ class QuemaduraStatus extends BattlerStatus {
 
 /// Debuff indefinido que inflige dano fijo al final del turno y se renueva solo.
 class IntoxicacionStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.intoxicacion;
   static const defaultDuration = 1;
   static const defaultValue = 1;
 
@@ -489,10 +536,14 @@ class IntoxicacionStatus extends BattlerStatus {
     int remainingTurns = defaultDuration,
     int value = defaultValue,
   }) : super(
-          id: 'intoxicacion',
+          id: statusId,
           name: 'Intoxicacion',
           type: BattlerStatusType.debuff,
           tags: _debuffIntoxicacionStatusTags,
+          hooks: const {
+            BattlerStatusHook.turnEnd,
+            BattlerStatusHook.combatEnd,
+          },
           icon: Icons.science_rounded,
           description:
               'Al final del turno del objetivo, este estado inflige dano fijo igual a su value y renueva su duracion.',
@@ -567,14 +618,18 @@ class IntoxicacionStatus extends BattlerStatus {
 
 /// Debuff puente que multiplica el siguiente debuff recibido y luego se consume.
 class CatalisisCruelStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.catalisisCruel;
   /// Crea una instancia de Catalisis Cruel con su multiplicador actual.
   const CatalisisCruelStatus({
     int value = 2,
   }) : super(
-          id: 'catalisis_cruel',
+          id: statusId,
           name: 'Catalisis Cruel',
           type: BattlerStatusType.debuff,
           tags: _debuffStatusTags,
+          hooks: const {
+            BattlerStatusHook.statusApplied,
+          },
           icon: Icons.biotech_rounded,
           description:
               'La proxima desventaja recibida multiplica su valor y consume este estado. Volver a aplicarlo acumula multiplicador.',
@@ -639,7 +694,7 @@ class CatalisisCruelStatus extends BattlerStatus {
 
 /// Debuff que reduce DEF segun los turnos que le queden por delante.
 class FragilidadStatus extends BattlerStatus {
-  static const statusId = 'fragilidad';
+  static const statusId = BattlerStatusId.fragilidad;
   static const defaultDuration = 3;
 
   /// Crea una instancia de Fragilidad cuya fuerza sigue la duracion restante.
@@ -651,6 +706,9 @@ class FragilidadStatus extends BattlerStatus {
           name: 'Fragilidad',
           type: BattlerStatusType.debuff,
           tags: _debuffDefensaStatusTags,
+          hooks: const {
+            BattlerStatusHook.calculatedStatModifier,
+          },
           icon: Icons.shield_outlined,
           description:
               'Reduce la defensa actual en funcion de su duracion restante.',
@@ -700,7 +758,7 @@ class FragilidadStatus extends BattlerStatus {
 
 /// Debuff que bloquea el uso manual de habilidades mientras siga activo.
 class InterferenciaStatus extends BattlerStatus {
-  static const statusId = 'interferencia';
+  static const statusId = BattlerStatusId.interferencia;
   static const defaultDuration = 1;
 
   /// Crea una instancia de Interferencia cuya fuerza sigue la duracion restante.
@@ -712,6 +770,9 @@ class InterferenciaStatus extends BattlerStatus {
           name: 'Interferencia',
           type: BattlerStatusType.debuff,
           tags: _debuffStatusTags,
+          hooks: const {
+            BattlerStatusHook.manualAbilityActivationBlocker,
+          },
           icon: Icons.portable_wifi_off_rounded,
           description:
               'Impide activar habilidades manuales mientras permanezca activo.',
@@ -751,7 +812,7 @@ class InterferenciaStatus extends BattlerStatus {
 
 /// Buff temporal que absorbe parte del siguiente golpe directo y luego se gasta.
 class BlindajeTemporalStatus extends BattlerStatus {
-  static const statusId = 'blindaje_temporal';
+  static const statusId = BattlerStatusId.blindajeTemporal;
   static const defaultValue = 4;
 
   /// Crea una instancia de Blindaje Temporal con su absorcion restante.
@@ -762,6 +823,10 @@ class BlindajeTemporalStatus extends BattlerStatus {
           name: 'Blindaje Temporal',
           type: BattlerStatusType.buff,
           tags: _buffDefensaStatusTags,
+          hooks: const {
+            BattlerStatusHook.incomingDamageEffect,
+            BattlerStatusHook.statusApplied,
+          },
           icon: Icons.health_and_safety_rounded,
           description:
               'Absorbe dano del siguiente impacto directo y desaparece al agotarse o al terminar el combate.',
@@ -849,7 +914,7 @@ class BlindajeTemporalStatus extends BattlerStatus {
 
 /// Debuff que debilita el siguiente ataque del portador y luego desaparece.
 class ConmocionStatus extends BattlerStatus {
-  static const statusId = 'conmocion';
+  static const statusId = BattlerStatusId.conmocion;
   static const defaultValue = 2;
 
   /// Crea una instancia de Conmocion con la reduccion de dano pendiente.
@@ -860,6 +925,10 @@ class ConmocionStatus extends BattlerStatus {
           name: 'Conmocion',
           type: BattlerStatusType.debuff,
           tags: _debuffAtaqueStatusTags,
+          hooks: const {
+            BattlerStatusHook.outgoingDamageModifier,
+            BattlerStatusHook.attackResolved,
+          },
           icon: Icons.flash_off_rounded,
           description:
               'Reduce el dano del siguiente ataque del portador y luego desaparece.',
@@ -913,7 +982,7 @@ class ConmocionStatus extends BattlerStatus {
 
 /// Buff que reduce dano directo pero empeora el dano recibido de debuffs.
 class EscudoDeEnergiaStatus extends BattlerStatus {
-  static const statusId = 'escudo_energia';
+  static const statusId = BattlerStatusId.escudoDeEnergia;
   static const defaultValue = 1;
 
   /// Crea una instancia de Escudo de Energia con su intensidad actual.
@@ -924,6 +993,9 @@ class EscudoDeEnergiaStatus extends BattlerStatus {
           name: 'Escudo de Energia',
           type: BattlerStatusType.buff,
           tags: _buffDefensaStatusTags,
+          hooks: const {
+            BattlerStatusHook.incomingDamageEffect,
+          },
           icon: Icons.bolt_rounded,
           description:
               'Reduce el dano directo recibido, pero amplifica el dano de debuffs.',
@@ -969,7 +1041,7 @@ class EscudoDeEnergiaStatus extends BattlerStatus {
 
 /// Buff que protege de debuffs pero vuelve mas dolorosos los impactos directos.
 class EscudoDeFaseStatus extends BattlerStatus {
-  static const statusId = 'escudo_fase';
+  static const statusId = BattlerStatusId.escudoDeFase;
   static const defaultValue = 1;
 
   /// Crea una instancia de Escudo de Fase con su intensidad actual.
@@ -980,6 +1052,9 @@ class EscudoDeFaseStatus extends BattlerStatus {
           name: 'Escudo de Fase',
           type: BattlerStatusType.buff,
           tags: _buffDefensaStatusTags,
+          hooks: const {
+            BattlerStatusHook.incomingDamageEffect,
+          },
           icon: Icons.blur_on_rounded,
           description:
               'Reduce el dano de debuffs recibidos, pero amplifica los impactos directos.',
@@ -1025,7 +1100,7 @@ class EscudoDeFaseStatus extends BattlerStatus {
 
 /// Buff generador que crea reservas de ATK o DEF si no se usaron habilidades manuales.
 class InerciaStatus extends BattlerStatus {
-  static const statusId = 'inercia';
+  static const statusId = BattlerStatusId.inercia;
   static const defaultValue = 1;
 
   /// Crea una instancia de Inercia con el valor que entregara a cada reserva.
@@ -1036,6 +1111,10 @@ class InerciaStatus extends BattlerStatus {
           name: 'Inercia',
           type: BattlerStatusType.buff,
           tags: _buffAtaqueDefensaStatusTags,
+          hooks: const {
+            BattlerStatusHook.turnEnd,
+            BattlerStatusHook.statusApplied,
+          },
           icon: Icons.motion_photos_on_rounded,
           description:
               'Si no activas habilidades manuales en tu turno, genera una reserva temporal aleatoria de ATK o DEF.',
@@ -1115,7 +1194,7 @@ class InerciaStatus extends BattlerStatus {
 
 /// Reserva temporal de ataque generada por Inercia hasta el final del combate.
 class InerciaAtaqueStatus extends BattlerStatus {
-  static const statusId = 'inercia_ataque';
+  static const statusId = BattlerStatusId.inerciaAtaque;
 
   /// Crea una reserva de ataque con el bonus acumulado actual.
   const InerciaAtaqueStatus({
@@ -1125,6 +1204,10 @@ class InerciaAtaqueStatus extends BattlerStatus {
           name: 'Reserva de Inercia: ATK',
           type: BattlerStatusType.buff,
           tags: _buffAtaqueStatusTags,
+          hooks: const {
+            BattlerStatusHook.calculatedStatModifier,
+            BattlerStatusHook.statusApplied,
+          },
           icon: Icons.north_rounded,
           description:
               'Bonus temporal de ataque acumulado por Inercia hasta el final del combate.',
@@ -1190,7 +1273,7 @@ class InerciaAtaqueStatus extends BattlerStatus {
 
 /// Reserva temporal de defensa generada por Inercia hasta el final del combate.
 class InerciaDefensaStatus extends BattlerStatus {
-  static const statusId = 'inercia_defensa';
+  static const statusId = BattlerStatusId.inerciaDefensa;
 
   /// Crea una reserva de defensa con el bonus acumulado actual.
   const InerciaDefensaStatus({
@@ -1200,6 +1283,10 @@ class InerciaDefensaStatus extends BattlerStatus {
           name: 'Reserva de Inercia: DEF',
           type: BattlerStatusType.buff,
           tags: _buffDefensaStatusTags,
+          hooks: const {
+            BattlerStatusHook.calculatedStatModifier,
+            BattlerStatusHook.statusApplied,
+          },
           icon: Icons.shield_rounded,
           description:
               'Bonus temporal de defensa acumulado por Inercia hasta el final del combate.',
@@ -1265,7 +1352,7 @@ class InerciaDefensaStatus extends BattlerStatus {
 
 /// Debuff persistente que limita el income efectivo hasta que una deuda pendiente se pague.
 class DeudaStatus extends BattlerStatus {
-  static const statusId = 'deuda';
+  static const statusId = BattlerStatusId.deuda;
   static const defaultValue = 8;
 
   /// Crea una instancia de Deuda con el saldo pendiente actual.
@@ -1276,6 +1363,10 @@ class DeudaStatus extends BattlerStatus {
           name: 'Deuda',
           type: BattlerStatusType.debuff,
           tags: _debuffEconomiaStatusTags,
+          hooks: const {
+            BattlerStatusHook.incomeModifier,
+            BattlerStatusHook.statusApplied,
+          },
           icon: Icons.receipt_long_rounded,
           description:
               'Limita el income efectivo a 1 hasta saldarse. No puede purgarse de forma convencional.',
