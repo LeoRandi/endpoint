@@ -121,7 +121,9 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
   /// Presenta la pantalla final cuando la run ya se ha cerrado por victoria, derrota o retirada.
   Future<void> _maybePresentRunOutcome() async {
-    if (!mounted || _isPresentingRunOutcome || !_sessionController.isRunComplete) {
+    if (!mounted ||
+        _isPresentingRunOutcome ||
+        !_sessionController.isRunComplete) {
       return;
     }
 
@@ -202,11 +204,12 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                           width: nodeWidth,
                                           child: PathNodeCard(
                                             node: nodes[index],
-                                            onPressed: isOpeningNode || hasEndedRun
-                                                ? null
-                                                : () => _handleNodePressed(
-                                                      nodes[index],
-                                                    ),
+                                            onPressed:
+                                                isOpeningNode || hasEndedRun
+                                                    ? null
+                                                    : () => _handleNodePressed(
+                                                          nodes[index],
+                                                        ),
                                           ),
                                         ),
                                       ],
@@ -375,6 +378,7 @@ class _PathPlayerStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const accent = EndpointPalette.primaryAccent;
+    final barrierAccent = BattlerStat.barrier.accent;
     final statChipTextStyle = textMediumNumericBold.copyWith(
       fontSize: 14,
       letterSpacing: 1.2,
@@ -436,10 +440,11 @@ class _PathPlayerStatus extends StatelessWidget {
                   textStyle: statChipTextStyle,
                 ),
                 EndpointValueChip(
-                  label: 'DEF',
-                  value: player.defense,
-                  accent: accent,
-                  foreground: EndpointPalette.soften(accent, amount: 0.24),
+                  label: 'Barrera',
+                  value: player.barrier,
+                  accent: barrierAccent,
+                  foreground:
+                      EndpointPalette.soften(barrierAccent, amount: 0.24),
                   textStyle: statChipTextStyle,
                 ),
                 EndpointValueChip(

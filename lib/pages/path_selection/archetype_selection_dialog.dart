@@ -232,9 +232,10 @@ class ArchetypeSelectionDialog extends StatelessWidget {
         nextValue: projectedPlayer.attack,
       ),
       _ArchetypeImpactEntry(
-        label: 'DEF',
-        currentValue: player.defense,
-        nextValue: projectedPlayer.defense,
+        label: 'Barrera',
+        currentValue: player.barrier,
+        nextValue: projectedPlayer.barrier,
+        accent: BattlerStat.barrier.accent,
       ),
       _ArchetypeImpactEntry(
         label: 'ESPINAS',
@@ -399,11 +400,13 @@ class _ArchetypeImpactEntry {
   final String label;
   final int currentValue;
   final int nextValue;
+  final Color? accent;
 
   const _ArchetypeImpactEntry({
     required this.label,
     required this.currentValue,
     required this.nextValue,
+    this.accent,
   });
 
   int get delta => nextValue - currentValue;
@@ -427,8 +430,9 @@ class _ArchetypeImpactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deltaAccent =
-        entry.delta >= 0 ? accent : EndpointPalette.dangerAccent;
+    final deltaAccent = entry.delta >= 0
+        ? (entry.accent ?? accent)
+        : EndpointPalette.dangerAccent;
 
     return EndpointPanel(
       accent: deltaAccent,
@@ -594,7 +598,7 @@ class _ArchetypeItemCard extends StatelessWidget {
       ...item.statModifiers.entries.map((entry) {
         final value = entry.value;
         final sign = value >= 0 ? '+' : '';
-        return '$sign$value ${entry.key.name.toUpperCase()}';
+        return '$sign$value ${_modifierLabel(entry.key)}';
       }),
     ];
 
@@ -611,6 +615,14 @@ class _ArchetypeItemCard extends StatelessWidget {
     if (entries.isEmpty) return null;
 
     return entries.join('   ');
+  }
+
+  String _modifierLabel(BattlerStat stat) {
+    if (stat == BattlerStat.barrier) {
+      return stat.label;
+    }
+
+    return stat.shortLabel;
   }
 }
 

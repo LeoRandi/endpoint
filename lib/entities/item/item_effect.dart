@@ -851,7 +851,7 @@ enum ItemStatusEffectKind {
   fragilidad,
   inercia,
   inerciaAtaque,
-  inerciaDefensa,
+  inerciaBarrera,
   interferencia,
 }
 
@@ -1100,8 +1100,8 @@ class StatusItemEffect extends ItemEffect {
         return InerciaStatus(value: resolvedValue);
       case ItemStatusEffectKind.inerciaAtaque:
         return InerciaAtaqueStatus(value: resolvedValue);
-      case ItemStatusEffectKind.inerciaDefensa:
-        return InerciaDefensaStatus(value: resolvedValue);
+      case ItemStatusEffectKind.inerciaBarrera:
+        return InerciaBarreraStatus(value: resolvedValue);
       case ItemStatusEffectKind.interferencia:
         return InterferenciaStatus(remainingTurns: resolvedValue);
     }
@@ -1127,8 +1127,8 @@ class StatusItemEffect extends ItemEffect {
         return 'Inercia (+$resolvedValue por acumulacion)';
       case ItemStatusEffectKind.inerciaAtaque:
         return 'Reserva de Inercia: ATK (+$resolvedValue)';
-      case ItemStatusEffectKind.inerciaDefensa:
-        return 'Reserva de Inercia: DEF (+$resolvedValue)';
+      case ItemStatusEffectKind.inerciaBarrera:
+        return 'Reserva de Inercia: Barrera (+$resolvedValue)';
       case ItemStatusEffectKind.interferencia:
         return 'Interferencia durante $resolvedValue turnos';
     }

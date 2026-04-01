@@ -3,19 +3,19 @@ import '../_imports.dart';
 const _ataqueTags = <EntityTag>[
   EntityTag.ataque,
 ];
-const _defensaTags = <EntityTag>[
-  EntityTag.defensa,
+const _barreraTags = <EntityTag>[
+  EntityTag.barrera,
 ];
-const _ataqueDefensaTags = <EntityTag>[
+const _ataqueBarreraTags = <EntityTag>[
   EntityTag.ataque,
-  EntityTag.defensa,
+  EntityTag.barrera,
 ];
 const _vidaTags = <EntityTag>[
   EntityTag.vida,
 ];
-const _vidaDefensaTags = <EntityTag>[
+const _vidaBarreraTags = <EntityTag>[
   EntityTag.vida,
-  EntityTag.defensa,
+  EntityTag.barrera,
 ];
 const _economiaVidaTags = <EntityTag>[
   EntityTag.economia,
@@ -51,22 +51,22 @@ const _ataqueDebuffTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
 ];
-const _ataqueDebuffDefensaTags = <EntityTag>[
+const _ataqueDebuffBarreraTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
-  EntityTag.defensa,
+  EntityTag.barrera,
 ];
-const _defensaDebuffTags = <EntityTag>[
-  EntityTag.defensa,
+const _barreraDebuffTags = <EntityTag>[
+  EntityTag.barrera,
   EntityTag.debuff,
 ];
-const _defensaBuffTags = <EntityTag>[
-  EntityTag.defensa,
+const _barreraBuffTags = <EntityTag>[
+  EntityTag.barrera,
   EntityTag.buff,
 ];
-const _ataqueDefensaBuffTags = <EntityTag>[
+const _ataqueBarreraBuffTags = <EntityTag>[
   EntityTag.ataque,
-  EntityTag.defensa,
+  EntityTag.barrera,
   EntityTag.buff,
 ];
 
@@ -112,10 +112,10 @@ const cyberWhipsItem = Item(
 /// Accesorio agil que reduce el ATK total para convertir cada ataque en doble golpe.
 const sunglassesItem = Item(
   id: ItemId.sunglasses,
-  tags: _ataqueDefensaTags,
+  tags: _ataqueBarreraTags,
   name: 'Gafas de Sol',
   description:
-      '+1 DEF. Mitad de ATK, pero cada ataque basico golpea dos veces.',
+      '+1 Barrera. Mitad de ATK, pero cada ataque basico golpea dos veces.',
   iconEmoji: '\u{1F453}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.gray,
@@ -123,10 +123,10 @@ const sunglassesItem = Item(
   value: 1,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   effect: SunglassesItemEffect(),
 );
@@ -134,9 +134,9 @@ const sunglassesItem = Item(
 /// Soporte defensivo verde para builds de aguante.
 const shieldItem = Item(
   id: ItemId.shield,
-  tags: _vidaDefensaTags,
+  tags: _vidaBarreraTags,
   name: 'Escudo',
-  description: '+2 DEF. Al inicio de tu turno, recuperas 5 HP.',
+  description: '+2 Barrera. Al inicio de tu turno, recuperas 5 HP.',
   iconEmoji: '\u{1F6E1}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
@@ -144,20 +144,20 @@ const shieldItem = Item(
   value: 5,
   upgradeValue: 5,
   statModifiers: {
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
   },
   effect: RegenerativeShieldItemEffect(),
 );
 
-/// Accesorio verde que sube vida maxima y defensa a la vez.
+/// Accesorio verde que sube vida maxima y barrera a la vez.
 const bulwarkAmuletItem = Item(
   id: ItemId.bulwarkAmulet,
-  tags: _vidaDefensaTags,
+  tags: _vidaBarreraTags,
   name: 'Amuleto de Bastion',
-  description: '+6 HP y +1 DEF mientras este equipado.',
+  description: '+6 HP y +1 Barrera mientras este equipado.',
   iconEmoji: '\u{1F9FF}',
   slot: ItemSlot.accessory,
   rarity: RarityTier.green,
@@ -166,11 +166,11 @@ const bulwarkAmuletItem = Item(
   upgradeValue: 6,
   statModifiers: {
     BattlerStat.health: 6,
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   upgradeStatModifiers: {
     BattlerStat.health: 6,
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
 );
 
@@ -294,9 +294,9 @@ const ironSwordItem = Item(
 /// Soporte verde defensivo para enemigos y tienda.
 const guardShieldItem = Item(
   id: ItemId.guardShield,
-  tags: _defensaTags,
+  tags: _barreraTags,
   name: 'Escudo de Guardia',
-  description: '+2 DEF mientras este equipado.',
+  description: '+2 Barrera mientras este equipado.',
   iconEmoji: '\u{1F6E1}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
@@ -304,10 +304,10 @@ const guardShieldItem = Item(
   value: 2,
   upgradeValue: 2,
   statModifiers: {
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
   },
 );
 
@@ -353,9 +353,10 @@ const stunBatonItem = Item(
 /// Armadura gris basica que refresca un pequeno escudo temporal cada turno.
 const emergencyPlatingItem = Item(
   id: ItemId.emergencyPlating,
-  tags: _defensaBuffTags,
+  tags: _barreraBuffTags,
   name: 'Placa de Emergencia',
-  description: '+1 DEF. Al inicio de tu turno, recuperas Blindaje Temporal.',
+  description:
+      '+1 Barrera. Al inicio de tu turno, recuperas Blindaje Temporal.',
   iconEmoji: '\u{1F6E1}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.gray,
@@ -363,10 +364,10 @@ const emergencyPlatingItem = Item(
   value: 2,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.blindajeTemporal,
@@ -377,7 +378,7 @@ const emergencyPlatingItem = Item(
 /// Accesorio gris reactivo que silencia al agresor.
 const pocketJammerItem = Item(
   id: ItemId.pocketJammer,
-  tags: _defensaDebuffTags,
+  tags: _barreraDebuffTags,
   name: 'Interferidor de Bolsillo',
   description: 'Al recibir dano: aplica Interferencia al agresor.',
   iconEmoji: '\u{1F4F6}',
@@ -392,10 +393,10 @@ const pocketJammerItem = Item(
   ),
 );
 
-/// Arma verde orientada a romper defensas de forma estable.
+/// Arma verde orientada a romper barreras de forma estable.
 const serratedEdgeItem = Item(
   id: ItemId.serratedEdge,
-  tags: _ataqueDebuffDefensaTags,
+  tags: _ataqueDebuffBarreraTags,
   name: 'Sierra Dentada',
   description: '+1 ATK. Al atacar: aplica Fragilidad al enemigo.',
   iconEmoji: '\u2692',
@@ -419,9 +420,10 @@ const serratedEdgeItem = Item(
 /// Armadura verde que estabiliza un Escudo de Energia constante.
 const containmentCoilItem = Item(
   id: ItemId.containmentCoil,
-  tags: _defensaBuffTags,
+  tags: _barreraBuffTags,
   name: 'Bobina de Contencion',
-  description: '+1 DEF. Al inicio de tu turno, recuperas Escudo de Energia.',
+  description:
+      '+1 Barrera. Al inicio de tu turno, recuperas Escudo de Energia.',
   iconEmoji: '\u26A1',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
@@ -429,10 +431,10 @@ const containmentCoilItem = Item(
   value: 1,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.escudoDeEnergia,
@@ -485,9 +487,9 @@ const pulseCarbineItem = Item(
 /// Armadura azul que transforma dano de estado en margen contra golpes directos.
 const phaseVeilItem = Item(
   id: ItemId.phaseVeil,
-  tags: _defensaBuffTags,
+  tags: _barreraBuffTags,
   name: 'Velo de Fase',
-  description: '+2 DEF. Al inicio de tu turno, recuperas Escudo de Fase.',
+  description: '+2 Barrera. Al inicio de tu turno, recuperas Escudo de Fase.',
   iconEmoji: '\u{1F300}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.blue,
@@ -495,10 +497,10 @@ const phaseVeilItem = Item(
   value: 2,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.escudoDeFase,
@@ -509,7 +511,7 @@ const phaseVeilItem = Item(
 /// Accesorio azul que garantiza acceso continuo al motor de Inercia.
 const inertialCoreItem = Item(
   id: ItemId.inertialCore,
-  tags: _ataqueDefensaBuffTags,
+  tags: _ataqueBarreraBuffTags,
   name: 'Nucleo Inercial',
   description: 'Al inicio de tu turno, si no lo tienes, ganas Inercia.',
   iconEmoji: '\u{1F9F2}',
@@ -551,9 +553,10 @@ const impulseSpearItem = Item(
 /// Armadura morada que convierte castigo en una reserva defensiva creciente.
 const reboundHarnessItem = Item(
   id: ItemId.reboundHarness,
-  tags: _defensaBuffTags,
+  tags: _barreraBuffTags,
   name: 'Arnes de Rebote',
-  description: '+2 DEF. Al recibir dano: ganas Reserva de Inercia: DEF.',
+  description:
+      '+2 Barrera. Al recibir dano: ganas Reserva de Inercia: Barrera.',
   iconEmoji: '\u{1F9E5}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.purple,
@@ -561,13 +564,13 @@ const reboundHarnessItem = Item(
   value: 2,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.inerciaDefensa,
+    kind: ItemStatusEffectKind.inerciaBarrera,
     trigger: ItemStatusEffectTrigger.receiveDamageOwner,
   ),
 );
@@ -575,7 +578,7 @@ const reboundHarnessItem = Item(
 /// Accesorio morado que devuelve una conmocion potente al agresor.
 const concussionPrismItem = Item(
   id: ItemId.concussionPrism,
-  tags: _defensaDebuffTags,
+  tags: _barreraDebuffTags,
   name: 'Prisma Concusivo',
   description: 'Al recibir dano: aplica Conmocion al agresor.',
   iconEmoji: '\u{1F48E}',
@@ -590,12 +593,12 @@ const concussionPrismItem = Item(
   ),
 );
 
-/// Blindaje azul de defensa plana alta.
+/// Blindaje azul de barrera plana alta.
 const platedJacketItem = Item(
   id: ItemId.platedJacket,
-  tags: _defensaTags,
+  tags: _barreraTags,
   name: 'Chaqueta Blindada',
-  description: '+4 DEF mientras este equipada.',
+  description: '+4 Barrera mientras este equipada.',
   iconEmoji: '\u{1F9E5}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.blue,
@@ -603,10 +606,10 @@ const platedJacketItem = Item(
   value: 4,
   upgradeValue: 4,
   statModifiers: {
-    BattlerStat.defense: 4,
+    BattlerStat.barrier: 4,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 4,
+    BattlerStat.barrier: 4,
   },
 );
 
@@ -637,9 +640,10 @@ const overloadInjectorItem = Item(
 /// Armadura amarilla que garantiza una Inercia de alto valor si se pierde.
 const vectorBulwarkItem = Item(
   id: ItemId.vectorBulwark,
-  tags: _ataqueDefensaBuffTags,
+  tags: _ataqueBarreraBuffTags,
   name: 'Bastion Vectorial',
-  description: '+3 DEF. Al inicio de tu turno, si no lo tienes, ganas Inercia.',
+  description:
+      '+3 Barrera. Al inicio de tu turno, si no lo tienes, ganas Inercia.',
   iconEmoji: '\u{1F9FF}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.yellow,
@@ -647,10 +651,10 @@ const vectorBulwarkItem = Item(
   value: 2,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.defense: 3,
+    BattlerStat.barrier: 3,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.inercia,
@@ -661,7 +665,7 @@ const vectorBulwarkItem = Item(
 /// Accesorio amarillo que rellena un Blindaje Temporal grande al arrancar turno.
 const contingencySealItem = Item(
   id: ItemId.contingencySeal,
-  tags: _defensaBuffTags,
+  tags: _barreraBuffTags,
   name: 'Sello de Contingencia',
   description: 'Al inicio de tu turno, recuperas Blindaje Temporal.',
   iconEmoji: '\u2726',
@@ -719,9 +723,9 @@ const dawnCharmItem = Item(
 /// Soporte morado defensivo simple y consistente.
 const midnightCloakItem = Item(
   id: ItemId.midnightCloak,
-  tags: _defensaTags,
+  tags: _barreraTags,
   name: 'Capa de Medianoche',
-  description: '+5 DEF mientras este equipada.',
+  description: '+5 Barrera mientras este equipada.',
   iconEmoji: '\u{1F576}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.purple,
@@ -729,10 +733,10 @@ const midnightCloakItem = Item(
   value: 5,
   upgradeValue: 5,
   statModifiers: {
-    BattlerStat.defense: 5,
+    BattlerStat.barrier: 5,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 5,
+    BattlerStat.barrier: 5,
   },
 );
 
@@ -798,10 +802,10 @@ const voidInjectorItem = Item(
 /// Soporte amarillo que potencia la primera activacion manual del combate.
 const eclipseMantleItem = Item(
   id: ItemId.eclipseMantle,
-  tags: _defensaTags,
+  tags: _barreraTags,
   name: 'Manto de Eclipse',
   description:
-      '+4 DEF y un pulso de potencia en la primera activacion manual del combate.',
+      '+4 Barrera y un pulso de potencia en la primera activacion manual del combate.',
   iconEmoji: '\u{1F318}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.yellow,
@@ -809,10 +813,10 @@ const eclipseMantleItem = Item(
   value: 3,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.defense: 4,
+    BattlerStat.barrier: 4,
   },
   upgradeStatModifiers: {
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   effect: EclipseMantleItemEffect(),
 );

@@ -25,7 +25,7 @@ TODOs:
 --Manejar su inventario
 
 -Combate
---Quitar defensa->defensa = escudo extra todos los combates?
+--Quitar mitigación plana -> barrera = escudo extra todos los combates?
 --Nuevas mecánicas de combate:
 ---Dibujos - Formas básicas mas las que da adicional el equipamiento
 [--Añadir estados alterados]

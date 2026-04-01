@@ -24,19 +24,19 @@ final velozArchetypeNode = ArchetypePathNode(
   ],
 );
 
-/// Arquetipo defensivo centrado en vida, defensa y estabilidad.
+/// Arquetipo defensivo centrado en vida, barrera y estabilidad.
 final inamovibleArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
-      'Escudo + Amuleto de Bastion. Perfil resistente con regeneracion pasiva, mas defensa y Reinicio en seco. Empieza con 12C y 2 income.',
+      'Escudo + Amuleto de Bastion. Perfil resistente con regeneracion pasiva, mas barrera y Reinicio en seco. Empieza con 12C y 2 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
   accent: const Color(0xFF5AF78E),
   rarity: RarityTier.green,
   baseStatModifiers: const {
     BattlerStat.health: 4,
-    BattlerStat.defense: 1,
+    BattlerStat.barrier: 1,
   },
   moneyModifier: 12,
   incomeModifier: 2,
@@ -101,11 +101,11 @@ final weaponShopCriterion = ShopInventoryCriterion(
   requiredSlot: ItemSlot.weapon,
 );
 
-/// Criterio defensivo amplio para objetos que aportan defensa directa.
-final defenseShopCriterion = ShopInventoryCriterion(
-  label: 'DEFENSA',
-  description: 'Solo aparecen objetos que otorgan defensa.',
-  requiredPositiveModifierStat: BattlerStat.defense,
+/// Criterio defensivo amplio para objetos que aportan barrera directa.
+final barrierShopCriterion = ShopInventoryCriterion(
+  label: 'BARRERA',
+  description: 'Solo aparecen objetos que otorgan barrera.',
+  requiredPositiveModifierStat: BattlerStat.barrier,
 );
 
 /// Criterio quimico que acepta objetos de Quemadura o Intoxicacion hasta azul.
@@ -279,7 +279,7 @@ final velvetArmoryNode = ShopPathNode(
   showTitle: 'Velvet Armory',
   shopTitle: 'VELVET ARMORY',
   shopSubtitle: 'Blindaje elegante para quien espera volver con vida.',
-  stockCriterion: defenseShopCriterion,
+  stockCriterion: barrierShopCriterion,
 );
 
 /// Tienda morada nocturna de alquimia agresiva sin superar el stock azul.

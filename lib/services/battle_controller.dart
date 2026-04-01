@@ -32,14 +32,8 @@ class BattleController extends ChangeNotifier {
     BattlerEffectPipeline effectPipeline = const BattlerEffectPipeline(),
     BattleResolver resolver = const BattleResolver(),
     BattleTurnEngine turnEngine = const BattleTurnEngine(),
-  })  : _enemy = enemy
-            .materializeOwnedItems()
-            .clearCombatFlags()
-            .addCombatFlag(Battler.combatActiveFlag),
-        _player = player
-            .materializeOwnedItems()
-            .clearCombatFlags()
-            .addCombatFlag(Battler.combatActiveFlag),
+  })  : _enemy = enemy.prepareForCombat(),
+        _player = player.prepareForCombat(),
         _resolver = resolver,
         _effectPipeline = effectPipeline,
         _randomizer = randomizer ?? RunRandomizer(),

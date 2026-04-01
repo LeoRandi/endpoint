@@ -8,7 +8,7 @@ enum EntityTag {
   intoxicacion,
   vida,
   ataque,
-  defensa,
+  barrera,
   economia;
 }
 
@@ -28,8 +28,8 @@ extension EntityTagPresentation on EntityTag {
         return 'Vida';
       case EntityTag.ataque:
         return 'Ataque';
-      case EntityTag.defensa:
-        return 'Defensa';
+      case EntityTag.barrera:
+        return 'Barrera';
       case EntityTag.economia:
         return 'Economia';
     }
@@ -49,7 +49,7 @@ extension EntityTagPresentation on EntityTag {
         return const Color(0xFFFF8BA7);
       case EntityTag.ataque:
         return const Color(0xFFF3D35C);
-      case EntityTag.defensa:
+      case EntityTag.barrera:
         return const Color(0xFF59B7FF);
       case EntityTag.economia:
         return const Color(0xFFEBCB5A);

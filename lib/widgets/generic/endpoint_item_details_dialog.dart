@@ -56,8 +56,8 @@ class EndpointItemDetailsDialog extends StatelessWidget {
       0.08,
     );
     final effectDescription = item.effect?.descriptionFor(item);
-    final shouldShowEffectPanel =
-        effectDescription != null && effectDescription != item.displayDescription;
+    final shouldShowEffectPanel = effectDescription != null &&
+        effectDescription != item.displayDescription;
 
     return EndpointDetailsDialogScaffold(
       accent: accent,
@@ -104,7 +104,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                       ),
                     ),
                     if (item.hasTags) ...[
-                    const SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       SizedBox(
                         width: double.infinity,
                         child: EndpointTagPillMarquee(
@@ -178,8 +178,8 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                       backgroundColor: secondaryActionSurface,
                       foregroundColor: foreground,
                       borderWidth: 1.2,
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
                       textStyle: textSmallBold.copyWith(letterSpacing: 1.1),
                       iconSize: 18,
                       useMarquee: false,
@@ -217,7 +217,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
       ...item.statModifiers.entries.map((entry) {
         final value = entry.value;
         final sign = value >= 0 ? '+' : '';
-        return '$sign$value ${entry.key.name.toUpperCase()}';
+        return '$sign$value ${_modifierLabel(entry.key)}';
       }),
     ];
 
@@ -234,5 +234,13 @@ class EndpointItemDetailsDialog extends StatelessWidget {
     if (entries.isEmpty) return 'Sin modificadores directos.';
 
     return entries.join('   ');
+  }
+
+  String _modifierLabel(BattlerStat stat) {
+    if (stat == BattlerStat.barrier) {
+      return stat.label;
+    }
+
+    return stat.shortLabel;
   }
 }

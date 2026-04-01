@@ -48,9 +48,9 @@ const _ataqueDebuffAbilityTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
 ];
-const _vidaDefensaAbilityTags = <EntityTag>[
+const _vidaBarreraAbilityTags = <EntityTag>[
   EntityTag.vida,
-  EntityTag.defensa,
+  EntityTag.barrera,
 ];
 const _debuffAbilityTags = <EntityTag>[
   EntityTag.debuff,
@@ -696,7 +696,7 @@ const weaknessHunterAbility = BattlerAbility(
 /// Preset pasivo defensivo que protege mientras la vida siga llena.
 const ghostMeshAbility = BattlerAbility(
   id: BattlerAbilityId.ghostMesh,
-  tags: _vidaDefensaAbilityTags,
+  tags: _vidaBarreraAbilityTags,
   name: 'Malla Fantasma',
   description:
       'Pasiva. Si tu vida esta al maximo, el dano recibido por ataques se reduce a la mitad, redondeando hacia arriba.',

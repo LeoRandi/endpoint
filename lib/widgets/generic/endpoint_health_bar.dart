@@ -4,12 +4,20 @@ class EndpointHealthBar extends StatelessWidget {
   final double value;
   final Color accent;
   final double height;
+  final Color? trackColor;
+  final double trackOpacity;
+  final double fillStartOpacity;
+  final double fillEndOpacity;
 
   const EndpointHealthBar({
     super.key,
     required this.value,
     required this.accent,
     this.height = 12,
+    this.trackColor,
+    this.trackOpacity = 0.35,
+    this.fillStartOpacity = 0.72,
+    this.fillEndOpacity = 1,
   });
 
   @override
@@ -18,7 +26,7 @@ class EndpointHealthBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       child: Container(
         height: height,
-        color: Colors.black.withOpacity(0.35),
+        color: trackColor ?? Colors.black.withOpacity(trackOpacity),
         child: Align(
           alignment: Alignment.centerLeft,
           child: FractionallySizedBox(
@@ -27,8 +35,8 @@ class EndpointHealthBar extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    accent.withOpacity(0.72),
-                    accent,
+                    accent.withOpacity(fillStartOpacity),
+                    accent.withOpacity(fillEndOpacity),
                   ],
                 ),
               ),

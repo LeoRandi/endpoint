@@ -9,7 +9,7 @@ const grayEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 48,
     BattlerStat.attack: 6,
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -26,7 +26,7 @@ const shadeSkipperEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 42,
     BattlerStat.attack: 7,
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -43,7 +43,7 @@ const lensRuntEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 46,
     BattlerStat.attack: 6,
-    BattlerStat.defense: 2,
+    BattlerStat.barrier: 2,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -60,7 +60,7 @@ const phaseMoteEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 44,
     BattlerStat.attack: 6,
-    BattlerStat.defense: 3,
+    BattlerStat.barrier: 3,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -77,7 +77,7 @@ const greenEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 72,
     BattlerStat.attack: 8,
-    BattlerStat.defense: 4,
+    BattlerStat.barrier: 4,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -95,7 +95,7 @@ const venomStitchEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 68,
     BattlerStat.attack: 9,
-    BattlerStat.defense: 3,
+    BattlerStat.barrier: 3,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -113,7 +113,7 @@ const patchBulwarkEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 78,
     BattlerStat.attack: 7,
-    BattlerStat.defense: 4,
+    BattlerStat.barrier: 4,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -133,7 +133,7 @@ const cinderClawEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 70,
     BattlerStat.attack: 9,
-    BattlerStat.defense: 3,
+    BattlerStat.barrier: 3,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -144,7 +144,7 @@ const cinderClawEnemyBattler = Battler(
   ],
 );
 
-/// Enemigo azul que mezcla defensa y dano para el tramo medio de la run.
+/// Enemigo azul que mezcla barrera y dano para el tramo medio de la run.
 const blueEnemyBattler = Battler(
   name: 'RIFT HOUND',
   health: 96,
@@ -153,7 +153,7 @@ const blueEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 96,
     BattlerStat.attack: 10,
-    BattlerStat.defense: 6,
+    BattlerStat.barrier: 6,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -174,7 +174,7 @@ const toxicReaverEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 92,
     BattlerStat.attack: 10,
-    BattlerStat.defense: 5,
+    BattlerStat.barrier: 5,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -195,7 +195,7 @@ const phaseBastionEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 104,
     BattlerStat.attack: 8,
-    BattlerStat.defense: 6,
+    BattlerStat.barrier: 6,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -216,7 +216,7 @@ const cinderRamEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 94,
     BattlerStat.attack: 11,
-    BattlerStat.defense: 5,
+    BattlerStat.barrier: 5,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -237,7 +237,7 @@ const purpleEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 128,
     BattlerStat.attack: 13,
-    BattlerStat.defense: 8,
+    BattlerStat.barrier: 8,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -261,7 +261,7 @@ const venomOracleEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 124,
     BattlerStat.attack: 12,
-    BattlerStat.defense: 8,
+    BattlerStat.barrier: 8,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -283,7 +283,7 @@ const cinderExecutionerEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 132,
     BattlerStat.attack: 13,
-    BattlerStat.defense: 7,
+    BattlerStat.barrier: 7,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -302,10 +302,10 @@ const phaseDredgerEnemyBattler = Battler(
   health: 126,
   money: 0,
   income: 0,
-  baseStats:  {
+  baseStats: {
     BattlerStat.health: 126,
     BattlerStat.attack: 12,
-    BattlerStat.defense: 9,
+    BattlerStat.barrier: 9,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -314,7 +314,7 @@ const phaseDredgerEnemyBattler = Battler(
     ghostMeshAbility,
     criticalScannerAbility,
   ],
-  equippedItems:  [
+  equippedItems: [
     midnightCloakItem,
     parasiticCapacitorItem,
   ],
@@ -329,7 +329,7 @@ const yellowEnemyBattler = Battler(
   baseStats: {
     BattlerStat.health: 168,
     BattlerStat.attack: 16,
-    BattlerStat.defense: 10,
+    BattlerStat.barrier: 10,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -349,7 +349,7 @@ const defaultPlayerBattler = Battler(
   baseStats: {
     BattlerStat.health: 45,
     BattlerStat.attack: 10,
-    BattlerStat.defense: 5,
+    BattlerStat.barrier: 5,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,

@@ -120,7 +120,7 @@ final cinderExecutionerCombatNode = CombatPathNode(
   label: cinderExecutionerEnemyBattler.name,
 );
 
-/// Nodo morado tecnico que mezcla defensa, drenaje y primer golpe cargado.
+/// Nodo morado tecnico que mezcla barrera, drenaje y primer golpe cargado.
 final phaseDredgerCombatNode = CombatPathNode(
   nodeId: 'combat_phase_dredger',
   enemy: phaseDredgerEnemyBattler,

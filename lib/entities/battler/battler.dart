@@ -6,10 +6,64 @@ import '../../services/run_randomizer.dart';
 enum BattlerStat {
   health,
   attack,
-  defense,
+  barrier,
   thorns,
   damageReduction,
   vampirism,
+}
+
+/// Expone etiquetas legibles y colores coherentes para cada stat visible.
+extension BattlerStatPresentation on BattlerStat {
+  String get label {
+    switch (this) {
+      case BattlerStat.health:
+        return 'Vida';
+      case BattlerStat.attack:
+        return 'Ataque';
+      case BattlerStat.barrier:
+        return 'Barrera';
+      case BattlerStat.thorns:
+        return 'Espinas';
+      case BattlerStat.damageReduction:
+        return 'Red. dano';
+      case BattlerStat.vampirism:
+        return 'Vampirismo';
+    }
+  }
+
+  String get shortLabel {
+    switch (this) {
+      case BattlerStat.health:
+        return 'HP';
+      case BattlerStat.attack:
+        return 'ATK';
+      case BattlerStat.barrier:
+        return 'BAR';
+      case BattlerStat.thorns:
+        return 'ESP';
+      case BattlerStat.damageReduction:
+        return 'RED';
+      case BattlerStat.vampirism:
+        return 'VAMP';
+    }
+  }
+
+  Color get accent {
+    switch (this) {
+      case BattlerStat.health:
+        return const Color(0xFFFF8BA7);
+      case BattlerStat.attack:
+        return const Color(0xFFF3D35C);
+      case BattlerStat.barrier:
+        return const Color(0xFF59B7FF);
+      case BattlerStat.thorns:
+        return const Color(0xFF9EA7B3);
+      case BattlerStat.damageReduction:
+        return const Color(0xFF8BE9FD);
+      case BattlerStat.vampirism:
+        return const Color(0xFFFF6B6B);
+    }
+  }
 }
 
 /// Enumera las recompensas permanentes que el jugador puede escoger al subir de nivel.
@@ -183,9 +237,8 @@ class _BattlerDerivedState {
       }
     }
 
-    final incomeStatuses =
-        statusesByHook[BattlerStatusHook.incomeModifier] ??
-            const <BattlerStatus>[];
+    final incomeStatuses = statusesByHook[BattlerStatusHook.incomeModifier] ??
+        const <BattlerStatus>[];
     final statStatuses =
         statusesByHook[BattlerStatusHook.calculatedStatModifier] ??
             const <BattlerStatus>[];
@@ -276,10 +329,13 @@ class _BattlerDerivedState {
 /// Representa el estado completo de un combatiente, incluyendo economia, equipo y hooks runtime.
 class Battler {
   static const defaultEquipmentCapacity = 3;
+
   /// Marca el nivel operativo inicial que tiene cualquier battler controlado por la run.
   static const initialLevel = 1;
+
   /// Limita la progresion total para evitar escalado indefinido mientras no exista postgame.
   static const maximumLevel = 10;
+
   /// Define el coste en XP de la primera subida de nivel antes de aplicar crecimiento.
   static const initialLevelUpExperienceCost = 2;
   static const combatActiveFlag = CombatRuntimeFlag.battler(
@@ -298,6 +354,7 @@ class Battler {
   final String name;
   final String iconEmoji;
   final int health;
+  final int currentBarrier;
   final int money;
   final int baseIncome;
   final int equipmentCapacity;
@@ -328,6 +385,7 @@ class Battler {
     required this.name,
     this.iconEmoji = '\u{1F916}',
     required this.health,
+    this.currentBarrier = 0,
     this.money = 0,
     int income = 0,
     this.equipmentCapacity = defaultEquipmentCapacity,
@@ -341,6 +399,7 @@ class Battler {
     this.combatFlags = const <CombatRuntimeFlag>{},
   })  : baseIncome = income,
         assert(health >= 0),
+        assert(currentBarrier >= 0),
         assert(level >= initialLevel),
         assert(experience >= 0);
 
@@ -356,11 +415,14 @@ class Battler {
   /// Devuelve el ataque ya calculado con equipo y estados.
   int get attack => calculatedStat(BattlerStat.attack);
 
-  /// Devuelve la defensa base sin modificadores de equipo ni estados.
-  int get baseDefense => baseStat(BattlerStat.defense);
+  /// Devuelve la Barrera base sin modificadores de equipo ni estados.
+  int get baseBarrier => baseStat(BattlerStat.barrier);
 
-  /// Devuelve la defensa ya calculada con equipo y estados.
-  int get defense => calculatedStat(BattlerStat.defense);
+  /// Devuelve la Barrera maxima ya calculada con equipo y estados.
+  int get maxBarrier => calculatedStat(BattlerStat.barrier);
+
+  /// Reexpone la Barrera maxima como stat visible del battler.
+  int get barrier => maxBarrier;
 
   /// Devuelve el thorns base sin modificadores de equipo ni estados.
   int get baseThorns => baseStat(BattlerStat.thorns);
@@ -415,6 +477,9 @@ class Battler {
 
   /// Indica si este battler ya no tiene vida.
   bool get isDefeated => health <= 0;
+
+  /// Indica si al menos queda un punto de Barrera temporal durante el combate.
+  bool get hasBarrier => currentBarrier > 0;
 
   /// Suma XP persistente fuera del combate y deja el exceso acumulado para futuros niveles.
   Battler gainExperience(int amount) {
@@ -523,14 +588,10 @@ class Battler {
   int calculatedStat(BattlerStat stat) =>
       _derivedState.calculatedStats[stat] ?? 0;
 
-  /// Calcula el dano base de un ataque directo usando ataque menos defensa.
+  /// Calcula el dano base de un ataque directo usando solo el ataque total del portador.
   int calculateDamageAgainst(Battler target) {
     // TODO: Apply thorns, damage reduction, and vampirism when their combat rules are defined.
-    return max(
-      1,
-      calculatedStat(BattlerStat.attack) -
-          target.calculatedStat(BattlerStat.defense),
-    );
+    return max(1, calculatedStat(BattlerStat.attack));
   }
 
   /// Recibe un ataque basico de otro battler y resuelve dano directo.
@@ -541,18 +602,29 @@ class Battler {
     );
   }
 
-  /// Resta vida directa, dispara protecciones letales y nunca deja vida negativa.
+  /// Consume primero Barrera activa y despues vida, disparando protecciones letales si procede.
   Battler receiveDamage(int damage) {
     final safeDamage = max(0, damage);
     if (safeDamage <= 0) return this;
 
-    final damagedOwner = copyWith(health: max(0, health - safeDamage));
+    final absorbedByBarrier = min(currentBarrier, safeDamage);
+    final ownerAfterBarrier = absorbedByBarrier <= 0
+        ? this
+        : copyWith(currentBarrier: currentBarrier - absorbedByBarrier);
+    final remainingDamage = max(0, safeDamage - absorbedByBarrier);
+    if (remainingDamage <= 0) {
+      return ownerAfterBarrier;
+    }
+
+    final damagedOwner = ownerAfterBarrier.copyWith(
+      health: max(0, ownerAfterBarrier.health - remainingDamage),
+    );
     if (damagedOwner.health > 0) {
       return damagedOwner;
     }
 
     return damagedOwner.applyEquippedItemFatalDamageEffects(
-      incomingDamage: safeDamage,
+      incomingDamage: remainingDamage,
     );
   }
 
@@ -589,6 +661,17 @@ class Battler {
   Battler heal(int amount) {
     final safeAmount = max(0, amount);
     return copyWith(health: min(maxHealth, health + safeAmount));
+  }
+
+  /// Activa el estado runtime de combate y rellena la Barrera temporal inicial.
+  Battler prepareForCombat() {
+    final preparedOwner = materializeOwnedItems().clearCombatFlags();
+    return preparedOwner.copyWith(
+      combatFlags: const <CombatRuntimeFlag>{
+        combatActiveFlag,
+      },
+      currentBarrier: preparedOwner.maxBarrier,
+    );
   }
 
   /// Aplica un estado nuevo pasando por modificadores de equipo, stacking y reemplazos.
@@ -1317,6 +1400,7 @@ class Battler {
         .resetAbilitiesForContext(
           BattlerAbilityActivationContext.battle,
         )
+        .copyWith(currentBarrier: 0)
         .clearCombatFlags();
   }
 
@@ -1374,9 +1458,8 @@ class Battler {
     updatedBaseStats[BattlerStat.health] =
         max(0, (updatedBaseStats[BattlerStat.health] ?? 0) + healthGain);
 
-    final remainingExperience = nextLevel >= maximumLevel
-        ? 0
-        : max(0, experience - requiredExperience);
+    final remainingExperience =
+        nextLevel >= maximumLevel ? 0 : max(0, experience - requiredExperience);
 
     return copyWith(
       health: health + healthGain,
@@ -1393,6 +1476,7 @@ class Battler {
     String? name,
     String? iconEmoji,
     int? health,
+    int? currentBarrier,
     int? money,
     int? income,
     int? equipmentCapacity,
@@ -1425,6 +1509,10 @@ class Battler {
       name: name ?? this.name,
       iconEmoji: iconEmoji ?? this.iconEmoji,
       health: max(0, health ?? this.health),
+      explicitCurrentBarrier: currentBarrier,
+      previousCurrentBarrier: this.currentBarrier,
+      previousMaxBarrier: maxBarrier,
+      wasCombatActive: hasCombatFlag(combatActiveFlag),
       money: max(0, money ?? this.money),
       income: max(0, income ?? baseIncome),
       equipmentCapacity: max(0, equipmentCapacity ?? this.equipmentCapacity),
@@ -1494,7 +1582,9 @@ class Battler {
   /// Calcula el coste de XP del siguiente nivel aplicando crecimiento del 50% y redondeo hacia arriba.
   static int _experienceCostForLevel(int level) {
     var cost = initialLevelUpExperienceCost;
-    for (var currentLevel = initialLevel; currentLevel < level; currentLevel++) {
+    for (var currentLevel = initialLevel;
+        currentLevel < level;
+        currentLevel++) {
       cost = (cost * 1.5).ceil();
     }
 
@@ -1505,6 +1595,10 @@ class Battler {
     required String name,
     required String iconEmoji,
     required int health,
+    required int? explicitCurrentBarrier,
+    required int previousCurrentBarrier,
+    required int previousMaxBarrier,
+    required bool wasCombatActive,
     required int money,
     required int income,
     required int equipmentCapacity,
@@ -1517,10 +1611,15 @@ class Battler {
     required List<Item> equippedItems,
     required Set<CombatRuntimeFlag> combatFlags,
   }) {
+    final seedBarrier = max(
+      0,
+      explicitCurrentBarrier ?? previousCurrentBarrier,
+    );
     final candidate = Battler(
       name: name,
       iconEmoji: iconEmoji,
       health: health,
+      currentBarrier: seedBarrier,
       money: money,
       income: income,
       equipmentCapacity: equipmentCapacity,
@@ -1536,7 +1635,21 @@ class Battler {
       combatFlags: combatFlags,
     );
     final clampedHealth = min(candidate.health, candidate.maxHealth);
-    if (clampedHealth == candidate.health) {
+    final willBeCombatActive = combatFlags.contains(combatActiveFlag);
+    final resolvedCurrentBarrier = !willBeCombatActive
+        ? 0
+        : explicitCurrentBarrier != null
+            ? explicitCurrentBarrier
+            : wasCombatActive
+                ? previousCurrentBarrier +
+                    (candidate.maxBarrier - previousMaxBarrier)
+                : candidate.maxBarrier;
+    final clampedCurrentBarrier = min(
+      candidate.maxBarrier,
+      max(0, resolvedCurrentBarrier),
+    );
+    if (clampedHealth == candidate.health &&
+        clampedCurrentBarrier == candidate.currentBarrier) {
       return candidate;
     }
 
@@ -1544,6 +1657,7 @@ class Battler {
       name: name,
       iconEmoji: iconEmoji,
       health: clampedHealth,
+      currentBarrier: clampedCurrentBarrier,
       money: money,
       income: income,
       equipmentCapacity: equipmentCapacity,

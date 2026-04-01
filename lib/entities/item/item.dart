@@ -322,8 +322,8 @@ class Item {
         return 'HP';
       case BattlerStat.attack:
         return 'ATK';
-      case BattlerStat.defense:
-        return 'DEF';
+      case BattlerStat.barrier:
+        return 'Barrera';
       case BattlerStat.thorns:
         return 'THORNS';
       case BattlerStat.damageReduction:

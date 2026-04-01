@@ -27,7 +27,7 @@ enum BattlerStatusId {
   escudoDeFase,
   inercia,
   inerciaAtaque,
-  inerciaDefensa,
+  inerciaBarrera,
   deuda,
 }
 
@@ -326,22 +326,22 @@ const _debuffIntoxicacionStatusTags = <EntityTag>[
 const _debuffStatusTags = <EntityTag>[
   EntityTag.debuff,
 ];
-const _debuffDefensaStatusTags = <EntityTag>[
+const _debuffBarreraStatusTags = <EntityTag>[
   EntityTag.debuff,
-  EntityTag.defensa,
+  EntityTag.barrera,
 ];
-const _buffDefensaStatusTags = <EntityTag>[
+const _buffBarreraStatusTags = <EntityTag>[
   EntityTag.buff,
-  EntityTag.defensa,
+  EntityTag.barrera,
 ];
 const _debuffAtaqueStatusTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.ataque,
 ];
-const _buffAtaqueDefensaStatusTags = <EntityTag>[
+const _buffAtaqueBarreraStatusTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.ataque,
-  EntityTag.defensa,
+  EntityTag.barrera,
 ];
 const _debuffEconomiaStatusTags = <EntityTag>[
   EntityTag.debuff,
@@ -619,6 +619,7 @@ class IntoxicacionStatus extends BattlerStatus {
 /// Debuff puente que multiplica el siguiente debuff recibido y luego se consume.
 class CatalisisCruelStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.catalisisCruel;
+
   /// Crea una instancia de Catalisis Cruel con su multiplicador actual.
   const CatalisisCruelStatus({
     int value = 2,
@@ -692,7 +693,7 @@ class CatalisisCruelStatus extends BattlerStatus {
   }
 }
 
-/// Debuff que reduce DEF segun los turnos que le queden por delante.
+/// Debuff que reduce Barrera segun los turnos que le queden por delante.
 class FragilidadStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.fragilidad;
   static const defaultDuration = 3;
@@ -705,38 +706,38 @@ class FragilidadStatus extends BattlerStatus {
           id: statusId,
           name: 'Fragilidad',
           type: BattlerStatusType.debuff,
-          tags: _debuffDefensaStatusTags,
+          tags: _debuffBarreraStatusTags,
           hooks: const {
             BattlerStatusHook.calculatedStatModifier,
           },
           icon: Icons.shield_outlined,
           description:
-              'Reduce la defensa actual en funcion de su duracion restante.',
+              'Reduce la barrera actual en funcion de su duracion restante.',
           remainingTurns: remainingTurns,
           value: value ?? remainingTurns,
         );
 
   @override
 
-  /// Hace que la reduccion real de defensa coincida con los turnos restantes.
+  /// Hace que la reduccion real de barrera coincida con los turnos restantes.
   int resolveValue(Battler owner) => remainingTurns;
 
   @override
 
-  /// Anade a la descripcion la reduccion efectiva de defensa.
+  /// Anade a la descripcion la reduccion efectiva de barrera.
   String descriptionFor(Battler owner) {
-    return '$description Defensa actual: -${resolved(owner).value}';
+    return '$description Barrera actual: -${resolved(owner).value}';
   }
 
   @override
 
-  /// Resta defensa al calcular esa stat concreta y nunca baja de cero.
+  /// Resta barrera al calcular esa stat concreta y nunca baja de cero.
   int modifyCalculatedStat({
     required Battler owner,
     required BattlerStat stat,
     required int value,
   }) {
-    if (stat != BattlerStat.defense) return value;
+    if (stat != BattlerStat.barrier) return value;
 
     return max(0, value - resolved(owner).value);
   }
@@ -822,7 +823,7 @@ class BlindajeTemporalStatus extends BattlerStatus {
           id: statusId,
           name: 'Blindaje Temporal',
           type: BattlerStatusType.buff,
-          tags: _buffDefensaStatusTags,
+          tags: _buffBarreraStatusTags,
           hooks: const {
             BattlerStatusHook.incomingDamageEffect,
             BattlerStatusHook.statusApplied,
@@ -992,7 +993,7 @@ class EscudoDeEnergiaStatus extends BattlerStatus {
           id: statusId,
           name: 'Escudo de Energia',
           type: BattlerStatusType.buff,
-          tags: _buffDefensaStatusTags,
+          tags: _buffBarreraStatusTags,
           hooks: const {
             BattlerStatusHook.incomingDamageEffect,
           },
@@ -1051,7 +1052,7 @@ class EscudoDeFaseStatus extends BattlerStatus {
           id: statusId,
           name: 'Escudo de Fase',
           type: BattlerStatusType.buff,
-          tags: _buffDefensaStatusTags,
+          tags: _buffBarreraStatusTags,
           hooks: const {
             BattlerStatusHook.incomingDamageEffect,
           },
@@ -1098,7 +1099,7 @@ class EscudoDeFaseStatus extends BattlerStatus {
   }
 }
 
-/// Buff generador que crea reservas de ATK o DEF si no se usaron habilidades manuales.
+/// Buff generador que crea reservas de ATK o de Barrera si no se usaron habilidades manuales.
 class InerciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.inercia;
   static const defaultValue = 1;
@@ -1110,14 +1111,14 @@ class InerciaStatus extends BattlerStatus {
           id: statusId,
           name: 'Inercia',
           type: BattlerStatusType.buff,
-          tags: _buffAtaqueDefensaStatusTags,
+          tags: _buffAtaqueBarreraStatusTags,
           hooks: const {
             BattlerStatusHook.turnEnd,
             BattlerStatusHook.statusApplied,
           },
           icon: Icons.motion_photos_on_rounded,
           description:
-              'Si no activas habilidades manuales en tu turno, genera una reserva temporal aleatoria de ATK o DEF.',
+              'Si no activas habilidades manuales en tu turno, genera una reserva temporal aleatoria de ATK o de Barrera.',
           remainingTurns: 1,
           value: value,
         );
@@ -1151,7 +1152,7 @@ class InerciaStatus extends BattlerStatus {
     final effectiveRandomizer = randomizer ?? RunRandomizer();
     final generatedStatus = effectiveRandomizer.chance(0.5)
         ? InerciaAtaqueStatus(value: value)
-        : InerciaDefensaStatus(value: value);
+        : InerciaBarreraStatus(value: value);
 
     return owner.applyStatus(
       generatedStatus,
@@ -1271,25 +1272,25 @@ class InerciaAtaqueStatus extends BattlerStatus {
   }
 }
 
-/// Reserva temporal de defensa generada por Inercia hasta el final del combate.
-class InerciaDefensaStatus extends BattlerStatus {
-  static const statusId = BattlerStatusId.inerciaDefensa;
+/// Reserva temporal de barrera generada por Inercia hasta el final del combate.
+class InerciaBarreraStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.inerciaBarrera;
 
-  /// Crea una reserva de defensa con el bonus acumulado actual.
-  const InerciaDefensaStatus({
+  /// Crea una reserva de barrera con el bonus acumulado actual.
+  const InerciaBarreraStatus({
     int value = 1,
   }) : super(
           id: statusId,
-          name: 'Reserva de Inercia: DEF',
+          name: 'Reserva de Inercia: Barrera',
           type: BattlerStatusType.buff,
-          tags: _buffDefensaStatusTags,
+          tags: _buffBarreraStatusTags,
           hooks: const {
             BattlerStatusHook.calculatedStatModifier,
             BattlerStatusHook.statusApplied,
           },
           icon: Icons.shield_rounded,
           description:
-              'Bonus temporal de defensa acumulado por Inercia hasta el final del combate.',
+              'Bonus temporal de barrera acumulado por Inercia hasta el final del combate.',
           remainingTurns: 1,
           value: value,
         );
@@ -1306,20 +1307,20 @@ class InerciaDefensaStatus extends BattlerStatus {
 
   @override
 
-  /// Suma su value al calcular la defensa del portador.
+  /// Suma su value al calcular la barrera del portador.
   int modifyCalculatedStat({
     required Battler owner,
     required BattlerStat stat,
     required int value,
   }) {
-    if (stat != BattlerStat.defense) return value;
+    if (stat != BattlerStat.barrier) return value;
 
     return value + this.value;
   }
 
   @override
 
-  /// Acumula mas defensa cuando vuelve a aplicarse otra reserva del mismo tipo.
+  /// Acumula mas barrera cuando vuelve a aplicarse otra reserva del mismo tipo.
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
     required BattlerStatus appliedStatus,
@@ -1344,7 +1345,7 @@ class InerciaDefensaStatus extends BattlerStatus {
     int? remainingTurns,
     int? value,
   }) {
-    return InerciaDefensaStatus(
+    return InerciaBarreraStatus(
       value: value ?? this.value,
     );
   }

@@ -22,16 +22,48 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (battler.statuses.isEmpty) {
-      return EndpointHealthBar(
-        value: value,
-        accent: accent,
-        height: height,
-      );
+    final hasStatuses = battler.statuses.isNotEmpty;
+    final showsBarrier = battler.hasCombatFlag(Battler.combatActiveFlag) &&
+        battler.maxBarrier > 0;
+    final barrierHeight = max(5.0, height - 4);
+    final barSpacing = showsBarrier ? 4.0 : 0.0;
+    final barsHeight =
+        height + (showsBarrier ? barrierHeight + barSpacing : 0.0);
+    final barrierValue = battler.maxBarrier <= 0
+        ? 0.0
+        : (battler.currentBarrier / battler.maxBarrier)
+            .clamp(0.0, 1.0)
+            .toDouble();
+
+    final bars = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showsBarrier) ...[
+          EndpointHealthBar(
+            value: barrierValue,
+            accent: BattlerStat.barrier.accent,
+            height: barrierHeight,
+            trackOpacity: 0.16,
+            fillStartOpacity: 0.22,
+            fillEndOpacity: 0.56,
+          ),
+          SizedBox(height: barSpacing),
+        ],
+        EndpointHealthBar(
+          value: value,
+          accent: accent,
+          height: height,
+        ),
+      ],
+    );
+
+    if (!hasStatuses) {
+      return bars;
     }
 
     return SizedBox(
-      height: height + badgeSize - badgeOverlap,
+      height: barsHeight + badgeSize - badgeOverlap,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -39,16 +71,12 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            child: EndpointHealthBar(
-              value: value,
-              accent: accent,
-              height: height,
-            ),
+            child: bars,
           ),
           Positioned(
             left: 0,
             right: 0,
-            bottom: height - badgeOverlap,
+            bottom: barsHeight - badgeOverlap,
             child: EndpointStatusBadges(
               battler: battler,
               alignment: badgeAlignment,
