@@ -1,13 +1,31 @@
 import 'app/_exports.dart';
 import 'pages/main_menu/main_menu_page.dart';
+import 'services/_exports.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const EndpointApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final initialSettings =
+      await EndpointPreferencesService.loadSettingsSnapshot();
+  final initialRunSnapshot =
+      await EndpointPreferencesService.loadCurrentRunSnapshot();
+  runApp(
+    EndpointApp(
+      initialSettings: initialSettings,
+      initialRunSnapshot: initialRunSnapshot,
+    ),
+  );
 }
 
 class EndpointApp extends StatelessWidget {
-  const EndpointApp({super.key});
+  final EndpointSettingsSnapshot initialSettings;
+  final EndpointCurrentRunSnapshot? initialRunSnapshot;
+
+  const EndpointApp({
+    super.key,
+    this.initialSettings = const EndpointSettingsSnapshot.defaults(),
+    this.initialRunSnapshot,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +33,18 @@ class EndpointApp extends StatelessWidget {
       title: EndpointStrings.appTitle,
       theme: EndpointTheme.build(),
       debugShowCheckedModeBanner: false,
-      home: const MainMenuPage(),
+      home: MainMenuPage(
+        initialSettings: initialSettings,
+        initialRunSnapshot: initialRunSnapshot,
+      ),
     );
   }
 }
 
 class Endpoint extends EndpointApp {
-  const Endpoint({super.key});
+  const Endpoint({
+    super.key,
+    super.initialSettings,
+    super.initialRunSnapshot,
+  });
 }

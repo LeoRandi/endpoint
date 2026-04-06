@@ -1,7 +1,14 @@
 import '../_imports.dart';
 
 class MainMenuPage extends StatefulWidget {
-  const MainMenuPage({super.key});
+  final EndpointSettingsSnapshot initialSettings;
+  final EndpointCurrentRunSnapshot? initialRunSnapshot;
+
+  const MainMenuPage({
+    super.key,
+    this.initialSettings = const EndpointSettingsSnapshot.defaults(),
+    this.initialRunSnapshot,
+  });
 
   @override
   State<MainMenuPage> createState() => _MainMenuPageState();
@@ -12,10 +19,14 @@ class _MainMenuPageState extends State<MainMenuPage>
   late final AnimationController _controller;
   late final Animation<double> _scale;
   late final Animation<double> _glow;
+  late EndpointSettingsSnapshot _settings;
+  EndpointCurrentRunSnapshot? _currentRunSnapshot;
 
   @override
   void initState() {
     super.initState();
+    _settings = widget.initialSettings;
+    _currentRunSnapshot = widget.initialRunSnapshot;
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
@@ -34,6 +45,42 @@ class _MainMenuPageState extends State<MainMenuPage>
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _openNewRun() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const PathSelectionPage(),
+      ),
+    );
+    if (!mounted) return;
+
+    await _refreshCurrentRunSnapshot();
+  }
+
+  Future<void> _openSavedRun() async {
+    final currentRunSnapshot = _currentRunSnapshot;
+    if (currentRunSnapshot == null) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PathSelectionPage.continueRun(
+          restoredRun: currentRunSnapshot,
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    await _refreshCurrentRunSnapshot();
+  }
+
+  Future<void> _refreshCurrentRunSnapshot() async {
+    final restoredRun = await EndpointPreferencesService.loadCurrentRunSnapshot();
+    if (!mounted) return;
+
+    setState(() {
+      _currentRunSnapshot = restoredRun;
+    });
   }
 
   @override
@@ -56,7 +103,7 @@ class _MainMenuPageState extends State<MainMenuPage>
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: EndpointPanel(
                       accent: accent,
-                      backgroundColor: surface.withOpacity(0.72),
+                      backgroundColor: surface.withValues(alpha: 0.72),
                       borderRadius: 16,
                       glowOpacity: 0.1,
                       blurRadius: 30,
@@ -87,13 +134,15 @@ class _MainMenuPageState extends State<MainMenuPage>
                                     ),
                                     shadows: [
                                       Shadow(
-                                        color: accent.withOpacity(
+                                        color: accent.withValues(
+                                          alpha:
                                           0.35 + (_glow.value * 0.25),
                                         ),
                                         blurRadius: 12 + (_glow.value * 18),
                                       ),
                                       Shadow(
-                                        color: Colors.white.withOpacity(
+                                        color: Colors.white.withValues(
+                                          alpha:
                                           0.12 + (_glow.value * 0.16),
                                         ),
                                         blurRadius: 6,
@@ -106,15 +155,18 @@ class _MainMenuPageState extends State<MainMenuPage>
                           ),
                           const SeparatorFiori.double(),
                           EndpointMenuButton(
+                            label: EndpointStrings.continueRun,
+                            tooltip: _currentRunSnapshot == null
+                                ? 'No hay ninguna run en curso'
+                                : 'Continuar la run guardada',
+                            onPressed:
+                                _currentRunSnapshot == null ? null : _openSavedRun,
+                          ),
+                          const SeparatorFiori.half(),
+                          EndpointMenuButton(
                             label: EndpointStrings.start,
                             tooltip: 'Iniciar la carrera hasta el sunrise',
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const PathSelectionPage(),
-                                ),
-                              );
-                            },
+                            onPressed: _openNewRun,
                           ),
                           const SeparatorFiori.half(),
                           const EndpointMenuButton(
@@ -122,9 +174,23 @@ class _MainMenuPageState extends State<MainMenuPage>
                             tooltip: EndpointStrings.codexUnavailable,
                           ),
                           const SeparatorFiori.half(),
-                          const EndpointMenuButton(
+                          EndpointMenuButton(
                             label: EndpointStrings.settings,
-                            tooltip: EndpointStrings.settingsUnavailable,
+                            tooltip: 'Abrir configuracion',
+                            onPressed: () async {
+                              final updatedSettings =
+                                  await Navigator.of(context)
+                                      .push<EndpointSettingsSnapshot>(
+                                buildEndpointSceneRoute(
+                                  SettingsPage(initialSettings: _settings),
+                                ),
+                              );
+                              if (!mounted || updatedSettings == null) return;
+
+                              setState(() {
+                                _settings = updatedSettings;
+                              });
+                            },
                           ),
                         ],
                       ),
@@ -157,8 +223,8 @@ class _MenuBackdrop extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  EndpointPalette.primaryAccent.withOpacity(0.13),
-                  EndpointPalette.scaffoldBackground.withOpacity(0),
+                  EndpointPalette.primaryAccent.withValues(alpha: 0.13),
+                  EndpointPalette.scaffoldBackground.withValues(alpha: 0),
                 ],
               ),
             ),
@@ -177,8 +243,8 @@ class _MenuBackdrop extends StatelessWidget {
                     EndpointPalette.primaryAccent,
                     EndpointPalette.panelBackground,
                     0.35,
-                  ).withOpacity(0.1),
-                  EndpointPalette.scaffoldBackground.withOpacity(0),
+                  ).withValues(alpha: 0.1),
+                  EndpointPalette.scaffoldBackground.withValues(alpha: 0),
                 ],
               ),
             ),
@@ -203,10 +269,10 @@ class _ScanlinePainter extends CustomPainter {
     const gridStep = 48.0;
 
     final scanlinePaint = Paint()
-      ..color = EndpointPalette.primaryAccent.withOpacity(0.03)
+      ..color = EndpointPalette.primaryAccent.withValues(alpha: 0.03)
       ..strokeWidth = 1;
     final gridPaint = Paint()
-      ..color = EndpointPalette.primaryAccent.withOpacity(0.06)
+      ..color = EndpointPalette.primaryAccent.withValues(alpha: 0.06)
       ..strokeWidth = 1;
 
     for (double y = 0; y <= size.height; y += scanlineStep) {

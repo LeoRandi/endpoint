@@ -67,6 +67,7 @@ extension ItemSlotPresentation on ItemSlot {
 /// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
 class Item {
   static int _nextInstanceSequence = 0;
+  static final RegExp _ownedInstancePattern = RegExp(r'^item_(\d+)$');
 
   final ItemId id;
   final List<EntityTag> tags;
@@ -304,6 +305,23 @@ class Item {
       effect: effect,
       instanceId: 'item_${_nextInstanceSequence++}',
     );
+  }
+
+  /// Avanza el contador global de instancias para no reutilizar ids tras restaurar una partida.
+  static void syncInstanceSequenceFromExistingIds(Iterable<String?> instanceIds) {
+    var nextSequence = _nextInstanceSequence;
+
+    for (final instanceId in instanceIds) {
+      if (instanceId == null) continue;
+      final match = _ownedInstancePattern.firstMatch(instanceId);
+      if (match == null) continue;
+
+      final parsedSequence = int.tryParse(match.group(1) ?? '');
+      if (parsedSequence == null) continue;
+      nextSequence = max(nextSequence, parsedSequence + 1);
+    }
+
+    _nextInstanceSequence = nextSequence;
   }
 
   /// Recupera el preset canonico asociado al id estable del objeto.

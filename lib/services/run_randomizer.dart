@@ -1,15 +1,35 @@
 import '_imports.dart';
 
 class RunRandomizer {
-  final Random _random;
+  static const int _stateMask = 0x7fffffff;
+  static const int _defaultSeed = 0x13579BDF;
+
+  final int seed;
+  int _state;
 
   RunRandomizer({
     int? seed,
-  }) : _random = seed == null ? Random() : Random(seed);
+    int? state,
+  }) : this._resolved(
+          _sanitizeSeed(seed ?? Random().nextInt(_stateMask)),
+          state,
+        );
 
-  int nextInt(int max) => _random.nextInt(max);
+  RunRandomizer._resolved(int resolvedSeed, int? state)
+      : seed = resolvedSeed,
+        _state = _sanitizeSeed(state ?? resolvedSeed);
 
-  double nextDouble() => _random.nextDouble();
+  int get state => _state;
+
+  int nextInt(int max) {
+    if (max <= 0) {
+      throw RangeError.range(max, 1, null, 'max');
+    }
+
+    return _nextState() % max;
+  }
+
+  double nextDouble() => _nextState() / _stateMask;
 
   bool chance(double probability) => nextDouble() <= probability;
 
@@ -22,5 +42,19 @@ class RunRandomizer {
     }
 
     return List<T>.unmodifiable(pickedItems);
+  }
+
+  int _nextState() {
+    var value = _state;
+    value ^= (value << 13) & _stateMask;
+    value ^= value >> 17;
+    value ^= (value << 5) & _stateMask;
+    _state = _sanitizeSeed(value);
+    return _state;
+  }
+
+  static int _sanitizeSeed(int rawValue) {
+    final sanitizedValue = rawValue & _stateMask;
+    return sanitizedValue == 0 ? _defaultSeed : sanitizedValue;
   }
 }

@@ -7,6 +7,7 @@ class RunSessionController extends ChangeNotifier {
   final int _nodeCount;
   RunState _state;
   bool _isResolvingNode = false;
+  PathNode? _activeNode;
 
   RunSessionController({
     required Battler player,
@@ -24,6 +25,31 @@ class RunSessionController extends ChangeNotifier {
           randomizer: RunRandomizer(seed: randomSeed),
         );
 
+  RunSessionController.resume({
+    required EndpointCurrentRunSnapshot snapshot,
+  }) : this._(
+          player: snapshot.player,
+          battleEnemyTurnDelay: snapshot.battleEnemyTurnDelay,
+          battleCombatEndDelay: snapshot.battleCombatEndDelay,
+          randomizer: RunRandomizer(
+            seed: snapshot.randomSeed,
+            state: snapshot.randomState,
+          ),
+          nodeCount: snapshot.nodeCount,
+          restoredState: RunState(
+            player: snapshot.player,
+            currentHour: snapshot.currentHour,
+            visibleNodes: List<PathNode>.unmodifiable(snapshot.visibleNodes),
+            stageIndex: snapshot.stageIndex,
+            battleEnemyTurnDelay: snapshot.battleEnemyTurnDelay,
+            battleCombatEndDelay: snapshot.battleCombatEndDelay,
+            isRunComplete: snapshot.isRunComplete,
+            completionType: snapshot.completionType,
+          ),
+          initialIsResolvingNode: snapshot.isResolvingNode,
+          initialActiveNode: snapshot.activeNode,
+        );
+
   RunSessionController._({
     required Battler player,
     required Duration battleEnemyTurnDelay,
@@ -31,6 +57,9 @@ class RunSessionController extends ChangeNotifier {
     required RunRandomizer randomizer,
     List<PathNode>? availableNodes,
     int nodeCount = 3,
+    RunState? restoredState,
+    bool initialIsResolvingNode = false,
+    PathNode? initialActiveNode,
   })  : _randomizer = randomizer,
         _pathNodeService = PathNodeService(
           randomizer: randomizer,
@@ -39,21 +68,26 @@ class RunSessionController extends ChangeNotifier {
             ? null
             : List<PathNode>.unmodifiable(availableNodes),
         _nodeCount = max(1, nodeCount),
-        _state = RunState(
-          player: player.materializeOwnedItems(),
-          currentHour: const RunHourSnapshot(
-            stageIndex: PathNodeService.startStageIndex,
-            phase: RunHourPhase.day,
-            title: 'HORA 0',
-            subtitle: '',
-            nodes: [],
-          ),
-          visibleNodes: const [],
-          stageIndex: PathNodeService.startStageIndex,
-          battleEnemyTurnDelay: battleEnemyTurnDelay,
-          battleCombatEndDelay: battleCombatEndDelay,
-        ) {
-    refreshNodes();
+        _state = restoredState ??
+            RunState(
+              player: player.materializeOwnedItems(),
+              currentHour: const RunHourSnapshot(
+                stageIndex: PathNodeService.startStageIndex,
+                phase: RunHourPhase.day,
+                title: 'HORA 0',
+                subtitle: '',
+                nodes: [],
+              ),
+              visibleNodes: const [],
+              stageIndex: PathNodeService.startStageIndex,
+              battleEnemyTurnDelay: battleEnemyTurnDelay,
+              battleCombatEndDelay: battleCombatEndDelay,
+            ) {
+    _isResolvingNode = initialIsResolvingNode;
+    _activeNode = initialActiveNode;
+    if (restoredState == null) {
+      refreshNodes(saveTrigger: 'runInitialized');
+    }
   }
 
   RunState get state => _state;
@@ -61,6 +95,7 @@ class RunSessionController extends ChangeNotifier {
   Battler get player => _state.player;
   List<PathNode> get nodes => _state.visibleNodes;
   RunHourSnapshot get currentHour => _state.currentHour;
+  PathNode? get activeNode => _activeNode;
   bool get isResolvingNode => _isResolvingNode;
   bool get isRunComplete => _state.isRunComplete;
   RunCompletionType? get completionType => _state.completionType;
@@ -76,12 +111,21 @@ class RunSessionController extends ChangeNotifier {
       completionType: resolvedCompletionType,
     );
     notifyListeners();
+    if (resolvedCompletionType != null) {
+      unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
+      return;
+    }
+    unawaited(_persistCurrentRun(trigger: 'playerUpdated'));
   }
 
-  bool beginNodeResolution() {
+  bool beginNodeResolution({
+    required PathNode node,
+  }) {
     if (_isResolvingNode) return false;
+    _activeNode = node;
     _isResolvingNode = true;
     notifyListeners();
+    unawaited(_persistCurrentRun(trigger: 'enterNode'));
     return true;
   }
 
@@ -89,9 +133,13 @@ class RunSessionController extends ChangeNotifier {
     if (!_isResolvingNode) return;
     _isResolvingNode = false;
     notifyListeners();
+    _activeNode = null;
+    unawaited(_persistCurrentRun(trigger: 'exitNodeCancelled'));
   }
 
-  void refreshNodes() {
+  void refreshNodes({
+    String? saveTrigger,
+  }) {
     final currentHour = _pathNodeService.buildHourSnapshot(
       stageIndex: _state.stageIndex,
       player: _state.player,
@@ -104,6 +152,9 @@ class RunSessionController extends ChangeNotifier {
       visibleNodes: List<PathNode>.unmodifiable(currentHour.nodes),
     );
     notifyListeners();
+    if (saveTrigger != null) {
+      unawaited(_persistCurrentRun(trigger: saveTrigger));
+    }
   }
 
   void completeEncounter({
@@ -152,7 +203,9 @@ class RunSessionController extends ChangeNotifier {
         completionType: resolvedCompletionType,
       );
       _isResolvingNode = false;
+      _activeNode = null;
       notifyListeners();
+      unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
       return;
     }
 
@@ -161,7 +214,9 @@ class RunSessionController extends ChangeNotifier {
       stageIndex: _state.stageIndex + 1,
     );
     _isResolvingNode = false;
+    _activeNode = null;
     refreshNodes();
+    unawaited(_persistCurrentRun(trigger: 'exitNode'));
   }
 
   /// Entrega la XP del encuentro segun su rareza y deja fuera al boss amarillo final.
@@ -206,5 +261,18 @@ class RunSessionController extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  Future<void> _persistCurrentRun({
+    required String trigger,
+    PathNode? activeNodeOverride,
+  }) {
+    return EndpointPreferencesService.saveCurrentRunSnapshot(
+      state: _state,
+      randomizer: _randomizer,
+      isResolvingNode: _isResolvingNode,
+      trigger: trigger,
+      activeNode: activeNodeOverride ?? _activeNode,
+    );
   }
 }

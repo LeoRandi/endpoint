@@ -1,5 +1,6 @@
 abstract final class EndpointStrings {
   static const appTitle = 'Death at Sunrise';
+  static const continueRun = 'Continue';
   static const start = 'Start';
   static const codex = 'Codex';
   static const settings = 'Settings';

@@ -8,6 +8,7 @@ class PathSelectionPage extends StatefulWidget {
   final int? randomSeed;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
+  final EndpointCurrentRunSnapshot? restoredRun;
 
   const PathSelectionPage({
     super.key,
@@ -17,7 +18,17 @@ class PathSelectionPage extends StatefulWidget {
     this.randomSeed,
     this.battleEnemyTurnDelay = const Duration(milliseconds: 900),
     this.battleCombatEndDelay = const Duration(seconds: 2),
-  });
+  }) : restoredRun = null;
+
+  const PathSelectionPage.continueRun({
+    super.key,
+    required this.restoredRun,
+  })  : player = defaultPlayerBattler,
+        availableNodes = null,
+        nodeCount = 3,
+        randomSeed = null,
+        battleEnemyTurnDelay = const Duration(milliseconds: 900),
+        battleCombatEndDelay = const Duration(seconds: 2);
 
   @override
   State<PathSelectionPage> createState() => _PathSelectionPageState();
@@ -29,18 +40,29 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
   late final RunSessionController _sessionController;
   bool _isPresentingRunOutcome = false;
+  bool _didResumeSavedNode = false;
 
   @override
   void initState() {
     super.initState();
-    _sessionController = RunSessionController(
-      player: widget.player,
-      battleEnemyTurnDelay: widget.battleEnemyTurnDelay,
-      battleCombatEndDelay: widget.battleCombatEndDelay,
-      availableNodes: widget.availableNodes,
-      nodeCount: widget.nodeCount,
-      randomSeed: widget.randomSeed,
-    );
+    _sessionController = widget.restoredRun == null
+        ? RunSessionController(
+            player: widget.player,
+            battleEnemyTurnDelay: widget.battleEnemyTurnDelay,
+            battleCombatEndDelay: widget.battleCombatEndDelay,
+            availableNodes: widget.availableNodes,
+            nodeCount: widget.nodeCount,
+            randomSeed: widget.randomSeed,
+          )
+        : RunSessionController.resume(
+            snapshot: widget.restoredRun!,
+          );
+
+    if (_sessionController.isResolvingNode && _sessionController.activeNode != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_resumeSavedNodeIfNeeded());
+      });
+    }
   }
 
   @override
@@ -84,7 +106,21 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   }
 
   Future<void> _handleNodePressed(PathNode node) async {
-    if (!_sessionController.beginNodeResolution()) return;
+    if (!_sessionController.beginNodeResolution(node: node)) return;
+    await _openNode(node);
+  }
+
+  Future<void> _resumeSavedNodeIfNeeded() async {
+    if (_didResumeSavedNode || !mounted) return;
+
+    final activeNode = _sessionController.activeNode;
+    if (!_sessionController.isResolvingNode || activeNode == null) return;
+
+    _didResumeSavedNode = true;
+    await _openNode(activeNode);
+  }
+
+  Future<void> _openNode(PathNode node) async {
     await _flowCoordinator.handleNodeSelection(
       context: context,
       node: node,
@@ -96,27 +132,26 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       await _maybePresentRunOutcome();
       return;
     }
-
-    await _maybePresentPendingLevelUps();
   }
 
-  /// Presenta todas las subidas pendientes una tras otra para consumir overflow de XP si lo hubiera.
-  Future<void> _maybePresentPendingLevelUps() async {
-    while (mounted && _sessionController.player.canLevelUp) {
-      final player = _sessionController.player;
-      final reward = await showEndpointDialog<BattlerLevelReward>(
-        context: context,
-        barrierLabel: 'Seleccionar recompensa de nivel',
-        barrierDismissible: false,
-        barrierColor: EndpointPalette.overlayScrimStrong,
-        builder: (context) => LevelUpRewardDialog(player: player),
-      );
-      if (!mounted || reward == null) return;
-
-      _sessionController.updatePlayer(
-        player.applyLevelReward(reward),
-      );
+  Future<void> _handleOpenLevelUp() async {
+    if (_sessionController.isRunComplete || !_sessionController.player.canLevelUp) {
+      return;
     }
+
+    final player = _sessionController.player;
+    final reward = await showEndpointDialog<BattlerLevelReward>(
+      context: context,
+      barrierLabel: 'Seleccionar recompensa de nivel',
+      barrierDismissible: false,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      builder: (context) => LevelUpRewardDialog(player: player),
+    );
+    if (!mounted || reward == null) return;
+
+    _sessionController.updatePlayer(
+      player.applyLevelReward(reward),
+    );
   }
 
   /// Presenta la pantalla final cuando la run ya se ha cerrado por victoria, derrota o retirada.
@@ -162,6 +197,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             final currentHour = _sessionController.currentHour;
             final isOpeningNode = _sessionController.isResolvingNode;
             final hasEndedRun = _sessionController.isRunComplete;
+            final canOpenLevelUp = player.canLevelUp && !isOpeningNode && !hasEndedRun;
 
             return Stack(
               fit: StackFit.expand,
@@ -224,6 +260,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                   player: player,
                                   onOpenOperatives: _handleOpenOperatives,
                                   onOpenAbilities: _handleOpenAbilities,
+                                  onOpenLevelUp: _handleOpenLevelUp,
+                                  canOpenLevelUp: canOpenLevelUp,
                                 ),
                               ),
                             ],
@@ -264,11 +302,15 @@ class _PathBottomHud extends StatelessWidget {
   final Battler player;
   final Future<void> Function() onOpenOperatives;
   final Future<void> Function() onOpenAbilities;
+  final Future<void> Function() onOpenLevelUp;
+  final bool canOpenLevelUp;
 
   const _PathBottomHud({
     required this.player,
     required this.onOpenOperatives,
     required this.onOpenAbilities,
+    required this.onOpenLevelUp,
+    required this.canOpenLevelUp,
   });
 
   @override
@@ -310,14 +352,10 @@ class _PathBottomHud extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(
-                          width: avatarSize,
-                          height: avatarSize,
-                          child: EndpointEmojiSprite(
-                            emoji: player.iconEmoji,
-                            accent: EndpointPalette.primaryAccent,
-                            size: avatarSize,
-                          ),
+                        _PathLevelUpAvatarButton(
+                          player: player,
+                          size: avatarSize,
+                          onPressed: canOpenLevelUp ? onOpenLevelUp : null,
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -363,6 +401,87 @@ class _PathBottomHud extends StatelessWidget {
             );
           },
         ),
+      ],
+    );
+  }
+}
+
+class _PathLevelUpAvatarButton extends StatelessWidget {
+  final Battler player;
+  final double size;
+  final Future<void> Function()? onPressed;
+
+  const _PathLevelUpAvatarButton({
+    required this.player,
+    required this.size,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = EndpointPalette.primaryAccent;
+    final isEnabled = onPressed != null;
+    final avatar = EndpointEmojiSprite(
+      emoji: player.iconEmoji,
+      accent: isEnabled ? EndpointPalette.rewardAccent : accent,
+      size: size,
+    );
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed == null
+                ? null
+                : () {
+                    unawaited(onPressed!.call());
+                  },
+            borderRadius: BorderRadius.circular(size * 0.22),
+            child: Opacity(
+              opacity: isEnabled ? 1 : 0.94,
+              child: avatar,
+            ),
+          ),
+        ),
+        if (isEnabled)
+          Positioned(
+            top: -8,
+            right: -10,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: EndpointPalette.panelBackgroundBattleOpaque,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: EndpointPalette.rewardAccent.withValues(alpha: 0.86),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: EndpointPalette.rewardAccent.withValues(alpha: 0.14),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: EndpointText(
+                    'LVL UP',
+                    style: textSmallBold.copyWith(
+                      color: EndpointPalette.softForegroundWarm,
+                      fontSize: 10,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

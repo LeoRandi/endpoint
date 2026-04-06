@@ -71,9 +71,9 @@
 
 -General
 [--APLICAR NUEVAS FONTS(Ya están importadas en el yaml)]
---Sistema de guardado de partida
+[--Sistema de guardado de partida]
 --Volver a la pantalla del menú principal
---Botón de Continuar
+[--Botón de Continuar]
 --Cambio de avatar
 --Fucking música por favor
 
@@ -85,7 +85,6 @@ ARREGLAR:
 
 ////
 PROBAR:
-
 -Interferencia(debuff): impide activar habilidades manuales durante [value] turnos(no stackea, no puede haber dos instancias de este estado a la vez en un personaje).
 -Deuda(debuff): reduce el income a 1 hasta que se cumpla un evento(no stackeable ni repetible, no se puede purgar de formas convencionales. Esto debe quedar explicado en la info del estado).
 
