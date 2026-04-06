@@ -3,11 +3,11 @@ import '../_imports.dart';
 /// Enemigo gris basico usado como encuentro de entrada y referencia de dificultad minima.
 const grayEnemyBattler = Battler(
   name: 'SCRAP MITE',
-  health: 48,
+  health: 44,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 48,
+    BattlerStat.health: 44,
     BattlerStat.attack: 6,
     BattlerStat.barrier: 2,
     BattlerStat.thorns: 0,
@@ -20,11 +20,11 @@ const grayEnemyBattler = Battler(
 /// Variante gris evasiva que intercambia dano por mas impactos.
 const shadeSkipperEnemyBattler = Battler(
   name: 'SHADE SKIPPER',
-  health: 42,
+  health: 38,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 42,
+    BattlerStat.health: 38,
     BattlerStat.attack: 7,
     BattlerStat.barrier: 2,
     BattlerStat.thorns: 0,
@@ -37,11 +37,11 @@ const shadeSkipperEnemyBattler = Battler(
 /// Variante gris ofensiva que castiga a objetivos sin buffs.
 const lensRuntEnemyBattler = Battler(
   name: 'LENS RUNT',
-  health: 46,
+  health: 42,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 46,
+    BattlerStat.health: 42,
     BattlerStat.attack: 6,
     BattlerStat.barrier: 2,
     BattlerStat.thorns: 0,
@@ -54,11 +54,11 @@ const lensRuntEnemyBattler = Battler(
 /// Variante gris defensiva apoyada en una pasiva de mitigar dano.
 const phaseMoteEnemyBattler = Battler(
   name: 'PHASE MOTE',
-  health: 44,
+  health: 40,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 44,
+    BattlerStat.health: 40,
     BattlerStat.attack: 6,
     BattlerStat.barrier: 3,
     BattlerStat.thorns: 0,
@@ -71,12 +71,12 @@ const phaseMoteEnemyBattler = Battler(
 /// Enemigo verde estandar con postura defensiva para la capa media inicial.
 const greenEnemyBattler = Battler(
   name: 'HOLLOW DRONE',
-  health: 72,
+  health: 62,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 72,
-    BattlerStat.attack: 8,
+    BattlerStat.health: 62,
+    BattlerStat.attack: 7,
     BattlerStat.barrier: 4,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -89,12 +89,12 @@ const greenEnemyBattler = Battler(
 /// Variante verde toxica que combina dano base con castigo a debuffs.
 const venomStitchEnemyBattler = Battler(
   name: 'VENOM STITCH',
-  health: 68,
+  health: 58,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 68,
-    BattlerStat.attack: 9,
+    BattlerStat.health: 58,
+    BattlerStat.attack: 8,
     BattlerStat.barrier: 3,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -107,12 +107,12 @@ const venomStitchEnemyBattler = Battler(
 /// Variante verde de aguante que regenera mientras sostiene la linea.
 const patchBulwarkEnemyBattler = Battler(
   name: 'PATCH BULWARK',
-  health: 78,
+  health: 67,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 78,
-    BattlerStat.attack: 7,
+    BattlerStat.health: 67,
+    BattlerStat.attack: 6,
     BattlerStat.barrier: 4,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -127,12 +127,12 @@ const patchBulwarkEnemyBattler = Battler(
 /// Variante verde de presion temprana centrada en quemar al objetivo.
 const cinderClawEnemyBattler = Battler(
   name: 'CINDER CLAW',
-  health: 70,
+  health: 60,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 70,
-    BattlerStat.attack: 9,
+    BattlerStat.health: 60,
+    BattlerStat.attack: 8,
     BattlerStat.barrier: 3,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -147,12 +147,12 @@ const cinderClawEnemyBattler = Battler(
 /// Enemigo azul que mezcla barrera y dano para el tramo medio de la run.
 const blueEnemyBattler = Battler(
   name: 'RIFT HOUND',
-  health: 96,
+  health: 82,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 96,
-    BattlerStat.attack: 10,
+    BattlerStat.health: 82,
+    BattlerStat.attack: 9,
     BattlerStat.barrier: 6,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -168,12 +168,12 @@ const blueEnemyBattler = Battler(
 /// Variante azul toxica que escala mejor cuando el veneno ya esta activo.
 const toxicReaverEnemyBattler = Battler(
   name: 'TOXIC REAVER',
-  health: 92,
+  health: 79,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 92,
-    BattlerStat.attack: 10,
+    BattlerStat.health: 79,
+    BattlerStat.attack: 9,
     BattlerStat.barrier: 5,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -189,12 +189,12 @@ const toxicReaverEnemyBattler = Battler(
 /// Variante azul defensiva que se cura, refleja fuego y resiste mejor el burst.
 const phaseBastionEnemyBattler = Battler(
   name: 'PHASE BASTION',
-  health: 104,
+  health: 89,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 104,
-    BattlerStat.attack: 8,
+    BattlerStat.health: 89,
+    BattlerStat.attack: 7,
     BattlerStat.barrier: 6,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -210,12 +210,12 @@ const phaseBastionEnemyBattler = Battler(
 /// Variante azul agresiva que abre el combate con un golpe potenciado y Quemadura.
 const cinderRamEnemyBattler = Battler(
   name: 'CINDER RAM',
-  health: 94,
+  health: 80,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 94,
-    BattlerStat.attack: 11,
+    BattlerStat.health: 80,
+    BattlerStat.attack: 10,
     BattlerStat.barrier: 5,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
@@ -231,13 +231,13 @@ const cinderRamEnemyBattler = Battler(
 /// Enemigo morado pensado para la noche, con kit completo de aguante y castigo.
 const purpleEnemyBattler = Battler(
   name: 'NULL WARDEN',
-  health: 128,
+  health: 103,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 128,
-    BattlerStat.attack: 13,
-    BattlerStat.barrier: 8,
+    BattlerStat.health: 103,
+    BattlerStat.attack: 11,
+    BattlerStat.barrier: 7,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -255,13 +255,13 @@ const purpleEnemyBattler = Battler(
 /// Variante morada toxica con mitigacion parcial contra debuffs rivales.
 const venomOracleEnemyBattler = Battler(
   name: 'VENOM ORACLE',
-  health: 124,
+  health: 100,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 124,
-    BattlerStat.attack: 12,
-    BattlerStat.barrier: 8,
+    BattlerStat.health: 100,
+    BattlerStat.attack: 10,
+    BattlerStat.barrier: 7,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -277,13 +277,13 @@ const venomOracleEnemyBattler = Battler(
 /// Variante morada de fuego sostenido que abre fuerte y escala sus Quemaduras.
 const cinderExecutionerEnemyBattler = Battler(
   name: 'CINDER EXECUTIONER',
-  health: 132,
+  health: 106,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 132,
-    BattlerStat.attack: 13,
-    BattlerStat.barrier: 7,
+    BattlerStat.health: 106,
+    BattlerStat.attack: 11,
+    BattlerStat.barrier: 6,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -299,13 +299,13 @@ const cinderExecutionerEnemyBattler = Battler(
 /// Variante morada tecnica con barrera, drenaje y un primer golpe preparado.
 const phaseDredgerEnemyBattler = Battler(
   name: 'PHASE DREDGER',
-  health: 126,
+  health: 101,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 126,
-    BattlerStat.attack: 12,
-    BattlerStat.barrier: 9,
+    BattlerStat.health: 101,
+    BattlerStat.attack: 10,
+    BattlerStat.barrier: 8,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
@@ -323,13 +323,13 @@ const phaseDredgerEnemyBattler = Battler(
 /// Enemigo final amarillo con el kit mas completo del roster actual.
 const yellowEnemyBattler = Battler(
   name: 'SOLAR EXECUTOR',
-  health: 168,
+  health: 135,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 168,
-    BattlerStat.attack: 16,
-    BattlerStat.barrier: 10,
+    BattlerStat.health: 135,
+    BattlerStat.attack: 13,
+    BattlerStat.barrier: 8,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,

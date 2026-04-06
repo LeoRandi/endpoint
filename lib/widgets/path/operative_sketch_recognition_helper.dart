@@ -4,7 +4,6 @@ enum OperativeSketchRecognitionKind {
   none,
   triangle,
   square,
-  rhombus,
   circle,
 }
 
@@ -18,8 +17,6 @@ extension OperativeSketchRecognitionKindLabel
         return 'TRIANGULO';
       case OperativeSketchRecognitionKind.square:
         return 'CUADRADO';
-      case OperativeSketchRecognitionKind.rhombus:
-        return 'ROMBO';
       case OperativeSketchRecognitionKind.circle:
         return 'CIRCULO';
     }
@@ -80,11 +77,21 @@ class OperativeSketchRecognitionHelper {
   static const double _duplicateOverlapThreshold = 0.42;
   static const double _duplicateAreaRatioThreshold = 0.34;
   static const double _duplicateCenterFactor = 0.35;
+  static const double _looseDuplicateOverlapThreshold = 0.18;
+  static const double _looseDuplicateAreaRatioThreshold = 0.16;
+  static const double _looseDuplicateCenterFactor = 0.62;
+  static const double _minimumCornerSharpness = 26;
+  static const double _strongCornerStrength = 0.62;
+  static const double _minimumEndpointFacingDot = 0.16;
+  static const double _minimumEndpointAxisAlignment = 0.58;
+  static const double _minimumSegmentSnapAxisAlignment = 0.66;
+  static const double _minimumRegionFallbackGeometryScore = 0.74;
+  static const double _minimumPointCloudVerificationScore = 0.72;
+  static const int _pointCloudSampleCount = 48;
   static const List<OperativeSketchRecognitionKind> _priorityOrder =
       <OperativeSketchRecognitionKind>[
     OperativeSketchRecognitionKind.triangle,
     OperativeSketchRecognitionKind.square,
-    OperativeSketchRecognitionKind.rhombus,
     OperativeSketchRecognitionKind.circle,
   ];
 
@@ -118,15 +125,23 @@ class OperativeSketchRecognitionHelper {
       strokes: graphReadyStrokes,
       canvasSize: canvasSize,
     );
-    final rasterDetections = _scanClosedRegions(
+    final regionSupports = _scanClosedRegions(
       strokes: graphReadyStrokes
           .map((stroke) => stroke.points)
           .toList(growable: false),
       canvasSize: canvasSize,
     );
+    final supportedVectorDetections = _applyClosedRegionSupport(
+      detections: vectorDetections,
+      regionSupports: regionSupports,
+    );
+    final regionFallbackDetections = _buildRegionFallbackDetections(
+      regionSupports: regionSupports,
+      existingDetections: supportedVectorDetections,
+    );
     final mergedDetections = _mergeDetections(
-      primaryDetections: vectorDetections,
-      secondaryDetections: rasterDetections,
+      primaryDetections: supportedVectorDetections,
+      secondaryDetections: regionFallbackDetections,
     );
     return _resultFromCounts(_countDetections(mergedDetections));
   }
@@ -267,23 +282,35 @@ class OperativeSketchRecognitionHelper {
     final endpointStartFlagsByNodeId = <int, List<bool>>{};
     var nextEndpointNodeId = 0;
 
-    _EndpointNode resolveEndpointNode(Offset point) {
+    _EndpointNode resolveEndpointNode(_EndpointAttachment attachment) {
       for (final node in endpointNodes) {
-        if ((node.position - point).distance <= snapDistance) {
-          node.addPoint(point);
+        if (_canMergeEndpointIntoNode(
+          node: node,
+          candidate: attachment,
+          snapDistance: snapDistance,
+        )) {
+          node.addAttachment(attachment);
           return node;
         }
       }
 
-      final node = _EndpointNode(id: nextEndpointNodeId++, position: point);
+      final node = _EndpointNode(
+        id: nextEndpointNodeId++,
+        position: attachment.position,
+      );
+      node.addAttachment(attachment);
       endpointNodes.add(node);
       return node;
     }
 
     for (final stroke in mutableStrokes.where((stroke) => !stroke.isClosed)) {
       for (final isStart in const <bool>[true, false]) {
-        final endpoint = isStart ? stroke.points.first : stroke.points.last;
-        final node = resolveEndpointNode(endpoint);
+        final attachment = _buildEndpointAttachment(
+          strokeId: stroke.id,
+          points: stroke.points,
+          isStart: isStart,
+        );
+        final node = resolveEndpointNode(attachment);
         endpointStrokesByNodeId
             .putIfAbsent(node.id, () => <_MutableStrokeGeometry>[])
             .add(stroke);
@@ -318,7 +345,12 @@ class OperativeSketchRecognitionHelper {
 
     for (final sourceStroke in mutableStrokes.where((stroke) => !stroke.isClosed)) {
       for (final isStart in const <bool>[true, false]) {
-        final endpoint = isStart ? sourceStroke.points.first : sourceStroke.points.last;
+        final endpointAttachment = _buildEndpointAttachment(
+          strokeId: sourceStroke.id,
+          points: sourceStroke.points,
+          isStart: isStart,
+        );
+        final endpoint = endpointAttachment.position;
         _EndpointSegmentSnap? bestSnap;
 
         for (final targetStroke in mutableStrokes) {
@@ -335,6 +367,14 @@ class OperativeSketchRecognitionHelper {
               end: targetStroke.points[segmentIndex + 1],
             );
             if (projection.distance > snapDistance) {
+              continue;
+            }
+            if (!_isEndpointSegmentSnapCompatible(
+              endpointAttachment: endpointAttachment,
+              projectedPoint: projection.point,
+              segmentStart: targetStroke.points[segmentIndex],
+              segmentEnd: targetStroke.points[segmentIndex + 1],
+            )) {
               continue;
             }
 
@@ -654,22 +694,42 @@ class OperativeSketchRecognitionHelper {
     final endpointNodes = <_EndpointNode>[];
     var nextNodeId = 0;
 
-    _EndpointNode resolveNode(Offset point) {
+    _EndpointNode resolveNode(_EndpointAttachment attachment) {
       for (final node in endpointNodes) {
-        if ((node.position - point).distance <= snapDistance) {
-          node.addPoint(point);
+        if (_canMergeEndpointIntoNode(
+          node: node,
+          candidate: attachment,
+          snapDistance: snapDistance,
+        )) {
+          node.addAttachment(attachment);
           return node;
         }
       }
-      final node = _EndpointNode(id: nextNodeId++, position: point);
+      final node = _EndpointNode(
+        id: nextNodeId++,
+        position: attachment.position,
+      );
+      node.addAttachment(attachment);
       endpointNodes.add(node);
       return node;
     }
 
     final edges = <_EndpointGraphEdge>[];
     for (final stroke in openStrokes) {
-      final startNode = resolveNode(stroke.points.first);
-      final endNode = resolveNode(stroke.points.last);
+      final startNode = resolveNode(
+        _buildEndpointAttachment(
+          strokeId: stroke.id,
+          points: stroke.points,
+          isStart: true,
+        ),
+      );
+      final endNode = resolveNode(
+        _buildEndpointAttachment(
+          strokeId: stroke.id,
+          points: stroke.points,
+          isStart: false,
+        ),
+      );
       if (startNode.id == endNode.id) continue;
       edges.add(
         _EndpointGraphEdge(
@@ -866,7 +926,10 @@ class OperativeSketchRecognitionHelper {
       _appendPolyline(orderedPoints, oriented);
     }
 
-    final normalized = _normalizeClosedContour(orderedPoints);
+    final normalized = _normalizeClosedContour(
+      orderedPoints,
+      smoothingPasses: 0,
+    );
     if (normalized.length < 3) {
       return null;
     }
@@ -903,11 +966,13 @@ class OperativeSketchRecognitionHelper {
     required List<Offset> contour,
     required _SketchRecognitionSource source,
   }) {
-    final normalizedContour = _normalizeClosedContour(contour);
-    final profile = _buildContourProfile(normalizedContour);
+    final profile = _buildContourProfile(contour);
     if (profile == null) return null;
 
-    final shapeScore = _pickBestShapeScore(profile);
+    final shapeScore = _pickBestShapeScore(
+      profile,
+      source: source,
+    );
     if (shapeScore.kind == OperativeSketchRecognitionKind.none) return null;
 
     return _SketchRecognitionDetection(
@@ -920,18 +985,54 @@ class OperativeSketchRecognitionHelper {
     );
   }
 
-  _ShapeScore _pickBestShapeScore(_ContourProfile profile) {
-    final scores = <_ShapeScore>[
+  List<_ShapeScore> _rankShapeScores(_ContourProfile profile) {
+    return <_ShapeScore>[
       _scoreTriangle(profile),
       _scoreSquare(profile),
-      _scoreRhombus(profile),
       _scoreCircle(profile),
     ]..sort((left, right) => right.score.compareTo(left.score));
+  }
 
+  _ShapeScore _pickBestShapeScore(
+    _ContourProfile profile, {
+    required _SketchRecognitionSource source,
+  }) {
+    final scores = _rankShapeScores(profile);
     final best = scores.first;
-    final secondBestScore = scores.length > 1 ? scores[1].score : 0.0;
-    if (best.score < _minimumClassificationScore ||
-        best.score - secondBestScore < _minimumClassificationMargin) {
+    final second = scores.length > 1
+        ? scores[1]
+        : const _ShapeScore(
+            kind: OperativeSketchRecognitionKind.none,
+            score: 0.0,
+          );
+    final geometryAccepted = _isGeometryClassificationAccepted(
+      best: best,
+      second: second,
+    );
+    final usePointCloudVerifier = _shouldUsePointCloudVerifier(
+      source: source,
+      scores: scores,
+      best: best,
+      second: second,
+    );
+    if (usePointCloudVerifier) {
+      final verified = _verifyAmbiguousShapeWithPointCloud(
+        profile: profile,
+        geometryScores: scores,
+      );
+      if (verified.kind != OperativeSketchRecognitionKind.none) {
+        return verified;
+      }
+    }
+
+    if (!geometryAccepted) {
+      return const _ShapeScore(
+        kind: OperativeSketchRecognitionKind.none,
+        score: 0.0,
+      );
+    }
+    if (source == _SketchRecognitionSource.region &&
+        best.score < _minimumRegionFallbackGeometryScore) {
       return const _ShapeScore(
         kind: OperativeSketchRecognitionKind.none,
         score: 0.0,
@@ -941,9 +1042,66 @@ class OperativeSketchRecognitionHelper {
     return best;
   }
 
+  bool _isGeometryClassificationAccepted({
+    required _ShapeScore best,
+    required _ShapeScore second,
+  }) {
+    return best.score >= _minimumClassificationScore &&
+        best.score - second.score >= _minimumClassificationMargin;
+  }
+
+  bool _shouldUsePointCloudVerifier({
+    required _SketchRecognitionSource source,
+    required List<_ShapeScore> scores,
+    required _ShapeScore best,
+    required _ShapeScore second,
+  }) {
+    if (best.score < 0.44) {
+      return false;
+    }
+
+    final margin = best.score - second.score;
+    final circleScore = scores.firstWhere(
+      (score) => score.kind == OperativeSketchRecognitionKind.circle,
+      orElse: () => const _ShapeScore(
+        kind: OperativeSketchRecognitionKind.circle,
+        score: 0.0,
+      ),
+    ).score;
+    final lowConfidence = best.score < (_minimumClassificationScore + 0.08);
+    final narrowMargin = margin < (_minimumClassificationMargin + 0.08);
+    final circleIsCompetitive = circleScore >= max(0.42, best.score - 0.16);
+    final regionNeedsVerification = source == _SketchRecognitionSource.region &&
+        best.score < _minimumRegionFallbackGeometryScore;
+
+    if (source == _SketchRecognitionSource.stitchedLoop ||
+        source == _SketchRecognitionSource.region) {
+      return lowConfidence ||
+          narrowMargin ||
+          regionNeedsVerification ||
+          circleIsCompetitive;
+    }
+
+    return (source == _SketchRecognitionSource.stroke && circleIsCompetitive) ||
+        lowConfidence ||
+        narrowMargin;
+  }
+
   _ShapeScore _scoreTriangle(_ContourProfile profile) {
     final candidates = _buildPolygonCandidates(profile.contour, 3);
     var bestScore = 0.0;
+    final cornerScore = profile.triangleCornerScore;
+    final roundnessPenalty = _computePolygonRoundnessPenalty(
+      profile,
+      cornerScore: cornerScore,
+      roundnessPenaltyWeight: 0.68,
+    );
+    if (candidates.isEmpty) {
+      return _ShapeScore(
+        kind: OperativeSketchRecognitionKind.triangle,
+        score: cornerScore * (0.72 - (roundnessPenalty * 0.26)),
+      );
+    }
 
     for (final polygon in candidates) {
       final fit = _scorePolygonFit(profile, polygon);
@@ -965,25 +1123,29 @@ class OperativeSketchRecognitionHelper {
       );
       var candidateScore = _weightedAverage(
         <double>[
+          cornerScore,
           fit.score,
           closureScore,
           sideBalance,
           angleScore,
-          profile.smoothnessScore,
           profile.selfIntersectionScore,
         ],
-        const <double>[0.34, 0.34, 0.08, 0.10, 0.07, 0.07],
+        const <double>[0.38, 0.24, 0.18, 0.08, 0.08, 0.04],
       );
 
-      // Si el contorno se deja reducir a tres lados cerrados y encaja de forma
-      // razonable con ese poligono, aceptamos un triangulo mas tosco.
-      if (fit.score >= 0.5 && closureScore >= 0.68) {
+      // Si hay tres esquinas claras y el contorno encaja razonablemente con
+      // el poligono, aceptamos triangulos algo toscos.
+      if (cornerScore >= 0.62 && fit.score >= 0.46 && closureScore >= 0.62) {
         candidateScore = max(
           candidateScore,
-          0.64 + ((fit.score - 0.5) * 0.22) + ((closureScore - 0.68) * 0.18),
+          0.66 +
+              ((cornerScore - 0.62) * 0.18) +
+              ((fit.score - 0.46) * 0.14) +
+              ((closureScore - 0.62) * 0.12),
         );
       }
 
+      candidateScore *= 1 - roundnessPenalty;
       bestScore = max(bestScore, _clampDouble(candidateScore, 0.0, 1.0));
     }
 
@@ -996,6 +1158,18 @@ class OperativeSketchRecognitionHelper {
   _ShapeScore _scoreSquare(_ContourProfile profile) {
     final candidates = _buildPolygonCandidates(profile.contour, 4);
     var bestScore = 0.0;
+    final cornerScore = profile.squareCornerScore;
+    final roundnessPenalty = _computePolygonRoundnessPenalty(
+      profile,
+      cornerScore: cornerScore,
+      roundnessPenaltyWeight: 0.46,
+    );
+    if (candidates.isEmpty) {
+      return _ShapeScore(
+        kind: OperativeSketchRecognitionKind.square,
+        score: cornerScore * (0.72 - (roundnessPenalty * 0.18)),
+      );
+    }
 
     for (final polygon in candidates) {
       final fit = _scorePolygonFit(profile, polygon);
@@ -1039,14 +1213,15 @@ class OperativeSketchRecognitionHelper {
       bestScore = max(
         bestScore,
         _weightedAverage(
-          <double>[
-            fit.score,
-            geometryScore,
-            profile.smoothnessScore,
-            profile.selfIntersectionScore,
-          ],
-          const <double>[0.46, 0.32, 0.12, 0.10],
-        ),
+              <double>[
+                cornerScore,
+                fit.score,
+                geometryScore,
+                profile.selfIntersectionScore,
+              ],
+              const <double>[0.38, 0.30, 0.26, 0.06],
+            ) *
+            (1 - roundnessPenalty),
       );
     }
 
@@ -1056,77 +1231,8 @@ class OperativeSketchRecognitionHelper {
     );
   }
 
-  _ShapeScore _scoreRhombus(_ContourProfile profile) {
-    final candidates = _buildPolygonCandidates(profile.contour, 4);
-    var bestScore = 0.0;
-
-    for (final polygon in candidates) {
-      final fit = _scorePolygonFit(profile, polygon);
-      final angles = _polygonAngles(polygon);
-      final sideLengths = <double>[
-        (polygon[0] - polygon[1]).distance,
-        (polygon[1] - polygon[2]).distance,
-        (polygon[2] - polygon[3]).distance,
-        (polygon[3] - polygon[0]).distance,
-      ]..sort();
-      final edgeDirections = <double>[
-        _edgeDirection(polygon[0], polygon[1]),
-        _edgeDirection(polygon[1], polygon[2]),
-        _edgeDirection(polygon[2], polygon[3]),
-        _edgeDirection(polygon[3], polygon[0]),
-      ];
-      final oppositeParallelism = max(
-        _axisAngleDifference(edgeDirections[0], edgeDirections[2]),
-        _axisAngleDifference(edgeDirections[1], edgeDirections[3]),
-      );
-      final diagonalLengths = <double>[
-        (polygon[0] - polygon[2]).distance,
-        (polygon[1] - polygon[3]).distance,
-      ]..sort();
-      final diagonalRatio =
-          diagonalLengths.first / max(diagonalLengths.last, 0.0001);
-      final oppositeAngleSimilarity = max(
-        (angles[0] - angles[2]).abs(),
-        (angles[1] - angles[3]).abs(),
-      );
-      final nonSquareScore = _softScore(
-        angles.map((angle) => (angle - 90).abs()).reduce(max),
-        center: 28,
-        tolerance: 28,
-      );
-      final geometryScore = _weightedAverage(
-        <double>[
-          sideLengths.first / max(sideLengths.last, 0.0001),
-          _softScore(oppositeParallelism, center: 0, tolerance: 24),
-          _softScore(oppositeAngleSimilarity, center: 0, tolerance: 26),
-          nonSquareScore,
-          _softScore(diagonalRatio, center: 0.74, tolerance: 0.24),
-        ],
-        const <double>[0.26, 0.20, 0.22, 0.18, 0.14],
-      );
-
-      bestScore = max(
-        bestScore,
-        _weightedAverage(
-          <double>[
-            fit.score,
-            geometryScore,
-            profile.smoothnessScore,
-            profile.selfIntersectionScore,
-          ],
-          const <double>[0.44, 0.34, 0.12, 0.10],
-        ),
-      );
-    }
-
-    return _ShapeScore(
-      kind: OperativeSketchRecognitionKind.rhombus,
-      score: bestScore,
-    );
-  }
-
   _ShapeScore _scoreCircle(_ContourProfile profile) {
-    final fittedCircle = _fitCircle(profile.contour);
+    final fittedCircle = _fitCircle(profile.smoothedContour);
     if (fittedCircle == null || fittedCircle.radius <= 0) {
       return const _ShapeScore(
         kind: OperativeSketchRecognitionKind.circle,
@@ -1136,11 +1242,33 @@ class OperativeSketchRecognitionHelper {
 
     final radiusScale = max(fittedCircle.radius, 0.0001);
     final circleArea = pi * fittedCircle.radius * fittedCircle.radius;
-    final score = _weightedAverage(
+    final radialVarianceScore = _computeRadialVarianceScore(
+      contour: profile.smoothedContour,
+      center: fittedCircle.center,
+      radius: fittedCircle.radius,
+    );
+    final strongCornerPenalty = _clampDouble(
+      (profile.strongCornerCount - 2) / 2,
+      0.0,
+      1.0,
+    );
+    final cornerPenalty = max(
+      max(profile.triangleCornerScore, profile.squareCornerScore),
+      strongCornerPenalty * 0.85,
+    );
+    final roundnessEvidence = _computeRoundnessEvidence(
+      profile,
+      fittedCircle: fittedCircle,
+      radialVarianceScore: radialVarianceScore,
+    );
+    final cornerAbsenceScore = 1 - _clampDouble(cornerPenalty, 0.0, 1.0);
+    final baseScore = _weightedAverage(
       <double>[
         1 - _clampDouble(fittedCircle.rmsResidual / (radiusScale * 0.14), 0, 1),
         1 - _clampDouble(fittedCircle.maxResidual / (radiusScale * 0.28), 0, 1),
         fittedCircle.coverage,
+        radialVarianceScore,
+        cornerAbsenceScore,
         1 -
             _clampDouble(
               (profile.area - circleArea).abs() /
@@ -1151,22 +1279,367 @@ class OperativeSketchRecognitionHelper {
         _softScore(profile.circularity, center: 1, tolerance: 0.32),
         min(profile.bounds.width, profile.bounds.height) /
             max(max(profile.bounds.width, profile.bounds.height), 0.0001),
-        profile.smoothnessScore,
         profile.selfIntersectionScore,
       ],
-      const <double>[0.24, 0.12, 0.14, 0.12, 0.14, 0.08, 0.10, 0.06],
+      const <double>[0.20, 0.10, 0.12, 0.18, 0.16, 0.10, 0.08, 0.04, 0.02],
+    );
+    final effectiveCornerPenalty =
+        cornerPenalty * (1 - (roundnessEvidence * 0.42));
+    final score = max(
+      baseScore * (1 - (effectiveCornerPenalty * 0.58)),
+      _weightedAverage(
+        <double>[
+          baseScore,
+          roundnessEvidence,
+          cornerAbsenceScore,
+        ],
+        const <double>[0.56, 0.30, 0.14],
+      ),
     );
 
     return _ShapeScore(
       kind: OperativeSketchRecognitionKind.circle,
-      score: score,
+      score: _clampDouble(score, 0.0, 1.0),
     );
+  }
+
+  double _computePolygonRoundnessPenalty(
+    _ContourProfile profile, {
+    required double cornerScore,
+    required double roundnessPenaltyWeight,
+  }) {
+    final roundnessEvidence = _computeRoundnessEvidence(profile);
+    final cornerConfidence = _clampDouble(
+      (cornerScore - 0.52) / 0.36,
+      0.0,
+      1.0,
+    );
+    return roundnessEvidence *
+        (1 - cornerConfidence) *
+        roundnessPenaltyWeight;
+  }
+
+  double _computeRoundnessEvidence(
+    _ContourProfile profile, {
+    _FittedCircle? fittedCircle,
+    double? radialVarianceScore,
+  }) {
+    final effectiveFittedCircle = fittedCircle ?? _fitCircle(profile.smoothedContour);
+    final effectiveRadialVarianceScore = radialVarianceScore ??
+        (effectiveFittedCircle == null
+            ? 0.0
+            : _computeRadialVarianceScore(
+                contour: profile.smoothedContour,
+                center: effectiveFittedCircle.center,
+                radius: effectiveFittedCircle.radius,
+              ));
+    final aspectScore = min(profile.bounds.width, profile.bounds.height) /
+        max(max(profile.bounds.width, profile.bounds.height), 0.0001);
+    return _weightedAverage(
+      <double>[
+        _softScore(profile.circularity, center: 1, tolerance: 0.22),
+        aspectScore,
+        effectiveRadialVarianceScore,
+      ],
+      const <double>[0.42, 0.18, 0.40],
+    );
+  }
+
+  _ShapeScore _verifyAmbiguousShapeWithPointCloud({
+    required _ContourProfile profile,
+    required List<_ShapeScore> geometryScores,
+  }) {
+    final candidateKinds = geometryScores
+        .take(3)
+        .map((score) => score.kind)
+        .where((kind) => kind != OperativeSketchRecognitionKind.none)
+        .toSet();
+    final circleGeometryScore = geometryScores.firstWhere(
+      (score) => score.kind == OperativeSketchRecognitionKind.circle,
+      orElse: () => const _ShapeScore(
+        kind: OperativeSketchRecognitionKind.circle,
+        score: 0.0,
+      ),
+    ).score;
+    if (circleGeometryScore >=
+        max(0.42, geometryScores.first.score - 0.18)) {
+      candidateKinds.add(OperativeSketchRecognitionKind.circle);
+    }
+    if (candidateKinds.isEmpty) {
+      return const _ShapeScore(
+        kind: OperativeSketchRecognitionKind.none,
+        score: 0.0,
+      );
+    }
+
+    final geometryByKind = <OperativeSketchRecognitionKind, double>{
+      for (final score in geometryScores) score.kind: score.score,
+    };
+    final pointCloudScores = _scorePointCloudTemplates(profile.contour);
+    final pointCloudByKind = <OperativeSketchRecognitionKind, double>{
+      for (final score in pointCloudScores) score.kind: score.score,
+    };
+    final verifierRanking = pointCloudScores
+        .where((score) => candidateKinds.contains(score.kind))
+        .toList(growable: false)
+      ..sort((left, right) => right.score.compareTo(left.score));
+    if (verifierRanking.isEmpty ||
+        verifierRanking.first.score < _minimumPointCloudVerificationScore) {
+      return const _ShapeScore(
+        kind: OperativeSketchRecognitionKind.none,
+        score: 0.0,
+      );
+    }
+
+    final combinedScores = candidateKinds
+        .map((kind) {
+          final geometryScore = geometryByKind[kind] ?? 0.0;
+          final pointCloudScore = pointCloudByKind[kind] ?? 0.0;
+          return _ShapeScore(
+            kind: kind,
+            score: _weightedAverage(
+              <double>[geometryScore, pointCloudScore],
+              const <double>[0.68, 0.32],
+            ),
+          );
+        })
+        .toList(growable: false)
+      ..sort((left, right) => right.score.compareTo(left.score));
+    final best = combinedScores.first;
+    final second = combinedScores.length > 1
+        ? combinedScores[1]
+        : const _ShapeScore(
+            kind: OperativeSketchRecognitionKind.none,
+            score: 0.0,
+          );
+    final pointCloudScore = pointCloudByKind[best.kind] ?? 0.0;
+    if (pointCloudScore < _minimumPointCloudVerificationScore) {
+      return const _ShapeScore(
+        kind: OperativeSketchRecognitionKind.none,
+        score: 0.0,
+      );
+    }
+    if (best.score < (_minimumClassificationScore - 0.02) ||
+        best.score - second.score < 0.04) {
+      return const _ShapeScore(
+        kind: OperativeSketchRecognitionKind.none,
+        score: 0.0,
+      );
+    }
+
+    return _ShapeScore(
+      kind: best.kind,
+      score: _clampDouble(best.score + 0.04, 0.0, 1.0),
+    );
+  }
+
+  List<_ShapeScore> _scorePointCloudTemplates(List<Offset> contour) {
+    final cloud = _normalizePointCloud(
+      _resampleClosedPathToFixedCount(
+        contour,
+        _pointCloudSampleCount,
+      ),
+    );
+    if (cloud.length < 8) {
+      return _priorityOrder
+          .map(
+            (kind) => _ShapeScore(
+              kind: kind,
+              score: 0.0,
+            ),
+          )
+          .toList(growable: false);
+    }
+
+    final scores = _priorityOrder
+        .map((kind) {
+          final template = _buildPointCloudTemplate(
+            kind,
+            _pointCloudSampleCount,
+          );
+          final distance = _bestRotatedPointCloudDistance(
+            cloud,
+            template,
+          );
+          return _ShapeScore(
+            kind: kind,
+            score: 1 - _clampDouble(distance / 0.34, 0.0, 1.0),
+          );
+        })
+        .toList(growable: false)
+      ..sort((left, right) => right.score.compareTo(left.score));
+    return scores;
+  }
+
+  List<Offset> _buildPointCloudTemplate(
+    OperativeSketchRecognitionKind kind,
+    int pointCount,
+  ) {
+    final outline = switch (kind) {
+      OperativeSketchRecognitionKind.triangle => const <Offset>[
+          Offset(0.0, -1.0),
+          Offset(0.88, 0.58),
+          Offset(-0.88, 0.58),
+        ],
+      OperativeSketchRecognitionKind.square => const <Offset>[
+          Offset(-1.0, -1.0),
+          Offset(1.0, -1.0),
+          Offset(1.0, 1.0),
+          Offset(-1.0, 1.0),
+        ],
+      OperativeSketchRecognitionKind.circle => List<Offset>.generate(
+          pointCount,
+          (index) {
+            final angle = (2 * pi * index) / pointCount;
+            return Offset(cos(angle), sin(angle));
+          },
+          growable: false,
+        ),
+      OperativeSketchRecognitionKind.none => const <Offset>[],
+    };
+    if (outline.length < 3) {
+      return const <Offset>[];
+    }
+
+    return _normalizePointCloud(
+      kind == OperativeSketchRecognitionKind.circle
+          ? outline
+          : _resampleClosedPathToFixedCount(outline, pointCount),
+    );
+  }
+
+  List<Offset> _resampleClosedPathToFixedCount(
+    List<Offset> points,
+    int pointCount,
+  ) {
+    if (points.length < 2 || pointCount < 3) {
+      return List<Offset>.from(points);
+    }
+
+    final polyline = <Offset>[...points, points.first];
+    final cumulativeDistances = <double>[0.0];
+    for (int index = 1; index < polyline.length; index++) {
+      cumulativeDistances.add(
+        cumulativeDistances.last +
+            (polyline[index] - polyline[index - 1]).distance,
+      );
+    }
+
+    final totalLength = cumulativeDistances.last;
+    if (totalLength <= 0.0001) {
+      return List<Offset>.from(points);
+    }
+
+    return List<Offset>.generate(pointCount, (index) {
+      final distance = (index / pointCount) * totalLength;
+      return _pointAtDistanceOnPolyline(
+        polyline: polyline,
+        cumulativeDistances: cumulativeDistances,
+        distance: distance,
+      );
+    }, growable: false);
+  }
+
+  List<Offset> _normalizePointCloud(List<Offset> points) {
+    if (points.isEmpty) {
+      return const <Offset>[];
+    }
+
+    final bounds = _computeBounds(points);
+    final scale = max(bounds.width, bounds.height).toDouble();
+    if (scale <= 0.0001) {
+      return const <Offset>[];
+    }
+
+    final centroid = _averagePoint(points);
+    return points
+        .map(
+          (point) => Offset(
+            (point.dx - centroid.dx) / scale,
+            (point.dy - centroid.dy) / scale,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  double _bestRotatedPointCloudDistance(
+    List<Offset> cloud,
+    List<Offset> template,
+  ) {
+    var bestDistance = double.infinity;
+    for (int angleDegrees = 0; angleDegrees < 180; angleDegrees += 15) {
+      final rotatedCloud = _rotatePointCloud(
+        cloud,
+        angleDegrees * (pi / 180),
+      );
+      bestDistance = min(
+        bestDistance,
+        _bidirectionalPointCloudDistance(rotatedCloud, template),
+      );
+    }
+    return bestDistance;
+  }
+
+  List<Offset> _rotatePointCloud(List<Offset> points, double angleRadians) {
+    final cosine = cos(angleRadians);
+    final sine = sin(angleRadians);
+    return points
+        .map(
+          (point) => Offset(
+            (point.dx * cosine) - (point.dy * sine),
+            (point.dx * sine) + (point.dy * cosine),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  double _bidirectionalPointCloudDistance(
+    List<Offset> first,
+    List<Offset> second,
+  ) {
+    return (_nearestNeighborPointCloudDistance(first, second) +
+            _nearestNeighborPointCloudDistance(second, first)) /
+        2;
+  }
+
+  double _nearestNeighborPointCloudDistance(
+    List<Offset> source,
+    List<Offset> target,
+  ) {
+    if (source.isEmpty || target.isEmpty) {
+      return double.infinity;
+    }
+
+    var totalDistance = 0.0;
+    for (final point in source) {
+      var bestDistance = double.infinity;
+      for (final candidate in target) {
+        bestDistance = min(bestDistance, (point - candidate).distance);
+      }
+      totalDistance += bestDistance;
+    }
+
+    return totalDistance / source.length;
   }
 
   _ContourProfile? _buildContourProfile(List<Offset> contour) {
     if (contour.length < 3) return null;
 
-    final bounds = _computeBounds(contour);
+    final cornerContour = _normalizeClosedContour(
+      contour,
+      smoothingPasses: 0,
+    );
+    if (cornerContour.length < 3) return null;
+
+    final smoothedContour = _normalizeClosedContour(
+      contour,
+      smoothingPasses: 2,
+    );
+    final effectiveSmoothedContour = smoothedContour.length >= 5
+        ? smoothedContour
+        : cornerContour;
+
+    final bounds = _computeBounds(cornerContour);
     final shortSide = min(bounds.width, bounds.height).toDouble();
     if (bounds.width <= 0 ||
         bounds.height <= 0 ||
@@ -1174,21 +1647,41 @@ class OperativeSketchRecognitionHelper {
       return null;
     }
 
-    final area = _polygonArea(contour).abs();
+    final area = _polygonArea(cornerContour).abs();
     if (area < _minimumContourArea) return null;
 
-    final perimeter = _polygonPerimeter(contour);
+    final perimeter = _polygonPerimeter(cornerContour);
     if (perimeter < _minimumContourPerimeter) return null;
 
+    final cornerPeaks = _computeCornerPeaks(cornerContour);
+    final triangleCornerScore = _scoreExpectedCornerCount(
+      cornerPeaks: cornerPeaks,
+      contourPointCount: cornerContour.length,
+      expectedCornerCount: 3,
+    );
+    final squareCornerScore = _scoreExpectedCornerCount(
+      cornerPeaks: cornerPeaks,
+      contourPointCount: cornerContour.length,
+      expectedCornerCount: 4,
+    );
+    final strongCornerCount = cornerPeaks
+        .where((peak) => peak.strength >= _strongCornerStrength)
+        .length;
+
     return _ContourProfile(
-      contour: contour,
+      contour: cornerContour,
+      smoothedContour: effectiveSmoothedContour,
       bounds: bounds,
       area: area,
       perimeter: perimeter,
-      centroid: _computePolygonCentroid(contour),
-      smoothnessScore: _computeSmoothnessScore(contour),
-      selfIntersectionScore: _computeSelfIntersectionScore(contour),
+      centroid: _computePolygonCentroid(cornerContour),
+      smoothnessScore: _computeSmoothnessScore(effectiveSmoothedContour),
+      selfIntersectionScore: _computeSelfIntersectionScore(cornerContour),
       circularity: (4 * pi * area) / max(perimeter * perimeter, 0.0001),
+      cornerPeaks: cornerPeaks,
+      triangleCornerScore: triangleCornerScore,
+      squareCornerScore: squareCornerScore,
+      strongCornerCount: strongCornerCount,
     );
   }
 
@@ -1226,7 +1719,79 @@ class OperativeSketchRecognitionHelper {
       if (signatures.add(signature)) candidates.add(reduced);
     }
 
+    final peakCandidate = _buildCornerPeakPolygonCandidate(
+      contour,
+      targetVertexCount,
+    );
+    if (peakCandidate.length == targetVertexCount) {
+      final signature = _polygonSignature(peakCandidate);
+      if (signatures.add(signature)) {
+        candidates.add(peakCandidate);
+      }
+    }
+
+    final hullCandidate = _buildHullCornerPolygonCandidate(
+      contour,
+      targetVertexCount,
+    );
+    if (hullCandidate.length == targetVertexCount) {
+      final signature = _polygonSignature(hullCandidate);
+      if (signatures.add(signature)) {
+        candidates.add(hullCandidate);
+      }
+    }
+
     return candidates;
+  }
+
+  List<Offset> _buildCornerPeakPolygonCandidate(
+    List<Offset> contour,
+    int targetVertexCount,
+  ) {
+    final cornerPeaks = _computeCornerPeaks(contour);
+    if (cornerPeaks.length < targetVertexCount) {
+      return const <Offset>[];
+    }
+
+    final strongestPeaks = List<_CornerPeak>.from(cornerPeaks)
+      ..sort((left, right) => right.strength.compareTo(left.strength));
+    final selectedPeaks = strongestPeaks
+        .take(targetVertexCount)
+        .toList(growable: false)
+      ..sort((left, right) => left.index.compareTo(right.index));
+
+    return selectedPeaks
+        .map((peak) => contour[peak.index])
+        .toList(growable: false);
+  }
+
+  List<Offset> _buildHullCornerPolygonCandidate(
+    List<Offset> contour,
+    int targetVertexCount,
+  ) {
+    final hull = _computeConvexHull(contour);
+    if (hull.length < targetVertexCount) {
+      return const <Offset>[];
+    }
+
+    final hullVertices = _deduplicatePolygonVertices(hull);
+    if (hullVertices.length < targetVertexCount) {
+      return const <Offset>[];
+    }
+
+    final reducedHull = hullVertices.length == targetVertexCount
+        ? hullVertices
+        : _reducePolygonVertexCount(hullVertices, targetVertexCount);
+    if (reducedHull.length != targetVertexCount) {
+      return const <Offset>[];
+    }
+
+    final snapped = _snapPolygonVerticesToCornerPeaks(
+      polygon: reducedHull,
+      contour: contour,
+    );
+    final deduplicated = _deduplicatePolygonVertices(snapped);
+    return deduplicated.length == targetVertexCount ? deduplicated : reducedHull;
   }
 
   double _scoreThreeSideClosure(
@@ -1320,12 +1885,13 @@ class OperativeSketchRecognitionHelper {
           0,
           1,
         );
+    final angularFitScore = _scoreContourAngularFit(profile.contour, polygon);
 
     return _PolygonFitScore(
       polygon: polygon,
       score: _weightedAverage(
-        <double>[distanceScore, areaScore, perimeterScore],
-        const <double>[0.56, 0.24, 0.20],
+        <double>[distanceScore, areaScore, perimeterScore, angularFitScore],
+        const <double>[0.42, 0.20, 0.14, 0.24],
       ),
     );
   }
@@ -1444,7 +2010,10 @@ class OperativeSketchRecognitionHelper {
     return <double>[rows[0][3], rows[1][3], rows[2][3]];
   }
 
-  List<Offset> _normalizeClosedContour(List<Offset> points) {
+  List<Offset> _normalizeClosedContour(
+    List<Offset> points, {
+    required int smoothingPasses,
+  }) {
     if (points.length < 3) return const <Offset>[];
 
     var contour = List<Offset>.from(points);
@@ -1461,10 +2030,169 @@ class OperativeSketchRecognitionHelper {
       8.2,
     );
     contour = _resamplePolyline(contour, spacing, closed: true);
-    contour = _smoothPolyline(contour, closed: true, passes: 1);
+    if (smoothingPasses > 0) {
+      contour = _smoothPolyline(
+        contour,
+        closed: true,
+        passes: smoothingPasses,
+      );
+    }
     contour = _resamplePolyline(contour, spacing, closed: true);
     contour = _deduplicateSequentialPoints(contour, minimumDistance: 0.7);
     return contour.length >= 3 ? contour : const <Offset>[];
+  }
+
+  List<_CornerPeak> _computeCornerPeaks(List<Offset> contour) {
+    if (contour.length < 6) return const <_CornerPeak>[];
+
+    final window = max(1, contour.length ~/ 18);
+    final minimumPeakDistance = max(window + 1, contour.length ~/ 9);
+    final peaks = <_CornerPeak>[];
+    for (int index = 0; index < contour.length; index++) {
+      final previous = contour[(index - window + contour.length) % contour.length];
+      final current = contour[index];
+      final next = contour[(index + window) % contour.length];
+      final angle = _angleAt(previous, current, next);
+      final sharpness = max(0.0, 180 - angle);
+      if (sharpness < _minimumCornerSharpness) {
+        continue;
+      }
+
+      peaks.add(
+        _CornerPeak(
+          index: index,
+          angle: angle,
+          sharpness: sharpness,
+          strength: _clampDouble(
+            (sharpness - _minimumCornerSharpness) / 72,
+            0.0,
+            1.0,
+          ),
+        ),
+      );
+    }
+
+    final selected = <_CornerPeak>[];
+    final rankedPeaks = List<_CornerPeak>.from(peaks)
+      ..sort((left, right) => right.strength.compareTo(left.strength));
+    for (final candidate in rankedPeaks) {
+      final isTooCloseToExisting = selected.any(
+        (existing) => _cyclicIndexDistance(
+              candidate.index,
+              existing.index,
+              contour.length,
+            ) <
+            minimumPeakDistance,
+      );
+      if (isTooCloseToExisting) {
+        continue;
+      }
+
+      selected.add(candidate);
+      if (selected.length >= 8) {
+        break;
+      }
+    }
+
+    selected.sort((left, right) => left.index.compareTo(right.index));
+    return List<_CornerPeak>.unmodifiable(selected);
+  }
+
+  double _scoreExpectedCornerCount({
+    required List<_CornerPeak> cornerPeaks,
+    required int contourPointCount,
+    required int expectedCornerCount,
+  }) {
+    if (expectedCornerCount <= 0 || contourPointCount <= 0) return 0.0;
+
+    final rankedPeaks = List<_CornerPeak>.from(cornerPeaks)
+      ..sort((left, right) => right.strength.compareTo(left.strength));
+    final selectedPeaks = rankedPeaks
+        .take(min(expectedCornerCount, rankedPeaks.length))
+        .toList(growable: false)
+      ..sort((left, right) => left.index.compareTo(right.index));
+    if (selectedPeaks.isEmpty) return 0.0;
+
+    final strengthScore = selectedPeaks.fold<double>(
+          0.0,
+          (sum, peak) => sum + peak.strength,
+        ) /
+        expectedCornerCount;
+    final presenceScore =
+        selectedPeaks.length / expectedCornerCount;
+    final spacingScore = selectedPeaks.length == expectedCornerCount
+        ? _scoreCornerSpacing(
+            peaks: selectedPeaks,
+            contourPointCount: contourPointCount,
+          )
+        : 0.0;
+    final nextPeakStrength = rankedPeaks.length > expectedCornerCount
+        ? rankedPeaks[expectedCornerCount].strength
+        : 0.0;
+    final extraPeakPenalty = 1 - _clampDouble(nextPeakStrength, 0.0, 1.0);
+
+    return _weightedAverage(
+      <double>[
+        strengthScore,
+        presenceScore,
+        spacingScore,
+        extraPeakPenalty,
+      ],
+      const <double>[0.46, 0.22, 0.20, 0.12],
+    );
+  }
+
+  double _scoreCornerSpacing({
+    required List<_CornerPeak> peaks,
+    required int contourPointCount,
+  }) {
+    if (peaks.length < 2 || contourPointCount <= 0) return 0.0;
+
+    final expectedGap = contourPointCount / peaks.length;
+    var normalizedError = 0.0;
+    for (int index = 0; index < peaks.length; index++) {
+      final current = peaks[index];
+      final next = peaks[(index + 1) % peaks.length];
+      final gap = index + 1 < peaks.length
+          ? next.index - current.index
+          : contourPointCount - current.index + next.index;
+      normalizedError += (gap - expectedGap).abs() / max(expectedGap, 1.0);
+    }
+
+    return 1 - _clampDouble(normalizedError / peaks.length, 0.0, 1.0);
+  }
+
+  int _cyclicIndexDistance(int first, int second, int length) {
+    final rawDistance = (first - second).abs();
+    return min(rawDistance, length - rawDistance);
+  }
+
+  double _computeRadialVarianceScore({
+    required List<Offset> contour,
+    required Offset center,
+    required double radius,
+  }) {
+    if (contour.isEmpty || radius <= 0) return 0.0;
+
+    final distances = contour
+        .map((point) => (point - center).distance)
+        .toList(growable: false);
+    final meanDistance =
+        distances.reduce((sum, value) => sum + value) / distances.length;
+    if (meanDistance <= 0) return 0.0;
+
+    final variance = distances.fold<double>(
+          0.0,
+          (sum, value) => sum + pow(value - meanDistance, 2).toDouble(),
+        ) /
+        distances.length;
+    final standardDeviation = sqrt(variance).toDouble();
+    return 1 -
+        _clampDouble(
+          standardDeviation / max(radius * 0.18, 0.0001),
+          0.0,
+          1.0,
+        );
   }
 
   double _pathLength(List<Offset> points, {required bool closed}) {
@@ -1588,6 +2316,61 @@ class OperativeSketchRecognitionHelper {
     return simplifiedPolygon;
   }
 
+  List<Offset> _computeConvexHull(List<Offset> points) {
+    if (points.length < 3) {
+      return List<Offset>.from(points);
+    }
+
+    final sortedPoints = List<Offset>.from(points)
+      ..sort((left, right) {
+        final dxComparison = left.dx.compareTo(right.dx);
+        if (dxComparison != 0) return dxComparison;
+        return left.dy.compareTo(right.dy);
+      });
+    final uniquePoints = <Offset>[];
+    for (final point in sortedPoints) {
+      if (uniquePoints.isEmpty ||
+          (point - uniquePoints.last).distance > 0.6) {
+        uniquePoints.add(point);
+      }
+    }
+    if (uniquePoints.length < 3) {
+      return uniquePoints;
+    }
+
+    final lowerHull = <Offset>[];
+    for (final point in uniquePoints) {
+      while (lowerHull.length >= 2 &&
+          _crossProduct(lowerHull[lowerHull.length - 2], lowerHull.last, point) <=
+              0.0001) {
+        lowerHull.removeLast();
+      }
+      lowerHull.add(point);
+    }
+
+    final upperHull = <Offset>[];
+    for (final point in uniquePoints.reversed) {
+      while (upperHull.length >= 2 &&
+          _crossProduct(upperHull[upperHull.length - 2], upperHull.last, point) <=
+              0.0001) {
+        upperHull.removeLast();
+      }
+      upperHull.add(point);
+    }
+
+    return <Offset>[
+      ...lowerHull.take(max(0, lowerHull.length - 1)),
+      ...upperHull.take(max(0, upperHull.length - 1)),
+    ];
+  }
+
+  double _crossProduct(Offset origin, Offset first, Offset second) {
+    final firstVector = first - origin;
+    final secondVector = second - origin;
+    return (firstVector.dx * secondVector.dy) -
+        (firstVector.dy * secondVector.dx);
+  }
+
   List<Offset> _simplifyWithDouglasPeucker(List<Offset> points, double epsilon) {
     if (points.length < 3) return List<Offset>.from(points);
 
@@ -1651,6 +2434,54 @@ class OperativeSketchRecognitionHelper {
     return deduplicated;
   }
 
+  List<Offset> _snapPolygonVerticesToCornerPeaks({
+    required List<Offset> polygon,
+    required List<Offset> contour,
+  }) {
+    if (polygon.isEmpty || contour.isEmpty) {
+      return const <Offset>[];
+    }
+
+    final cornerPeaks = _computeCornerPeaks(contour);
+    if (cornerPeaks.isEmpty) {
+      return List<Offset>.from(polygon);
+    }
+
+    final bounds = _computeBounds(contour);
+    final maxSnapDistance = max(
+      2.4,
+      min(bounds.width, bounds.height).toDouble() * 0.16,
+    );
+    final usedPeakIndices = <int>{};
+    final snapped = <Offset>[];
+
+    for (final vertex in polygon) {
+      _CornerPeak? bestPeak;
+      var bestDistance = double.infinity;
+      for (final peak in cornerPeaks) {
+        if (usedPeakIndices.contains(peak.index)) {
+          continue;
+        }
+
+        final peakPoint = contour[peak.index];
+        final distance = (vertex - peakPoint).distance;
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestPeak = peak;
+        }
+      }
+
+      if (bestPeak != null && bestDistance <= maxSnapDistance) {
+        usedPeakIndices.add(bestPeak.index);
+        snapped.add(contour[bestPeak.index]);
+      } else {
+        snapped.add(vertex);
+      }
+    }
+
+    return snapped;
+  }
+
   List<Offset> _reducePolygonVertexCount(
     List<Offset> polygon,
     int targetVertexCount,
@@ -1711,6 +2542,56 @@ class OperativeSketchRecognitionHelper {
   double _axisAngleDifference(double first, double second) {
     final rawDifference = (first - second).abs() % 180;
     return rawDifference > 90 ? 180 - rawDifference : rawDifference;
+  }
+
+  double _scoreContourAngularFit(List<Offset> contour, List<Offset> polygon) {
+    if (contour.length < 3 || polygon.length < 3) {
+      return 0.0;
+    }
+
+    final edgeDirections = List<double>.generate(
+      polygon.length,
+      (index) => _edgeDirection(
+        polygon[index],
+        polygon[(index + 1) % polygon.length],
+      ),
+      growable: false,
+    );
+    final tolerance = polygon.length == 3 ? 32.0 : 24.0;
+    var accumulatedScore = 0.0;
+
+    for (int index = 0; index < contour.length; index++) {
+      final previous = contour[(index - 1 + contour.length) % contour.length];
+      final current = contour[index];
+      final next = contour[(index + 1) % contour.length];
+      final tangentDirection = _edgeDirection(previous, next);
+
+      var bestEdgeIndex = 0;
+      var bestDistance = double.infinity;
+      for (int edgeIndex = 0; edgeIndex < polygon.length; edgeIndex++) {
+        final distance = _distanceToSegment(
+          current,
+          polygon[edgeIndex],
+          polygon[(edgeIndex + 1) % polygon.length],
+        );
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestEdgeIndex = edgeIndex;
+        }
+      }
+
+      final angleDifference = _axisAngleDifference(
+        tangentDirection,
+        edgeDirections[bestEdgeIndex],
+      );
+      accumulatedScore += _softScore(
+        angleDifference,
+        center: 0,
+        tolerance: tolerance,
+      );
+    }
+
+    return accumulatedScore / contour.length;
   }
 
   double _weightedAverage(List<double> values, List<double> weights) {
@@ -1962,6 +2843,159 @@ class OperativeSketchRecognitionHelper {
     return difference - pi;
   }
 
+  _EndpointAttachment _buildEndpointAttachment({
+    required int strokeId,
+    required List<Offset> points,
+    required bool isStart,
+  }) {
+    return _EndpointAttachment(
+      strokeId: strokeId,
+      isStart: isStart,
+      position: isStart ? points.first : points.last,
+      outwardDirection: _estimateEndpointOutwardDirection(
+        points,
+        isStart: isStart,
+      ),
+    );
+  }
+
+  Offset _estimateEndpointOutwardDirection(
+    List<Offset> points, {
+    required bool isStart,
+  }) {
+    if (points.length < 2) {
+      return Offset.zero;
+    }
+
+    final anchorCount = min(3, points.length - 1);
+    if (isStart) {
+      final anchor = _averagePoint(points.sublist(1, anchorCount + 1));
+      return points.first - anchor;
+    }
+
+    final anchor = _averagePoint(
+      points.sublist(points.length - 1 - anchorCount, points.length - 1),
+    );
+    return points.last - anchor;
+  }
+
+  bool _canMergeEndpointIntoNode({
+    required _EndpointNode node,
+    required _EndpointAttachment candidate,
+    required double snapDistance,
+  }) {
+    final distance = (node.position - candidate.position).distance;
+    if (distance > snapDistance) {
+      return false;
+    }
+
+    if (distance <= max(1.6, snapDistance * 0.18) ||
+        node.attachments.isEmpty) {
+      return true;
+    }
+
+    for (final attachment in node.attachments) {
+      if (attachment.strokeId == candidate.strokeId) {
+        continue;
+      }
+      if (_endpointsFaceEachOther(attachment, candidate) ||
+          _areEndpointTangentsCoherent(
+            attachment.outwardDirection,
+            candidate.outwardDirection,
+            minimumAlignment: _minimumEndpointAxisAlignment,
+          )) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool _isEndpointSegmentSnapCompatible({
+    required _EndpointAttachment endpointAttachment,
+    required Offset projectedPoint,
+    required Offset segmentStart,
+    required Offset segmentEnd,
+  }) {
+    if (!_areEndpointTangentsCoherent(
+      endpointAttachment.outwardDirection,
+      segmentEnd - segmentStart,
+      minimumAlignment: _minimumSegmentSnapAxisAlignment,
+    )) {
+      return false;
+    }
+
+    final bridge = projectedPoint - endpointAttachment.position;
+    if (bridge.distance <= 1.1) {
+      return true;
+    }
+
+    final outwardDirection = _normalizeVector(
+      endpointAttachment.outwardDirection,
+    );
+    if (outwardDirection == Offset.zero) {
+      return false;
+    }
+
+    return _dotProduct(
+          outwardDirection,
+          _normalizeVector(bridge),
+        ) >=
+        _minimumEndpointFacingDot;
+  }
+
+  bool _endpointsFaceEachOther(
+    _EndpointAttachment first,
+    _EndpointAttachment second,
+  ) {
+    final bridge = second.position - first.position;
+    if (bridge.distance <= 0.0001) {
+      return true;
+    }
+
+    final firstDirection = _normalizeVector(first.outwardDirection);
+    final secondDirection = _normalizeVector(second.outwardDirection);
+    if (firstDirection == Offset.zero || secondDirection == Offset.zero) {
+      return false;
+    }
+
+    final bridgeDirection = _normalizeVector(bridge);
+    final firstFacing = _dotProduct(firstDirection, bridgeDirection);
+    final secondFacing = _dotProduct(
+      secondDirection,
+      Offset(-bridgeDirection.dx, -bridgeDirection.dy),
+    );
+    return min(firstFacing, secondFacing) >= _minimumEndpointFacingDot;
+  }
+
+  bool _areEndpointTangentsCoherent(
+    Offset firstDirection,
+    Offset secondDirection, {
+    required double minimumAlignment,
+  }) {
+    final normalizedFirst = _normalizeVector(firstDirection);
+    final normalizedSecond = _normalizeVector(secondDirection);
+    if (normalizedFirst == Offset.zero || normalizedSecond == Offset.zero) {
+      return false;
+    }
+
+    return _dotProduct(normalizedFirst, normalizedSecond).abs() >=
+        minimumAlignment;
+  }
+
+  Offset _normalizeVector(Offset vector) {
+    final distance = vector.distance;
+    if (distance <= 0.000001) {
+      return Offset.zero;
+    }
+
+    return Offset(vector.dx / distance, vector.dy / distance);
+  }
+
+  double _dotProduct(Offset first, Offset second) {
+    return (first.dx * second.dx) + (first.dy * second.dy);
+  }
+
   void _appendPolyline(List<Offset> target, List<Offset> source) {
     if (source.isEmpty) return;
     if (target.isEmpty) {
@@ -1998,21 +3032,37 @@ class OperativeSketchRecognitionHelper {
     required List<_SketchRecognitionDetection> primaryDetections,
     required List<_SketchRecognitionDetection> secondaryDetections,
   }) {
-    final merged = List<_SketchRecognitionDetection>.from(primaryDetections);
-    for (final candidate in secondaryDetections) {
-      final duplicateIndex = merged.indexWhere(
-        (existing) => _areDuplicateDetections(existing, candidate),
-      );
-      if (duplicateIndex < 0) {
-        merged.add(candidate);
-      } else {
-        merged[duplicateIndex] = _pickPreferredDetection(
-          merged[duplicateIndex],
-          candidate,
-        );
+    final clusters = <List<_SketchRecognitionDetection>>[];
+    final allDetections = <_SketchRecognitionDetection>[
+      ...primaryDetections,
+      ...secondaryDetections,
+    ];
+    for (final detection in allDetections) {
+      final matchingClusterIndices = <int>[];
+      for (int index = 0; index < clusters.length; index++) {
+        final cluster = clusters[index];
+        if (cluster.any(
+          (existing) => _areDuplicateDetections(existing, detection),
+        )) {
+          matchingClusterIndices.add(index);
+        }
       }
+
+      if (matchingClusterIndices.isEmpty) {
+        clusters.add(<_SketchRecognitionDetection>[detection]);
+        continue;
+      }
+
+      final mergedCluster = <_SketchRecognitionDetection>[detection];
+      for (final clusterIndex in matchingClusterIndices.reversed) {
+        mergedCluster.addAll(clusters.removeAt(clusterIndex));
+      }
+      clusters.add(mergedCluster);
     }
-    return merged;
+
+    return clusters
+        .map(_mergeDetectionCluster)
+        .toList(growable: false);
   }
 
   Map<OperativeSketchRecognitionKind, int> _countDetections(
@@ -2029,47 +3079,247 @@ class OperativeSketchRecognitionHelper {
     _SketchRecognitionDetection first,
     _SketchRecognitionDetection second,
   ) {
-    final intersectionArea = _rectIntersectionArea(first.bounds, second.bounds);
-    if (intersectionArea <= 0) return false;
-
-    final overlapRatio = intersectionArea /
-        max(1.0, min(_rectArea(first.bounds), _rectArea(second.bounds)));
-    if (overlapRatio < _duplicateOverlapThreshold) return false;
-
-    final areaRatio = min(first.area, second.area) / max(first.area, second.area);
-    if (areaRatio < _duplicateAreaRatioThreshold) return false;
-
-    final centerDistance = (first.center - second.center).distance;
-    final minDiagonal =
-        min(_rectDiagonal(first.bounds), _rectDiagonal(second.bounds));
-    return centerDistance <= max(6.0, minDiagonal * _duplicateCenterFactor);
+    final allowLooseMatching =
+        first.source == _SketchRecognitionSource.region ||
+        second.source == _SketchRecognitionSource.region ||
+        first.kind == second.kind;
+    return _matchesShapeGeometry(
+      firstBounds: first.bounds,
+      firstArea: first.area,
+      firstCenter: first.center,
+      secondBounds: second.bounds,
+      secondArea: second.area,
+      secondCenter: second.center,
+      allowLoose: allowLooseMatching,
+    );
   }
 
-  _SketchRecognitionDetection _pickPreferredDetection(
-    _SketchRecognitionDetection first,
-    _SketchRecognitionDetection second,
+  bool _matchesShapeGeometry({
+    required Rect firstBounds,
+    required double firstArea,
+    required Offset firstCenter,
+    required Rect secondBounds,
+    required double secondArea,
+    required Offset secondCenter,
+    required bool allowLoose,
+  }) {
+    final intersectionArea = _rectIntersectionArea(
+      firstBounds,
+      secondBounds,
+    );
+    if (intersectionArea > 0) {
+      final overlapRatio = intersectionArea /
+          max(1.0, min(_rectArea(firstBounds), _rectArea(secondBounds)));
+      if (overlapRatio >= _duplicateOverlapThreshold) {
+        final areaRatio = min(firstArea, secondArea) / max(firstArea, secondArea);
+        if (areaRatio >= _duplicateAreaRatioThreshold) {
+          final centerDistance = (firstCenter - secondCenter).distance;
+          final minDiagonal =
+              min(_rectDiagonal(firstBounds), _rectDiagonal(secondBounds));
+          if (centerDistance <=
+              max(6.0, minDiagonal * _duplicateCenterFactor)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    if (!allowLoose) {
+      return false;
+    }
+
+    final minDiagonal = min(_rectDiagonal(firstBounds), _rectDiagonal(secondBounds));
+    final maxDiagonal = max(_rectDiagonal(firstBounds), _rectDiagonal(secondBounds));
+    final areaRatio = min(firstArea, secondArea) / max(firstArea, secondArea);
+    if (areaRatio < _looseDuplicateAreaRatioThreshold) {
+      return false;
+    }
+
+    final centerDistance = (firstCenter - secondCenter).distance;
+    if (centerDistance > max(10.0, minDiagonal * _looseDuplicateCenterFactor)) {
+      return false;
+    }
+
+    final diagonalRatio = minDiagonal / max(maxDiagonal, 1.0);
+    if (diagonalRatio < 0.34) {
+      return false;
+    }
+
+    final inflation = max(3.5, minDiagonal * 0.12);
+    final expandedFirstBounds = firstBounds.inflate(inflation);
+    final expandedSecondBounds = secondBounds.inflate(inflation);
+    final relaxedIntersectionArea = _rectIntersectionArea(
+      expandedFirstBounds,
+      expandedSecondBounds,
+    );
+    final relaxedOverlapRatio = relaxedIntersectionArea /
+        max(
+          1.0,
+          min(
+            _rectArea(expandedFirstBounds),
+            _rectArea(expandedSecondBounds),
+          ),
+        );
+    final containsCenter = expandedFirstBounds.contains(secondCenter) ||
+        expandedSecondBounds.contains(firstCenter);
+
+    return relaxedOverlapRatio >= _looseDuplicateOverlapThreshold ||
+        containsCenter;
+  }
+
+  _SketchRecognitionDetection _mergeDetectionCluster(
+    List<_SketchRecognitionDetection> cluster,
   ) {
-    final firstScore = _duplicatePreferenceScore(first);
-    final secondScore = _duplicatePreferenceScore(second);
-    if (firstScore > secondScore) return first;
-    if (secondScore > firstScore) return second;
-    return first.area >= second.area ? first : second;
+    if (cluster.length <= 1) {
+      return cluster.first;
+    }
+
+    final votesByKind = <OperativeSketchRecognitionKind, double>{
+      for (final kind in _priorityOrder) kind: 0.0,
+    };
+    final detectionsByKind =
+        <OperativeSketchRecognitionKind, List<_SketchRecognitionDetection>>{};
+    for (final detection in cluster) {
+      votesByKind[detection.kind] =
+          (votesByKind[detection.kind] ?? 0.0) + _detectionVoteScore(detection);
+      detectionsByKind
+          .putIfAbsent(detection.kind, () => <_SketchRecognitionDetection>[])
+          .add(detection);
+    }
+
+    final winningKind = _pickClusterWinningKind(votesByKind);
+    final winningDetections =
+        detectionsByKind[winningKind] ?? <_SketchRecognitionDetection>[];
+    final representative = winningDetections.isEmpty
+        ? cluster.first
+        : winningDetections.reduce((best, current) {
+            return _detectionVoteScore(current) > _detectionVoteScore(best)
+                ? current
+                : best;
+          });
+    final weightedCenter = _weightedDetectionCenter(winningDetections);
+    final weightedArea = _weightedDetectionArea(winningDetections);
+    final mergedBounds = _unionDetectionBounds(winningDetections);
+    final winningVote = votesByKind[winningKind] ?? 0.0;
+    final totalVote = votesByKind.values.fold<double>(0.0, (sum, vote) {
+      return sum + vote;
+    });
+    final supportScore = totalVote <= 0 ? 1.0 : winningVote / totalVote;
+    final contributorBoost = min(
+      0.12,
+      max(0, winningDetections.length - 1) * 0.06,
+    );
+    final mergedScore = _clampDouble(
+      _weightedAverage(
+            <double>[
+              representative.score,
+              supportScore,
+              winningVote /
+                  max(1, winningDetections.length).toDouble(),
+            ],
+            const <double>[0.52, 0.24, 0.24],
+          ) +
+          contributorBoost,
+      0.0,
+      1.0,
+    );
+
+    return _SketchRecognitionDetection(
+      kind: winningKind,
+      source: representative.source,
+      bounds: mergedBounds,
+      area: weightedArea,
+      center: weightedCenter,
+      score: mergedScore,
+    );
   }
 
-  double _duplicatePreferenceScore(_SketchRecognitionDetection detection) {
+  OperativeSketchRecognitionKind _pickClusterWinningKind(
+    Map<OperativeSketchRecognitionKind, double> votesByKind,
+  ) {
+    var bestKind = OperativeSketchRecognitionKind.none;
+    var bestVote = 0.0;
+    for (final kind in _priorityOrder) {
+      final vote = votesByKind[kind] ?? 0.0;
+      if (vote > bestVote) {
+        bestKind = kind;
+        bestVote = vote;
+      }
+    }
+    return bestKind;
+  }
+
+  double _detectionVoteScore(_SketchRecognitionDetection detection) {
     final sourceBonus = switch (detection.source) {
-      _SketchRecognitionSource.stroke => 0.18,
-      _SketchRecognitionSource.stitchedLoop => 0.22,
+      _SketchRecognitionSource.stroke => 0.06,
+      _SketchRecognitionSource.stitchedLoop => 0.09,
       _SketchRecognitionSource.region => 0.0,
     };
     return detection.score + sourceBonus;
   }
 
-  List<_SketchRecognitionDetection> _scanClosedRegions({
+  Offset _weightedDetectionCenter(
+    List<_SketchRecognitionDetection> detections,
+  ) {
+    if (detections.isEmpty) {
+      return Offset.zero;
+    }
+
+    var sumX = 0.0;
+    var sumY = 0.0;
+    var totalWeight = 0.0;
+    for (final detection in detections) {
+      final weight = max(0.0001, _detectionVoteScore(detection));
+      sumX += detection.center.dx * weight;
+      sumY += detection.center.dy * weight;
+      totalWeight += weight;
+    }
+
+    return Offset(sumX / totalWeight, sumY / totalWeight);
+  }
+
+  double _weightedDetectionArea(
+    List<_SketchRecognitionDetection> detections,
+  ) {
+    if (detections.isEmpty) {
+      return 0.0;
+    }
+
+    var weightedArea = 0.0;
+    var totalWeight = 0.0;
+    for (final detection in detections) {
+      final weight = max(0.0001, _detectionVoteScore(detection));
+      weightedArea += detection.area * weight;
+      totalWeight += weight;
+    }
+
+    return weightedArea / totalWeight;
+  }
+
+  Rect _unionDetectionBounds(List<_SketchRecognitionDetection> detections) {
+    if (detections.isEmpty) {
+      return Rect.zero;
+    }
+
+    var minX = detections.first.bounds.left;
+    var minY = detections.first.bounds.top;
+    var maxX = detections.first.bounds.right;
+    var maxY = detections.first.bounds.bottom;
+    for (final detection in detections.skip(1)) {
+      minX = min(minX, detection.bounds.left);
+      minY = min(minY, detection.bounds.top);
+      maxX = max(maxX, detection.bounds.right);
+      maxY = max(maxY, detection.bounds.bottom);
+    }
+
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
+  }
+
+  List<_ClosedRegionSupport> _scanClosedRegions({
     required List<List<Offset>> strokes,
     required Size canvasSize,
   }) {
-    final detections = <_SketchRecognitionDetection>[];
+    final supports = <_ClosedRegionSupport>[];
     final rasterGrid = _SketchRasterGrid.fromStrokes(
       strokes: strokes,
       canvasSize: canvasSize,
@@ -2083,14 +3333,116 @@ class OperativeSketchRecognitionHelper {
       final canvasContour = regionContour
           .map((point) => rasterGrid.vertexToCanvasPoint(point, canvasSize))
           .toList(growable: false);
-      final detection = _buildContourDetection(
-        contour: canvasContour,
-        source: _SketchRecognitionSource.region,
+      final normalizedContour = _normalizeClosedContour(
+        canvasContour,
+        smoothingPasses: 0,
       );
-      if (detection != null) detections.add(detection);
+      if (normalizedContour.length < 3) {
+        continue;
+      }
+
+      supports.add(
+        _ClosedRegionSupport(
+          contour: normalizedContour,
+          bounds: _computeBounds(normalizedContour),
+          area: _polygonArea(normalizedContour).abs(),
+          center: _computePolygonCentroid(normalizedContour),
+        ),
+      );
     }
 
-    return detections;
+    return supports;
+  }
+
+  List<_SketchRecognitionDetection> _applyClosedRegionSupport({
+    required List<_SketchRecognitionDetection> detections,
+    required List<_ClosedRegionSupport> regionSupports,
+  }) {
+    if (detections.isEmpty || regionSupports.isEmpty) {
+      return detections;
+    }
+
+    return detections.map((detection) {
+      var bestBoost = 0.0;
+      for (final support in regionSupports) {
+        if (!_doesRegionSupportMatchDetection(support, detection)) {
+          continue;
+        }
+
+        final overlapArea = _rectIntersectionArea(detection.bounds, support.bounds);
+        final overlapRatio = overlapArea /
+            max(
+              1.0,
+              min(
+                _rectArea(detection.bounds),
+                _rectArea(support.bounds),
+              ),
+            );
+        final areaAgreement = 1 -
+            _clampDouble(
+              (detection.area - support.area).abs() /
+                  max(max(detection.area, support.area), 1.0),
+              0.0,
+              1.0,
+            );
+        bestBoost = max(
+          bestBoost,
+          min(0.14, 0.03 + (overlapRatio * 0.07) + (areaAgreement * 0.04)),
+        );
+      }
+
+      if (bestBoost <= 0) {
+        return detection;
+      }
+
+      return _SketchRecognitionDetection(
+        kind: detection.kind,
+        source: detection.source,
+        bounds: detection.bounds,
+        area: detection.area,
+        center: detection.center,
+        score: _clampDouble(detection.score + bestBoost, 0.0, 1.0),
+      );
+    }).toList(growable: false);
+  }
+
+  List<_SketchRecognitionDetection> _buildRegionFallbackDetections({
+    required List<_ClosedRegionSupport> regionSupports,
+    required List<_SketchRecognitionDetection> existingDetections,
+  }) {
+    final fallbacks = <_SketchRecognitionDetection>[];
+    for (final support in regionSupports) {
+      final alreadyCovered = existingDetections.any(
+        (detection) => _doesRegionSupportMatchDetection(support, detection),
+      );
+      if (alreadyCovered) {
+        continue;
+      }
+
+      final detection = _buildContourDetection(
+        contour: support.contour,
+        source: _SketchRecognitionSource.region,
+      );
+      if (detection != null) {
+        fallbacks.add(detection);
+      }
+    }
+    return fallbacks;
+  }
+
+  bool _doesRegionSupportMatchDetection(
+    _ClosedRegionSupport support,
+    _SketchRecognitionDetection detection,
+  ) {
+    return _matchesShapeGeometry(
+      firstBounds: support.bounds,
+      firstArea: support.area,
+      firstCenter: support.center,
+      secondBounds: detection.bounds,
+      secondArea: detection.area,
+      secondCenter: detection.center,
+      allowLoose: true,
+    );
   }
 
   List<_SketchRegion> _extractClosedRegions(_SketchRasterGrid grid) {
@@ -2314,6 +3666,20 @@ class _SketchRecognitionDetection {
   });
 }
 
+class _ClosedRegionSupport {
+  final List<Offset> contour;
+  final Rect bounds;
+  final double area;
+  final Offset center;
+
+  const _ClosedRegionSupport({
+    required this.contour,
+    required this.bounds,
+    required this.area,
+    required this.center,
+  });
+}
+
 class _ProcessedStroke {
   final int id;
   final List<Offset> points;
@@ -2332,6 +3698,7 @@ class _ProcessedStroke {
 
 class _ContourProfile {
   final List<Offset> contour;
+  final List<Offset> smoothedContour;
   final Rect bounds;
   final double area;
   final double perimeter;
@@ -2339,9 +3706,14 @@ class _ContourProfile {
   final double smoothnessScore;
   final double selfIntersectionScore;
   final double circularity;
+  final List<_CornerPeak> cornerPeaks;
+  final double triangleCornerScore;
+  final double squareCornerScore;
+  final int strongCornerCount;
 
   const _ContourProfile({
     required this.contour,
+    required this.smoothedContour,
     required this.bounds,
     required this.area,
     required this.perimeter,
@@ -2349,6 +3721,24 @@ class _ContourProfile {
     required this.smoothnessScore,
     required this.selfIntersectionScore,
     required this.circularity,
+    required this.cornerPeaks,
+    required this.triangleCornerScore,
+    required this.squareCornerScore,
+    required this.strongCornerCount,
+  });
+}
+
+class _CornerPeak {
+  final int index;
+  final double angle;
+  final double sharpness;
+  final double strength;
+
+  const _CornerPeak({
+    required this.index,
+    required this.angle,
+    required this.sharpness,
+    required this.strength,
   });
 }
 
@@ -2469,19 +3859,23 @@ class _AugmentedStrokeGeometry {
 class _EndpointNode {
   final int id;
   Offset position;
-  int _pointCount = 1;
+  int _pointCount = 0;
+  final List<_EndpointAttachment> attachments = <_EndpointAttachment>[];
 
   _EndpointNode({
     required this.id,
     required this.position,
   });
 
-  void addPoint(Offset point) {
+  void addAttachment(_EndpointAttachment attachment) {
     position = Offset(
-      ((position.dx * _pointCount) + point.dx) / (_pointCount + 1),
-      ((position.dy * _pointCount) + point.dy) / (_pointCount + 1),
+      ((position.dx * _pointCount) + attachment.position.dx) /
+          (_pointCount + 1),
+      ((position.dy * _pointCount) + attachment.position.dy) /
+          (_pointCount + 1),
     );
     _pointCount++;
+    attachments.add(attachment);
   }
 }
 
@@ -2508,6 +3902,20 @@ class _LoopContour {
   const _LoopContour({
     required this.points,
     required this.strokeIds,
+  });
+}
+
+class _EndpointAttachment {
+  final int strokeId;
+  final bool isStart;
+  final Offset position;
+  final Offset outwardDirection;
+
+  const _EndpointAttachment({
+    required this.strokeId,
+    required this.isStart,
+    required this.position,
+    required this.outwardDirection,
   });
 }
 

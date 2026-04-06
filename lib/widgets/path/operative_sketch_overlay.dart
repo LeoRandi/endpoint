@@ -3,7 +3,6 @@ import 'operative_sketch_recognition_helper.dart';
 
 const _sketchCanvasBorderRadius = 18.0;
 const _sketchNoiseSeed = 4312;
-const _sketchRecognitionDelay = Duration(seconds: 2);
 const _sketchRecognitionFeedbackLifetime = Duration(seconds: 1);
 const _sketchRecognitionFeedbackGap = Duration(milliseconds: 500);
 const _sketchRecognitionMissAccent = Color(0xFFC178FF);
@@ -29,7 +28,6 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
       const OperativeSketchRecognitionHelper();
   final List<_SketchStroke> _strokes = <_SketchStroke>[];
   late final List<_SketchNoiseDot> _noiseDots = _buildNoiseDots();
-  Timer? _recognitionTimer;
   Timer? _feedbackTimer;
   _SketchRecognitionFeedback? _recognitionFeedback;
   Size? _canvasSize;
@@ -39,7 +37,6 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   int _nextStrokeId = 0;
   int? _activeStrokeId;
   Offset? _lastDragPosition;
-  bool _gestureChangedCanvas = false;
   OperativeSketchRecognitionResult _lastRecognitionResult =
       const OperativeSketchRecognitionResult(
         kind: OperativeSketchRecognitionKind.none,
@@ -49,12 +46,10 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Inicia un trazo nuevo usando el color seleccionado en la paleta visible.
   void _handlePanStart(DragStartDetails details) {
-    _cancelRecognitionTimer();
     _dismissRecognitionFeedback();
     _lastDragPosition = details.localPosition;
-    _gestureChangedCanvas = false;
     if (_toolMode == _SketchToolMode.erase) {
-      _gestureChangedCanvas = _eraseBetween(
+      _eraseBetween(
         details.localPosition,
         details.localPosition,
       );
@@ -69,11 +64,6 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     setState(() {
       _strokes.add(stroke);
       _activeStrokeId = stroke.id;
-      _lastRecognitionResult = const OperativeSketchRecognitionResult(
-        kind: OperativeSketchRecognitionKind.none,
-        count: 0,
-        matches: <OperativeSketchRecognitionMatch>[],
-      );
     });
   }
 
@@ -81,9 +71,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   void _handlePanUpdate(DragUpdateDetails details) {
     if (_toolMode == _SketchToolMode.erase) {
       final start = _lastDragPosition ?? details.localPosition;
-      if (_eraseBetween(start, details.localPosition)) {
-        _gestureChangedCanvas = true;
-      }
+      _eraseBetween(start, details.localPosition);
       _lastDragPosition = details.localPosition;
       return;
     }
@@ -109,30 +97,18 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     _lastDragPosition = null;
     if (_toolMode == _SketchToolMode.erase) {
       _activeStrokeId = null;
-      final shouldScan = _gestureChangedCanvas;
-      _gestureChangedCanvas = false;
-      if (shouldScan) {
-        _scheduleRecognitionScan();
-      }
       return;
     }
 
     _activeStrokeId = null;
-    _scheduleRecognitionScan();
   }
 
   /// Limpia manualmente todos los trazos visibles del lienzo.
   void _clearStrokes() {
-    _cancelRecognitionTimer();
     _dismissRecognitionFeedback();
     setState(() {
       _strokes.clear();
       _activeStrokeId = null;
-      _lastRecognitionResult = const OperativeSketchRecognitionResult(
-        kind: OperativeSketchRecognitionKind.none,
-        count: 0,
-        matches: <OperativeSketchRecognitionMatch>[],
-      );
     });
   }
 
@@ -186,11 +162,6 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
       _strokes
         ..clear()
         ..addAll(updatedStrokes);
-      _lastRecognitionResult = const OperativeSketchRecognitionResult(
-        kind: OperativeSketchRecognitionKind.none,
-        count: 0,
-        matches: <OperativeSketchRecognitionMatch>[],
-      );
     });
     return true;
   }
@@ -261,23 +232,8 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     return (point - closestPoint).distance;
   }
 
-  /// Programa un escaneo diferido cuando el usuario deja el lienzo en reposo.
-  void _scheduleRecognitionScan() {
-    _cancelRecognitionTimer();
-    if (_strokes.isEmpty) return;
-
-    _recognitionTimer = Timer(_sketchRecognitionDelay, _runRecognitionScan);
-  }
-
-  /// Cancela cualquier escaneo pendiente cuando vuelve a haber interaccion.
-  void _cancelRecognitionTimer() {
-    _recognitionTimer?.cancel();
-    _recognitionTimer = null;
-  }
-
   /// Ejecuta el helper sobre el dibujo actual y lo traduce a feedback visual.
   void _runRecognitionScan() {
-    _recognitionTimer = null;
     if (!mounted || _activeStrokeId != null) return;
     final canvasSize = _canvasSize;
     if (canvasSize == null || canvasSize.isEmpty) return;
@@ -302,7 +258,17 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Permite lanzar el escaneo bajo demanda desde el nuevo boton de comprobacion.
   void _handleCheckPressed() {
-    _cancelRecognitionTimer();
+    _dismissRecognitionFeedback();
+    if (_strokes.isEmpty) {
+      setState(() {
+        _lastRecognitionResult = const OperativeSketchRecognitionResult(
+          kind: OperativeSketchRecognitionKind.none,
+          count: 0,
+          matches: <OperativeSketchRecognitionMatch>[],
+        );
+      });
+      return;
+    }
     _runRecognitionScan();
   }
 
@@ -411,7 +377,6 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   /// Libera los temporizadores del overlay al cerrar la ventana.
   @override
   void dispose() {
-    _cancelRecognitionTimer();
     _feedbackTimer?.cancel();
     super.dispose();
   }
@@ -432,6 +397,10 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _SketchRecognitionSummaryPanel(
+            result: _lastRecognitionResult,
+          ),
+          const SizedBox(height: 10),
           Expanded(
             child: Center(
               child: AspectRatio(
@@ -559,7 +528,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
                   const SizedBox(width: 8),
                   _SketchCheckButton(
                     count: _lastRecognitionResult.totalCount,
-                    onPressed: _strokes.isEmpty ? null : _handleCheckPressed,
+                    onPressed: _handleCheckPressed,
                   ),
                 ],
               ),
@@ -655,6 +624,159 @@ class _SketchRecognitionFeedbackBanner extends StatelessWidget {
                 ),
               ),
             ),
+    );
+  }
+}
+
+/// Resume las formas detectadas para poder validar el reconocimiento sin mirar el feedback flotante.
+class _SketchRecognitionSummaryPanel extends StatelessWidget {
+  final OperativeSketchRecognitionResult result;
+
+  /// Construye un panel compacto con el conteo actual de cada forma reconocida.
+  const _SketchRecognitionSummaryPanel({
+    required this.result,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final matches = result.matches;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(2, 2, 2, 2),
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.74),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: EndpointPalette.softForeground.withValues(alpha: 0.18),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          EndpointText(
+            'CHECK',
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.infoAccent.withValues(alpha: 0.92),
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 58,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: matches.isEmpty
+                    ? const <Widget>[
+                        _SketchRecognitionSummaryCard(
+                          title: 'Sin detecciones',
+                          value: '0',
+                          accent: EndpointPalette.infoAccent,
+                        ),
+                      ]
+                    : matches
+                        .map(
+                          (match) => Padding(
+                            padding: EdgeInsets.only(
+                              right: match == matches.last ? 0 : 10,
+                            ),
+                            child: _SketchRecognitionSummaryCard(
+                              title: _shapeSummaryLabel(match.kind),
+                              value: match.count.toString(),
+                              accent: _shapeSummaryAccent(match.kind),
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _shapeSummaryLabel(OperativeSketchRecognitionKind kind) {
+    switch (kind) {
+      case OperativeSketchRecognitionKind.triangle:
+        return 'Triangulo';
+      case OperativeSketchRecognitionKind.square:
+        return 'Cuadrado';
+      case OperativeSketchRecognitionKind.circle:
+        return 'Circulo';
+      case OperativeSketchRecognitionKind.none:
+        return 'Ninguna';
+    }
+  }
+
+  static Color _shapeSummaryAccent(OperativeSketchRecognitionKind kind) {
+    switch (kind) {
+      case OperativeSketchRecognitionKind.triangle:
+        return EndpointPalette.warningAccent;
+      case OperativeSketchRecognitionKind.square:
+        return EndpointPalette.infoAccent;
+      case OperativeSketchRecognitionKind.circle:
+        return EndpointPalette.primaryAccent;
+      case OperativeSketchRecognitionKind.none:
+        return EndpointPalette.softForeground;
+    }
+  }
+}
+
+class _SketchRecognitionSummaryCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final Color accent;
+
+  const _SketchRecognitionSummaryCard({
+    required this.title,
+    required this.value,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 64,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 2,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: EndpointPalette.blend(
+          EndpointPalette.panelBackground,
+          accent,
+          0.12,
+        ),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.34),
+          width: 1.1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          EndpointText(
+            title,
+            maxLines: 2,
+            style: textSmallBold.copyWith(
+              color: Colors.white.withValues(alpha: 0.82),
+              letterSpacing: 0.2,
+              fontSize: 11,
+            ),
+          ),
+          EndpointText(
+            value,
+            style: textTitleMediumBold.copyWith(
+              color: accent,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

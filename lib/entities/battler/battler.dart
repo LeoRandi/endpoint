@@ -667,7 +667,7 @@ class Battler {
   Battler prepareForCombat() {
     final preparedOwner = materializeOwnedItems().clearCombatFlags();
     return preparedOwner.copyWith(
-      combatFlags: const <CombatRuntimeFlag>{
+      combatFlags: <CombatRuntimeFlag>{
         combatActiveFlag,
       },
       currentBarrier: preparedOwner.maxBarrier,
