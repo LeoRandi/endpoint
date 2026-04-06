@@ -78,6 +78,7 @@
 --Fucking música por favor
 
 -Settings
+--Que funcionen los botones please(sonido, vibración, cambiar avatar, etc)
 --Cambio de colores base(sets específicos)
 
 ////
