@@ -86,6 +86,7 @@ class Item {
   final Map<BattlerStat, int> upgradeStatModifiers;
   final ItemEffect? effect;
   final String? instanceId;
+  final ItemBonusShape? bonusShapeOverride;
 
   /// Crea un item inmutable que puede actuar como preset compartido o copia poseida.
   const Item({
@@ -106,6 +107,7 @@ class Item {
     this.upgradeStatModifiers = const {},
     this.effect,
     this.instanceId,
+    this.bonusShapeOverride,
   });
 
   /// Indica si el objeto puede equiparse en algun hueco.
@@ -116,6 +118,12 @@ class Item {
 
   /// Indica si el objeto tiene una logica activa mas alla de sus stats planos.
   bool get hasEffect => effect != null;
+
+  /// Devuelve la forma geometrica asociada al bonus especial del objeto.
+  ItemBonusShape get bonusShape => bonusShapeOverride ?? _defaultBonusShape;
+
+  /// Describe el bonus especial ligado a la forma actual del objeto.
+  ItemSpecialBonus get specialBonus => ItemSpecialBonus.forShape(bonusShape);
 
   /// Indica si el objeto tiene al menos una tag util para filtros y UI.
   bool get hasTags => tags.isNotEmpty;
@@ -208,6 +216,16 @@ class Item {
     return entries;
   }
 
+  ItemBonusShape get _defaultBonusShape {
+    if (slot == ItemSlot.weapon) {
+      return ItemBonusShape.triangle;
+    }
+    if (hasTag(EntityTag.barrera)) {
+      return ItemBonusShape.square;
+    }
+    return ItemBonusShape.circle;
+  }
+
   /// Sube el valor del objeto si el preset define una mejora disponible.
   Item upgraded() {
     final upgradeTemplate = canUpgrade ? this : presetForId(id);
@@ -260,6 +278,8 @@ class Item {
     ItemEffect? effect,
     bool clearEffect = false,
     String? instanceId,
+    ItemBonusShape? bonusShapeOverride,
+    bool clearBonusShapeOverride = false,
   }) {
     return Item(
       id: id,
@@ -280,6 +300,9 @@ class Item {
       upgradeStatModifiers: upgradeStatModifiers ?? this.upgradeStatModifiers,
       effect: clearEffect ? null : effect ?? this.effect,
       instanceId: instanceId ?? this.instanceId,
+      bonusShapeOverride: clearBonusShapeOverride
+          ? null
+          : bonusShapeOverride ?? this.bonusShapeOverride,
     );
   }
 
@@ -304,11 +327,13 @@ class Item {
       upgradeStatModifiers: upgradeStatModifiers,
       effect: effect,
       instanceId: 'item_${_nextInstanceSequence++}',
+      bonusShapeOverride: bonusShapeOverride,
     );
   }
 
   /// Avanza el contador global de instancias para no reutilizar ids tras restaurar una partida.
-  static void syncInstanceSequenceFromExistingIds(Iterable<String?> instanceIds) {
+  static void syncInstanceSequenceFromExistingIds(
+      Iterable<String?> instanceIds) {
     var nextSequence = _nextInstanceSequence;
 
     for (final instanceId in instanceIds) {

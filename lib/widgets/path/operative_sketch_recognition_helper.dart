@@ -23,6 +23,22 @@ extension OperativeSketchRecognitionKindLabel
   }
 }
 
+extension OperativeSketchRecognitionKindItemBonusShape
+    on OperativeSketchRecognitionKind {
+  ItemBonusShape? get itemBonusShape {
+    switch (this) {
+      case OperativeSketchRecognitionKind.none:
+        return null;
+      case OperativeSketchRecognitionKind.triangle:
+        return ItemBonusShape.triangle;
+      case OperativeSketchRecognitionKind.square:
+        return ItemBonusShape.square;
+      case OperativeSketchRecognitionKind.circle:
+        return ItemBonusShape.circle;
+    }
+  }
+}
+
 class OperativeSketchRecognitionMatch {
   final OperativeSketchRecognitionKind kind;
   final int count;
@@ -323,8 +339,7 @@ class OperativeSketchRecognitionHelper {
     for (final node in endpointNodes) {
       final nodeStrokes =
           endpointStrokesByNodeId[node.id] ?? const <_MutableStrokeGeometry>[];
-      final startFlags =
-          endpointStartFlagsByNodeId[node.id] ?? const <bool>[];
+      final startFlags = endpointStartFlagsByNodeId[node.id] ?? const <bool>[];
       if (nodeStrokes.length < 2) {
         continue;
       }
@@ -343,7 +358,8 @@ class OperativeSketchRecognitionHelper {
       }
     }
 
-    for (final sourceStroke in mutableStrokes.where((stroke) => !stroke.isClosed)) {
+    for (final sourceStroke
+        in mutableStrokes.where((stroke) => !stroke.isClosed)) {
       for (final isStart in const <bool>[true, false]) {
         final endpointAttachment = _buildEndpointAttachment(
           strokeId: sourceStroke.id,
@@ -354,7 +370,8 @@ class OperativeSketchRecognitionHelper {
         _EndpointSegmentSnap? bestSnap;
 
         for (final targetStroke in mutableStrokes) {
-          if (targetStroke.id == sourceStroke.id || targetStroke.points.length < 2) {
+          if (targetStroke.id == sourceStroke.id ||
+              targetStroke.points.length < 2) {
             continue;
           }
 
@@ -402,7 +419,8 @@ class OperativeSketchRecognitionHelper {
           sourceStroke.points[sourceStroke.points.length - 1] = bestSnap.point;
         }
         insertionsByStrokeId
-            .putIfAbsent(bestSnap.targetStrokeId, () => <_StrokePointInsertion>[])
+            .putIfAbsent(
+                bestSnap.targetStrokeId, () => <_StrokePointInsertion>[])
             .add(
               _StrokePointInsertion(
                 segmentIndex: bestSnap.targetSegmentIndex,
@@ -469,7 +487,8 @@ class OperativeSketchRecognitionHelper {
     for (final stroke in mutableStrokes) {
       final augmentation = _augmentStrokePoints(
         points: stroke.points,
-        insertions: insertionsByStrokeId[stroke.id] ?? const <_StrokePointInsertion>[],
+        insertions:
+            insertionsByStrokeId[stroke.id] ?? const <_StrokePointInsertion>[],
       );
       final rawAugmentedPoints = augmentation.points;
       if (rawAugmentedPoints.length < 2) {
@@ -548,7 +567,9 @@ class OperativeSketchRecognitionHelper {
 
     final augmentedPoints = <Offset>[points.first];
     final splitIndices = <int>{0};
-    for (int segmentIndex = 0; segmentIndex < points.length - 1; segmentIndex++) {
+    for (int segmentIndex = 0;
+        segmentIndex < points.length - 1;
+        segmentIndex++) {
       final segmentInsertions = List<_StrokePointInsertion>.from(
         insertionsBySegment[segmentIndex] ?? const <_StrokePointInsertion>[],
       )..sort((left, right) => left.t.compareTo(right.t));
@@ -614,22 +635,19 @@ class OperativeSketchRecognitionHelper {
   ) {
     final firstDirection = firstEnd - firstStart;
     final secondDirection = secondEnd - secondStart;
-    final denominator =
-        (firstDirection.dx * secondDirection.dy) -
-            (firstDirection.dy * secondDirection.dx);
+    final denominator = (firstDirection.dx * secondDirection.dy) -
+        (firstDirection.dy * secondDirection.dx);
     if (denominator.abs() <= 0.00001) {
       return null;
     }
 
     final betweenStarts = secondStart - firstStart;
-    final firstT =
-        ((betweenStarts.dx * secondDirection.dy) -
-                (betweenStarts.dy * secondDirection.dx)) /
-            denominator;
-    final secondT =
-        ((betweenStarts.dx * firstDirection.dy) -
-                (betweenStarts.dy * firstDirection.dx)) /
-            denominator;
+    final firstT = ((betweenStarts.dx * secondDirection.dy) -
+            (betweenStarts.dy * secondDirection.dx)) /
+        denominator;
+    final secondT = ((betweenStarts.dx * firstDirection.dy) -
+            (betweenStarts.dy * firstDirection.dx)) /
+        denominator;
     if (firstT < -0.001 ||
         firstT > 1.001 ||
         secondT < -0.001 ||
@@ -745,10 +763,12 @@ class OperativeSketchRecognitionHelper {
 
     final adjacency = <int, List<_EndpointGraphEdge>>{};
     for (final edge in edges) {
-      adjacency.putIfAbsent(edge.startNodeId, () => <_EndpointGraphEdge>[])
-        ..add(edge);
-      adjacency.putIfAbsent(edge.endNodeId, () => <_EndpointGraphEdge>[])
-        ..add(edge);
+      adjacency
+          .putIfAbsent(edge.startNodeId, () => <_EndpointGraphEdge>[])
+          .add(edge);
+      adjacency
+          .putIfAbsent(edge.endNodeId, () => <_EndpointGraphEdge>[])
+          .add(edge);
     }
 
     final nodesById = <int, _EndpointNode>{
@@ -792,7 +812,8 @@ class OperativeSketchRecognitionHelper {
       while (queueIndex < queue.length) {
         final currentNodeId = queue[queueIndex++];
         component.add(currentNodeId);
-        for (final edge in adjacency[currentNodeId] ?? const <_EndpointGraphEdge>[]) {
+        for (final edge
+            in adjacency[currentNodeId] ?? const <_EndpointGraphEdge>[]) {
           final nextNodeId = edge.startNodeId == currentNodeId
               ? edge.endNodeId
               : edge.startNodeId;
@@ -821,7 +842,8 @@ class OperativeSketchRecognitionHelper {
       required List<_EndpointGraphEdge> cycleEdges,
       required List<int> cycleNodeIds,
     }) {
-      if (cycleEdges.length < 3 || cycleNodeIds.length != cycleEdges.length + 1) {
+      if (cycleEdges.length < 3 ||
+          cycleNodeIds.length != cycleEdges.length + 1) {
         return;
       }
 
@@ -854,7 +876,8 @@ class OperativeSketchRecognitionHelper {
         return;
       }
 
-      for (final edge in adjacency[currentNodeId] ?? const <_EndpointGraphEdge>[]) {
+      for (final edge
+          in adjacency[currentNodeId] ?? const <_EndpointGraphEdge>[]) {
         if (usedEdgeIds.contains(edge.id)) {
           continue;
         }
@@ -1061,13 +1084,15 @@ class OperativeSketchRecognitionHelper {
     }
 
     final margin = best.score - second.score;
-    final circleScore = scores.firstWhere(
-      (score) => score.kind == OperativeSketchRecognitionKind.circle,
-      orElse: () => const _ShapeScore(
-        kind: OperativeSketchRecognitionKind.circle,
-        score: 0.0,
-      ),
-    ).score;
+    final circleScore = scores
+        .firstWhere(
+          (score) => score.kind == OperativeSketchRecognitionKind.circle,
+          orElse: () => const _ShapeScore(
+            kind: OperativeSketchRecognitionKind.circle,
+            score: 0.0,
+          ),
+        )
+        .score;
     final lowConfidence = best.score < (_minimumClassificationScore + 0.08);
     final narrowMargin = margin < (_minimumClassificationMargin + 0.08);
     final circleIsCompetitive = circleScore >= max(0.42, best.score - 0.16);
@@ -1314,9 +1339,7 @@ class OperativeSketchRecognitionHelper {
       0.0,
       1.0,
     );
-    return roundnessEvidence *
-        (1 - cornerConfidence) *
-        roundnessPenaltyWeight;
+    return roundnessEvidence * (1 - cornerConfidence) * roundnessPenaltyWeight;
   }
 
   double _computeRoundnessEvidence(
@@ -1324,7 +1347,8 @@ class OperativeSketchRecognitionHelper {
     _FittedCircle? fittedCircle,
     double? radialVarianceScore,
   }) {
-    final effectiveFittedCircle = fittedCircle ?? _fitCircle(profile.smoothedContour);
+    final effectiveFittedCircle =
+        fittedCircle ?? _fitCircle(profile.smoothedContour);
     final effectiveRadialVarianceScore = radialVarianceScore ??
         (effectiveFittedCircle == null
             ? 0.0
@@ -1354,15 +1378,16 @@ class OperativeSketchRecognitionHelper {
         .map((score) => score.kind)
         .where((kind) => kind != OperativeSketchRecognitionKind.none)
         .toSet();
-    final circleGeometryScore = geometryScores.firstWhere(
-      (score) => score.kind == OperativeSketchRecognitionKind.circle,
-      orElse: () => const _ShapeScore(
-        kind: OperativeSketchRecognitionKind.circle,
-        score: 0.0,
-      ),
-    ).score;
-    if (circleGeometryScore >=
-        max(0.42, geometryScores.first.score - 0.18)) {
+    final circleGeometryScore = geometryScores
+        .firstWhere(
+          (score) => score.kind == OperativeSketchRecognitionKind.circle,
+          orElse: () => const _ShapeScore(
+            kind: OperativeSketchRecognitionKind.circle,
+            score: 0.0,
+          ),
+        )
+        .score;
+    if (circleGeometryScore >= max(0.42, geometryScores.first.score - 0.18)) {
       candidateKinds.add(OperativeSketchRecognitionKind.circle);
     }
     if (candidateKinds.isEmpty) {
@@ -1391,19 +1416,17 @@ class OperativeSketchRecognitionHelper {
       );
     }
 
-    final combinedScores = candidateKinds
-        .map((kind) {
-          final geometryScore = geometryByKind[kind] ?? 0.0;
-          final pointCloudScore = pointCloudByKind[kind] ?? 0.0;
-          return _ShapeScore(
-            kind: kind,
-            score: _weightedAverage(
-              <double>[geometryScore, pointCloudScore],
-              const <double>[0.68, 0.32],
-            ),
-          );
-        })
-        .toList(growable: false)
+    final combinedScores = candidateKinds.map((kind) {
+      final geometryScore = geometryByKind[kind] ?? 0.0;
+      final pointCloudScore = pointCloudByKind[kind] ?? 0.0;
+      return _ShapeScore(
+        kind: kind,
+        score: _weightedAverage(
+          <double>[geometryScore, pointCloudScore],
+          const <double>[0.68, 0.32],
+        ),
+      );
+    }).toList(growable: false)
       ..sort((left, right) => right.score.compareTo(left.score));
     final best = combinedScores.first;
     final second = combinedScores.length > 1
@@ -1451,22 +1474,20 @@ class OperativeSketchRecognitionHelper {
           .toList(growable: false);
     }
 
-    final scores = _priorityOrder
-        .map((kind) {
-          final template = _buildPointCloudTemplate(
-            kind,
-            _pointCloudSampleCount,
-          );
-          final distance = _bestRotatedPointCloudDistance(
-            cloud,
-            template,
-          );
-          return _ShapeScore(
-            kind: kind,
-            score: 1 - _clampDouble(distance / 0.34, 0.0, 1.0),
-          );
-        })
-        .toList(growable: false)
+    final scores = _priorityOrder.map((kind) {
+      final template = _buildPointCloudTemplate(
+        kind,
+        _pointCloudSampleCount,
+      );
+      final distance = _bestRotatedPointCloudDistance(
+        cloud,
+        template,
+      );
+      return _ShapeScore(
+        kind: kind,
+        score: 1 - _clampDouble(distance / 0.34, 0.0, 1.0),
+      );
+    }).toList(growable: false)
       ..sort((left, right) => right.score.compareTo(left.score));
     return scores;
   }
@@ -1635,9 +1656,8 @@ class OperativeSketchRecognitionHelper {
       contour,
       smoothingPasses: 2,
     );
-    final effectiveSmoothedContour = smoothedContour.length >= 5
-        ? smoothedContour
-        : cornerContour;
+    final effectiveSmoothedContour =
+        smoothedContour.length >= 5 ? smoothedContour : cornerContour;
 
     final bounds = _computeBounds(cornerContour);
     final shortSide = min(bounds.width, bounds.height).toDouble();
@@ -1791,7 +1811,9 @@ class OperativeSketchRecognitionHelper {
       contour: contour,
     );
     final deduplicated = _deduplicatePolygonVertices(snapped);
-    return deduplicated.length == targetVertexCount ? deduplicated : reducedHull;
+    return deduplicated.length == targetVertexCount
+        ? deduplicated
+        : reducedHull;
   }
 
   double _scoreThreeSideClosure(
@@ -1953,7 +1975,9 @@ class OperativeSketchRecognitionHelper {
     angles.sort();
     var largestGap = 0.0;
     for (int index = 0; index < angles.length; index++) {
-      final next = index + 1 < angles.length ? angles[index + 1] : angles.first + (2 * pi);
+      final next = index + 1 < angles.length
+          ? angles[index + 1]
+          : angles.first + (2 * pi);
       largestGap = max(largestGap, next - angles[index]);
     }
 
@@ -2049,7 +2073,8 @@ class OperativeSketchRecognitionHelper {
     final minimumPeakDistance = max(window + 1, contour.length ~/ 9);
     final peaks = <_CornerPeak>[];
     for (int index = 0; index < contour.length; index++) {
-      final previous = contour[(index - window + contour.length) % contour.length];
+      final previous =
+          contour[(index - window + contour.length) % contour.length];
       final current = contour[index];
       final next = contour[(index + window) % contour.length];
       final angle = _angleAt(previous, current, next);
@@ -2077,7 +2102,8 @@ class OperativeSketchRecognitionHelper {
       ..sort((left, right) => right.strength.compareTo(left.strength));
     for (final candidate in rankedPeaks) {
       final isTooCloseToExisting = selected.any(
-        (existing) => _cyclicIndexDistance(
+        (existing) =>
+            _cyclicIndexDistance(
               candidate.index,
               existing.index,
               contour.length,
@@ -2118,8 +2144,7 @@ class OperativeSketchRecognitionHelper {
           (sum, peak) => sum + peak.strength,
         ) /
         expectedCornerCount;
-    final presenceScore =
-        selectedPeaks.length / expectedCornerCount;
+    final presenceScore = selectedPeaks.length / expectedCornerCount;
     final spacingScore = selectedPeaks.length == expectedCornerCount
         ? _scoreCornerSpacing(
             peaks: selectedPeaks,
@@ -2280,7 +2305,8 @@ class OperativeSketchRecognitionHelper {
     for (int index = 0; index < polygon.length; index++) {
       bestDistance = min(
         bestDistance,
-        _distanceToSegment(point, polygon[index], polygon[(index + 1) % polygon.length]),
+        _distanceToSegment(
+            point, polygon[index], polygon[(index + 1) % polygon.length]),
       );
     }
     return bestDistance;
@@ -2329,8 +2355,7 @@ class OperativeSketchRecognitionHelper {
       });
     final uniquePoints = <Offset>[];
     for (final point in sortedPoints) {
-      if (uniquePoints.isEmpty ||
-          (point - uniquePoints.last).distance > 0.6) {
+      if (uniquePoints.isEmpty || (point - uniquePoints.last).distance > 0.6) {
         uniquePoints.add(point);
       }
     }
@@ -2341,7 +2366,8 @@ class OperativeSketchRecognitionHelper {
     final lowerHull = <Offset>[];
     for (final point in uniquePoints) {
       while (lowerHull.length >= 2 &&
-          _crossProduct(lowerHull[lowerHull.length - 2], lowerHull.last, point) <=
+          _crossProduct(
+                  lowerHull[lowerHull.length - 2], lowerHull.last, point) <=
               0.0001) {
         lowerHull.removeLast();
       }
@@ -2351,7 +2377,8 @@ class OperativeSketchRecognitionHelper {
     final upperHull = <Offset>[];
     for (final point in uniquePoints.reversed) {
       while (upperHull.length >= 2 &&
-          _crossProduct(upperHull[upperHull.length - 2], upperHull.last, point) <=
+          _crossProduct(
+                  upperHull[upperHull.length - 2], upperHull.last, point) <=
               0.0001) {
         upperHull.removeLast();
       }
@@ -2371,7 +2398,8 @@ class OperativeSketchRecognitionHelper {
         (firstVector.dy * secondVector.dx);
   }
 
-  List<Offset> _simplifyWithDouglasPeucker(List<Offset> points, double epsilon) {
+  List<Offset> _simplifyWithDouglasPeucker(
+      List<Offset> points, double epsilon) {
     if (points.length < 3) return List<Offset>.from(points);
 
     var maxDistance = 0.0;
@@ -2605,7 +2633,8 @@ class OperativeSketchRecognitionHelper {
     return weightedSum / totalWeight;
   }
 
-  double _softScore(double value, {required double center, required double tolerance}) {
+  double _softScore(double value,
+      {required double center, required double tolerance}) {
     if (tolerance <= 0) return value == center ? 1.0 : 0.0;
     return 1 - _clampDouble((value - center).abs() / tolerance, 0, 1);
   }
@@ -2792,8 +2821,7 @@ class OperativeSketchRecognitionHelper {
           return current[index];
         }
 
-        final previous =
-            current[(index - 1 + current.length) % current.length];
+        final previous = current[(index - 1 + current.length) % current.length];
         final point = current[index];
         final following = current[(index + 1) % current.length];
         final neighborAverage = Offset(
@@ -2889,8 +2917,7 @@ class OperativeSketchRecognitionHelper {
       return false;
     }
 
-    if (distance <= max(1.6, snapDistance * 0.18) ||
-        node.attachments.isEmpty) {
+    if (distance <= max(1.6, snapDistance * 0.18) || node.attachments.isEmpty) {
       return true;
     }
 
@@ -3011,7 +3038,8 @@ class OperativeSketchRecognitionHelper {
 
   String _polygonSignature(List<Offset> polygon) {
     return polygon
-        .map((point) => '${point.dx.toStringAsFixed(1)}:${point.dy.toStringAsFixed(1)}')
+        .map((point) =>
+            '${point.dx.toStringAsFixed(1)}:${point.dy.toStringAsFixed(1)}')
         .join('|');
   }
 
@@ -3060,9 +3088,7 @@ class OperativeSketchRecognitionHelper {
       clusters.add(mergedCluster);
     }
 
-    return clusters
-        .map(_mergeDetectionCluster)
-        .toList(growable: false);
+    return clusters.map(_mergeDetectionCluster).toList(growable: false);
   }
 
   Map<OperativeSketchRecognitionKind, int> _countDetections(
@@ -3081,8 +3107,8 @@ class OperativeSketchRecognitionHelper {
   ) {
     final allowLooseMatching =
         first.source == _SketchRecognitionSource.region ||
-        second.source == _SketchRecognitionSource.region ||
-        first.kind == second.kind;
+            second.source == _SketchRecognitionSource.region ||
+            first.kind == second.kind;
     return _matchesShapeGeometry(
       firstBounds: first.bounds,
       firstArea: first.area,
@@ -3111,7 +3137,8 @@ class OperativeSketchRecognitionHelper {
       final overlapRatio = intersectionArea /
           max(1.0, min(_rectArea(firstBounds), _rectArea(secondBounds)));
       if (overlapRatio >= _duplicateOverlapThreshold) {
-        final areaRatio = min(firstArea, secondArea) / max(firstArea, secondArea);
+        final areaRatio =
+            min(firstArea, secondArea) / max(firstArea, secondArea);
         if (areaRatio >= _duplicateAreaRatioThreshold) {
           final centerDistance = (firstCenter - secondCenter).distance;
           final minDiagonal =
@@ -3128,8 +3155,10 @@ class OperativeSketchRecognitionHelper {
       return false;
     }
 
-    final minDiagonal = min(_rectDiagonal(firstBounds), _rectDiagonal(secondBounds));
-    final maxDiagonal = max(_rectDiagonal(firstBounds), _rectDiagonal(secondBounds));
+    final minDiagonal =
+        min(_rectDiagonal(firstBounds), _rectDiagonal(secondBounds));
+    final maxDiagonal =
+        max(_rectDiagonal(firstBounds), _rectDiagonal(secondBounds));
     final areaRatio = min(firstArea, secondArea) / max(firstArea, secondArea);
     if (areaRatio < _looseDuplicateAreaRatioThreshold) {
       return false;
@@ -3214,8 +3243,7 @@ class OperativeSketchRecognitionHelper {
             <double>[
               representative.score,
               supportScore,
-              winningVote /
-                  max(1, winningDetections.length).toDouble(),
+              winningVote / max(1, winningDetections.length).toDouble(),
             ],
             const <double>[0.52, 0.24, 0.24],
           ) +
@@ -3369,7 +3397,8 @@ class OperativeSketchRecognitionHelper {
           continue;
         }
 
-        final overlapArea = _rectIntersectionArea(detection.bounds, support.bounds);
+        final overlapArea =
+            _rectIntersectionArea(detection.bounds, support.bounds);
         final overlapRatio = overlapArea /
             max(
               1.0,
@@ -3553,7 +3582,9 @@ class OperativeSketchRecognitionHelper {
     void addEdge(_GridVertex start, _GridVertex end) {
       final edge = _GridDirectedEdge(start: start, end: end);
       directedEdges.add(edge);
-      edgeStartMap.putIfAbsent(start.key, () => <_GridDirectedEdge>[]).add(edge);
+      edgeStartMap
+          .putIfAbsent(start.key, () => <_GridDirectedEdge>[])
+          .add(edge);
     }
 
     for (final cellIndex in region.cells) {

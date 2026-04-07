@@ -46,8 +46,8 @@ class EndpointSettingsSnapshot {
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       animationSpeed: (animationSpeed ?? this.animationSpeed).clamp(1, 3),
       customAvatarEnabled: customAvatarEnabled ?? this.customAvatarEnabled,
-      customAvatarSelectionEnabled: customAvatarSelectionEnabled ??
-          this.customAvatarSelectionEnabled,
+      customAvatarSelectionEnabled:
+          customAvatarSelectionEnabled ?? this.customAvatarSelectionEnabled,
       gameMode: gameMode ?? this.gameMode,
     );
   }
@@ -79,8 +79,7 @@ class EndpointSettingsSnapshot {
       ).clamp(1, 3),
       customAvatarEnabled: _readBool(
         json['customAvatarEnabled'],
-        fallback:
-            const EndpointSettingsSnapshot.defaults().customAvatarEnabled,
+        fallback: const EndpointSettingsSnapshot.defaults().customAvatarEnabled,
       ),
       customAvatarSelectionEnabled: _readBool(
         json['customAvatarSelectionEnabled'],
@@ -164,7 +163,7 @@ abstract final class EndpointPreferencesService {
     PathNode? activeNode,
   }) {
     final payload = <String, Object?>{
-      'schemaVersion': 2,
+      'schemaVersion': 3,
       'savedAt': DateTime.now().toUtc().toIso8601String(),
       'trigger': trigger,
       'run': <String, Object?>{
@@ -476,8 +475,8 @@ abstract final class EndpointPreferencesService {
 
     final preset = BattlerAbility.presetForId(abilityId);
     return preset.copyWith(
-      rarity: _parseEnumByName(RarityTier.values, json['rarity']) ??
-          preset.rarity,
+      rarity:
+          _parseEnumByName(RarityTier.values, json['rarity']) ?? preset.rarity,
       name: _readString(json['name'], fallback: preset.name),
       description: _readString(
         json['description'],
@@ -606,6 +605,10 @@ abstract final class EndpointPreferencesService {
         fallback: preset.upgradeStatModifiers,
       ),
       instanceId: _readNullableString(json['instanceId']),
+      bonusShapeOverride: _parseEnumByName(
+        ItemBonusShape.values,
+        json['bonusShape'],
+      ),
     );
 
     if (!item.isInstanced) {
@@ -754,6 +757,9 @@ abstract final class EndpointPreferencesService {
       'statModifiers': _serializeStatMap(item.statModifiers),
       'upgradeStatModifiers': _serializeStatMap(item.upgradeStatModifiers),
       'hasEffect': item.hasEffect,
+      'bonusShape': item.bonusShape.name,
+      'specialBonusKind': item.specialBonus.kind.name,
+      'specialBonusAmount': item.specialBonus.amount,
     };
   }
 

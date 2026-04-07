@@ -1,6 +1,10 @@
 import '../_imports.dart';
+import '../../services/_exports.dart';
 
-class EndpointItemDetailsDialog extends StatelessWidget {
+const _itemBonusSketchCanvasBorderRadius = 18.0;
+const _itemBonusSketchNoiseSeed = 2174;
+
+class EndpointItemDetailsDialog extends StatefulWidget {
   final Item item;
   final Color accent;
   final int price;
@@ -41,31 +45,57 @@ class EndpointItemDetailsDialog extends StatelessWidget {
   });
 
   @override
+  State<EndpointItemDetailsDialog> createState() =>
+      _EndpointItemDetailsDialogState();
+}
+
+class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
+  late final List<_ItemBonusSketchNoiseDot> _noiseDots =
+      _buildItemBonusSketchNoiseDots();
+  EndpointGameMode _gameMode = EndpointGameMode.classic;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadSettings());
+  }
+
+  Future<void> _loadSettings() async {
+    final settings = await EndpointPreferencesService.loadSettingsSnapshot();
+    if (!mounted) return;
+
+    setState(() {
+      _gameMode = settings.gameMode;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final foreground = EndpointPalette.soften(accent);
-    final effectSurface =
-        EndpointPalette.blend(EndpointPalette.panelBackground, accent, 0.12);
+    final foreground = EndpointPalette.soften(widget.accent);
+    final effectSurface = EndpointPalette.blend(
+        EndpointPalette.panelBackground, widget.accent, 0.12);
     final statusSurface = EndpointPalette.blend(
       EndpointPalette.panelBackgroundGold,
-      accent,
+      widget.accent,
       0.16,
     );
     final secondaryActionSurface = EndpointPalette.blend(
       EndpointPalette.panelBackground,
-      accent,
+      widget.accent,
       0.08,
     );
-    final effectDescription = item.effect?.descriptionFor(item);
+    final effectDescription = widget.item.effect?.descriptionFor(widget.item);
     final shouldShowEffectPanel = effectDescription != null &&
-        effectDescription != item.displayDescription;
+        effectDescription != widget.item.displayDescription;
+    final shouldShowBonusSketch = _gameMode == EndpointGameMode.drawing;
 
     return EndpointDetailsDialogScaffold(
-      accent: accent,
+      accent: widget.accent,
       backgroundColor: EndpointPalette.panelBackgroundGold,
       foregroundColor: foreground,
       closeBackgroundColor: EndpointPalette.blend(
         EndpointPalette.panelBackgroundGold,
-        accent,
+        widget.accent,
         0.08,
       ),
       child: Column(
@@ -76,8 +106,8 @@ class EndpointItemDetailsDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               EndpointEmojiSprite(
-                emoji: item.iconEmoji,
-                accent: accent,
+                emoji: widget.item.iconEmoji,
+                accent: widget.accent,
                 size: 72,
               ),
               const SizedBox(width: 12),
@@ -86,7 +116,7 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     EndpointText(
-                      item.displayName,
+                      widget.item.displayName,
                       maxLines: null,
                       style: textLargeBold.copyWith(
                         color: foreground,
@@ -95,21 +125,21 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     EndpointText(
-                      '${item.rarity.label}  |  COSTE ${item.equipmentCost}',
+                      '${widget.item.rarity.label}  |  COSTE ${widget.item.equipmentCost}',
                       maxLines: null,
                       style: textSmallBold.copyWith(
                         fontSize: 10,
-                        color: accent,
+                        color: widget.accent,
                         letterSpacing: 1.2,
                       ),
                     ),
-                    if (item.hasTags) ...[
+                    if (widget.item.hasTags) ...[
                       const SizedBox(height: 4),
                       SizedBox(
                         width: double.infinity,
                         child: EndpointTagPillMarquee(
-                          tags: item.tags,
-                          accent: accent,
+                          tags: widget.item.tags,
+                          accent: widget.accent,
                         ),
                       ),
                     ],
@@ -120,17 +150,17 @@ class EndpointItemDetailsDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           EndpointText(
-            item.displayDescription,
+            widget.item.displayDescription,
             maxLines: null,
             style: textMedium.copyWith(
               fontSize: 14,
-              color: EndpointPalette.softForeground.withOpacity(0.84),
+              color: EndpointPalette.softForeground.withValues(alpha: 0.84),
             ),
           ),
           if (shouldShowEffectPanel) ...[
             const SizedBox(height: 12),
             EndpointPanel(
-              accent: accent,
+              accent: widget.accent,
               backgroundColor: effectSurface,
               glowOpacity: 0.03,
               padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
@@ -147,15 +177,23 @@ class EndpointItemDetailsDialog extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           EndpointText(
-            _buildModifiersText(item),
+            _buildModifiersText(widget.item),
             maxLines: null,
             style: textSmallNumericBold.copyWith(
               fontSize: 10,
-              color: accent,
+              color: widget.accent,
               letterSpacing: 1,
             ),
           ),
-          if (actionLabel != null || secondaryActionLabel != null) ...[
+          if (shouldShowBonusSketch) ...[
+            const SizedBox(height: 12),
+            _ItemBonusSketchSection(
+              item: widget.item,
+              noiseDots: _noiseDots,
+            ),
+          ],
+          if (widget.actionLabel != null ||
+              widget.secondaryActionLabel != null) ...[
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
@@ -165,16 +203,17 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                 alignment: WrapAlignment.end,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  if (secondaryActionLabel != null)
+                  if (widget.secondaryActionLabel != null)
                     EndpointActionButton(
-                      label: secondaryActionLabel!,
-                      icon: secondaryActionIcon,
-                      onPressed:
-                          isSecondaryActionEnabled ? onSecondaryAction : null,
-                      tooltip: isSecondaryActionEnabled
-                          ? enabledSecondaryActionTooltip
-                          : disabledSecondaryActionTooltip,
-                      accent: accent,
+                      label: widget.secondaryActionLabel!,
+                      icon: widget.secondaryActionIcon,
+                      onPressed: widget.isSecondaryActionEnabled
+                          ? widget.onSecondaryAction
+                          : null,
+                      tooltip: widget.isSecondaryActionEnabled
+                          ? widget.enabledSecondaryActionTooltip
+                          : widget.disabledSecondaryActionTooltip,
+                      accent: widget.accent,
                       backgroundColor: secondaryActionSurface,
                       foregroundColor: foreground,
                       borderWidth: 1.2,
@@ -183,17 +222,19 @@ class EndpointItemDetailsDialog extends StatelessWidget {
                       textStyle: textSmallBold.copyWith(letterSpacing: 1.1),
                       iconSize: 18,
                       useMarquee: false,
-                      width: actionLabel != null ? 118 : null,
+                      width: widget.actionLabel != null ? 118 : null,
                     ),
-                  if (actionLabel != null)
+                  if (widget.actionLabel != null)
                     EndpointActionButton(
-                      label: actionLabel!,
-                      icon: actionIcon,
-                      onPressed: isActionEnabled ? onPrimaryAction : null,
-                      tooltip: isActionEnabled
-                          ? enabledActionTooltip
-                          : disabledActionTooltip,
-                      accent: accent,
+                      label: widget.actionLabel!,
+                      icon: widget.actionIcon,
+                      onPressed: widget.isActionEnabled
+                          ? widget.onPrimaryAction
+                          : null,
+                      tooltip: widget.isActionEnabled
+                          ? widget.enabledActionTooltip
+                          : widget.disabledActionTooltip,
+                      accent: widget.accent,
                       backgroundColor: statusSurface,
                       foregroundColor: foreground,
                       borderWidth: 1.3,
@@ -243,4 +284,290 @@ class EndpointItemDetailsDialog extends StatelessWidget {
 
     return stat.shortLabel;
   }
+}
+
+class _ItemBonusSketchSection extends StatelessWidget {
+  final Item item;
+  final List<_ItemBonusSketchNoiseDot> noiseDots;
+
+  const _ItemBonusSketchSection({
+    required this.item,
+    required this.noiseDots,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final shapeAccent = _shapeAccent(item.bonusShape);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            EndpointText(
+              'TRAZO BONUS',
+              style: textSmallBold.copyWith(
+                color: EndpointPalette.infoAccent.withValues(alpha: 0.92),
+                letterSpacing: 1.0,
+              ),
+            ),
+            const Spacer(),
+            EndpointText(
+              item.bonusShape.label.toUpperCase(),
+              style: textSmallBold.copyWith(
+                color: shapeAccent,
+                fontSize: 10,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: SizedBox.square(
+            dimension: 132,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.circular(_itemBonusSketchCanvasBorderRadius),
+                border: Border.all(
+                  color: EndpointPalette.softForeground.withValues(alpha: 0.76),
+                  width: 1.6,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: EndpointPalette.infoAccent.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  _itemBonusSketchCanvasBorderRadius - 1,
+                ),
+                child: CustomPaint(
+                  painter: _ItemBonusSketchPainter(
+                    shape: item.bonusShape,
+                    strokeColor: shapeAccent,
+                    noiseDots: noiseDots,
+                  ),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _shapeAccent(ItemBonusShape shape) {
+    switch (shape) {
+      case ItemBonusShape.triangle:
+        return EndpointPalette.warningAccent;
+      case ItemBonusShape.square:
+        return EndpointPalette.infoAccent;
+      case ItemBonusShape.circle:
+        return EndpointPalette.primaryAccent;
+    }
+  }
+}
+
+class _ItemBonusSketchPainter extends CustomPainter {
+  final ItemBonusShape shape;
+  final Color strokeColor;
+  final List<_ItemBonusSketchNoiseDot> noiseDots;
+
+  const _ItemBonusSketchPainter({
+    required this.shape,
+    required this.strokeColor,
+    required this.noiseDots,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final backgroundPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF030706),
+          Color(0xFF0B1210),
+          Color(0xFF050907),
+        ],
+      ).createShader(rect);
+    final vignettePaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.1, -0.2),
+        radius: 1.15,
+        colors: [
+          EndpointPalette.infoAccent.withValues(alpha: 0.08),
+          Colors.transparent,
+        ],
+      ).createShader(rect);
+    final gridPaint = Paint()
+      ..color = EndpointPalette.softForeground.withValues(alpha: 0.035)
+      ..strokeWidth = 1;
+
+    canvas.drawRect(rect, backgroundPaint);
+    canvas.drawRect(rect, vignettePaint);
+
+    for (double y = 12; y <= size.height; y += 18) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+    for (double x = 10; x <= size.width; x += 18) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+
+    for (final dot in noiseDots) {
+      final dotPaint = Paint()..color = dot.color;
+      canvas.drawCircle(
+        Offset(
+          dot.relativeOffset.dx * size.width,
+          dot.relativeOffset.dy * size.height,
+        ),
+        dot.radius,
+        dotPaint,
+      );
+    }
+
+    _paintStroke(
+      canvas,
+      _shapePoints(size),
+    );
+  }
+
+  List<Offset> _shapePoints(Size size) {
+    Offset fromUnit(double dx, double dy) =>
+        Offset(size.width * dx, size.height * dy);
+
+    switch (shape) {
+      case ItemBonusShape.triangle:
+        return <Offset>[
+          fromUnit(0.5, 0.18),
+          fromUnit(0.79, 0.76),
+          fromUnit(0.21, 0.76),
+        ];
+      case ItemBonusShape.square:
+        return <Offset>[
+          fromUnit(0.24, 0.24),
+          fromUnit(0.76, 0.24),
+          fromUnit(0.76, 0.76),
+          fromUnit(0.24, 0.76),
+        ];
+      case ItemBonusShape.circle:
+        return List<Offset>.generate(37, (index) {
+          final angle = (index / 36) * pi * 2;
+          return Offset(
+            (size.width * 0.5) + (cos(angle) * size.width * 0.27),
+            (size.height * 0.5) + (sin(angle) * size.height * 0.27),
+          );
+        });
+    }
+  }
+
+  void _paintStroke(Canvas canvas, List<Offset> points) {
+    if (points.isEmpty) return;
+    final isAngularShape = shape != ItemBonusShape.circle;
+
+    final glowPaint = Paint()
+      ..color = strokeColor.withValues(alpha: 0.28)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = isAngularShape ? StrokeJoin.miter : StrokeJoin.round
+      ..strokeWidth = 9
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    final corePaint = Paint()
+      ..color = strokeColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = isAngularShape ? StrokeJoin.miter : StrokeJoin.round
+      ..strokeWidth = 4.2;
+
+    if (points.length < 2) {
+      canvas.drawCircle(
+          points.first, 5.2, glowPaint..style = PaintingStyle.fill);
+      canvas.drawCircle(
+          points.first, 2.8, corePaint..style = PaintingStyle.fill);
+      return;
+    }
+
+    final path = isAngularShape
+        ? _buildAngularStrokePath(points)
+        : _buildSmoothStrokePath(points);
+
+    canvas.drawPath(path, glowPaint);
+    canvas.drawPath(path, corePaint);
+  }
+
+  Path _buildSmoothStrokePath(List<Offset> points) {
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (int index = 1; index < points.length; index++) {
+      final previousPoint = points[index - 1];
+      final currentPoint = points[index];
+      final midPoint = Offset(
+        (previousPoint.dx + currentPoint.dx) / 2,
+        (previousPoint.dy + currentPoint.dy) / 2,
+      );
+      path.quadraticBezierTo(
+        previousPoint.dx,
+        previousPoint.dy,
+        midPoint.dx,
+        midPoint.dy,
+      );
+    }
+    final lastPoint = points.last;
+    path.lineTo(lastPoint.dx, lastPoint.dy);
+    return path;
+  }
+
+  Path _buildAngularStrokePath(List<Offset> points) {
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (int index = 1; index < points.length; index++) {
+      final point = points[index];
+      path.lineTo(point.dx, point.dy);
+    }
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldRepaint(covariant _ItemBonusSketchPainter oldDelegate) {
+    return oldDelegate.shape != shape ||
+        oldDelegate.strokeColor != strokeColor ||
+        oldDelegate.noiseDots != noiseDots;
+  }
+}
+
+class _ItemBonusSketchNoiseDot {
+  final Offset relativeOffset;
+  final double radius;
+  final Color color;
+
+  const _ItemBonusSketchNoiseDot({
+    required this.relativeOffset,
+    required this.radius,
+    required this.color,
+  });
+}
+
+List<_ItemBonusSketchNoiseDot> _buildItemBonusSketchNoiseDots() {
+  final seededRandom = Random(_itemBonusSketchNoiseSeed);
+  return List<_ItemBonusSketchNoiseDot>.generate(90, (index) {
+    final tint = index.isEven
+        ? EndpointPalette.softForeground
+        : EndpointPalette.soften(EndpointPalette.infoAccent, amount: 0.2);
+    return _ItemBonusSketchNoiseDot(
+      relativeOffset: Offset(
+        seededRandom.nextDouble(),
+        seededRandom.nextDouble(),
+      ),
+      radius: 0.35 + (seededRandom.nextDouble() * 1.05),
+      color: tint.withValues(
+        alpha: 0.04 + (seededRandom.nextDouble() * 0.1),
+      ),
+    );
+  });
 }
