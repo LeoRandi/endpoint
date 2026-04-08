@@ -1,11 +1,6 @@
-import '_imports.dart';
-
-/// Distingue como ha terminado la run para decidir la pantalla final adecuada.
-enum RunCompletionType {
-  victory,
-  defeat,
-  retreated,
-}
+import '../entities/_exports.dart';
+import 'run_completion_type.dart';
+import 'run_hour_snapshot.dart';
 
 class RunState {
   final Battler player;
