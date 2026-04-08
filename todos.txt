@@ -3,6 +3,12 @@
 --Crear dibujos básicos y aplicarlos al combate
 --Crear dibujos avanzados para cada item
 --Sistema de guardar favorito + quick draw
+--Añadir herramienta "mover", que coge todo el trazo unido al seleccionado y lo mueve a lo largo del canvas
+--Cambiar diseño/UI del overlay del canvas, y hacer más grande dicho overlay
+--Símbolos complejos:
+---Crear "archivo" de simbolos(hacer al menos 4 intentos de cada símbolo, guardarlos como plantilla)
+---Crear algoritmo que lance dibujo contra plantillas hasta encontrar match.
+
 
 -Economía
 [--Bajar Income base a la mitad o algo]
@@ -78,8 +84,7 @@
 --Fucking música por favor
 
 -Settings
---Que funcionen los botones please(sonido, vibración, cambiar avatar, etc)
---Cambio de colores base(sets específicos)
+--Que funcionen las opciones please(sonido, vibración, cambiar avatar, etc)
 
 ////
 ARREGLAR:

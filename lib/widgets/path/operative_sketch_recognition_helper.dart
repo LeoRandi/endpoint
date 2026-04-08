@@ -2,6 +2,7 @@ import '../_imports.dart';
 
 enum OperativeSketchRecognitionKind {
   none,
+  scissors,
   triangle,
   square,
   circle,
@@ -13,6 +14,8 @@ extension OperativeSketchRecognitionKindLabel
     switch (this) {
       case OperativeSketchRecognitionKind.none:
         return 'NINGUNA';
+      case OperativeSketchRecognitionKind.scissors:
+        return 'TIJERAS';
       case OperativeSketchRecognitionKind.triangle:
         return 'TRIANGULO';
       case OperativeSketchRecognitionKind.square:
@@ -23,11 +26,29 @@ extension OperativeSketchRecognitionKindLabel
   }
 }
 
+extension OperativeSketchRecognitionKindRecognitionPriority
+    on OperativeSketchRecognitionKind {
+  int get recognitionPriority {
+    switch (this) {
+      case OperativeSketchRecognitionKind.none:
+        return -1;
+      case OperativeSketchRecognitionKind.scissors:
+        return 1;
+      case OperativeSketchRecognitionKind.triangle:
+      case OperativeSketchRecognitionKind.square:
+      case OperativeSketchRecognitionKind.circle:
+        return 0;
+    }
+  }
+}
+
 extension OperativeSketchRecognitionKindItemBonusShape
     on OperativeSketchRecognitionKind {
   ItemBonusShape? get itemBonusShape {
     switch (this) {
       case OperativeSketchRecognitionKind.none:
+        return null;
+      case OperativeSketchRecognitionKind.scissors:
         return null;
       case OperativeSketchRecognitionKind.triangle:
         return ItemBonusShape.triangle;
@@ -47,6 +68,8 @@ class OperativeSketchRecognitionMatch {
     required this.kind,
     required this.count,
   });
+
+  int get priority => kind.recognitionPriority;
 
   String get displayLabel => '${kind.label}:$count';
 }
@@ -88,6 +111,7 @@ class OperativeSketchRecognitionHelper {
   static const double _minimumEndpointSnapDistance = 12;
   static const double _maximumEndpointSnapDistance = 28;
   static const double _endpointSnapDistanceFactor = 0.065;
+  static const double _minimumInteriorIntersectionT = 0.04;
   static const double _minimumClassificationScore = 0.58;
   static const double _minimumClassificationMargin = 0.08;
   static const double _duplicateOverlapThreshold = 0.42;
@@ -103,13 +127,42 @@ class OperativeSketchRecognitionHelper {
   static const double _minimumSegmentSnapAxisAlignment = 0.66;
   static const double _minimumRegionFallbackGeometryScore = 0.74;
   static const double _minimumPointCloudVerificationScore = 0.72;
+  static const double _minimumScissorsTopologyScore = 0.72;
+  static const double _minimumScissorsTemplateScore = 0.64;
+  static const double _minimumScissorsInkTemplateScore = 0.7;
+  static const double _minimumScissorsTriangleSupportScore = 0.7;
+  static const double _minimumScissorsBranchSpreadScore = 0.42;
+  static const int _minimumConnectedInkCellCount = 18;
   static const int _pointCloudSampleCount = 48;
-  static const List<OperativeSketchRecognitionKind> _priorityOrder =
-      <OperativeSketchRecognitionKind>[
-    OperativeSketchRecognitionKind.triangle,
-    OperativeSketchRecognitionKind.square,
-    OperativeSketchRecognitionKind.circle,
+  static const List<List<Offset>> _scissorsTemplateSegments = <List<Offset>>[
+    <Offset>[
+      Offset(-0.58, -0.72),
+      Offset(0, 0),
+    ],
+    <Offset>[
+      Offset(0.58, -0.72),
+      Offset(0, 0),
+    ],
+    <Offset>[
+      Offset(0, 0),
+      Offset(-0.56, 0.78),
+    ],
+    <Offset>[
+      Offset(0, 0),
+      Offset(0.56, 0.78),
+    ],
+    <Offset>[
+      Offset(-0.56, 0.78),
+      Offset(0.56, 0.78),
+    ],
   ];
+  static final List<OperativeSketchRecognitionKind> _orderedRecognitionKinds =
+      List<OperativeSketchRecognitionKind>.unmodifiable(
+    OperativeSketchRecognitionKind.values
+        .where((kind) => kind != OperativeSketchRecognitionKind.none)
+        .toList(growable: false)
+      ..sort(_compareRecognitionKinds),
+  );
 
   static const OperativeSketchRecognitionResult _emptyResult =
       OperativeSketchRecognitionResult(
@@ -137,6 +190,16 @@ class OperativeSketchRecognitionHelper {
       canvasSize: canvasSize,
     );
 
+    final symbolDetections = <_SketchRecognitionDetection>[
+      ..._scanGraphSymbols(
+        strokes: graphReadyStrokes,
+        canvasSize: canvasSize,
+      ),
+      ..._scanTriangleAnchoredSymbols(
+        strokes: graphReadyStrokes,
+        canvasSize: canvasSize,
+      ),
+    ];
     final vectorDetections = _scanVectorContours(
       strokes: graphReadyStrokes,
       canvasSize: canvasSize,
@@ -147,6 +210,15 @@ class OperativeSketchRecognitionHelper {
           .toList(growable: false),
       canvasSize: canvasSize,
     );
+    final connectedInkSupports = _scanConnectedInkSupports(
+      strokes: graphReadyStrokes
+          .map((stroke) => stroke.points)
+          .toList(growable: false),
+      canvasSize: canvasSize,
+    );
+    final inkSupportedScissorsDetections = _scanConnectedInkSupportedScissors(
+      connectedInkSupports,
+    );
     final supportedVectorDetections = _applyClosedRegionSupport(
       detections: vectorDetections,
       regionSupports: regionSupports,
@@ -156,22 +228,29 @@ class OperativeSketchRecognitionHelper {
       existingDetections: supportedVectorDetections,
     );
     final mergedDetections = _mergeDetections(
-      primaryDetections: supportedVectorDetections,
+      primaryDetections: [
+        ...symbolDetections,
+        ...inkSupportedScissorsDetections,
+        ...supportedVectorDetections,
+      ],
       secondaryDetections: regionFallbackDetections,
     );
-    return _resultFromCounts(_countDetections(mergedDetections));
+    final prioritizedDetections = _suppressLowerPriorityDetections(
+      mergedDetections,
+    );
+    return _resultFromCounts(_countDetections(prioritizedDetections));
   }
 
   Map<OperativeSketchRecognitionKind, int> _emptyCounts() {
     return <OperativeSketchRecognitionKind, int>{
-      for (final kind in _priorityOrder) kind: 0,
+      for (final kind in _orderedRecognitionKinds) kind: 0,
     };
   }
 
   OperativeSketchRecognitionResult _resultFromCounts(
     Map<OperativeSketchRecognitionKind, int> counts,
   ) {
-    final matches = _priorityOrder
+    final matches = _orderedRecognitionKinds
         .where((kind) => (counts[kind] ?? 0) > 0)
         .map(
           (kind) => OperativeSketchRecognitionMatch(
@@ -195,7 +274,7 @@ class OperativeSketchRecognitionHelper {
   ) {
     var bestKind = OperativeSketchRecognitionKind.none;
     var bestCount = 0;
-    for (final kind in _priorityOrder) {
+    for (final kind in _orderedRecognitionKinds) {
       final count = counts[kind] ?? 0;
       if (count > bestCount) {
         bestKind = kind;
@@ -273,7 +352,7 @@ class OperativeSketchRecognitionHelper {
     required List<_ProcessedStroke> strokes,
     required Size canvasSize,
   }) {
-    if (strokes.length <= 1) {
+    if (strokes.isEmpty) {
       return strokes;
     }
 
@@ -482,6 +561,49 @@ class OperativeSketchRecognitionHelper {
       }
     }
 
+    for (final stroke in mutableStrokes.where((stroke) => !stroke.isClosed)) {
+      for (int firstSegmentIndex = 0;
+          firstSegmentIndex < stroke.points.length - 1;
+          firstSegmentIndex++) {
+        final firstStart = stroke.points[firstSegmentIndex];
+        final firstEnd = stroke.points[firstSegmentIndex + 1];
+        for (int secondSegmentIndex = firstSegmentIndex + 2;
+            secondSegmentIndex < stroke.points.length - 1;
+            secondSegmentIndex++) {
+          final secondStart = stroke.points[secondSegmentIndex];
+          final secondEnd = stroke.points[secondSegmentIndex + 1];
+          final intersection = _segmentIntersectionPoint(
+            firstStart,
+            firstEnd,
+            secondStart,
+            secondEnd,
+          );
+          if (intersection == null ||
+              !_isInteriorIntersectionT(intersection.firstT) ||
+              !_isInteriorIntersectionT(intersection.secondT)) {
+            continue;
+          }
+
+          insertionsByStrokeId
+              .putIfAbsent(stroke.id, () => <_StrokePointInsertion>[])
+              .add(
+                _StrokePointInsertion(
+                  segmentIndex: firstSegmentIndex,
+                  t: intersection.firstT,
+                  point: intersection.point,
+                ),
+              );
+          insertionsByStrokeId[stroke.id]!.add(
+            _StrokePointInsertion(
+              segmentIndex: secondSegmentIndex,
+              t: intersection.secondT,
+              point: intersection.point,
+            ),
+          );
+        }
+      }
+    }
+
     final graphReadyStrokes = <_ProcessedStroke>[];
     var nextGeneratedStrokeId = 100000;
     for (final stroke in mutableStrokes) {
@@ -512,7 +634,15 @@ class OperativeSketchRecognitionHelper {
         continue;
       }
 
-      final splitIndices = augmentation.splitIndices.toList()..sort();
+      final splitIndices = <int>{
+        ...augmentation.splitIndices,
+        ..._collectRevisitedPointSplitIndices(
+          rawAugmentedPoints,
+          proximityThreshold: max(4.0, snapDistance * 0.32),
+          minimumIndexGap: 6,
+        ),
+      }.toList()
+        ..sort();
       if (splitIndices.length < 2) {
         continue;
       }
@@ -596,6 +726,57 @@ class OperativeSketchRecognitionHelper {
     );
   }
 
+  Set<int> _collectRevisitedPointSplitIndices(
+    List<Offset> points, {
+    required double proximityThreshold,
+    required int minimumIndexGap,
+  }) {
+    if (points.length < 4) {
+      return const <int>{};
+    }
+
+    final splitIndices = <int>{};
+    for (int firstIndex = 1; firstIndex < points.length - 1; firstIndex++) {
+      for (int secondIndex = firstIndex + minimumIndexGap;
+          secondIndex < points.length - 1;
+          secondIndex++) {
+        if ((points[firstIndex] - points[secondIndex]).distance >
+            proximityThreshold) {
+          continue;
+        }
+
+        final firstDirection = _localStrokeDirection(points, firstIndex);
+        final secondDirection = _localStrokeDirection(points, secondIndex);
+        final normalizedFirst = _normalizeVector(firstDirection);
+        final normalizedSecond = _normalizeVector(secondDirection);
+        if (normalizedFirst == Offset.zero || normalizedSecond == Offset.zero) {
+          continue;
+        }
+
+        final alignment = _dotProduct(normalizedFirst, normalizedSecond).abs();
+        if (alignment > 0.9 &&
+            (points[firstIndex] - points[secondIndex]).distance >
+                proximityThreshold * 0.4) {
+          continue;
+        }
+
+        splitIndices.add(firstIndex);
+        splitIndices.add(secondIndex);
+      }
+    }
+
+    return splitIndices;
+  }
+
+  Offset _localStrokeDirection(List<Offset> points, int index) {
+    final previousIndex = max(0, index - 1);
+    final nextIndex = min(points.length - 1, index + 1);
+    if (previousIndex == nextIndex) {
+      return Offset.zero;
+    }
+    return points[nextIndex] - points[previousIndex];
+  }
+
   _SegmentProjection _projectPointOntoSegment({
     required Offset point,
     required Offset start,
@@ -666,6 +847,364 @@ class OperativeSketchRecognitionHelper {
     );
   }
 
+  bool _isInteriorIntersectionT(double t) {
+    return t >= _minimumInteriorIntersectionT &&
+        t <= 1 - _minimumInteriorIntersectionT;
+  }
+
+  List<_SketchRecognitionDetection> _scanGraphSymbols({
+    required List<_ProcessedStroke> strokes,
+    required Size canvasSize,
+  }) {
+    final graph = _buildEndpointGraph(
+      strokes: strokes,
+      canvasSize: canvasSize,
+    );
+    if (graph.edges.length < 5 || graph.components.isEmpty) {
+      return const <_SketchRecognitionDetection>[];
+    }
+
+    final detections = <_SketchRecognitionDetection>[];
+    for (final componentNodeIds in graph.components) {
+      final componentEdges = graph.edges
+          .where(
+            (edge) =>
+                componentNodeIds.contains(edge.startNodeId) &&
+                componentNodeIds.contains(edge.endNodeId),
+          )
+          .toList(growable: false);
+      final detection = _buildScissorsDetection(
+        componentNodeIds: componentNodeIds,
+        componentEdges: componentEdges,
+        nodesById: graph.nodesById,
+      );
+      if (detection != null) {
+        detections.add(detection);
+      }
+    }
+
+    return detections;
+  }
+
+  List<_SketchRecognitionDetection> _scanTriangleAnchoredSymbols({
+    required List<_ProcessedStroke> strokes,
+    required Size canvasSize,
+  }) {
+    final closedStrokes = strokes.where((stroke) => stroke.isClosed).toList();
+    final openStrokes = strokes.where((stroke) => !stroke.isClosed).toList();
+    if (closedStrokes.isEmpty || openStrokes.length < 2) {
+      return const <_SketchRecognitionDetection>[];
+    }
+
+    final minCanvasSide = min(canvasSize.width, canvasSize.height).toDouble();
+    final anchorDistanceThreshold = _clampDouble(
+      minCanvasSide * (_endpointSnapDistanceFactor * 0.95),
+      _minimumEndpointSnapDistance,
+      _maximumEndpointSnapDistance,
+    );
+    final detections = <_SketchRecognitionDetection>[];
+
+    for (final closedStroke in closedStrokes) {
+      final triangleSupport = _buildContourDetection(
+        contour: closedStroke.points,
+        source: _SketchRecognitionSource.stroke,
+      );
+      if (triangleSupport == null ||
+          triangleSupport.kind != OperativeSketchRecognitionKind.triangle ||
+          triangleSupport.score < _minimumScissorsTriangleSupportScore) {
+        continue;
+      }
+
+      final triangleVertices = _estimateTriangleVertices(closedStroke.points);
+      if (triangleVertices == null) {
+        continue;
+      }
+
+      final anchoredEndpoints = <_AnchoredStrokeEndpoint>[];
+      for (final openStroke in openStrokes) {
+        final startAnchor = _buildAnchoredStrokeEndpoint(
+          stroke: openStroke,
+          anchorDistanceThreshold: anchorDistanceThreshold,
+          contour: closedStroke.points,
+          isStart: true,
+        );
+        if (startAnchor != null) {
+          anchoredEndpoints.add(startAnchor);
+        }
+
+        final endAnchor = _buildAnchoredStrokeEndpoint(
+          stroke: openStroke,
+          anchorDistanceThreshold: anchorDistanceThreshold,
+          contour: closedStroke.points,
+          isStart: false,
+        );
+        if (endAnchor != null) {
+          anchoredEndpoints.add(endAnchor);
+        }
+      }
+      if (anchoredEndpoints.length < 2) {
+        continue;
+      }
+
+      for (final cluster in _clusterAnchoredEndpoints(
+        anchoredEndpoints,
+        clusterDistanceThreshold: anchorDistanceThreshold * 0.72,
+      )) {
+        final detection = _buildTriangleAnchoredScissorsDetection(
+          triangleStroke: closedStroke,
+          triangleSupport: triangleSupport,
+          triangleVertices: triangleVertices,
+          cluster: cluster,
+          anchorDistanceThreshold: anchorDistanceThreshold,
+        );
+        if (detection != null) {
+          detections.add(detection);
+        }
+      }
+    }
+
+    return detections;
+  }
+
+  _AnchoredStrokeEndpoint? _buildAnchoredStrokeEndpoint({
+    required _ProcessedStroke stroke,
+    required double anchorDistanceThreshold,
+    required List<Offset> contour,
+    required bool isStart,
+  }) {
+    if (stroke.points.length < 2) {
+      return null;
+    }
+
+    final endpoint = isStart ? stroke.points.first : stroke.points.last;
+    final projection = _projectPointOntoContour(
+      point: endpoint,
+      contour: contour,
+    );
+    if (projection == null || projection.distance > anchorDistanceThreshold) {
+      return null;
+    }
+
+    final direction = isStart
+        ? stroke.points[1] - stroke.points.first
+        : stroke.points[stroke.points.length - 2] - stroke.points.last;
+    if (_normalizeVector(direction) == Offset.zero) {
+      return null;
+    }
+
+    return _AnchoredStrokeEndpoint(
+      strokeId: stroke.id,
+      anchorPoint: projection.point,
+      outwardDirection: direction,
+      length: stroke.length,
+      points: List<Offset>.unmodifiable(stroke.points),
+    );
+  }
+
+  _SegmentProjection? _projectPointOntoContour({
+    required Offset point,
+    required List<Offset> contour,
+  }) {
+    if (contour.length < 2) {
+      return null;
+    }
+
+    _SegmentProjection? bestProjection;
+    for (int segmentIndex = 0; segmentIndex < contour.length; segmentIndex++) {
+      final start = contour[segmentIndex];
+      final end = contour[(segmentIndex + 1) % contour.length];
+      final projection = _projectPointOntoSegment(
+        point: point,
+        start: start,
+        end: end,
+      );
+      if (bestProjection == null ||
+          projection.distance < bestProjection.distance) {
+        bestProjection = projection;
+      }
+    }
+
+    return bestProjection;
+  }
+
+  List<List<_AnchoredStrokeEndpoint>> _clusterAnchoredEndpoints(
+    List<_AnchoredStrokeEndpoint> endpoints, {
+    required double clusterDistanceThreshold,
+  }) {
+    final clusters = <List<_AnchoredStrokeEndpoint>>[];
+    for (final endpoint in endpoints) {
+      var assigned = false;
+      for (final cluster in clusters) {
+        final averageAnchor = _averageAnchorPoint(cluster);
+        if ((averageAnchor - endpoint.anchorPoint).distance >
+            clusterDistanceThreshold) {
+          continue;
+        }
+        cluster.add(endpoint);
+        assigned = true;
+        break;
+      }
+
+      if (!assigned) {
+        clusters.add(<_AnchoredStrokeEndpoint>[endpoint]);
+      }
+    }
+
+    return clusters;
+  }
+
+  Offset _averageAnchorPoint(List<_AnchoredStrokeEndpoint> endpoints) {
+    if (endpoints.isEmpty) {
+      return Offset.zero;
+    }
+
+    var sumX = 0.0;
+    var sumY = 0.0;
+    for (final endpoint in endpoints) {
+      sumX += endpoint.anchorPoint.dx;
+      sumY += endpoint.anchorPoint.dy;
+    }
+    return Offset(sumX / endpoints.length, sumY / endpoints.length);
+  }
+
+  List<Offset>? _estimateTriangleVertices(List<Offset> contour) {
+    final normalizedContour = _normalizeClosedContour(
+      contour,
+      smoothingPasses: 1,
+    );
+    if (normalizedContour.length < 3) {
+      return null;
+    }
+
+    final profile = _buildContourProfile(normalizedContour);
+    if (profile == null) {
+      return null;
+    }
+    final candidates = _buildPolygonCandidates(profile.contour, 3);
+    if (candidates.isEmpty) {
+      return null;
+    }
+
+    List<Offset>? bestPolygon;
+    var bestScore = 0.0;
+    for (final polygon in candidates) {
+      final fit = _scorePolygonFit(profile, polygon);
+      final closureScore = _scoreThreeSideClosure(profile, polygon);
+      final cornerCoverage = _weightedAverage(
+        <double>[
+          profile.triangleCornerScore,
+          fit.score,
+          closureScore,
+        ],
+        const <double>[0.45, 0.35, 0.2],
+      );
+      if (cornerCoverage > bestScore) {
+        bestScore = cornerCoverage;
+        bestPolygon = polygon;
+      }
+    }
+
+    return bestScore >= 0.52 ? bestPolygon : null;
+  }
+
+  _SketchRecognitionDetection? _buildTriangleAnchoredScissorsDetection({
+    required _ProcessedStroke triangleStroke,
+    required _SketchRecognitionDetection triangleSupport,
+    required List<Offset> triangleVertices,
+    required List<_AnchoredStrokeEndpoint> cluster,
+    required double anchorDistanceThreshold,
+  }) {
+    final distinctStrokeIds =
+        cluster.map((endpoint) => endpoint.strokeId).toSet();
+    if (distinctStrokeIds.length < 2) {
+      return null;
+    }
+
+    final orderedCluster = List<_AnchoredStrokeEndpoint>.from(cluster)
+      ..sort((left, right) => right.length.compareTo(left.length));
+    final primary = orderedCluster[0];
+    final secondary = orderedCluster.firstWhere(
+      (endpoint) => endpoint.strokeId != primary.strokeId,
+      orElse: () => primary,
+    );
+    if (primary.strokeId == secondary.strokeId) {
+      return null;
+    }
+
+    final spreadScore = _pairSpreadScore(
+      primary.outwardDirection,
+      secondary.outwardDirection,
+    );
+    if (spreadScore < _minimumScissorsBranchSpreadScore) {
+      return null;
+    }
+
+    final anchorPoint = _averageAnchorPoint(cluster);
+    final nearestVertexDistance = triangleVertices
+        .map((vertex) => (vertex - anchorPoint).distance)
+        .reduce(min);
+    if (nearestVertexDistance >
+        max(
+          anchorDistanceThreshold * 1.15,
+          _rectDiagonal(triangleSupport.bounds) * 0.14,
+        )) {
+      return null;
+    }
+
+    final branchLengthBalance = min(primary.length, secondary.length) /
+        max(primary.length, secondary.length);
+    final minimumBranchLength = max(
+      16.0,
+      min(triangleSupport.bounds.width, triangleSupport.bounds.height) * 0.24,
+    );
+    if (primary.length < minimumBranchLength ||
+        secondary.length < minimumBranchLength) {
+      return null;
+    }
+
+    final pointCloud = _normalizePointCloud(
+      <Offset>[
+        ...triangleStroke.points,
+        ...primary.points,
+        ...secondary.points,
+      ],
+    );
+    final templateScore = _scoreScissorsTemplate(pointCloud);
+    final combinedBounds = _computeBounds(
+      <Offset>[
+        ...triangleStroke.points,
+        ...primary.points,
+        ...secondary.points,
+      ],
+    );
+    final combinedScore = _clampDouble(
+      _weightedAverage(
+        <double>[
+          triangleSupport.score,
+          spreadScore,
+          branchLengthBalance,
+          templateScore,
+        ],
+        const <double>[0.34, 0.24, 0.16, 0.26],
+      ),
+      0.0,
+      1.0,
+    );
+    if (templateScore < _minimumScissorsTemplateScore ||
+        combinedScore < _minimumScissorsTemplateScore) {
+      return null;
+    }
+
+    return _SketchRecognitionDetection(
+      kind: OperativeSketchRecognitionKind.scissors,
+      source: _SketchRecognitionSource.graph,
+      bounds: combinedBounds,
+      area: max(1.0, triangleSupport.area),
+      center: combinedBounds.center,
+      score: combinedScore,
+    );
+  }
+
   List<_SketchRecognitionDetection> _scanVectorContours({
     required List<_ProcessedStroke> strokes,
     required Size canvasSize,
@@ -700,8 +1239,44 @@ class OperativeSketchRecognitionHelper {
     required List<_ProcessedStroke> strokes,
     required Size canvasSize,
   }) {
+    final graph = _buildEndpointGraph(
+      strokes: strokes,
+      canvasSize: canvasSize,
+    );
+    if (graph.edges.length < 2) return const <_LoopContour>[];
+
+    final loops = <_LoopContour>[];
+
+    for (final componentNodeIds in graph.components) {
+      final componentEdges = graph.edges
+          .where(
+            (edge) =>
+                componentNodeIds.contains(edge.startNodeId) &&
+                componentNodeIds.contains(edge.endNodeId),
+          )
+          .toList(growable: false);
+      if (componentEdges.length < 2) continue;
+      loops.addAll(
+        _findLoopContoursInComponent(
+          componentNodeIds: componentNodeIds,
+          componentEdges: componentEdges,
+          adjacency: graph.adjacency,
+          nodesById: graph.nodesById,
+        ),
+      );
+    }
+
+    return loops;
+  }
+
+  _EndpointGraphData _buildEndpointGraph({
+    required List<_ProcessedStroke> strokes,
+    required Size canvasSize,
+  }) {
     final openStrokes = strokes.where((stroke) => !stroke.isClosed).toList();
-    if (openStrokes.length < 2) return const <_LoopContour>[];
+    if (openStrokes.length < 2) {
+      return _EndpointGraphData.empty();
+    }
 
     final minCanvasSide = min(canvasSize.width, canvasSize.height).toDouble();
     final snapDistance = _clampDouble(
@@ -759,7 +1334,9 @@ class OperativeSketchRecognitionHelper {
         ),
       );
     }
-    if (edges.length < 2) return const <_LoopContour>[];
+    if (edges.length < 2) {
+      return _EndpointGraphData.empty();
+    }
 
     final adjacency = <int, List<_EndpointGraphEdge>>{};
     for (final edge in edges) {
@@ -771,28 +1348,21 @@ class OperativeSketchRecognitionHelper {
           .add(edge);
     }
 
-    final nodesById = <int, _EndpointNode>{
-      for (final node in endpointNodes) node.id: node,
-    };
-    final nodeComponents = _collectGraphComponents(adjacency);
-    final loops = <_LoopContour>[];
-
-    for (final componentNodeIds in nodeComponents) {
-      final componentEdges = edges
-          .where((edge) => componentNodeIds.contains(edge.startNodeId))
-          .toList(growable: false);
-      if (componentEdges.length < 2) continue;
-      loops.addAll(
-        _findLoopContoursInComponent(
-          componentNodeIds: componentNodeIds,
-          componentEdges: componentEdges,
-          adjacency: adjacency,
-          nodesById: nodesById,
+    return _EndpointGraphData(
+      nodesById: {
+        for (final node in endpointNodes) node.id: node,
+      },
+      edges: List<_EndpointGraphEdge>.unmodifiable(edges),
+      adjacency: adjacency.map(
+        (nodeId, connectedEdges) => MapEntry(
+          nodeId,
+          List<_EndpointGraphEdge>.unmodifiable(connectedEdges),
         ),
-      );
-    }
-
-    return loops;
+      ),
+      components: List<Set<int>>.unmodifiable(
+        _collectGraphComponents(adjacency),
+      ),
+    );
   }
 
   List<Set<int>> _collectGraphComponents(
@@ -825,6 +1395,335 @@ class OperativeSketchRecognitionHelper {
     }
 
     return components;
+  }
+
+  _SketchRecognitionDetection? _buildScissorsDetection({
+    required Set<int> componentNodeIds,
+    required List<_EndpointGraphEdge> componentEdges,
+    required Map<int, _EndpointNode> nodesById,
+  }) {
+    if (componentNodeIds.length != 5 || componentEdges.length != 5) {
+      return null;
+    }
+
+    final adjacency = <int, List<_EndpointGraphEdge>>{};
+    for (final edge in componentEdges) {
+      adjacency.putIfAbsent(edge.startNodeId, () => <_EndpointGraphEdge>[]).add(
+            edge,
+          );
+      adjacency.putIfAbsent(edge.endNodeId, () => <_EndpointGraphEdge>[]).add(
+            edge,
+          );
+    }
+
+    final hubNodes = componentNodeIds.where(
+      (nodeId) => (adjacency[nodeId]?.length ?? 0) == 4,
+    );
+    final leafNodes = componentNodeIds.where(
+      (nodeId) => (adjacency[nodeId]?.length ?? 0) == 1,
+    );
+    final cycleNodes = componentNodeIds.where(
+      (nodeId) => (adjacency[nodeId]?.length ?? 0) == 2,
+    );
+    if (hubNodes.length != 1 ||
+        leafNodes.length != 2 ||
+        cycleNodes.length != 2) {
+      return null;
+    }
+
+    final hubNodeId = hubNodes.first;
+    final leafNodeIds = leafNodes.toList(growable: false);
+    final cycleNodeIds = cycleNodes.toList(growable: false);
+    if (!_isNodeConnectedToAll(
+          sourceNodeId: hubNodeId,
+          targetNodeIds: leafNodeIds,
+          edges: componentEdges,
+        ) ||
+        !_isNodeConnectedToAll(
+          sourceNodeId: hubNodeId,
+          targetNodeIds: cycleNodeIds,
+          edges: componentEdges,
+        ) ||
+        _edgeConnectingNodes(
+              componentEdges,
+              cycleNodeIds[0],
+              cycleNodeIds[1],
+            ) ==
+            null) {
+      return null;
+    }
+
+    final leafEdges = leafNodeIds
+        .map((nodeId) =>
+            _edgeConnectingNodes(componentEdges, hubNodeId, nodeId)!)
+        .toList(growable: false);
+    final cycleEdges = cycleNodeIds
+        .map((nodeId) =>
+            _edgeConnectingNodes(componentEdges, hubNodeId, nodeId)!)
+        .toList(growable: false);
+    final baseEdge = _edgeConnectingNodes(
+      componentEdges,
+      cycleNodeIds[0],
+      cycleNodeIds[1],
+    )!;
+
+    final topologyScore = _scoreScissorsTopology(
+      hubNodeId: hubNodeId,
+      leafNodeIds: leafNodeIds,
+      cycleNodeIds: cycleNodeIds,
+      leafEdges: leafEdges,
+      cycleEdges: cycleEdges,
+      baseEdge: baseEdge,
+      nodesById: nodesById,
+    );
+    if (topologyScore < _minimumScissorsTopologyScore) {
+      return null;
+    }
+
+    final pointCloud = _buildComponentPointCloud(componentEdges);
+    final templateScore = _scoreScissorsTemplate(pointCloud);
+    if (templateScore < _minimumScissorsTemplateScore) {
+      return null;
+    }
+
+    final componentPoints =
+        componentEdges.expand((edge) => edge.points).toList(growable: false);
+    final bounds = _computeBounds(componentPoints);
+    final cycleContour = <Offset>[
+      nodesById[hubNodeId]!.position,
+      nodesById[cycleNodeIds[0]]!.position,
+      nodesById[cycleNodeIds[1]]!.position,
+    ];
+    final cycleArea = _polygonArea(cycleContour).abs();
+    final finalScore = _clampDouble(
+      _weightedAverage(
+        <double>[
+          topologyScore,
+          templateScore,
+        ],
+        const <double>[0.6, 0.4],
+      ),
+      0.0,
+      1.0,
+    );
+
+    return _SketchRecognitionDetection(
+      kind: OperativeSketchRecognitionKind.scissors,
+      source: _SketchRecognitionSource.graph,
+      bounds: bounds,
+      area: max(1.0, cycleArea),
+      center: bounds.center,
+      score: finalScore,
+    );
+  }
+
+  bool _isNodeConnectedToAll({
+    required int sourceNodeId,
+    required List<int> targetNodeIds,
+    required List<_EndpointGraphEdge> edges,
+  }) {
+    return targetNodeIds.every((targetNodeId) {
+      return _edgeConnectingNodes(edges, sourceNodeId, targetNodeId) != null;
+    });
+  }
+
+  _EndpointGraphEdge? _edgeConnectingNodes(
+    List<_EndpointGraphEdge> edges,
+    int firstNodeId,
+    int secondNodeId,
+  ) {
+    for (final edge in edges) {
+      final matchesForward =
+          edge.startNodeId == firstNodeId && edge.endNodeId == secondNodeId;
+      final matchesReverse =
+          edge.startNodeId == secondNodeId && edge.endNodeId == firstNodeId;
+      if (matchesForward || matchesReverse) {
+        return edge;
+      }
+    }
+    return null;
+  }
+
+  double _scoreScissorsTopology({
+    required int hubNodeId,
+    required List<int> leafNodeIds,
+    required List<int> cycleNodeIds,
+    required List<_EndpointGraphEdge> leafEdges,
+    required List<_EndpointGraphEdge> cycleEdges,
+    required _EndpointGraphEdge baseEdge,
+    required Map<int, _EndpointNode> nodesById,
+  }) {
+    final leafLengths = leafEdges
+        .map((edge) => _pathLength(edge.points, closed: false))
+        .toList(growable: false)
+      ..sort();
+    final cycleSideLengths = <double>[
+      ...cycleEdges.map((edge) => _pathLength(edge.points, closed: false)),
+      _pathLength(baseEdge.points, closed: false),
+    ]..sort();
+
+    final leafBalance = leafLengths.first / max(leafLengths.last, 0.0001);
+    final cycleBalance =
+        cycleSideLengths.first / max(cycleSideLengths.last, 0.0001);
+    final averageCycleSide = cycleSideLengths.fold<double>(
+          0,
+          (sum, value) => sum + value,
+        ) /
+        cycleSideLengths.length;
+    final averageLeafLength = leafLengths.fold<double>(
+          0,
+          (sum, value) => sum + value,
+        ) /
+        leafLengths.length;
+    final branchScaleScore = _softScore(
+      averageLeafLength / max(averageCycleSide, 0.0001),
+      center: 0.9,
+      tolerance: 0.8,
+    );
+    final leafSpread = _pairSpreadScore(
+      _extractEdgeDirection(
+        nodeId: hubNodeId,
+        edge: leafEdges[0],
+        nodesById: nodesById,
+      ),
+      _extractEdgeDirection(
+        nodeId: hubNodeId,
+        edge: leafEdges[1],
+        nodesById: nodesById,
+      ),
+    );
+    final cycleSpread = _pairSpreadScore(
+      _extractEdgeDirection(
+        nodeId: hubNodeId,
+        edge: cycleEdges[0],
+        nodesById: nodesById,
+      ),
+      _extractEdgeDirection(
+        nodeId: hubNodeId,
+        edge: cycleEdges[1],
+        nodesById: nodesById,
+      ),
+    );
+    final cycleContour = <Offset>[
+      nodesById[hubNodeId]!.position,
+      nodesById[cycleNodeIds[0]]!.position,
+      nodesById[cycleNodeIds[1]]!.position,
+    ];
+    final cycleArea = _polygonArea(cycleContour).abs();
+    final areaScore = _softScore(
+      cycleArea,
+      center: 140,
+      tolerance: 180,
+    );
+
+    return _weightedAverage(
+      <double>[
+        1.0,
+        leafBalance,
+        cycleBalance,
+        branchScaleScore,
+        leafSpread,
+        cycleSpread,
+        areaScore,
+      ],
+      const <double>[0.18, 0.14, 0.16, 0.12, 0.16, 0.16, 0.08],
+    );
+  }
+
+  Offset _extractEdgeDirection({
+    required int nodeId,
+    required _EndpointGraphEdge edge,
+    required Map<int, _EndpointNode> nodesById,
+  }) {
+    final otherNodeId =
+        edge.startNodeId == nodeId ? edge.endNodeId : edge.startNodeId;
+    final orientedPoints = _orientEdgePoints(
+      edge: edge,
+      fromNodeId: nodeId,
+      toNodeId: otherNodeId,
+      nodesById: nodesById,
+    );
+    if (orientedPoints.length < 2) {
+      return Offset.zero;
+    }
+    return orientedPoints[1] - orientedPoints[0];
+  }
+
+  double _pairSpreadScore(Offset firstDirection, Offset secondDirection) {
+    final first = _normalizeVector(firstDirection);
+    final second = _normalizeVector(secondDirection);
+    if (first == Offset.zero || second == Offset.zero) {
+      return 0.0;
+    }
+
+    final dot =
+        _clampDouble(first.dx * second.dx + first.dy * second.dy, -1, 1);
+    final angle = acos(dot) * (180 / pi);
+    return _softScore(angle, center: 72, tolerance: 56);
+  }
+
+  List<Offset> _buildComponentPointCloud(List<_EndpointGraphEdge> edges) {
+    final points = edges.expand((edge) => edge.points).toList(growable: false);
+    return _normalizePointCloud(points);
+  }
+
+  double _scoreScissorsTemplate(List<Offset> cloud) {
+    if (cloud.length < 10) {
+      return 0.0;
+    }
+
+    final templates = _buildScissorsTemplateClouds();
+    var bestDistance = double.infinity;
+    for (final template in templates) {
+      bestDistance = min(
+        bestDistance,
+        _bestRotatedPointCloudDistance(
+          cloud,
+          template,
+          maxRotationDegrees: 360,
+        ),
+      );
+    }
+
+    return 1 - _clampDouble(bestDistance / 0.42, 0.0, 1.0);
+  }
+
+  List<List<Offset>> _buildScissorsTemplateClouds() {
+    final template = _normalizePointCloud(
+      _sampleTemplateSegments(_scissorsTemplateSegments),
+    );
+    if (template.isEmpty) {
+      return const <List<Offset>>[];
+    }
+
+    return <List<Offset>>[
+      template,
+      _mirrorPointCloud(template),
+    ];
+  }
+
+  List<Offset> _sampleTemplateSegments(List<List<Offset>> segments) {
+    final sampled = <Offset>[];
+    for (final segment in segments) {
+      if (segment.length < 2) continue;
+      sampled.addAll(
+        List<Offset>.generate(12, (index) {
+          final t = index / 11;
+          return Offset.lerp(segment.first, segment.last, t)!;
+        }, growable: false),
+      );
+    }
+
+    return _deduplicateSequentialPoints(
+      sampled,
+      minimumDistance: 0.02,
+    );
+  }
+
+  List<Offset> _mirrorPointCloud(List<Offset> points) {
+    return points
+        .map((point) => Offset(-point.dx, point.dy))
+        .toList(growable: false);
   }
 
   List<_LoopContour> _findLoopContoursInComponent({
@@ -1464,7 +2363,7 @@ class OperativeSketchRecognitionHelper {
       ),
     );
     if (cloud.length < 8) {
-      return _priorityOrder
+      return _orderedRecognitionKinds
           .map(
             (kind) => _ShapeScore(
               kind: kind,
@@ -1474,7 +2373,7 @@ class OperativeSketchRecognitionHelper {
           .toList(growable: false);
     }
 
-    final scores = _priorityOrder.map((kind) {
+    final scores = _orderedRecognitionKinds.map((kind) {
       final template = _buildPointCloudTemplate(
         kind,
         _pointCloudSampleCount,
@@ -1497,6 +2396,9 @@ class OperativeSketchRecognitionHelper {
     int pointCount,
   ) {
     final outline = switch (kind) {
+      OperativeSketchRecognitionKind.scissors => _sampleTemplateSegments(
+          _scissorsTemplateSegments,
+        ),
       OperativeSketchRecognitionKind.triangle => const <Offset>[
           Offset(0.0, -1.0),
           Offset(0.88, 0.58),
@@ -1523,7 +2425,8 @@ class OperativeSketchRecognitionHelper {
     }
 
     return _normalizePointCloud(
-      kind == OperativeSketchRecognitionKind.circle
+      kind == OperativeSketchRecognitionKind.circle ||
+              kind == OperativeSketchRecognitionKind.scissors
           ? outline
           : _resampleClosedPathToFixedCount(outline, pointCount),
     );
@@ -1585,10 +2488,14 @@ class OperativeSketchRecognitionHelper {
 
   double _bestRotatedPointCloudDistance(
     List<Offset> cloud,
-    List<Offset> template,
-  ) {
+    List<Offset> template, {
+    int maxRotationDegrees = 180,
+  }) {
     var bestDistance = double.infinity;
-    for (int angleDegrees = 0; angleDegrees < 180; angleDegrees += 15) {
+    final clampedRotation = max(15, maxRotationDegrees);
+    for (int angleDegrees = 0;
+        angleDegrees < clampedRotation;
+        angleDegrees += 15) {
       final rotatedCloud = _rotatePointCloud(
         cloud,
         angleDegrees * (pi / 180),
@@ -3091,6 +3998,45 @@ class OperativeSketchRecognitionHelper {
     return clusters.map(_mergeDetectionCluster).toList(growable: false);
   }
 
+  List<_SketchRecognitionDetection> _suppressLowerPriorityDetections(
+    List<_SketchRecognitionDetection> detections,
+  ) {
+    final higherPriorityDetections = detections
+        .where((detection) => detection.kind.recognitionPriority > 0)
+        .toList(growable: false);
+    if (higherPriorityDetections.isEmpty) {
+      return detections;
+    }
+
+    return detections.where((candidate) {
+      if (candidate.kind.recognitionPriority > 0) {
+        return true;
+      }
+
+      for (final detection in higherPriorityDetections) {
+        if (candidate.kind.recognitionPriority >=
+            detection.kind.recognitionPriority) {
+          continue;
+        }
+
+        final overlapRatio =
+            _rectIntersectionArea(detection.bounds, candidate.bounds) /
+                max(1.0, _rectArea(candidate.bounds));
+        if (overlapRatio < 0.72) {
+          continue;
+        }
+
+        final centerDistance = (detection.center - candidate.center).distance;
+        if (centerDistance <=
+            max(12.0, _rectDiagonal(detection.bounds) * 0.4)) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList(growable: false);
+  }
+
   Map<OperativeSketchRecognitionKind, int> _countDetections(
     List<_SketchRecognitionDetection> detections,
   ) {
@@ -3107,7 +4053,9 @@ class OperativeSketchRecognitionHelper {
   ) {
     final allowLooseMatching =
         first.source == _SketchRecognitionSource.region ||
+            first.source == _SketchRecognitionSource.inkRegion ||
             second.source == _SketchRecognitionSource.region ||
+            second.source == _SketchRecognitionSource.inkRegion ||
             first.kind == second.kind;
     return _matchesShapeGeometry(
       firstBounds: first.bounds,
@@ -3204,7 +4152,7 @@ class OperativeSketchRecognitionHelper {
     }
 
     final votesByKind = <OperativeSketchRecognitionKind, double>{
-      for (final kind in _priorityOrder) kind: 0.0,
+      for (final kind in _orderedRecognitionKinds) kind: 0.0,
     };
     final detectionsByKind =
         <OperativeSketchRecognitionKind, List<_SketchRecognitionDetection>>{};
@@ -3216,7 +4164,16 @@ class OperativeSketchRecognitionHelper {
           .add(detection);
     }
 
-    final winningKind = _pickClusterWinningKind(votesByKind);
+    final highestClusterPriority = detectionsByKind.keys.fold<int>(
+      -1,
+      (best, kind) => max(best, kind.recognitionPriority),
+    );
+    final winningKind = _pickClusterWinningKind(
+      votesByKind,
+      allowedKinds: detectionsByKind.keys
+          .where((kind) => kind.recognitionPriority == highestClusterPriority)
+          .toSet(),
+    );
     final winningDetections =
         detectionsByKind[winningKind] ?? <_SketchRecognitionDetection>[];
     final representative = winningDetections.isEmpty
@@ -3263,11 +4220,15 @@ class OperativeSketchRecognitionHelper {
   }
 
   OperativeSketchRecognitionKind _pickClusterWinningKind(
-    Map<OperativeSketchRecognitionKind, double> votesByKind,
-  ) {
+    Map<OperativeSketchRecognitionKind, double> votesByKind, {
+    Set<OperativeSketchRecognitionKind>? allowedKinds,
+  }) {
     var bestKind = OperativeSketchRecognitionKind.none;
     var bestVote = 0.0;
-    for (final kind in _priorityOrder) {
+    for (final kind in _orderedRecognitionKinds) {
+      if (allowedKinds != null && !allowedKinds.contains(kind)) {
+        continue;
+      }
       final vote = votesByKind[kind] ?? 0.0;
       if (vote > bestVote) {
         bestKind = kind;
@@ -3279,6 +4240,8 @@ class OperativeSketchRecognitionHelper {
 
   double _detectionVoteScore(_SketchRecognitionDetection detection) {
     final sourceBonus = switch (detection.source) {
+      _SketchRecognitionSource.graph => 0.12,
+      _SketchRecognitionSource.inkRegion => 0.08,
       _SketchRecognitionSource.stroke => 0.06,
       _SketchRecognitionSource.stitchedLoop => 0.09,
       _SketchRecognitionSource.region => 0.0,
@@ -3380,6 +4343,188 @@ class OperativeSketchRecognitionHelper {
     }
 
     return supports;
+  }
+
+  List<_ClosedRegionSupport> _scanConnectedInkSupports({
+    required List<List<Offset>> strokes,
+    required Size canvasSize,
+  }) {
+    final supports = <_ClosedRegionSupport>[];
+    final rasterGrid = _SketchRasterGrid.fromStrokes(
+      strokes: strokes,
+      canvasSize: canvasSize,
+      resolution: _gridResolution,
+    );
+    final components = _extractBlockedComponents(rasterGrid);
+    for (final component in components) {
+      if (component.cells.length < _minimumConnectedInkCellCount) {
+        continue;
+      }
+
+      final componentContour =
+          _buildOrderedRegionContour(component, rasterGrid);
+      if (componentContour.length < 3) continue;
+
+      final canvasContour = componentContour
+          .map((point) => rasterGrid.vertexToCanvasPoint(point, canvasSize))
+          .toList(growable: false);
+      final normalizedContour = _normalizeClosedContour(
+        canvasContour,
+        smoothingPasses: 0,
+      );
+      if (normalizedContour.length < 3) {
+        continue;
+      }
+
+      supports.add(
+        _ClosedRegionSupport(
+          contour: normalizedContour,
+          bounds: _computeBounds(normalizedContour),
+          area: _polygonArea(normalizedContour).abs(),
+          center: _computePolygonCentroid(normalizedContour),
+        ),
+      );
+    }
+
+    return supports;
+  }
+
+  List<_SketchRecognitionDetection> _scanConnectedInkSupportedScissors(
+    List<_ClosedRegionSupport> supports,
+  ) {
+    if (supports.isEmpty) {
+      return const <_SketchRecognitionDetection>[];
+    }
+
+    final templateCloud = _buildScissorsInkTemplateCloud();
+    if (templateCloud.isEmpty) {
+      return const <_SketchRecognitionDetection>[];
+    }
+
+    final detections = <_SketchRecognitionDetection>[];
+    for (final support in supports) {
+      final supportScore = _scoreScissorsInkSupport(
+        contour: support.contour,
+        templateCloud: templateCloud,
+      );
+      if (supportScore < _minimumScissorsInkTemplateScore) {
+        continue;
+      }
+
+      detections.add(
+        _SketchRecognitionDetection(
+          kind: OperativeSketchRecognitionKind.scissors,
+          source: _SketchRecognitionSource.inkRegion,
+          bounds: support.bounds,
+          area: support.area,
+          center: support.center,
+          score: supportScore,
+        ),
+      );
+    }
+
+    return detections;
+  }
+
+  double _scoreScissorsInkSupport({
+    required List<Offset> contour,
+    required List<Offset> templateCloud,
+  }) {
+    final profile = _buildContourProfile(contour);
+    if (profile == null) {
+      return 0.0;
+    }
+
+    final cloud = _normalizePointCloud(
+      _resampleClosedPathToFixedCount(
+        contour,
+        _pointCloudSampleCount,
+      ),
+    );
+    if (cloud.length < 8) {
+      return 0.0;
+    }
+
+    final templateDistance = _bestRotatedPointCloudDistance(
+      cloud,
+      templateCloud,
+      maxRotationDegrees: 360,
+    );
+    final templateScore = 1 - _clampDouble(templateDistance / 0.28, 0.0, 1.0);
+    final complexityScore = _softScore(
+      profile.strongCornerCount.toDouble(),
+      center: 5.0,
+      tolerance: 2.3,
+    );
+    final roundnessPenalty = _softScore(
+      profile.circularity,
+      center: 1.0,
+      tolerance: 0.16,
+    );
+    return _clampDouble(
+      _weightedAverage(
+        <double>[
+          templateScore,
+          complexityScore,
+          1 - roundnessPenalty,
+        ],
+        const <double>[0.72, 0.18, 0.1],
+      ),
+      0.0,
+      1.0,
+    );
+  }
+
+  List<Offset> _buildScissorsInkTemplateCloud() {
+    const templateCanvasSize = Size(220, 220);
+    final templateStrokes = _scissorsTemplateSegments.map((segment) {
+      return segment
+          .map(
+            (point) => Offset(
+              templateCanvasSize.width * (0.5 + (point.dx * 0.42)),
+              templateCanvasSize.height * (0.5 + (point.dy * 0.42)),
+            ),
+          )
+          .toList(growable: false);
+    }).toList(growable: false);
+
+    final rasterGrid = _SketchRasterGrid.fromStrokes(
+      strokes: templateStrokes,
+      canvasSize: templateCanvasSize,
+      resolution: _gridResolution,
+    );
+    final components = _extractBlockedComponents(rasterGrid);
+    if (components.isEmpty) {
+      return const <Offset>[];
+    }
+
+    final component = components.reduce((best, current) {
+      return current.cells.length > best.cells.length ? current : best;
+    });
+    final contour = _buildOrderedRegionContour(component, rasterGrid);
+    if (contour.length < 3) {
+      return const <Offset>[];
+    }
+
+    final canvasContour = contour
+        .map(
+          (point) => rasterGrid.vertexToCanvasPoint(point, templateCanvasSize),
+        )
+        .toList(growable: false);
+    final normalizedContour = _normalizeClosedContour(
+      canvasContour,
+      smoothingPasses: 0,
+    );
+    if (normalizedContour.length < 3) {
+      return const <Offset>[];
+    }
+
+    return _normalizePointCloud(
+      _resampleClosedPathToFixedCount(
+        normalizedContour,
+        _pointCloudSampleCount,
+      ),
+    );
   }
 
   List<_SketchRecognitionDetection> _applyClosedRegionSupport({
@@ -3503,6 +4648,33 @@ class OperativeSketchRecognitionHelper {
     return regions;
   }
 
+  List<_SketchRegion> _extractBlockedComponents(_SketchRasterGrid grid) {
+    final visited = List<bool>.filled(grid.cellCount, false);
+    final regions = <_SketchRegion>[];
+
+    for (int y = 0; y < grid.height; y++) {
+      for (int x = 0; x < grid.width; x++) {
+        final cellIndex = grid.index(x, y);
+        if (!grid.blocked[cellIndex] || visited[cellIndex]) {
+          continue;
+        }
+
+        final regionCells = _collectBlockedCells(
+          grid: grid,
+          visited: visited,
+          startX: x,
+          startY: y,
+        );
+        if (regionCells.length < _minimumConnectedInkCellCount) {
+          continue;
+        }
+        regions.add(_SketchRegion(cells: regionCells));
+      }
+    }
+
+    return regions;
+  }
+
   void _markOutsideRegion(_SketchRasterGrid grid, List<bool> outside) {
     final queue = <int>[];
     var head = 0;
@@ -3566,6 +4738,40 @@ class OperativeSketchRecognitionHelper {
         if (grid.blocked[nextIndex] || visited[nextIndex]) continue;
         visited[nextIndex] = true;
         queue.add(nextIndex);
+      }
+    }
+
+    return cells;
+  }
+
+  List<int> _collectBlockedCells({
+    required _SketchRasterGrid grid,
+    required List<bool> visited,
+    required int startX,
+    required int startY,
+  }) {
+    final cells = <int>[];
+    final queue = <int>[grid.index(startX, startY)];
+    var head = 0;
+    visited[queue.first] = true;
+
+    while (head < queue.length) {
+      final cellIndex = queue[head++];
+      cells.add(cellIndex);
+      final x = cellIndex % grid.width;
+      final y = cellIndex ~/ grid.width;
+      for (int offsetY = -1; offsetY <= 1; offsetY++) {
+        for (int offsetX = -1; offsetX <= 1; offsetX++) {
+          if (offsetX == 0 && offsetY == 0) continue;
+          final nextX = x + offsetX;
+          final nextY = y + offsetY;
+          if (!grid.inBounds(nextX, nextY)) continue;
+
+          final nextIndex = grid.index(nextX, nextY);
+          if (!grid.blocked[nextIndex] || visited[nextIndex]) continue;
+          visited[nextIndex] = true;
+          queue.add(nextIndex);
+        }
       }
     }
 
@@ -3671,9 +4877,23 @@ class OperativeSketchRecognitionHelper {
     Offset(0, 1),
     Offset(0, -1),
   ];
+
+  static int _compareRecognitionKinds(
+    OperativeSketchRecognitionKind first,
+    OperativeSketchRecognitionKind second,
+  ) {
+    final priorityComparison =
+        second.recognitionPriority.compareTo(first.recognitionPriority);
+    if (priorityComparison != 0) {
+      return priorityComparison;
+    }
+    return first.index.compareTo(second.index);
+  }
 }
 
 enum _SketchRecognitionSource {
+  graph,
+  inkRegion,
   stroke,
   stitchedLoop,
   region,
@@ -3865,6 +5085,22 @@ class _SegmentProjection {
   });
 }
 
+class _AnchoredStrokeEndpoint {
+  final int strokeId;
+  final Offset anchorPoint;
+  final Offset outwardDirection;
+  final double length;
+  final List<Offset> points;
+
+  const _AnchoredStrokeEndpoint({
+    required this.strokeId,
+    required this.anchorPoint,
+    required this.outwardDirection,
+    required this.length,
+    required this.points,
+  });
+}
+
 class _SegmentIntersection {
   final Offset point;
   final double firstT;
@@ -3924,6 +5160,29 @@ class _EndpointGraphEdge {
     required this.endNodeId,
     required this.points,
   });
+}
+
+class _EndpointGraphData {
+  final Map<int, _EndpointNode> nodesById;
+  final List<_EndpointGraphEdge> edges;
+  final Map<int, List<_EndpointGraphEdge>> adjacency;
+  final List<Set<int>> components;
+
+  const _EndpointGraphData({
+    required this.nodesById,
+    required this.edges,
+    required this.adjacency,
+    required this.components,
+  });
+
+  factory _EndpointGraphData.empty() {
+    return const _EndpointGraphData(
+      nodesById: <int, _EndpointNode>{},
+      edges: <_EndpointGraphEdge>[],
+      adjacency: <int, List<_EndpointGraphEdge>>{},
+      components: <Set<int>>[],
+    );
+  }
 }
 
 class _LoopContour {

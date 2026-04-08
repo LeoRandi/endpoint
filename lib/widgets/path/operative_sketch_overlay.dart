@@ -39,10 +39,10 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   Offset? _lastDragPosition;
   OperativeSketchRecognitionResult _lastRecognitionResult =
       const OperativeSketchRecognitionResult(
-        kind: OperativeSketchRecognitionKind.none,
-        count: 0,
-        matches: <OperativeSketchRecognitionMatch>[],
-      );
+    kind: OperativeSketchRecognitionKind.none,
+    count: 0,
+    matches: <OperativeSketchRecognitionMatch>[],
+  );
 
   /// Inicia un trazo nuevo usando el color seleccionado en la paleta visible.
   void _handlePanStart(DragStartDetails details) {
@@ -699,6 +699,8 @@ class _SketchRecognitionSummaryPanel extends StatelessWidget {
 
   static String _shapeSummaryLabel(OperativeSketchRecognitionKind kind) {
     switch (kind) {
+      case OperativeSketchRecognitionKind.scissors:
+        return 'Tijeras';
       case OperativeSketchRecognitionKind.triangle:
         return 'Triangulo';
       case OperativeSketchRecognitionKind.square:
@@ -712,6 +714,8 @@ class _SketchRecognitionSummaryPanel extends StatelessWidget {
 
   static Color _shapeSummaryAccent(OperativeSketchRecognitionKind kind) {
     switch (kind) {
+      case OperativeSketchRecognitionKind.scissors:
+        return EndpointPalette.warningAccent;
       case OperativeSketchRecognitionKind.triangle:
         return EndpointPalette.warningAccent;
       case OperativeSketchRecognitionKind.square:
@@ -841,8 +845,9 @@ class _SketchToolToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent =
-        isEraseMode ? EndpointPalette.warningAccent : EndpointPalette.infoAccent;
+    final accent = isEraseMode
+        ? EndpointPalette.warningAccent
+        : EndpointPalette.infoAccent;
     final backgroundColor = isEraseMode
         ? EndpointPalette.blend(
             EndpointPalette.panelBackground,
@@ -866,9 +871,8 @@ class _SketchToolToggleButton extends StatelessWidget {
               shape: BoxShape.circle,
               color: backgroundColor,
               border: Border.all(
-                color: isEraseMode
-                    ? accent
-                    : Colors.white.withValues(alpha: 0.26),
+                color:
+                    isEraseMode ? accent : Colors.white.withValues(alpha: 0.26),
                 width: isEraseMode ? 2 : 1.1,
               ),
               boxShadow: [
