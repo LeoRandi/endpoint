@@ -22,8 +22,10 @@ class BattleResolver {
   BattleAttackResolution resolveAttack({
     required Battler attacker,
     required Battler defender,
+    int flatAttackBonus = 0,
   }) {
-    final baseDamage = attacker.calculateDamageAgainst(defender);
+    final bonusDamage = max(0, flatAttackBonus).toInt();
+    final baseDamage = attacker.calculateDamageAgainst(defender) + bonusDamage;
     final outgoingStatusModifiedDamage =
         _effectPipeline.applyOutgoingDamageModifiers(
       owner: attacker,

@@ -28,6 +28,8 @@ class BattlePage extends StatefulWidget {
 
 class _BattlePageState extends State<BattlePage> {
   late final BattleSceneController _sceneController;
+  EndpointSettingsSnapshot? _settingsSnapshot;
+  bool _isPresentingDrawAttack = false;
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class _BattlePageState extends State<BattlePage> {
       victoryMoneyFactor: widget.victoryMoneyFactor,
       randomizer: widget.randomizer,
     )..addListener(_handleSceneChanged);
+    unawaited(_loadSettingsSnapshot());
   }
 
   @override
@@ -100,8 +103,77 @@ class _BattlePageState extends State<BattlePage> {
     navigator.popUntil((route) => route.isFirst);
   }
 
+  Future<void> _loadSettingsSnapshot() async {
+    final settings = await EndpointPreferencesService.loadSettingsSnapshot();
+    if (!mounted) return;
+    setState(() {
+      _settingsSnapshot = settings;
+    });
+  }
+
+  Future<EndpointSettingsSnapshot> _ensureSettingsSnapshot() async {
+    final currentSettings = _settingsSnapshot;
+    if (currentSettings != null) return currentSettings;
+
+    final loadedSettings =
+        await EndpointPreferencesService.loadSettingsSnapshot();
+    if (mounted) {
+      setState(() {
+        _settingsSnapshot = loadedSettings;
+      });
+    } else {
+      _settingsSnapshot = loadedSettings;
+    }
+    return loadedSettings;
+  }
+
+  bool get _isDrawingMode =>
+      _settingsSnapshot?.gameMode == EndpointGameMode.drawing;
+
   void _handlePlayerAttack() {
-    _sceneController.handlePlayerAttack();
+    unawaited(_handlePlayerAttackFlow());
+  }
+
+  Future<void> _handlePlayerAttackFlow() async {
+    if (!_sceneController.canUseActions ||
+        _sceneController.hasPendingVictoryRewards) {
+      return;
+    }
+
+    final settings = await _ensureSettingsSnapshot();
+    if (!mounted) return;
+    if (settings.gameMode != EndpointGameMode.drawing) {
+      _sceneController.handlePlayerAttack();
+      return;
+    }
+    if (_isPresentingDrawAttack) return;
+
+    setState(() {
+      _isPresentingDrawAttack = true;
+    });
+
+    try {
+      final resolution =
+          await showEndpointOverlay<BattleDrawingBonusResolution>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: EndpointPalette.overlayScrimStrong,
+        builder: (_) => BattleDrawAttackOverlay(
+          attacker: _sceneController.player,
+        ),
+      );
+      if (!mounted || resolution == null) return;
+
+      _sceneController.handlePlayerAttack(
+        drawingBonus: resolution.bonus,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPresentingDrawAttack = false;
+        });
+      }
+    }
   }
 
   Future<void> _handleOpenPendingRewards() async {
@@ -167,8 +239,9 @@ class _BattlePageState extends State<BattlePage> {
         return AnimatedBuilder(
           animation: _sceneController.battleController,
           builder: (context, _) {
-            final currentOwner =
-                canControlOwner ? _sceneController.player : _sceneController.enemy;
+            final currentOwner = canControlOwner
+                ? _sceneController.player
+                : _sceneController.enemy;
             final currentAbility =
                 currentOwner.abilityById(ability.id) ?? ability;
 
@@ -266,8 +339,9 @@ class _BattlePageState extends State<BattlePage> {
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
                                   enemy: _sceneController.enemy,
-                                  visibleAbilities: _sceneController
-                                      .visibleAbilitiesFor(_sceneController.enemy),
+                                  visibleAbilities:
+                                      _sceneController.visibleAbilitiesFor(
+                                          _sceneController.enemy),
                                   onOpenEquippedItemDetails: (item) =>
                                       _handleOpenEquippedItemDetails(
                                     _sceneController.enemy,
@@ -295,9 +369,12 @@ class _BattlePageState extends State<BattlePage> {
                               child: SizedBox.expand(
                                 child: _PlayerBattleHud(
                                   player: _sceneController.player,
-                                  visibleAbilities: _sceneController
-                                      .visibleAbilitiesFor(_sceneController.player),
-                                  isEnabled: _sceneController.canUseActions,
+                                  visibleAbilities:
+                                      _sceneController.visibleAbilitiesFor(
+                                          _sceneController.player),
+                                  isEnabled: _sceneController.canUseActions &&
+                                      !_isPresentingDrawAttack,
+                                  isDrawingMode: _isDrawingMode,
                                   onAttack: _handlePlayerAttack,
                                   onOpenItems: _handleOpenItems,
                                   onQuickActivateAbility:
@@ -332,8 +409,8 @@ class _BattlePageState extends State<BattlePage> {
                             return _BattleCenterOverlay(
                               title: _sceneController.turnTitle,
                               description: _sceneController.turnDescription,
-                              isEnemyTurn:
-                                  _sceneController.turn == BattleTurnState.enemy,
+                              isEnemyTurn: _sceneController.turn ==
+                                  BattleTurnState.enemy,
                               isCombatFinished:
                                   _sceneController.isCombatFinished,
                               onAdvancePressed:
@@ -533,11 +610,13 @@ class _BattleCenterOverlay extends StatelessWidget {
 
 class _ActionPanel extends StatelessWidget {
   final bool isEnabled;
+  final bool isDrawingMode;
   final VoidCallback onAttack;
   final Future<void> Function() onOpenItems;
 
   const _ActionPanel({
     required this.isEnabled,
+    required this.isDrawingMode,
     required this.onAttack,
     required this.onOpenItems,
   });
@@ -551,7 +630,8 @@ class _ActionPanel extends StatelessWidget {
           label: 'Atacar',
           icon: Icons.flash_on_rounded,
           onPressed: isEnabled ? onAttack : null,
-          tooltip: 'Atacar al enemigo',
+          tooltip:
+              isDrawingMode ? 'Abrir ataque dibujado' : 'Atacar al enemigo',
         ),
         const SizedBox(width: 8),
         BattleActionButton(
@@ -569,6 +649,7 @@ class _PlayerBattleHud extends StatelessWidget {
   final Battler player;
   final List<BattlerAbility> visibleAbilities;
   final bool isEnabled;
+  final bool isDrawingMode;
   final VoidCallback onAttack;
   final Future<void> Function() onOpenItems;
   final ValueChanged<BattlerAbility> onQuickActivateAbility;
@@ -580,6 +661,7 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.player,
     required this.visibleAbilities,
     required this.isEnabled,
+    required this.isDrawingMode,
     required this.onAttack,
     required this.onOpenItems,
     required this.onQuickActivateAbility,
@@ -618,6 +700,7 @@ class _PlayerBattleHud extends StatelessWidget {
           children: [
             _ActionPanel(
               isEnabled: isEnabled,
+              isDrawingMode: isDrawingMode,
               onAttack: onAttack,
               onOpenItems: onOpenItems,
             ),

@@ -121,8 +121,10 @@ class BattleSceneController extends ChangeNotifier {
   }
 
   /// Ejecuta el ataque basico del jugador cuando la escena lo solicita.
-  void handlePlayerAttack() {
-    _battleController.handleAttack();
+  void handlePlayerAttack({
+    BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+  }) {
+    _battleController.handleAttack(drawingBonus: drawingBonus);
   }
 
   /// Alterna una habilidad manual del jugador dentro del combate.
@@ -214,7 +216,8 @@ class BattleSceneController extends ChangeNotifier {
     if (!_battleController.canUseActions) {
       return 'Solo puedes gestionar habilidades en tu turno';
     }
-    final blockReason = _battleController.player.manualAbilityActivationBlockReason(
+    final blockReason =
+        _battleController.player.manualAbilityActivationBlockReason(
       BattlerAbilityActivationContext.battle,
     );
     if (blockReason != null && !ability.isActive) {

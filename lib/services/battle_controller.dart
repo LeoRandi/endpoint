@@ -93,12 +93,19 @@ class BattleController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void handleAttack() {
+  void handleAttack({
+    BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+  }) {
     if (!canUseActions) return;
+
+    if (drawingBonus.healAmount > 0) {
+      _player = _player.heal(drawingBonus.healAmount);
+    }
 
     final resolution = _resolveAttackAction(
       attacker: _player,
       defender: _enemy,
+      flatAttackBonus: drawingBonus.attackBonus,
     );
 
     _player = resolution.attacker;
@@ -109,6 +116,13 @@ class BattleController extends ChangeNotifier {
 
     if (_completeTurn(BattleTurnState.player)) {
       return;
+    }
+
+    if (drawingBonus.endTurnBarrierAmount > 0) {
+      _player = _applyDrawingEndTurnBarrier(
+        _player,
+        drawingBonus.endTurnBarrierAmount,
+      );
     }
 
     _beginTurn(BattleTurnState.enemy);
@@ -210,6 +224,7 @@ class BattleController extends ChangeNotifier {
   BattleAttackResolution _resolveAttackAction({
     required Battler attacker,
     required Battler defender,
+    int flatAttackBonus = 0,
   }) {
     var updatedAttacker = attacker.removeCombatFlag(
       Battler.pendingBasicAttackFollowUpFlag,
@@ -235,6 +250,7 @@ class BattleController extends ChangeNotifier {
       final resolution = _resolver.resolveAttack(
         attacker: updatedAttacker,
         defender: updatedDefender,
+        flatAttackBonus: flatAttackBonus,
       );
       updatedAttacker = resolution.attacker.removeCombatFlag(
         Battler.pendingBasicAttackFollowUpFlag,
@@ -343,6 +359,31 @@ class BattleController extends ChangeNotifier {
     }
 
     return false;
+  }
+
+  Battler _applyDrawingEndTurnBarrier(Battler battler, int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || battler.isDefeated) return battler;
+
+    // El bonus de dibujo representa una barrera temporal y no debe anularse
+    // solo porque el tope base del battler sea cero.
+    return Battler(
+      name: battler.name,
+      iconEmoji: battler.iconEmoji,
+      health: battler.health,
+      currentBarrier: battler.currentBarrier + safeAmount,
+      money: battler.money,
+      income: battler.baseIncome,
+      equipmentCapacity: battler.equipmentCapacity,
+      level: battler.level,
+      experience: battler.experience,
+      baseStats: battler.baseStats,
+      abilities: battler.abilities,
+      statuses: battler.statuses,
+      inventoryItems: battler.inventoryItems,
+      equippedItems: battler.equippedItems,
+      combatFlags: battler.combatFlags,
+    );
   }
 
   @override
