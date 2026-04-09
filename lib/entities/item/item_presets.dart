@@ -51,6 +51,11 @@ const _ataqueDebuffTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
 ];
+const _ataqueDebuffQuemaduraTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.debuff,
+  EntityTag.quemadura,
+];
 const _ataqueDebuffBarreraTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
@@ -417,13 +422,12 @@ const serratedEdgeItem = Item(
   ),
 );
 
-/// Armadura verde que estabiliza un Escudo de Energia constante.
+/// Armadura verde que recompone una pequena porcion de barrera cada turno.
 const containmentCoilItem = Item(
   id: ItemId.containmentCoil,
   tags: _barreraBuffTags,
   name: 'Bobina de Contencion',
-  description:
-      '+1 Barrera. Al inicio de tu turno, recuperas Escudo de Energia.',
+  description: '+1 Barrera. Al inicio de tu turno, recuperas 1 de Barrera.',
   iconEmoji: '\u26A1',
   slot: ItemSlot.offHand,
   rarity: RarityTier.green,
@@ -436,10 +440,7 @@ const containmentCoilItem = Item(
   upgradeStatModifiers: {
     BattlerStat.barrier: 1,
   },
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.escudoDeEnergia,
-    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
-  ),
+  effect: RecoverBarrierOnTurnStartItemEffect(amount: 1),
 );
 
 /// Accesorio verde que acelera el escalado ofensivo golpe a golpe.
@@ -484,12 +485,12 @@ const pulseCarbineItem = Item(
   ),
 );
 
-/// Armadura azul que transforma dano de estado en margen contra golpes directos.
+/// Armadura azul que recompone una buena porcion de barrera cada turno.
 const phaseVeilItem = Item(
   id: ItemId.phaseVeil,
   tags: _barreraBuffTags,
   name: 'Velo de Fase',
-  description: '+2 Barrera. Al inicio de tu turno, recuperas Escudo de Fase.',
+  description: '+2 Barrera. Al inicio de tu turno, recuperas 2 de Barrera.',
   iconEmoji: '\u{1F300}',
   slot: ItemSlot.offHand,
   rarity: RarityTier.blue,
@@ -502,10 +503,7 @@ const phaseVeilItem = Item(
   upgradeStatModifiers: {
     BattlerStat.barrier: 1,
   },
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.escudoDeFase,
-    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
-  ),
+  effect: RecoverBarrierOnTurnStartItemEffect(amount: 2),
 );
 
 /// Accesorio azul que garantiza acceso continuo al motor de Inercia.
@@ -837,6 +835,224 @@ const operativeBlackBoxItem = Item(
   effect: OperativeBlackBoxItemEffect(),
 );
 
+/// Arma gris oportunista que ayuda a sostenerse durante remates.
+const rescueBladeItem = Item(
+  id: ItemId.rescueBlade,
+  tags: _ataqueVidaTags,
+  name: 'Cuchilla de Rescate',
+  description:
+      '+1 ATK. Si el objetivo queda al 50% de HP o menos, recuperas 1 HP.',
+  iconEmoji: '\u{1F5E1}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: RescueBladeItemEffect(),
+);
+
+/// Armadura gris que devuelve una pequena penalizacion ofensiva si resiste el golpe.
+const shockMeshItem = Item(
+  id: ItemId.shockMesh,
+  tags: _barreraDebuffTags,
+  name: 'Malla de Choque',
+  description:
+      '+1 Barrera. Al recibir dano mientras conservas Barrera, aplicas Conmocion al agresor.',
+  iconEmoji: '\u26A1',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: ShockMeshItemEffect(),
+);
+
+/// Arma verde de veneno progresivo con remate directo sobre objetivos ya expuestos.
+const toxicScalpelItem = Item(
+  id: ItemId.toxicScalpel,
+  tags: _ataqueDebuffIntoxicacionTags,
+  name: 'Bisturi Toxico',
+  description:
+      '+1 ATK. Al atacar: aplica o aumenta Intoxicacion. Si ya la tenia, infliges 1 dano directo extra.',
+  iconEmoji: '\u2694',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.green,
+  baseCost: 4,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: ToxicScalpelItemEffect(),
+);
+
+/// Accesorio verde de seguridad que convierte turnos sin barrera en blindaje temporal.
+const deflectiveCapacitorItem = Item(
+  id: ItemId.deflectiveCapacitor,
+  tags: _barreraBuffTags,
+  name: 'Condensador Deflectivo',
+  description:
+      '+1 Barrera. Al inicio de tu turno, si estas a 0 de Barrera, recuperas Blindaje Temporal.',
+  iconEmoji: '\u{1F50B}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.green,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: DeflectiveCapacitorItemEffect(),
+  bonusShapeOverride: ItemBonusShape.circle,
+);
+
+/// Arma azul de control que castiga las barreras de objetivos ya interferidos.
+const interferenceCannonItem = Item(
+  id: ItemId.interferenceCannon,
+  tags: _ataqueDebuffTags,
+  name: 'Canon de Interferencia',
+  description:
+      '+2 ATK. Al atacar: aplica Interferencia. Si el objetivo ya la tenia, pierde 1 de Barrera.',
+  iconEmoji: '\u{1F4E1}',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: InterferenceCannonItemEffect(),
+);
+
+/// Armadura azul de respuesta que recompone barrera solo si no la castigan.
+const responseFrameItem = Item(
+  id: ItemId.responseFrame,
+  tags: _barreraBuffTags,
+  name: 'Bastidor de Respuesta',
+  description:
+      '+2 Barrera. Al final de tu turno, si no has recibido dano, recuperas 2 de Barrera.',
+  iconEmoji: '\u{1F6E1}',
+  slot: ItemSlot.offHand,
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: ResponseFrameItemEffect(),
+);
+
+/// Accesorio morado que traduce el sobrecalentamiento en defensa sostenida.
+const overloadAnchorItem = Item(
+  id: ItemId.overloadAnchor,
+  tags: _ataqueBarreraBuffTags,
+  name: 'Ancla de Sobrecarga',
+  description:
+      '+1 Barrera. Al final de tu turno, si tienes Calentando, recuperas 1 de Barrera.',
+  iconEmoji: '\u2693',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: OverloadAnchorItemEffect(),
+  bonusShapeOverride: ItemBonusShape.circle,
+);
+
+/// Accesorio morado reactivo que solo devuelve una penalizacion por turno.
+const reboundLensItem = Item(
+  id: ItemId.reboundLens,
+  tags: _barreraDebuffTags,
+  name: 'Lente de Rebote',
+  description:
+      '+1 Barrera. La primera vez que recibes dano cada turno, aplicas Fragilidad al agresor.',
+  iconEmoji: '\u{1F52E}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: ReboundLensItemEffect(),
+  bonusShapeOverride: ItemBonusShape.circle,
+);
+
+/// Accesorio amarillo que duplica el rendimiento del motor de Inercia.
+const inertiaCrownItem = Item(
+  id: ItemId.inertiaCrown,
+  tags: _ataqueBarreraBuffTags,
+  name: 'Corona de Inercia',
+  description:
+      'Si tienes Inercia al inicio de tu turno, ganas ambas reservas de Inercia.',
+  iconEmoji: '\u{1F451}',
+  slot: ItemSlot.accessory,
+  rarity: RarityTier.yellow,
+  baseCost: 10,
+  value: 2,
+  upgradeValue: 1,
+  effect: InertiaCrownItemEffect(),
+  bonusShapeOverride: ItemBonusShape.circle,
+);
+
+/// Arma amarilla de remate que convierte la Quemadura acumulada en dano inmediato.
+const sunExecutionBladeItem = Item(
+  id: ItemId.sunExecutionBlade,
+  tags: _ataqueDebuffQuemaduraTags,
+  name: 'Hoja de Ejecucion Solar',
+  description:
+      '+4 ATK. Si el objetivo tiene Quemadura, la consume y anade dano directo extra.',
+  iconEmoji: '\u2600',
+  slot: ItemSlot.weapon,
+  rarity: RarityTier.yellow,
+  baseCost: 10,
+  value: 3,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 4,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: SunExecutionBladeItemEffect(),
+);
+
 /// Pool maestro de objetos ofrecidos por tiendas y recompensas.
 const itemPresets = <Item>[
   woodenStickItem,
@@ -877,6 +1093,16 @@ const itemPresets = <Item>[
   operativeBlackBoxItem,
   midnightCloakItem,
   voidInjectorItem,
+  rescueBladeItem,
+  shockMeshItem,
+  toxicScalpelItem,
+  deflectiveCapacitorItem,
+  interferenceCannonItem,
+  responseFrameItem,
+  overloadAnchorItem,
+  reboundLensItem,
+  inertiaCrownItem,
+  sunExecutionBladeItem,
 ];
 
 /// Registro canonico por id para resolver presets sin recorrer toda la lista.

@@ -86,6 +86,8 @@ enum ItemCombatFlagKind {
   eclipseMantleUsed,
   operativeBlackBoxUsed,
   operativeBlackBoxProtection,
+  responseFrameDamagedThisTurn,
+  reboundLensTriggeredThisTurn,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.

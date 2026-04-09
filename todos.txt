@@ -1,20 +1,17 @@
 ﻿TODOs:
 -Dibujo
---Crear dibujos básicos y aplicarlos al combate
+[--Crear dibujos básicos y aplicarlos al combate]
 --Crear dibujos avanzados para cada item
---Sistema de guardar favorito + quick draw
+[---Tijera]
+---Espiral
+---"F" inversa
 --Añadir herramienta "mover", que coge todo el trazo unido al seleccionado y lo mueve a lo largo del canvas
 --Cambiar diseño/UI del overlay del canvas, y hacer más grande dicho overlay
---Símbolos complejos:
----Crear "archivo" de simbolos(hacer al menos 4 intentos de cada símbolo, guardarlos como plantilla)
----Crear algoritmo que lance dibujo contra plantillas hasta encontrar match.
-
 
 -Economía
 [--Bajar Income base a la mitad o algo]
 
 -Diseño
---Añadir color a cada buzzword, y que se coloreen automático en textos?
 [--Añadir color de tier para la card de cada item o habilidad]
 
 -Arquetipos
@@ -31,16 +28,15 @@
 --Manejar su inventario
 
 -Combate
-[--Quitar mitigación plana -> barrera = escudo extra todos los combates?]
---Nuevas mecánicas de combate:
----Dibujos - Formas básicas mas las que da adicional el equipamiento
+[--Quitar mitigación plana -> barrera = escudo extra todos los combates]
+--Mejorar UI de dibujo en combate
 [--Añadir estados alterados]
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
 
 -Estados
 [--Añadir Tags]
---Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)[11/20]
+--Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)[9/20]
 
 -Habilidades
 [--Añadir Tags]
@@ -49,14 +45,14 @@
 
 -Items
 [--Añadir Tags]
---Añadir formas que de cada equipamiento
+[--Añadir formas que de cada equipamiento]
 --Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo
---Meter al menos 100-120[37/100]
+--Meter al menos 100-120[47/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
-[---Slots por tamaño?]
-[--Objetos duplicados=>Mejora?]
+[---Slots por tamaño]
+[--Objetos duplicados=>Mejora]
 --Añadir algún indicio de que se va a mejorar el item, no a añadir, o una animación de algún tipo
 --Equipar/desequipar arrastrando
 
@@ -88,11 +84,23 @@
 
 ////
 ARREGLAR:
+-El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
 
 ////
 PROBAR:
 -Interferencia(debuff): impide activar habilidades manuales durante [value] turnos(no stackea, no puede haber dos instancias de este estado a la vez en un personaje).
 -Deuda(debuff): reduce el income a 1 hasta que se cumpla un evento(no stackeable ni repetible, no se puede purgar de formas convencionales. Esto debe quedar explicado en la info del estado).
+
+-Cuchilla de Rescate
+-Malla de Choque
+-Bisturi Toxico
+-Condensador Deflectivo
+-Canon de Interferencia
+-Bastidor de Respuesta
+-Ancla de Sobrecarga
+-Lente de Rebote
+-Corona de Inercia
+-Hoja de Ejecucion Solar
 
 ///
 IDEAS:
@@ -100,3 +108,5 @@ IDEAS:
 -Tienda de habilidades básicas
 -Evento que te de una habilidad aleatoria pero te quite vida
 -Evento de minijuego, obligatorio para un roguelike
+-Añadir color a cada buzzword, y que se coloreen automático en textos?
+-Sistema de guardar dibujo en favorito + quick draw?

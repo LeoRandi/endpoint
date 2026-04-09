@@ -475,6 +475,15 @@ class BattlerAbility {
   /// Devuelve el value base mas los bonus temporales ganados en combate.
   int get currentValue => value + runtimeValueBonus;
 
+  /// Indica si esta habilidad todavia puede escalar un tier mas.
+  bool get canUpgrade {
+    final baseAbility = presetForId(id);
+    final resolvedUpgradeValue =
+        upgradeValue > 0 ? upgradeValue : baseAbility.upgradeValue;
+
+    return resolvedUpgradeValue > 0 && !rarity.isMaxTier;
+  }
+
   /// Indica cuantas mejoras visibles lleva esta habilidad respecto a su preset.
   int get upgradeCount {
     final baseAbility = presetForId(id);
@@ -487,12 +496,8 @@ class BattlerAbility {
     return max(0, (value - baseAbility.value) ~/ resolvedUpgradeValue);
   }
 
-  /// Devuelve el nombre visible incluyendo el sufijo de mejora cuando proceda.
-  String get displayName {
-    if (upgradeCount <= 0) return name;
-
-    return '$name +$upgradeCount';
-  }
+  /// Devuelve el nombre visible de la habilidad sin marcadores extras de mejora.
+  String get displayName => name;
 
   /// Devuelve el cooldown base en un formato corto para la interfaz.
   String get cooldownLabel {
@@ -528,13 +533,13 @@ class BattlerAbility {
     return canToggleOn(screenContext) && isActive;
   }
 
-  /// Devuelve una version mejorada sumando el upgradeValue al value base.
+  /// Devuelve una version mejorada subiendo tier y valor hasta el limite amarillo.
   BattlerAbility upgraded() {
-    final upgradeTemplate = upgradeValue > 0 ? this : presetForId(id);
-    if (upgradeTemplate.upgradeValue <= 0) return this;
+    final upgradeTemplate = canUpgrade ? this : presetForId(id);
+    if (!upgradeTemplate.canUpgrade) return this;
 
     return copyWith(
-      rarity: upgradeTemplate.rarity,
+      rarity: rarity.nextTier,
       tags: upgradeTemplate.tags,
       name: upgradeTemplate.name,
       description: upgradeTemplate.description,
@@ -659,6 +664,15 @@ class BattlerAbility {
       case BattlerAbilityId.hardReset:
         return hardResetAbility;
     }
+  }
+
+  /// Ajusta la rareza visual de habilidades legacy segun sus mejoras ya guardadas.
+  BattlerAbility normalizeUpgradeTier() {
+    final preset = presetForId(id);
+    final inferredRarity = preset.rarity.advanceBy(upgradeCount);
+    if (rarity.index >= inferredRarity.index) return this;
+
+    return copyWith(rarity: inferredRarity);
   }
 }
 

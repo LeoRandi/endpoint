@@ -166,52 +166,54 @@ BattlerAbility? _deserializeAbility(Map<String, dynamic> json) {
   if (abilityId == null) return null;
 
   final preset = BattlerAbility.presetForId(abilityId);
-  return preset.copyWith(
-    rarity:
-        EndpointJsonUtils.parseEnumByName(RarityTier.values, json['rarity']) ??
+  return preset
+      .copyWith(
+        rarity: EndpointJsonUtils.parseEnumByName(
+                RarityTier.values, json['rarity']) ??
             preset.rarity,
-    name: EndpointJsonUtils.readString(
-      json['name'],
-      fallback: preset.name,
-    ),
-    description: EndpointJsonUtils.readString(
-      json['description'],
-      fallback: preset.description,
-    ),
-    cooldownTurns: EndpointJsonUtils.readInt(
-      json['cooldownTurns'],
-      fallback: preset.cooldownTurns,
-    ),
-    remainingCooldownTurns: EndpointJsonUtils.readInt(
-      json['remainingCooldownTurns'],
-      fallback: preset.remainingCooldownTurns,
-    ),
-    value: EndpointJsonUtils.readInt(
-      json['value'],
-      fallback: preset.value,
-    ),
-    upgradeValue: EndpointJsonUtils.readInt(
-      json['upgradeValue'],
-      fallback: preset.upgradeValue,
-    ),
-    runtimeValueBonus: EndpointJsonUtils.readInt(
-      json['runtimeValueBonus'],
-      fallback: preset.runtimeValueBonus,
-    ),
-    isActive: EndpointJsonUtils.readBool(
-      json['isActive'],
-      fallback: preset.isActive,
-    ),
-    manualActivationContext: EndpointJsonUtils.parseEnumByName(
-          BattlerAbilityActivationContext.values,
-          json['manualActivationContext'],
-        ) ??
-        preset.manualActivationContext,
-    isImplemented: EndpointJsonUtils.readBool(
-      json['isImplemented'],
-      fallback: preset.isImplemented,
-    ),
-  );
+        name: EndpointJsonUtils.readString(
+          json['name'],
+          fallback: preset.name,
+        ),
+        description: EndpointJsonUtils.readString(
+          json['description'],
+          fallback: preset.description,
+        ),
+        cooldownTurns: EndpointJsonUtils.readInt(
+          json['cooldownTurns'],
+          fallback: preset.cooldownTurns,
+        ),
+        remainingCooldownTurns: EndpointJsonUtils.readInt(
+          json['remainingCooldownTurns'],
+          fallback: preset.remainingCooldownTurns,
+        ),
+        value: EndpointJsonUtils.readInt(
+          json['value'],
+          fallback: preset.value,
+        ),
+        upgradeValue: EndpointJsonUtils.readInt(
+          json['upgradeValue'],
+          fallback: preset.upgradeValue,
+        ),
+        runtimeValueBonus: EndpointJsonUtils.readInt(
+          json['runtimeValueBonus'],
+          fallback: preset.runtimeValueBonus,
+        ),
+        isActive: EndpointJsonUtils.readBool(
+          json['isActive'],
+          fallback: preset.isActive,
+        ),
+        manualActivationContext: EndpointJsonUtils.parseEnumByName(
+              BattlerAbilityActivationContext.values,
+              json['manualActivationContext'],
+            ) ??
+            preset.manualActivationContext,
+        isImplemented: EndpointJsonUtils.readBool(
+          json['isImplemented'],
+          fallback: preset.isImplemented,
+        ),
+      )
+      .normalizeUpgradeTier();
 }
 
 BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
@@ -262,10 +264,6 @@ BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
       return BlindajeTemporalStatus(value: value);
     case BattlerStatusId.conmocion:
       return ConmocionStatus(value: value);
-    case BattlerStatusId.escudoDeEnergia:
-      return EscudoDeEnergiaStatus(value: value);
-    case BattlerStatusId.escudoDeFase:
-      return EscudoDeFaseStatus(value: value);
     case BattlerStatusId.inercia:
       return InerciaStatus(value: value);
     case BattlerStatusId.inerciaAtaque:
@@ -304,8 +302,9 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['baseCost'],
       fallback: preset.baseCost,
     ),
-    equipCost: EndpointJsonUtils.readNullableInt(json['equipCost']) ??
-        preset.equipCost,
+    // El coste de equipo ya no se deriva de la rareza guardada.
+    // Si no existe un coste explicito en el preset, se usara el default global.
+    equipCost: preset.equipCost,
     value: EndpointJsonUtils.readInt(
       json['value'],
       fallback: preset.value,
@@ -341,7 +340,7 @@ Item? _deserializeItem(Map<String, dynamic> json) {
     item = item.toOwnedInstance();
   }
 
-  return item;
+  return item.normalizeUpgradeTier();
 }
 
 CombatRuntimeFlag? _deserializeCombatFlag(Map<String, dynamic> json) {

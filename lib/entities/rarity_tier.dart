@@ -45,4 +45,25 @@ enum RarityTier {
     required this.factor,
     required this.rollWeight,
   });
+
+  /// Indica si esta rareza ya esta en el tope visual y no debe subir mas.
+  bool get isMaxTier => this == RarityTier.yellow;
+
+  /// Devuelve la siguiente rareza disponible sin sobrepasar amarillo.
+  RarityTier get nextTier {
+    if (isMaxTier) return this;
+
+    return RarityTier.values[index + 1];
+  }
+
+  /// Avanza varios tiers seguidos respetando siempre el limite amarillo.
+  RarityTier advanceBy(int steps) {
+    if (steps <= 0) return this;
+
+    final targetIndex = min(
+      index + steps,
+      RarityTier.values.length - 1,
+    );
+    return RarityTier.values[targetIndex];
+  }
 }

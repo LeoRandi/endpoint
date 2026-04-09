@@ -18,12 +18,6 @@ const blindajeTemporalStatus = BlindajeTemporalStatus();
 /// Preset rapido de Conmocion con su penalizacion inicial.
 const conmocionStatus = ConmocionStatus();
 
-/// Preset rapido del Escudo de Energia con su valor base.
-const escudoDeEnergiaStatus = EscudoDeEnergiaStatus();
-
-/// Preset rapido del Escudo de Fase con su valor base.
-const escudoDeFaseStatus = EscudoDeFaseStatus();
-
 /// Preset rapido de Inercia con la ganancia base por activacion.
 const inerciaStatus = InerciaStatus();
 

@@ -40,6 +40,16 @@ enum ItemId {
   overloadInjector,
   vectorBulwark,
   contingencySeal,
+  rescueBlade,
+  shockMesh,
+  toxicScalpel,
+  deflectiveCapacitor,
+  interferenceCannon,
+  responseFrame,
+  overloadAnchor,
+  reboundLens,
+  inertiaCrown,
+  sunExecutionBlade,
 }
 
 /// Define los huecos equipables disponibles en el loadout del battler.
@@ -66,6 +76,7 @@ extension ItemSlotPresentation on ItemSlot {
 
 /// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
 class Item {
+  static const int defaultEquipmentCost = 1;
   static int _nextInstanceSequence = 0;
   static final RegExp _ownedInstancePattern = RegExp(r'^item_(\d+)$');
 
@@ -132,13 +143,23 @@ class Item {
   bool hasTag(EntityTag tag) => tags.contains(tag);
 
   /// Indica si este objeto puede mejorar al recibir una copia adicional.
-  bool get canUpgrade => upgradeValue > 0 || upgradeStatModifiers.isNotEmpty;
+  bool get canUpgrade {
+    final preset = presetForId(id);
+    final resolvedUpgradeValue =
+        upgradeValue > 0 ? upgradeValue : preset.upgradeValue;
+    final resolvedUpgradeStats = upgradeStatModifiers.isNotEmpty
+        ? upgradeStatModifiers
+        : preset.upgradeStatModifiers;
+
+    return !rarity.isMaxTier &&
+        (resolvedUpgradeValue > 0 || resolvedUpgradeStats.isNotEmpty);
+  }
 
   /// Devuelve el coste base propio del objeto para compra y reventa.
   int get cost => baseCost;
 
-  /// Devuelve el coste de equipo efectivo del objeto para el presupuesto del loadout.
-  int get equipmentCost => equipCost ?? _defaultEquipmentCostFor(rarity);
+  /// Devuelve el coste de equipo efectivo, usando 1 salvo que el item lo fuerce.
+  int get equipmentCost => max(0, equipCost ?? defaultEquipmentCost);
 
   /// Calcula el income que aporta el objeto a partir de su valor actual.
   int get incomeModifier => value * incomePerValueUnit;
@@ -153,20 +174,19 @@ class Item {
 
   /// Indica cuantas mejoras visibles lleva esta copia respecto a su preset base.
   int get upgradeCount {
-    if (upgradeValue <= 0) return 0;
+    final preset = presetForId(id);
+    final resolvedUpgradeValue =
+        upgradeValue > 0 ? upgradeValue : preset.upgradeValue;
+    if (resolvedUpgradeValue <= 0) return 0;
 
-    final baseValue = presetForId(id).value;
+    final baseValue = preset.value;
     if (value <= baseValue) return 0;
 
-    return max(0, (value - baseValue) ~/ upgradeValue);
+    return max(0, (value - baseValue) ~/ resolvedUpgradeValue);
   }
 
-  /// Devuelve el nombre visible incluyendo el sufijo de mejora cuando proceda.
-  String get displayName {
-    if (upgradeCount <= 0) return name;
-
-    return '$name +$upgradeCount';
-  }
+  /// Devuelve el nombre visible del objeto sin marcadores extras de mejora.
+  String get displayName => name;
 
   /// Genera una descripcion visible que refleja mejor los valores ya mejorados.
   String get displayDescription {
@@ -226,7 +246,7 @@ class Item {
     return ItemBonusShape.circle;
   }
 
-  /// Sube el valor del objeto si el preset define una mejora disponible.
+  /// Sube la rareza visual y el valor del objeto respetando el tope amarillo.
   Item upgraded() {
     final upgradeTemplate = canUpgrade ? this : presetForId(id);
     if (!upgradeTemplate.canUpgrade) return this;
@@ -245,7 +265,7 @@ class Item {
       name: upgradeTemplate.name,
       description: upgradeTemplate.description,
       iconEmoji: upgradeTemplate.iconEmoji,
-      rarity: upgradeTemplate.rarity,
+      rarity: rarity.nextTier,
       baseCost: upgradeTemplate.baseCost,
       value: value + upgradeTemplate.upgradeValue,
       upgradeValue: upgradeTemplate.upgradeValue,
@@ -319,6 +339,7 @@ class Item {
       slot: slot,
       rarity: rarity,
       baseCost: baseCost,
+      equipCost: equipCost,
       value: value,
       upgradeValue: upgradeValue,
       incomePerValueUnit: incomePerValueUnit,
@@ -359,6 +380,17 @@ class Item {
     throw StateError('No existe preset para el objeto ${id.name}.');
   }
 
+  /// Ajusta la rareza visual de objetos legacy segun sus mejoras acumuladas.
+  Item normalizeUpgradeTier() {
+    final preset = presetForId(id);
+    final inferredRarity = preset.rarity.advanceBy(upgradeCount);
+    if (rarity.index >= inferredRarity.index) return this;
+
+    return copyWith(
+      rarity: inferredRarity,
+    );
+  }
+
   static String _statLabel(BattlerStat stat) {
     switch (stat) {
       case BattlerStat.health:
@@ -373,20 +405,6 @@ class Item {
         return 'REDUCCION';
       case BattlerStat.vampirism:
         return 'VAMPIRISMO';
-    }
-  }
-
-  /// Resuelve el coste por defecto de equipo segun la rareza actual del objeto.
-  static int _defaultEquipmentCostFor(RarityTier rarity) {
-    switch (rarity) {
-      case RarityTier.yellow:
-        return 3;
-      case RarityTier.purple:
-        return 2;
-      case RarityTier.gray:
-      case RarityTier.green:
-      case RarityTier.blue:
-        return 1;
     }
   }
 

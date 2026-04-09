@@ -352,6 +352,551 @@ class RegenerativeShieldItemEffect extends ItemEffect {
   }
 }
 
+/// Recupera barrera al inicio del turno propio con una cantidad fija.
+class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
+  final int amount;
+
+  /// Crea un efecto reutilizable para objetos que regeneran barrera de combate.
+  const RecoverBarrierOnTurnStartItemEffect({
+    required this.amount,
+  }) : super(
+          description:
+              'Al inicio de tu turno, recuperas una cantidad fija de barrera.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+
+  /// Genera la descripcion final usando la cantidad configurada para este item.
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, recuperas $amount de Barrera.';
+  }
+
+  @override
+
+  /// Restaura barrera sin sobrepasar la barrera maxima calculada del portador.
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.copyWith(
+        currentBarrier: min(
+          owner.maxBarrier,
+          owner.currentBarrier + amount,
+        ),
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Cura un poco al portador cuando deja al objetivo en rango de remate.
+class RescueBladeItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Cuchilla de Rescate.
+  const RescueBladeItemEffect()
+      : super(
+          description:
+              'Si el objetivo queda al 50% de HP o menos, recuperas vida.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al atacar, si el objetivo queda al 50% de HP o menos, recuperas ${item.value} HP.';
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    if (target.maxHealth <= 0 || target.health * 2 > target.maxHealth) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.heal(item.value),
+      opponent: target,
+    );
+  }
+}
+
+/// Castiga al agresor si el portador consigue mantener parte de su barrera.
+class ShockMeshItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Malla de Choque.
+  const ShockMeshItemEffect()
+      : super(
+          description:
+              'Al recibir dano mientras sigues teniendo barrera, aplicas Conmocion al agresor.',
+          hooks: const {
+            ItemEffectHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al recibir dano mientras conservas Barrera, aplicas Conmocion (-${item.value} dano) al agresor.';
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    if (damageTaken <= 0 || owner.currentBarrier <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: source.applyStatus(
+        ConmocionStatus(value: max(1, item.value)),
+        source: owner,
+      ),
+    );
+  }
+}
+
+/// Mezcla veneno y remate ligero cuando el objetivo ya esta intoxicado.
+class ToxicScalpelItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Bisturi Toxico.
+  const ToxicScalpelItemEffect()
+      : super(
+          description:
+              'Al atacar aplica Intoxicacion y castiga extra a objetivos ya intoxicados.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final resolvedAmount = max(1, item.value);
+    return 'Al atacar: aplica o aumenta Intoxicacion en $resolvedAmount. Si el objetivo ya estaba intoxicado, infliges $resolvedAmount dano directo extra.';
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final resolvedAmount = max(1, item.value);
+    final currentPoison = target.statusById(IntoxicacionStatus.statusId);
+    final hadPoison = currentPoison is IntoxicacionStatus;
+
+    var updatedTarget = hadPoison
+        ? target.applyStatus(
+            currentPoison.copyWith(
+              value: currentPoison.value + resolvedAmount,
+            ),
+            source: owner,
+          )
+        : target.applyStatus(
+            IntoxicacionStatus(value: resolvedAmount),
+            source: owner,
+          );
+
+    if (hadPoison) {
+      updatedTarget = updatedTarget.receiveDirectDamage(
+        resolvedAmount,
+        source: owner,
+      );
+    }
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: updatedTarget,
+    );
+  }
+}
+
+/// Convierte el turno sin barrera en un blindaje temporal minimo.
+class DeflectiveCapacitorItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Condensador Deflectivo.
+  const DeflectiveCapacitorItemEffect()
+      : super(
+          description:
+              'Si empiezas tu turno sin barrera, recuperas Blindaje Temporal.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, si estas a 0 de Barrera, recuperas Blindaje Temporal (${max(1, item.value)} de absorcion).';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn || owner.currentBarrier > 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _refreshMinimumBlindajeTemporal(
+        owner: owner,
+        value: item.value,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Aplica interferencia y erosiona barrera si el objetivo ya estaba bloqueado.
+class InterferenceCannonItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Canon de Interferencia.
+  const InterferenceCannonItemEffect()
+      : super(
+          description:
+              'Al atacar aplica Interferencia y castiga barreras ya comprometidas.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al atacar: aplica Interferencia durante ${max(1, item.value)} turnos. Si el objetivo ya la tenia, ademas pierde 1 de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final resolvedDuration = max(1, item.value);
+    final hadInterference = target.hasStatus(InterferenciaStatus.statusId);
+    var updatedTarget = target.applyStatus(
+      InterferenciaStatus(remainingTurns: resolvedDuration),
+      source: owner,
+    );
+
+    if (hadInterference && updatedTarget.currentBarrier > 0) {
+      updatedTarget = updatedTarget.copyWith(
+        currentBarrier: max(0, updatedTarget.currentBarrier - 1),
+      );
+    }
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: updatedTarget,
+    );
+  }
+}
+
+/// Premia los turnos en los que el portador sale ileso.
+class ResponseFrameItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Bastidor de Respuesta.
+  const ResponseFrameItemEffect()
+      : super(
+          description:
+              'Si no recibes dano durante tu turno, recuperas barrera al final.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.turnEnd,
+            ItemEffectHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al final de tu turno, si no has recibido dano, recuperas ${max(1, item.value)} de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final damagedFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.responseFrameDamagedThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.removeCombatFlag(damagedFlag),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    if (damageTaken <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+
+    final damagedFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.responseFrameDamagedThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(damagedFlag),
+      opponent: source,
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final damagedFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.responseFrameDamagedThisTurn,
+    );
+    if (owner.hasCombatFlag(damagedFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _recoverBarrier(
+        owner: owner,
+        amount: item.value,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Convierte una ofensiva sobrecalentada en aguante extra.
+class OverloadAnchorItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Ancla de Sobrecarga.
+  const OverloadAnchorItemEffect()
+      : super(
+          description:
+              'Al final de tu turno, si tienes Calentando, recuperas barrera.',
+          hooks: const {
+            ItemEffectHook.turnEnd,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al final de tu turno, si tienes Calentando, recuperas ${max(1, item.value)} de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn || !owner.hasStatus(CalentandoStatus.statusId)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _recoverBarrier(
+        owner: owner,
+        amount: item.value,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Solo castiga el primer golpe recibido en cada turno propio.
+class ReboundLensItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Lente de Rebote.
+  const ReboundLensItemEffect()
+      : super(
+          description:
+              'La primera vez que recibes dano cada turno, aplicas Fragilidad al agresor.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'La primera vez que recibes dano cada turno, aplicas Fragilidad durante ${max(1, item.value)} turnos al agresor.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.reboundLensTriggeredThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.removeCombatFlag(triggeredFlag),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    if (damageTaken <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.reboundLensTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(triggeredFlag),
+      opponent: source.applyStatus(
+        FragilidadStatus(remainingTurns: max(1, item.value)),
+        source: owner,
+      ),
+    );
+  }
+}
+
+/// Duplica el motor de Inercia generando ambas reservas al arrancar turno.
+class InertiaCrownItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Corona de Inercia.
+  const InertiaCrownItemEffect()
+      : super(
+          description:
+              'Si tienes Inercia al inicio del turno, ganas ambas reservas.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, si tienes Inercia, ganas Reserva de Inercia: ATK (+${max(1, item.value)}) y Reserva de Inercia: Barrera (+${max(1, item.value)}).';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn || !owner.hasStatus(InerciaStatus.statusId)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final resolvedValue = max(1, item.value);
+    final ownerWithAttackReserve = owner.applyStatus(
+      InerciaAtaqueStatus(value: resolvedValue),
+      source: owner,
+    );
+    return ItemEffectResolution(
+      owner: ownerWithAttackReserve.applyStatus(
+        InerciaBarreraStatus(value: resolvedValue),
+        source: ownerWithAttackReserve,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Consume Quemadura para convertirla en dano directo inmediato.
+class SunExecutionBladeItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Hoja de Ejecucion Solar.
+  const SunExecutionBladeItemEffect()
+      : super(
+          description:
+              'Consume la Quemadura del objetivo para infligir dano directo extra.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Si el objetivo tiene Quemadura, la consume e inflige dano directo extra igual a su dano actual total + ${max(1, item.value)}.';
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final burnStatuses = target
+        .statusesById(QuemaduraStatus.statusId)
+        .whereType<QuemaduraStatus>()
+        .toList(growable: false);
+    if (burnStatuses.isEmpty) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final totalBurnDamage = burnStatuses.fold<int>(
+      0,
+      (sum, status) => sum + status.currentDamage(target),
+    );
+    final updatedTarget =
+        target.removeStatus(QuemaduraStatus.statusId).receiveDirectDamage(
+              totalBurnDamage + max(1, item.value),
+              source: owner,
+            );
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: updatedTarget,
+    );
+  }
+}
+
 /// Aplica Quemadura al objetivo cada vez que el portador conecta un ataque.
 class QuemaduraOnAttackItemEffect extends ItemEffect {
   final int duration;
@@ -846,8 +1391,6 @@ enum ItemStatusEffectKind {
   blindajeTemporal,
   calentando,
   conmocion,
-  escudoDeEnergia,
-  escudoDeFase,
   fragilidad,
   inercia,
   inerciaAtaque,
@@ -1090,10 +1633,6 @@ class StatusItemEffect extends ItemEffect {
         return CalentandoStatus(value: resolvedValue);
       case ItemStatusEffectKind.conmocion:
         return ConmocionStatus(value: resolvedValue);
-      case ItemStatusEffectKind.escudoDeEnergia:
-        return EscudoDeEnergiaStatus(value: resolvedValue);
-      case ItemStatusEffectKind.escudoDeFase:
-        return EscudoDeFaseStatus(value: resolvedValue);
       case ItemStatusEffectKind.fragilidad:
         return FragilidadStatus(remainingTurns: resolvedValue);
       case ItemStatusEffectKind.inercia:
@@ -1117,10 +1656,6 @@ class StatusItemEffect extends ItemEffect {
         return 'Calentando (+$resolvedValue dano)';
       case ItemStatusEffectKind.conmocion:
         return 'Conmocion (-$resolvedValue dano en el siguiente ataque)';
-      case ItemStatusEffectKind.escudoDeEnergia:
-        return 'Escudo de Energia ($resolvedValue)';
-      case ItemStatusEffectKind.escudoDeFase:
-        return 'Escudo de Fase ($resolvedValue)';
       case ItemStatusEffectKind.fragilidad:
         return 'Fragilidad durante $resolvedValue turnos';
       case ItemStatusEffectKind.inercia:
@@ -1141,6 +1676,45 @@ bool _enteredCooldown(
   BattlerAbility resolvedAbility,
 ) {
   return !previousAbility.isOnCooldown && resolvedAbility.isOnCooldown;
+}
+
+/// Recupera barrera sin sobrepasar la barrera maxima calculada del portador.
+Battler _recoverBarrier({
+  required Battler owner,
+  required int amount,
+}) {
+  final safeAmount = max(0, amount);
+  if (safeAmount <= 0 || owner.currentBarrier >= owner.maxBarrier) {
+    return owner;
+  }
+
+  return owner.copyWith(
+    currentBarrier: min(
+      owner.maxBarrier,
+      owner.currentBarrier + safeAmount,
+    ),
+  );
+}
+
+/// Refresca un Blindaje Temporal minimo sin acumularlo infinitamente.
+Battler _refreshMinimumBlindajeTemporal({
+  required Battler owner,
+  required int value,
+}) {
+  final shieldValue = max(1, value);
+  final currentShield = owner.statusById(BlindajeTemporalStatus.statusId);
+  if (currentShield != null &&
+      currentShield.resolved(owner).value >= shieldValue) {
+    return owner;
+  }
+
+  final refreshedOwner = currentShield == null
+      ? owner
+      : owner.removeStatus(BlindajeTemporalStatus.statusId);
+  return refreshedOwner.applyStatus(
+    BlindajeTemporalStatus(value: shieldValue),
+    source: refreshedOwner,
+  );
 }
 
 /// Genera flags de combate estables para que cada item controle usos por instancia.

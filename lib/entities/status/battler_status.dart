@@ -23,8 +23,6 @@ enum BattlerStatusId {
   interferencia,
   blindajeTemporal,
   conmocion,
-  escudoDeEnergia,
-  escudoDeFase,
   inercia,
   inerciaAtaque,
   inerciaBarrera,
@@ -976,124 +974,6 @@ class ConmocionStatus extends BattlerStatus {
     int? value,
   }) {
     return ConmocionStatus(
-      value: value ?? this.value,
-    );
-  }
-}
-
-/// Buff que reduce dano directo pero empeora el dano recibido de debuffs.
-class EscudoDeEnergiaStatus extends BattlerStatus {
-  static const statusId = BattlerStatusId.escudoDeEnergia;
-  static const defaultValue = 1;
-
-  /// Crea una instancia de Escudo de Energia con su intensidad actual.
-  const EscudoDeEnergiaStatus({
-    int value = defaultValue,
-  }) : super(
-          id: statusId,
-          name: 'Escudo de Energia',
-          type: BattlerStatusType.buff,
-          tags: _buffBarreraStatusTags,
-          hooks: const {
-            BattlerStatusHook.incomingDamageEffect,
-          },
-          icon: Icons.bolt_rounded,
-          description:
-              'Reduce el dano directo recibido, pero amplifica el dano de debuffs.',
-          remainingTurns: 1,
-          value: value,
-        );
-
-  @override
-
-  /// Hace que el escudo dure hasta que otro efecto lo elimine.
-  bool get isIndefinite => true;
-
-  @override
-
-  /// Ajusta el dano segun si llega como golpe directo o como dano de debuff.
-  BattlerIncomingDamageResolution onIncomingDamage({
-    required Battler owner,
-    required Battler source,
-    required int damage,
-    required DamageKind kind,
-  }) {
-    final updatedDamage =
-        kind == DamageKind.direct ? max(0, damage - value) : damage + value;
-
-    return BattlerIncomingDamageResolution(
-      owner: owner,
-      damage: updatedDamage,
-    );
-  }
-
-  @override
-
-  /// Clona el estado manteniendo su intensidad actual.
-  BattlerStatus copyWith({
-    int? remainingTurns,
-    int? value,
-  }) {
-    return EscudoDeEnergiaStatus(
-      value: value ?? this.value,
-    );
-  }
-}
-
-/// Buff que protege de debuffs pero vuelve mas dolorosos los impactos directos.
-class EscudoDeFaseStatus extends BattlerStatus {
-  static const statusId = BattlerStatusId.escudoDeFase;
-  static const defaultValue = 1;
-
-  /// Crea una instancia de Escudo de Fase con su intensidad actual.
-  const EscudoDeFaseStatus({
-    int value = defaultValue,
-  }) : super(
-          id: statusId,
-          name: 'Escudo de Fase',
-          type: BattlerStatusType.buff,
-          tags: _buffBarreraStatusTags,
-          hooks: const {
-            BattlerStatusHook.incomingDamageEffect,
-          },
-          icon: Icons.blur_on_rounded,
-          description:
-              'Reduce el dano de debuffs recibidos, pero amplifica los impactos directos.',
-          remainingTurns: 1,
-          value: value,
-        );
-
-  @override
-
-  /// Hace que el escudo dure hasta que otro efecto lo elimine.
-  bool get isIndefinite => true;
-
-  @override
-
-  /// Ajusta el dano segun si llega como debuff o como golpe directo.
-  BattlerIncomingDamageResolution onIncomingDamage({
-    required Battler owner,
-    required Battler source,
-    required int damage,
-    required DamageKind kind,
-  }) {
-    final updatedDamage =
-        kind == DamageKind.debuff ? max(0, damage - value) : damage + value;
-
-    return BattlerIncomingDamageResolution(
-      owner: owner,
-      damage: updatedDamage,
-    );
-  }
-
-  @override
-
-  /// Clona el estado manteniendo su intensidad actual.
-  BattlerStatus copyWith({
-    int? remainingTurns,
-    int? value,
-  }) {
-    return EscudoDeFaseStatus(
       value: value ?? this.value,
     );
   }
