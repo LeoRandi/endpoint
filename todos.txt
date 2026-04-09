@@ -15,7 +15,7 @@
 [--Añadir color de tier para la card de cada item o habilidad]
 
 -Arquetipos
---Añadir más arquetipos, unos 7 en total[3/7]
+--Añadir más arquetipos, unos 7 en total[4/7]
 [--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.]
 
 -Página de Selección de Camino
@@ -85,6 +85,8 @@
 ////
 ARREGLAR:
 -El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
+-Fragilidad(-x de barrera) da barrera al enemigo si no la tiene. lo que debe hacer es aumentar el daño del siguiente ataque que reciba
+-Mercante: Asegurar que los cambios de stats que muestran en la preview son antes de los items. Para ello sería mejor que los items se randomizasen después de seleccionar el arquetipo
 
 ////
 PROBAR:

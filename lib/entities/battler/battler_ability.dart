@@ -8,6 +8,7 @@ enum BattlerAbilityId {
   cruelCatalysis,
   venousOverload,
   hardReset,
+  cashflow,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -31,6 +32,7 @@ enum BattlerAbilityActivationContext {
 
 /// Enumera los puntos del ciclo de combate en los que una habilidad puede aportar hooks.
 enum BattlerAbilityHook {
+  hourStart,
   turnStart,
   turnEnd,
   combatEnd,
@@ -64,6 +66,9 @@ const _vidaDebuffAbilityTags = <EntityTag>[
   EntityTag.vida,
   EntityTag.debuff,
 ];
+const _economiaAbilityTags = <EntityTag>[
+  EntityTag.economia,
+];
 
 /// Agrupa el estado final del usuario y del rival tras resolver un efecto de habilidad.
 class BattlerAbilityEffectResolution {
@@ -94,6 +99,14 @@ abstract class BattlerAbilityEffect {
     required BattlerAbilityActivationContext screenContext,
   }) {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  /// Resuelve efectos pasivos que deben dispararse al comenzar una nueva hora.
+  Battler onHourStart({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    return owner;
   }
 
   /// Resuelve efectos que deben dispararse al inicio de turno.
@@ -409,6 +422,28 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Convierte cada nueva hora de la run en una entrada directa de capital.
+class CashflowAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo del Mercante para monetizar el income actual.
+  const CashflowAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.hourStart,
+          },
+        );
+
+  @override
+  Battler onHourStart({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    final payout = max(0, owner.income);
+    if (payout <= 0) return owner;
+
+    return owner.earnMoney(payout);
+  }
+}
+
 /// Describe una habilidad completa, incluyendo su estado runtime y su efecto.
 class BattlerAbility {
   final BattlerAbilityId id;
@@ -663,6 +698,8 @@ class BattlerAbility {
         return venousOverloadAbility;
       case BattlerAbilityId.hardReset:
         return hardResetAbility;
+      case BattlerAbilityId.cashflow:
+        return cashflowAbility;
     }
   }
 
@@ -763,5 +800,19 @@ const hardResetAbility = BattlerAbility(
   upgradeValue: 1,
   manualActivationContext: BattlerAbilityActivationContext.pathSelection,
   effect: HardResetAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Preset pasivo economico que entrega creditos al comienzo de cada hora.
+const cashflowAbility = BattlerAbility(
+  id: BattlerAbilityId.cashflow,
+  rarity: RarityTier.green,
+  tags: _economiaAbilityTags,
+  name: 'Flujo de Caja',
+  description:
+      'Pasiva. Al comienzo de cada hora, ganas creditos iguales a tu income actual.',
+  icon: Icons.payments_rounded,
+  value: 1,
+  effect: CashflowAbilityEffect(),
   isImplemented: true,
 );

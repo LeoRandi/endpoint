@@ -1077,6 +1077,13 @@ class Battler {
     );
   }
 
+  /// Ejecuta efectos de habilidades que se disparan al comenzar una nueva hora.
+  Battler applyAbilityHourStartEffects() {
+    return _effectPipeline.applyAbilityHourStartEffects(
+      owner: this,
+    );
+  }
+
   /// Ejecuta efectos de final de turno para todos los items equipados.
   ItemEffectResolution applyEquippedItemTurnEndEffects({
     required Battler opponent,

@@ -1,9 +1,11 @@
 import '../_imports.dart';
+import '../../services/run_randomizer.dart';
 
 /// Describe un arquetipo inicial que altera stats, economia, items y habilidades del jugador.
 class ArchetypePathNode extends PathNode {
   final String playerIconEmoji;
   final List<Item> startingItems;
+  final List<Item> Function(RunRandomizer randomizer)? startingItemsBuilder;
   final List<BattlerAbility> startingAbilities;
   final Map<BattlerStat, int> baseStatModifiers;
   final int moneyModifier;
@@ -19,6 +21,7 @@ class ArchetypePathNode extends PathNode {
     required RarityTier rarity,
     this.playerIconEmoji = '\u{1F916}',
     required List<Item> startingItems,
+    this.startingItemsBuilder,
     List<BattlerAbility> startingAbilities = const [],
     this.baseStatModifiers = const {},
     this.moneyModifier = 0,
@@ -39,8 +42,18 @@ class ArchetypePathNode extends PathNode {
         );
 
   /// Aplica el arquetipo al jugador manteniendo su estado previo y sumando el loadout inicial.
-  Battler applyTo(Battler player) {
+  Battler applyTo(
+    Battler player, {
+    RunRandomizer? randomizer,
+  }) {
     final updatedBaseStats = Map<BattlerStat, int>.from(player.baseStats);
+    final resolvedStartingItems = startingItemsBuilder == null
+        ? startingItems
+        : List<Item>.unmodifiable(
+            startingItemsBuilder!(
+              randomizer ?? RunRandomizer(),
+            ),
+          );
 
     for (final entry in baseStatModifiers.entries) {
       updatedBaseStats[entry.key] = max(
@@ -56,7 +69,7 @@ class ArchetypePathNode extends PathNode {
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
     );
 
-    for (final item in startingItems) {
+    for (final item in resolvedStartingItems) {
       updatedPlayer = updatedPlayer.addItem(item);
       final inventoryItem = updatedPlayer.inventoryItemOfType(item.id);
       if (item.isEquippable && inventoryItem != null) {

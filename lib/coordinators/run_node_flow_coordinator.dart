@@ -38,7 +38,10 @@ class RunNodeFlowCoordinator {
         return;
       case PathNodeType.archetype:
         final archetypeNode = node as ArchetypePathNode;
-        final projectedPlayer = archetypeNode.applyTo(session.player);
+        final projectedPlayer = archetypeNode.applyTo(
+          session.player,
+          randomizer: session.randomizer,
+        );
         final shouldConfirm = await showEndpointDialog<bool>(
           context: context,
           barrierLabel: 'Seleccionar arquetipo',

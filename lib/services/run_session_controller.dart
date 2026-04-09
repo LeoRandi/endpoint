@@ -193,8 +193,8 @@ class RunSessionController extends ChangeNotifier {
     required Battler updatedPlayer,
     RunCompletionType? forcedCompletionType,
   }) {
-    final resolvedCompletionType =
-        forcedCompletionType ?? _resolveCompletionType(updatedPlayer: updatedPlayer);
+    final resolvedCompletionType = forcedCompletionType ??
+        _resolveCompletionType(updatedPlayer: updatedPlayer);
 
     if (resolvedCompletionType != null) {
       _state = _state.copyWith(
@@ -209,13 +209,33 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
+    final nextStageIndex = _state.stageIndex + 1;
+    var nextPlayer = updatedPlayer;
+    var nextHour = _pathNodeService.buildHourSnapshot(
+      stageIndex: nextStageIndex,
+      player: nextPlayer,
+      availableNodes: _availableNodesOverride,
+      nodeCount: _nodeCount,
+    );
+    if (_shouldApplyHourStartEffects(nextHour)) {
+      nextPlayer = nextPlayer.applyAbilityHourStartEffects();
+      nextHour = _pathNodeService.buildHourSnapshot(
+        stageIndex: nextStageIndex,
+        player: nextPlayer,
+        availableNodes: _availableNodesOverride,
+        nodeCount: _nodeCount,
+      );
+    }
+
     _state = _state.copyWith(
-      player: updatedPlayer,
-      stageIndex: _state.stageIndex + 1,
+      player: nextPlayer,
+      stageIndex: nextStageIndex,
+      currentHour: nextHour,
+      visibleNodes: List<PathNode>.unmodifiable(nextHour.nodes),
     );
     _isResolvingNode = false;
     _activeNode = null;
-    refreshNodes();
+    notifyListeners();
     unawaited(_persistCurrentRun(trigger: 'exitNode'));
   }
 
@@ -227,9 +247,7 @@ class RunSessionController extends ChangeNotifier {
     final awardedExperience = switch (node.tier) {
       CombatNodeTier.purple => 2,
       CombatNodeTier.yellow => 0,
-      CombatNodeTier.gray ||
-      CombatNodeTier.green ||
-      CombatNodeTier.blue => 1,
+      CombatNodeTier.gray || CombatNodeTier.green || CombatNodeTier.blue => 1,
     };
 
     return player.gainExperience(awardedExperience);
@@ -261,6 +279,10 @@ class RunSessionController extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  bool _shouldApplyHourStartEffects(RunHourSnapshot hour) {
+    return hour.phase == RunHourPhase.day || hour.phase == RunHourPhase.night;
   }
 
   Future<void> _persistCurrentRun({

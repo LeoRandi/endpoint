@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/run_randomizer.dart';
 
 /// Arquetipo agil orientado a ataque ligero y economia temprana.
 final velozArchetypeNode = ArchetypePathNode(
@@ -70,6 +71,75 @@ final imparableArchetypeNode = ArchetypePathNode(
   ],
   startingAbilities: const [
     venousOverloadAbility,
+  ],
+);
+
+final _merchantGrayPreviewItem = woodenStickItem.copyWith(
+  name: 'Objeto Gris Aleatorio',
+  description:
+      'Al confirmar este arquetipo recibiras un objeto gris aleatorio.',
+  iconEmoji: '\u{1F3B2}',
+  clearSlot: true,
+  rarity: RarityTier.gray,
+  baseCost: 0,
+  equipCost: 1,
+  value: 0,
+  upgradeValue: 0,
+  statModifiers: const {},
+  upgradeStatModifiers: const {},
+  clearEffect: true,
+);
+
+final _merchantGreenPreviewItem = shieldItem.copyWith(
+  name: 'Objeto Verde Aleatorio',
+  description:
+      'Al confirmar este arquetipo recibiras un objeto verde aleatorio.',
+  iconEmoji: '\u{1F4E6}',
+  clearSlot: true,
+  rarity: RarityTier.green,
+  baseCost: 0,
+  equipCost: 1,
+  value: 0,
+  upgradeValue: 0,
+  statModifiers: const {},
+  upgradeStatModifiers: const {},
+  clearEffect: true,
+);
+
+List<Item> _buildMerchantStartingItems(RunRandomizer randomizer) {
+  final grayItems = itemPresets
+      .where((item) => item.rarity == RarityTier.gray)
+      .toList(growable: false);
+  final greenItems = itemPresets
+      .where((item) => item.rarity == RarityTier.green)
+      .toList(growable: false);
+
+  return List<Item>.unmodifiable([
+    ...randomizer.pickDistinct(grayItems, 2),
+    ...randomizer.pickDistinct(greenItems, 1),
+  ]);
+}
+
+/// Arquetipo economico flexible que empieza con stock aleatorio y caja extra.
+final mercanteArchetypeNode = ArchetypePathNode(
+  nodeId: 'archetype_mercante',
+  label: 'Mercante',
+  tooltip:
+      '2 objetos grises aleatorios + 1 verde aleatorio. Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 13C, 4 income y Flujo de Caja.',
+  iconEmoji: '\u{1F4B0}',
+  playerIconEmoji: '\u{1F4B3}',
+  accent: const Color(0xFFEBCB5A),
+  rarity: RarityTier.blue,
+  moneyModifier: 13,
+  incomeModifier: 4,
+  startingItems: [
+    _merchantGrayPreviewItem,
+    _merchantGrayPreviewItem,
+    _merchantGreenPreviewItem,
+  ],
+  startingItemsBuilder: _buildMerchantStartingItems,
+  startingAbilities: const [
+    cashflowAbility,
   ],
 );
 
@@ -410,6 +480,7 @@ final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
   velozArchetypeNode,
   inamovibleArchetypeNode,
   imparableArchetypeNode,
+  mercanteArchetypeNode,
 ]);
 
 /// Eventos candidatos para el tramo diurno.

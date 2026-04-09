@@ -4,6 +4,30 @@ import '_imports.dart';
 class BattlerEffectPipeline {
   const BattlerEffectPipeline();
 
+  Battler applyAbilityHourStartEffects({
+    required Battler owner,
+  }) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.hourStart),
+    );
+    if (activeAbilityIds.isEmpty) return owner;
+
+    var updatedOwner = owner;
+
+    for (final abilityId in activeAbilityIds) {
+      final ability = updatedOwner.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      updatedOwner = effect.onHourStart(
+        owner: updatedOwner,
+        ability: ability,
+      );
+    }
+
+    return updatedOwner.pruneExpiredStatuses();
+  }
+
   Battler receiveDirectDamage({
     required Battler owner,
     required int damage,
