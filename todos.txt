@@ -115,3 +115,17 @@ IDEAS:
 
 -Objetos:
 --Manto del Eclipse: Su bonus de dibujo cambia cada turno entre triángulo y Cuadrado
+
+
+
+
+
+
+////////////////////////////////
+Ok, pues ahora añadamos tags por arquetipo. De momento dejemos una pool de items "generales", que podrán aparecer para todos los arquetipos, normalmente los que tengan menos "identidad" o sus efectos sean más simples(ironSwordItem , guardShieldItem, woodenStickItem, platedJacketItem, sunsteelBladeItem, midnightCloakItem, dawnCharmItem, operativeBlackBoxItem, por decir algunos.). Para cada Arquetipo crearemos una pool específica:
+-Imparable: Normalmente incluye items con quemadura, buffos de Inercia e Inercia(ataque), daño frontal directo
+-Inamovible: Items de curación, barrera, buffs(especialmente los que sean defensivos)
+-Veloz: Items de veneno, debuffs y buffos defensivos
+-Mercante: Items de economía, curación y barrera. 
+
+Para las tiendas, se calcularán los items que pueden salir basándose en la pool general + la pool del arquetipo, filtradas por el criterio de esa tienda. Algunas tiendas saldrán para arquetipos específicos: Tienda de Quemadura solo para Imparable, de Veneno solo para Veloz, de Armaduras nocturna solo para Inamovible. Al Mercante todas las tiendas están disponibles. Podemos realizar esto si hacemos que cada tienda tenga un parámetro que sea algo como "arquetipos posibles". Para estar en la pool de nodos que pueden salir, el arquetipo seleccionado tiene que estar en esa lista de "arquetipos posibles"
