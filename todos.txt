@@ -110,3 +110,6 @@ IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
 -Añadir color a cada buzzword, y que se coloreen automático en textos?
 -Sistema de guardar dibujo en favorito + quick draw?
+
+-Objetos:
+--Manto del Eclipse: Su bonus de dibujo cambia cada turno entre triángulo y Cuadrado

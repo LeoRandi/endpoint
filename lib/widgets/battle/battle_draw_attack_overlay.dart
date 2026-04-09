@@ -8,7 +8,7 @@ const _battleSketchFeedbackLifetime = Duration(seconds: 1);
 const _battleSketchFeedbackGap = Duration(milliseconds: 500);
 const _battleSketchMissAccent = Color(0xFFC178FF);
 const _battleSketchEraserRadius = 18.0;
-const _battleSketchDuration = Duration(seconds: 30);
+const _battleSketchDuration = Duration(seconds: 15);
 
 class BattleDrawAttackOverlay extends StatefulWidget {
   final Battler attacker;
