@@ -54,14 +54,6 @@ class PathNodeService {
       _buildWeightedNodes(dayShopNodes);
   late final List<_WeightedPathNode> _nightShopCandidates =
       _buildWeightedNodes(nightShopNodes);
-  late final double _dayShopTotalWeight = _totalWeight(_dayShopCandidates);
-  late final List<_WeightedPathNode> _rareDayCombatCandidates =
-      _scaleWeightedNodes(
-    _buildWeightedNodes(
-      rareDayCombatNodes.where(_isAllowedDayCombatNode),
-    ),
-    targetTotalWeight: _dayShopTotalWeight,
-  );
   late final List<_WeightedPathNode> _nightCombatCandidates =
       List<_WeightedPathNode>.unmodifiable(
     nightCombatNodes.map(
@@ -131,20 +123,30 @@ class PathNodeService {
   }
 
   List<PathNode> _buildDayNodes(int stageIndex, Battler? player) {
+    final shopCandidates = _weightedShopCandidatesFor(
+      dayShopNodes,
+      player: player,
+    );
+
     return _buildUniqueHourNodes(
-      sideCandidates: _buildDaySideCandidates(player),
-      shopPool: dayShopNodes,
+      sideCandidates: _buildDaySideCandidates(player, shopCandidates),
+      shopCandidates: shopCandidates,
     );
   }
 
   List<PathNode> _buildNightNodes(int stageIndex, Battler? player) {
     if (stageIndex == sunriseStageIndex - 1) {
-      return _buildFinalNightNodes();
+      return _buildFinalNightNodes(player);
     }
 
+    final shopCandidates = _weightedShopCandidatesFor(
+      nightShopNodes,
+      player: player,
+    );
+
     return _buildUniqueHourNodes(
-      sideCandidates: _buildNightSideCandidates(player),
-      shopPool: nightShopNodes,
+      sideCandidates: _buildNightSideCandidates(player, shopCandidates),
+      shopCandidates: shopCandidates,
     );
   }
 
@@ -166,25 +168,38 @@ class PathNodeService {
         );
   }
 
-  List<_WeightedPathNode> _buildDaySideCandidates(Battler? player) {
+  List<_WeightedPathNode> _buildDaySideCandidates(
+    Battler? player,
+    List<_WeightedPathNode> shopCandidates,
+  ) {
+    final shopTotalWeight = _totalWeight(shopCandidates);
     final eventCandidates = _scaleWeightedNodes(
       _buildWeightedNodes(_filterEventNodes(dayEventNodes, player)),
-      targetTotalWeight: _dayShopTotalWeight * _dayEventRelativeWeight,
+      targetTotalWeight: shopTotalWeight * _dayEventRelativeWeight,
+    );
+    final rareDayCombatCandidates = _scaleWeightedNodes(
+      _buildWeightedNodes(
+        rareDayCombatNodes.where(_isAllowedDayCombatNode),
+      ),
+      targetTotalWeight: shopTotalWeight,
     );
 
     return [
-      ..._dayShopCandidates,
+      ...shopCandidates,
       ...eventCandidates,
       _restZoneCandidate,
       _severeMedicationCandidate,
-      ..._rareDayCombatCandidates,
+      ...rareDayCombatCandidates,
     ];
   }
 
-  List<_WeightedPathNode> _buildNightSideCandidates(Battler? player) {
+  List<_WeightedPathNode> _buildNightSideCandidates(
+    Battler? player,
+    List<_WeightedPathNode> shopCandidates,
+  ) {
     return [
       ..._nightCombatCandidates,
-      ..._nightShopCandidates,
+      ...shopCandidates,
       ..._filterEventNodes(nightEventNodes, player).map(
         (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
       ),
@@ -206,6 +221,9 @@ class PathNodeService {
   }
 
   bool _canAppearForPlayer(PathNode node, Battler? player) {
+    if (node is ShopPathNode) {
+      return node.canAppearForArchetype(player?.archetypeId);
+    }
     if (node is! EventPathNode) return true;
 
     return _pathEventService.canAppear(
@@ -214,8 +232,13 @@ class PathNodeService {
     );
   }
 
-  List<PathNode> _buildFinalNightNodes() {
-    final centerNode = _buildCenterShopNode(nightShopNodes);
+  List<PathNode> _buildFinalNightNodes(Battler? player) {
+    final centerNode = _buildCenterShopNode(
+      _weightedShopCandidatesFor(
+        nightShopNodes,
+        player: player,
+      ),
+    );
 
     return [
       restZoneCampNode,
@@ -226,9 +249,9 @@ class PathNodeService {
 
   List<PathNode> _buildUniqueHourNodes({
     required List<_WeightedPathNode> sideCandidates,
-    required List<ShopPathNode> shopPool,
+    required List<_WeightedPathNode> shopCandidates,
   }) {
-    final centerNode = _buildCenterShopNode(shopPool);
+    final centerNode = _buildCenterShopNode(shopCandidates);
     final sideNodes = _pickDistinctWeightedNodes(
       sideCandidates,
       count: 2,
@@ -249,9 +272,9 @@ class PathNodeService {
     ];
   }
 
-  ShopPathNode _buildCenterShopNode(List<ShopPathNode> shopPool) {
+  ShopPathNode _buildCenterShopNode(List<_WeightedPathNode> shopCandidates) {
     final baseNode = _pickWeightedNode(
-      _weightedShopCandidatesFor(shopPool),
+      shopCandidates,
     ) as ShopPathNode;
 
     final shouldApplyPremium = _randomizer.chance(_centerShopPremiumChance);
@@ -276,15 +299,23 @@ class PathNodeService {
   }
 
   List<_WeightedPathNode> _weightedShopCandidatesFor(
-      List<ShopPathNode> shopPool) {
+    List<ShopPathNode> shopPool, {
+    Battler? player,
+  }) {
+    List<_WeightedPathNode> candidates;
     if (identical(shopPool, dayShopNodes)) {
-      return _dayShopCandidates;
-    }
-    if (identical(shopPool, nightShopNodes)) {
-      return _nightShopCandidates;
+      candidates = _dayShopCandidates;
+    } else if (identical(shopPool, nightShopNodes)) {
+      candidates = _nightShopCandidates;
+    } else {
+      candidates = _buildWeightedNodes(shopPool);
     }
 
-    return _buildWeightedNodes(shopPool);
+    return candidates.where((candidate) {
+      final node = candidate.node;
+      return node is ShopPathNode &&
+          node.canAppearForArchetype(player?.archetypeId);
+    }).toList(growable: false);
   }
 
   List<_WeightedPathNode> _scaleWeightedNodes(

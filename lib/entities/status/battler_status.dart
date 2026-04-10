@@ -324,10 +324,6 @@ const _debuffIntoxicacionStatusTags = <EntityTag>[
 const _debuffStatusTags = <EntityTag>[
   EntityTag.debuff,
 ];
-const _debuffBarreraStatusTags = <EntityTag>[
-  EntityTag.debuff,
-  EntityTag.barrera,
-];
 const _buffBarreraStatusTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.barrera,
@@ -691,12 +687,12 @@ class CatalisisCruelStatus extends BattlerStatus {
   }
 }
 
-/// Debuff que reduce Barrera segun los turnos que le queden por delante.
+/// Debuff que aumenta el dano del siguiente ataque recibido y luego se consume.
 class FragilidadStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.fragilidad;
   static const defaultDuration = 3;
 
-  /// Crea una instancia de Fragilidad cuya fuerza sigue la duracion restante.
+  /// Crea una instancia de Fragilidad con dano extra fijo hasta consumirse.
   const FragilidadStatus({
     int remainingTurns = defaultDuration,
     int? value,
@@ -704,40 +700,47 @@ class FragilidadStatus extends BattlerStatus {
           id: statusId,
           name: 'Fragilidad',
           type: BattlerStatusType.debuff,
-          tags: _debuffBarreraStatusTags,
+          tags: _debuffStatusTags,
           hooks: const {
-            BattlerStatusHook.calculatedStatModifier,
+            BattlerStatusHook.incomingDamageModifier,
+            BattlerStatusHook.receiveDamageResolved,
           },
-          icon: Icons.shield_outlined,
+          icon: Icons.flash_on_outlined,
           description:
-              'Reduce la barrera actual en funcion de su duracion restante.',
+              'Aumenta el dano del siguiente ataque recibido y luego se consume.',
           remainingTurns: remainingTurns,
           value: value ?? remainingTurns,
         );
 
   @override
 
-  /// Hace que la reduccion real de barrera coincida con los turnos restantes.
-  int resolveValue(Battler owner) => remainingTurns;
-
-  @override
-
-  /// Anade a la descripcion la reduccion efectiva de barrera.
+  /// Anade a la descripcion el dano extra que recibira el portador.
   String descriptionFor(Battler owner) {
-    return '$description Barrera actual: -${resolved(owner).value}';
+    return '$description Dano extra actual: +${resolved(owner).value}';
   }
 
   @override
 
-  /// Resta barrera al calcular esa stat concreta y nunca baja de cero.
-  int modifyCalculatedStat({
+  /// Aumenta el siguiente dano de ataque que reciba el portador.
+  int modifyIncomingDamage({
     required Battler owner,
-    required BattlerStat stat,
-    required int value,
+    required Battler source,
+    required int damage,
   }) {
-    if (stat != BattlerStat.barrier) return value;
+    return damage + resolved(owner).value;
+  }
 
-    return max(0, value - resolved(owner).value);
+  @override
+
+  /// Consume la Fragilidad justo despues de resolver ese golpe.
+  Battler onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required int damageTaken,
+  }) {
+    if (damageTaken <= 0) return owner;
+
+    return owner.removeStatusInstance(this);
   }
 
   @override
@@ -747,10 +750,9 @@ class FragilidadStatus extends BattlerStatus {
     int? remainingTurns,
     int? value,
   }) {
-    final nextRemainingTurns = remainingTurns ?? this.remainingTurns;
     return FragilidadStatus(
-      remainingTurns: nextRemainingTurns,
-      value: value ?? nextRemainingTurns,
+      remainingTurns: remainingTurns ?? this.remainingTurns,
+      value: value ?? this.value,
     );
   }
 }

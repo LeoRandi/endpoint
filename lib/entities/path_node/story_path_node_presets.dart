@@ -3,6 +3,7 @@ import '../../services/run_randomizer.dart';
 
 /// Arquetipo agil orientado a ataque ligero y economia temprana.
 final velozArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.veloz,
   nodeId: 'archetype_veloz',
   label: 'Veloz',
   tooltip:
@@ -27,6 +28,7 @@ final velozArchetypeNode = ArchetypePathNode(
 
 /// Arquetipo defensivo centrado en vida, barrera y estabilidad.
 final inamovibleArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.inamovible,
   nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
@@ -52,6 +54,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
 
 /// Arquetipo ofensivo que arranca con mas presion de dano.
 final imparableArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.imparable,
   nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
@@ -122,6 +125,7 @@ List<Item> _buildMerchantStartingItems(RunRandomizer randomizer) {
 
 /// Arquetipo economico flexible que empieza con stock aleatorio y caja extra.
 final mercanteArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.mercante,
   nodeId: 'archetype_mercante',
   label: 'Mercante',
   tooltip:
@@ -287,6 +291,9 @@ final emberFoundryNode = ShopPathNode(
   shopTitle: 'FORJA DE ASCUAS',
   shopSubtitle: 'Brasa embotellada, metal caliente y contratos inflamables.',
   stockCriterion: burnShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.imparable,
+  ],
 );
 
 /// Tienda amarilla centrada en herramientas de Intoxicacion.
@@ -302,6 +309,9 @@ final toxinLabNode = ShopPathNode(
   shopTitle: 'LABORATORIO TOXICO',
   shopSubtitle: 'Quimica corrosiva, filtros dudosos y venenos rentables.',
   stockCriterion: poisonShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.veloz,
+  ],
 );
 
 /// Evento verde diurno preparado para futuras mejoras temporales.
@@ -350,6 +360,9 @@ final velvetArmoryNode = ShopPathNode(
   shopTitle: 'VELVET ARMORY',
   shopSubtitle: 'Blindaje elegante para quien espera volver con vida.',
   stockCriterion: barrierShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.inamovible,
+  ],
 );
 
 /// Tienda morada nocturna de alquimia agresiva sin superar el stock azul.

@@ -6,7 +6,7 @@ const calentandoStatus = CalentandoStatus();
 /// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
 const catalisisCruelStatus = CatalisisCruelStatus();
 
-/// Preset rapido de Fragilidad con la duracion base del estado.
+/// Preset rapido de Fragilidad con su dano extra inicial.
 const fragilidadStatus = FragilidadStatus();
 
 /// Preset rapido de Interferencia con su bloqueo corto por defecto.

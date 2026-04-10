@@ -56,11 +56,6 @@ const _ataqueDebuffQuemaduraTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.quemadura,
 ];
-const _ataqueDebuffBarreraTags = <EntityTag>[
-  EntityTag.ataque,
-  EntityTag.debuff,
-  EntityTag.barrera,
-];
 const _barreraDebuffTags = <EntityTag>[
   EntityTag.barrera,
   EntityTag.debuff,
@@ -398,10 +393,10 @@ const pocketJammerItem = Item(
   ),
 );
 
-/// Arma verde orientada a romper barreras de forma estable.
+/// Arma verde orientada a abrir ventanas de dano de forma estable.
 const serratedEdgeItem = Item(
   id: ItemId.serratedEdge,
-  tags: _ataqueDebuffBarreraTags,
+  tags: _ataqueDebuffTags,
   name: 'Sierra Dentada',
   description: '+1 ATK. Al atacar: aplica Fragilidad al enemigo.',
   iconEmoji: '\u2692',

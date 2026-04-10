@@ -11,6 +11,7 @@ class WeaponShopPage extends StatefulWidget {
   final ShopPathNode shop;
   final RunRandomizer randomizer;
   final RunHourPhase phase;
+  final List<Item> stockPool;
 
   const WeaponShopPage({
     super.key,
@@ -18,6 +19,7 @@ class WeaponShopPage extends StatefulWidget {
     required this.shop,
     required this.randomizer,
     required this.phase,
+    this.stockPool = itemPresets,
   });
 
   @override
@@ -35,6 +37,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
       stockCriterion: widget.shop.stockCriterion,
       phase: widget.phase,
       randomizer: widget.randomizer,
+      stockPool: widget.stockPool,
       priceMultiplier: widget.shop.priceMultiplier,
     );
   }

@@ -46,7 +46,7 @@
 -Items
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
---Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo
+[--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
 --Meter al menos 100-120[47/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
@@ -58,6 +58,7 @@
 
 -Tiendas
 [--Mejorar aspecto y diseño]
+--Hacer más visible y llamativo el dinero que tienes/ el income
 --Crear más tiendas diferenciadas(después de añadir los Items)
 
 -Eventos
@@ -72,6 +73,7 @@
 --Códice con todos los items y habilidades descubiertos por el jugador
 
 -General
+--SEGUNDO DÍA
 [--APLICAR NUEVAS FONTS(Ya están importadas en el yaml)]
 [--Sistema de guardado de partida]
 --Volver a la pantalla del menú principal
@@ -85,13 +87,12 @@
 ////
 ARREGLAR:
 -El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
--Fragilidad(-x de barrera) da barrera al enemigo si no la tiene. lo que debe hacer es aumentar el daño del siguiente ataque que reciba
--Mercante: Asegurar que los cambios de stats que muestran en la preview son antes de los items. Para ello sería mejor que los items se randomizasen después de seleccionar el arquetipo
 
 ////
 PROBAR:
 -Interferencia(debuff): impide activar habilidades manuales durante [value] turnos(no stackea, no puede haber dos instancias de este estado a la vez en un personaje).
 -Deuda(debuff): reduce el income a 1 hasta que se cumpla un evento(no stackeable ni repetible, no se puede purgar de formas convencionales. Esto debe quedar explicado en la info del estado).
+-Fragilidad(debuff), lo que debe hacer es aumentar el daño del siguiente ataque que reciba el portador
 
 -Cuchilla de Rescate
 -Malla de Choque
@@ -116,16 +117,4 @@ IDEAS:
 -Objetos:
 --Manto del Eclipse: Su bonus de dibujo cambia cada turno entre triángulo y Cuadrado
 
-
-
-
-
-
 ////////////////////////////////
-Ok, pues ahora añadamos tags por arquetipo. De momento dejemos una pool de items "generales", que podrán aparecer para todos los arquetipos, normalmente los que tengan menos "identidad" o sus efectos sean más simples(ironSwordItem , guardShieldItem, woodenStickItem, platedJacketItem, sunsteelBladeItem, midnightCloakItem, dawnCharmItem, operativeBlackBoxItem, por decir algunos.). Para cada Arquetipo crearemos una pool específica:
--Imparable: Normalmente incluye items con quemadura, buffos de Inercia e Inercia(ataque), daño frontal directo
--Inamovible: Items de curación, barrera, buffs(especialmente los que sean defensivos)
--Veloz: Items de veneno, debuffs y buffos defensivos
--Mercante: Items de economía, curación y barrera. 
-
-Para las tiendas, se calcularán los items que pueden salir basándose en la pool general + la pool del arquetipo, filtradas por el criterio de esa tienda. Algunas tiendas saldrán para arquetipos específicos: Tienda de Quemadura solo para Imparable, de Veneno solo para Veloz, de Armaduras nocturna solo para Inamovible. Al Mercante todas las tiendas están disponibles. Podemos realizar esto si hacemos que cada tienda tenga un parámetro que sea algo como "arquetipos posibles". Para estar en la pool de nodos que pueden salir, el arquetipo seleccionado tiene que estar en esa lista de "arquetipos posibles"

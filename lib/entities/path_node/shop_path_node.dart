@@ -70,6 +70,7 @@ class ShopPathNode extends PathNode {
   final String shopTitle;
   final String shopSubtitle;
   final ShopInventoryCriterion stockCriterion;
+  final List<ArchetypeId> possibleArchetypes;
   final double priceMultiplier;
 
   /// Crea una tienda concreta con su criterio de stock y multiplicador de precio.
@@ -85,6 +86,7 @@ class ShopPathNode extends PathNode {
     required this.shopTitle,
     required this.shopSubtitle,
     required this.stockCriterion,
+    this.possibleArchetypes = const [],
     this.priceMultiplier = 1,
   }) : super.base(
           type: PathNodeType.shop,
@@ -96,6 +98,15 @@ class ShopPathNode extends PathNode {
           accent: accent,
           badgeLabel: badgeLabel,
         );
+
+  /// Indica si la tienda puede aparecer para el arquetipo actual.
+  bool canAppearForArchetype(ArchetypeId? archetypeId) {
+    if (archetypeId == ArchetypeId.mercante) return true;
+    if (possibleArchetypes.isEmpty) return true;
+    if (archetypeId == null) return false;
+
+    return possibleArchetypes.contains(archetypeId);
+  }
 
   /// Clona el nodo cambiando solo el multiplicador para variantes premium o rebajadas.
   ShopPathNode withPriceMultiplier(double multiplier) {
@@ -111,6 +122,7 @@ class ShopPathNode extends PathNode {
       shopTitle: shopTitle,
       shopSubtitle: shopSubtitle,
       stockCriterion: stockCriterion,
+      possibleArchetypes: possibleArchetypes,
       priceMultiplier: multiplier,
     );
   }

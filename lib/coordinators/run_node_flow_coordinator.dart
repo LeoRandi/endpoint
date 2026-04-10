@@ -40,7 +40,7 @@ class RunNodeFlowCoordinator {
         final archetypeNode = node as ArchetypePathNode;
         final projectedPlayer = archetypeNode.applyTo(
           session.player,
-          randomizer: session.randomizer,
+          resolveDynamicStartingItems: false,
         );
         final shouldConfirm = await showEndpointDialog<bool>(
           context: context,
@@ -55,7 +55,12 @@ class RunNodeFlowCoordinator {
           },
         );
         if (shouldConfirm == true) {
-          session.completeArchetypeSelection(projectedPlayer);
+          session.completeArchetypeSelection(
+            archetypeNode.applyTo(
+              session.player,
+              randomizer: session.randomizer,
+            ),
+          );
           return;
         }
 
@@ -71,6 +76,7 @@ class RunNodeFlowCoordinator {
             shop: shopNode,
             randomizer: session.randomizer,
             phase: session.currentHour.phase,
+            stockPool: itemPoolForArchetype(session.player.archetypeId),
           ),
           onCompleted: session.completeWeaponShopVisit,
         );

@@ -1,3 +1,4 @@
+export 'archetype_id.dart';
 export 'entity_tag.dart';
 export 'rarity_tier.dart';
 export 'battler/_exports.dart';

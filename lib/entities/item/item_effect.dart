@@ -752,7 +752,7 @@ class ReboundLensItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera vez que recibes dano cada turno, aplicas Fragilidad durante ${max(1, item.value)} turnos al agresor.';
+    return 'La primera vez que recibes dano cada turno, aplicas Fragilidad (+${max(1, item.value)} dano recibido en el siguiente ataque) al agresor.';
   }
 
   @override
@@ -1657,7 +1657,7 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectKind.conmocion:
         return 'Conmocion (-$resolvedValue dano en el siguiente ataque)';
       case ItemStatusEffectKind.fragilidad:
-        return 'Fragilidad durante $resolvedValue turnos';
+        return 'Fragilidad (+$resolvedValue dano recibido en el siguiente ataque)';
       case ItemStatusEffectKind.inercia:
         return 'Inercia (+$resolvedValue por acumulacion)';
       case ItemStatusEffectKind.inerciaAtaque:
@@ -1724,7 +1724,7 @@ CombatRuntimeFlag _itemCombatFlag(
   ItemCombatFlagKind flag,
 ) {
   return CombatRuntimeFlag.item(
-    flag: flag,
+    itemFlag: flag,
     itemId: item.id,
     itemInstanceId: item.instanceId,
   );

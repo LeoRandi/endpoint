@@ -36,6 +36,10 @@ abstract final class EndpointDomainCodec {
         json['iconEmoji'],
         fallback: defaultPlayerBattler.iconEmoji,
       ),
+      archetypeId: EndpointJsonUtils.parseEnumByName(
+        ArchetypeId.values,
+        json['archetypeId'],
+      ),
       health: EndpointJsonUtils.readInt(
         json['currentHealth'],
         fallback: defaultPlayerBattler.health,
@@ -82,6 +86,7 @@ abstract final class EndpointDomainCodec {
     return {
       'name': battler.name,
       'iconEmoji': battler.iconEmoji,
+      'archetypeId': battler.archetypeId?.name,
       'level': battler.level,
       'experience': battler.experience,
       'displayedExperience': battler.displayedExperience,
@@ -363,7 +368,7 @@ CombatRuntimeFlag? _deserializeCombatFlag(Map<String, dynamic> json) {
   if (itemFlag == null || itemId == null) return null;
 
   return CombatRuntimeFlag.item(
-    flag: itemFlag,
+    itemFlag: itemFlag,
     itemId: itemId,
     itemInstanceId:
         EndpointJsonUtils.readNullableString(json['itemInstanceId']),

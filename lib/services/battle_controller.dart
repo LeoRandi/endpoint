@@ -370,6 +370,7 @@ class BattleController extends ChangeNotifier {
     return Battler(
       name: battler.name,
       iconEmoji: battler.iconEmoji,
+      archetypeId: battler.archetypeId,
       health: battler.health,
       currentBarrier: battler.currentBarrier + safeAmount,
       money: battler.money,

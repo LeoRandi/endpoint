@@ -98,21 +98,19 @@ class CombatRuntimeFlag {
   final String? itemInstanceId;
 
   /// Crea una flag global asociada solo al battler.
-  const CombatRuntimeFlag.battler(BattlerCombatFlag flag)
-      : battlerFlag = flag,
-        itemFlag = null,
+  const CombatRuntimeFlag.battler(this.battlerFlag)
+      : itemFlag = null,
         itemId = null,
         itemInstanceId = null;
 
   /// Crea una flag asociada a un item concreto o a una de sus instancias.
   const CombatRuntimeFlag.item({
-    required ItemCombatFlagKind flag,
-    required ItemId itemId,
-    String? itemInstanceId,
+    required this.itemFlag,
+    required this.itemId,
+    this.itemInstanceId,
   })  : battlerFlag = null,
-        itemFlag = flag,
-        itemId = itemId,
-        itemInstanceId = itemInstanceId;
+        assert(itemFlag != null),
+        assert(itemId != null);
 
   /// Compara dos flags por su identidad tipada y por el item al que pertenezcan.
   @override
@@ -355,6 +353,7 @@ class Battler {
 
   final String name;
   final String iconEmoji;
+  final ArchetypeId? archetypeId;
   final int health;
   final int currentBarrier;
   final int money;
@@ -386,6 +385,7 @@ class Battler {
   const Battler({
     required this.name,
     this.iconEmoji = '\u{1F916}',
+    this.archetypeId,
     required this.health,
     this.currentBarrier = 0,
     this.money = 0,
@@ -1484,6 +1484,8 @@ class Battler {
   Battler copyWith({
     String? name,
     String? iconEmoji,
+    ArchetypeId? archetypeId,
+    bool clearArchetypeId = false,
     int? health,
     int? currentBarrier,
     int? money,
@@ -1517,6 +1519,7 @@ class Battler {
     return _buildResolved(
       name: name ?? this.name,
       iconEmoji: iconEmoji ?? this.iconEmoji,
+      archetypeId: clearArchetypeId ? null : archetypeId ?? this.archetypeId,
       health: max(0, health ?? this.health),
       explicitCurrentBarrier: currentBarrier,
       previousCurrentBarrier: this.currentBarrier,
@@ -1603,6 +1606,7 @@ class Battler {
   static Battler _buildResolved({
     required String name,
     required String iconEmoji,
+    required ArchetypeId? archetypeId,
     required int health,
     required int? explicitCurrentBarrier,
     required int previousCurrentBarrier,
@@ -1627,6 +1631,7 @@ class Battler {
     final candidate = Battler(
       name: name,
       iconEmoji: iconEmoji,
+      archetypeId: archetypeId,
       health: health,
       currentBarrier: seedBarrier,
       money: money,
@@ -1647,12 +1652,11 @@ class Battler {
     final willBeCombatActive = combatFlags.contains(combatActiveFlag);
     final resolvedCurrentBarrier = !willBeCombatActive
         ? 0
-        : explicitCurrentBarrier != null
-            ? explicitCurrentBarrier
-            : wasCombatActive
+        : explicitCurrentBarrier ??
+            (wasCombatActive
                 ? previousCurrentBarrier +
                     (candidate.maxBarrier - previousMaxBarrier)
-                : candidate.maxBarrier;
+                : candidate.maxBarrier);
     final clampedCurrentBarrier = min(
       candidate.maxBarrier,
       max(0, resolvedCurrentBarrier),
@@ -1665,6 +1669,7 @@ class Battler {
     return Battler(
       name: name,
       iconEmoji: iconEmoji,
+      archetypeId: archetypeId,
       health: clampedHealth,
       currentBarrier: clampedCurrentBarrier,
       money: money,

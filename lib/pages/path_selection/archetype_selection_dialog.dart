@@ -218,7 +218,7 @@ class ArchetypeSelectionDialog extends StatelessWidget {
     );
   }
 
-  // La preview reutiliza el mismo resultado que se aplicara al aceptar.
+  // La preview muestra solo cambios base; los items dinamicos se resuelven al aceptar.
   List<_ArchetypeImpactEntry> _buildImpactEntries() {
     final entries = <_ArchetypeImpactEntry>[
       _ArchetypeImpactEntry(

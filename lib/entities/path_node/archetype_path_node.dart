@@ -3,6 +3,7 @@ import '../../services/run_randomizer.dart';
 
 /// Describe un arquetipo inicial que altera stats, economia, items y habilidades del jugador.
 class ArchetypePathNode extends PathNode {
+  final ArchetypeId archetypeId;
   final String playerIconEmoji;
   final List<Item> startingItems;
   final List<Item> Function(RunRandomizer randomizer)? startingItemsBuilder;
@@ -13,6 +14,7 @@ class ArchetypePathNode extends PathNode {
 
   /// Crea un arquetipo inicial con sus bonus base y el loadout que entrega.
   ArchetypePathNode({
+    required this.archetypeId,
     String? nodeId,
     required String label,
     required String tooltip,
@@ -45,15 +47,17 @@ class ArchetypePathNode extends PathNode {
   Battler applyTo(
     Battler player, {
     RunRandomizer? randomizer,
+    bool resolveDynamicStartingItems = true,
   }) {
     final updatedBaseStats = Map<BattlerStat, int>.from(player.baseStats);
-    final resolvedStartingItems = startingItemsBuilder == null
-        ? startingItems
-        : List<Item>.unmodifiable(
-            startingItemsBuilder!(
-              randomizer ?? RunRandomizer(),
-            ),
-          );
+    final resolvedStartingItems =
+        startingItemsBuilder == null || !resolveDynamicStartingItems
+            ? startingItems
+            : List<Item>.unmodifiable(
+                startingItemsBuilder!(
+                  randomizer ?? RunRandomizer(),
+                ),
+              );
 
     for (final entry in baseStatModifiers.entries) {
       updatedBaseStats[entry.key] = max(
@@ -63,6 +67,7 @@ class ArchetypePathNode extends PathNode {
     }
 
     var updatedPlayer = player.copyWith(
+      archetypeId: archetypeId,
       iconEmoji: playerIconEmoji,
       money: player.money + moneyModifier,
       income: player.baseIncome + incomeModifier,
