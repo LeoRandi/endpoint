@@ -816,3 +816,14 @@ const cashflowAbility = BattlerAbility(
   effect: CashflowAbilityEffect(),
   isImplemented: true,
 );
+
+/// Pool canonica de habilidades que pueden usarse como recompensa o mutacion.
+const abilityPresets = <BattlerAbility>[
+  criticalScannerAbility,
+  weaknessHunterAbility,
+  ghostMeshAbility,
+  cruelCatalysisAbility,
+  venousOverloadAbility,
+  hardResetAbility,
+  cashflowAbility,
+];

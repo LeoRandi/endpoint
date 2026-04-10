@@ -42,31 +42,35 @@ class _PathEventPageState extends State<PathEventPage> {
       accent: widget.node.accent,
       emoji: widget.node.iconEmoji,
       title: widget.node.eventTitle,
-      content: EndpointPanel(
-        accent: widget.node.accent,
-        backgroundColor: EndpointPalette.panelBackgroundSoft,
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        child: Column(
-          children: [
-            EndpointText(
-              widget.node.description,
-              textAlign: TextAlign.center,
-              maxLines: null,
-              style: textMedium.copyWith(
-                color: EndpointPalette.softForeground.withAlpha(214),
-              ),
+      content: _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
+    return EndpointPanel(
+      accent: widget.node.accent,
+      backgroundColor: EndpointPalette.panelBackgroundSoft,
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      child: Column(
+        children: [
+          EndpointText(
+            widget.node.description,
+            textAlign: TextAlign.center,
+            maxLines: null,
+            style: textMedium.copyWith(
+              color: EndpointPalette.softForeground.withAlpha(214),
             ),
-            const SizedBox(height: 8),
-            EndpointText(
-              _visitResult.outcomeText,
-              textAlign: TextAlign.center,
-              maxLines: null,
-              style: textMediumBold.copyWith(
-                color: widget.node.accent,
-              ),
+          ),
+          const SizedBox(height: 8),
+          EndpointText(
+            _visitResult.outcomeText,
+            textAlign: TextAlign.center,
+            maxLines: null,
+            style: textMediumBold.copyWith(
+              color: widget.node.accent,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

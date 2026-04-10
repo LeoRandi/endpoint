@@ -4,6 +4,7 @@ import '../_imports.dart';
 enum PathEventId {
   shadyTechnosurgeon,
   afterHoursTechnosurgeon,
+  blackTechnoMarket,
   debtCollection,
 }
 

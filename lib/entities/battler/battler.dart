@@ -1210,6 +1210,23 @@ class Battler {
     );
   }
 
+  /// Cambia una habilidad concreta por otra, manteniendo el orden visible.
+  Battler replaceAbility({
+    required BattlerAbility currentAbility,
+    required BattlerAbility replacementAbility,
+  }) {
+    final updatedAbilities = List<BattlerAbility>.from(abilities);
+    final existingIndex = updatedAbilities.indexWhere(
+      (activeAbility) => activeAbility.id == currentAbility.id,
+    );
+    if (existingIndex < 0) return addAbility(replacementAbility);
+
+    updatedAbilities[existingIndex] = replacementAbility.resetState();
+    return copyWith(
+      abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
+    );
+  }
+
   /// Resetea solo las habilidades manuales que pertenecen al contexto indicado.
   Battler resetAbilitiesForContext(
     BattlerAbilityActivationContext screenContext,

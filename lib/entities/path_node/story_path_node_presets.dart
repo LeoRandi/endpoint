@@ -327,9 +327,25 @@ final shadyTechnosurgeonNode = EventPathNode(
   showTitle: 'Shady Technosurgeon',
   eventTitle: 'SHADY TECHNOSURGEON',
   description:
-      'Un technosurgeon clandestino examina tus implantes y promete una mejora fugaz.',
-  outcomeText:
-      'Por ahora no aplica nada, pero la escena queda lista para efectos temporales.',
+      'Un technosurgeon clandestino ofrece reciclar una habilidad en un protocolo de tier superior.',
+  outcomeText: 'Elige una habilidad para someterla a una mutacion controlada.',
+);
+
+/// Mercado clandestino de habilidades con precio segun tier ofertado.
+final blackTechnoMarketNode = EventPathNode(
+  id: PathEventId.blackTechnoMarket,
+  nodeId: 'event_black_techno_market',
+  label: 'Black techno-market',
+  tooltip: 'Tres habilidades pirateadas se venden por tier',
+  iconEmoji: '\u{1F578}',
+  rarity: RarityTier.purple,
+  accent: RarityTier.purple.accent,
+  badgeLabel: 'MERCADO',
+  showTitle: 'Black techno-market',
+  eventTitle: 'BLACK TECHNO-MARKET',
+  description:
+      'Tres orbes de habilidad aleatorios orbitan sobre la mesa. Puedes comprar uno pagando 5C por tier.',
+  outcomeText: 'Elige una habilidad y paga su coste para integrarla.',
 );
 
 /// Tienda morada nocturna centrada en armas mas agresivas.
@@ -425,9 +441,8 @@ final afterHoursTechnosurgeonNode = EventPathNode(
   showTitle: 'Technosurgeon Nocturno',
   eventTitle: 'TECHNOSURGEON NOCTURNO',
   description:
-      'Las luces de neon ocultan a un technosurgeon que ofrece un injerto express.',
-  outcomeText:
-      'Por ahora no altera tus estadisticas.', // TODO: aplicar efectos temporales nocturnos.'
+      'Las luces de neon ocultan a un technosurgeon que cambia una habilidad por otra de tier superior.',
+  outcomeText: 'Elige una habilidad para someterla a una mutacion controlada.',
 );
 
 /// Evento azul condicionado por Deuda que intenta cobrar la cuota pendiente.
@@ -499,6 +514,7 @@ final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
 /// Eventos candidatos para el tramo diurno.
 final List<EventPathNode> dayEventNodes = List.unmodifiable([
   shadyTechnosurgeonNode,
+  blackTechnoMarketNode,
   debtCollectionNode,
 ]);
 
@@ -517,6 +533,7 @@ final List<ShopPathNode> nightShopNodes = List.unmodifiable([
 /// Eventos candidatos para la noche, incluida la deuda si aplica.
 final List<EventPathNode> nightEventNodes = List.unmodifiable([
   afterHoursTechnosurgeonNode,
+  blackTechnoMarketNode,
   shadyTechnosurgeonNode,
   debtCollectionNode,
 ]);
