@@ -6,6 +6,43 @@ const _shopEquippedTileExtent = 58.0;
 const _shopEquippedTileHeight = 70.0;
 const _shopEquippedEmojiSize = 15.0;
 
+EndpointScenePreset _buildShopScenePreset({
+  required Color accent,
+  required Color foreground,
+  required Color mutedForeground,
+  required Color panelBackground,
+}) {
+  return EndpointScenePreset(
+    accent: accent,
+    foreground: foreground,
+    mutedForeground: mutedForeground,
+    background: EndpointGradients.shop(accent),
+    panelBackground: panelBackground,
+    closeButtonBackground: panelBackground,
+    viewportPadding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+  );
+}
+
+EndpointSectionPreset _buildShopSectionPreset({
+  required Color accent,
+  required Color foreground,
+  required Color mutedForeground,
+  required Color panelBackground,
+  required double glowOpacity,
+}) {
+  return EndpointSectionPreset(
+    accent: accent,
+    foreground: foreground,
+    mutedForeground: mutedForeground,
+    backgroundColor: panelBackground,
+    padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+    borderRadius: 16,
+    glowOpacity: glowOpacity,
+    blurRadius: 20,
+    spreadRadius: 2,
+  );
+}
+
 class WeaponShopPage extends StatefulWidget {
   final Battler player;
   final ShopPathNode shop;
@@ -171,7 +208,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _closeShop();
       },
@@ -182,264 +219,214 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
           final stock = _controller.stock;
           final accent = shop.accent;
           final foreground = EndpointPalette.soften(accent);
+          final mutedForeground = EndpointPalette.softForeground.withAlpha(209);
           final panelBackground = EndpointPalette.blend(
             EndpointPalette.panelBackgroundGold,
             accent,
             0.08,
           );
+          final scenePreset = _buildShopScenePreset(
+            accent: accent,
+            foreground: foreground,
+            mutedForeground: mutedForeground,
+            panelBackground: panelBackground,
+          );
+          final stockSectionPreset = _buildShopSectionPreset(
+            accent: accent,
+            foreground: foreground,
+            mutedForeground: mutedForeground,
+            panelBackground: panelBackground,
+            glowOpacity: 0.08,
+          );
+          final inventorySectionPreset = _buildShopSectionPreset(
+            accent: accent,
+            foreground: foreground,
+            mutedForeground: mutedForeground,
+            panelBackground: panelBackground,
+            glowOpacity: 0.06,
+          );
 
           return Scaffold(
             body: NodeSceneWrapper(
               showTitle: shop.showTitle,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: EndpointGradients.shop(accent),
-                ),
-                child: Stack(
-                  fit: StackFit.expand,
+              child: EndpointSceneLayout(
+                preset: scenePreset,
+                onClose: _closeShop,
+                closeTooltip: 'Salir de la tienda',
+                backdrop: _ShopBackdrop(accent: accent),
+                child: Column(
                   children: [
-                    _ShopBackdrop(accent: accent),
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            width: 118,
+                            child: _ShopInfoColumn(
+                              shop: shop,
+                              accent: accent,
+                              foreground: foreground,
+                              mutedForeground: mutedForeground,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: EndpointSectionPanel(
+                              preset: stockSectionPreset,
+                              title: 'OBJETOS DISPONIBLES',
+                              caption: '${stock.length} EN TIENDA',
+                              titleStyle: textMediumBold.copyWith(
+                                letterSpacing: 1.6,
+                              ),
+                              captionStyle: textSmallBold.copyWith(
+                                fontSize: 10,
+                                letterSpacing: 1.3,
+                              ),
+                              mainAxisSize: MainAxisSize.max,
+                              child: Expanded(
+                                child: stock.isEmpty
+                                    ? Center(
+                                        child: EndpointText(
+                                          'No queda mercancia a la venta.',
+                                          textAlign: TextAlign.center,
+                                          maxLines: null,
+                                          style: textSmallBold.copyWith(
+                                            color: Colors.white.withAlpha(184),
+                                          ),
+                                        ),
+                                      )
+                                    : ListView.separated(
+                                        itemCount: stock.length,
+                                        itemBuilder: (context, index) {
+                                          final item = stock[index];
+                                          return _ShopOfferCard(
+                                            item: item,
+                                            foreground: foreground,
+                                            price: _controller.purchasePriceFor(
+                                              item,
+                                            ),
+                                            statusLabel:
+                                                _controller.stockStatusLabelFor(
+                                              item,
+                                            ),
+                                            onPressed: () =>
+                                                _openStockItemDetails(item),
+                                          );
+                                        },
+                                        separatorBuilder: (context, index) =>
+                                            const SizedBox(height: 10),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: EndpointSectionPanel(
+                        preset: inventorySectionPreset,
+                        mainAxisSize: MainAxisSize.max,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: EndpointSceneCloseButton(
-                                onPressed: _closeShop,
-                                tooltip: 'Salir de la tienda',
-                                accent: accent,
-                                foregroundColor: foreground,
-                                backgroundColor: panelBackground,
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final header = EndpointSectionHeader(
+                                  title: 'INVENTARIO',
+                                  caption:
+                                      '${player.inventoryItems.length} OBJETOS',
+                                  foreground: foreground,
+                                  accent: accent,
+                                  titleStyle: textMediumBold.copyWith(
+                                    letterSpacing: 1.6,
+                                  ),
+                                  captionStyle: textSmallBold.copyWith(
+                                    fontSize: 10,
+                                    letterSpacing: 1.3,
+                                  ),
+                                );
+                                final economyStrip = _ShopEconomyStrip(
+                                  money: player.money,
+                                  income: player.income,
+                                );
+
+                                if (constraints.maxWidth < 420) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      header,
+                                      const SizedBox(height: 10),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: economyStrip,
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: header),
+                                    const SizedBox(width: 12),
+                                    economyStrip,
+                                  ],
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            Center(
+                              child: EndpointEquipmentSlotsStrip(
+                                battler: player,
+                                layout: EndpointEquipmentLayout.standard,
+                                tileExtent: _shopEquippedTileExtent,
+                                tileHeight: _shopEquippedTileHeight,
+                                emojiSize: _shopEquippedEmojiSize,
+                                spacing: 6,
+                                borderColor: accent.withAlpha(112),
+                                backgroundColor:
+                                    EndpointPalette.controlBackground,
+                                textColor: foreground,
+                                onItemPressed: _openEquippedItemDetails,
                               ),
                             ),
                             const SizedBox(height: 12),
                             Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        SizedBox(
-                                          width: 118,
-                                          child: _ShopInfoColumn(
-                                            shop: shop,
-                                            accent: accent,
-                                            foreground: foreground,
-                                          ),
+                              child: player.inventoryItems.isEmpty
+                                  ? Center(
+                                      child: EndpointText(
+                                        'No llevas ningun objeto sin equipar.',
+                                        textAlign: TextAlign.center,
+                                        maxLines: null,
+                                        style: textSmallBold.copyWith(
+                                          color: Colors.white.withAlpha(184),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: EndpointPanel(
-                                            accent: accent,
-                                            backgroundColor: panelBackground,
-                                            glowOpacity: 0.08,
-                                            padding: const EdgeInsets.fromLTRB(
-                                                8, 8, 8, 8),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                _ShopSectionHeader(
-                                                  title: 'OBJETOS DISPONIBLES',
-                                                  caption:
-                                                      '${stock.length} EN TIENDA',
-                                                  accent: accent,
-                                                  foreground: foreground,
-                                                ),
-                                                const SizedBox(height: 10),
-                                                Expanded(
-                                                  child: stock.isEmpty
-                                                      ? Center(
-                                                          child: EndpointText(
-                                                            'No queda mercancia a la venta.',
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            maxLines: null,
-                                                            style: textSmallBold
-                                                                .copyWith(
-                                                              color: Colors
-                                                                  .white
-                                                                  .withAlpha(
-                                                                184,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        )
-                                                      : ListView.separated(
-                                                          itemCount:
-                                                              stock.length,
-                                                          itemBuilder:
-                                                              (context, index) {
-                                                            final item =
-                                                                stock[index];
-                                                            return _ShopOfferCard(
-                                                              item: item,
-                                                              foreground:
-                                                                  foreground,
-                                                              price: _controller
-                                                                  .purchasePriceFor(
-                                                                item,
-                                                              ),
-                                                              statusLabel:
-                                                                  _controller
-                                                                      .stockStatusLabelFor(
-                                                                item,
-                                                              ),
-                                                              onPressed: () =>
-                                                                  _openStockItemDetails(
-                                                                item,
-                                                              ),
-                                                            );
-                                                          },
-                                                          separatorBuilder:
-                                                              (context,
-                                                                      index) =>
-                                                                  const SizedBox(
-                                                            height: 10,
-                                                          ),
-                                                        ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Expanded(
-                                    child: EndpointPanel(
-                                      accent: accent,
-                                      backgroundColor: panelBackground,
-                                      glowOpacity: 0.06,
-                                      padding:
-                                          const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          LayoutBuilder(
-                                            builder: (context, constraints) {
-                                              final isCompact =
-                                                  constraints.maxWidth < 420;
-                                              final infoColumn = Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  _ShopSectionHeader(
-                                                    title: 'INVENTARIO',
-                                                    caption:
-                                                        '${player.inventoryItems.length} OBJETOS',
-                                                    accent: accent,
-                                                    foreground: foreground,
-                                                  ),
-                                                ],
-                                              );
-
-                                              if (isCompact) {
-                                                return Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    infoColumn,
-                                                    const SizedBox(height: 10),
-                                                    _ShopEconomyStrip(
-                                                      money: player.money,
-                                                      income: player.income,
-                                                    ),
-                                                  ],
-                                                );
-                                              }
-
-                                              return Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Expanded(child: infoColumn),
-                                                  const SizedBox(width: 12),
-                                                  _ShopEconomyStrip(
-                                                    money: player.money,
-                                                    income: player.income,
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                          const SizedBox(height: 10),
-                                          Center(
-                                            child: EndpointEquipmentSlotsStrip(
-                                              battler: player,
-                                              layout: EndpointEquipmentLayout
-                                                  .standard,
-                                              tileExtent:
-                                                  _shopEquippedTileExtent,
-                                              tileHeight:
-                                                  _shopEquippedTileHeight,
-                                              emojiSize: _shopEquippedEmojiSize,
-                                              spacing: 6,
-                                              borderColor:
-                                                  accent.withAlpha(112),
-                                              backgroundColor: EndpointPalette
-                                                  .controlBackground,
-                                              textColor: foreground,
-                                              onItemPressed:
-                                                  _openEquippedItemDetails,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12),
-                                          Expanded(
-                                            child: player.inventoryItems.isEmpty
-                                                ? Center(
-                                                    child: EndpointText(
-                                                      'No llevas ningun objeto sin equipar.',
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      maxLines: null,
-                                                      style: textSmallBold
-                                                          .copyWith(
-                                                        color: Colors.white
-                                                            .withAlpha(184),
-                                                      ),
-                                                    ),
-                                                  )
-                                                : GridView.builder(
-                                                    itemCount: player
-                                                        .inventoryItems.length,
-                                                    gridDelegate:
-                                                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                                                      maxCrossAxisExtent:
-                                                          _shopInventoryTileExtent,
-                                                      crossAxisSpacing: 8,
-                                                      mainAxisSpacing: 8,
-                                                      mainAxisExtent:
-                                                          _shopInventoryTileHeight,
-                                                    ),
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      final item =
-                                                          player.inventoryItems[
-                                                              index];
-
-                                                      return EndpointInventoryItemTile(
-                                                        item: item,
-                                                        onPressed: () =>
-                                                            _openInventoryItemDetails(
-                                                          item,
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
-                                          ),
-                                        ],
                                       ),
+                                    )
+                                  : GridView.builder(
+                                      itemCount: player.inventoryItems.length,
+                                      gridDelegate:
+                                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                                        maxCrossAxisExtent:
+                                            _shopInventoryTileExtent,
+                                        crossAxisSpacing: 8,
+                                        mainAxisSpacing: 8,
+                                        mainAxisExtent:
+                                            _shopInventoryTileHeight,
+                                      ),
+                                      itemBuilder: (context, index) {
+                                        final item =
+                                            player.inventoryItems[index];
+
+                                        return EndpointInventoryItemTile(
+                                          item: item,
+                                          onPressed: () =>
+                                              _openInventoryItemDetails(item),
+                                        );
+                                      },
                                     ),
-                                  ),
-                                ],
-                              ),
                             ),
                           ],
                         ),
@@ -460,11 +447,13 @@ class _ShopInfoColumn extends StatelessWidget {
   final ShopPathNode shop;
   final Color accent;
   final Color foreground;
+  final Color mutedForeground;
 
   const _ShopInfoColumn({
     required this.shop,
     required this.accent,
     required this.foreground,
+    required this.mutedForeground,
   });
 
   @override
@@ -482,22 +471,14 @@ class _ShopInfoColumn extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          EndpointText(
-            shop.shopTitle,
-            maxLines: null,
-            style: textMediumBold.copyWith(
-              color: foreground,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          EndpointText(
-            shop.shopSubtitle,
-            maxLines: null,
-            style: textMedium.copyWith(
-              color: EndpointPalette.softForeground.withAlpha(209),
-              fontSize: 13,
-            ),
+          EndpointSceneHeader(
+            title: shop.shopTitle,
+            description: shop.shopSubtitle,
+            foreground: foreground,
+            descriptionColor: mutedForeground,
+            titleStyle: textMediumBold.copyWith(letterSpacing: 1.2),
+            descriptionStyle: textMedium.copyWith(fontSize: 13),
+            spacing: 8,
           ),
         ],
       ),
@@ -642,45 +623,6 @@ class _ShopOfferLead extends StatelessWidget {
   }
 }
 
-class _ShopSectionHeader extends StatelessWidget {
-  final String title;
-  final String caption;
-  final Color accent;
-  final Color foreground;
-
-  const _ShopSectionHeader({
-    required this.title,
-    required this.caption,
-    required this.accent,
-    required this.foreground,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: EndpointText(
-            title,
-            style: textMediumBold.copyWith(
-              color: foreground,
-              letterSpacing: 1.6,
-            ),
-          ),
-        ),
-        EndpointText(
-          caption,
-          style: textSmallBold.copyWith(
-            color: accent,
-            fontSize: 10,
-            letterSpacing: 1.3,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _ShopEconomyStrip extends StatelessWidget {
   final int money;
   final int income;
@@ -692,10 +634,8 @@ class _ShopEconomyStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
+    return EndpointSceneActionWrap(
       alignment: WrapAlignment.end,
-      spacing: 8,
-      runSpacing: 8,
       children: [
         EndpointValueChip(
           icon: Icons.monetization_on_rounded,

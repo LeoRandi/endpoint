@@ -1,5 +1,26 @@
 import '../_imports.dart';
 
+EndpointSectionPreset _buildBattlePanelPreset(
+  Color accent, {
+  double borderRadius = 10,
+  double glowOpacity = 0,
+  double blurRadius = 16,
+  double spreadRadius = 1,
+  EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(6, 4, 6, 4),
+}) {
+  return EndpointSectionPreset(
+    accent: accent,
+    foreground: EndpointPalette.softForeground,
+    mutedForeground: EndpointPalette.softForeground.withAlpha(214),
+    backgroundColor: EndpointPalette.panelBackgroundBattle,
+    padding: padding,
+    borderRadius: borderRadius,
+    glowOpacity: glowOpacity,
+    blurRadius: blurRadius,
+    spreadRadius: spreadRadius,
+  );
+}
+
 class BattlePage extends StatefulWidget {
   final Battler enemy;
   final Battler player;
@@ -471,22 +492,21 @@ class _BattleSide extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                EndpointText(
-                  title.toUpperCase(),
-                  style: textTitleSmallBold.copyWith(
-                    color: accent,
+                EndpointSceneHeader(
+                  title: title.toUpperCase(),
+                  description: subtitle,
+                  foreground: accent,
+                  descriptionColor:
+                      EndpointPalette.softForeground.withAlpha(184),
+                  titleStyle: textTitleSmallBold.copyWith(
                     fontSize: 13,
                     letterSpacing: 2,
                   ),
-                ),
-                const SizedBox(height: 2),
-                EndpointText(
-                  subtitle,
-                  style: textSmallBold.copyWith(
-                    color: EndpointPalette.softForeground.withAlpha(184),
+                  descriptionStyle: textSmallBold.copyWith(
                     fontSize: 12,
                     letterSpacing: 1,
                   ),
+                  spacing: 2,
                 ),
                 const SizedBox(height: 4),
                 Expanded(child: child),
@@ -522,37 +542,26 @@ class _TurnBanner extends StatelessWidget {
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 240),
-      child: EndpointPanel(
-        accent: accent,
-        backgroundColor: EndpointPalette.panelBackgroundBattle,
-        borderRadius: 10,
-        glowOpacity: 0.04,
-        blurRadius: 16,
-        spreadRadius: 1,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            EndpointText(
-              title,
-              textAlign: TextAlign.center,
-              style: textTitleSmallBold.copyWith(
-                color: accent,
-                fontSize: 12,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            EndpointText(
-              description,
-              textAlign: TextAlign.center,
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withAlpha(214),
-                fontSize: 11,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+      child: EndpointSectionPanel(
+        preset: _buildBattlePanelPreset(
+          accent,
+          glowOpacity: 0.04,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        ),
+        child: EndpointSceneHeader(
+          title: title,
+          description: description,
+          foreground: accent,
+          descriptionColor: EndpointPalette.softForeground.withAlpha(214),
+          titleStyle: textTitleSmallBold.copyWith(
+            fontSize: 12,
+            letterSpacing: 1.5,
+          ),
+          descriptionStyle: textSmallBold.copyWith(
+            fontSize: 11,
+            letterSpacing: 0.5,
+          ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -791,12 +800,8 @@ class _BattleStatusBar extends StatelessWidget {
     return Align(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 300),
-        child: EndpointPanel(
-          accent: accent,
-          backgroundColor: EndpointPalette.panelBackgroundBattle,
-          borderRadius: 10,
-          glowOpacity: 0,
-          padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+        child: EndpointSectionPanel(
+          preset: _buildBattlePanelPreset(accent),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: mirrorHorizontally
@@ -1025,12 +1030,13 @@ class _BattleSpriteDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EndpointPanel(
-      accent: accent,
-      backgroundColor: EndpointPalette.panelBackgroundBattle,
-      borderRadius: 12,
-      glowOpacity: 0.06,
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+    return EndpointSectionPanel(
+      preset: _buildBattlePanelPreset(
+        accent,
+        borderRadius: 12,
+        glowOpacity: 0.06,
+        padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

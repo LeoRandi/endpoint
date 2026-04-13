@@ -17,6 +17,7 @@ export "endpoint_overlay_scaffold.dart";
 export "endpoint_panel.dart";
 export "endpoint_scene_route.dart";
 export "endpoint_scene_close_button.dart";
+export "endpoint_scene_preset.dart";
 export "endpoint_status_badges.dart";
 export "endpoint_tag_pill_marquee.dart";
 export "endpoint_text.dart";

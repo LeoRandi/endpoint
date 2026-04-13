@@ -41,22 +41,15 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       const OperativeSketchRecognitionHelper();
   final BattleDrawingBonusResolver _bonusResolver =
       const BattleDrawingBonusResolver();
-  final List<_BattleSketchStroke> _strokes = <_BattleSketchStroke>[];
-  late final List<_BattleSketchNoiseDot> _noiseDots = _buildNoiseDots();
+  late final EndpointSketchCanvasController _sketchController;
+  late final EndpointSketchFeedbackController _feedbackController;
+  late final List<EndpointSketchNoiseDot> _noiseDots;
   late final AnimationController _timerController = AnimationController(
     vsync: this,
     duration: _battleSketchDuration,
   )..addStatusListener(_handleTimerStatus);
 
-  Timer? _feedbackTimer;
-  _BattleSketchFeedback? _feedback;
   Size? _canvasSize;
-  Color _selectedBrushColor = _brushColors.first;
-  _BattleSketchToolMode _toolMode = _BattleSketchToolMode.paint;
-  int _feedbackVersion = 0;
-  int _nextStrokeId = 0;
-  int? _activeStrokeId;
-  Offset? _lastDragPosition;
   bool _isSubmitting = false;
   OperativeSketchRecognitionResult _lastRecognitionResult =
       _emptyRecognitionResult;
@@ -66,7 +59,25 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   @override
   void initState() {
     super.initState();
+    _sketchController = EndpointSketchCanvasController(
+      initialBrushColor: _brushColors.first,
+      eraserRadius: _battleSketchEraserRadius,
+    );
+    _feedbackController = EndpointSketchFeedbackController(
+      lifetime: _battleSketchFeedbackLifetime,
+      gap: _battleSketchFeedbackGap,
+    )..addListener(_handleFeedbackChanged);
+    _noiseDots = buildEndpointSketchNoiseDots(
+      seed: _battleSketchNoiseSeed,
+      count: 260,
+      radiusDelta: 1.3,
+    );
     _timerController.forward();
+  }
+
+  void _handleFeedbackChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _handleTimerStatus(AnimationStatus status) {
@@ -75,91 +86,55 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   }
 
   void _handlePanStart(DragStartDetails details) {
-    _dismissFeedback();
+    _feedbackController.dismiss();
     _invalidatePreview();
-    _lastDragPosition = details.localPosition;
-    if (_toolMode == _BattleSketchToolMode.erase) {
-      _eraseBetween(details.localPosition, details.localPosition);
-      return;
+    if (_sketchController.handlePanStart(details.localPosition)) {
+      setState(() {});
     }
-
-    final stroke = _BattleSketchStroke(
-      id: _nextStrokeId++,
-      color: _selectedBrushColor,
-      points: <Offset>[details.localPosition],
-    );
-    setState(() {
-      _strokes.add(stroke);
-      _activeStrokeId = stroke.id;
-    });
   }
 
   void _handlePanUpdate(DragUpdateDetails details) {
-    if (_toolMode == _BattleSketchToolMode.erase) {
-      final start = _lastDragPosition ?? details.localPosition;
-      _eraseBetween(start, details.localPosition);
-      _lastDragPosition = details.localPosition;
-      return;
+    final didChange = _sketchController.handlePanUpdate(details.localPosition);
+    if (!didChange) return;
+
+    if (_sketchController.toolMode == EndpointSketchToolMode.erase) {
+      _invalidatePreview();
     }
-
-    final activeStrokeId = _activeStrokeId;
-    if (activeStrokeId == null) return;
-
-    final strokeIndex = _strokes.indexWhere(
-      (stroke) => stroke.id == activeStrokeId,
-    );
-    if (strokeIndex < 0) return;
-
-    final activeStroke = _strokes[strokeIndex];
-    final updatedPoints = List<Offset>.from(activeStroke.points)
-      ..add(details.localPosition);
-    setState(() {
-      _strokes[strokeIndex] = activeStroke.copyWith(points: updatedPoints);
-    });
+    setState(() {});
   }
 
   void _handlePanEnd(DragEndDetails details) {
-    _lastDragPosition = null;
-    _activeStrokeId = null;
+    _sketchController.handlePanEnd();
   }
 
   void _clearStrokes() {
-    if (_strokes.isEmpty) return;
-    _dismissFeedback();
-    setState(() {
-      _strokes.clear();
-      _activeStrokeId = null;
-    });
+    if (!_sketchController.hasStrokes) return;
+    _feedbackController.dismiss();
+    if (_sketchController.clear()) {
+      setState(() {});
+    }
     _invalidatePreview();
   }
 
   void _undoLastStroke() {
-    if (_strokes.isEmpty) return;
-    _dismissFeedback();
-    setState(() {
-      _strokes.removeLast();
-      _activeStrokeId = null;
-    });
+    if (!_sketchController.hasStrokes) return;
+    _feedbackController.dismiss();
+    if (_sketchController.undoLastStroke()) {
+      setState(() {});
+    }
     _invalidatePreview();
   }
 
   void _selectBrushColor(Color color) {
-    if (_selectedBrushColor == color &&
-        _toolMode == _BattleSketchToolMode.paint) {
-      return;
+    if (_sketchController.selectBrushColor(color)) {
+      setState(() {});
     }
-    setState(() {
-      _selectedBrushColor = color;
-      _toolMode = _BattleSketchToolMode.paint;
-    });
   }
 
   void _toggleToolMode() {
-    setState(() {
-      _toolMode = _toolMode == _BattleSketchToolMode.paint
-          ? _BattleSketchToolMode.erase
-          : _BattleSketchToolMode.paint;
-    });
+    if (_sketchController.toggleToolMode()) {
+      setState(() {});
+    }
   }
 
   void _invalidatePreview() {
@@ -172,102 +147,6 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       _lastRecognitionResult = _emptyRecognitionResult;
       _lastBonusResolution = const BattleDrawingBonusResolution();
     });
-  }
-
-  bool _eraseBetween(Offset start, Offset end) {
-    if (_strokes.isEmpty) return false;
-
-    final updatedStrokes = <_BattleSketchStroke>[];
-    var didChange = false;
-
-    for (final stroke in _strokes) {
-      final remainingSegments = _eraseStrokeSegment(
-        stroke: stroke,
-        start: start,
-        end: end,
-      );
-      final strokeWasChanged = remainingSegments.isEmpty ||
-          remainingSegments.length != 1 ||
-          remainingSegments.first.id != stroke.id;
-      if (strokeWasChanged) {
-        didChange = true;
-      }
-      updatedStrokes.addAll(remainingSegments);
-    }
-
-    if (!didChange) return false;
-
-    setState(() {
-      _strokes
-        ..clear()
-        ..addAll(updatedStrokes);
-    });
-    _invalidatePreview();
-    return true;
-  }
-
-  List<_BattleSketchStroke> _eraseStrokeSegment({
-    required _BattleSketchStroke stroke,
-    required Offset start,
-    required Offset end,
-  }) {
-    if (stroke.points.isEmpty) return const <_BattleSketchStroke>[];
-
-    final keptPointGroups = <List<Offset>>[];
-    var currentGroup = <Offset>[];
-    var touched = false;
-
-    for (final point in stroke.points) {
-      final shouldErase =
-          _distanceToSegment(point, start, end) <= _battleSketchEraserRadius;
-      if (shouldErase) {
-        touched = true;
-        if (currentGroup.isNotEmpty) {
-          keptPointGroups.add(List<Offset>.from(currentGroup));
-          currentGroup = <Offset>[];
-        }
-        continue;
-      }
-
-      currentGroup.add(point);
-    }
-
-    if (currentGroup.isNotEmpty) {
-      keptPointGroups.add(List<Offset>.from(currentGroup));
-    }
-
-    if (!touched) {
-      return <_BattleSketchStroke>[stroke];
-    }
-
-    return keptPointGroups
-        .map(
-          (points) => _BattleSketchStroke(
-            id: _nextStrokeId++,
-            color: stroke.color,
-            points: points,
-          ),
-        )
-        .toList(growable: false);
-  }
-
-  double _distanceToSegment(Offset point, Offset start, Offset end) {
-    final segment = end - start;
-    final segmentLengthSquared =
-        (segment.dx * segment.dx) + (segment.dy * segment.dy);
-    if (segmentLengthSquared == 0) {
-      return (point - start).distance;
-    }
-
-    final projection = (((point.dx - start.dx) * segment.dx) +
-            ((point.dy - start.dy) * segment.dy)) /
-        segmentLengthSquared;
-    final clampedProjection = projection.clamp(0.0, 1.0).toDouble();
-    final closestPoint = Offset(
-      start.dx + (segment.dx * clampedProjection),
-      start.dy + (segment.dy * clampedProjection),
-    );
-    return (point - closestPoint).distance;
   }
 
   void _handleCheckPressed() {
@@ -294,10 +173,10 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       return const BattleDrawingBonusResolution();
     }
 
-    final result = _strokes.isEmpty
+    final result = !_sketchController.hasStrokes
         ? _emptyRecognitionResult
         : _recognitionHelper.scan(
-            strokes: _strokes.map((stroke) => stroke.points),
+            strokes: _sketchController.strokePointLists,
             canvasSize: canvasSize,
           );
     final resolution = _bonusResolver.resolve(
@@ -315,7 +194,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     }
 
     if (resolution.hasActivatedItems) {
-      _showFeedbackSequence(
+      _feedbackController.showSequence(
         labels: resolution.activatedItems
             .map((item) => item.specialBonus.description)
             .toList(growable: false),
@@ -325,14 +204,17 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     }
 
     if (result.hasMatch) {
-      _showFeedbackSequence(
+      _feedbackController.showSequence(
         labels: result.displayLabels,
         color: EndpointPalette.warningAccent,
       );
       return resolution;
     }
 
-    _showFeedback(label: '?', color: _battleSketchMissAccent);
+    _feedbackController.show(
+      label: '?',
+      color: _battleSketchMissAccent,
+    );
     return resolution;
   }
 
@@ -352,102 +234,11 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     return counts;
   }
 
-  void _showFeedback({
-    required String label,
-    required Color color,
-  }) {
-    _feedbackTimer?.cancel();
-    final feedback = _BattleSketchFeedback(
-      label: label,
-      color: color,
-      version: ++_feedbackVersion,
-    );
-    setState(() {
-      _feedback = feedback;
-    });
-    _feedbackTimer = Timer(_battleSketchFeedbackLifetime, () {
-      if (!mounted) return;
-      setState(() {
-        if (_feedback?.version == feedback.version) {
-          _feedback = null;
-        }
-      });
-    });
-  }
-
-  void _showFeedbackSequence({
-    required List<String> labels,
-    required Color color,
-  }) {
-    if (labels.isEmpty) return;
-
-    _feedbackTimer?.cancel();
-    _playFeedbackAt(labels: labels, color: color, index: 0);
-  }
-
-  void _playFeedbackAt({
-    required List<String> labels,
-    required Color color,
-    required int index,
-  }) {
-    if (!mounted || index >= labels.length) return;
-
-    final feedback = _BattleSketchFeedback(
-      label: labels[index],
-      color: color,
-      version: ++_feedbackVersion,
-    );
-    setState(() {
-      _feedback = feedback;
-    });
-
-    _feedbackTimer = Timer(_battleSketchFeedbackLifetime, () {
-      if (!mounted) return;
-      setState(() {
-        if (_feedback?.version == feedback.version) {
-          _feedback = null;
-        }
-      });
-
-      if (index + 1 >= labels.length) return;
-      _feedbackTimer = Timer(_battleSketchFeedbackGap, () {
-        _playFeedbackAt(
-          labels: labels,
-          color: color,
-          index: index + 1,
-        );
-      });
-    });
-  }
-
-  void _dismissFeedback() {
-    _feedbackTimer?.cancel();
-    _feedbackTimer = null;
-    _feedback = null;
-  }
-
-  List<_BattleSketchNoiseDot> _buildNoiseDots() {
-    final seededRandom = Random(_battleSketchNoiseSeed);
-    return List<_BattleSketchNoiseDot>.generate(260, (index) {
-      final tint = index.isEven
-          ? EndpointPalette.softForeground
-          : EndpointPalette.soften(EndpointPalette.infoAccent, amount: 0.2);
-      return _BattleSketchNoiseDot(
-        relativeOffset: Offset(
-          seededRandom.nextDouble(),
-          seededRandom.nextDouble(),
-        ),
-        radius: 0.4 + (seededRandom.nextDouble() * 1.3),
-        color: tint.withValues(
-          alpha: 0.04 + (seededRandom.nextDouble() * 0.12),
-        ),
-      );
-    });
-  }
-
   @override
   void dispose() {
-    _feedbackTimer?.cancel();
+    _feedbackController
+      ..removeListener(_handleFeedbackChanged)
+      ..dispose();
     _timerController
       ..removeStatusListener(_handleTimerStatus)
       ..dispose();
@@ -524,11 +315,8 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
                           children: [
                             Positioned.fill(
                               child: CustomPaint(
-                                painter: _BattleSketchPainter(
-                                  strokes:
-                                      List<_BattleSketchStroke>.unmodifiable(
-                                    _strokes,
-                                  ),
+                                painter: EndpointSketchPainter(
+                                  strokes: _sketchController.strokes,
                                   noiseDots: _noiseDots,
                                 ),
                                 child: const SizedBox.expand(),
@@ -540,8 +328,9 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
                                   alignment: Alignment.topCenter,
                                   child: Padding(
                                     padding: const EdgeInsets.only(top: 18),
-                                    child: _BattleSketchFeedbackBanner(
-                                      feedback: _feedback,
+                                    child: EndpointSketchFeedbackBanner(
+                                      feedback: _feedbackController.feedback,
+                                      lifetime: _battleSketchFeedbackLifetime,
                                     ),
                                   ),
                                 ),
@@ -571,20 +360,23 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
                   for (final color in _brushColors)
                     _BattleSketchBrushSwatch(
                       color: color,
-                      isSelected: _toolMode == _BattleSketchToolMode.paint &&
-                          _selectedBrushColor == color,
+                      isSelected: _sketchController.toolMode ==
+                              EndpointSketchToolMode.paint &&
+                          _sketchController.selectedBrushColor == color,
                       onPressed: () => _selectBrushColor(color),
                     ),
                   _BattleSketchToolButton(
                     label: 'Borrar',
                     icon: Icons.cleaning_services_outlined,
-                    isSelected: _toolMode == _BattleSketchToolMode.erase,
+                    isSelected: _sketchController.toolMode ==
+                        EndpointSketchToolMode.erase,
                     onPressed: _toggleToolMode,
                   ),
                   _BattleSketchToolButton(
                     label: 'Deshacer',
                     icon: Icons.undo_rounded,
-                    onPressed: _strokes.isEmpty ? null : _undoLastStroke,
+                    onPressed:
+                        _sketchController.hasStrokes ? _undoLastStroke : null,
                   ),
                 ],
               ),
@@ -595,7 +387,8 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
                   EndpointActionButton(
                     label: 'Limpiar',
                     icon: Icons.layers_clear_rounded,
-                    onPressed: _strokes.isEmpty ? null : _clearStrokes,
+                    onPressed:
+                        _sketchController.hasStrokes ? _clearStrokes : null,
                     tooltip: 'Borrar todos los trazos del ataque',
                     accent: EndpointPalette.infoAccent,
                     backgroundColor: EndpointPalette.closeButtonBackground,
@@ -674,11 +467,6 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     }
     return EndpointPalette.dangerAccent;
   }
-}
-
-enum _BattleSketchToolMode {
-  paint,
-  erase,
 }
 
 class _BattleDrawLoadoutStrip extends StatelessWidget {
@@ -1106,230 +894,6 @@ class _BattleSketchBrushSwatch extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _BattleSketchFeedback {
-  final String label;
-  final Color color;
-  final int version;
-
-  const _BattleSketchFeedback({
-    required this.label,
-    required this.color,
-    required this.version,
-  });
-}
-
-class _BattleSketchFeedbackBanner extends StatelessWidget {
-  final _BattleSketchFeedback? feedback;
-
-  const _BattleSketchFeedbackBanner({
-    required this.feedback,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final activeFeedback = feedback;
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 140),
-      switchInCurve: Curves.easeOut,
-      switchOutCurve: Curves.easeIn,
-      child: activeFeedback == null
-          ? const SizedBox.shrink()
-          : TweenAnimationBuilder<double>(
-              key: ValueKey<int>(activeFeedback.version),
-              tween: Tween<double>(begin: 0, end: 1),
-              duration: _battleSketchFeedbackLifetime,
-              curve: Curves.easeOutCubic,
-              builder: (context, progress, child) {
-                final slideOffset = Offset(0, -18 * progress);
-                final opacity = progress < 0.72
-                    ? 1.0
-                    : ((1 - progress) / 0.28).clamp(0.0, 1.0).toDouble();
-                return Transform.translate(
-                  offset: slideOffset,
-                  child: Opacity(opacity: opacity, child: child),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: EndpointPalette.panelBackgroundOpaque.withValues(
-                    alpha: 0.92,
-                  ),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: activeFeedback.color.withValues(alpha: 0.74),
-                    width: 1.3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: activeFeedback.color.withValues(alpha: 0.22),
-                      blurRadius: 18,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: EndpointText(
-                  activeFeedback.label,
-                  style: textTitleMediumBold.copyWith(
-                    color: activeFeedback.color,
-                    letterSpacing: 1.6,
-                  ),
-                ),
-              ),
-            ),
-    );
-  }
-}
-
-class _BattleSketchStroke {
-  final int id;
-  final Color color;
-  final List<Offset> points;
-
-  const _BattleSketchStroke({
-    required this.id,
-    required this.color,
-    required this.points,
-  });
-
-  _BattleSketchStroke copyWith({
-    List<Offset>? points,
-  }) {
-    return _BattleSketchStroke(
-      id: id,
-      color: color,
-      points: points ?? this.points,
-    );
-  }
-}
-
-class _BattleSketchNoiseDot {
-  final Offset relativeOffset;
-  final double radius;
-  final Color color;
-
-  const _BattleSketchNoiseDot({
-    required this.relativeOffset,
-    required this.radius,
-    required this.color,
-  });
-}
-
-class _BattleSketchPainter extends CustomPainter {
-  final List<_BattleSketchStroke> strokes;
-  final List<_BattleSketchNoiseDot> noiseDots;
-
-  const _BattleSketchPainter({
-    required this.strokes,
-    required this.noiseDots,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final backgroundPaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF030706),
-          Color(0xFF0B1210),
-          Color(0xFF050907),
-        ],
-      ).createShader(rect);
-    final vignettePaint = Paint()
-      ..shader = RadialGradient(
-        center: const Alignment(-0.1, -0.2),
-        radius: 1.15,
-        colors: [
-          EndpointPalette.infoAccent.withValues(alpha: 0.08),
-          Colors.transparent,
-        ],
-      ).createShader(rect);
-    final gridPaint = Paint()
-      ..color = EndpointPalette.softForeground.withValues(alpha: 0.035)
-      ..strokeWidth = 1;
-
-    canvas.drawRect(rect, backgroundPaint);
-    canvas.drawRect(rect, vignettePaint);
-
-    for (double y = 12; y <= size.height; y += 18) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-    for (double x = 10; x <= size.width; x += 18) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-
-    for (final dot in noiseDots) {
-      final dotPaint = Paint()..color = dot.color;
-      canvas.drawCircle(
-        Offset(
-          dot.relativeOffset.dx * size.width,
-          dot.relativeOffset.dy * size.height,
-        ),
-        dot.radius,
-        dotPaint,
-      );
-    }
-
-    for (final stroke in strokes) {
-      _paintStroke(canvas, stroke);
-    }
-  }
-
-  void _paintStroke(Canvas canvas, _BattleSketchStroke stroke) {
-    final glowPaint = Paint()
-      ..color = stroke.color.withValues(alpha: 0.28)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = 9
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-    final corePaint = Paint()
-      ..color = stroke.color
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = 4.2;
-
-    if (stroke.points.length < 2) {
-      final point = stroke.points.first;
-      canvas.drawCircle(point, 5.2, glowPaint..style = PaintingStyle.fill);
-      canvas.drawCircle(point, 2.8, corePaint..style = PaintingStyle.fill);
-      return;
-    }
-
-    final path = Path()..moveTo(stroke.points.first.dx, stroke.points.first.dy);
-    for (int index = 1; index < stroke.points.length; index++) {
-      final previousPoint = stroke.points[index - 1];
-      final currentPoint = stroke.points[index];
-      final midPoint = Offset(
-        (previousPoint.dx + currentPoint.dx) / 2,
-        (previousPoint.dy + currentPoint.dy) / 2,
-      );
-      path.quadraticBezierTo(
-        previousPoint.dx,
-        previousPoint.dy,
-        midPoint.dx,
-        midPoint.dy,
-      );
-    }
-    final lastPoint = stroke.points.last;
-    path.lineTo(lastPoint.dx, lastPoint.dy);
-
-    canvas.drawPath(path, glowPaint);
-    canvas.drawPath(path, corePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _BattleSketchPainter oldDelegate) {
-    return true;
   }
 }
 

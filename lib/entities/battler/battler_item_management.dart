@@ -1,0 +1,144 @@
+part of 'battler.dart';
+
+extension BattlerItemManagement on Battler {
+  /// Comprueba si el battler posee exactamente esa instancia de item.
+  bool ownsItem(Item item) {
+    return inventoryItems.contains(item) || equippedItems.contains(item);
+  }
+
+  /// Comprueba si el battler posee algun item de ese tipo, equipado o en inventario.
+  bool ownsItemOfType(ItemId itemId) {
+    return _derivedState.inventoryItemsByType.containsKey(itemId) ||
+        _derivedState.equippedItemsByType.containsKey(itemId);
+  }
+
+  /// Indica si hay algun item equipado con hooks de efecto.
+  bool get hasItemEffects => _derivedState.hasItemEffects;
+
+  /// Explica por que un objeto no puede equiparse en el estado actual del battler.
+  String? equipItemBlockReason(Item item) {
+    if (!item.isEquippable) return 'Este objeto no se puede equipar';
+    if (equippedItems.contains(item)) return 'El objeto ya esta equipado';
+    if (!inventoryItems.contains(item)) {
+      return 'El objeto ya no esta en tu inventario';
+    }
+
+    final nextCost = equippedItemCost + item.equipmentCost;
+    if (nextCost > equipmentCapacity) {
+      return 'Capacidad insuficiente: $nextCost/$equipmentCapacity';
+    }
+
+    return null;
+  }
+
+  /// Indica si el objeto cabe dentro de la capacidad de equipo disponible.
+  bool canEquipItem(Item item) => equipItemBlockReason(item) == null;
+
+  /// Devuelve solo los items equipados que declararon el hook pedido en su efecto.
+  List<Item> equippedItemsForHook(ItemEffectHook hook) {
+    return _derivedState.equippedItemsByHook[hook] ?? const <Item>[];
+  }
+
+  /// Anade un item nuevo o mejora la copia ya poseida si admite upgrades.
+  Battler addItem(Item item) {
+    final upgradeTemplate = item.canUpgrade ? item : Item.presetForId(item.id);
+    final ownedEquippedItem = equippedItemOfType(item.id);
+    if (ownedEquippedItem != null && upgradeTemplate.canUpgrade) {
+      final updatedEquippedItems = List<Item>.from(equippedItems);
+      final existingIndex = updatedEquippedItems.indexOf(ownedEquippedItem);
+      updatedEquippedItems[existingIndex] = ownedEquippedItem.upgraded();
+      return copyWith(
+        equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+      );
+    }
+
+    final ownedInventoryItem = inventoryItemOfType(item.id);
+    if (ownedInventoryItem != null && upgradeTemplate.canUpgrade) {
+      final updatedInventoryItems = List<Item>.from(inventoryItems);
+      final existingIndex = updatedInventoryItems.indexOf(ownedInventoryItem);
+      updatedInventoryItems[existingIndex] = ownedInventoryItem.upgraded();
+      return copyWith(
+        inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+      );
+    }
+
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable([
+        ...inventoryItems,
+        item.toOwnedInstance(),
+      ]),
+    );
+  }
+
+  /// Elimina un item del battler, desequipandolo antes si hace falta.
+  Battler removeItem(Item item) {
+    if (equippedItems.contains(item)) {
+      return unequipItem(item).removeItem(item);
+    }
+    if (!inventoryItems.contains(item)) return this;
+
+    final updatedInventoryItems = List<Item>.from(inventoryItems)..remove(item);
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+    );
+  }
+
+  /// Devuelve el item equipado que ocupa un slot concreto, si existe.
+  Item? equippedItemForSlot(ItemSlot slot) {
+    return _derivedState.equippedItemsBySlot[slot];
+  }
+
+  /// Busca en inventario el primer item de un tipo concreto.
+  Item? inventoryItemOfType(ItemId itemId) {
+    return _derivedState.inventoryItemsByType[itemId];
+  }
+
+  /// Busca entre los items equipados el primero de un tipo concreto.
+  Item? equippedItemOfType(ItemId itemId) {
+    return _derivedState.equippedItemsByType[itemId];
+  }
+
+  /// Convierte todos los items poseidos en instancias propias para poder diferenciarlos.
+  Battler materializeOwnedItems() {
+    final hasOnlyInstancedItems =
+        inventoryItems.every((item) => item.isInstanced) &&
+            equippedItems.every((item) => item.isInstanced);
+    if (hasOnlyInstancedItems) return this;
+
+    return copyWith(
+      inventoryItems: inventoryItems
+          .map((item) => item.toOwnedInstance())
+          .toList(growable: false),
+      equippedItems: equippedItems
+          .map((item) => item.toOwnedInstance())
+          .toList(growable: false),
+    );
+  }
+
+  /// Equipa un item del inventario si su coste cabe dentro de la capacidad disponible.
+  Battler equipItem(Item item) {
+    if (!this.canEquipItem(item)) return this;
+
+    final updatedInventoryItems = List<Item>.from(inventoryItems)..remove(item);
+    final updatedEquippedItems = List<Item>.from(equippedItems);
+    updatedEquippedItems.add(item);
+
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+      equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+    );
+  }
+
+  /// Devuelve un item equipado al inventario sin alterar el resto del equipo.
+  Battler unequipItem(Item item) {
+    if (!equippedItems.contains(item)) return this;
+
+    final updatedEquippedItems = List<Item>.from(equippedItems)..remove(item);
+    final updatedInventoryItems = List<Item>.from(inventoryItems)..add(item);
+
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+      equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+    );
+  }
+}

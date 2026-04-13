@@ -118,6 +118,9 @@ IDEAS:
 -Objetos:
 --Manto del Eclipse: Su bonus de dibujo cambia cada turno entre triángulo y Cuadrado
 
+-Combate:
+--Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas, o hagan alguna animación
+
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
 --SobreKar: Un chatarrero novato quiere hacer lucir su empresa de novato mejorando uno de tus objetos, pero si aceptas te dará un debuffo aleatorio que dura hasta el final del siguiente combate(o hasta que te lo quites)
