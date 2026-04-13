@@ -33,6 +33,7 @@
 [--Añadir estados alterados]
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
+--Mejorar nivel de las CPU(activar habilidades, distintos intents)
 
 -Estados
 [--Añadir Tags]
