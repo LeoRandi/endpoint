@@ -1,105 +1,56 @@
 import '../_imports.dart';
 
 /// Objetos neutros que cualquier arquetipo puede encontrar en tiendas.
-const generalItemPool = <Item>[
-  woodenStickItem,
-  crackedBatteryItem,
-  ironSwordItem,
-  guardShieldItem,
-  platedJacketItem,
-  sunsteelBladeItem,
-  dawnCharmItem,
-  operativeBlackBoxItem,
-  midnightCloakItem,
-  rescueBladeItem,
-  voidInjectorItem,
-];
-
-/// Objetos con identidad ofensiva, Quemadura, Calentando o motor de Inercia.
-const imparableItemPool = <Item>[
-  impactGlovesItem,
-  emberCharmItem,
-  reactiveCasingItem,
-  serratedEdgeItem,
-  thermalTurbineItem,
-  pulseCarbineItem,
-  inertialCoreItem,
-  impulseSpearItem,
-  portableOvenItem,
-  overloadInjectorItem,
-  vectorBulwarkItem,
-  overloadAnchorItem,
-  inertiaCrownItem,
-  sunExecutionBladeItem,
-];
-
-/// Objetos centrados en curacion, barrera y buffs defensivos.
-const inamovibleItemPool = <Item>[
-  shieldItem,
-  bulwarkAmuletItem,
-  chemicalFilterItem,
-  emergencyPlatingItem,
-  containmentCoilItem,
-  phaseVeilItem,
-  reboundHarnessItem,
-  concussionPrismItem,
-  vectorBulwarkItem,
-  contingencySealItem,
-  parasiticCapacitorItem,
-  eclipseMantleItem,
-  shockMeshItem,
-  deflectiveCapacitorItem,
-  responseFrameItem,
-  reboundLensItem,
-];
+final List<Item> generalItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.general,
+);
 
 /// Objetos de Intoxicacion, debuffs y defensas ligeras para builds rapidas.
-const velozItemPool = <Item>[
-  cyberWhipsItem,
-  sunglassesItem,
-  toxicCatalystItem,
-  chemicalFilterItem,
-  stunBatonItem,
-  pocketJammerItem,
-  serratedEdgeItem,
-  pulseCarbineItem,
-  concussionPrismItem,
-  toxicScalpelItem,
-  deflectiveCapacitorItem,
-  interferenceCannonItem,
-  reboundLensItem,
-];
+final List<Item> velozItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.veloz,
+);
 
-/// Objetos economicos, curativos y defensivos para un perfil adaptable.
-const mercanteItemPool = <Item>[
-  shieldItem,
-  bulwarkAmuletItem,
-  chemicalFilterItem,
-  billingModuleItem,
-  emergencyPlatingItem,
-  containmentCoilItem,
-  phaseVeilItem,
-  contingencySealItem,
-  parasiticCapacitorItem,
-  eclipseMantleItem,
-  shockMeshItem,
-  deflectiveCapacitorItem,
-  responseFrameItem,
-  reboundLensItem,
-];
+/// Objetos centrados en curacion, barrera y buffs defensivos.
+final List<Item> inamovibleItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.inamovible,
+);
 
-const archetypeSpecificItemPools = <ArchetypeId, List<Item>>{
+/// Objetos con identidad ofensiva, Quemadura, Calentando o motor de Inercia.
+final List<Item> imparableItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.imparable,
+);
+
+/// Objetos economicos, curativos y defensivos ligados al Mercante.
+final List<Item> mercanteItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.mercante,
+);
+
+final Map<ArchetypeId, List<Item>> archetypeSpecificItemPools =
+    Map<ArchetypeId, List<Item>>.unmodifiable({
   ArchetypeId.veloz: velozItemPool,
   ArchetypeId.inamovible: inamovibleItemPool,
   ArchetypeId.imparable: imparableItemPool,
   ArchetypeId.mercante: mercanteItemPool,
-};
+});
 
 /// Devuelve la pool de tienda combinando items generales y del arquetipo.
+///
+/// El Mercante ignora el filtro y puede comprar cualquier objeto del juego.
 List<Item> itemPoolForArchetype(ArchetypeId? archetypeId) {
+  if (archetypeId == ArchetypeId.mercante) {
+    return List<Item>.unmodifiable(itemPresets);
+  }
+
   return _deduplicateByItemId([
     ...generalItemPool,
     ...?archetypeSpecificItemPools[archetypeId],
+  ]);
+}
+
+List<Item> _itemsWithAffinity(ItemArchetypeAffinity affinity) {
+  return List<Item>.unmodifiable([
+    for (final item in itemPresets)
+      if (item.hasArchetypeAffinity(affinity)) item,
   ]);
 }
 

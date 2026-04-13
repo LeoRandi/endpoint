@@ -82,7 +82,6 @@ final _merchantGrayPreviewItem = woodenStickItem.copyWith(
   description:
       'Al confirmar este arquetipo recibiras un objeto gris aleatorio.',
   iconEmoji: '\u{1F3B2}',
-  clearSlot: true,
   rarity: RarityTier.gray,
   baseCost: 0,
   equipCost: 1,
@@ -98,7 +97,6 @@ final _merchantGreenPreviewItem = shieldItem.copyWith(
   description:
       'Al confirmar este arquetipo recibiras un objeto verde aleatorio.',
   iconEmoji: '\u{1F4E6}',
-  clearSlot: true,
   rarity: RarityTier.green,
   baseCost: 0,
   equipCost: 1,
@@ -154,11 +152,11 @@ final grayShopCriterion = ShopInventoryCriterion(
   exactRarity: RarityTier.gray,
 );
 
-/// Criterio defensivo basado en piezas equipables en el slot de soporte.
+/// Criterio verde general para la tienda antes dedicada a blindajes de offhand.
 final armorShopCriterion = ShopInventoryCriterion(
-  label: 'ARMADURAS',
-  description: 'Solo aparecen piezas de soporte y blindaje.',
-  requiredSlot: ItemSlot.offHand,
+  label: 'TIER VERDE',
+  description: 'Solo aparecen objetos de rareza verde.',
+  exactRarity: RarityTier.green,
 );
 
 /// Criterio de lujo reservado a reliquias amarillas.
@@ -171,8 +169,10 @@ final luxuryShopCriterion = ShopInventoryCriterion(
 /// Criterio ofensivo amplio para mercados centrados en armas.
 final weaponShopCriterion = ShopInventoryCriterion(
   label: 'ARMAS',
-  description: 'Solo aparecen objetos equipables como arma.',
-  requiredSlot: ItemSlot.weapon,
+  description: 'Solo aparecen objetos con la tag de Arma.',
+  requiredTags: [
+    EntityTag.arma,
+  ],
 );
 
 /// Criterio defensivo amplio para objetos que aportan barrera directa.

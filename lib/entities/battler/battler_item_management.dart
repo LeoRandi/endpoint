@@ -83,11 +83,6 @@ extension BattlerItemManagement on Battler {
     );
   }
 
-  /// Devuelve el item equipado que ocupa un slot concreto, si existe.
-  Item? equippedItemForSlot(ItemSlot slot) {
-    return _derivedState.equippedItemsBySlot[slot];
-  }
-
   /// Busca en inventario el primer item de un tipo concreto.
   Item? inventoryItemOfType(ItemId itemId) {
     return _derivedState.inventoryItemsByType[itemId];

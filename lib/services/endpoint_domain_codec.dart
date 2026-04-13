@@ -286,6 +286,10 @@ Item? _deserializeItem(Map<String, dynamic> json) {
 
   final preset = Item.presetForId(itemId);
   var item = preset.copyWith(
+    archetypeAffinities: _deserializeItemArchetypeAffinities(
+      json['archetypeAffinities'],
+      fallback: preset.archetypeAffinities,
+    ),
     name: EndpointJsonUtils.readString(
       json['name'],
       fallback: preset.name,
@@ -298,8 +302,6 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['iconEmoji'],
       fallback: preset.iconEmoji,
     ),
-    slot: EndpointJsonUtils.parseEnumByName(ItemSlot.values, json['slot']) ??
-        preset.slot,
     rarity:
         EndpointJsonUtils.parseEnumByName(RarityTier.values, json['rarity']) ??
             preset.rarity,
@@ -310,6 +312,10 @@ Item? _deserializeItem(Map<String, dynamic> json) {
     // El coste de equipo ya no se deriva de la rareza guardada.
     // Si no existe un coste explicito en el preset, se usara el default global.
     equipCost: preset.equipCost,
+    sellValueBonus: EndpointJsonUtils.readInt(
+      json['sellValueBonus'],
+      fallback: preset.sellValueBonus,
+    ),
     value: EndpointJsonUtils.readInt(
       json['value'],
       fallback: preset.value,
@@ -411,15 +417,18 @@ Map<String, Object?> _serializeStatus(BattlerStatus status) {
 Map<String, Object?> _serializeItem(Item item) {
   return {
     'id': item.id.name,
+    'archetypeAffinities': item.archetypeAffinities
+        .map((affinity) => affinity.name)
+        .toList(growable: false),
     'instanceId': item.instanceId,
     'name': item.name,
     'displayName': item.displayName,
     'description': item.description,
     'iconEmoji': item.iconEmoji,
-    'slot': item.slot?.name,
     'rarity': item.rarity.name,
     'baseCost': item.baseCost,
     'equipCost': item.equipCost,
+    'sellValueBonus': item.sellValueBonus,
     'equipmentCost': item.equipmentCost,
     'value': item.value,
     'upgradeValue': item.upgradeValue,
@@ -435,6 +444,30 @@ Map<String, Object?> _serializeItem(Item item) {
     'specialBonusKind': item.specialBonus.kind.name,
     'specialBonusAmount': item.specialBonus.amount,
   };
+}
+
+List<ItemArchetypeAffinity> _deserializeItemArchetypeAffinities(
+  Object? rawValue, {
+  required List<ItemArchetypeAffinity> fallback,
+}) {
+  if (rawValue is! List) {
+    return List<ItemArchetypeAffinity>.unmodifiable(fallback);
+  }
+
+  final parsedAffinities = rawValue
+      .map<ItemArchetypeAffinity?>(
+        (entry) => EndpointJsonUtils.parseEnumByName(
+          ItemArchetypeAffinity.values,
+          entry,
+        ),
+      )
+      .whereType<ItemArchetypeAffinity>()
+      .toList(growable: false);
+  if (parsedAffinities.isEmpty) {
+    return List<ItemArchetypeAffinity>.unmodifiable(fallback);
+  }
+
+  return List<ItemArchetypeAffinity>.unmodifiable(parsedAffinities);
 }
 
 Map<String, Object?> _serializeCombatFlag(CombatRuntimeFlag flag) {

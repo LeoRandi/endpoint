@@ -9,7 +9,9 @@ enum EntityTag {
   vida,
   ataque,
   barrera,
-  economia;
+  economia,
+  arma,
+  accesorio;
 }
 
 /// Expone el texto visible y el color base de cada tag.
@@ -32,6 +34,10 @@ extension EntityTagPresentation on EntityTag {
         return 'Barrera';
       case EntityTag.economia:
         return 'Economia';
+      case EntityTag.arma:
+        return 'Arma';
+      case EntityTag.accesorio:
+        return 'Accesorio';
     }
   }
 
@@ -53,6 +59,10 @@ extension EntityTagPresentation on EntityTag {
         return const Color(0xFF59B7FF);
       case EntityTag.economia:
         return const Color(0xFFEBCB5A);
+      case EntityTag.arma:
+        return const Color(0xFFF3D35C);
+      case EntityTag.accesorio:
+        return const Color(0xFF9EA7B3);
     }
   }
 }

@@ -23,6 +23,7 @@ class DeflectiveCapacitorItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn || owner.currentBarrier > 0) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -107,6 +108,7 @@ class ResponseFrameItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -149,6 +151,7 @@ class ResponseFrameItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -195,6 +198,7 @@ class OverloadAnchorItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn || !owner.hasStatus(CalentandoStatus.statusId)) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -234,6 +238,7 @@ class ReboundLensItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -274,6 +279,128 @@ class ReboundLensItemEffect extends ItemEffect {
         FragilidadStatus(remainingTurns: max(1, item.value)),
         source: owner,
       ),
+    );
+  }
+}
+
+/// Convierte ingresos estables en una recuperacion defensiva muy contenida.
+class CapaDelContrabandistaItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Capa del Contrabandista.
+  const CapaDelContrabandistaItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, si el enemigo tiene un debuff, recuperas barrera segun tu income actual.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, si el enemigo tiene un debuff, recuperas Barrera igual a tu INCOME actual, hasta un maximo de ${max(1, item.value)}.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn || !_hasAnyDebuff(opponent)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final recoveredBarrier = min(
+      max(0, owner.income),
+      max(1, item.value),
+    );
+    return ItemEffectResolution(
+      owner: _recoverBarrier(
+        owner: owner,
+        amount: recoveredBarrier,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Disipa poco a poco debuffs aleatorios mientras el portador siga operativo.
+class MamparaPortatilItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Mampara Portatil.
+  const MamparaPortatilItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, reduce turnos de debuffs propios de forma aleatoria.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, reduces 1 turno de un debuff aleatorio ${max(1, item.value)} veces.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _reduceRandomPurgeableDebuffs(
+        owner: owner,
+        repetitions: max(1, item.value),
+        randomizer: randomizer,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Limpia turnos de todos los debuffs purgables cada inicio de turno.
+class CeramicaPurgadoraItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Ceramica Purgadora.
+  const CeramicaPurgadoraItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, reduce la duracion de todos tus debuffs.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, reduces ${max(1, item.value)} turnos de todos tus debuffs purgables.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _reduceAllPurgeableDebuffs(
+        owner: owner,
+        amount: max(1, item.value),
+      ),
+      opponent: opponent,
     );
   }
 }

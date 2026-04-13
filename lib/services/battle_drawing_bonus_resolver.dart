@@ -45,8 +45,7 @@ class BattleDrawingBonusResolution {
       return true;
     }
 
-    return identical(first, second) ||
-        (first.id == second.id && first.slot == second.slot);
+    return identical(first, second) || first.id == second.id;
   }
 }
 

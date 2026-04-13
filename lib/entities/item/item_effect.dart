@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/run_randomizer.dart';
 
 part 'item_effects/item_effect_attack_and_sustain.dart';
 part 'item_effects/item_effect_reactive_defense.dart';
@@ -78,6 +79,7 @@ abstract class ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
@@ -88,6 +90,7 @@ abstract class ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
@@ -249,6 +252,152 @@ Battler _recoverBarrier({
       owner.currentBarrier + safeAmount,
     ),
   );
+}
+
+/// Comprueba si el battler tiene al menos un debuff activo.
+bool _hasAnyDebuff(Battler battler) {
+  return battler.statuses.any(
+    (status) => status.type == BattlerStatusType.debuff,
+  );
+}
+
+int _missingHealth(Battler battler) {
+  return max(0, battler.maxHealth - battler.health);
+}
+
+Battler _loseHealthDirectly({
+  required Battler owner,
+  required int amount,
+}) {
+  final safeAmount = max(0, amount);
+  if (safeAmount <= 0 || owner.health <= 0) {
+    return owner;
+  }
+
+  final damagedOwner = owner.copyWith(
+    health: max(0, owner.health - safeAmount),
+  );
+  if (damagedOwner.health > 0) {
+    return damagedOwner;
+  }
+
+  return damagedOwner.applyEquippedItemFatalDamageEffects(
+    incomingDamage: safeAmount,
+  );
+}
+
+Battler _replaceOwnedItem({
+  required Battler owner,
+  required Item currentItem,
+  required Item replacement,
+}) {
+  final equippedIndex = owner.equippedItems.indexOf(currentItem);
+  if (equippedIndex >= 0) {
+    final updatedEquippedItems = List<Item>.from(owner.equippedItems);
+    updatedEquippedItems[equippedIndex] = replacement;
+    return owner.copyWith(
+      equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+    );
+  }
+
+  final inventoryIndex = owner.inventoryItems.indexOf(currentItem);
+  if (inventoryIndex >= 0) {
+    final updatedInventoryItems = List<Item>.from(owner.inventoryItems);
+    updatedInventoryItems[inventoryIndex] = replacement;
+    return owner.copyWith(
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+    );
+  }
+
+  return owner;
+}
+
+List<BattlerStatus> _purgeableDebuffs(Battler battler) {
+  return battler.statuses
+      .where(
+        (status) =>
+            status.type == BattlerStatusType.debuff && status.isPurgeable,
+      )
+      .toList(growable: false);
+}
+
+Battler _reduceDebuffTurns({
+  required Battler owner,
+  required BattlerStatus debuff,
+  required int amount,
+}) {
+  final reducedTurns = max(0, debuff.remainingTurns - max(0, amount)).toInt();
+  if (reducedTurns <= 0) {
+    return owner.removeStatusInstance(debuff);
+  }
+
+  return owner.replaceStatusInstance(
+    currentStatus: debuff,
+    replacement: debuff.copyWith(remainingTurns: reducedTurns),
+  );
+}
+
+Battler _reduceAllPurgeableDebuffs({
+  required Battler owner,
+  required int amount,
+}) {
+  var updatedOwner = owner;
+  final debuffs = _purgeableDebuffs(owner);
+  for (final debuff in debuffs) {
+    updatedOwner = _reduceDebuffTurns(
+      owner: updatedOwner,
+      debuff: debuff,
+      amount: amount,
+    );
+  }
+
+  return updatedOwner.pruneExpiredStatuses();
+}
+
+Battler _reduceRandomPurgeableDebuffs({
+  required Battler owner,
+  required int repetitions,
+  RunRandomizer? randomizer,
+}) {
+  var updatedOwner = owner;
+
+  for (var index = 0; index < max(0, repetitions); index++) {
+    final debuffs = _purgeableDebuffs(updatedOwner);
+    if (debuffs.isEmpty) break;
+
+    final selectedIndex =
+        randomizer == null ? 0 : randomizer.nextInt(debuffs.length);
+    updatedOwner = _reduceDebuffTurns(
+      owner: updatedOwner,
+      debuff: debuffs[selectedIndex],
+      amount: 1,
+    );
+  }
+
+  return updatedOwner.pruneExpiredStatuses();
+}
+
+/// Comprueba si un item cuenta como mercancia ajena para las sinergias del Mercante.
+bool _isForeignItemForMercante(Item item) {
+  if (item.hasArchetypeAffinity(ItemArchetypeAffinity.general) ||
+      item.hasArchetypeAffinity(ItemArchetypeAffinity.mercante)) {
+    return false;
+  }
+
+  return item.archetypeAffinities.any((affinity) => affinity.isSpecific);
+}
+
+/// Cuenta cuantos items ajenos guarda el portador en el inventario.
+int _countForeignInventoryItemsForMercante(Battler owner) {
+  return owner.inventoryItems.where(_isForeignItemForMercante).length;
+}
+
+/// Cuenta cuantos items ajenos posee el portador entre inventario y equipo.
+int _countForeignOwnedItemsForMercante(Battler owner) {
+  return [
+    ...owner.inventoryItems,
+    ...owner.equippedItems,
+  ].where(_isForeignItemForMercante).length;
 }
 
 /// Refresca un Blindaje Temporal minimo sin acumularlo infinitamente.

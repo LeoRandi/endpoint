@@ -23,6 +23,7 @@ class InertiaCrownItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn || !owner.hasStatus(InerciaStatus.statusId)) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -338,6 +339,158 @@ class BillingModuleItemEffect extends ItemEffect {
   }
 }
 
+/// No aporta potencia directa, pero se revaloriza cada vez que sobrevives con el equipado.
+class PagareRevalorizableItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Pagare Revalorizable.
+  const PagareRevalorizableItemEffect()
+      : super(
+          description:
+              'No hace nada en combate. Al terminar un combate equipado, aumenta su valor de venta.',
+          hooks: const {
+            ItemEffectHook.combatEnd,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al terminar un combate equipado, aumenta su valor de venta en ${item.value}C.';
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+    required Item item,
+  }) {
+    return _replaceOwnedItem(
+      owner: owner,
+      currentItem: item,
+      replacement: item.copyWith(
+        sellValueBonus: item.sellValueBonus + item.value,
+      ),
+    );
+  }
+}
+
+/// Convierte caja operativa en una pequena reposicion defensiva estable.
+class MochilaStronkboxItemEffect extends ItemEffect {
+  static const requiredMoney = 10;
+
+  /// Crea el efecto propio de la Mochila Stronkbox.
+  const MochilaStronkboxItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, si conservas suficiente dinero, recuperas barrera.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, si tienes al menos ${requiredMoney}C, recuperas ${max(1, item.value)} de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn || owner.money < requiredMoney) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _recoverBarrier(
+        owner: owner,
+        amount: item.value,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Premia guardar mercancia ajena en el inventario con curacion ofensiva.
+class MuestrarioContrabandoItemEffect extends ItemEffect {
+  static const healCap = 10;
+
+  /// Crea el efecto propio del Muestrario de Contrabando.
+  const MuestrarioContrabandoItemEffect()
+      : super(
+          description:
+              'Al atacar, convierte el contrabando sin equipar en curacion inmediata.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al atacar, te curas ${max(1, item.value)} HP por cada item de otro arquetipo en tu inventario, hasta ${healCap} HP.';
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final foreignInventoryItems = _countForeignInventoryItemsForMercante(owner);
+    if (foreignInventoryItems <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final healAmount = min(
+      healCap,
+      max(1, item.value) * foreignInventoryItems,
+    );
+    return ItemEffectResolution(
+      owner: owner.heal(healAmount),
+      opponent: target,
+    );
+  }
+}
+
+/// Convierte el catalogo ajeno acumulado en pegada ofensiva permanente.
+class RoperaUnidaItemEffect extends ItemEffect {
+  static const attackCap = 8;
+
+  /// Crea el efecto propio de la Ropera Unida.
+  const RoperaUnidaItemEffect()
+      : super(
+          description:
+              'Otorga ataque adicional segun la mercancia ajena que guardas.',
+          hooks: const {
+            ItemEffectHook.calculatedStatModifier,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Obtienes +ATK igual a ${max(1, item.value)} + el numero de items de otro arquetipo que posees, hasta ${attackCap}.';
+  }
+
+  @override
+  int modifyCalculatedStat({
+    required Battler owner,
+    required Item item,
+    required BattlerStat stat,
+    required int value,
+  }) {
+    if (stat != BattlerStat.attack) return value;
+
+    final foreignOwnedItems = _countForeignOwnedItemsForMercante(owner);
+    final attackBonus = min(
+      attackCap,
+      max(1, item.value) + foreignOwnedItems,
+    );
+    return value + attackBonus;
+  }
+}
+
 /// Alarga las Quemaduras aplicadas y a cambio quema al propio portador al final de turno.
 class PortableOvenItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para el Horno Portatil.
@@ -382,6 +535,7 @@ class PortableOvenItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -561,6 +715,7 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -659,6 +814,7 @@ class StatusItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);

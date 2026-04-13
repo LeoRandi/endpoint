@@ -80,6 +80,7 @@ class BattleTurnEngine {
       owner: updatedPlayer,
       opponent: updatedEnemy,
       isOwnerTurn: isPlayerTurn,
+      randomizer: randomizer,
     );
     updatedPlayer = playerItemResolution.owner;
     updatedEnemy = playerItemResolution.opponent;
@@ -88,6 +89,7 @@ class BattleTurnEngine {
       owner: updatedEnemy,
       opponent: updatedPlayer,
       isOwnerTurn: !isPlayerTurn,
+      randomizer: randomizer,
     );
     updatedEnemy = enemyItemResolution.owner;
     updatedPlayer = enemyItemResolution.opponent;
@@ -139,6 +141,7 @@ class BattleTurnEngine {
       owner: updatedPlayer,
       opponent: updatedEnemy,
       isOwnerTurn: didPlayerAct,
+      randomizer: randomizer,
     );
     updatedPlayer = playerItemResolution.owner;
     updatedEnemy = playerItemResolution.opponent;
@@ -146,6 +149,7 @@ class BattleTurnEngine {
       owner: updatedEnemy,
       opponent: updatedPlayer,
       isOwnerTurn: !didPlayerAct,
+      randomizer: randomizer,
     );
     updatedEnemy = enemyItemResolution.owner;
     updatedPlayer = enemyItemResolution.opponent;

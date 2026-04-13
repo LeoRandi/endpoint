@@ -119,6 +119,7 @@ class RegenerativeShieldItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -161,6 +162,7 @@ class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -302,6 +304,432 @@ class ToxicScalpelItemEffect extends ItemEffect {
     return ItemEffectResolution(
       owner: owner,
       opponent: updatedTarget,
+    );
+  }
+}
+
+/// Monetiza el primer golpe de cada turno sobre objetivos ya desestabilizados.
+class SuccionaCreditosItemEffect extends ItemEffect {
+  /// Crea el efecto propio de SuccionaCreditos.
+  const SuccionaCreditosItemEffect()
+      : super(
+          description:
+              'La primera vez por turno que atacas a un objetivo con un debuff, ganas creditos y recuperas barrera.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final resolvedValue = max(1, item.value);
+    return 'La primera vez por turno que atacas a un objetivo con un debuff, ganas ${resolvedValue}C y recuperas ${resolvedValue} de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.succionaCreditosTriggeredThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.removeCombatFlag(triggeredFlag),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.succionaCreditosTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag) || !_hasAnyDebuff(target)) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final resolvedValue = max(1, item.value);
+    final updatedOwner = _recoverBarrier(
+      owner: owner.addCombatFlag(triggeredFlag).earnMoney(resolvedValue),
+      amount: resolvedValue,
+    );
+
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: target,
+    );
+  }
+}
+
+/// Convierte el primer ataque del turno en una pequena ventana de aguante.
+class KunaiAnchoItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Kunai Ancho.
+  const KunaiAnchoItemEffect()
+      : super(
+          description:
+              'La primera vez por turno que atacas a un objetivo con un debuff, recuperas barrera.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'La primera vez por turno que atacas a un objetivo con un debuff, recuperas ${max(1, item.value)} de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.kunaiAnchoTriggeredThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.removeCombatFlag(triggeredFlag),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.kunaiAnchoTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag) || !_hasAnyDebuff(target)) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    return ItemEffectResolution(
+      owner: _recoverBarrier(
+        owner: owner.addCombatFlag(triggeredFlag),
+        amount: item.value,
+      ),
+      opponent: target,
+    );
+  }
+}
+
+/// Convierte la barrera actual en dano extra durante el primer ataque del turno.
+class MagnetiCHammerItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la M(agneti)C Hammer.
+  const MagnetiCHammerItemEffect()
+      : super(
+          description:
+              'La primera vez por turno que atacas, infliges dano extra segun tu barrera actual sin consumirla.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.outgoingDamageModifier,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'La primera vez por turno que atacas, infliges dano adicional igual a tu Barrera actual, hasta ${max(1, item.value)}, sin consumirla.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.magnetiCHammerTriggeredThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.removeCombatFlag(triggeredFlag),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damage,
+  }) {
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.magnetiCHammerTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag) || owner.currentBarrier <= 0) {
+      return damage;
+    }
+
+    final bonusDamage = min(
+      owner.currentBarrier,
+      max(1, item.value),
+    );
+    return damage + bonusDamage;
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.magnetiCHammerTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(triggeredFlag),
+      opponent: target,
+    );
+  }
+}
+
+/// Convierte el primer ataque del turno en una sobrecarga brutal a cambio de autoinfligirse Quemadura.
+class ClavoReactorItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Clavo Reactor.
+  const ClavoReactorItemEffect()
+      : super(
+          description:
+              'La primera vez por turno que atacas, infliges dano directo extra y te aplicas Quemadura.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final resolvedValue = max(1, item.value);
+    return 'La primera vez por turno que atacas, infliges ${resolvedValue * 2} de dano directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.clavoReactorTriggeredThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.removeCombatFlag(triggeredFlag),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.clavoReactorTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final resolvedValue = max(1, item.value);
+    final updatedOwner = owner.addCombatFlag(triggeredFlag).applyStatus(
+          QuemaduraStatus(remainingTurns: resolvedValue),
+          source: owner,
+        );
+    final updatedTarget = target.receiveDirectDamage(
+      resolvedValue * 2,
+      source: owner,
+    );
+
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: updatedTarget,
+    );
+  }
+}
+
+/// Convierte vida directa en una gran reserva temporal de ataque.
+class BombaMiocardicaItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Bomba Miocardica.
+  const BombaMiocardicaItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, pierdes vida y ganas una gran Reserva de Inercia: ATK.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final resolvedValue = max(1, item.value);
+    return 'Al inicio de tu turno, pierdes $resolvedValue HP y ganas Reserva de Inercia: ATK (+${resolvedValue * 2}).';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final resolvedValue = max(1, item.value);
+    final updatedOwner = _loseHealthDirectly(
+      owner: owner,
+      amount: resolvedValue,
+    );
+    if (updatedOwner.health <= 0) {
+      return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner.applyStatus(
+        InerciaAtaqueStatus(value: resolvedValue * 2),
+        source: updatedOwner,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Convierte la vida faltante en una amenaza ofensiva inmediata durante el primer ataque del turno.
+class UltimaMarchaItemEffect extends ItemEffect {
+  /// Crea el efecto propio de Ultima Marcha.
+  const UltimaMarchaItemEffect()
+      : super(
+          description:
+              'La primera vez por turno que atacas, infliges dano extra segun la vida que te falta.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.outgoingDamageModifier,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'La primera vez por turno que atacas, infliges dano adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.ultimaMarchaTriggeredThisTurn,
+    );
+    return ItemEffectResolution(
+      owner: owner.removeCombatFlag(triggeredFlag),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damage,
+  }) {
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.ultimaMarchaTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag)) {
+      return damage;
+    }
+
+    final bonusDamage = max(
+      max(1, item.value),
+      _missingHealth(owner) ~/ 4,
+    );
+    return damage + bonusDamage;
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.ultimaMarchaTriggeredThisTurn,
+    );
+    if (owner.hasCombatFlag(triggeredFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(triggeredFlag),
+      opponent: target,
     );
   }
 }

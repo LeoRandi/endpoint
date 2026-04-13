@@ -4,7 +4,6 @@ import '../_imports.dart';
 class ShopInventoryCriterion {
   final String label;
   final String description;
-  final ItemSlot? requiredSlot;
   final RarityTier? exactRarity;
   final RarityTier? minimumRarity;
   final RarityTier? maximumRarity;
@@ -12,11 +11,10 @@ class ShopInventoryCriterion {
   final List<EntityTag> requiredTags;
   final bool matchAnyRequiredTag;
 
-  /// Crea un criterio declarativo que puede combinar slot, rareza, tags y stat requerida.
+  /// Crea un criterio declarativo que puede combinar rareza, tags y stat requerida.
   ShopInventoryCriterion({
     required this.label,
     required this.description,
-    this.requiredSlot,
     this.exactRarity,
     this.minimumRarity,
     this.maximumRarity,
@@ -35,9 +33,6 @@ class ShopInventoryCriterion {
 
   /// Comprueba si un objeto concreto cumple todas las reglas del criterio.
   bool matches(Item item) {
-    if (requiredSlot != null && item.slot != requiredSlot) {
-      return false;
-    }
     if (exactRarity != null && item.rarity != exactRarity) {
       return false;
     }

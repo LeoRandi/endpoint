@@ -47,7 +47,7 @@
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 100-120[47/100]
+--Meter al menos 100-120[64/100]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
@@ -104,6 +104,23 @@ PROBAR:
 -Lente de Rebote
 -Corona de Inercia
 -Hoja de Ejecucion Solar
+-SuccionaCreditos
+-Kunai Ancho
+-Capa del Contrabandista
+-Mochila Stronkbox 
+-Muestrario de Contrabando 
+-Ropera Unida
+-Mampara Portatil
+-M(agneti)C Hammer
+-Ceramica Purgadora
+-Clavo Reactor
+-Bomba Miocardica
+-Ultima Marcha
+-Pagare Revalorizable
+-Placa Bisagra
+-Silbato Mudo
+-Botiquin Compacto
+-Funda Aislante
 
 -Evento de Technosurgeon de noche
 

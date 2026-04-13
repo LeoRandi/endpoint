@@ -657,6 +657,7 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
@@ -674,6 +675,7 @@ class BattlerEffectPipeline {
         opponent: updatedOpponent,
         item: item,
         isOwnerTurn: isOwnerTurn,
+        randomizer: randomizer,
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
@@ -689,6 +691,7 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,
+    RunRandomizer? randomizer,
   }) {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
@@ -706,6 +709,7 @@ class BattlerEffectPipeline {
         opponent: updatedOpponent,
         item: item,
         isOwnerTurn: isOwnerTurn,
+        randomizer: randomizer,
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;

@@ -92,6 +92,11 @@ enum ItemCombatFlagKind {
   eclipseMantleUsed,
   operativeBlackBoxUsed,
   operativeBlackBoxProtection,
+  succionaCreditosTriggeredThisTurn,
+  kunaiAnchoTriggeredThisTurn,
+  magnetiCHammerTriggeredThisTurn,
+  clavoReactorTriggeredThisTurn,
+  ultimaMarchaTriggeredThisTurn,
   responseFrameDamagedThisTurn,
   reboundLensTriggeredThisTurn,
 }
@@ -175,7 +180,6 @@ class _BattlerDerivedState {
   final Map<BattlerAbilityHook, List<BattlerAbilityId>> abilityIdsByHook;
   final Map<ItemId, Item> inventoryItemsByType;
   final Map<ItemId, Item> equippedItemsByType;
-  final Map<ItemSlot, Item> equippedItemsBySlot;
   final Map<ItemEffectHook, List<Item>> equippedItemsByHook;
   final bool hasItemEffects;
 
@@ -190,7 +194,6 @@ class _BattlerDerivedState {
     required this.abilityIdsByHook,
     required this.inventoryItemsByType,
     required this.equippedItemsByType,
-    required this.equippedItemsBySlot,
     required this.equippedItemsByHook,
     required this.hasItemEffects,
   });
@@ -216,7 +219,6 @@ class _BattlerDerivedState {
     }
 
     final equippedItemsByType = <ItemId, Item>{};
-    final equippedItemsBySlot = <ItemSlot, Item>{};
     final equippedItemsByHook = <ItemEffectHook, List<Item>>{};
     var hasItemEffects = false;
     var basicAttackCount = 1;
@@ -225,9 +227,6 @@ class _BattlerDerivedState {
     for (final item in owner.equippedItems) {
       equippedItemsByType.putIfAbsent(item.id, () => item);
       equippedItemCost += item.equipmentCost;
-      if (item.slot != null) {
-        equippedItemsBySlot.putIfAbsent(item.slot!, () => item);
-      }
 
       final effect = item.effect;
       if (effect == null) continue;
@@ -324,8 +323,6 @@ class _BattlerDerivedState {
       inventoryItemsByType:
           Map<ItemId, Item>.unmodifiable(inventoryItemsByType),
       equippedItemsByType: Map<ItemId, Item>.unmodifiable(equippedItemsByType),
-      equippedItemsBySlot:
-          Map<ItemSlot, Item>.unmodifiable(equippedItemsBySlot),
       equippedItemsByHook: _freezeHookIndex(equippedItemsByHook),
       hasItemEffects: hasItemEffects,
     );

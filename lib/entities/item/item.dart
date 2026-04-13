@@ -11,10 +11,25 @@ enum ItemId {
   impactGloves,
   chemicalFilter,
   billingModule,
+  mochilaStronkbox,
+  muestrarioContrabando,
+  roperaUnida,
+  mamparaPortatil,
+  magnetiCHammer,
+  ceramicaPurgadora,
+  clavoReactor,
+  bombaMiocardica,
+  ultimaMarcha,
+  pagareRevalorizable,
+  placaBisagra,
+  silbatoMudo,
+  botiquinCompacto,
+  fundaAislante,
   portableOven,
   parasiticCapacitor,
   eclipseMantle,
   operativeBlackBox,
+  succionaCreditos,
   ironSword,
   guardShield,
   platedJacket,
@@ -48,31 +63,110 @@ enum ItemId {
   responseFrame,
   overloadAnchor,
   reboundLens,
+  kunaiAncho,
+  capaDelContrabandista,
   inertiaCrown,
   sunExecutionBlade,
 }
 
-/// Define los huecos equipables disponibles en el loadout del battler.
-enum ItemSlot {
-  weapon,
-  offHand,
-  accessory,
+/// Identifica a que familias de arquetipo puede pertenecer un objeto.
+enum ItemArchetypeAffinity {
+  general,
+  veloz,
+  inamovible,
+  imparable,
+  mercante,
 }
 
-/// Traduce cada hueco interno al texto corto que se muestra en UI.
-extension ItemSlotPresentation on ItemSlot {
-  /// Devuelve el nombre legible del slot para paneles y tooltips.
-  String get label {
+/// Expone utilidades para convertir afinidades de item en arquetipos de run.
+extension ItemArchetypeAffinityMapping on ItemArchetypeAffinity {
+  bool get isSpecific => this != ItemArchetypeAffinity.general;
+
+  ArchetypeId? get archetypeId {
     switch (this) {
-      case ItemSlot.weapon:
-        return 'Arma';
-      case ItemSlot.offHand:
-        return 'Armadura';
-      case ItemSlot.accessory:
-        return 'Accesorio';
+      case ItemArchetypeAffinity.general:
+        return null;
+      case ItemArchetypeAffinity.veloz:
+        return ArchetypeId.veloz;
+      case ItemArchetypeAffinity.inamovible:
+        return ArchetypeId.inamovible;
+      case ItemArchetypeAffinity.imparable:
+        return ArchetypeId.imparable;
+      case ItemArchetypeAffinity.mercante:
+        return ArchetypeId.mercante;
     }
   }
 }
+
+/// Traduce el arquetipo jugable a la afinidad equivalente usada por los items.
+extension ArchetypeIdItemAffinity on ArchetypeId {
+  ItemArchetypeAffinity get itemAffinity {
+    switch (this) {
+      case ArchetypeId.veloz:
+        return ItemArchetypeAffinity.veloz;
+      case ArchetypeId.inamovible:
+        return ItemArchetypeAffinity.inamovible;
+      case ArchetypeId.imparable:
+        return ItemArchetypeAffinity.imparable;
+      case ArchetypeId.mercante:
+        return ItemArchetypeAffinity.mercante;
+    }
+  }
+}
+
+const _weaponTaggedItemIds = <ItemId>{
+  ItemId.woodenStick,
+  ItemId.cyberWhips,
+  ItemId.impactGloves,
+  ItemId.roperaUnida,
+  ItemId.clavoReactor,
+  ItemId.ironSword,
+  ItemId.placaBisagra,
+  ItemId.stunBaton,
+  ItemId.kunaiAncho,
+  ItemId.serratedEdge,
+  ItemId.pulseCarbine,
+  ItemId.impulseSpear,
+  ItemId.overloadInjector,
+  ItemId.sunsteelBlade,
+  ItemId.rescueBlade,
+  ItemId.toxicScalpel,
+  ItemId.interferenceCannon,
+  ItemId.magnetiCHammer,
+  ItemId.sunExecutionBlade,
+};
+
+const _accessoryTaggedItemIds = <ItemId>{
+  ItemId.sunglasses,
+  ItemId.pagareRevalorizable,
+  ItemId.bulwarkAmulet,
+  ItemId.crackedBattery,
+  ItemId.toxicCatalyst,
+  ItemId.emberCharm,
+  ItemId.chemicalFilter,
+  ItemId.muestrarioContrabando,
+  ItemId.reactiveCasing,
+  ItemId.bombaMiocardica,
+  ItemId.silbatoMudo,
+  ItemId.pocketJammer,
+  ItemId.thermalTurbine,
+  ItemId.inertialCore,
+  ItemId.concussionPrism,
+  ItemId.contingencySeal,
+  ItemId.dawnCharm,
+  ItemId.parasiticCapacitor,
+  ItemId.succionaCreditos,
+  ItemId.voidInjector,
+  ItemId.operativeBlackBox,
+  ItemId.deflectiveCapacitor,
+  ItemId.ceramicaPurgadora,
+  ItemId.ultimaMarcha,
+  ItemId.botiquinCompacto,
+  ItemId.fundaAislante,
+  ItemId.overloadAnchor,
+  ItemId.reboundLens,
+  ItemId.inertiaCrown,
+};
 
 /// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
 class Item {
@@ -81,14 +175,15 @@ class Item {
   static final RegExp _ownedInstancePattern = RegExp(r'^item_(\d+)$');
 
   final ItemId id;
-  final List<EntityTag> tags;
+  final List<ItemArchetypeAffinity> archetypeAffinities;
+  final List<EntityTag> _declaredTags;
   final String name;
   final String description;
   final String iconEmoji;
-  final ItemSlot? slot;
   final RarityTier rarity;
   final int baseCost;
   final int? equipCost;
+  final int sellValueBonus;
   final int value;
   final int upgradeValue;
   final int incomePerValueUnit;
@@ -102,14 +197,15 @@ class Item {
   /// Crea un item inmutable que puede actuar como preset compartido o copia poseida.
   const Item({
     required this.id,
-    this.tags = const [],
+    this.archetypeAffinities = const [ItemArchetypeAffinity.general],
+    List<EntityTag> tags = const [],
     required this.name,
     required this.description,
     this.iconEmoji = '\u{1F9F0}',
-    this.slot,
     this.rarity = RarityTier.gray,
     required this.baseCost,
     this.equipCost,
+    this.sellValueBonus = 0,
     this.value = 0,
     this.upgradeValue = 0,
     this.incomePerValueUnit = 0,
@@ -119,10 +215,10 @@ class Item {
     this.effect,
     this.instanceId,
     this.bonusShapeOverride,
-  });
+  }) : _declaredTags = tags;
 
-  /// Indica si el objeto puede equiparse en algun hueco.
-  bool get isEquippable => slot != null;
+  /// Indica si el objeto puede equiparse.
+  bool get isEquippable => true;
 
   /// Indica si este objeto ya es una copia propia y no un preset compartido.
   bool get isInstanced => instanceId != null;
@@ -136,11 +232,46 @@ class Item {
   /// Describe el bonus especial ligado a la forma actual del objeto.
   ItemSpecialBonus get specialBonus => ItemSpecialBonus.forShape(bonusShape);
 
+  /// Devuelve las tags declaradas mas las de categoria visible heredadas.
+  List<EntityTag> get tags {
+    final resolvedTags = <EntityTag>{
+      ..._declaredTags,
+    };
+    if (isWeaponLike) {
+      resolvedTags.add(EntityTag.arma);
+    }
+    if (isAccessoryLike) {
+      resolvedTags.add(EntityTag.accesorio);
+    }
+    return List<EntityTag>.unmodifiable(resolvedTags);
+  }
+
   /// Indica si el objeto tiene al menos una tag util para filtros y UI.
   bool get hasTags => tags.isNotEmpty;
 
   /// Comprueba si este objeto pertenece a una tag concreta.
   bool hasTag(EntityTag tag) => tags.contains(tag);
+
+  /// Indica si el objeto se presenta como arma en la interfaz y los filtros.
+  bool get isWeaponLike => _weaponTaggedItemIds.contains(id);
+
+  /// Indica si el objeto se presenta como accesorio en la interfaz y los filtros.
+  bool get isAccessoryLike => _accessoryTaggedItemIds.contains(id);
+
+  /// Comprueba si este objeto declara afinidad con un arquetipo concreto.
+  bool hasArchetypeAffinity(ItemArchetypeAffinity affinity) {
+    return archetypeAffinities.contains(affinity);
+  }
+
+  /// Comprueba si comparte afinidad con alguna de las pedidas.
+  bool hasAnyArchetypeAffinity(Iterable<ItemArchetypeAffinity> affinities) {
+    for (final affinity in affinities) {
+      if (hasArchetypeAffinity(affinity)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /// Indica si este objeto puede mejorar al recibir una copia adicional.
   bool get canUpgrade {
@@ -157,6 +288,9 @@ class Item {
 
   /// Devuelve el coste base propio del objeto para compra y reventa.
   int get cost => baseCost;
+
+  /// Devuelve el valor actual de venta, incluyendo bonuses acumulados del propio item.
+  int get sellValue => max(1, (cost / 2).ceil()) + max(0, sellValueBonus);
 
   /// Devuelve el coste de equipo efectivo, usando 1 salvo que el item lo fuerce.
   int get equipmentCost => max(0, equipCost ?? defaultEquipmentCost);
@@ -237,7 +371,7 @@ class Item {
   }
 
   ItemBonusShape get _defaultBonusShape {
-    if (slot == ItemSlot.weapon) {
+    if (isWeaponLike) {
       return ItemBonusShape.triangle;
     }
     if (hasTag(EntityTag.barrera)) {
@@ -261,12 +395,14 @@ class Item {
     }
 
     return copyWith(
-      tags: upgradeTemplate.tags,
+      archetypeAffinities: upgradeTemplate.archetypeAffinities,
+      tags: upgradeTemplate._declaredTags,
       name: upgradeTemplate.name,
       description: upgradeTemplate.description,
       iconEmoji: upgradeTemplate.iconEmoji,
       rarity: rarity.nextTier,
       baseCost: upgradeTemplate.baseCost,
+      sellValueBonus: sellValueBonus,
       value: value + upgradeTemplate.upgradeValue,
       upgradeValue: upgradeTemplate.upgradeValue,
       incomePerValueUnit: upgradeTemplate.incomePerValueUnit,
@@ -280,15 +416,15 @@ class Item {
 
   /// Crea una copia parcial del objeto conservando el resto de propiedades intactas.
   Item copyWith({
+    List<ItemArchetypeAffinity>? archetypeAffinities,
     List<EntityTag>? tags,
     String? name,
     String? description,
     String? iconEmoji,
-    ItemSlot? slot,
-    bool clearSlot = false,
     RarityTier? rarity,
     int? baseCost,
     int? equipCost,
+    int? sellValueBonus,
     int? value,
     int? upgradeValue,
     int? incomePerValueUnit,
@@ -303,14 +439,15 @@ class Item {
   }) {
     return Item(
       id: id,
-      tags: tags ?? this.tags,
+      archetypeAffinities: archetypeAffinities ?? this.archetypeAffinities,
+      tags: tags ?? _declaredTags,
       name: name ?? this.name,
       description: description ?? this.description,
       iconEmoji: iconEmoji ?? this.iconEmoji,
-      slot: clearSlot ? null : slot ?? this.slot,
       rarity: rarity ?? this.rarity,
       baseCost: baseCost ?? this.baseCost,
       equipCost: equipCost ?? this.equipCost,
+      sellValueBonus: sellValueBonus ?? this.sellValueBonus,
       value: value ?? this.value,
       upgradeValue: upgradeValue ?? this.upgradeValue,
       incomePerValueUnit: incomePerValueUnit ?? this.incomePerValueUnit,
@@ -332,14 +469,15 @@ class Item {
 
     return Item(
       id: id,
-      tags: tags,
+      archetypeAffinities: archetypeAffinities,
+      tags: _declaredTags,
       name: name,
       description: description,
       iconEmoji: iconEmoji,
-      slot: slot,
       rarity: rarity,
       baseCost: baseCost,
       equipCost: equipCost,
+      sellValueBonus: sellValueBonus,
       value: value,
       upgradeValue: upgradeValue,
       incomePerValueUnit: incomePerValueUnit,
