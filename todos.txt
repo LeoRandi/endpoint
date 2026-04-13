@@ -34,6 +34,7 @@
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
 --Mejorar nivel de las CPU(activar habilidades, distintos intents)
+--El enemigo te obliga a dibujar o sufrirás las consecuencias
 
 -Estados
 [--Añadir Tags]
