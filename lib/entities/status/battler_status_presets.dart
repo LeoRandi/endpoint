@@ -12,9 +12,6 @@ const fragilidadStatus = FragilidadStatus();
 /// Preset rapido de Interferencia con su bloqueo corto por defecto.
 const interferenciaStatus = InterferenciaStatus();
 
-/// Preset rapido de Blindaje Temporal con la absorcion base.
-const blindajeTemporalStatus = BlindajeTemporalStatus();
-
 /// Preset rapido de Conmocion con su penalizacion inicial.
 const conmocionStatus = ConmocionStatus();
 

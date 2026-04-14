@@ -180,6 +180,45 @@ class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
   }
 }
 
+/// Refresca la barrera hasta un minimo al inicio del turno propio.
+class RefreshMinimumBarrierOnTurnStartItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para objetos que garantizan un suelo de barrera.
+  const RefreshMinimumBarrierOnTurnStartItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, si tu barrera esta por debajo de un minimo, se ajusta a ese valor.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, si tienes menos de ${max(1, item.value)} de Barrera, la subes hasta ese valor.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _refreshMinimumBarrier(
+        owner: owner,
+        value: item.value,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
 /// Cura un poco al portador cuando deja al objetivo en rango de remate.
 class RescueBladeItemEffect extends ItemEffect {
   /// Crea el efecto propio de la Cuchilla de Rescate.

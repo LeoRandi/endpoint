@@ -674,14 +674,14 @@ const stunBatonItem = Item(
   ),
 );
 
-/// Armadura gris basica que refresca un pequeno escudo temporal cada turno.
+/// Armadura gris basica que asegura un minimo de barrera al iniciar turno.
 const emergencyPlatingItem = Item(
   id: ItemId.emergencyPlating,
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Placa de Emergencia',
   description:
-      '+1 Barrera. Al inicio de tu turno, recuperas Blindaje Temporal.',
+      '+1 Barrera. Al inicio de tu turno, si tienes menos de 2 de Barrera, la subes hasta 2.',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.gray,
   baseCost: 2,
@@ -693,10 +693,7 @@ const emergencyPlatingItem = Item(
   upgradeStatModifiers: {
     BattlerStat.barrier: 1,
   },
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.blindajeTemporal,
-    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
-  ),
+  effect: RefreshMinimumBarrierOnTurnStartItemEffect(),
 );
 
 /// Accesorio gris reactivo que silencia al agresor.
@@ -998,22 +995,20 @@ const vectorBulwarkItem = Item(
   ),
 );
 
-/// Accesorio amarillo que rellena un Blindaje Temporal grande al arrancar turno.
+/// Accesorio amarillo que asegura un suelo de barrera alto al arrancar turno.
 const contingencySealItem = Item(
   id: ItemId.contingencySeal,
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Sello de Contingencia',
-  description: 'Al inicio de tu turno, recuperas Blindaje Temporal.',
+  description:
+      'Al inicio de tu turno, si tienes menos de 4 de Barrera, la subes hasta 4.',
   iconEmoji: '\u2726',
   rarity: RarityTier.yellow,
   baseCost: 10,
   value: 4,
   upgradeValue: 1,
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.blindajeTemporal,
-    trigger: ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum,
-  ),
+  effect: RefreshMinimumBarrierOnTurnStartItemEffect(),
 );
 
 /// Arma amarilla de dano alto para el tramo final.
@@ -1259,14 +1254,14 @@ const toxicScalpelItem = Item(
   effect: ToxicScalpelItemEffect(),
 );
 
-/// Accesorio verde de seguridad que convierte turnos sin barrera en blindaje temporal.
+/// Accesorio verde de seguridad que convierte turnos sin barrera en recarga minima.
 const deflectiveCapacitorItem = Item(
   id: ItemId.deflectiveCapacitor,
   archetypeAffinities: _velozInamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Condensador Deflectivo',
   description:
-      '+1 Barrera. Al inicio de tu turno, si estas a 0 de Barrera, recuperas Blindaje Temporal.',
+      '+1 Barrera. Al inicio de tu turno, si estas a 0 de Barrera, subes tu Barrera hasta 2.',
   iconEmoji: '\u{1F50B}',
   rarity: RarityTier.green,
   baseCost: 4,

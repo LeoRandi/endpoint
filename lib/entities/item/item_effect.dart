@@ -400,24 +400,21 @@ int _countForeignOwnedItemsForMercante(Battler owner) {
   ].where(_isForeignItemForMercante).length;
 }
 
-/// Refresca un Blindaje Temporal minimo sin acumularlo infinitamente.
-Battler _refreshMinimumBlindajeTemporal({
+/// Sube la barrera del portador hasta un minimo sin sobrepasar su maximo.
+Battler _refreshMinimumBarrier({
   required Battler owner,
   required int value,
 }) {
-  final shieldValue = max(1, value);
-  final currentShield = owner.statusById(BlindajeTemporalStatus.statusId);
-  if (currentShield != null &&
-      currentShield.resolved(owner).value >= shieldValue) {
+  final minimumBarrier = max(1, value);
+  if (owner.currentBarrier >= minimumBarrier) {
     return owner;
   }
 
-  final refreshedOwner = currentShield == null
-      ? owner
-      : owner.removeStatus(BlindajeTemporalStatus.statusId);
-  return refreshedOwner.applyStatus(
-    BlindajeTemporalStatus(value: shieldValue),
-    source: refreshedOwner,
+  return owner.copyWith(
+    currentBarrier: min(
+      owner.maxBarrier,
+      minimumBarrier,
+    ),
   );
 }
 

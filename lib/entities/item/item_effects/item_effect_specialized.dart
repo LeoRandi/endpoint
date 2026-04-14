@@ -738,7 +738,6 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
 
 /// Enumera los estados "nuevos" que pueden ser aplicados por objetos.
 enum ItemStatusEffectKind {
-  blindajeTemporal,
   calentando,
   conmocion,
   fragilidad,
@@ -978,8 +977,6 @@ class StatusItemEffect extends ItemEffect {
     final resolvedValue = max(1, item.value);
 
     switch (kind) {
-      case ItemStatusEffectKind.blindajeTemporal:
-        return BlindajeTemporalStatus(value: resolvedValue);
       case ItemStatusEffectKind.calentando:
         return CalentandoStatus(value: resolvedValue);
       case ItemStatusEffectKind.conmocion:
@@ -1001,8 +998,6 @@ class StatusItemEffect extends ItemEffect {
     final resolvedValue = max(1, item.value);
 
     switch (kind) {
-      case ItemStatusEffectKind.blindajeTemporal:
-        return 'Blindaje Temporal ($resolvedValue de absorcion)';
       case ItemStatusEffectKind.calentando:
         return 'Calentando (+$resolvedValue dano)';
       case ItemStatusEffectKind.conmocion:

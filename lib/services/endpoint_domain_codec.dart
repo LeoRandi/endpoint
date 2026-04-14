@@ -265,8 +265,6 @@ BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
         remainingTurns: remainingTurns,
         value: value,
       );
-    case BattlerStatusId.blindajeTemporal:
-      return BlindajeTemporalStatus(value: value);
     case BattlerStatusId.conmocion:
       return ConmocionStatus(value: value);
     case BattlerStatusId.inercia:

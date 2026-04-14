@@ -24,7 +24,6 @@ enum BattlerStatusId {
   catalisisCruel,
   fragilidad,
   interferencia,
-  blindajeTemporal,
   conmocion,
   inercia,
   inerciaAtaque,

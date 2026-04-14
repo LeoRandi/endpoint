@@ -1,12 +1,12 @@
 part of '../item_effect.dart';
 
-/// Convierte el turno sin barrera en un blindaje temporal minimo.
+/// Convierte el turno sin barrera en una recarga minima de barrera.
 class DeflectiveCapacitorItemEffect extends ItemEffect {
   /// Crea el efecto propio del Condensador Deflectivo.
   const DeflectiveCapacitorItemEffect()
       : super(
           description:
-              'Si empiezas tu turno sin barrera, recuperas Blindaje Temporal.',
+              'Si empiezas tu turno sin barrera, recuperas barrera minima.',
           hooks: const {
             ItemEffectHook.turnStart,
           },
@@ -14,7 +14,7 @@ class DeflectiveCapacitorItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al inicio de tu turno, si estas a 0 de Barrera, recuperas Blindaje Temporal (${max(1, item.value)} de absorcion).';
+    return 'Al inicio de tu turno, si estas a 0 de Barrera, subes tu Barrera hasta ${max(1, item.value)}.';
   }
 
   @override
@@ -30,7 +30,7 @@ class DeflectiveCapacitorItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: _refreshMinimumBlindajeTemporal(
+      owner: _refreshMinimumBarrier(
         owner: owner,
         value: item.value,
       ),
