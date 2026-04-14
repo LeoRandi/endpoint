@@ -95,8 +95,17 @@ class BattleController extends ChangeNotifier {
 
   void handleAttack({
     BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+    BattleAttackDrawingPenalty drawingPenalty =
+        BattleAttackDrawingPenalty.empty,
   }) {
     if (!canUseActions) return;
+
+    if (drawingPenalty.hasAnyPenalty) {
+      _applyDrawingPenalty(drawingPenalty);
+      if (_finishImmediatelyIfPlayerIsDown()) {
+        return;
+      }
+    }
 
     if (drawingBonus.healAmount > 0) {
       _player = _player.heal(drawingBonus.healAmount);
@@ -387,9 +396,100 @@ class BattleController extends ChangeNotifier {
     );
   }
 
+  void _applyDrawingPenalty(BattleAttackDrawingPenalty penalty) {
+    if (penalty.directDamage > 0) {
+      _player = _player.receiveDirectDamage(
+        penalty.directDamage,
+        source: _enemy,
+      );
+    }
+
+    if (penalty.barrierTransferAmount > 0) {
+      final transferredBarrier = min(
+        _player.currentBarrier,
+        penalty.barrierTransferAmount,
+      );
+      if (transferredBarrier > 0) {
+        _player = _player.copyWith(
+          currentBarrier: _player.currentBarrier - transferredBarrier,
+        );
+        _enemy = _enemy.copyWith(
+          currentBarrier: _enemy.currentBarrier + transferredBarrier,
+        );
+      }
+    }
+
+    if (penalty.healthTransferAmount > 0) {
+      final transferredHealth = min(
+        _player.health,
+        penalty.healthTransferAmount,
+      );
+      if (transferredHealth > 0) {
+        _player = _player.copyWith(
+          health: max(0, _player.health - transferredHealth),
+        );
+        _enemy = _enemy.heal(transferredHealth);
+      }
+    }
+
+    if (penalty.transferBuffs) {
+      final transferResolution = _transferBuffStatuses(
+        source: _player,
+        target: _enemy,
+      );
+      _player = transferResolution.source;
+      _enemy = transferResolution.target;
+    }
+  }
+
+  _DrawingBuffTransferResolution _transferBuffStatuses({
+    required Battler source,
+    required Battler target,
+  }) {
+    final transferableBuffs = source.statuses
+        .where((status) => status.type == BattlerStatusType.buff)
+        .toList(growable: false);
+    if (transferableBuffs.isEmpty) {
+      return _DrawingBuffTransferResolution(
+        source: source,
+        target: target,
+      );
+    }
+
+    final sourceWithoutBuffs = source.copyWith(
+      statuses: List<BattlerStatus>.unmodifiable(
+        source.statuses
+            .where((status) => status.type != BattlerStatusType.buff)
+            .toList(growable: false),
+      ),
+    );
+    var targetWithStolenBuffs = target;
+    for (final buff in transferableBuffs) {
+      targetWithStolenBuffs = targetWithStolenBuffs.applyStatus(
+        buff.copyWith(),
+        applyEquipmentModifiers: false,
+      );
+    }
+
+    return _DrawingBuffTransferResolution(
+      source: sourceWithoutBuffs,
+      target: targetWithStolenBuffs,
+    );
+  }
+
   @override
   void dispose() {
     _cancelTimers();
     super.dispose();
   }
+}
+
+class _DrawingBuffTransferResolution {
+  final Battler source;
+  final Battler target;
+
+  const _DrawingBuffTransferResolution({
+    required this.source,
+    required this.target,
+  });
 }

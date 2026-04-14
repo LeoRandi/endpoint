@@ -29,12 +29,12 @@
 
 -Combate
 [--Quitar mitigación plana -> barrera = escudo extra todos los combates]
---Mejorar UI de dibujo en combate
+[--Mejorar UI de dibujo en combate]
 [--Añadir estados alterados]
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
 --Mejorar nivel de las CPU(activar habilidades, distintos intents)
---El enemigo te obliga a dibujar o sufrirás las consecuencias
+[--El enemigo te obliga a dibujar o sufrirás las consecuencias]
 
 -Estados
 [--Añadir Tags]
@@ -146,3 +146,5 @@ IDEAS:
 --Pasadizo Secreto: A cambio de dinero, una mujer cromada te permite decidir uno de los nodos en la siguiente hora(te deja elegir uno entre 5 eventos, y ese aparecerá asegurado en la siguiente hora como nodo secundario(en los laterales). No puede salir este mismo evento en esa selección de 5)
 
 ////////////////////////////////
+
+Quiero que escanees el código del proyecto actual para que tengas en contexto sus flujos de combate, entidades, etc. Necesito que no hagas tests a no ser que lo pida, y que no me resumas lo que encuentres. En vez de eso, una vez tengas el contexto completo:

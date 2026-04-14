@@ -181,12 +181,14 @@ class _BattlePageState extends State<BattlePage> {
         barrierColor: EndpointPalette.overlayScrimStrong,
         builder: (_) => BattleDrawAttackOverlay(
           attacker: _sceneController.player,
+          defender: _sceneController.enemy,
         ),
       );
       if (!mounted || resolution == null) return;
 
       _sceneController.handlePlayerAttack(
         drawingBonus: resolution.bonus,
+        drawingPenalty: resolution.penalty,
       );
     } finally {
       if (mounted) {

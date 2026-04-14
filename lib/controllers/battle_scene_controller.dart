@@ -123,8 +123,13 @@ class BattleSceneController extends ChangeNotifier {
   /// Ejecuta el ataque basico del jugador cuando la escena lo solicita.
   void handlePlayerAttack({
     BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+    BattleAttackDrawingPenalty drawingPenalty =
+        BattleAttackDrawingPenalty.empty,
   }) {
-    _battleController.handleAttack(drawingBonus: drawingBonus);
+    _battleController.handleAttack(
+      drawingBonus: drawingBonus,
+      drawingPenalty: drawingPenalty,
+    );
   }
 
   /// Alterna una habilidad manual del jugador dentro del combate.

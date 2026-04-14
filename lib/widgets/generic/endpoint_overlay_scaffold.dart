@@ -6,6 +6,9 @@ class EndpointOverlayScaffold extends StatelessWidget {
   final String sectionLabel;
   final String sectionValue;
   final String closeTooltip;
+  final bool showHeader;
+  final bool showCloseButton;
+  final bool showSection;
   final Color accent;
   final Color backgroundColor;
   final double bottomInset;
@@ -15,12 +18,15 @@ class EndpointOverlayScaffold extends StatelessWidget {
 
   const EndpointOverlayScaffold({
     super.key,
-    required this.title,
-    required this.subtitle,
-    required this.sectionLabel,
-    required this.sectionValue,
-    required this.closeTooltip,
+    this.title = '',
+    this.subtitle = '',
+    this.sectionLabel = '',
+    this.sectionValue = '',
+    this.closeTooltip = '',
     required this.child,
+    this.showHeader = true,
+    this.showCloseButton = true,
+    this.showSection = true,
     this.accent = EndpointPalette.primaryAccent,
     this.backgroundColor = EndpointPalette.panelBackgroundOpaque,
     this.bottomInset = 112,
@@ -57,58 +63,63 @@ class EndpointOverlayScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            EndpointText(
-                              title,
-                              style: textTitleMediumBold.copyWith(
-                                color: EndpointPalette.softForeground,
-                                letterSpacing: 1.8,
+                  if (showHeader) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              EndpointText(
+                                title,
+                                style: textTitleMediumBold.copyWith(
+                                  color: EndpointPalette.softForeground,
+                                  letterSpacing: 1.8,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            EndpointText(
-                              subtitle,
-                              style: textSmallBold.copyWith(
-                                color: Colors.white.withOpacity(0.72),
-                                letterSpacing: 1,
+                              const SizedBox(height: 4),
+                              EndpointText(
+                                subtitle,
+                                style: textSmallBold.copyWith(
+                                  color: Colors.white.withOpacity(0.72),
+                                  letterSpacing: 1,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      EndpointSceneCloseButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        tooltip: closeTooltip,
-                        accent: accent,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      EndpointText(
-                        sectionLabel,
-                        style: textSmallBold.copyWith(
-                          color: accent,
-                          letterSpacing: 1.4,
+                        if (showCloseButton)
+                          EndpointSceneCloseButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            tooltip: closeTooltip,
+                            accent: accent,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  if (showSection) ...[
+                    Row(
+                      children: [
+                        EndpointText(
+                          sectionLabel,
+                          style: textSmallBold.copyWith(
+                            color: accent,
+                            letterSpacing: 1.4,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      EndpointText(
-                        sectionValue,
-                        style: textSmallBold.copyWith(
-                          color: Colors.white.withOpacity(0.76),
+                        const Spacer(),
+                        EndpointText(
+                          sectionValue,
+                          style: textSmallBold.copyWith(
+                            color: Colors.white.withOpacity(0.76),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   Expanded(child: child),
                 ],
               ),

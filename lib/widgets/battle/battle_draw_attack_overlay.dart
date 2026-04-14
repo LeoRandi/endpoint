@@ -7,15 +7,18 @@ const _battleSketchNoiseSeed = 9187;
 const _battleSketchFeedbackLifetime = Duration(seconds: 1);
 const _battleSketchFeedbackGap = Duration(milliseconds: 500);
 const _battleSketchMissAccent = Color(0xFFC178FF);
+const _battleSketchEnemyMalusAccent = Color(0xFFF95A62);
 const _battleSketchEraserRadius = 18.0;
 const _battleSketchDuration = Duration(seconds: 15);
 
 class BattleDrawAttackOverlay extends StatefulWidget {
   final Battler attacker;
+  final Battler defender;
 
   const BattleDrawAttackOverlay({
     super.key,
     required this.attacker,
+    required this.defender,
   });
 
   @override
@@ -41,24 +44,32 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       const OperativeSketchRecognitionHelper();
   final BattleDrawingBonusResolver _bonusResolver =
       const BattleDrawingBonusResolver();
+  final BattleDrawingEnemyNuisancePlanner _enemyNuisancePlanner =
+      const BattleDrawingEnemyNuisancePlanner();
   late final EndpointSketchCanvasController _sketchController;
   late final EndpointSketchFeedbackController _feedbackController;
   late final List<EndpointSketchNoiseDot> _noiseDots;
+  late final List<BattleDrawingEnemyNuisance> _enemyNuisances;
   late final AnimationController _timerController = AnimationController(
     vsync: this,
     duration: _battleSketchDuration,
   )..addStatusListener(_handleTimerStatus);
 
   Size? _canvasSize;
+  int _nextBrushColorIndex = 0;
   bool _isSubmitting = false;
+  late final BattleDrawingBonusResolution _baseBonusResolution;
   OperativeSketchRecognitionResult _lastRecognitionResult =
       _emptyRecognitionResult;
-  BattleDrawingBonusResolution _lastBonusResolution =
-      const BattleDrawingBonusResolution();
+  late BattleDrawingBonusResolution _lastBonusResolution;
 
   @override
   void initState() {
     super.initState();
+    _enemyNuisances = _enemyNuisancePlanner.build(
+      player: widget.attacker,
+      enemy: widget.defender,
+    );
     _sketchController = EndpointSketchCanvasController(
       initialBrushColor: _brushColors.first,
       eraserRadius: _battleSketchEraserRadius,
@@ -72,6 +83,13 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       count: 260,
       radiusDelta: 1.3,
     );
+    _baseBonusResolution = _bonusResolver.resolve(
+      equippedItems: widget.attacker.equippedItems,
+      recognizedCounts: const <ItemBonusShape, int>{},
+      recognizedShapeCounts: const <BattleDrawingShape, int>{},
+      enemyNuisances: _enemyNuisances,
+    );
+    _lastBonusResolution = _baseBonusResolution;
     _timerController.forward();
   }
 
@@ -88,6 +106,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   void _handlePanStart(DragStartDetails details) {
     _feedbackController.dismiss();
     _invalidatePreview();
+    _advanceBrushColor();
     if (_sketchController.handlePanStart(details.localPosition)) {
       setState(() {});
     }
@@ -97,9 +116,6 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     final didChange = _sketchController.handlePanUpdate(details.localPosition);
     if (!didChange) return;
 
-    if (_sketchController.toolMode == EndpointSketchToolMode.erase) {
-      _invalidatePreview();
-    }
     setState(() {});
   }
 
@@ -125,27 +141,22 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     _invalidatePreview();
   }
 
-  void _selectBrushColor(Color color) {
-    if (_sketchController.selectBrushColor(color)) {
-      setState(() {});
-    }
-  }
-
-  void _toggleToolMode() {
-    if (_sketchController.toggleToolMode()) {
-      setState(() {});
-    }
+  void _advanceBrushColor() {
+    if (_brushColors.isEmpty) return;
+    final color = _brushColors[_nextBrushColorIndex % _brushColors.length];
+    _nextBrushColorIndex = (_nextBrushColorIndex + 1) % _brushColors.length;
+    _sketchController.selectBrushColor(color);
   }
 
   void _invalidatePreview() {
     if (_lastRecognitionResult == _emptyRecognitionResult &&
-        !_lastBonusResolution.hasActivatedItems) {
+        identical(_lastBonusResolution, _baseBonusResolution)) {
       return;
     }
 
     setState(() {
       _lastRecognitionResult = _emptyRecognitionResult;
-      _lastBonusResolution = const BattleDrawingBonusResolution();
+      _lastBonusResolution = _baseBonusResolution;
     });
   }
 
@@ -170,7 +181,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   }) {
     final canvasSize = _canvasSize;
     if (canvasSize == null || canvasSize.isEmpty) {
-      return const BattleDrawingBonusResolution();
+      return _baseBonusResolution;
     }
 
     final result = !_sketchController.hasStrokes
@@ -181,7 +192,9 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
           );
     final resolution = _bonusResolver.resolve(
       equippedItems: widget.attacker.equippedItems,
-      recognizedCounts: _recognizedCountsFor(result),
+      recognizedCounts: _recognizedItemCountsFor(result),
+      recognizedShapeCounts: _recognizedShapeCountsFor(result),
+      enemyNuisances: _enemyNuisances,
     );
 
     setState(() {
@@ -190,6 +203,16 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     });
 
     if (!showFeedback) {
+      return resolution;
+    }
+
+    if (resolution.hasTriggeredNuisances) {
+      _feedbackController.showSequence(
+        labels: resolution.enemyNuisanceResolution.triggeredNuisances
+            .map((nuisance) => nuisance.failureLabel)
+            .toList(growable: false),
+        color: _battleSketchEnemyMalusAccent,
+      );
       return resolution;
     }
 
@@ -218,12 +241,28 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     return resolution;
   }
 
-  Map<ItemBonusShape, int> _recognizedCountsFor(
+  Map<ItemBonusShape, int> _recognizedItemCountsFor(
     OperativeSketchRecognitionResult result,
   ) {
     final counts = <ItemBonusShape, int>{};
     for (final match in result.matches) {
       final shape = match.kind.itemBonusShape;
+      if (shape == null || match.count <= 0) continue;
+      counts.update(
+        shape,
+        (value) => value + match.count,
+        ifAbsent: () => match.count,
+      );
+    }
+    return counts;
+  }
+
+  Map<BattleDrawingShape, int> _recognizedShapeCountsFor(
+    OperativeSketchRecognitionResult result,
+  ) {
+    final counts = <BattleDrawingShape, int>{};
+    for (final match in result.matches) {
+      final shape = match.kind.battleDrawingShape;
       if (shape == null || match.count <= 0) continue;
       counts.update(
         shape,
@@ -248,12 +287,10 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   @override
   Widget build(BuildContext context) {
     return EndpointOverlayScaffold(
-      title: 'ATAQUE MANUAL',
-      subtitle:
-          'Traza las formas que quieras. Solo se activaran los bonus de los objetos equipados.',
       sectionLabel: 'COMBATE',
       sectionValue: 'DIBUJO',
-      closeTooltip: 'Cerrar ataque dibujado',
+      showHeader: false,
+      showCloseButton: false,
       accent: EndpointPalette.warningAccent,
       backgroundColor: EndpointPalette.panelBackgroundOpaque,
       bottomInset: 18,
@@ -267,8 +304,8 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
             resolution: _lastBonusResolution,
           ),
           const SizedBox(height: 10),
-          _BattleDrawRecognitionStrip(
-            result: _lastRecognitionResult,
+          _BattleDrawEnemyNuisanceStrip(
+            nuisances: _enemyNuisances,
             resolution: _lastBonusResolution,
           ),
           const SizedBox(height: 10),
@@ -346,70 +383,54 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
             ),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runAlignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 10,
-            runSpacing: 10,
+          Row(
             children: [
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  for (final color in _brushColors)
-                    _BattleSketchBrushSwatch(
-                      color: color,
-                      isSelected: _sketchController.toolMode ==
-                              EndpointSketchToolMode.paint &&
-                          _sketchController.selectedBrushColor == color,
-                      onPressed: () => _selectBrushColor(color),
-                    ),
-                  _BattleSketchToolButton(
-                    label: 'Borrar',
-                    icon: Icons.cleaning_services_outlined,
-                    isSelected: _sketchController.toolMode ==
-                        EndpointSketchToolMode.erase,
-                    onPressed: _toggleToolMode,
-                  ),
-                  _BattleSketchToolButton(
-                    label: 'Deshacer',
-                    icon: Icons.undo_rounded,
-                    onPressed:
-                        _sketchController.hasStrokes ? _undoLastStroke : null,
-                  ),
-                ],
+              Expanded(
+                child: EndpointActionButton(
+                  label: 'Retroceder',
+                  icon: Icons.undo_rounded,
+                  onPressed:
+                      _sketchController.hasStrokes ? _undoLastStroke : null,
+                  tooltip: 'Eliminar el ultimo trazo',
+                  accent: EndpointPalette.primaryAccent,
+                  backgroundColor: EndpointPalette.closeButtonBackground,
+                  foregroundColor: EndpointPalette.softForeground,
+                  height: 44,
+                  useMarquee: false,
+                ),
               ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  EndpointActionButton(
-                    label: 'Limpiar',
-                    icon: Icons.layers_clear_rounded,
-                    onPressed:
-                        _sketchController.hasStrokes ? _clearStrokes : null,
-                    tooltip: 'Borrar todos los trazos del ataque',
-                    accent: EndpointPalette.infoAccent,
-                    backgroundColor: EndpointPalette.closeButtonBackground,
-                    foregroundColor: EndpointPalette.softForeground,
-                    useMarquee: false,
+              const SizedBox(width: 8),
+              Expanded(
+                child: EndpointActionButton(
+                  label: 'Limpiar',
+                  icon: Icons.layers_clear_rounded,
+                  onPressed:
+                      _sketchController.hasStrokes ? _clearStrokes : null,
+                  tooltip: 'Borrar todos los trazos del ataque',
+                  accent: EndpointPalette.infoAccent,
+                  backgroundColor: EndpointPalette.closeButtonBackground,
+                  foregroundColor: EndpointPalette.softForeground,
+                  height: 44,
+                  useMarquee: false,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: EndpointActionButton(
+                  label: 'CHECK',
+                  icon: Icons.fact_check_rounded,
+                  onPressed: _handleCheckPressed,
+                  tooltip: 'Escanear el dibujo actual',
+                  accent: EndpointPalette.warningAccent,
+                  backgroundColor: EndpointPalette.blend(
+                    EndpointPalette.panelBackground,
+                    EndpointPalette.warningAccent,
+                    0.1,
                   ),
-                  EndpointActionButton(
-                    label: 'CHECK',
-                    icon: Icons.fact_check_rounded,
-                    onPressed: _handleCheckPressed,
-                    tooltip: 'Escanear el dibujo actual',
-                    accent: EndpointPalette.warningAccent,
-                    backgroundColor: EndpointPalette.blend(
-                      EndpointPalette.panelBackground,
-                      EndpointPalette.warningAccent,
-                      0.1,
-                    ),
-                    foregroundColor: EndpointPalette.softForegroundWarm,
-                    useMarquee: false,
-                  ),
-                ],
+                  foregroundColor: EndpointPalette.softForegroundWarm,
+                  height: 44,
+                  useMarquee: false,
+                ),
               ),
             ],
           ),
@@ -495,7 +516,7 @@ class _BattleDrawLoadoutStrip extends StatelessWidget {
                 title: equippedItems[index].displayName,
                 subtitle: equippedItems[index].specialBonus.description,
                 emoji: equippedItems[index].iconEmoji,
-                shape: equippedItems[index].bonusShape,
+                shape: equippedItems[index].bonusShape.battleDrawingShape,
                 accent: _shapeAccent(equippedItems[index].bonusShape),
                 isActivated: resolution.isItemActivated(equippedItems[index]),
               ),
@@ -524,7 +545,7 @@ class _BattleDrawItemCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final String emoji;
-  final ItemBonusShape shape;
+  final BattleDrawingShape shape;
   final Color accent;
   final bool isActivated;
 
@@ -591,10 +612,15 @@ class _BattleDrawItemCard extends StatelessWidget {
                       Positioned.fill(
                         child: Padding(
                           padding: const EdgeInsets.all(8),
-                          child: CustomPaint(
-                            painter: _BattleDrawShapePainter(
-                              shape: shape,
-                              strokeColor: accent,
+                          child: Center(
+                            child: AspectRatio(
+                              aspectRatio: 1,
+                              child: CustomPaint(
+                                painter: _BattleDrawCombatShapePainter(
+                                  shape: shape,
+                                  strokeColor: accent,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -700,60 +726,123 @@ class _BattleDrawArchetypeCard extends StatelessWidget {
   }
 }
 
-class _BattleDrawRecognitionStrip extends StatelessWidget {
-  final OperativeSketchRecognitionResult result;
+class _BattleDrawEnemyNuisanceStrip extends StatelessWidget {
+  final List<BattleDrawingEnemyNuisance> nuisances;
   final BattleDrawingBonusResolution resolution;
 
-  const _BattleDrawRecognitionStrip({
-    required this.result,
+  const _BattleDrawEnemyNuisanceStrip({
+    required this.nuisances,
     required this.resolution,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasPreview = result.matches.isNotEmpty;
-    final label = hasPreview
-        ? result.matches
-            .map((match) => '${match.kind.label} x${match.count}')
-            .join('  |  ')
-        : 'Pulsa CHECK para recalcular las formas reconocidas.';
-    final activatedLabel = resolution.hasActivatedItems
-        ? 'Bonus activos: ${resolution.activatedItems.map((item) => item.specialBonus.description).join("  |  ")}'
-        : 'Bonus activos: ninguno';
+    if (nuisances.isEmpty) {
+      return EndpointPanel(
+        accent: EndpointPalette.infoAccent,
+        backgroundColor: EndpointPalette.panelBackgroundBattle,
+        borderRadius: 12,
+        glowOpacity: 0,
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+        child: EndpointText(
+          'El enemigo no prepara interferencias en este ataque.',
+          maxLines: 1,
+          style: textSmallBold.copyWith(
+            color: EndpointPalette.softForeground.withValues(alpha: 0.8),
+            fontSize: 10,
+            letterSpacing: 0.45,
+          ),
+        ),
+      );
+    }
 
-    return EndpointPanel(
-      accent: resolution.hasActivatedItems
-          ? EndpointPalette.rewardAccent
-          : EndpointPalette.infoAccent,
-      backgroundColor: EndpointPalette.panelBackgroundBattle,
-      borderRadius: 12,
-      glowOpacity: 0,
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return SizedBox(
+      height: 76,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
         children: [
-          EndpointText(
-            label,
-            maxLines: 1,
-            style: textSmallBold.copyWith(
-              color: EndpointPalette.softForeground,
-              fontSize: 10,
-              letterSpacing: 0.5,
+          for (int index = 0; index < nuisances.length; index++)
+            Padding(
+              padding: EdgeInsets.only(
+                right: index == nuisances.length - 1 ? 0 : 8,
+              ),
+              child: _BattleDrawEnemyNuisanceCard(
+                nuisance: nuisances[index],
+                isResolved: resolution.enemyNuisanceResolution
+                    .isResolved(nuisances[index]),
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          EndpointText(
-            activatedLabel,
-            maxLines: 1,
-            style: textSmallBold.copyWith(
-              color: resolution.hasActivatedItems
-                  ? EndpointPalette.rewardAccent
-                  : EndpointPalette.softForeground.withValues(alpha: 0.72),
-              fontSize: 9,
-              letterSpacing: 0.4,
-            ),
-          ),
         ],
+      ),
+    );
+  }
+}
+
+class _BattleDrawEnemyNuisanceCard extends StatelessWidget {
+  final BattleDrawingEnemyNuisance nuisance;
+  final bool isResolved;
+
+  const _BattleDrawEnemyNuisanceCard({
+    required this.nuisance,
+    required this.isResolved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = isResolved
+        ? EndpointPalette.rewardAccent
+        : _battleSketchEnemyMalusAccent;
+
+    return SizedBox(
+      width: 122,
+      child: EndpointPanel(
+        accent: accent,
+        backgroundColor: EndpointPalette.blend(
+          EndpointPalette.panelBackgroundBattle,
+          accent,
+          isResolved ? 0.09 : 0.15,
+        ),
+        borderRadius: 12,
+        glowOpacity: isResolved ? 0.06 : 0.14,
+        blurRadius: 14,
+        spreadRadius: 1,
+        padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+        child: Column(
+          children: [
+            SizedBox(
+              width: 34,
+              height: 34,
+              child: CustomPaint(
+                painter: _BattleDrawCombatShapePainter(
+                  shape: nuisance.requiredShape,
+                  strokeColor: accent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            EndpointText(
+              nuisance.requiredShape.label.toUpperCase(),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: textSmallBold.copyWith(
+                color: EndpointPalette.softForeground,
+                fontSize: 9,
+                letterSpacing: 0.6,
+              ),
+            ),
+            EndpointText(
+              nuisance.pendingDescription,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: textSmallBold.copyWith(
+                color: accent.withValues(alpha: 0.92),
+                fontSize: 8,
+                letterSpacing: 0.35,
+                height: 1.08,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -821,94 +910,18 @@ class _BattleDrawCountdownBar extends StatelessWidget {
   }
 }
 
-class _BattleSketchToolButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final bool isSelected;
-
-  const _BattleSketchToolButton({
-    required this.label,
-    required this.icon,
-    this.onPressed,
-    this.isSelected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final accent =
-        isSelected ? EndpointPalette.dangerAccent : EndpointPalette.infoAccent;
-
-    return EndpointActionButton(
-      label: label,
-      icon: icon,
-      onPressed: onPressed,
-      tooltip: label,
-      accent: accent,
-      backgroundColor: EndpointPalette.blend(
-        EndpointPalette.panelBackground,
-        accent,
-        isSelected ? 0.14 : 0.08,
-      ),
-      foregroundColor: EndpointPalette.softForeground,
-      useMarquee: false,
-    );
-  }
-}
-
-class _BattleSketchBrushSwatch extends StatelessWidget {
-  final Color color;
-  final bool isSelected;
-  final VoidCallback onPressed;
-
-  const _BattleSketchBrushSwatch({
-    required this.color,
-    required this.isSelected,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          border: Border.all(
-            color: isSelected
-                ? Colors.white
-                : EndpointPalette.softForeground.withValues(alpha: 0.24),
-            width: isSelected ? 2.4 : 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: isSelected ? 0.26 : 0.14),
-              blurRadius: isSelected ? 18 : 10,
-              spreadRadius: isSelected ? 2 : 0,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BattleDrawShapePainter extends CustomPainter {
-  final ItemBonusShape shape;
+class _BattleDrawCombatShapePainter extends CustomPainter {
+  final BattleDrawingShape shape;
   final Color strokeColor;
 
-  const _BattleDrawShapePainter({
+  const _BattleDrawCombatShapePainter({
     required this.shape,
     required this.strokeColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final isAngularShape = shape != ItemBonusShape.circle;
+    final isAngularShape = shape != BattleDrawingShape.circle;
     final glowPaint = Paint()
       ..color = strokeColor.withValues(alpha: 0.22)
       ..style = PaintingStyle.stroke
@@ -922,6 +935,12 @@ class _BattleDrawShapePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = isAngularShape ? StrokeJoin.miter : StrokeJoin.round
       ..strokeWidth = 3.4;
+
+    if (shape == BattleDrawingShape.scissors) {
+      _paintScissors(canvas, size, glowPaint, corePaint);
+      return;
+    }
+
     final path = _shapePath(size);
     canvas.drawPath(path, glowPaint);
     canvas.drawPath(path, corePaint);
@@ -932,13 +951,13 @@ class _BattleDrawShapePainter extends CustomPainter {
         Offset(size.width * dx, size.height * dy);
 
     switch (shape) {
-      case ItemBonusShape.triangle:
+      case BattleDrawingShape.triangle:
         return Path()
           ..moveTo(size.width * 0.5, size.height * 0.16)
           ..lineTo(size.width * 0.79, size.height * 0.78)
           ..lineTo(size.width * 0.21, size.height * 0.78)
           ..close();
-      case ItemBonusShape.square:
+      case BattleDrawingShape.square:
         return Path()
           ..addRRect(
             RRect.fromRectAndRadius(
@@ -949,7 +968,7 @@ class _BattleDrawShapePainter extends CustomPainter {
               const Radius.circular(2),
             ),
           );
-      case ItemBonusShape.circle:
+      case BattleDrawingShape.circle:
         return Path()
           ..addOval(
             Rect.fromCenter(
@@ -958,11 +977,58 @@ class _BattleDrawShapePainter extends CustomPainter {
               height: size.height * 0.56,
             ),
           );
+      case BattleDrawingShape.scissors:
+        return Path();
     }
   }
 
+  void _paintScissors(
+    Canvas canvas,
+    Size size,
+    Paint glowPaint,
+    Paint corePaint,
+  ) {
+    final bladePath = Path()
+      ..moveTo(size.width * 0.2, size.height * 0.2)
+      ..lineTo(size.width * 0.8, size.height * 0.78)
+      ..moveTo(size.width * 0.8, size.height * 0.2)
+      ..lineTo(size.width * 0.2, size.height * 0.78);
+    canvas.drawPath(bladePath, glowPaint);
+    canvas.drawPath(bladePath, corePaint);
+
+    final leftHandle = Rect.fromCircle(
+      center: Offset(size.width * 0.35, size.height * 0.72),
+      radius: size.shortestSide * 0.13,
+    );
+    final rightHandle = Rect.fromCircle(
+      center: Offset(size.width * 0.65, size.height * 0.72),
+      radius: size.shortestSide * 0.13,
+    );
+    canvas.drawOval(leftHandle, glowPaint);
+    canvas.drawOval(leftHandle, corePaint);
+    canvas.drawOval(rightHandle, glowPaint);
+    canvas.drawOval(rightHandle, corePaint);
+  }
+
   @override
-  bool shouldRepaint(covariant _BattleDrawShapePainter oldDelegate) {
+  bool shouldRepaint(covariant _BattleDrawCombatShapePainter oldDelegate) {
     return oldDelegate.shape != shape || oldDelegate.strokeColor != strokeColor;
+  }
+}
+
+extension on OperativeSketchRecognitionKind {
+  BattleDrawingShape? get battleDrawingShape {
+    switch (this) {
+      case OperativeSketchRecognitionKind.none:
+        return null;
+      case OperativeSketchRecognitionKind.triangle:
+        return BattleDrawingShape.triangle;
+      case OperativeSketchRecognitionKind.square:
+        return BattleDrawingShape.square;
+      case OperativeSketchRecognitionKind.circle:
+        return BattleDrawingShape.circle;
+      case OperativeSketchRecognitionKind.scissors:
+        return BattleDrawingShape.scissors;
+    }
   }
 }
