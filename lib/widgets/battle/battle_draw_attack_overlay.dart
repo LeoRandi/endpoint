@@ -299,12 +299,8 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _BattleDrawLoadoutStrip(
+          _BattleDrawTargetsStrip(
             attacker: widget.attacker,
-            resolution: _lastBonusResolution,
-          ),
-          const SizedBox(height: 10),
-          _BattleDrawEnemyNuisanceStrip(
             nuisances: _enemyNuisances,
             resolution: _lastBonusResolution,
           ),
@@ -490,23 +486,40 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   }
 }
 
-class _BattleDrawLoadoutStrip extends StatelessWidget {
+class _BattleDrawTargetsStrip extends StatelessWidget {
   final Battler attacker;
+  final List<BattleDrawingEnemyNuisance> nuisances;
   final BattleDrawingBonusResolution resolution;
 
-  const _BattleDrawLoadoutStrip({
+  const _BattleDrawTargetsStrip({
     required this.attacker,
+    required this.nuisances,
     required this.resolution,
   });
 
   @override
   Widget build(BuildContext context) {
     final equippedItems = attacker.equippedItems;
+    if (nuisances.isEmpty && equippedItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return SizedBox(
       height: 90,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
+          for (int index = 0; index < nuisances.length; index++)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _BattleDrawEnemyNuisanceCard(
+                nuisance: nuisances[index],
+                isResolved: resolution.enemyNuisanceResolution
+                    .isResolved(nuisances[index]),
+              ),
+            ),
+          if (nuisances.isNotEmpty && equippedItems.isNotEmpty)
+            const SizedBox(width: 4),
           for (int index = 0; index < equippedItems.length; index++)
             Padding(
               padding: EdgeInsets.only(
@@ -521,9 +534,6 @@ class _BattleDrawLoadoutStrip extends StatelessWidget {
                 isActivated: resolution.isItemActivated(equippedItems[index]),
               ),
             ),
-          _BattleDrawArchetypeCard(
-            emoji: attacker.iconEmoji,
-          ),
         ],
       ),
     );
@@ -653,126 +663,6 @@ class _BattleDrawItemCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _BattleDrawArchetypeCard extends StatelessWidget {
-  final String emoji;
-
-  const _BattleDrawArchetypeCard({
-    required this.emoji,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 88,
-      child: EndpointPanel(
-        accent: EndpointPalette.primaryAccent,
-        backgroundColor: EndpointPalette.blend(
-          EndpointPalette.panelBackground,
-          EndpointPalette.primaryAccent,
-          0.08,
-        ),
-        borderRadius: 12,
-        glowOpacity: 0,
-        padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: EndpointPalette.softForeground.withValues(alpha: 0.24),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
-            child: Column(
-              children: [
-                const Spacer(),
-                EndpointText(
-                  emoji,
-                  style: const TextStyle(fontSize: 34),
-                ),
-                const Spacer(),
-                EndpointText(
-                  'ARQUETIPO',
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    color: EndpointPalette.primaryAccent,
-                    fontSize: 9,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                EndpointText(
-                  'Vista actual',
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    color:
-                        EndpointPalette.softForeground.withValues(alpha: 0.74),
-                    fontSize: 8,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BattleDrawEnemyNuisanceStrip extends StatelessWidget {
-  final List<BattleDrawingEnemyNuisance> nuisances;
-  final BattleDrawingBonusResolution resolution;
-
-  const _BattleDrawEnemyNuisanceStrip({
-    required this.nuisances,
-    required this.resolution,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (nuisances.isEmpty) {
-      return EndpointPanel(
-        accent: EndpointPalette.infoAccent,
-        backgroundColor: EndpointPalette.panelBackgroundBattle,
-        borderRadius: 12,
-        glowOpacity: 0,
-        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-        child: EndpointText(
-          'El enemigo no prepara interferencias en este ataque.',
-          maxLines: 1,
-          style: textSmallBold.copyWith(
-            color: EndpointPalette.softForeground.withValues(alpha: 0.8),
-            fontSize: 10,
-            letterSpacing: 0.45,
-          ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 76,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          for (int index = 0; index < nuisances.length; index++)
-            Padding(
-              padding: EdgeInsets.only(
-                right: index == nuisances.length - 1 ? 0 : 8,
-              ),
-              child: _BattleDrawEnemyNuisanceCard(
-                nuisance: nuisances[index],
-                isResolved: resolution.enemyNuisanceResolution
-                    .isResolved(nuisances[index]),
-              ),
-            ),
-        ],
       ),
     );
   }

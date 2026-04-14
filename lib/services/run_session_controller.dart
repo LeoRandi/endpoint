@@ -102,14 +102,32 @@ class RunSessionController extends ChangeNotifier {
 
   /// Actualiza el jugador fuera de una escena y corta la run al instante si ya no sigue vivo.
   void updatePlayer(Battler player) {
+    final shouldRerollVisibleNodes = _didTriggerTimelineRefactor(
+      previousPlayer: _state.player,
+      updatedPlayer: player,
+    );
     final resolvedCompletionType = _resolveCompletionType(
       updatedPlayer: player,
     );
-    _state = _state.copyWith(
+    var nextState = _state.copyWith(
       player: player,
       isRunComplete: resolvedCompletionType != null,
       completionType: resolvedCompletionType,
     );
+    if (resolvedCompletionType == null &&
+        shouldRerollVisibleNodes &&
+        !_isResolvingNode) {
+      final rerolledHour = _buildRefactoredHourSnapshot(
+        player: player,
+        previousNodes: _state.visibleNodes,
+      );
+      nextState = nextState.copyWith(
+        currentHour: rerolledHour,
+        visibleNodes: List<PathNode>.unmodifiable(rerolledHour.nodes),
+      );
+    }
+
+    _state = nextState;
     notifyListeners();
     if (resolvedCompletionType != null) {
       unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
@@ -210,7 +228,7 @@ class RunSessionController extends ChangeNotifier {
     }
 
     final nextStageIndex = _state.stageIndex + 1;
-    var nextPlayer = updatedPlayer;
+    var nextPlayer = _progressPathSelectionAbilityCooldowns(updatedPlayer);
     var nextHour = _pathNodeService.buildHourSnapshot(
       stageIndex: nextStageIndex,
       player: nextPlayer,
@@ -283,6 +301,119 @@ class RunSessionController extends ChangeNotifier {
 
   bool _shouldApplyHourStartEffects(RunHourSnapshot hour) {
     return hour.phase == RunHourPhase.day || hour.phase == RunHourPhase.night;
+  }
+
+  bool _didTriggerTimelineRefactor({
+    required Battler previousPlayer,
+    required Battler updatedPlayer,
+  }) {
+    final previousAbility =
+        previousPlayer.abilityById(BattlerAbilityId.refactorizacionTimeline);
+    final updatedAbility =
+        updatedPlayer.abilityById(BattlerAbilityId.refactorizacionTimeline);
+    if (previousAbility == null || updatedAbility == null) {
+      return false;
+    }
+
+    final cooldownRaised = updatedAbility.remainingCooldownTurns >
+        previousAbility.remainingCooldownTurns;
+    final spentCredits = updatedPlayer.money < previousPlayer.money;
+    return cooldownRaised && spentCredits;
+  }
+
+  Battler _progressPathSelectionAbilityCooldowns(Battler player) {
+    if (player.abilities.isEmpty) return player;
+
+    var hasChanges = false;
+    final updatedAbilities = player.abilities.map((ability) {
+      if (ability.manualActivationContext !=
+          BattlerAbilityActivationContext.pathSelection) {
+        return ability;
+      }
+
+      final tickedAbility = ability.tickCooldown();
+      if (tickedAbility.remainingCooldownTurns !=
+          ability.remainingCooldownTurns) {
+        hasChanges = true;
+      }
+      return tickedAbility;
+    }).toList(growable: false);
+
+    if (!hasChanges) return player;
+
+    return player.copyWith(
+      abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
+    );
+  }
+
+  RunHourSnapshot _buildRefactoredHourSnapshot({
+    required Battler player,
+    required List<PathNode> previousNodes,
+  }) {
+    const maxAttempts = 24;
+    RunHourSnapshot? firstDifferentSnapshot;
+    RunHourSnapshot latestSnapshot = _pathNodeService.buildHourSnapshot(
+      stageIndex: _state.stageIndex,
+      player: player,
+      availableNodes: _availableNodesOverride,
+      nodeCount: _nodeCount,
+    );
+
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      final candidateSnapshot = attempt == 0
+          ? latestSnapshot
+          : _pathNodeService.buildHourSnapshot(
+              stageIndex: _state.stageIndex,
+              player: player,
+              availableNodes: _availableNodesOverride,
+              nodeCount: _nodeCount,
+            );
+      latestSnapshot = candidateSnapshot;
+
+      if (!_areNodeListsEqualById(
+        previousNodes,
+        candidateSnapshot.nodes,
+      )) {
+        firstDifferentSnapshot ??= candidateSnapshot;
+      }
+      if (_areAllNodeIdsDistinct(
+        previousNodes,
+        candidateSnapshot.nodes,
+      )) {
+        return candidateSnapshot;
+      }
+    }
+
+    return firstDifferentSnapshot ?? latestSnapshot;
+  }
+
+  bool _areNodeListsEqualById(
+    List<PathNode> leftNodes,
+    List<PathNode> rightNodes,
+  ) {
+    if (leftNodes.length != rightNodes.length) return false;
+
+    for (var index = 0; index < leftNodes.length; index++) {
+      if (leftNodes[index].nodeId != rightNodes[index].nodeId) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _areAllNodeIdsDistinct(
+    List<PathNode> previousNodes,
+    List<PathNode> candidateNodes,
+  ) {
+    final previousNodeIds = previousNodes.map((node) => node.nodeId).toSet();
+    if (previousNodeIds.isEmpty || candidateNodes.isEmpty) {
+      return !_areNodeListsEqualById(previousNodes, candidateNodes);
+    }
+
+    return candidateNodes.every(
+      (candidateNode) => !previousNodeIds.contains(candidateNode.nodeId),
+    );
   }
 
   Future<void> _persistCurrentRun({

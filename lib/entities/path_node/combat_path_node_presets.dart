@@ -32,12 +32,76 @@ final phaseMoteCombatNode = CombatPathNode(
   label: phaseMoteEnemyBattler.name,
 );
 
+/// Nodo gris de control puntual con remates y autosustain.
+final chiselImpCombatNode = CombatPathNode(
+  nodeId: 'combat_chisel_imp',
+  enemy: chiselImpEnemyBattler,
+  tier: CombatNodeTier.gray,
+  label: chiselImpEnemyBattler.name,
+);
+
+/// Nodo gris defensivo que castiga al agresor por contacto.
+final staticTickCombatNode = CombatPathNode(
+  nodeId: 'combat_static_tick',
+  enemy: staticTickEnemyBattler,
+  tier: CombatNodeTier.gray,
+  label: staticTickEnemyBattler.name,
+);
+
+/// Nodo gris agresivo que presiona a rivales sin buffs.
+final scrapHushCombatNode = CombatPathNode(
+  nodeId: 'combat_scrap_hush',
+  enemy: scrapHushEnemyBattler,
+  tier: CombatNodeTier.gray,
+  label: scrapHushEnemyBattler.name,
+);
+
+/// Nodo gris de desgaste que se sostiene limpiando debuffs.
+final rustLeechCombatNode = CombatPathNode(
+  nodeId: 'combat_rust_leech',
+  enemy: rustLeechEnemyBattler,
+  tier: CombatNodeTier.gray,
+  label: rustLeechEnemyBattler.name,
+);
+
 /// Nodo verde del combate base de dificultad media-baja.
 final greenCombatNode = CombatPathNode(
   nodeId: 'combat_hollow_drone',
   enemy: greenEnemyBattler,
   tier: CombatNodeTier.green,
   label: greenEnemyBattler.name,
+);
+
+/// Nodo verde de debuffs en cadena con castigo incremental.
+final toxicLacerCombatNode = CombatPathNode(
+  nodeId: 'combat_toxic_lacer',
+  enemy: toxicLacerEnemyBattler,
+  tier: CombatNodeTier.green,
+  label: toxicLacerEnemyBattler.name,
+);
+
+/// Nodo verde de aguante progresivo con doble motor de barrera.
+final bastionSpringCombatNode = CombatPathNode(
+  nodeId: 'combat_bastion_spring',
+  enemy: bastionSpringEnemyBattler,
+  tier: CombatNodeTier.green,
+  label: bastionSpringEnemyBattler.name,
+);
+
+/// Nodo verde de presion ofensiva que escala por calor.
+final furnaceFangCombatNode = CombatPathNode(
+  nodeId: 'combat_furnace_fang',
+  enemy: furnaceFangEnemyBattler,
+  tier: CombatNodeTier.green,
+  label: furnaceFangEnemyBattler.name,
+);
+
+/// Nodo verde equilibrado con mezcla de sosten y dano estable.
+final shieldmendBruteCombatNode = CombatPathNode(
+  nodeId: 'combat_shieldmend_brute',
+  enemy: shieldmendBruteEnemyBattler,
+  tier: CombatNodeTier.green,
+  label: shieldmendBruteEnemyBattler.name,
 );
 
 /// Nodo verde toxico que abre con presion de Intoxicacion.
@@ -72,6 +136,38 @@ final blueCombatNode = CombatPathNode(
   label: blueEnemyBattler.name,
 );
 
+/// Nodo azul de control bilateral basado en Interferencia.
+final jammerHowlerCombatNode = CombatPathNode(
+  nodeId: 'combat_jammer_howler',
+  enemy: jammerHowlerEnemyBattler,
+  tier: CombatNodeTier.blue,
+  label: jammerHowlerEnemyBattler.name,
+);
+
+/// Nodo azul de burst que convierte barrera en dano puntual.
+final magnetMaulerCombatNode = CombatPathNode(
+  nodeId: 'combat_magnet_mauler',
+  enemy: magnetMaulerEnemyBattler,
+  tier: CombatNodeTier.blue,
+  label: magnetMaulerEnemyBattler.name,
+);
+
+/// Nodo azul de ejecucion sobre objetivos ya debilitados.
+final veninRunnerCombatNode = CombatPathNode(
+  nodeId: 'combat_venin_runner',
+  enemy: veninRunnerEnemyBattler,
+  tier: CombatNodeTier.blue,
+  label: veninRunnerEnemyBattler.name,
+);
+
+/// Nodo azul de tempo defensivo con retorno de quemadura.
+final ashenFrameCombatNode = CombatPathNode(
+  nodeId: 'combat_ashen_frame',
+  enemy: ashenFrameEnemyBattler,
+  tier: CombatNodeTier.blue,
+  label: ashenFrameEnemyBattler.name,
+);
+
 /// Nodo azul toxico que escala mejor sobre objetivos ya debilitados.
 final toxicReaverCombatNode = CombatPathNode(
   nodeId: 'combat_toxic_reaver',
@@ -102,6 +198,38 @@ final purpleCombatNode = CombatPathNode(
   enemy: purpleEnemyBattler,
   tier: CombatNodeTier.purple,
   label: purpleEnemyBattler.name,
+);
+
+/// Nodo morado de inercia que acumula reservas en ambos ejes.
+final inertiaHarpoonerCombatNode = CombatPathNode(
+  nodeId: 'combat_inertia_harpooner',
+  enemy: inertiaHarpoonerEnemyBattler,
+  tier: CombatNodeTier.purple,
+  label: inertiaHarpoonerEnemyBattler.name,
+);
+
+/// Nodo morado de fuego extremo con remate por vida faltante.
+final ovenHarrowerCombatNode = CombatPathNode(
+  nodeId: 'combat_oven_harrower',
+  enemy: ovenHarrowerEnemyBattler,
+  tier: CombatNodeTier.purple,
+  label: ovenHarrowerEnemyBattler.name,
+);
+
+/// Nodo morado hibrido de presion estadistica y castigo reactivo.
+final voidLeecherCombatNode = CombatPathNode(
+  nodeId: 'combat_void_leecher',
+  enemy: voidLeecherEnemyBattler,
+  tier: CombatNodeTier.purple,
+  label: voidLeecherEnemyBattler.name,
+);
+
+/// Nodo morado de control sostenido con economia tactica.
+final gloomSmugglerCombatNode = CombatPathNode(
+  nodeId: 'combat_gloom_smuggler',
+  enemy: gloomSmugglerEnemyBattler,
+  tier: CombatNodeTier.purple,
+  label: gloomSmugglerEnemyBattler.name,
 );
 
 /// Nodo morado toxico con filtro quimico y caza de debilidades.
@@ -142,6 +270,10 @@ final List<CombatPathNode> grayCombatNodes = List.unmodifiable([
   shadeSkipperCombatNode,
   lensRuntCombatNode,
   phaseMoteCombatNode,
+  chiselImpCombatNode,
+  staticTickCombatNode,
+  scrapHushCombatNode,
+  rustLeechCombatNode,
 ]);
 
 /// Pool completo de enemigos verdes disponibles.
@@ -150,6 +282,10 @@ final List<CombatPathNode> greenCombatNodes = List.unmodifiable([
   venomStitchCombatNode,
   patchBulwarkCombatNode,
   cinderClawCombatNode,
+  toxicLacerCombatNode,
+  bastionSpringCombatNode,
+  furnaceFangCombatNode,
+  shieldmendBruteCombatNode,
 ]);
 
 /// Pool completo de enemigos azules disponibles.
@@ -158,6 +294,10 @@ final List<CombatPathNode> blueCombatNodes = List.unmodifiable([
   toxicReaverCombatNode,
   phaseBastionCombatNode,
   cinderRamCombatNode,
+  jammerHowlerCombatNode,
+  magnetMaulerCombatNode,
+  veninRunnerCombatNode,
+  ashenFrameCombatNode,
 ]);
 
 /// Pool completo de enemigos morados disponibles.
@@ -166,6 +306,10 @@ final List<CombatPathNode> purpleCombatNodes = List.unmodifiable([
   venomOracleCombatNode,
   cinderExecutionerCombatNode,
   phaseDredgerCombatNode,
+  inertiaHarpoonerCombatNode,
+  ovenHarrowerCombatNode,
+  voidLeecherCombatNode,
+  gloomSmugglerCombatNode,
 ]);
 
 /// Lista de ejemplo con todos los nodos de combate disponibles.
