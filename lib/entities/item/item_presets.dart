@@ -409,14 +409,14 @@ const mamparaPortatilItem = Item(
   effect: MamparaPortatilItemEffect(),
 );
 
-/// Arma azul que proyecta tu barrera actual en el primer golpe del turno.
+/// Arma azul que convierte tu defensa en un boost explosivo para el siguiente golpe.
 const magnetiCHammerItem = Item(
   id: ItemId.magnetiCHammer,
   archetypeAffinities: _inamovibleAffinities,
   tags: _ataqueBarreraTags,
   name: 'M(agneti)C Hammer',
   description:
-      '+1 ATK. La primera vez por turno que atacas, infliges dano extra segun tu Barrera actual sin consumirla.',
+      '+1 ATK. Al defender, ganas Potencia para el siguiente golpe igual a tu Barrera total actual.',
   iconEmoji: '\u{1F528}',
   rarity: RarityTier.blue,
   baseCost: 6,
@@ -714,18 +714,18 @@ const pocketJammerItem = Item(
   ),
 );
 
-/// Arma azul oportunista que protege al portador al cebarse con rivales ya tocados.
+/// Arma azul oportunista que protege al portador al defender contra rivales ya tocados.
 const kunaiAnchoItem = Item(
   id: ItemId.kunaiAncho,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueBarreraDebuffTags,
   name: 'Kunai Ancho',
   description:
-      '+1 ATK. La primera vez por turno que atacas a un objetivo con un debuff, recuperas Barrera.',
+      '+1 ATK. Al defender, si el enemigo tiene un debuff, recuperas Barrera.',
   iconEmoji: '\u{1F52A}',
   rarity: RarityTier.blue,
   baseCost: 6,
-  value: 1,
+  value: 2,
   upgradeValue: 1,
   statModifiers: {
     BattlerStat.attack: 1,
@@ -757,13 +757,13 @@ const serratedEdgeItem = Item(
   ),
 );
 
-/// Armadura verde que recompone una pequena porcion de barrera cada turno.
+/// Armadura verde que recompone una pequena porcion de barrera al defender.
 const containmentCoilItem = Item(
   id: ItemId.containmentCoil,
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Bobina de Contencion',
-  description: '+1 Barrera. Al inicio de tu turno, recuperas 1 de Barrera.',
+  description: '+1 Barrera. Al defender, recuperas 1 de Barrera.',
   iconEmoji: '\u26A1',
   rarity: RarityTier.green,
   baseCost: 4,
@@ -775,7 +775,7 @@ const containmentCoilItem = Item(
   upgradeStatModifiers: {
     BattlerStat.barrier: 1,
   },
-  effect: RecoverBarrierOnTurnStartItemEffect(amount: 1),
+  effect: ContainmentCoilItemEffect(),
 );
 
 /// Accesorio verde que acelera el escalado ofensivo golpe a golpe.
@@ -1341,18 +1341,18 @@ const capaDelContrabandistaItem = Item(
   effect: CapaDelContrabandistaItemEffect(),
 );
 
-/// Accesorio morado que traduce el sobrecalentamiento en defensa sostenida.
+/// Accesorio morado que traduce el sobrecalentamiento en defensa inmediata.
 const overloadAnchorItem = Item(
   id: ItemId.overloadAnchor,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBarreraBuffTags,
   name: 'Ancla de Sobrecarga',
   description:
-      '+1 Barrera. Al final de tu turno, si tienes Calentando, recuperas 1 de Barrera.',
+      '+1 Barrera. Al defender, si tienes Calentando, recuperas Barrera.',
   iconEmoji: '\u2693',
   rarity: RarityTier.purple,
   baseCost: 8,
-  value: 1,
+  value: 2,
   upgradeValue: 1,
   statModifiers: {
     BattlerStat.barrier: 1,

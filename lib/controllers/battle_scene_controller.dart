@@ -90,6 +90,9 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Reexpone la descripcion corta del estado de turno para el banner central.
   String get turnDescription => _battleController.turnDescription;
+  int get playerBlockBarrierGain => _battleController.playerBlockBarrierGain;
+  EnemyTurnIntentPreview get enemyTurnIntentPreview =>
+      _battleController.enemyTurnIntentPreview;
 
   /// Indica si la escena tiene una salida en victoria pendiente de pasar por el overlay de botin.
   bool get hasPendingVictoryRewards => _pendingRewardExitRequest != null;
@@ -129,6 +132,15 @@ class BattleSceneController extends ChangeNotifier {
     _battleController.handleAttack(
       drawingBonus: drawingBonus,
       drawingPenalty: drawingPenalty,
+    );
+  }
+
+  /// Ejecuta la accion de bloqueo del jugador y termina su turno.
+  void handlePlayerBlock({
+    int barrierMultiplier = 1,
+  }) {
+    _battleController.handleBlock(
+      barrierMultiplier: barrierMultiplier,
     );
   }
 

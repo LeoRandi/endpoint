@@ -26,6 +26,7 @@ class RunNodeFlowCoordinator {
             randomizer: session.randomizer,
             showTitle: encounterNode.showTitle,
             victoryMoneyFactor: encounterNode.tier.factor,
+            enemyTier: encounterNode.tier.factor,
             enemyTurnDelay: session.state.battleEnemyTurnDelay,
             combatEndDelay: session.state.battleCombatEndDelay,
             returnResultToCaller: true,

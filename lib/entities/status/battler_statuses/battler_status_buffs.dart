@@ -88,6 +88,105 @@ class CalentandoStatus extends BattlerStatus {
   }
 }
 
+/// Buff explosivo que aumenta el siguiente golpe y luego se consume.
+class PotenciaStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.potencia;
+  static const defaultValue = 1;
+
+  /// Crea una instancia de Potencia con su bonus de dano pendiente.
+  const PotenciaStatus({
+    int value = defaultValue,
+  }) : super(
+          id: statusId,
+          name: 'Potencia',
+          type: BattlerStatusType.buff,
+          tags: _buffAtaqueStatusTags,
+          hooks: const {
+            BattlerStatusHook.outgoingDamageModifier,
+            BattlerStatusHook.attackResolved,
+            BattlerStatusHook.statusApplied,
+          },
+          icon: Icons.bolt_rounded,
+          description:
+              'Aumenta el dano del siguiente golpe en su value y luego se consume.',
+          remainingTurns: 1,
+          value: value,
+        );
+
+  @override
+
+  /// Hace que Potencia espere hasta el siguiente impacto del portador.
+  bool get isIndefinite => true;
+
+  @override
+
+  /// Potencia solo tiene sentido durante combate y se limpia al salir.
+  bool get persistsOutsideCombat => false;
+
+  @override
+
+  /// Anade a la descripcion el bonus de dano actual ya resuelto.
+  String descriptionFor(Battler owner) {
+    return '$description Dano extra actual: +${resolved(owner).value}';
+  }
+
+  @override
+
+  /// Suma su bonus al siguiente golpe del portador.
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required int damage,
+  }) {
+    return damage + resolved(owner).value;
+  }
+
+  @override
+
+  /// Consume la Potencia justo despues de resolver el primer golpe.
+  Battler onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required int damageDealt,
+  }) {
+    return owner.removeStatusInstance(this);
+  }
+
+  @override
+
+  /// Si vuelve a aplicarse, conserva el mayor valor pendiente.
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    if (appliedStatus.id != id) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    return BattlerStatusApplicationResolution(
+      owner: owner.removeStatusInstance(this),
+      appliedStatus: copyWith(
+        value: max(value, appliedStatus.value),
+      ),
+    );
+  }
+
+  @override
+
+  /// Clona el estado manteniendo su bonus pendiente.
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return PotenciaStatus(
+      value: value ?? this.value,
+    );
+  }
+}
+
 /// Buff generador que crea reservas de ATK o de Barrera si no se usaron habilidades manuales.
 class InerciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.inercia;

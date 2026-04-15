@@ -6,6 +6,11 @@ enum BattleTurnState {
   finished,
 }
 
+enum EnemyTurnAction {
+  attack,
+  defend,
+}
+
 class BattleController extends ChangeNotifier {
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
@@ -16,9 +21,13 @@ class BattleController extends ChangeNotifier {
 
   Battler _enemy;
   Battler _player;
+  EnemyTurnAction _enemyNextAction = EnemyTurnAction.attack;
   BattleTurnState _turn = BattleTurnState.player;
   String? _resultText;
   BattleFlowResult? _pendingExitResult;
+  int _playerBlockUseCount = 0;
+  late final int _playerInitialBlockBarrier;
+  late final int _enemyInitialBlockBarrier;
 
   Timer? _enemyTurnTimer;
   Timer? _combatExitTimer;
@@ -38,6 +47,9 @@ class BattleController extends ChangeNotifier {
         _effectPipeline = effectPipeline,
         _randomizer = randomizer ?? RunRandomizer(),
         _turnEngine = turnEngine {
+    _playerInitialBlockBarrier = max(0, _player.maxBarrier);
+    _enemyInitialBlockBarrier = max(0, _enemy.maxBarrier);
+    _enemyNextAction = _rollEnemyTurnAction();
     _beginTurn(BattleTurnState.player, notify: false);
   }
 
@@ -47,6 +59,9 @@ class BattleController extends ChangeNotifier {
   bool get isPlayerTurn => _turn == BattleTurnState.player;
   bool get isCombatFinished => _turn == BattleTurnState.finished;
   bool get canUseActions => isPlayerTurn && !isCombatFinished;
+  int get playerBlockBarrierGain => _playerCurrentBlockBarrierGain();
+  EnemyTurnIntentPreview get enemyTurnIntentPreview =>
+      _buildEnemyTurnIntentPreview();
 
   String get turnTitle {
     switch (_turn) {
@@ -140,6 +155,37 @@ class BattleController extends ChangeNotifier {
     }
   }
 
+  void handleBlock({
+    int barrierMultiplier = 1,
+  }) {
+    if (!canUseActions) return;
+
+    final safeMultiplier = max(1, barrierMultiplier);
+    final baseBarrierGain = _playerCurrentBlockBarrierGain();
+    _playerBlockUseCount++;
+    final totalBarrierGain = baseBarrierGain * safeMultiplier;
+    final defendResolution = _resolveDefendAction(
+      defender: _player,
+      opponent: _enemy,
+      barrierGain: totalBarrierGain,
+    );
+    _player = defendResolution.defender;
+    _enemy = defendResolution.opponent;
+
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
+
+    if (_completeTurn(BattleTurnState.player)) {
+      return;
+    }
+
+    _beginTurn(BattleTurnState.enemy);
+    if (_turn == BattleTurnState.enemy) {
+      _scheduleEnemyTurn();
+    }
+  }
+
   void handleRunAway() {
     if (isCombatFinished) return;
 
@@ -168,7 +214,13 @@ class BattleController extends ChangeNotifier {
   void _resolveEnemyTurn() {
     if (_turn != BattleTurnState.enemy) return;
 
-    _tryResolveEnemyPreAttackAbility();
+    final plannedAction = _enemyNextAction;
+    final preAttackResolution = _resolveEnemyPreAttackState(
+      enemy: _enemy,
+      player: _player,
+    );
+    _enemy = preAttackResolution.enemy;
+    _player = preAttackResolution.player;
     if (_finishImmediatelyIfPlayerIsDown()) {
       return;
     }
@@ -184,13 +236,13 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    final resolution = _resolveAttackAction(
-      attacker: _enemy,
-      defender: _player,
+    final enemyActionResolution = _resolveEnemyAction(
+      enemy: _enemy,
+      player: _player,
+      action: plannedAction,
     );
-
-    _enemy = resolution.attacker;
-    _player = resolution.defender;
+    _enemy = enemyActionResolution.enemy;
+    _player = enemyActionResolution.player;
     if (_finishImmediatelyIfPlayerIsDown()) {
       return;
     }
@@ -199,34 +251,219 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    // TODO: Add enemy ability selection once hostile AI supports more than basic attacks.
+    _enemyNextAction = _rollEnemyTurnAction();
     _beginTurn(BattleTurnState.player);
   }
 
-  void _tryResolveEnemyPreAttackAbility() {
-    final hardReset = _enemy.abilityById(BattlerAbilityId.hardReset);
-    if (hardReset == null ||
-        !hardReset
-            .canActivateOn(BattlerAbilityActivationContext.pathSelection) ||
-        !_shouldEnemyUseHardReset()) {
-      return;
+  _EnemyPreAttackResolution _resolveEnemyPreAttackState({
+    required Battler enemy,
+    required Battler player,
+  }) {
+    var updatedEnemy = enemy;
+    var updatedPlayer = player;
+    BattlerAbility? activatedBattleAbility;
+
+    final hardReset = updatedEnemy.abilityById(BattlerAbilityId.hardReset);
+    if (hardReset != null &&
+        hardReset
+            .canActivateOn(BattlerAbilityActivationContext.pathSelection) &&
+        _shouldEnemyUseHardReset(updatedEnemy)) {
+      final hardResetResolution = _effectPipeline.toggleAbilityActivation(
+        owner: updatedEnemy,
+        abilityId: hardReset.id,
+        screenContext: BattlerAbilityActivationContext.pathSelection,
+        opponent: updatedPlayer,
+      );
+      updatedEnemy = hardResetResolution.owner;
+      updatedPlayer = hardResetResolution.opponent;
     }
 
-    final resolution = _effectPipeline.toggleAbilityActivation(
-      owner: _enemy,
-      abilityId: hardReset.id,
-      screenContext: BattlerAbilityActivationContext.pathSelection,
-      opponent: _player,
+    final manualBattleAbility = _pickEnemyBattleAbilityToActivate(updatedEnemy);
+    if (manualBattleAbility != null) {
+      final battleAbilityResolution = _effectPipeline.toggleAbilityActivation(
+        owner: updatedEnemy,
+        abilityId: manualBattleAbility.id,
+        screenContext: BattlerAbilityActivationContext.battle,
+        opponent: updatedPlayer,
+      );
+      updatedEnemy = battleAbilityResolution.owner;
+      updatedPlayer = battleAbilityResolution.opponent;
+      activatedBattleAbility =
+          updatedEnemy.abilityById(manualBattleAbility.id) ??
+              manualBattleAbility;
+    }
+
+    return _EnemyPreAttackResolution(
+      enemy: updatedEnemy,
+      player: updatedPlayer,
+      activatedBattleAbility: activatedBattleAbility,
     );
-    _enemy = resolution.owner;
-    _player = resolution.opponent;
   }
 
-  bool _shouldEnemyUseHardReset() {
-    return _enemy.statuses.any(
+  BattlerAbility? _pickEnemyBattleAbilityToActivate(Battler enemy) {
+    if (!enemy
+        .canActivateManualAbilities(BattlerAbilityActivationContext.battle)) {
+      return null;
+    }
+
+    for (final ability in enemy.abilities) {
+      if (ability.canActivateOn(BattlerAbilityActivationContext.battle) &&
+          ability.isImplemented) {
+        return ability;
+      }
+    }
+
+    return null;
+  }
+
+  bool _shouldEnemyUseHardReset(Battler enemy) {
+    return enemy.statuses.any(
       (status) =>
           status.isPurgeable &&
           (status is QuemaduraStatus || status is IntoxicacionStatus),
+    );
+  }
+
+  EnemyTurnIntentPreview _buildEnemyTurnIntentPreview() {
+    if (_turn == BattleTurnState.finished ||
+        _enemy.isDefeated ||
+        _player.isDefeated) {
+      return const EnemyTurnIntentPreview();
+    }
+
+    final initialEnemy = _enemy;
+    final initialPlayer = _player;
+    final plannedAction = _enemyNextAction;
+
+    final preAttackResolution = _resolveEnemyPreAttackState(
+      enemy: initialEnemy,
+      player: initialPlayer,
+    );
+
+    var predictedEnemy = preAttackResolution.enemy;
+    var predictedPlayer = preAttackResolution.player;
+
+    final shouldResolveAttack = _turnEngine.finishFor(
+          player: predictedPlayer,
+          enemy: predictedEnemy,
+        ) ==
+        null;
+    if (shouldResolveAttack) {
+      final actionResolution = _resolveEnemyAction(
+        enemy: predictedEnemy,
+        player: predictedPlayer,
+        action: plannedAction,
+      );
+      predictedEnemy = actionResolution.enemy;
+      predictedPlayer = actionResolution.player;
+    }
+
+    final damage = max(
+        0,
+        _combatDurabilityOf(initialPlayer) -
+            _combatDurabilityOf(predictedPlayer));
+    final barrierGain =
+        max(0, predictedEnemy.currentBarrier - initialEnemy.currentBarrier);
+
+    return EnemyTurnIntentPreview(
+      action: plannedAction,
+      activatedBattleAbility: preAttackResolution.activatedBattleAbility,
+      damage: damage,
+      barrierGain: barrierGain,
+      appliedDebuffs: _buildAppliedDebuffIntents(
+        before: initialPlayer,
+        after: predictedPlayer,
+      ),
+    );
+  }
+
+  int _combatDurabilityOf(Battler battler) {
+    return max(0, battler.health) + max(0, battler.currentBarrier);
+  }
+
+  List<EnemyTurnDebuffIntent> _buildAppliedDebuffIntents({
+    required Battler before,
+    required Battler after,
+  }) {
+    final beforeCounts = <String, int>{};
+    for (final status in before.statuses) {
+      if (status.type != BattlerStatusType.debuff) continue;
+      final resolvedStatus = status.resolved(before);
+      final key = _statusIntentKey(resolvedStatus);
+      beforeCounts[key] = (beforeCounts[key] ?? 0) + 1;
+    }
+
+    final intents = <EnemyTurnDebuffIntent>[];
+    for (final status in after.statuses) {
+      if (status.type != BattlerStatusType.debuff) continue;
+      final resolvedStatus = status.resolved(after);
+      final key = _statusIntentKey(resolvedStatus);
+      final previousCount = beforeCounts[key] ?? 0;
+      if (previousCount > 0) {
+        beforeCounts[key] = previousCount - 1;
+        continue;
+      }
+
+      intents.add(
+        EnemyTurnDebuffIntent(
+          status: resolvedStatus,
+          amountLabel: resolvedStatus.badgeLabelFor(after),
+        ),
+      );
+    }
+
+    return List<EnemyTurnDebuffIntent>.unmodifiable(intents);
+  }
+
+  String _statusIntentKey(BattlerStatus status) {
+    return '${status.id.name}|${status.remainingTurns}|${status.value}';
+  }
+
+  _EnemyActionResolution _resolveEnemyAction({
+    required Battler enemy,
+    required Battler player,
+    required EnemyTurnAction action,
+  }) {
+    if (action == EnemyTurnAction.defend) {
+      final defendResolution = _resolveDefendAction(
+        defender: enemy,
+        opponent: player,
+        barrierGain: _enemyInitialBlockBarrier,
+      );
+      return _EnemyActionResolution(
+        enemy: defendResolution.defender,
+        player: defendResolution.opponent,
+      );
+    }
+
+    final attackResolution = _resolveAttackAction(
+      attacker: enemy,
+      defender: player,
+    );
+    return _EnemyActionResolution(
+      enemy: attackResolution.attacker,
+      player: attackResolution.defender,
+    );
+  }
+
+  _DefendActionResolution _resolveDefendAction({
+    required Battler defender,
+    required Battler opponent,
+    required int barrierGain,
+  }) {
+    final updatedDefender = barrierGain > 0
+        ? _applyBarrierGain(
+            defender,
+            barrierGain,
+          )
+        : defender;
+    final itemResolution =
+        updatedDefender.applyEquippedItemDefendResolvedEffects(
+      opponent: opponent,
+    );
+    return _DefendActionResolution(
+      defender: itemResolution.owner,
+      opponent: itemResolution.opponent,
     );
   }
 
@@ -396,6 +633,25 @@ class BattleController extends ChangeNotifier {
     );
   }
 
+  Battler _applyBarrierGain(Battler battler, int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || battler.isDefeated) return battler;
+
+    return battler.copyWith(
+      currentBarrier: battler.currentBarrier + safeAmount,
+    );
+  }
+
+  int _playerCurrentBlockBarrierGain() {
+    return max(0, _playerInitialBlockBarrier - _playerBlockUseCount);
+  }
+
+  EnemyTurnAction _rollEnemyTurnAction() {
+    return _randomizer.chance(0.5)
+        ? EnemyTurnAction.attack
+        : EnemyTurnAction.defend;
+  }
+
   void _applyDrawingPenalty(BattleAttackDrawingPenalty penalty) {
     if (penalty.directDamage > 0) {
       _player = _player.receiveDirectDamage(
@@ -491,5 +747,70 @@ class _DrawingBuffTransferResolution {
   const _DrawingBuffTransferResolution({
     required this.source,
     required this.target,
+  });
+}
+
+class _DefendActionResolution {
+  final Battler defender;
+  final Battler opponent;
+
+  const _DefendActionResolution({
+    required this.defender,
+    required this.opponent,
+  });
+}
+
+class EnemyTurnDebuffIntent {
+  final BattlerStatus status;
+  final String amountLabel;
+
+  const EnemyTurnDebuffIntent({
+    required this.status,
+    required this.amountLabel,
+  });
+}
+
+class EnemyTurnIntentPreview {
+  final EnemyTurnAction action;
+  final BattlerAbility? activatedBattleAbility;
+  final int damage;
+  final int barrierGain;
+  final List<EnemyTurnDebuffIntent> appliedDebuffs;
+
+  const EnemyTurnIntentPreview({
+    this.action = EnemyTurnAction.attack,
+    this.activatedBattleAbility,
+    this.damage = 0,
+    this.barrierGain = 0,
+    this.appliedDebuffs = const <EnemyTurnDebuffIntent>[],
+  });
+
+  bool get hasAnyEffect {
+    return activatedBattleAbility != null ||
+        damage > 0 ||
+        barrierGain > 0 ||
+        appliedDebuffs.isNotEmpty;
+  }
+}
+
+class _EnemyPreAttackResolution {
+  final Battler enemy;
+  final Battler player;
+  final BattlerAbility? activatedBattleAbility;
+
+  const _EnemyPreAttackResolution({
+    required this.enemy,
+    required this.player,
+    required this.activatedBattleAbility,
+  });
+}
+
+class _EnemyActionResolution {
+  final Battler enemy;
+  final Battler player;
+
+  const _EnemyActionResolution({
+    required this.enemy,
+    required this.player,
   });
 }

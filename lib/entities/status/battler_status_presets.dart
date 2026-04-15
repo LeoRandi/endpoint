@@ -3,6 +3,9 @@ import '../_imports.dart';
 /// Preset rapido del buff Calentando con sus valores por defecto.
 const calentandoStatus = CalentandoStatus();
 
+/// Preset rapido del buff Potencia con su bonus inicial.
+const potenciaStatus = PotenciaStatus();
+
 /// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
 const catalisisCruelStatus = CatalisisCruelStatus();
 

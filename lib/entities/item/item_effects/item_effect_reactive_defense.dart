@@ -166,7 +166,39 @@ class ResponseFrameItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: _recoverBarrier(
+      owner: _recoverBarrierWithoutCap(
+        owner: owner,
+        amount: item.value,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Convierte la accion de defender en una recarga defensiva inmediata.
+class ContainmentCoilItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Bobina de Contencion.
+  const ContainmentCoilItemEffect()
+      : super(
+          description: 'Al defender, recuperas barrera adicional.',
+          hooks: const {
+            ItemEffectHook.defendResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al defender, recuperas ${max(1, item.value)} de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onDefendResolved({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+  }) {
+    return ItemEffectResolution(
+      owner: _recoverBarrierWithoutCap(
         owner: owner,
         amount: item.value,
       ),
@@ -180,27 +212,24 @@ class OverloadAnchorItemEffect extends ItemEffect {
   /// Crea el efecto propio del Ancla de Sobrecarga.
   const OverloadAnchorItemEffect()
       : super(
-          description:
-              'Al final de tu turno, si tienes Calentando, recuperas barrera.',
+          description: 'Al defender, si tienes Calentando, recuperas barrera.',
           hooks: const {
-            ItemEffectHook.turnEnd,
+            ItemEffectHook.defendResolved,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al final de tu turno, si tienes Calentando, recuperas ${max(1, item.value)} de Barrera.';
+    return 'Al defender, si tienes Calentando, recuperas ${max(1, item.value)} de Barrera.';
   }
 
   @override
-  ItemEffectResolution onTurnEnd({
+  ItemEffectResolution onDefendResolved({
     required Battler owner,
     required Battler opponent,
     required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
   }) {
-    if (!isOwnerTurn || !owner.hasStatus(CalentandoStatus.statusId)) {
+    if (!owner.hasStatus(CalentandoStatus.statusId)) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 

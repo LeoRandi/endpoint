@@ -31,6 +31,7 @@ enum ItemEffectHook {
   turnStart,
   turnEnd,
   combatEnd,
+  defendResolved,
   outgoingDamageModifier,
   incomingDamageModifier,
   calculatedStatModifier,
@@ -91,6 +92,15 @@ abstract class ItemEffect {
     required Item item,
     required bool isOwnerTurn,
     RunRandomizer? randomizer,
+  }) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  /// Resuelve efectos inmediatamente despues de ejecutar una accion de defender.
+  ItemEffectResolution onDefendResolved({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
   }) {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
@@ -251,6 +261,21 @@ Battler _recoverBarrier({
       owner.maxBarrier,
       owner.currentBarrier + safeAmount,
     ),
+  );
+}
+
+/// Suma barrera directa sin aplicar tope de barrera maxima.
+Battler _recoverBarrierWithoutCap({
+  required Battler owner,
+  required int amount,
+}) {
+  final safeAmount = max(0, amount);
+  if (safeAmount <= 0 || owner.isDefeated) {
+    return owner;
+  }
+
+  return owner.copyWith(
+    currentBarrier: owner.currentBarrier + safeAmount,
   );
 }
 

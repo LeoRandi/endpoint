@@ -27,6 +27,7 @@ class BattlePage extends StatefulWidget {
   final RunRandomizer? randomizer;
   final String showTitle;
   final int victoryMoneyFactor;
+  final int enemyTier;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
   final bool returnResultToCaller;
@@ -38,6 +39,7 @@ class BattlePage extends StatefulWidget {
     this.randomizer,
     this.showTitle = 'ENCOUNTER',
     this.victoryMoneyFactor = 0,
+    this.enemyTier = 1,
     this.enemyTurnDelay = const Duration(milliseconds: 900),
     this.combatEndDelay = const Duration(seconds: 2),
     this.returnResultToCaller = false,
@@ -51,6 +53,7 @@ class _BattlePageState extends State<BattlePage> {
   late final BattleSceneController _sceneController;
   EndpointSettingsSnapshot? _settingsSnapshot;
   bool _isPresentingDrawAttack = false;
+  bool _isPresentingDrawDefense = false;
 
   @override
   void initState() {
@@ -155,6 +158,10 @@ class _BattlePageState extends State<BattlePage> {
     unawaited(_handlePlayerAttackFlow());
   }
 
+  void _handlePlayerBlock() {
+    unawaited(_handlePlayerBlockFlow());
+  }
+
   Future<void> _handlePlayerAttackFlow() async {
     if (!_sceneController.canUseActions ||
         _sceneController.hasPendingVictoryRewards) {
@@ -199,6 +206,47 @@ class _BattlePageState extends State<BattlePage> {
     }
   }
 
+  Future<void> _handlePlayerBlockFlow() async {
+    if (!_sceneController.canUseActions ||
+        _sceneController.hasPendingVictoryRewards) {
+      return;
+    }
+
+    final settings = await _ensureSettingsSnapshot();
+    if (!mounted) return;
+    if (settings.gameMode != EndpointGameMode.drawing) {
+      _sceneController.handlePlayerBlock();
+      return;
+    }
+    if (_isPresentingDrawDefense) return;
+
+    setState(() {
+      _isPresentingDrawDefense = true;
+    });
+
+    try {
+      final didMatchTargetSquares = await showEndpointOverlay<bool>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: EndpointPalette.overlayScrimStrong,
+        builder: (_) => BattleDrawDefenseOverlay(
+          requiredSquareCount: max(1, widget.enemyTier),
+        ),
+      );
+      if (!mounted) return;
+
+      _sceneController.handlePlayerBlock(
+        barrierMultiplier: didMatchTargetSquares == true ? 2 : 1,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPresentingDrawDefense = false;
+        });
+      }
+    }
+  }
+
   Future<void> _handleOpenPendingRewards() async {
     final request = _sceneController.pendingRewardExitRequest;
     if (request == null || _sceneController.isPresentingRewards) return;
@@ -212,19 +260,6 @@ class _BattlePageState extends State<BattlePage> {
     if (exitResult != null) {
       _completeBattleExit(exitResult);
     }
-  }
-
-  Future<void> _handleOpenItems() async {
-    if (!_sceneController.canOpenItemsOverlay()) return;
-
-    await showEndpointOverlay<void>(
-      context: context,
-      builder: (_) => BattleItemsDialog(
-        player: _sceneController.player,
-        items: _sceneController.player.inventoryItems,
-      ),
-      barrierColor: EndpointPalette.overlayScrimSoft,
-    );
   }
 
   Future<void> _handleOpenEquippedItemDetails(
@@ -362,6 +397,8 @@ class _BattlePageState extends State<BattlePage> {
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
                                   enemy: _sceneController.enemy,
+                                  enemyIntent:
+                                      _sceneController.enemyTurnIntentPreview,
                                   visibleAbilities:
                                       _sceneController.visibleAbilitiesFor(
                                           _sceneController.enemy),
@@ -396,10 +433,13 @@ class _BattlePageState extends State<BattlePage> {
                                       _sceneController.visibleAbilitiesFor(
                                           _sceneController.player),
                                   isEnabled: _sceneController.canUseActions &&
-                                      !_isPresentingDrawAttack,
+                                      !_isPresentingDrawAttack &&
+                                      !_isPresentingDrawDefense,
                                   isDrawingMode: _isDrawingMode,
                                   onAttack: _handlePlayerAttack,
-                                  onOpenItems: _handleOpenItems,
+                                  onBlock: _handlePlayerBlock,
+                                  blockBarrierGain:
+                                      _sceneController.playerBlockBarrierGain,
                                   onQuickActivateAbility:
                                       _sceneController.quickActivateAbility,
                                   canQuickActivateAbility:
@@ -623,13 +663,15 @@ class _ActionPanel extends StatelessWidget {
   final bool isEnabled;
   final bool isDrawingMode;
   final VoidCallback onAttack;
-  final Future<void> Function() onOpenItems;
+  final VoidCallback onBlock;
+  final int blockBarrierGain;
 
   const _ActionPanel({
     required this.isEnabled,
     required this.isDrawingMode,
     required this.onAttack,
-    required this.onOpenItems,
+    required this.onBlock,
+    required this.blockBarrierGain,
   });
 
   @override
@@ -645,11 +687,11 @@ class _ActionPanel extends StatelessWidget {
               isDrawingMode ? 'Abrir ataque dibujado' : 'Atacar al enemigo',
         ),
         const SizedBox(width: 8),
-        BattleActionButton(
-          label: 'Objetos',
-          icon: Icons.inventory_2_outlined,
-          onPressed: isEnabled ? onOpenItems : null,
-          tooltip: 'Abrir inventario de combate',
+        _BlockActionButton(
+          isEnabled: isEnabled,
+          isDrawingMode: isDrawingMode,
+          onBlock: onBlock,
+          blockBarrierGain: blockBarrierGain,
         ),
       ],
     );
@@ -662,7 +704,8 @@ class _PlayerBattleHud extends StatelessWidget {
   final bool isEnabled;
   final bool isDrawingMode;
   final VoidCallback onAttack;
-  final Future<void> Function() onOpenItems;
+  final VoidCallback onBlock;
+  final int blockBarrierGain;
   final ValueChanged<BattlerAbility> onQuickActivateAbility;
   final bool Function(BattlerAbility ability) canQuickActivateAbility;
   final Future<void> Function(Item item) onOpenEquippedItemDetails;
@@ -674,7 +717,8 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.isEnabled,
     required this.isDrawingMode,
     required this.onAttack,
-    required this.onOpenItems,
+    required this.onBlock,
+    required this.blockBarrierGain,
     required this.onQuickActivateAbility,
     required this.canQuickActivateAbility,
     required this.onOpenEquippedItemDetails,
@@ -713,7 +757,8 @@ class _PlayerBattleHud extends StatelessWidget {
               isEnabled: isEnabled,
               isDrawingMode: isDrawingMode,
               onAttack: onAttack,
-              onOpenItems: onOpenItems,
+              onBlock: onBlock,
+              blockBarrierGain: blockBarrierGain,
             ),
             const Spacer(),
             _BattleSpriteDock(
@@ -729,14 +774,77 @@ class _PlayerBattleHud extends StatelessWidget {
   }
 }
 
+class _BlockActionButton extends StatelessWidget {
+  static const _buttonDimension = 84.0;
+
+  final bool isEnabled;
+  final bool isDrawingMode;
+  final VoidCallback onBlock;
+  final int blockBarrierGain;
+
+  const _BlockActionButton({
+    required this.isEnabled,
+    required this.isDrawingMode,
+    required this.onBlock,
+    required this.blockBarrierGain,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final barrierLabelColor = isEnabled
+        ? BattlerStat.barrier.accent
+        : BattlerStat.barrier.accent.withAlpha(107);
+
+    return SizedBox(
+      width: _buttonDimension,
+      height: _buttonDimension,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: BattleActionButton(
+              label: 'Bloquear',
+              icon: Icons.shield_rounded,
+              dimension: _buttonDimension,
+              onPressed: isEnabled ? onBlock : null,
+              tooltip: isDrawingMode
+                  ? 'Dibuja cuadrados para potenciar el bloqueo'
+                  : 'Ganar barrera y terminar turno',
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 6,
+            child: IgnorePointer(
+              child: Center(
+                child: EndpointText(
+                  '[ $blockBarrierGain ]',
+                  style: textSmallNumericBold.copyWith(
+                    color: barrierLabelColor,
+                    fontSize: 11,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EnemyBattleHud extends StatelessWidget {
   final Battler enemy;
+  final EnemyTurnIntentPreview enemyIntent;
   final List<BattlerAbility> visibleAbilities;
   final Future<void> Function(Item item) onOpenEquippedItemDetails;
   final Future<void> Function(BattlerAbility ability) onOpenAbilityDetails;
 
   const _EnemyBattleHud({
     required this.enemy,
+    required this.enemyIntent,
     required this.visibleAbilities,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
@@ -747,15 +855,21 @@ class _EnemyBattleHud extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Row(
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _BattleSpriteDock(
+            const _BattleSpriteDock(
               emoji: '\u{1F47E}',
               accent: EndpointPalette.dangerAccent,
               label: 'FOE',
             ),
-            Spacer(),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: _EnemyIntentCard(intent: enemyIntent),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -776,6 +890,129 @@ class _EnemyBattleHud extends StatelessWidget {
         ),
         const Spacer(),
       ],
+    );
+  }
+}
+
+class _EnemyIntentCard extends StatelessWidget {
+  final EnemyTurnIntentPreview intent;
+
+  const _EnemyIntentCard({
+    required this.intent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 188),
+      child: EndpointSectionPanel(
+        preset: _buildBattlePanelPreset(
+          EndpointPalette.dangerAccent,
+          borderRadius: 12,
+          glowOpacity: 0.05,
+          padding: const EdgeInsets.fromLTRB(6, 5, 6, 5),
+        ),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          alignment: WrapAlignment.end,
+          children: [
+            _EnemyIntentChip(
+              symbol: intent.action == EnemyTurnAction.attack ? '\u2694' : null,
+              icon: intent.action == EnemyTurnAction.defend
+                  ? Icons.shield_rounded
+                  : null,
+              accent: intent.action == EnemyTurnAction.defend
+                  ? BattlerStat.barrier.accent
+                  : EndpointPalette.dangerAccent,
+            ),
+            if (intent.activatedBattleAbility != null)
+              _EnemyIntentChip(
+                icon: intent.activatedBattleAbility!.icon,
+                accent: intent.activatedBattleAbility!.accent,
+              ),
+            if (intent.damage > 0 || intent.action == EnemyTurnAction.attack)
+              _EnemyIntentChip(
+                icon: Icons.flash_on_rounded,
+                valueLabel: '${intent.damage}',
+                accent: EndpointPalette.dangerAccent,
+              ),
+            if (intent.barrierGain > 0)
+              _EnemyIntentChip(
+                icon: Icons.shield_rounded,
+                valueLabel: '${intent.barrierGain}',
+                accent: BattlerStat.barrier.accent,
+              ),
+            for (final debuff in intent.appliedDebuffs)
+              _EnemyIntentChip(
+                icon: debuff.status.icon,
+                valueLabel: debuff.amountLabel,
+                accent: debuff.status.type.accent,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EnemyIntentChip extends StatelessWidget {
+  final IconData? icon;
+  final String? symbol;
+  final String? valueLabel;
+  final Color accent;
+
+  const _EnemyIntentChip({
+    this.icon,
+    this.symbol,
+    required this.accent,
+    this.valueLabel,
+  }) : assert(icon != null || symbol != null);
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundBattleOpaque,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: accent.withAlpha(158),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null)
+              Icon(
+                icon,
+                size: 13,
+                color: accent,
+              ),
+            if (symbol != null)
+              EndpointText(
+                symbol!,
+                style: textSmallBold.copyWith(
+                  color: accent,
+                  fontSize: 11,
+                  height: 1,
+                ),
+              ),
+            if (valueLabel != null) ...[
+              const SizedBox(width: 3),
+              EndpointText(
+                valueLabel!,
+                style: textSmallNumericBold.copyWith(
+                  fontSize: 10,
+                  color: EndpointPalette.softForeground,
+                  letterSpacing: 0.9,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

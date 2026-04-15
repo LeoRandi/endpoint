@@ -243,6 +243,8 @@ BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
         remainingTurns: remainingTurns,
         value: value,
       );
+    case BattlerStatusId.potencia:
+      return PotenciaStatus(value: value);
     case BattlerStatusId.quemadura:
       return QuemaduraStatus(
         remainingTurns: remainingTurns,

@@ -19,6 +19,7 @@ enum DamageKind {
 /// Enumera las identidades estables de los estados para evitar lookups por texto.
 enum BattlerStatusId {
   calentando,
+  potencia,
   quemadura,
   intoxicacion,
   catalisisCruel,

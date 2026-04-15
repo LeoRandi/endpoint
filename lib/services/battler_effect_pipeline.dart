@@ -721,6 +721,36 @@ class BattlerEffectPipeline {
     );
   }
 
+  ItemEffectResolution applyEquippedItemDefendResolvedEffects({
+    required Battler owner,
+    required Battler opponent,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.defendResolved),
+    );
+
+    for (final item in activeItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onDefendResolved(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      opponent: updatedOpponent.pruneExpiredStatuses(),
+    );
+  }
+
   Battler applyEquippedItemCombatEndEffects({
     required Battler owner,
   }) {

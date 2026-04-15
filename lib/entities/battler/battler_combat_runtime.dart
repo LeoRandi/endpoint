@@ -228,6 +228,16 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Ejecuta efectos de items equipados que reaccionan tras completar una defensa.
+  ItemEffectResolution applyEquippedItemDefendResolvedEffects({
+    required Battler opponent,
+  }) {
+    return Battler._effectPipeline.applyEquippedItemDefendResolvedEffects(
+      owner: this,
+      opponent: opponent,
+    );
+  }
+
   /// Ejecuta efectos de estados que reaccionan despues de recibir dano.
   Battler applyReceiveDamageResolvedEffects({
     required Battler source,
@@ -245,7 +255,8 @@ extension BattlerCombatRuntime on Battler {
     required Battler source,
     required int damageTaken,
   }) {
-    return Battler._effectPipeline.applyEquippedItemReceiveDamageResolvedEffects(
+    return Battler._effectPipeline
+        .applyEquippedItemReceiveDamageResolvedEffects(
       owner: this,
       source: source,
       damageTaken: damageTaken,
@@ -360,8 +371,9 @@ extension BattlerCombatRuntime on Battler {
 
   /// Cierra el estado de combate una sola vez y deja el battler listo para volver a ruta.
   Battler finalizeCombatState() {
-    final ownerAfterHooks =
-        hasCombatFlag(Battler.combatActiveFlag) ? applyCombatEndEffects() : this;
+    final ownerAfterHooks = hasCombatFlag(Battler.combatActiveFlag)
+        ? applyCombatEndEffects()
+        : this;
 
     return ownerAfterHooks
         .clearCombatStatuses()

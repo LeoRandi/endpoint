@@ -29,6 +29,7 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
     final barSpacing = showsBarrier ? 4.0 : 0.0;
     final barsHeight =
         height + (showsBarrier ? barrierHeight + barSpacing : 0.0);
+    final showBarrierValue = showsBarrier && battler.currentBarrier > 0;
     final barrierValue = battler.maxBarrier <= 0
         ? 0.0
         : (battler.currentBarrier / battler.maxBarrier)
@@ -40,13 +41,40 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showsBarrier) ...[
-          EndpointHealthBar(
-            value: barrierValue,
-            accent: BattlerStat.barrier.accent,
+          SizedBox(
             height: barrierHeight,
-            trackOpacity: 0.16,
-            fillStartOpacity: 0.22,
-            fillEndOpacity: 0.56,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned.fill(
+                  child: EndpointHealthBar(
+                    value: barrierValue,
+                    accent: BattlerStat.barrier.accent,
+                    height: barrierHeight,
+                    trackOpacity: 0.16,
+                    fillStartOpacity: 0.22,
+                    fillEndOpacity: 0.56,
+                  ),
+                ),
+                if (showBarrierValue)
+                  IgnorePointer(
+                    child: EndpointText(
+                      '${battler.currentBarrier}',
+                      style: textSmallNumericBold.copyWith(
+                        color: Colors.white,
+                        fontSize: 9,
+                        letterSpacing: 0.6,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withAlpha(128),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           SizedBox(height: barSpacing),
         ],

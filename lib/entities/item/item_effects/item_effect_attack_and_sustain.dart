@@ -416,152 +416,77 @@ class SuccionaCreditosItemEffect extends ItemEffect {
   }
 }
 
-/// Convierte el primer ataque del turno en una pequena ventana de aguante.
+/// Convierte la defensa en una ventana de aguante contra objetivos debilitados.
 class KunaiAnchoItemEffect extends ItemEffect {
   /// Crea el efecto propio del Kunai Ancho.
   const KunaiAnchoItemEffect()
       : super(
           description:
-              'La primera vez por turno que atacas a un objetivo con un debuff, recuperas barrera.',
+              'Al defender, si el enemigo tiene un debuff, recuperas barrera.',
           hooks: const {
-            ItemEffectHook.turnStart,
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.defendResolved,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera vez por turno que atacas a un objetivo con un debuff, recuperas ${max(1, item.value)} de Barrera.';
+    return 'Al defender, si el enemigo tiene un debuff, recuperas ${max(1, item.value)} de Barrera.';
   }
 
   @override
-  ItemEffectResolution onTurnStart({
+  ItemEffectResolution onDefendResolved({
     required Battler owner,
     required Battler opponent,
     required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
   }) {
-    if (!isOwnerTurn) {
+    if (!_hasAnyDebuff(opponent)) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final triggeredFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.kunaiAnchoTriggeredThisTurn,
-    );
     return ItemEffectResolution(
-      owner: owner.removeCombatFlag(triggeredFlag),
-      opponent: opponent,
-    );
-  }
-
-  @override
-  ItemEffectResolution onAttackResolved({
-    required Battler owner,
-    required Battler target,
-    required Item item,
-    required int damageDealt,
-  }) {
-    final triggeredFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.kunaiAnchoTriggeredThisTurn,
-    );
-    if (owner.hasCombatFlag(triggeredFlag) || !_hasAnyDebuff(target)) {
-      return ItemEffectResolution(owner: owner, opponent: target);
-    }
-
-    return ItemEffectResolution(
-      owner: _recoverBarrier(
-        owner: owner.addCombatFlag(triggeredFlag),
+      owner: _recoverBarrierWithoutCap(
+        owner: owner,
         amount: item.value,
       ),
-      opponent: target,
+      opponent: opponent,
     );
   }
 }
 
-/// Convierte la barrera actual en dano extra durante el primer ataque del turno.
+/// Convierte la defensa en una carga ofensiva para el siguiente golpe.
 class MagnetiCHammerItemEffect extends ItemEffect {
   /// Crea el efecto propio de la M(agneti)C Hammer.
   const MagnetiCHammerItemEffect()
       : super(
           description:
-              'La primera vez por turno que atacas, infliges dano extra segun tu barrera actual sin consumirla.',
+              'Al defender, ganas Potencia igual a tu Barrera total actual.',
           hooks: const {
-            ItemEffectHook.turnStart,
-            ItemEffectHook.outgoingDamageModifier,
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.defendResolved,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera vez por turno que atacas, infliges dano adicional igual a tu Barrera actual, hasta ${max(1, item.value)}, sin consumirla.';
+    return 'Al defender, ganas Potencia con un bonus de dano igual a tu Barrera total actual para el siguiente golpe.';
   }
 
   @override
-  ItemEffectResolution onTurnStart({
+  ItemEffectResolution onDefendResolved({
     required Battler owner,
     required Battler opponent,
     required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
   }) {
-    if (!isOwnerTurn) {
+    final potencyValue = max(0, owner.currentBarrier);
+    if (potencyValue <= 0) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final triggeredFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.magnetiCHammerTriggeredThisTurn,
-    );
     return ItemEffectResolution(
-      owner: owner.removeCombatFlag(triggeredFlag),
+      owner: owner.applyStatus(
+        PotenciaStatus(value: potencyValue),
+        source: owner,
+      ),
       opponent: opponent,
-    );
-  }
-
-  @override
-  int modifyOutgoingDamage({
-    required Battler owner,
-    required Battler target,
-    required Item item,
-    required int damage,
-  }) {
-    final triggeredFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.magnetiCHammerTriggeredThisTurn,
-    );
-    if (owner.hasCombatFlag(triggeredFlag) || owner.currentBarrier <= 0) {
-      return damage;
-    }
-
-    final bonusDamage = min(
-      owner.currentBarrier,
-      max(1, item.value),
-    );
-    return damage + bonusDamage;
-  }
-
-  @override
-  ItemEffectResolution onAttackResolved({
-    required Battler owner,
-    required Battler target,
-    required Item item,
-    required int damageDealt,
-  }) {
-    final triggeredFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.magnetiCHammerTriggeredThisTurn,
-    );
-    if (owner.hasCombatFlag(triggeredFlag)) {
-      return ItemEffectResolution(owner: owner, opponent: target);
-    }
-
-    return ItemEffectResolution(
-      owner: owner.addCombatFlag(triggeredFlag),
-      opponent: target,
     );
   }
 }

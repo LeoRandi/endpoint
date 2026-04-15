@@ -36,10 +36,15 @@
 --Mejorar nivel de las CPU(activar habilidades, distintos intents)
 [--El enemigo te obliga a dibujar o sufrirás las consecuencias]
 --El enemigo puede bloquear parte del canvas, haciendo imposible dibujar en esas áreas.
+--Los mismos dibujos(si tienen el mismo efecto) se juntan en una sola card con un multiplicador brillante como badge(arriba a la derecha)
+--Animaciones:
+---Animación de "Barrera x2!" cuando se dibuje correctamente todas las barreras
+---Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas en direccion al enemigo(o hacia el jugador, dependiendo si es ofensivo o defensivo)
+---Animación de vibración en cada battler al recibir daño, y de escudo azul vibrando si le da a la barrera instead
 
 -Estados
 [--Añadir Tags]
---Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)[9/20]
+--Añadir más presets(entre buff y debuff podrían llegar a 20 fácil)[8/20]
 
 -Habilidades
 [--Añadir Tags]
@@ -61,7 +66,7 @@
 
 -Tiendas
 [--Mejorar aspecto y diseño]
---Hacer más visible y llamativo el dinero que tienes/ el income
+[--Hacer más visible y llamativo el dinero que tienes/ el income]
 --Crear más tiendas diferenciadas(después de añadir los Items)
 
 -Eventos
@@ -139,9 +144,6 @@ IDEAS:
 
 -Objetos:
 --Manto del Eclipse: Su bonus de dibujo cambia cada turno entre triángulo y Cuadrado
-
--Combate:
---Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas, o hagan alguna animación
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
