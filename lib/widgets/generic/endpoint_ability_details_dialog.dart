@@ -4,6 +4,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
   final BattlerAbility ability;
   final Color accent;
   final String statusText;
+  final int? moneyCost;
   final String? actionLabel;
   final VoidCallback? onPrimaryAction;
   final bool isActionEnabled;
@@ -15,6 +16,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
     required this.ability,
     required this.accent,
     required this.statusText,
+    this.moneyCost,
     this.actionLabel,
     this.onPrimaryAction,
     this.isActionEnabled = false,
@@ -107,6 +109,32 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
                         color: foreground,
                       ),
                     ),
+                    if (statusText.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      EndpointText(
+                        statusText,
+                        maxLines: null,
+                        style: textSmallBold.copyWith(
+                          fontSize: 10,
+                          color: accent,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                    if (moneyCost != null) ...[
+                      const SizedBox(height: 4),
+                      EndpointCurrencyInline(
+                        value: moneyCost!,
+                        iconColor: EndpointPalette.warningAccent,
+                        textColor: EndpointPalette.softForegroundWarm,
+                        iconSize: 13,
+                        spacing: 3,
+                        textStyle: textSmallNumericBold.copyWith(
+                          fontSize: 11,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -123,7 +151,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
               maxLines: null,
               style: textMedium.copyWith(
                 fontSize: 14,
-                color: EndpointPalette.softForeground.withOpacity(0.84),
+                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
               ),
             ),
           ),

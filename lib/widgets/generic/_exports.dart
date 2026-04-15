@@ -5,6 +5,7 @@ export "endpoint_abilities_overlay.dart";
 export "endpoint_ability_details_dialog.dart";
 export "endpoint_ability_slots_strip.dart";
 export "endpoint_center_stage_scene.dart";
+export "endpoint_currency_inline.dart";
 export "endpoint_details_dialog_scaffold.dart";
 export "endpoint_dialog.dart";
 export "endpoint_equipment_slots_strip.dart";

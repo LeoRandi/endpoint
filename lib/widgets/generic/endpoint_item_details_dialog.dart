@@ -28,7 +28,7 @@ class EndpointItemDetailsDialog extends StatefulWidget {
     required this.item,
     required this.accent,
     required this.price,
-    this.priceLabel = 'COSTE',
+    this.priceLabel = 'PRECIO',
     required this.statusText,
     this.actionLabel,
     this.actionIcon = Icons.shopping_bag_outlined,
@@ -124,14 +124,46 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    EndpointText(
-                      '${widget.item.rarity.label}  |  COSTE ${widget.item.equipmentCost}',
-                      maxLines: null,
-                      style: textSmallBold.copyWith(
-                        fontSize: 10,
-                        color: widget.accent,
-                        letterSpacing: 1.2,
-                      ),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        EndpointText(
+                          '${widget.item.rarity.label}  |  TAMAÑO ${widget.item.equipmentCost}',
+                          maxLines: null,
+                          style: textSmallBold.copyWith(
+                            fontSize: 10,
+                            color: widget.accent,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        EndpointText(
+                          widget.priceLabel,
+                          style: textSmallBold.copyWith(
+                            fontSize: 10,
+                            color: EndpointPalette.warningAccent,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        const Spacer(),
+                        EndpointCurrencyInline(
+                          value: widget.price,
+                          iconColor: EndpointPalette.warningAccent,
+                          textColor: EndpointPalette.softForegroundWarm,
+                          iconSize: 13,
+                          spacing: 3,
+                          textStyle: textSmallNumericBold.copyWith(
+                            fontSize: 11,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                      ],
                     ),
                     if (widget.item.hasTags) ...[
                       const SizedBox(height: 4),

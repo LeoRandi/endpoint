@@ -122,7 +122,7 @@ class RunOutcomePage extends StatelessWidget {
                   foreground: EndpointPalette.softForeground,
                 ),
                 EndpointValueChip(
-                  label: 'C',
+                  icon: Icons.monetization_on_rounded,
                   value: player.money,
                   accent: EndpointPalette.warningAccent,
                   foreground: EndpointPalette.softForegroundWarm,

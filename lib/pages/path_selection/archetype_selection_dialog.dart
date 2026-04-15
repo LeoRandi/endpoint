@@ -530,14 +530,21 @@ class _ArchetypeItemCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 3),
-                EndpointText(
-                  '${item.rarity.label}  |  COSTE ${item.equipmentCost}',
-                  maxLines: null,
-                  style: textSmallBold.copyWith(
-                    color: accent,
-                    fontSize: 10,
-                    letterSpacing: 1.1,
-                  ),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    EndpointText(
+                      '${item.rarity.label}  |  TAMAÑO ${item.equipmentCost}',
+                      maxLines: null,
+                      style: textSmallBold.copyWith(
+                        color: accent,
+                        fontSize: 10,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 EndpointText(

@@ -102,7 +102,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
               item: item,
               accent: item.rarity.accent,
               price: _controller.purchasePriceFor(item),
-              priceLabel: 'COMPRA (${_controller.purchasePriceFor(item)}C)',
+              priceLabel: 'COMPRA',
               statusText: _controller.stockStatusLabelFor(item),
               actionLabel: _controller.stockActionLabelFor(item),
               onPrimaryAction: _controller.canBuy(item)
@@ -113,7 +113,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                   : null,
               isActionEnabled: _controller.canBuy(item),
               enabledActionTooltip:
-                  'Comprar objeto por ${_controller.purchasePriceFor(item)}C',
+                  'Comprar objeto por ${_controller.purchasePriceFor(item)} creditos',
               disabledActionTooltip: 'No tienes dinero suficiente',
             );
           },
@@ -546,12 +546,11 @@ class _ShopOfferCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       EndpointText(
-                        'COSTE ${item.equipmentCost}',
-                        overflow: TextOverflow.ellipsis,
+                        'TAM ${item.equipmentCost}',
                         style: textSmallBold.copyWith(
                           color: item.rarity.accent,
-                          fontSize: 10,
-                          letterSpacing: 1,
+                          fontSize: 9,
+                          letterSpacing: 0.9,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -571,9 +570,13 @@ class _ShopOfferCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    EndpointText(
-                      '${price}C',
-                      style: textSmallNumericBold.copyWith(
+                    EndpointCurrencyInline(
+                      value: price,
+                      iconColor: EndpointPalette.warningAccent,
+                      textColor: itemAccent,
+                      iconSize: 13,
+                      spacing: 3,
+                      textStyle: textSmallNumericBold.copyWith(
                         color: itemAccent,
                         fontSize: 12,
                         letterSpacing: 1.1,

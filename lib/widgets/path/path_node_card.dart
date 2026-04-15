@@ -14,6 +14,7 @@ class PathNodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = node.accent;
     final hasSignatureBorder = node.hasSignatureBorder;
+    final topRightBadge = _topRightBadgeForNode(node.type);
     final topColor =
         EndpointPalette.blend(EndpointPalette.panelBackground, accent, 0.18);
     final bottomColor =
@@ -40,18 +41,23 @@ class PathNodeCard extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: accent.withOpacity(hasSignatureBorder ? 0.92 : 0.7),
+                  color: accent.withValues(
+                    alpha: hasSignatureBorder ? 0.92 : 0.7,
+                  ),
                   width: hasSignatureBorder ? 1.5 : 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: accent.withOpacity(hasSignatureBorder ? 0.2 : 0.14),
+                    color: accent.withValues(
+                      alpha: hasSignatureBorder ? 0.2 : 0.14,
+                    ),
                     blurRadius: hasSignatureBorder ? 22 : 18,
                     spreadRadius: hasSignatureBorder ? 2 : 1,
                   ),
                 ],
               ),
               child: Stack(
+                clipBehavior: Clip.none,
                 fit: StackFit.expand,
                 children: [
                   if (hasSignatureBorder) _SignatureNodeFrame(accent: accent),
@@ -59,25 +65,7 @@ class PathNodeCard extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
                     child: Column(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.22),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: accent.withOpacity(0.5)),
-                          ),
-                          child: EndpointText(
-                            node.badgeLabel,
-                            style: textSmallBold.copyWith(
-                              color: accent,
-                              letterSpacing: 1.8,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -102,9 +90,92 @@ class PathNodeCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (topRightBadge != null)
+                    Positioned(
+                      top: -8,
+                      right: -8,
+                      child: topRightBadge,
+                    ),
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget? _topRightBadgeForNode(PathNodeType type) {
+  switch (type) {
+    case PathNodeType.encounter:
+      return const _PathNodeCornerBadge(
+        symbol: '\u2694',
+        accent: EndpointPalette.dangerAccent,
+      );
+    case PathNodeType.shop:
+      return const _PathNodeCornerBadge(
+        icon: Icons.monetization_on_rounded,
+        accent: EndpointPalette.warningAccent,
+      );
+    case PathNodeType.event:
+      return const _PathNodeCornerBadge(
+        icon: Icons.question_mark_rounded,
+        accent: EndpointPalette.infoAccent,
+      );
+    case PathNodeType.archetype:
+    case PathNodeType.campSite:
+      return null;
+  }
+}
+
+class _PathNodeCornerBadge extends StatelessWidget {
+  final IconData? icon;
+  final String? symbol;
+  final Color accent;
+
+  const _PathNodeCornerBadge({
+    this.icon,
+    this.symbol,
+    required this.accent,
+  }) : assert(icon != null || symbol != null);
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.panelBackgroundBattleOpaque,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: accent.withValues(alpha: 0.92),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.24),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: SizedBox.square(
+          dimension: 24,
+          child: Center(
+            child: icon != null
+                ? Icon(
+                    icon,
+                    size: 14,
+                    color: accent,
+                  )
+                : EndpointText(
+                    symbol!,
+                    style: textSmallBold.copyWith(
+                      color: accent,
+                      fontSize: 12,
+                      height: 1,
+                    ),
+                  ),
           ),
         ),
       ),
@@ -130,7 +201,10 @@ class _SignatureNodeFrame extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: accent.withOpacity(0.24), width: 1.2),
+                border: Border.all(
+                  color: accent.withValues(alpha: 0.24),
+                  width: 1.2,
+                ),
               ),
             ),
           ),
@@ -203,7 +277,7 @@ class _SignatureCornerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = accent.withOpacity(0.78)
+      ..color = accent.withValues(alpha: 0.78)
       ..strokeWidth = 1.8
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.square;

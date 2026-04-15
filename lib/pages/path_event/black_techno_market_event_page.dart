@@ -53,7 +53,8 @@ class _BlackTechnoMarketEventPageState
         return EndpointAbilityDetailsDialog(
           ability: ability,
           accent: ability.accent,
-          statusText: '${ability.rarity.label}   ${price}C',
+          statusText: ability.rarity.label,
+          moneyCost: price,
           actionLabel: 'Seleccionar',
           onPrimaryAction: () {
             Navigator.of(context).pop(ability);
@@ -129,7 +130,7 @@ class _BlackTechnoMarketEventPageState
 
     final price = _selectedPrice ?? 0;
     if (!widget.player.canAfford(price)) {
-      return 'Te faltan ${price - widget.player.money}C';
+      return 'Te faltan ${price - widget.player.money} creditos';
     }
 
     return null;
@@ -173,10 +174,14 @@ class _BlackTechnoMarketEventPageState
                   ),
                 ),
                 const Spacer(),
-                EndpointText(
-                  '${widget.player.money}C',
-                  style: textMediumBold.copyWith(
-                    color: EndpointPalette.softForeground,
+                EndpointCurrencyInline(
+                  value: widget.player.money,
+                  iconColor: EndpointPalette.warningAccent,
+                  textColor: EndpointPalette.softForeground,
+                  iconSize: 15,
+                  spacing: 4,
+                  textStyle: textMediumNumericBold.copyWith(
+                    fontSize: 14,
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -195,10 +200,24 @@ class _BlackTechnoMarketEventPageState
             const SizedBox(height: 12),
             _buildOffersStrip(),
             const SizedBox(height: 12),
+            if (selectedPrice != null) ...[
+              EndpointCurrencyInline(
+                value: selectedPrice,
+                iconColor: EndpointPalette.warningAccent,
+                textColor: EndpointPalette.softForegroundWarm,
+                iconSize: 14,
+                spacing: 4,
+                textStyle: textSmallNumericBold.copyWith(
+                  fontSize: 12,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             EndpointActionButton(
               label: selectedAbility == null
                   ? 'Elige una habilidad'
-                  : 'Comprar ${selectedPrice}C',
+                  : 'Comprar seleccion',
               icon: Icons.shopping_bag_rounded,
               onPressed: blockReason == null && !_isResolvingPurchase
                   ? _buySelectedAbility
@@ -344,9 +363,21 @@ class _BlackMarketOfferCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           EndpointText(
-            '${price}C',
-            style: textMediumBold.copyWith(
-              color: EndpointPalette.softForeground,
+            'PRECIO',
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.warningAccent,
+              fontSize: 9,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 4),
+          EndpointCurrencyInline(
+            value: price,
+            iconColor: EndpointPalette.warningAccent,
+            textColor: EndpointPalette.softForeground,
+            iconSize: 13,
+            spacing: 3,
+            textStyle: textMediumNumericBold.copyWith(
               fontSize: 13,
               letterSpacing: 1.1,
             ),
