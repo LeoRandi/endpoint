@@ -94,6 +94,7 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Reexpone la descripcion corta del estado de turno para el banner central.
   String get turnDescription => _battleController.turnDescription;
+  int get currentRound => _battleController.currentRound;
   int get playerBlockBarrierGain => _battleController.playerBlockBarrierGain;
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
       _battleController.enemyTurnIntentPreview;

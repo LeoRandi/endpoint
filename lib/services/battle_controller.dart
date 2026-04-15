@@ -31,6 +31,8 @@ class BattleController extends ChangeNotifier {
   EnemyTurnAction _enemyNextAction = EnemyTurnAction.attack;
   EnemyTurnAction? _enemyLastResolvedAction;
   int _enemySameActionStreak = 0;
+  int _currentRound = 1;
+  int _completedTurnsInCurrentRound = 0;
   BattleTurnState _turn = BattleTurnState.player;
   String? _resultText;
   BattleFlowResult? _pendingExitResult;
@@ -70,6 +72,7 @@ class BattleController extends ChangeNotifier {
   bool get isPlayerTurn => _turn == BattleTurnState.player;
   bool get isCombatFinished => _turn == BattleTurnState.finished;
   bool get canUseActions => isPlayerTurn && !isCombatFinished;
+  int get currentRound => _currentRound;
   int get playerBlockBarrierGain => _playerCurrentBlockBarrierGain();
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
       _buildEnemyTurnIntentPreview();
@@ -592,6 +595,19 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
+    _applyTurnPressureDamageIfNeeded();
+    final pressureFinish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (pressureFinish != null) {
+      _finishCombat(
+        resultType: pressureFinish.resultType,
+        resultText: pressureFinish.resultText,
+      );
+      return;
+    }
+
     if (notify) {
       notifyListeners();
     }
@@ -607,6 +623,7 @@ class BattleController extends ChangeNotifier {
 
     _player = resolution.player;
     _enemy = resolution.enemy;
+    _registerCompletedTurn();
 
     if (resolution.finish != null) {
       _finishCombat(
@@ -617,6 +634,55 @@ class BattleController extends ChangeNotifier {
     }
 
     return false;
+  }
+
+  void _registerCompletedTurn() {
+    _completedTurnsInCurrentRound++;
+    if (_completedTurnsInCurrentRound < 2) {
+      return;
+    }
+
+    _completedTurnsInCurrentRound = 0;
+    _currentRound++;
+  }
+
+  void _applyTurnPressureDamageIfNeeded() {
+    final pressurePercent = _turnPressureDamagePercentForRound(_currentRound);
+    if (pressurePercent <= 0) {
+      return;
+    }
+
+    final playerDamage = _turnPressureDamageForBattler(
+      battler: _player,
+      pressurePercent: pressurePercent,
+    );
+    final enemyDamage = _turnPressureDamageForBattler(
+      battler: _enemy,
+      pressurePercent: pressurePercent,
+    );
+
+    _player = playerDamage > 0 ? _player.receiveDamage(playerDamage) : _player;
+    _enemy = enemyDamage > 0 ? _enemy.receiveDamage(enemyDamage) : _enemy;
+  }
+
+  int _turnPressureDamageForBattler({
+    required Battler battler,
+    required int pressurePercent,
+  }) {
+    if (battler.isDefeated || pressurePercent <= 0) {
+      return 0;
+    }
+
+    final rawDamage = (battler.health * pressurePercent / 100).ceil();
+    return max(1, rawDamage);
+  }
+
+  int _turnPressureDamagePercentForRound(int round) {
+    if (round < 10) {
+      return 0;
+    }
+
+    return (round - 9) * 10;
   }
 
   Battler _applyDrawingEndTurnBarrier(Battler battler, int amount) {

@@ -1,4 +1,10 @@
 ﻿TODOs:
+-Tutorial
+--Tuto de combate
+--Tuto de dibujo
+--Tuto de rutas
+--Tuto de arquetipos
+
 -Dibujo
 [--Crear dibujos básicos y aplicarlos al combate]
 --Crear dibujos avanzados para cada item
@@ -8,17 +14,17 @@
 --Añadir herramienta "mover", que coge todo el trazo unido al seleccionado y lo mueve a lo largo del canvas
 --Cambiar diseño/UI del overlay del canvas, y hacer más grande dicho overlay
 
--Economía
+[-Economía]
 [--Bajar Income base a la mitad o algo]
 
--Diseño
+[-Diseño]
 [--Añadir color de tier para la card de cada item o habilidad]
 
 -Arquetipos
 --Añadir más arquetipos, unos 7 en total[4/7]
 [--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.]
 
--Página de Selección de Camino
+[-Página de Selección de Camino]
 [--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
 [--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
 
@@ -28,6 +34,7 @@
 --Manejar su inventario
 
 -Combate
+[--Que intoxicación pase a través de la barrera]
 [--Aumentar el tamaño del intent a algo legible]
 [--Permitir tener más barrera de la máxima]
 [--Quitar mitigación plana -> barrera = escudo extra todos los combates]
@@ -99,6 +106,8 @@
 ////
 ARREGLAR:
 -El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
+-Los arquetipos tienen texto de tier? el error lo reporta Nacho, vio un texto que ponía "Azul" en el arquetipo de Mercader somehow
+-El botón de tutorial del menú principal no funciona
 
 ////
 PROBAR:

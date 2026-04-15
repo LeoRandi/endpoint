@@ -16,6 +16,52 @@ class MainMenuPage extends StatefulWidget {
 
 class _MainMenuPageState extends State<MainMenuPage>
     with SingleTickerProviderStateMixin {
+  static const String _mainMenuTutorialId = 'main_menu';
+  static const int _mainMenuTutorialVersion = 1;
+  static const String _menuColumnTutorialTargetId = 'main_menu.column';
+  static const String _continueTutorialTargetId = 'main_menu.continue';
+  static const String _startTutorialTargetId = 'main_menu.start';
+  static const String _codexTutorialTargetId = 'main_menu.codex';
+  static const String _settingsTutorialTargetId = 'main_menu.settings';
+  static const List<String> _tutorialImagePool = <String>[
+    'assets/sprites/image_1.png',
+    'assets/sprites/base_dude.png',
+    'assets/sprites/base_green_dude.png',
+    'assets/images/tiles/path_tile.png',
+    'assets/images/icons/icon_sword.png',
+    'assets/images/icons/icon_shield.png',
+  ];
+  static const List<EndpointTutorialStepDescriptor> _mainMenuTutorialSteps =
+      <EndpointTutorialStepDescriptor>[
+    EndpointTutorialStepDescriptor(
+      targetId: _menuColumnTutorialTargetId,
+      description:
+          'Esta columna es tu acceso rapido a todo el flujo principal.',
+      highlightBorderRadius: BorderRadius.all(Radius.circular(12)),
+      highlightPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+    ),
+    EndpointTutorialStepDescriptor(
+      targetId: _settingsTutorialTargetId,
+      description: 'Ajustes: sonido, vibracion, velocidad y modo de juego.',
+      highlightBorderRadius: BorderRadius.all(Radius.circular(10)),
+    ),
+    EndpointTutorialStepDescriptor(
+      targetId: _codexTutorialTargetId,
+      description: 'Codex mostrara informacion de entidades y sistemas.',
+      highlightBorderRadius: BorderRadius.all(Radius.circular(10)),
+    ),
+    EndpointTutorialStepDescriptor(
+      targetId: _startTutorialTargetId,
+      description: 'Start comienza una run nueva desde cero.',
+      highlightBorderRadius: BorderRadius.all(Radius.circular(10)),
+    ),
+    EndpointTutorialStepDescriptor(
+      targetId: _continueTutorialTargetId,
+      description: 'Continue retoma una run guardada si existe.',
+      highlightBorderRadius: BorderRadius.all(Radius.circular(10)),
+    ),
+  ];
+
   late final AnimationController _controller;
   late final Animation<double> _scale;
   late final Animation<double> _glow;
@@ -75,7 +121,8 @@ class _MainMenuPageState extends State<MainMenuPage>
   }
 
   Future<void> _refreshCurrentRunSnapshot() async {
-    final restoredRun = await EndpointPreferencesService.loadCurrentRunSnapshot();
+    final restoredRun =
+        await EndpointPreferencesService.loadCurrentRunSnapshot();
     if (!mounted) return;
 
     setState(() {
@@ -88,118 +135,189 @@ class _MainMenuPageState extends State<MainMenuPage>
     const accent = EndpointPalette.primaryAccent;
     const surface = EndpointPalette.panelBackground;
 
-    return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: EndpointGradients.menu),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const _MenuBackdrop(),
-            SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: EndpointPanel(
-                      accent: accent,
-                      backgroundColor: surface.withValues(alpha: 0.72),
-                      borderRadius: 16,
-                      glowOpacity: 0.1,
-                      blurRadius: 30,
-                      spreadRadius: 4,
-                      padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AnimatedBuilder(
-                            animation: _controller,
-                            builder: (context, child) {
-                              return Transform.scale(
-                                scale: _scale.value,
-                                child: EndpointText(
-                                  'DEATH AT SUNRISE',
-                                  maxLines: 2,
-                                  textAlign: TextAlign.center,
-                                  style: textExtraLargeBold.copyWith(
-                                    fontSize: 42,
-                                    letterSpacing: 3.2,
-                                    color: Color.lerp(
-                                      EndpointPalette.soften(
+    return EndpointTutorialHost(
+      tutorialId: _mainMenuTutorialId,
+      tutorialVersion: _mainMenuTutorialVersion,
+      barrierLabel: 'Tutorial del menu principal',
+      fallbackImagePool: _tutorialImagePool,
+      steps: _mainMenuTutorialSteps,
+      child: Scaffold(
+        body: DecoratedBox(
+          decoration: const BoxDecoration(gradient: EndpointGradients.menu),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const _MenuBackdrop(),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: Builder(
+                      builder: (tutorialContext) {
+                        return EndpointActionButton(
+                          label: '?',
+                          tooltip: 'Mostrar tutorial del menu',
+                          onPressed: () {
+                            unawaited(
+                              EndpointTutorialHost.startTutorial(
+                                tutorialContext,
+                                force: true,
+                              ),
+                            );
+                          },
+                          useMarquee: false,
+                          width: 52,
+                          height: 52,
+                          borderRadius: 14,
+                          borderWidth: 2,
+                          accent: EndpointPalette.infoAccent,
+                          backgroundColor: EndpointPalette.blend(
+                            EndpointPalette.menuButtonBackground,
+                            EndpointPalette.infoAccent,
+                            0.1,
+                          ),
+                          textStyle: textLargeBold.copyWith(
+                            fontSize: 34,
+                            letterSpacing: 0,
+                            color: EndpointPalette.infoAccent,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: EndpointPanel(
+                        accent: accent,
+                        backgroundColor: surface.withValues(alpha: 0.72),
+                        borderRadius: 16,
+                        glowOpacity: 0.1,
+                        blurRadius: 30,
+                        spreadRadius: 4,
+                        padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedBuilder(
+                              animation: _controller,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _scale.value,
+                                  child: EndpointText(
+                                    'DEATH AT SUNRISE',
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                    style: textExtraLargeBold.copyWith(
+                                      fontSize: 42,
+                                      letterSpacing: 3.2,
+                                      color: Color.lerp(
+                                        EndpointPalette.soften(
+                                          accent,
+                                          amount: 0.12,
+                                        ),
                                         accent,
-                                        amount: 0.12,
+                                        _glow.value,
                                       ),
-                                      accent,
-                                      _glow.value,
+                                      shadows: [
+                                        Shadow(
+                                          color: accent.withValues(
+                                            alpha: 0.35 + (_glow.value * 0.25),
+                                          ),
+                                          blurRadius: 12 + (_glow.value * 18),
+                                        ),
+                                        Shadow(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.12 + (_glow.value * 0.16),
+                                          ),
+                                          blurRadius: 6,
+                                        ),
+                                      ],
                                     ),
-                                    shadows: [
-                                      Shadow(
-                                        color: accent.withValues(
-                                          alpha:
-                                          0.35 + (_glow.value * 0.25),
-                                        ),
-                                        blurRadius: 12 + (_glow.value * 18),
-                                      ),
-                                      Shadow(
-                                        color: Colors.white.withValues(
-                                          alpha:
-                                          0.12 + (_glow.value * 0.16),
-                                        ),
-                                        blurRadius: 6,
-                                      ),
-                                    ],
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SeparatorFiori.double(),
-                          EndpointMenuButton(
-                            label: EndpointStrings.continueRun,
-                            tooltip: _currentRunSnapshot == null
-                                ? 'No hay ninguna run en curso'
-                                : 'Continuar la run guardada',
-                            onPressed:
-                                _currentRunSnapshot == null ? null : _openSavedRun,
-                          ),
-                          const SeparatorFiori.half(),
-                          EndpointMenuButton(
-                            label: EndpointStrings.start,
-                            tooltip: 'Iniciar la carrera hasta el sunrise',
-                            onPressed: _openNewRun,
-                          ),
-                          const SeparatorFiori.half(),
-                          const EndpointMenuButton(
-                            label: EndpointStrings.codex,
-                            tooltip: EndpointStrings.codexUnavailable,
-                          ),
-                          const SeparatorFiori.half(),
-                          EndpointMenuButton(
-                            label: EndpointStrings.settings,
-                            tooltip: 'Abrir configuracion',
-                            onPressed: () async {
-                              final updatedSettings =
-                                  await Navigator.of(context)
-                                      .push<EndpointSettingsSnapshot>(
-                                buildEndpointSceneRoute(
-                                  SettingsPage(initialSettings: _settings),
-                                ),
-                              );
-                              if (!mounted || updatedSettings == null) return;
+                                );
+                              },
+                            ),
+                            const SeparatorFiori.double(),
+                            EndpointTutorialTarget(
+                              targetId: _menuColumnTutorialTargetId,
+                              child: Column(
+                                children: [
+                                  EndpointTutorialTarget(
+                                    targetId: _continueTutorialTargetId,
+                                    child: EndpointMenuButton(
+                                      label: EndpointStrings.continueRun,
+                                      tooltip: _currentRunSnapshot == null
+                                          ? 'No hay ninguna run en curso'
+                                          : 'Continuar la run guardada',
+                                      onPressed: _currentRunSnapshot == null
+                                          ? null
+                                          : _openSavedRun,
+                                    ),
+                                  ),
+                                  const SeparatorFiori.half(),
+                                  EndpointTutorialTarget(
+                                    targetId: _startTutorialTargetId,
+                                    child: EndpointMenuButton(
+                                      label: EndpointStrings.start,
+                                      tooltip:
+                                          'Iniciar la carrera hasta el sunrise',
+                                      onPressed: _openNewRun,
+                                    ),
+                                  ),
+                                  const SeparatorFiori.half(),
+                                  const EndpointTutorialTarget(
+                                    targetId: _codexTutorialTargetId,
+                                    child: EndpointMenuButton(
+                                      label: EndpointStrings.codex,
+                                      tooltip: EndpointStrings.codexUnavailable,
+                                    ),
+                                  ),
+                                  const SeparatorFiori.half(),
+                                  EndpointTutorialTarget(
+                                    targetId: _settingsTutorialTargetId,
+                                    child: EndpointMenuButton(
+                                      label: EndpointStrings.settings,
+                                      tooltip: 'Abrir configuracion',
+                                      onPressed: () async {
+                                        final updatedSettings =
+                                            await Navigator.of(context)
+                                                .push<EndpointSettingsSnapshot>(
+                                          buildEndpointSceneRoute(
+                                            SettingsPage(
+                                              initialSettings: _settings,
+                                            ),
+                                          ),
+                                        );
+                                        if (!mounted ||
+                                            updatedSettings == null) {
+                                          return;
+                                        }
 
-                              setState(() {
-                                _settings = updatedSettings;
-                              });
-                            },
-                          ),
-                        ],
+                                        setState(() {
+                                          _settings = updatedSettings;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

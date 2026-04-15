@@ -22,6 +22,7 @@ export "endpoint_scene_preset.dart";
 export "endpoint_status_badges.dart";
 export "endpoint_tag_pill_marquee.dart";
 export "endpoint_text.dart";
+export "endpoint_tutorial_host.dart";
 export "endpoint_value_chip.dart";
 export "hold_tooltip.dart";
 export "node_scene_wrapper.dart";

@@ -110,7 +110,7 @@ class IntoxicacionStatus extends BattlerStatus {
           },
           icon: Icons.science_rounded,
           description:
-              'Al final del turno del objetivo, este estado inflige dano fijo igual a su value y renueva su duracion.',
+              'Al final del turno del objetivo, este estado inflige dano fijo igual a su value directamente a la vida (ignora Barrera) y renueva su duracion.',
           remainingTurns: remainingTurns,
           value: value,
         );
@@ -158,16 +158,31 @@ class IntoxicacionStatus extends BattlerStatus {
     final renewedStatus = currentStatus.copyWith(
       remainingTurns: currentStatus.remainingTurns + 1,
     );
+    final ownerWithRenewedStatus = owner.applyStatus(
+      renewedStatus,
+      applyEquipmentModifiers: false,
+    );
+    final incomingResolution =
+        ownerWithRenewedStatus.applyIncomingDamageEffects(
+      source: opponent,
+      damage: currentStatus.value,
+      kind: DamageKind.debuff,
+    );
+    if (incomingResolution.damage <= 0) {
+      return incomingResolution.owner;
+    }
 
-    return owner
-        .applyStatus(
-          renewedStatus,
-          applyEquipmentModifiers: false,
-        )
-        .receiveDebuffDamage(
-          currentStatus.value,
-          source: opponent,
-        );
+    final damagedOwner = incomingResolution.owner.copyWith(
+      health:
+          max(0, incomingResolution.owner.health - incomingResolution.damage),
+    );
+    if (damagedOwner.health > 0) {
+      return damagedOwner;
+    }
+
+    return damagedOwner.applyEquippedItemFatalDamageEffects(
+      incomingDamage: incomingResolution.damage,
+    );
   }
 
   @override

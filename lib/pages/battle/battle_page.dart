@@ -473,6 +473,7 @@ class _BattlePageState extends State<BattlePage> {
                             return _BattleCenterOverlay(
                               title: _sceneController.turnTitle,
                               description: _sceneController.turnDescription,
+                              round: _sceneController.currentRound,
                               isEnemyTurn: _sceneController.turn ==
                                   BattleTurnState.enemy,
                               isCombatFinished:
@@ -614,6 +615,7 @@ class _TurnBanner extends StatelessWidget {
 class _BattleCenterOverlay extends StatelessWidget {
   final String title;
   final String description;
+  final int round;
   final bool isEnemyTurn;
   final bool isCombatFinished;
   final Future<void> Function()? onAdvancePressed;
@@ -621,6 +623,7 @@ class _BattleCenterOverlay extends StatelessWidget {
   const _BattleCenterOverlay({
     required this.title,
     required this.description,
+    required this.round,
     required this.isEnemyTurn,
     required this.isCombatFinished,
     this.onAdvancePressed,
@@ -638,6 +641,8 @@ class _BattleCenterOverlay extends StatelessWidget {
           isEnemyTurn: isEnemyTurn,
           isCombatFinished: isCombatFinished,
         ),
+        const SizedBox(width: 6),
+        _RoundCounterBadge(round: round),
         if (onAdvancePressed != null) ...[
           const SizedBox(width: 6),
           EndpointActionButton(
@@ -656,6 +661,57 @@ class _BattleCenterOverlay extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _RoundCounterBadge extends StatelessWidget {
+  final int round;
+
+  const _RoundCounterBadge({
+    required this.round,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dangerBlend = ((round - 5) / 5).clamp(0.0, 1.0).toDouble();
+    final roundColor = EndpointPalette.blend(
+      EndpointPalette.softForeground,
+      EndpointPalette.dangerAccent,
+      dangerBlend,
+    );
+
+    return SizedBox(
+      width: 62,
+      child: EndpointSectionPanel(
+        preset: _buildBattlePanelPreset(
+          roundColor,
+          glowOpacity: 0.04,
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            EndpointText(
+              'ROUND',
+              style: textSmallBold.copyWith(
+                color: EndpointPalette.softForeground.withAlpha(194),
+                fontSize: 9,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 2),
+            EndpointText(
+              '$round',
+              style: textTitleSmallBold.copyWith(
+                color: roundColor,
+                fontSize: 16,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
