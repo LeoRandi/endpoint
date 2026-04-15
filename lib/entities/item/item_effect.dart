@@ -246,26 +246,8 @@ bool _enteredCooldown(
   return !previousAbility.isOnCooldown && resolvedAbility.isOnCooldown;
 }
 
-/// Recupera barrera sin sobrepasar la barrera maxima calculada del portador.
+/// Recupera barrera sin aplicar tope maximo.
 Battler _recoverBarrier({
-  required Battler owner,
-  required int amount,
-}) {
-  final safeAmount = max(0, amount);
-  if (safeAmount <= 0 || owner.currentBarrier >= owner.maxBarrier) {
-    return owner;
-  }
-
-  return owner.copyWith(
-    currentBarrier: min(
-      owner.maxBarrier,
-      owner.currentBarrier + safeAmount,
-    ),
-  );
-}
-
-/// Suma barrera directa sin aplicar tope de barrera maxima.
-Battler _recoverBarrierWithoutCap({
   required Battler owner,
   required int amount,
 }) {
@@ -276,6 +258,17 @@ Battler _recoverBarrierWithoutCap({
 
   return owner.copyWith(
     currentBarrier: owner.currentBarrier + safeAmount,
+  );
+}
+
+/// Suma barrera directa sin aplicar tope de barrera maxima.
+Battler _recoverBarrierWithoutCap({
+  required Battler owner,
+  required int amount,
+}) {
+  return _recoverBarrier(
+    owner: owner,
+    amount: amount,
   );
 }
 
@@ -425,7 +418,7 @@ int _countForeignOwnedItemsForMercante(Battler owner) {
   ].where(_isForeignItemForMercante).length;
 }
 
-/// Sube la barrera del portador hasta un minimo sin sobrepasar su maximo.
+/// Sube la barrera del portador hasta un minimo.
 Battler _refreshMinimumBarrier({
   required Battler owner,
   required int value,
@@ -436,10 +429,7 @@ Battler _refreshMinimumBarrier({
   }
 
   return owner.copyWith(
-    currentBarrier: min(
-      owner.maxBarrier,
-      minimumBarrier,
-    ),
+    currentBarrier: minimumBarrier,
   );
 }
 

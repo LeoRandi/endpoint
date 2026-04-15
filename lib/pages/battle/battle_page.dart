@@ -61,6 +61,7 @@ class _BattlePageState extends State<BattlePage> {
     _sceneController = BattleSceneController(
       enemy: widget.enemy,
       player: widget.player,
+      enemyTier: widget.enemyTier,
       enemyTurnDelay: widget.enemyTurnDelay,
       combatEndDelay: widget.combatEndDelay,
       victoryMoneyFactor: widget.victoryMoneyFactor,
@@ -904,17 +905,17 @@ class _EnemyIntentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 188),
+      constraints: const BoxConstraints(maxWidth: 376),
       child: EndpointSectionPanel(
         preset: _buildBattlePanelPreset(
           EndpointPalette.dangerAccent,
-          borderRadius: 12,
+          borderRadius: 16,
           glowOpacity: 0.05,
-          padding: const EdgeInsets.fromLTRB(6, 5, 6, 5),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         ),
         child: Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 12,
+          runSpacing: 12,
           alignment: WrapAlignment.end,
           children: [
             _EnemyIntentChip(
@@ -977,17 +978,18 @@ class _EnemyIntentChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: accent.withAlpha(158),
+          width: 1.4,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null)
               Icon(
                 icon,
-                size: 13,
+                size: 26,
                 color: accent,
               ),
             if (symbol != null)
@@ -995,18 +997,18 @@ class _EnemyIntentChip extends StatelessWidget {
                 symbol!,
                 style: textSmallBold.copyWith(
                   color: accent,
-                  fontSize: 11,
+                  fontSize: 22,
                   height: 1,
                 ),
               ),
             if (valueLabel != null) ...[
-              const SizedBox(width: 3),
+              const SizedBox(width: 6),
               EndpointText(
                 valueLabel!,
                 style: textSmallNumericBold.copyWith(
-                  fontSize: 10,
+                  fontSize: 20,
                   color: EndpointPalette.softForeground,
-                  letterSpacing: 0.9,
+                  letterSpacing: 1.1,
                 ),
               ),
             ],

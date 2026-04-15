@@ -156,7 +156,7 @@ class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
 
   @override
 
-  /// Restaura barrera sin sobrepasar la barrera maxima calculada del portador.
+  /// Restaura barrera sin aplicar tope maximo.
   ItemEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -170,10 +170,7 @@ class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
 
     return ItemEffectResolution(
       owner: owner.copyWith(
-        currentBarrier: min(
-          owner.maxBarrier,
-          owner.currentBarrier + amount,
-        ),
+        currentBarrier: owner.currentBarrier + amount,
       ),
       opponent: opponent,
     );
@@ -363,7 +360,7 @@ class SuccionaCreditosItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedValue = max(1, item.value);
-    return 'La primera vez por turno que atacas a un objetivo con un debuff, ganas ${resolvedValue}C y recuperas ${resolvedValue} de Barrera.';
+    return 'La primera vez por turno que atacas a un objetivo con un debuff, ganas ${resolvedValue}C y recuperas $resolvedValue de Barrera.';
   }
 
   @override

@@ -672,10 +672,7 @@ class Battler {
                 ? previousCurrentBarrier +
                     (candidate.maxBarrier - previousMaxBarrier)
                 : candidate.maxBarrier);
-    final clampedCurrentBarrier = min(
-      candidate.maxBarrier,
-      max(0, resolvedCurrentBarrier),
-    );
+    final clampedCurrentBarrier = max(0, resolvedCurrentBarrier);
     if (clampedHealth == candidate.health &&
         clampedCurrentBarrier == candidate.currentBarrier) {
       return candidate;

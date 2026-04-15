@@ -28,9 +28,12 @@
 --Manejar su inventario
 
 -Combate
+--Aumentar el tamaño del intent a algo legible
+[--Permitir tener más barrera de la máxima]
 [--Quitar mitigación plana -> barrera = escudo extra todos los combates]
 [--Mejorar UI de dibujo en combate]
 [--Añadir estados alterados]
+--Mejorar la IA enemiga
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
 --Mejorar nivel de las CPU(activar habilidades, distintos intents)
@@ -41,6 +44,7 @@
 ---Animación de "Barrera x2!" cuando se dibuje correctamente todas las barreras
 ---Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas en direccion al enemigo(o hacia el jugador, dependiendo si es ofensivo o defensivo)
 ---Animación de vibración en cada battler al recibir daño, y de escudo azul vibrando si le da a la barrera instead
+---El turno del enemigo debe convertir cada intent en una animación, e ir eliminandolos uno a uno. Luego se debe rellenar, apareciendo desde la derecha
 
 -Estados
 [--Añadir Tags]

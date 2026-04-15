@@ -11,6 +11,12 @@ enum EnemyTurnAction {
   defend,
 }
 
+enum EnemyAiDifficultyLevel {
+  alpha,
+  beta,
+  omega,
+}
+
 class BattleController extends ChangeNotifier {
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
@@ -18,10 +24,13 @@ class BattleController extends ChangeNotifier {
   final RunRandomizer _randomizer;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
+  final EnemyAiDifficultyLevel _enemyAiDifficulty;
 
   Battler _enemy;
   Battler _player;
   EnemyTurnAction _enemyNextAction = EnemyTurnAction.attack;
+  EnemyTurnAction? _enemyLastResolvedAction;
+  int _enemySameActionStreak = 0;
   BattleTurnState _turn = BattleTurnState.player;
   String? _resultText;
   BattleFlowResult? _pendingExitResult;
@@ -35,6 +44,7 @@ class BattleController extends ChangeNotifier {
   BattleController({
     required Battler enemy,
     required Battler player,
+    required int enemyTier,
     required this.enemyTurnDelay,
     required this.combatEndDelay,
     RunRandomizer? randomizer,
@@ -46,6 +56,7 @@ class BattleController extends ChangeNotifier {
         _resolver = resolver,
         _effectPipeline = effectPipeline,
         _randomizer = randomizer ?? RunRandomizer(),
+        _enemyAiDifficulty = _difficultyForEnemyTier(enemyTier),
         _turnEngine = turnEngine {
     _playerInitialBlockBarrier = max(0, _player.maxBarrier);
     _enemyInitialBlockBarrier = max(0, _enemy.maxBarrier);
@@ -243,6 +254,7 @@ class BattleController extends ChangeNotifier {
     );
     _enemy = enemyActionResolution.enemy;
     _player = enemyActionResolution.player;
+    _registerEnemyResolvedAction(plannedAction);
     if (_finishImmediatelyIfPlayerIsDown()) {
       return;
     }
@@ -647,9 +659,60 @@ class BattleController extends ChangeNotifier {
   }
 
   EnemyTurnAction _rollEnemyTurnAction() {
-    return _randomizer.chance(0.5)
+    final forcedAction = _forcedEnemyActionForDifficulty();
+    if (forcedAction != null) {
+      return forcedAction;
+    }
+
+    return _randomizer.chance(_enemyAttackChance())
         ? EnemyTurnAction.attack
         : EnemyTurnAction.defend;
+  }
+
+  EnemyTurnAction? _forcedEnemyActionForDifficulty() {
+    if (_enemyAiDifficulty == EnemyAiDifficultyLevel.alpha ||
+        _enemyLastResolvedAction == null ||
+        _enemySameActionStreak < 2) {
+      return null;
+    }
+
+    return _enemyLastResolvedAction == EnemyTurnAction.attack
+        ? EnemyTurnAction.defend
+        : EnemyTurnAction.attack;
+  }
+
+  double _enemyAttackChance() {
+    final hasOmegaPriorityCheck =
+        _enemyAiDifficulty == EnemyAiDifficultyLevel.omega &&
+            _enemy.health < _player.health;
+    if (hasOmegaPriorityCheck) {
+      return 0.9;
+    }
+
+    final isAboveHalfHealth =
+        _enemy.maxHealth > 0 && (_enemy.health * 2) > _enemy.maxHealth;
+    return isAboveHalfHealth ? 0.75 : 0.25;
+  }
+
+  void _registerEnemyResolvedAction(EnemyTurnAction resolvedAction) {
+    if (_enemyLastResolvedAction == resolvedAction) {
+      _enemySameActionStreak++;
+      return;
+    }
+
+    _enemyLastResolvedAction = resolvedAction;
+    _enemySameActionStreak = 1;
+  }
+
+  static EnemyAiDifficultyLevel _difficultyForEnemyTier(int enemyTier) {
+    final normalizedTier = max(1, enemyTier);
+    if (normalizedTier >= RarityTier.yellow.factor) {
+      return EnemyAiDifficultyLevel.omega;
+    }
+    if (normalizedTier >= RarityTier.blue.factor) {
+      return EnemyAiDifficultyLevel.beta;
+    }
+    return EnemyAiDifficultyLevel.alpha;
   }
 
   void _applyDrawingPenalty(BattleAttackDrawingPenalty penalty) {

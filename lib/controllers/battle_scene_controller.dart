@@ -28,6 +28,7 @@ class BattleSceneController extends ChangeNotifier {
   BattleSceneController({
     required Battler enemy,
     required Battler player,
+    required int enemyTier,
     required Duration enemyTurnDelay,
     required Duration combatEndDelay,
     required int victoryMoneyFactor,
@@ -36,6 +37,7 @@ class BattleSceneController extends ChangeNotifier {
   }) : this._(
           enemy: enemy,
           player: player,
+          enemyTier: enemyTier,
           enemyTurnDelay: enemyTurnDelay,
           combatEndDelay: combatEndDelay,
           victoryMoneyFactor: victoryMoneyFactor,
@@ -47,6 +49,7 @@ class BattleSceneController extends ChangeNotifier {
   BattleSceneController._({
     required Battler enemy,
     required Battler player,
+    required int enemyTier,
     required Duration enemyTurnDelay,
     required Duration combatEndDelay,
     required int victoryMoneyFactor,
@@ -57,6 +60,7 @@ class BattleSceneController extends ChangeNotifier {
         _battleController = BattleController(
           enemy: enemy,
           player: player,
+          enemyTier: enemyTier,
           randomizer: randomizer,
           enemyTurnDelay: enemyTurnDelay,
           combatEndDelay: combatEndDelay,

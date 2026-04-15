@@ -24,17 +24,12 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasStatuses = battler.statuses.isNotEmpty;
     final showsBarrier = battler.hasCombatFlag(Battler.combatActiveFlag) &&
-        battler.maxBarrier > 0;
-    final barrierHeight = max(5.0, height - 4);
+        battler.currentBarrier > 0;
+    final barrierHeight = max(5.0, height + 4);
     final barSpacing = showsBarrier ? 4.0 : 0.0;
     final barsHeight =
         height + (showsBarrier ? barrierHeight + barSpacing : 0.0);
-    final showBarrierValue = showsBarrier && battler.currentBarrier > 0;
-    final barrierValue = battler.maxBarrier <= 0
-        ? 0.0
-        : (battler.currentBarrier / battler.maxBarrier)
-            .clamp(0.0, 1.0)
-            .toDouble();
+    final showBarrierValue = showsBarrier;
 
     final bars = Column(
       mainAxisSize: MainAxisSize.min,
@@ -47,13 +42,9 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 Positioned.fill(
-                  child: EndpointHealthBar(
-                    value: barrierValue,
-                    accent: BattlerStat.barrier.accent,
+                  child: _EndpointShieldBarrierBar(
                     height: barrierHeight,
-                    trackOpacity: 0.16,
-                    fillStartOpacity: 0.22,
-                    fillEndOpacity: 0.56,
+                    accent: BattlerStat.barrier.accent,
                   ),
                 ),
                 if (showBarrierValue)
@@ -62,7 +53,7 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
                       '${battler.currentBarrier}',
                       style: textSmallNumericBold.copyWith(
                         color: Colors.white,
-                        fontSize: 9,
+                        fontSize: 11,
                         letterSpacing: 0.6,
                         shadows: [
                           Shadow(
@@ -115,6 +106,133 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
       ),
     );
   }
+}
+
+class _EndpointShieldBarrierBar extends StatelessWidget {
+  final double height;
+  final Color accent;
+
+  const _EndpointShieldBarrierBar({
+    required this.height,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipPath(
+            clipper: const _EndpointShieldBarClipper(),
+            child: ColoredBox(
+              color: Colors.black.withAlpha(56),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(1.2),
+            child: ClipPath(
+              clipper: const _EndpointShieldBarClipper(),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      accent.withAlpha(117),
+                      accent.withAlpha(245),
+                      accent.withAlpha(117),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(2, 2, 2, 3),
+            child: ClipPath(
+              clipper: const _EndpointShieldBarClipper(),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withAlpha(64),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _EndpointShieldBarStrokePainter(accent: accent),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EndpointShieldBarClipper extends CustomClipper<Path> {
+  const _EndpointShieldBarClipper();
+
+  @override
+  Path getClip(Size size) {
+    return _buildShieldBarPath(size);
+  }
+
+  @override
+  bool shouldReclip(covariant _EndpointShieldBarClipper oldClipper) {
+    return false;
+  }
+}
+
+class _EndpointShieldBarStrokePainter extends CustomPainter {
+  final Color accent;
+
+  const _EndpointShieldBarStrokePainter({
+    required this.accent,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final strokePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..color = accent.withAlpha(179);
+
+    canvas.drawPath(_buildShieldBarPath(size), strokePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _EndpointShieldBarStrokePainter oldDelegate) {
+    return oldDelegate.accent != accent;
+  }
+}
+
+Path _buildShieldBarPath(Size size) {
+  final width = max(0.0, size.width);
+  final height = max(0.0, size.height);
+  if (width <= 0 || height <= 0) {
+    return Path();
+  }
+
+  final path = Path()
+    ..moveTo(0, height * 0.5)
+    ..quadraticBezierTo(width * 0.16, 0, width * 0.5, height * 0.08)
+    ..quadraticBezierTo(width * 0.84, 0, width, height * 0.5)
+    ..quadraticBezierTo(width * 0.84, height, width * 0.5, height * 0.92)
+    ..quadraticBezierTo(width * 0.16, height, 0, height * 0.5)
+    ..close();
+
+  return path;
 }
 
 class EndpointStatusBadges extends StatelessWidget {
