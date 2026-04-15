@@ -904,55 +904,72 @@ class _EnemyIntentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 376),
-      child: EndpointSectionPanel(
-        preset: _buildBattlePanelPreset(
-          EndpointPalette.dangerAccent,
-          borderRadius: 16,
-          glowOpacity: 0.05,
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        EndpointText(
+          'INCOMING:',
+          style: textSmallBold.copyWith(
+            color: EndpointPalette.dangerAccent.withAlpha(224),
+            fontSize: 10,
+            letterSpacing: 1.1,
+          ),
         ),
-        child: Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          alignment: WrapAlignment.end,
-          children: [
-            _EnemyIntentChip(
-              symbol: intent.action == EnemyTurnAction.attack ? '\u2694' : null,
-              icon: intent.action == EnemyTurnAction.defend
-                  ? Icons.shield_rounded
-                  : null,
-              accent: intent.action == EnemyTurnAction.defend
-                  ? BattlerStat.barrier.accent
-                  : EndpointPalette.dangerAccent,
+        const SizedBox(height: 4),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 252),
+          child: EndpointSectionPanel(
+            preset: _buildBattlePanelPreset(
+              EndpointPalette.dangerAccent,
+              borderRadius: 11,
+              glowOpacity: 0.05,
+              padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
             ),
-            if (intent.activatedBattleAbility != null)
-              _EnemyIntentChip(
-                icon: intent.activatedBattleAbility!.icon,
-                accent: intent.activatedBattleAbility!.accent,
-              ),
-            if (intent.damage > 0 || intent.action == EnemyTurnAction.attack)
-              _EnemyIntentChip(
-                icon: Icons.flash_on_rounded,
-                valueLabel: '${intent.damage}',
-                accent: EndpointPalette.dangerAccent,
-              ),
-            if (intent.barrierGain > 0)
-              _EnemyIntentChip(
-                icon: Icons.shield_rounded,
-                valueLabel: '${intent.barrierGain}',
-                accent: BattlerStat.barrier.accent,
-              ),
-            for (final debuff in intent.appliedDebuffs)
-              _EnemyIntentChip(
-                icon: debuff.status.icon,
-                valueLabel: debuff.amountLabel,
-                accent: debuff.status.type.accent,
-              ),
-          ],
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              children: [
+                _EnemyIntentChip(
+                  symbol:
+                      intent.action == EnemyTurnAction.attack ? '\u2694' : null,
+                  icon: intent.action == EnemyTurnAction.defend
+                      ? Icons.shield_rounded
+                      : null,
+                  accent: intent.action == EnemyTurnAction.defend
+                      ? BattlerStat.barrier.accent
+                      : EndpointPalette.dangerAccent,
+                ),
+                if (intent.activatedBattleAbility != null)
+                  _EnemyIntentChip(
+                    icon: intent.activatedBattleAbility!.icon,
+                    accent: intent.activatedBattleAbility!.accent,
+                  ),
+                if (intent.damage > 0 ||
+                    intent.action == EnemyTurnAction.attack)
+                  _EnemyIntentChip(
+                    icon: Icons.flash_on_rounded,
+                    valueLabel: '${intent.damage}',
+                    accent: EndpointPalette.dangerAccent,
+                  ),
+                if (intent.barrierGain > 0)
+                  _EnemyIntentChip(
+                    icon: Icons.shield_rounded,
+                    valueLabel: '${intent.barrierGain}',
+                    accent: BattlerStat.barrier.accent,
+                  ),
+                for (final debuff in intent.appliedDebuffs)
+                  _EnemyIntentChip(
+                    icon: debuff.status.icon,
+                    valueLabel: debuff.amountLabel,
+                    accent: debuff.status.type.accent,
+                  ),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -978,18 +995,18 @@ class _EnemyIntentChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: accent.withAlpha(158),
-          width: 1.4,
+          width: 1,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null)
               Icon(
                 icon,
-                size: 26,
+                size: 17,
                 color: accent,
               ),
             if (symbol != null)
@@ -997,18 +1014,18 @@ class _EnemyIntentChip extends StatelessWidget {
                 symbol!,
                 style: textSmallBold.copyWith(
                   color: accent,
-                  fontSize: 22,
+                  fontSize: 15,
                   height: 1,
                 ),
               ),
             if (valueLabel != null) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               EndpointText(
                 valueLabel!,
                 style: textSmallNumericBold.copyWith(
-                  fontSize: 20,
+                  fontSize: 13,
                   color: EndpointPalette.softForeground,
-                  letterSpacing: 1.1,
+                  letterSpacing: 0.9,
                 ),
               ),
             ],

@@ -28,12 +28,12 @@
 --Manejar su inventario
 
 -Combate
---Aumentar el tamaño del intent a algo legible
+[--Aumentar el tamaño del intent a algo legible]
 [--Permitir tener más barrera de la máxima]
 [--Quitar mitigación plana -> barrera = escudo extra todos los combates]
 [--Mejorar UI de dibujo en combate]
 [--Añadir estados alterados]
---Mejorar la IA enemiga
+[--Mejorar la IA enemiga]
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
 --Mejorar nivel de las CPU(activar habilidades, distintos intents)

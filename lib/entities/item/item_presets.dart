@@ -199,7 +199,7 @@ const shieldItem = Item(
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _vidaBarreraTags,
   name: 'Escudo',
-  description: '+2 Barrera. Al inicio de tu turno, recuperas 5 HP.',
+  description: '+2 Barrera. Al defender, recuperas 5 HP.',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
   baseCost: 4,
@@ -211,7 +211,7 @@ const shieldItem = Item(
   upgradeStatModifiers: {
     BattlerStat.barrier: 2,
   },
-  effect: RegenerativeShieldItemEffect(),
+  effect: HealOnDefendItemEffect(),
 );
 
 /// Accesorio verde que sube vida maxima y barrera a la vez.

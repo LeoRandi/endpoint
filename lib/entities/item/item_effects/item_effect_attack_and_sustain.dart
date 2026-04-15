@@ -132,6 +132,39 @@ class RegenerativeShieldItemEffect extends ItemEffect {
   }
 }
 
+/// Cura al portador solo cuando realiza una accion de defensa.
+class HealOnDefendItemEffect extends ItemEffect {
+  /// Crea un efecto reutilizable para objetos que se activan al bloquear.
+  const HealOnDefendItemEffect()
+      : super(
+          description: 'Al defender, recuperas una cantidad fija de vida.',
+          hooks: const {
+            ItemEffectHook.defendResolved,
+          },
+        );
+
+  @override
+
+  /// Genera la descripcion final usando el value real del item equipado.
+  String descriptionFor(Item item) {
+    return 'Al defender, recuperas ${item.value} HP.';
+  }
+
+  @override
+
+  /// Cura al portador justo despues de resolver la accion de bloquear.
+  ItemEffectResolution onDefendResolved({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.heal(item.value),
+      opponent: opponent,
+    );
+  }
+}
+
 /// Recupera barrera al inicio del turno propio con una cantidad fija.
 class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
   final int amount;
