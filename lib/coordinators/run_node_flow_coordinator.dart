@@ -139,6 +139,12 @@ class RunNodeFlowCoordinator {
           node: node,
           randomizer: randomizer,
         );
+      case PathEventId.sobreKar:
+        return SobreKarEventPage(
+          player: player,
+          node: node,
+          randomizer: randomizer,
+        );
       case PathEventId.debtCollection:
         return PathEventPage(
           player: player,

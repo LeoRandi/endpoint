@@ -1,4 +1,5 @@
 export "endpoint_emoji_sprite.dart";
+export "endpoint_event_flavor_intro_overlay.dart";
 export "endpoint_menu_button.dart";
 export "endpoint_action_button.dart";
 export "endpoint_abilities_overlay.dart";

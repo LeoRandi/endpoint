@@ -24,6 +24,7 @@ class _BlackTechnoMarketEventPageState
   late final List<BattlerAbility> _offers;
   BattlerAbility? _selectedAbility;
   bool _isResolvingPurchase = false;
+  int _flavorPageIndex = 0;
 
   @override
   void initState() {
@@ -41,6 +42,18 @@ class _BlackTechnoMarketEventPageState
         outcomeText: 'No compras ninguna habilidad.',
       ),
     );
+  }
+
+  bool get _isFlavorIntroVisible {
+    final flavorTexts = widget.node.flavorTexts;
+    return flavorTexts.isNotEmpty && _flavorPageIndex < flavorTexts.length;
+  }
+
+  void _advanceFlavorIntro() {
+    if (!_isFlavorIntroVisible) return;
+    setState(() {
+      _flavorPageIndex++;
+    });
   }
 
   Future<void> _openOfferDetails(BattlerAbility ability) async {
@@ -141,6 +154,15 @@ class _BlackTechnoMarketEventPageState
     return EndpointCenterStageScene(
       showTitle: widget.node.showTitle,
       background: EndpointGradients.event(widget.node.accent),
+      foregroundOverlay: _isFlavorIntroVisible
+          ? EndpointEventFlavorIntroOverlay(
+              pages: widget.node.flavorTexts,
+              pageIndex: _flavorPageIndex,
+              emoji: widget.node.flavorEmoji ?? widget.node.iconEmoji,
+              accent: widget.node.accent,
+              onAdvance: _advanceFlavorIntro,
+            )
+          : null,
       onClose: _close,
       closeTooltip: EndpointStrings.backToRoute,
       accent: widget.node.accent,

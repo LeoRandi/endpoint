@@ -6,6 +6,7 @@ enum PathEventId {
   afterHoursTechnosurgeon,
   blackTechnoMarket,
   debtCollection,
+  sobreKar,
 }
 
 /// Define un nodo de evento con su contenido base y el id que resuelve su efecto.
@@ -15,6 +16,8 @@ class EventPathNode extends PathNode {
   final String eventTitle;
   final String description;
   final String outcomeText;
+  final List<String> flavorTexts;
+  final String? flavorEmoji;
 
   /// Crea un evento de ruta con el texto visible y el id que usara la logica.
   const EventPathNode({
@@ -30,6 +33,8 @@ class EventPathNode extends PathNode {
     required this.eventTitle,
     required this.description,
     required this.outcomeText,
+    this.flavorTexts = const <String>[],
+    this.flavorEmoji,
   }) : super.base(
           type: PathNodeType.event,
           nodeId: nodeId,

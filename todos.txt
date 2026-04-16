@@ -47,6 +47,7 @@
 [--El enemigo te obliga a dibujar o sufrirás las consecuencias]
 --El enemigo puede bloquear parte del canvas, haciendo imposible dibujar en esas áreas.
 --Los mismos dibujos(si tienen el mismo efecto) se juntan en una sola card con un multiplicador brillante como badge(arriba a la derecha)
+--Cada item decide si su dibujo es un efecto extra al atacar o al bloquear, de manera que su dibujo aparezca en una de las pantallas y no en la otra.
 --Animaciones:
 ---Animación de "Barrera x2!" cuando se dibuje correctamente todas las barreras
 ---Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas en direccion al enemigo(o hacia el jugador, dependiendo si es ofensivo o defensivo)
@@ -79,10 +80,11 @@
 [--Mejorar aspecto y diseño]
 [--Hacer más visible y llamativo el dinero que tienes/ el income]
 --Crear más tiendas diferenciadas(después de añadir los Items)
+[--Texto de flavor a cada tienda]
 
 -Eventos
---Crear más eventos, al menos 15[5/15]
---implementar los efectos de cada uno
+--Crear más eventos, al menos 15[6/15]
+[--Texto de flavor a cada evento]
 
 -Enemigos
 --Crear Presets(al menos 40 distintos)[33/40]
@@ -106,51 +108,15 @@
 ////
 ARREGLAR:
 -El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
--Los arquetipos tienen texto de tier? el error lo reporta Nacho, vio un texto que ponía "Azul" en el arquetipo de Mercader somehow
 -El botón de tutorial del menú principal no funciona
 
 ////
 PROBAR:
--Interferencia(debuff): impide activar habilidades manuales durante [value] turnos(no stackea, no puede haber dos instancias de este estado a la vez en un personaje).
 -Deuda(debuff): reduce el income a 1 hasta que se cumpla un evento(no stackeable ni repetible, no se puede purgar de formas convencionales. Esto debe quedar explicado en la info del estado).
--Fragilidad(debuff), lo que debe hacer es aumentar el daño del siguiente ataque que reciba el portador
-
--Cuchilla de Rescate
--Malla de Choque
--Bisturi Toxico
--Condensador Deflectivo
--Canon de Interferencia
--Bastidor de Respuesta
--Ancla de Sobrecarga
--Lente de Rebote
--Corona de Inercia
--Hoja de Ejecucion Solar
--SuccionaCreditos
--Kunai Ancho
--Capa del Contrabandista
--Mochila Stronkbox 
--Muestrario de Contrabando 
--Ropera Unida
--Mampara Portatil
--M(agneti)C Hammer
--Ceramica Purgadora
--Clavo Reactor
--Bomba Miocardica
--Ultima Marcha
--Pagare Revalorizable
--Placa Bisagra
--Silbato Mudo
--Botiquin Compacto
--Funda Aislante
-
--Evento de Technosurgeon de noche
-
-new enemies and skills man idk
 
 ///
 IDEAS:
 -Reducir la probabilidad de drop de objeto/habilidad a un 60/50%, excepto si pasas por un EVENTO NUEVO que te sube esa chance al 100% si pagas 10 de money, o te mete el estado de Deuda hasta que pagues
--Evento que te de una habilidad aleatoria pero te quite vida
 -Evento de minijuego, obligatorio para un roguelike
 -Añadir color a cada buzzword, y que se coloreen automático en textos?
 -Sistema de guardar dibujo en favorito + quick draw?
@@ -160,7 +126,6 @@ IDEAS:
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
---SobreKar: Un chatarrero novato quiere hacer lucir su empresa de novato mejorando uno de tus objetos, pero si aceptas te dará un debuffo aleatorio que dura hasta el final del siguiente combate(o hasta que te lo quites)
 --Pasadizo Secreto: A cambio de dinero, una mujer cromada te permite decidir uno de los nodos en la siguiente hora(te deja elegir uno entre 5 eventos, y ese aparecerá asegurado en la siguiente hora como nodo secundario(en los laterales). No puede salir este mismo evento en esa selección de 5)
 
 ////////////////////////////////

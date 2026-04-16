@@ -304,7 +304,7 @@ class _ArchetypeHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               EndpointText(
-                '${archetype.rarity.label}  |  ARQUETIPO INICIAL',
+                'ARQUETIPO INICIAL',
                 maxLines: null,
                 style: textSmallBold.copyWith(
                   color: archetype.accent,

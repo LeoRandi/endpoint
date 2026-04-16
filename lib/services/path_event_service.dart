@@ -1,5 +1,19 @@
 import '_imports.dart';
 
+class SobreKarUpgradeResolution {
+  final PathEventVisitResult visitResult;
+  final Item upgradedItem;
+  final BattlerStatus appliedDebuff;
+  final String appliedDebuffLabel;
+
+  const SobreKarUpgradeResolution({
+    required this.visitResult,
+    required this.upgradedItem,
+    required this.appliedDebuff,
+    required this.appliedDebuffLabel,
+  });
+}
+
 class PathEventService {
   const PathEventService();
 
@@ -20,6 +34,11 @@ class PathEventService {
           final ownedAbility = player.abilityById(ability.id);
           return ownedAbility == null || ownedAbility.canUpgrade;
         });
+      case PathEventId.sobreKar:
+        if (player == null) {
+          return itemPresets.any(_isSobreKarItemEligible);
+        }
+        return buildSobreKarEligibleItems(player).isNotEmpty;
     }
   }
 
@@ -33,11 +52,57 @@ class PathEventService {
       case PathEventId.shadyTechnosurgeon:
       case PathEventId.afterHoursTechnosurgeon:
       case PathEventId.blackTechnoMarket:
+      case PathEventId.sobreKar:
         return PathEventVisitResult(
           player: player,
           outcomeText: node.outcomeText,
         );
     }
+  }
+
+  List<Item> buildSobreKarEligibleItems(Battler player) {
+    final eligibleItems = [
+      ...player.equippedItems,
+      ...player.inventoryItems,
+    ].where(_isSobreKarItemEligible).toList(growable: false);
+
+    return List<Item>.unmodifiable(eligibleItems);
+  }
+
+  SobreKarUpgradeResolution? resolveSobreKarUpgrade({
+    required Battler player,
+    required Item selectedItem,
+    required RunRandomizer randomizer,
+  }) {
+    if (!_isSobreKarItemEligible(selectedItem)) {
+      return null;
+    }
+
+    final upgradedItemResolution = _upgradeOwnedItem(
+      player: player,
+      selectedItem: selectedItem,
+    );
+    if (upgradedItemResolution == null) {
+      return null;
+    }
+
+    final debuffRoll = _rollSobreKarDebuff(randomizer);
+    final updatedPlayer = upgradedItemResolution.updatedPlayer.applyStatus(
+      debuffRoll.status,
+      applyEquipmentModifiers: false,
+    );
+    final outcomeText =
+        '${upgradedItemResolution.upgradedItem.displayName} se mejora a ${upgradedItemResolution.upgradedItem.rarity.label}. Efecto secundario: ${debuffRoll.label}.';
+
+    return SobreKarUpgradeResolution(
+      visitResult: PathEventVisitResult(
+        player: updatedPlayer,
+        outcomeText: outcomeText,
+      ),
+      upgradedItem: upgradedItemResolution.upgradedItem,
+      appliedDebuff: debuffRoll.status,
+      appliedDebuffLabel: debuffRoll.label,
+    );
   }
 
   PathEventVisitResult resolveTechnosurgeonMutation({
@@ -272,4 +337,81 @@ class PathEventService {
 
     return promotedAbility.copyWith(rarity: targetRarity);
   }
+
+  bool _isSobreKarItemEligible(Item item) {
+    return item.canUpgrade && item.rarity != RarityTier.yellow;
+  }
+
+  _SobreKarUpgradedItemResolution? _upgradeOwnedItem({
+    required Battler player,
+    required Item selectedItem,
+  }) {
+    final equippedIndex = player.equippedItems.indexOf(selectedItem);
+    if (equippedIndex >= 0) {
+      final updatedEquippedItems = List<Item>.from(player.equippedItems);
+      final upgradedItem = updatedEquippedItems[equippedIndex].upgraded();
+      updatedEquippedItems[equippedIndex] = upgradedItem;
+      return _SobreKarUpgradedItemResolution(
+        updatedPlayer: player.copyWith(
+          equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+        ),
+        upgradedItem: upgradedItem,
+      );
+    }
+
+    final inventoryIndex = player.inventoryItems.indexOf(selectedItem);
+    if (inventoryIndex >= 0) {
+      final updatedInventoryItems = List<Item>.from(player.inventoryItems);
+      final upgradedItem = updatedInventoryItems[inventoryIndex].upgraded();
+      updatedInventoryItems[inventoryIndex] = upgradedItem;
+      return _SobreKarUpgradedItemResolution(
+        updatedPlayer: player.copyWith(
+          inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+        ),
+        upgradedItem: upgradedItem,
+      );
+    }
+
+    return null;
+  }
+
+  _SobreKarDebuffRoll _rollSobreKarDebuff(RunRandomizer randomizer) {
+    switch (randomizer.nextInt(3)) {
+      case 0:
+        return const _SobreKarDebuffRoll(
+          status: InterferenciaStatus(remainingTurns: 10),
+          label: 'Interferencia (10 turnos)',
+        );
+      case 1:
+        return const _SobreKarDebuffRoll(
+          status: IntoxicacionStatus(value: 3),
+          label: 'Intoxicacion (potencia 3)',
+        );
+      default:
+        return const _SobreKarDebuffRoll(
+          status: QuemaduraStatus(remainingTurns: 6),
+          label: 'Quemadura (6 turnos)',
+        );
+    }
+  }
+}
+
+class _SobreKarUpgradedItemResolution {
+  final Battler updatedPlayer;
+  final Item upgradedItem;
+
+  const _SobreKarUpgradedItemResolution({
+    required this.updatedPlayer,
+    required this.upgradedItem,
+  });
+}
+
+class _SobreKarDebuffRoll {
+  final BattlerStatus status;
+  final String label;
+
+  const _SobreKarDebuffRoll({
+    required this.status,
+    required this.label,
+  });
 }

@@ -327,8 +327,12 @@ final shadyTechnosurgeonNode = EventPathNode(
   showTitle: 'Shady Technosurgeon',
   eventTitle: 'SHADY TECHNOSURGEON',
   description:
-      'Un technosurgeon clandestino ofrece reciclar una habilidad en un protocolo de tier superior.',
+      'Un cirujano clandestino ofrece reciclar una habilidad en un protocolo de tier superior.',
   outcomeText: 'Elige una habilidad para someterla a una mutacion controlada.',
+  flavorTexts: [
+    'Te adentras en un callejón oscuro, esperando que te sirva de atajo. En su lugar, bajo un cartel de neón parpadeante, encuentras a un cirujano que ofrece "servicios", por un precio claro.',
+    'El cirujano abre su maletín, despliega herramientas extravagantes sobre una mesa sin esterilizar, y pide que apoyes el brazo.',
+  ],
 );
 
 /// Mercado clandestino de habilidades con precio segun tier ofertado.
@@ -343,9 +347,34 @@ final blackTechnoMarketNode = EventPathNode(
   badgeLabel: 'MERCADO',
   showTitle: 'Black techno-market',
   eventTitle: 'BLACK TECHNO-MARKET',
-  description:
-      'Tres orbes de habilidad aleatorios orbitan sobre la mesa. Puedes comprar uno pagando 5C por tier.',
+  description: 'Tres orbes de habilidad aleatorios orbitan sobre la mesa.',
   outcomeText: 'Elige una habilidad y paga su coste para integrarla.',
+  flavorTexts: [
+    'Entras a un mercado en plena calle. Llama tu atención un mercader en concreto, que vigila sin mucho interés unos orbes sobre una mesa de mármol',
+    'Los orbes giran en sus platos de control, de forma inestable. El mercader te mira enfurruñado, y te pide que no le hagas perder el tiempo.',
+  ],
+);
+
+/// Evento azul donde una start-up mejora equipo gratis con coste oculto.
+final sobreKarNode = EventPathNode(
+  id: PathEventId.sobreKar,
+  nodeId: 'event_sobre_kar',
+  label: 'SobreKar',
+  tooltip: 'Mejora un objeto gratis y acepta un efecto secundario aleatorio',
+  iconEmoji: '\u{1F697}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'EVENTO',
+  showTitle: 'SobreKar',
+  eventTitle: 'SOBREKAR',
+  description:
+      'Un chatarrero novato quiere hacer lucir su nueva start-up mejorando uno de tus objetos gratuitamente. ¿Qué podría salir mal?',
+  outcomeText:
+      'Selecciona un objeto para mejorarlo gratis. Al terminar, recibirás un debuff aleatorio.',
+  flavorTexts: [
+    'Un chatarrero novato te para en la calle',
+    '<¡Ey, perdona, estamos haciendo muestras gratuitas de nuestros servicios! ¿Te interesaría reforzar alguno de tus objetos?>',
+  ],
 );
 
 /// Tienda morada nocturna centrada en armas mas agresivas.
@@ -441,8 +470,12 @@ final afterHoursTechnosurgeonNode = EventPathNode(
   showTitle: 'Technosurgeon Nocturno',
   eventTitle: 'TECHNOSURGEON NOCTURNO',
   description:
-      'Las luces de neon ocultan a un technosurgeon que cambia una habilidad por otra de tier superior.',
+      'Las luces de neón ocultan a un cirujano que cambia una habilidad por otra de tier superior.',
   outcomeText: 'Elige una habilidad para someterla a una mutacion controlada.',
+  flavorTexts: [
+    'El neón parpadea sobre acero quirúrgico. No hay preguntas, solo consentimiento implícito.',
+    'El especialista te ofrece una mutacion más agresiva de lo normal. Si aceptas, no hay marcha atrás.',
+  ],
 );
 
 /// Evento azul condicionado por Deuda que intenta cobrar la cuota pendiente.
@@ -458,9 +491,13 @@ final debtCollectionNode = EventPathNode(
   showTitle: 'La deuda te ha encontrado',
   eventTitle: 'OFICINA DE COBROS',
   description:
-      'Un recaudador del circuito local intercepta tu ruta. O saldas la cuota pendiente o te cobran en carne y credito.',
+      'Un recaudador y un bruto local interceptan tu ruta. O saldas la cuota pendiente o te cobran en carne y crédito.',
   outcomeText:
-      'La cantidad exacta se resuelve al entrar segun el saldo pendiente de tu Deuda.',
+      'La cantidad exacta se resuelve al entrar según el saldo pendiente de tu Deuda.',
+  flavorTexts: [
+    'Te cortan el paso antes de cruzar la siguiente esquina. Dos sombras y una tablet con tu historial financiero.',
+    'El recaudador repite la cifra sin alzar la voz: o pagas ahora, o el pago se te descontará ...en vida.',
+  ],
 );
 
 /// Nodo de descanso completo que recupera toda la vida.
@@ -515,6 +552,7 @@ final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
 final List<EventPathNode> dayEventNodes = List.unmodifiable([
   shadyTechnosurgeonNode,
   blackTechnoMarketNode,
+  sobreKarNode,
   debtCollectionNode,
 ]);
 
@@ -535,6 +573,7 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
   afterHoursTechnosurgeonNode,
   blackTechnoMarketNode,
   shadyTechnosurgeonNode,
+  sobreKarNode,
   debtCollectionNode,
 ]);
 

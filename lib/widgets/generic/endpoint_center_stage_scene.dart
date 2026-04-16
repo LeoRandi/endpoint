@@ -4,6 +4,7 @@ class EndpointCenterStageScene extends StatelessWidget {
   final String showTitle;
   final Gradient background;
   final Widget? backdrop;
+  final Widget? foregroundOverlay;
   final VoidCallback onClose;
   final String closeTooltip;
   final Color accent;
@@ -18,6 +19,7 @@ class EndpointCenterStageScene extends StatelessWidget {
     required this.showTitle,
     required this.background,
     this.backdrop,
+    this.foregroundOverlay,
     required this.onClose,
     this.closeTooltip = 'Volver',
     required this.accent,
@@ -74,6 +76,7 @@ class EndpointCenterStageScene extends StatelessWidget {
                   ),
                 ),
               ),
+              if (foregroundOverlay != null) foregroundOverlay!,
             ],
           ),
         ),

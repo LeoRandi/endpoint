@@ -25,8 +25,14 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
   BattlerAbility? _selectedAbility;
   BattlerAbility? _previewAbility;
   Timer? _previewTimer;
+  int _flavorPageIndex = 0;
 
   bool get _hasResolvedTechnosurgeon => _visitResult?.gainedAbility != null;
+
+  bool get _isFlavorIntroVisible {
+    final flavorTexts = widget.node.flavorTexts;
+    return flavorTexts.isNotEmpty && _flavorPageIndex < flavorTexts.length;
+  }
 
   @override
   void initState() {
@@ -48,6 +54,13 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
             outcomeText: 'La intervencion queda cancelada.',
           ),
     );
+  }
+
+  void _advanceFlavorIntro() {
+    if (!_isFlavorIntroVisible) return;
+    setState(() {
+      _flavorPageIndex++;
+    });
   }
 
   Future<void> _selectAbility() async {
@@ -123,6 +136,15 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
     return EndpointCenterStageScene(
       showTitle: widget.node.showTitle,
       background: EndpointGradients.event(widget.node.accent),
+      foregroundOverlay: _isFlavorIntroVisible
+          ? EndpointEventFlavorIntroOverlay(
+              pages: widget.node.flavorTexts,
+              pageIndex: _flavorPageIndex,
+              emoji: widget.node.flavorEmoji ?? widget.node.iconEmoji,
+              accent: widget.node.accent,
+              onAdvance: _advanceFlavorIntro,
+            )
+          : null,
       onClose: _close,
       closeTooltip: EndpointStrings.backToRoute,
       accent: widget.node.accent,

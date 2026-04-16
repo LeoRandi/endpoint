@@ -18,6 +18,7 @@ class PathEventPage extends StatefulWidget {
 
 class _PathEventPageState extends State<PathEventPage> {
   late final PathEventVisitResult _visitResult;
+  int _flavorPageIndex = 0;
 
   @override
   void initState() {
@@ -32,11 +33,32 @@ class _PathEventPageState extends State<PathEventPage> {
     Navigator.of(context).pop(_visitResult);
   }
 
+  bool get _isFlavorIntroVisible {
+    final flavorTexts = widget.node.flavorTexts;
+    return flavorTexts.isNotEmpty && _flavorPageIndex < flavorTexts.length;
+  }
+
+  void _advanceFlavorIntro() {
+    if (!_isFlavorIntroVisible) return;
+    setState(() {
+      _flavorPageIndex++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return EndpointCenterStageScene(
       showTitle: widget.node.showTitle,
       background: EndpointGradients.event(widget.node.accent),
+      foregroundOverlay: _isFlavorIntroVisible
+          ? EndpointEventFlavorIntroOverlay(
+              pages: widget.node.flavorTexts,
+              pageIndex: _flavorPageIndex,
+              emoji: widget.node.flavorEmoji ?? widget.node.iconEmoji,
+              accent: widget.node.accent,
+              onAdvance: _advanceFlavorIntro,
+            )
+          : null,
       onClose: _close,
       closeTooltip: EndpointStrings.backToRoute,
       accent: widget.node.accent,
