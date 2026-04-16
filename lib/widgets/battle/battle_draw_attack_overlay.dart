@@ -9,16 +9,29 @@ const _battleSketchFeedbackGap = Duration(milliseconds: 500);
 const _battleSketchMissAccent = Color(0xFFC178FF);
 const _battleSketchEnemyMalusAccent = Color(0xFFF95A62);
 const _battleSketchEraserRadius = 18.0;
-const _battleSketchDuration = Duration(seconds: 15);
+const _battleSketchDuration = Duration(seconds: 20);
+const _attackBonusHooks = <ItemEffectHook>{
+  ItemEffectHook.attackResolved,
+  ItemEffectHook.turnStart,
+  ItemEffectHook.turnEnd,
+};
+const _attackEnemyMalusHooks = <ItemEffectHook>{
+  ItemEffectHook.receiveDamageResolved,
+  ItemEffectHook.defendResolved,
+  ItemEffectHook.turnStart,
+  ItemEffectHook.turnEnd,
+};
 
 class BattleDrawAttackOverlay extends StatefulWidget {
   final Battler attacker;
   final Battler defender;
+  final int playerInitialBarrier;
 
   const BattleDrawAttackOverlay({
     super.key,
     required this.attacker,
     required this.defender,
+    required this.playerInitialBarrier,
   });
 
   @override
@@ -44,12 +57,17 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       const OperativeSketchRecognitionHelper();
   final BattleDrawingBonusResolver _bonusResolver =
       const BattleDrawingBonusResolver();
+  final BattleDrawingEligibleItemPlanner _eligibleItemPlanner =
+      const BattleDrawingEligibleItemPlanner();
   final BattleDrawingEnemyNuisancePlanner _enemyNuisancePlanner =
       const BattleDrawingEnemyNuisancePlanner();
   late final EndpointSketchCanvasController _sketchController;
   late final EndpointSketchFeedbackController _feedbackController;
   late final List<EndpointSketchNoiseDot> _noiseDots;
+  late final List<Item> _bonusItems;
+  late final List<BattleDrawingItemBonusGroup> _bonusItemGroups;
   late final List<BattleDrawingEnemyNuisance> _enemyNuisances;
+  late final List<BattleDrawingEnemyNuisanceGroup> _enemyNuisanceGroups;
   late final AnimationController _timerController = AnimationController(
     vsync: this,
     duration: _battleSketchDuration,
@@ -66,10 +84,23 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   @override
   void initState() {
     super.initState();
+    _bonusItems = _eligibleItemPlanner.equippedItemsForHooks(
+      battler: widget.attacker,
+      hooks: _attackBonusHooks,
+    );
+    final enemyMalusItems = _eligibleItemPlanner.equippedItemsForHooks(
+      battler: widget.defender,
+      hooks: _attackEnemyMalusHooks,
+    );
     _enemyNuisances = _enemyNuisancePlanner.build(
       player: widget.attacker,
       enemy: widget.defender,
+      playerInitialBarrier: widget.playerInitialBarrier,
+      enemyItems: enemyMalusItems,
     );
+    _bonusItemGroups = BattleDrawingGrouping.groupBonusItems(_bonusItems);
+    _enemyNuisanceGroups =
+        BattleDrawingGrouping.groupNuisances(_enemyNuisances);
     _sketchController = EndpointSketchCanvasController(
       initialBrushColor: _brushColors.first,
       eraserRadius: _battleSketchEraserRadius,
@@ -84,7 +115,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       radiusDelta: 1.3,
     );
     _baseBonusResolution = _bonusResolver.resolve(
-      equippedItems: widget.attacker.equippedItems,
+      equippedItems: _bonusItems,
       recognizedCounts: const <ItemBonusShape, int>{},
       recognizedShapeCounts: const <BattleDrawingShape, int>{},
       enemyNuisances: _enemyNuisances,
@@ -191,7 +222,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
             canvasSize: canvasSize,
           );
     final resolution = _bonusResolver.resolve(
-      equippedItems: widget.attacker.equippedItems,
+      equippedItems: _bonusItems,
       recognizedCounts: _recognizedItemCountsFor(result),
       recognizedShapeCounts: _recognizedShapeCountsFor(result),
       enemyNuisances: _enemyNuisances,
@@ -207,9 +238,16 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     }
 
     if (resolution.hasTriggeredNuisances) {
+      final groupedTriggeredNuisances = BattleDrawingGrouping.groupNuisances(
+        resolution.enemyNuisanceResolution.triggeredNuisances,
+      );
       _feedbackController.showSequence(
-        labels: resolution.enemyNuisanceResolution.triggeredNuisances
-            .map((nuisance) => nuisance.failureLabel)
+        labels: groupedTriggeredNuisances
+            .map(
+              (group) => group.count <= 1
+                  ? group.nuisance.failureLabel
+                  : '${group.nuisance.failureLabel} x${group.count}',
+            )
             .toList(growable: false),
         color: _battleSketchEnemyMalusAccent,
       );
@@ -217,9 +255,16 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     }
 
     if (resolution.hasActivatedItems) {
+      final groupedActivatedItems = BattleDrawingGrouping.groupBonusItems(
+        resolution.activatedItems,
+      );
       _feedbackController.showSequence(
-        labels: resolution.activatedItems
-            .map((item) => item.specialBonus.description)
+        labels: groupedActivatedItems
+            .map(
+              (group) => group.count <= 1
+                  ? group.specialBonus.description
+                  : '${group.specialBonus.description} x${group.count}',
+            )
             .toList(growable: false),
         color: EndpointPalette.rewardAccent,
       );
@@ -300,8 +345,8 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _BattleDrawTargetsStrip(
-            attacker: widget.attacker,
-            nuisances: _enemyNuisances,
+            bonusItemGroups: _bonusItemGroups,
+            nuisanceGroups: _enemyNuisanceGroups,
             resolution: _lastBonusResolution,
           ),
           const SizedBox(height: 10),
@@ -487,20 +532,19 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
 }
 
 class _BattleDrawTargetsStrip extends StatelessWidget {
-  final Battler attacker;
-  final List<BattleDrawingEnemyNuisance> nuisances;
+  final List<BattleDrawingItemBonusGroup> bonusItemGroups;
+  final List<BattleDrawingEnemyNuisanceGroup> nuisanceGroups;
   final BattleDrawingBonusResolution resolution;
 
   const _BattleDrawTargetsStrip({
-    required this.attacker,
-    required this.nuisances,
+    required this.bonusItemGroups,
+    required this.nuisanceGroups,
     required this.resolution,
   });
 
   @override
   Widget build(BuildContext context) {
-    final equippedItems = attacker.equippedItems;
-    if (nuisances.isEmpty && equippedItems.isEmpty) {
+    if (nuisanceGroups.isEmpty && bonusItemGroups.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -509,29 +553,34 @@ class _BattleDrawTargetsStrip extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          for (int index = 0; index < nuisances.length; index++)
+          for (int index = 0; index < nuisanceGroups.length; index++)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: _BattleDrawEnemyNuisanceCard(
-                nuisance: nuisances[index],
+                nuisance: nuisanceGroups[index].nuisance,
+                repeatCount: nuisanceGroups[index].count,
                 isResolved: resolution.enemyNuisanceResolution
-                    .isResolved(nuisances[index]),
+                    .isResolved(nuisanceGroups[index].nuisance),
               ),
             ),
-          if (nuisances.isNotEmpty && equippedItems.isNotEmpty)
+          if (nuisanceGroups.isNotEmpty && bonusItemGroups.isNotEmpty)
             const SizedBox(width: 4),
-          for (int index = 0; index < equippedItems.length; index++)
+          for (int index = 0; index < bonusItemGroups.length; index++)
             Padding(
               padding: EdgeInsets.only(
-                right: index == equippedItems.length - 1 ? 10 : 8,
+                right: index == bonusItemGroups.length - 1 ? 10 : 8,
               ),
               child: _BattleDrawItemCard(
-                title: equippedItems[index].displayName,
-                subtitle: equippedItems[index].specialBonus.description,
-                emoji: equippedItems[index].iconEmoji,
-                shape: equippedItems[index].bonusShape.battleDrawingShape,
-                accent: _shapeAccent(equippedItems[index].bonusShape),
-                isActivated: resolution.isItemActivated(equippedItems[index]),
+                title: bonusItemGroups[index].representativeItem.displayName,
+                subtitle: bonusItemGroups[index].specialBonus.description,
+                emoji: bonusItemGroups[index].representativeItem.iconEmoji,
+                shape: bonusItemGroups[index].requiredShape,
+                accent: _shapeAccent(
+                  bonusItemGroups[index].representativeItem.bonusShape,
+                ),
+                repeatCount: bonusItemGroups[index].count,
+                isActivated: resolution
+                    .isItemActivated(bonusItemGroups[index].representativeItem),
               ),
             ),
         ],
@@ -558,6 +607,7 @@ class _BattleDrawItemCard extends StatelessWidget {
   final BattleDrawingShape shape;
   final Color accent;
   final bool isActivated;
+  final int repeatCount;
 
   const _BattleDrawItemCard({
     required this.title,
@@ -566,6 +616,7 @@ class _BattleDrawItemCard extends StatelessWidget {
     required this.shape,
     required this.accent,
     required this.isActivated,
+    this.repeatCount = 1,
   });
 
   @override
@@ -578,91 +629,107 @@ class _BattleDrawItemCard extends StatelessWidget {
 
     return SizedBox(
       width: 88,
-      child: EndpointPanel(
-        accent: accent,
-        backgroundColor: EndpointPalette.blend(
-          EndpointPalette.panelBackground,
-          accent,
-          isActivated ? 0.12 : 0.05,
-        ),
-        borderRadius: 12,
-        glowOpacity: isActivated ? 0.16 : 0,
-        blurRadius: 18,
-        spreadRadius: 1,
-        padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: borderColor),
-            boxShadow: [
-              BoxShadow(
-                color: glowColor,
-                blurRadius: 16,
-                spreadRadius: 1,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: EndpointPanel(
+              accent: accent,
+              backgroundColor: EndpointPalette.blend(
+                EndpointPalette.panelBackground,
+                accent,
+                isActivated ? 0.12 : 0.05,
               ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Stack(
-                    fit: StackFit.expand,
+              borderRadius: 12,
+              glowOpacity: isActivated ? 0.16 : 0,
+              blurRadius: 18,
+              spreadRadius: 1,
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: borderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: glowColor,
+                      blurRadius: 16,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+                  child: Column(
                     children: [
-                      Center(
-                        child: Opacity(
-                          opacity: 0.18,
-                          child: EndpointText(
-                            emoji,
-                            style: const TextStyle(fontSize: 34),
-                          ),
-                        ),
-                      ),
-                      Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Center(
-                            child: AspectRatio(
-                              aspectRatio: 1,
-                              child: CustomPaint(
-                                painter: _BattleDrawCombatShapePainter(
-                                  shape: shape,
-                                  strokeColor: accent,
+                      Expanded(
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Center(
+                              child: Opacity(
+                                opacity: 0.18,
+                                child: EndpointText(
+                                  emoji,
+                                  style: const TextStyle(fontSize: 34),
                                 ),
                               ),
                             ),
-                          ),
+                            Positioned.fill(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Center(
+                                  child: AspectRatio(
+                                    aspectRatio: 1,
+                                    child: CustomPaint(
+                                      painter: _BattleDrawCombatShapePainter(
+                                        shape: shape,
+                                        strokeColor: accent,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      EndpointText(
+                        title,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: textSmallBold.copyWith(
+                          color: EndpointPalette.softForeground,
+                          fontSize: 9,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      EndpointText(
+                        subtitle,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: textSmallBold.copyWith(
+                          color: accent.withValues(alpha: 0.86),
+                          fontSize: 8,
+                          letterSpacing: 0.4,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                EndpointText(
-                  title,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    color: EndpointPalette.softForeground,
-                    fontSize: 9,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-                EndpointText(
-                  subtitle,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  style: textSmallBold.copyWith(
-                    color: accent.withValues(alpha: 0.86),
-                    fontSize: 8,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          if (repeatCount > 1)
+            Positioned(
+              top: -6,
+              right: -6,
+              child: _BattleDrawRepeatBadge(
+                count: repeatCount,
+                accent: accent,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -671,10 +738,12 @@ class _BattleDrawItemCard extends StatelessWidget {
 class _BattleDrawEnemyNuisanceCard extends StatelessWidget {
   final BattleDrawingEnemyNuisance nuisance;
   final bool isResolved;
+  final int repeatCount;
 
   const _BattleDrawEnemyNuisanceCard({
     required this.nuisance,
     required this.isResolved,
+    this.repeatCount = 1,
   });
 
   @override
@@ -685,53 +754,115 @@ class _BattleDrawEnemyNuisanceCard extends StatelessWidget {
 
     return SizedBox(
       width: 122,
-      child: EndpointPanel(
-        accent: accent,
-        backgroundColor: EndpointPalette.blend(
-          EndpointPalette.panelBackgroundBattle,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: EndpointPanel(
+              accent: accent,
+              backgroundColor: EndpointPalette.blend(
+                EndpointPalette.panelBackgroundBattle,
+                accent,
+                isResolved ? 0.09 : 0.15,
+              ),
+              borderRadius: 12,
+              glowOpacity: isResolved ? 0.06 : 0.14,
+              blurRadius: 14,
+              spreadRadius: 1,
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 34,
+                    height: 34,
+                    child: CustomPaint(
+                      painter: _BattleDrawCombatShapePainter(
+                        shape: nuisance.requiredShape,
+                        strokeColor: accent,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  EndpointText(
+                    nuisance.requiredShape.label.toUpperCase(),
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: textSmallBold.copyWith(
+                      color: EndpointPalette.softForeground,
+                      fontSize: 9,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                  EndpointText(
+                    nuisance.pendingDescription,
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: textSmallBold.copyWith(
+                      color: accent.withValues(alpha: 0.92),
+                      fontSize: 8,
+                      letterSpacing: 0.35,
+                      height: 1.08,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (repeatCount > 1)
+            Positioned(
+              top: -6,
+              right: -6,
+              child: _BattleDrawRepeatBadge(
+                count: repeatCount,
+                accent: accent,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BattleDrawRepeatBadge extends StatelessWidget {
+  final int count;
+  final Color accent;
+
+  const _BattleDrawRepeatBadge({
+    required this.count,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.blend(
+          EndpointPalette.panelBackgroundOpaque,
           accent,
-          isResolved ? 0.09 : 0.15,
+          0.26,
         ),
-        borderRadius: 12,
-        glowOpacity: isResolved ? 0.06 : 0.14,
-        blurRadius: 14,
-        spreadRadius: 1,
-        padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-        child: Column(
-          children: [
-            SizedBox(
-              width: 34,
-              height: 34,
-              child: CustomPaint(
-                painter: _BattleDrawCombatShapePainter(
-                  shape: nuisance.requiredShape,
-                  strokeColor: accent,
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            EndpointText(
-              nuisance.requiredShape.label.toUpperCase(),
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground,
-                fontSize: 9,
-                letterSpacing: 0.6,
-              ),
-            ),
-            EndpointText(
-              nuisance.pendingDescription,
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              style: textSmallBold.copyWith(
-                color: accent.withValues(alpha: 0.92),
-                fontSize: 8,
-                letterSpacing: 0.35,
-                height: 1.08,
-              ),
-            ),
-          ],
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.95),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.22),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: EndpointText(
+          'x$count',
+          style: textSmallNumericBold.copyWith(
+            color: EndpointPalette.softForeground,
+            fontSize: 9,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
     );

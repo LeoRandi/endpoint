@@ -190,6 +190,7 @@ class _BattlePageState extends State<BattlePage> {
         builder: (_) => BattleDrawAttackOverlay(
           attacker: _sceneController.player,
           defender: _sceneController.enemy,
+          playerInitialBarrier: _sceneController.playerInitialBarrier,
         ),
       );
       if (!mounted || resolution == null) return;
@@ -226,18 +227,22 @@ class _BattlePageState extends State<BattlePage> {
     });
 
     try {
-      final didMatchTargetSquares = await showEndpointOverlay<bool>(
+      final resolution =
+          await showEndpointOverlay<BattleDrawingBonusResolution>(
         context: context,
         barrierDismissible: false,
         barrierColor: EndpointPalette.overlayScrimStrong,
         builder: (_) => BattleDrawDefenseOverlay(
-          requiredSquareCount: max(1, widget.enemyTier),
+          defender: _sceneController.player,
+          attacker: _sceneController.enemy,
+          playerInitialBarrier: _sceneController.playerInitialBarrier,
         ),
       );
-      if (!mounted) return;
+      if (!mounted || resolution == null) return;
 
       _sceneController.handlePlayerBlock(
-        barrierMultiplier: didMatchTargetSquares == true ? 2 : 1,
+        drawingBonus: resolution.bonus,
+        drawingPenalty: resolution.penalty,
       );
     } finally {
       if (mounted) {
@@ -865,7 +870,7 @@ class _BlockActionButton extends StatelessWidget {
               dimension: _buttonDimension,
               onPressed: isEnabled ? onBlock : null,
               tooltip: isDrawingMode
-                  ? 'Dibuja cuadrados para potenciar el bloqueo'
+                  ? 'Dibuja formas para activar bonus y neutralizar malus'
                   : 'Ganar barrera y terminar turno',
             ),
           ),

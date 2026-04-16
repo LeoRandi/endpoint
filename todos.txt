@@ -43,11 +43,11 @@
 [--Mejorar la IA enemiga]
 --Arreglar nombre de enemigo y datos visibles durante el combate
 [--Separar el scroll de equipamiento y de habilidades]
---Mejorar nivel de las CPU(activar habilidades, distintos intents)
+[--Mejorar nivel de las CPU(activar habilidades, distintos intents)]
 [--El enemigo te obliga a dibujar o sufrirás las consecuencias]
 --El enemigo puede bloquear parte del canvas, haciendo imposible dibujar en esas áreas.
---Los mismos dibujos(si tienen el mismo efecto) se juntan en una sola card con un multiplicador brillante como badge(arriba a la derecha)
---Cada item decide si su dibujo es un efecto extra al atacar o al bloquear, de manera que su dibujo aparezca en una de las pantallas y no en la otra.
+[--Los mismos dibujos(si tienen el mismo efecto) se juntan en una sola card con un multiplicador brillante como badge(arriba a la derecha)]
+[--Cada item decide si su dibujo es un efecto extra al atacar o al bloquear, de manera que su dibujo aparezca en una de las pantallas y no en la otra.]
 --Animaciones:
 ---Animación de "Barrera x2!" cuando se dibuje correctamente todas las barreras
 ---Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas en direccion al enemigo(o hacia el jugador, dependiendo si es ofensivo o defensivo)
@@ -116,13 +116,12 @@ PROBAR:
 
 ///
 IDEAS:
--Reducir la probabilidad de drop de objeto/habilidad a un 60/50%, excepto si pasas por un EVENTO NUEVO que te sube esa chance al 100% si pagas 10 de money, o te mete el estado de Deuda hasta que pagues
 -Evento de minijuego, obligatorio para un roguelike
 -Añadir color a cada buzzword, y que se coloreen automático en textos?
 -Sistema de guardar dibujo en favorito + quick draw?
 
 -Objetos:
---Manto del Eclipse: Su bonus de dibujo cambia cada turno entre triángulo y Cuadrado
+--Manto del Eclipse: Su bonus de dibujo cambia entre triángulo y Cuadrado según si se ataca o se bloquea
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.

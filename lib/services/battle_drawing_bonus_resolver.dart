@@ -93,30 +93,72 @@ class BattleDrawingEnemyNuisance {
   }
 }
 
+class BattleDrawingEligibleItemPlanner {
+  const BattleDrawingEligibleItemPlanner();
+
+  List<Item> equippedItemsForHooks({
+    required Battler battler,
+    required Set<ItemEffectHook> hooks,
+  }) {
+    if (hooks.isEmpty || battler.equippedItems.isEmpty) {
+      return const <Item>[];
+    }
+
+    final filtered = battler.equippedItems.where((item) {
+      if (!item.hasDrawingBonus) {
+        return false;
+      }
+      final effectHooks = item.effect?.hooks;
+      if (effectHooks == null || effectHooks.isEmpty) {
+        return false;
+      }
+
+      for (final hook in effectHooks) {
+        if (hooks.contains(hook)) {
+          return true;
+        }
+      }
+      return false;
+    }).toList(growable: false);
+
+    return List<Item>.unmodifiable(filtered);
+  }
+}
+
 class BattleDrawingEnemyNuisancePlanner {
   const BattleDrawingEnemyNuisancePlanner();
 
   List<BattleDrawingEnemyNuisance> build({
     required Battler player,
     required Battler enemy,
+    required int playerInitialBarrier,
+    List<Item>? enemyItems,
   }) {
-    if (enemy.equippedItems.isEmpty) {
-      return const <BattleDrawingEnemyNuisance>[];
-    }
+    final sourceItems = (enemyItems ?? enemy.equippedItems)
+        .where((item) => item.hasDrawingBonus)
+        .toList(growable: false);
 
     final enemyAttack = max(1, enemy.calculateDamageAgainst(player));
-    final barrierTransferAmount = max(1, (enemyAttack * 0.75).round());
-    final healthTransferAmount = max(1, (enemyAttack * 0.8).round());
-    final nuisances = enemy.equippedItems
+    final directDamageAmount = max(1, (enemyAttack * 0.5).round());
+    final barrierTransferAmount = max(1, (playerInitialBarrier * 0.5).round());
+    final healthTransferAmount = max(1, (player.health * 0.1).round());
+    final nuisances = sourceItems
         .map(
           (item) => _nuisanceFromEnemyItem(
             item: item,
-            enemyAttack: enemyAttack,
+            directDamageAmount: directDamageAmount,
             barrierTransferAmount: barrierTransferAmount,
             healthTransferAmount: healthTransferAmount,
           ),
         )
-        .toList(growable: false);
+        .toList(growable: true)
+      ..add(
+        _randomNuisance(
+          directDamageAmount: directDamageAmount,
+          barrierTransferAmount: barrierTransferAmount,
+          healthTransferAmount: healthTransferAmount,
+        ),
+      );
 
     return List<BattleDrawingEnemyNuisance>.unmodifiable(
       nuisances,
@@ -125,7 +167,7 @@ class BattleDrawingEnemyNuisancePlanner {
 
   BattleDrawingEnemyNuisance _nuisanceFromEnemyItem({
     required Item item,
-    required int enemyAttack,
+    required int directDamageAmount,
     required int barrierTransferAmount,
     required int healthTransferAmount,
   }) {
@@ -134,7 +176,7 @@ class BattleDrawingEnemyNuisancePlanner {
         return BattleDrawingEnemyNuisance(
           requiredShape: BattleDrawingShape.triangle,
           kind: BattleDrawingEnemyNuisanceKind.directDamage,
-          amount: enemyAttack,
+          amount: directDamageAmount,
         );
       case ItemBonusShape.square:
         return BattleDrawingEnemyNuisance(
@@ -149,6 +191,133 @@ class BattleDrawingEnemyNuisancePlanner {
           amount: healthTransferAmount,
         );
     }
+  }
+
+  BattleDrawingEnemyNuisance _randomNuisance({
+    required int directDamageAmount,
+    required int barrierTransferAmount,
+    required int healthTransferAmount,
+  }) {
+    final randomKindIndex = Random().nextInt(3);
+    switch (randomKindIndex) {
+      case 0:
+        return BattleDrawingEnemyNuisance(
+          requiredShape: BattleDrawingShape.triangle,
+          kind: BattleDrawingEnemyNuisanceKind.directDamage,
+          amount: directDamageAmount,
+        );
+      case 1:
+        return BattleDrawingEnemyNuisance(
+          requiredShape: BattleDrawingShape.square,
+          kind: BattleDrawingEnemyNuisanceKind.barrierTransfer,
+          amount: barrierTransferAmount,
+        );
+      default:
+        return BattleDrawingEnemyNuisance(
+          requiredShape: BattleDrawingShape.circle,
+          kind: BattleDrawingEnemyNuisanceKind.healthTransfer,
+          amount: healthTransferAmount,
+        );
+    }
+  }
+}
+
+class BattleDrawingItemBonusGroup {
+  final BattleDrawingShape requiredShape;
+  final ItemSpecialBonus specialBonus;
+  final List<Item> items;
+
+  const BattleDrawingItemBonusGroup({
+    required this.requiredShape,
+    required this.specialBonus,
+    required this.items,
+  });
+
+  int get count => items.length;
+  Item get representativeItem => items.first;
+}
+
+class BattleDrawingEnemyNuisanceGroup {
+  final BattleDrawingEnemyNuisance nuisance;
+  final List<BattleDrawingEnemyNuisance> nuisances;
+
+  const BattleDrawingEnemyNuisanceGroup({
+    required this.nuisance,
+    required this.nuisances,
+  });
+
+  int get count => nuisances.length;
+}
+
+class BattleDrawingGrouping {
+  const BattleDrawingGrouping._();
+
+  static List<BattleDrawingItemBonusGroup> groupBonusItems(
+    Iterable<Item> items,
+  ) {
+    final groupedItems = <_BattleDrawingItemBonusGroupKey, List<Item>>{};
+    final orderedKeys = <_BattleDrawingItemBonusGroupKey>[];
+
+    for (final item in items) {
+      final shape = item.drawingBonusShape;
+      final bonus = item.drawingSpecialBonus;
+      if (shape == null || bonus == null) {
+        continue;
+      }
+      final key = _BattleDrawingItemBonusGroupKey(
+        shape: shape,
+        kind: bonus.kind,
+        amount: bonus.amount,
+      );
+      final group = groupedItems.putIfAbsent(key, () {
+        orderedKeys.add(key);
+        return <Item>[];
+      });
+      group.add(item);
+    }
+
+    return List<BattleDrawingItemBonusGroup>.unmodifiable(
+      orderedKeys.map((key) {
+        final grouped = groupedItems[key]!;
+        final firstItem = grouped.first;
+        return BattleDrawingItemBonusGroup(
+          requiredShape: firstItem.drawingBonusShape!.battleDrawingShape,
+          specialBonus: firstItem.drawingSpecialBonus!,
+          items: List<Item>.unmodifiable(grouped),
+        );
+      }),
+    );
+  }
+
+  static List<BattleDrawingEnemyNuisanceGroup> groupNuisances(
+    Iterable<BattleDrawingEnemyNuisance> nuisances,
+  ) {
+    final groupedNuisances = <_BattleDrawingEnemyNuisanceGroupKey,
+        List<BattleDrawingEnemyNuisance>>{};
+    final orderedKeys = <_BattleDrawingEnemyNuisanceGroupKey>[];
+
+    for (final nuisance in nuisances) {
+      final key = _BattleDrawingEnemyNuisanceGroupKey(
+        shape: nuisance.requiredShape,
+        kind: nuisance.kind,
+        amount: nuisance.amount,
+      );
+      final group = groupedNuisances.putIfAbsent(key, () {
+        orderedKeys.add(key);
+        return <BattleDrawingEnemyNuisance>[];
+      });
+      group.add(nuisance);
+    }
+
+    return List<BattleDrawingEnemyNuisanceGroup>.unmodifiable(
+      orderedKeys.map((key) {
+        final grouped = groupedNuisances[key]!;
+        return BattleDrawingEnemyNuisanceGroup(
+          nuisance: grouped.first,
+          nuisances: List<BattleDrawingEnemyNuisance>.unmodifiable(grouped),
+        );
+      }),
+    );
   }
 }
 
@@ -300,23 +469,28 @@ class BattleDrawingBonusResolver {
     var healAmount = 0;
     var endTurnBarrierAmount = 0;
 
-    for (final item in equippedItems) {
-      final shape = item.bonusShape;
+    final eligibleItems = equippedItems
+        .where((item) => item.hasDrawingBonus)
+        .toList(growable: false);
+    for (final group in BattleDrawingGrouping.groupBonusItems(eligibleItems)) {
+      final shape = group.requiredShape.itemBonusShape;
+      if (shape == null) continue;
       final remaining = remainingCounts[shape] ?? 0;
       if (remaining <= 0) continue;
 
-      activatedItems.add(item);
+      activatedItems.addAll(group.items);
       remainingCounts[shape] = remaining - 1;
-      final specialBonus = item.specialBonus;
+      final specialBonus = group.specialBonus;
+      final groupedAmount = specialBonus.amount * group.count;
       switch (specialBonus.kind) {
         case ItemSpecialBonusKind.attack:
-          attackBonus += specialBonus.amount;
+          attackBonus += groupedAmount;
           break;
         case ItemSpecialBonusKind.barrierOnTurnEnd:
-          endTurnBarrierAmount += specialBonus.amount;
+          endTurnBarrierAmount += groupedAmount;
           break;
         case ItemSpecialBonusKind.heal:
-          healAmount += specialBonus.amount;
+          healAmount += groupedAmount;
           break;
       }
     }
@@ -408,10 +582,12 @@ class BattleDrawingBonusResolver {
     var healthTransferAmount = 0;
     var transferBuffs = false;
 
-    for (final nuisance in nuisances) {
+    final nuisanceGroups = BattleDrawingGrouping.groupNuisances(nuisances);
+    for (final nuisanceGroup in nuisanceGroups) {
+      final nuisance = nuisanceGroup.nuisance;
       final available = remainingCounts[nuisance.requiredShape] ?? 0;
       if (available > 0) {
-        resolvedNuisances.add(nuisance);
+        resolvedNuisances.addAll(nuisanceGroup.nuisances);
         remainingCounts[nuisance.requiredShape] = available - 1;
         consumedCounts.update(
           nuisance.requiredShape,
@@ -421,16 +597,16 @@ class BattleDrawingBonusResolver {
         continue;
       }
 
-      triggeredNuisances.add(nuisance);
+      triggeredNuisances.addAll(nuisanceGroup.nuisances);
       switch (nuisance.kind) {
         case BattleDrawingEnemyNuisanceKind.directDamage:
-          directDamage += nuisance.amount;
+          directDamage += nuisance.amount * nuisanceGroup.count;
           break;
         case BattleDrawingEnemyNuisanceKind.barrierTransfer:
-          barrierTransferAmount += nuisance.amount;
+          barrierTransferAmount += nuisance.amount * nuisanceGroup.count;
           break;
         case BattleDrawingEnemyNuisanceKind.healthTransfer:
-          healthTransferAmount += nuisance.amount;
+          healthTransferAmount += nuisance.amount * nuisanceGroup.count;
           break;
         case BattleDrawingEnemyNuisanceKind.buffTransfer:
           transferBuffs = true;
@@ -456,4 +632,52 @@ class BattleDrawingBonusResolver {
       ),
     );
   }
+}
+
+class _BattleDrawingItemBonusGroupKey {
+  final ItemBonusShape shape;
+  final ItemSpecialBonusKind kind;
+  final int amount;
+
+  const _BattleDrawingItemBonusGroupKey({
+    required this.shape,
+    required this.kind,
+    required this.amount,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is _BattleDrawingItemBonusGroupKey &&
+        other.shape == shape &&
+        other.kind == kind &&
+        other.amount == amount;
+  }
+
+  @override
+  int get hashCode => Object.hash(shape, kind, amount);
+}
+
+class _BattleDrawingEnemyNuisanceGroupKey {
+  final BattleDrawingShape shape;
+  final BattleDrawingEnemyNuisanceKind kind;
+  final int amount;
+
+  const _BattleDrawingEnemyNuisanceGroupKey({
+    required this.shape,
+    required this.kind,
+    required this.amount,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is _BattleDrawingEnemyNuisanceGroupKey &&
+        other.shape == shape &&
+        other.kind == kind &&
+        other.amount == amount;
+  }
+
+  @override
+  int get hashCode => Object.hash(shape, kind, amount);
 }

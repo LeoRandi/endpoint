@@ -168,6 +168,14 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.inertiaCrown,
 };
 
+const _drawingBonusEligibleHooks = <ItemEffectHook>{
+  ItemEffectHook.attackResolved,
+  ItemEffectHook.defendResolved,
+  ItemEffectHook.receiveDamageResolved,
+  ItemEffectHook.turnStart,
+  ItemEffectHook.turnEnd,
+};
+
 /// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
 class Item {
   static const int defaultEquipmentCost = 1;
@@ -226,11 +234,39 @@ class Item {
   /// Indica si el objeto tiene una logica activa mas alla de sus stats planos.
   bool get hasEffect => effect != null;
 
+  /// Indica si el objeto puede participar en el minijuego de dibujo de combate.
+  bool get hasDrawingBonus {
+    final hooks = effect?.hooks;
+    if (hooks == null || hooks.isEmpty) {
+      return false;
+    }
+
+    for (final hook in hooks) {
+      if (_drawingBonusEligibleHooks.contains(hook)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Devuelve la forma geometrica asociada al bonus especial del objeto.
   ItemBonusShape get bonusShape => bonusShapeOverride ?? _defaultBonusShape;
 
+  /// Devuelve la forma de dibujo si el item participa en el sistema de trazos.
+  ItemBonusShape? get drawingBonusShape {
+    if (!hasDrawingBonus) return null;
+    return bonusShape;
+  }
+
   /// Describe el bonus especial ligado a la forma actual del objeto.
   ItemSpecialBonus get specialBonus => ItemSpecialBonus.forShape(bonusShape);
+
+  /// Devuelve el bonus especial de dibujo si este item participa en dicho sistema.
+  ItemSpecialBonus? get drawingSpecialBonus {
+    final shape = drawingBonusShape;
+    if (shape == null) return null;
+    return ItemSpecialBonus.forShape(shape);
+  }
 
   /// Devuelve las tags declaradas mas las de categoria visible heredadas.
   List<EntityTag> get tags {

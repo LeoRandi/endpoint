@@ -74,6 +74,7 @@ class BattleController extends ChangeNotifier {
   bool get canUseActions => isPlayerTurn && !isCombatFinished;
   int get currentRound => _currentRound;
   int get playerBlockBarrierGain => _playerCurrentBlockBarrierGain();
+  int get playerInitialBarrier => _playerInitialBlockBarrier;
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
       _buildEnemyTurnIntentPreview();
 
@@ -170,18 +171,36 @@ class BattleController extends ChangeNotifier {
   }
 
   void handleBlock({
-    int barrierMultiplier = 1,
+    BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+    BattleAttackDrawingPenalty drawingPenalty =
+        BattleAttackDrawingPenalty.empty,
   }) {
     if (!canUseActions) return;
 
-    final safeMultiplier = max(1, barrierMultiplier);
+    if (drawingPenalty.hasAnyPenalty) {
+      _applyDrawingPenalty(drawingPenalty);
+      if (_finishImmediatelyIfPlayerIsDown()) {
+        return;
+      }
+    }
+
+    if (drawingBonus.healAmount > 0) {
+      _player = _player.heal(drawingBonus.healAmount);
+    }
+
+    if (drawingBonus.attackBonus > 0) {
+      _player = _player.applyStatus(
+        PotenciaStatus(value: drawingBonus.attackBonus),
+        applyEquipmentModifiers: false,
+      );
+    }
+
     final baseBarrierGain = _playerCurrentBlockBarrierGain();
     _playerBlockUseCount++;
-    final totalBarrierGain = baseBarrierGain * safeMultiplier;
     final defendResolution = _resolveDefendAction(
       defender: _player,
       opponent: _enemy,
-      barrierGain: totalBarrierGain,
+      barrierGain: baseBarrierGain,
     );
     _player = defendResolution.defender;
     _enemy = defendResolution.opponent;
@@ -192,6 +211,13 @@ class BattleController extends ChangeNotifier {
 
     if (_completeTurn(BattleTurnState.player)) {
       return;
+    }
+
+    if (drawingBonus.endTurnBarrierAmount > 0) {
+      _player = _applyDrawingEndTurnBarrier(
+        _player,
+        drawingBonus.endTurnBarrierAmount,
+      );
     }
 
     _beginTurn(BattleTurnState.enemy);

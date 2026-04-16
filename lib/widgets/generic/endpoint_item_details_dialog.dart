@@ -87,7 +87,8 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
     final effectDescription = widget.item.effect?.descriptionFor(widget.item);
     final shouldShowEffectPanel = effectDescription != null &&
         effectDescription != widget.item.displayDescription;
-    final shouldShowBonusSketch = _gameMode == EndpointGameMode.drawing;
+    final shouldShowBonusSketch =
+        _gameMode == EndpointGameMode.drawing && widget.item.hasDrawingBonus;
 
     return EndpointDetailsDialogScaffold(
       accent: widget.accent,
@@ -329,7 +330,11 @@ class _ItemBonusSketchSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shapeAccent = _shapeAccent(item.bonusShape);
+    final shape = item.drawingBonusShape;
+    if (shape == null) {
+      return const SizedBox.shrink();
+    }
+    final shapeAccent = _shapeAccent(shape);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +350,7 @@ class _ItemBonusSketchSection extends StatelessWidget {
             ),
             const Spacer(),
             EndpointText(
-              item.bonusShape.label.toUpperCase(),
+              shape.label.toUpperCase(),
               style: textSmallBold.copyWith(
                 color: shapeAccent,
                 fontSize: 10,
@@ -380,7 +385,7 @@ class _ItemBonusSketchSection extends StatelessWidget {
                 ),
                 child: CustomPaint(
                   painter: _ItemBonusSketchPainter(
-                    shape: item.bonusShape,
+                    shape: shape,
                     strokeColor: shapeAccent,
                     noiseDots: noiseDots,
                   ),

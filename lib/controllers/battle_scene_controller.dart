@@ -96,6 +96,7 @@ class BattleSceneController extends ChangeNotifier {
   String get turnDescription => _battleController.turnDescription;
   int get currentRound => _battleController.currentRound;
   int get playerBlockBarrierGain => _battleController.playerBlockBarrierGain;
+  int get playerInitialBarrier => _battleController.playerInitialBarrier;
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
       _battleController.enemyTurnIntentPreview;
 
@@ -142,10 +143,13 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Ejecuta la accion de bloqueo del jugador y termina su turno.
   void handlePlayerBlock({
-    int barrierMultiplier = 1,
+    BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+    BattleAttackDrawingPenalty drawingPenalty =
+        BattleAttackDrawingPenalty.empty,
   }) {
     _battleController.handleBlock(
-      barrierMultiplier: barrierMultiplier,
+      drawingBonus: drawingBonus,
+      drawingPenalty: drawingPenalty,
     );
   }
 
