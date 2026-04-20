@@ -1,5 +1,6 @@
 import '../_imports.dart';
 import '../../services/run_randomizer.dart';
+import '../../services/battler_runtime_service.dart';
 
 part 'battler_statuses/battler_status_buffs.dart';
 part 'battler_statuses/battler_status_debuffs.dart';

@@ -336,3 +336,9 @@ const abilityPresets = <BattlerAbility>[
   protocoloUsurpacionAbility,
   refactorizacionTimelineAbility,
 ];
+
+/// Indice canonico de presets para resolver ids sin duplicar switches.
+final abilityPresetRegistry =
+    Map<BattlerAbilityId, BattlerAbility>.unmodifiable({
+  for (final ability in abilityPresets) ability.id: ability,
+});

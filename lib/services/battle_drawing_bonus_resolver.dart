@@ -132,6 +132,7 @@ class BattleDrawingEnemyNuisancePlanner {
     required Battler player,
     required Battler enemy,
     required int playerInitialBarrier,
+    required RunRandomizer randomizer,
     List<Item>? enemyItems,
   }) {
     final sourceItems = (enemyItems ?? enemy.equippedItems)
@@ -151,14 +152,18 @@ class BattleDrawingEnemyNuisancePlanner {
             healthTransferAmount: healthTransferAmount,
           ),
         )
-        .toList(growable: true)
-      ..add(
+        .toList(growable: true);
+
+    if (nuisances.isEmpty) {
+      nuisances.add(
         _randomNuisance(
           directDamageAmount: directDamageAmount,
           barrierTransferAmount: barrierTransferAmount,
           healthTransferAmount: healthTransferAmount,
+          randomizer: randomizer,
         ),
       );
+    }
 
     return List<BattleDrawingEnemyNuisance>.unmodifiable(
       nuisances,
@@ -197,8 +202,9 @@ class BattleDrawingEnemyNuisancePlanner {
     required int directDamageAmount,
     required int barrierTransferAmount,
     required int healthTransferAmount,
+    required RunRandomizer randomizer,
   }) {
-    final randomKindIndex = Random().nextInt(3);
+    final randomKindIndex = randomizer.nextInt(3);
     switch (randomKindIndex) {
       case 0:
         return BattleDrawingEnemyNuisance(

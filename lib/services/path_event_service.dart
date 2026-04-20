@@ -1,5 +1,51 @@
 import '_imports.dart';
 
+typedef PathEventAvailabilityResolver = bool Function(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+});
+
+typedef PathEventVisitResolver = PathEventVisitResult Function(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler player,
+});
+
+class PathEventDefinition {
+  final PathEventAvailabilityResolver canAppear;
+  final PathEventVisitResolver visit;
+
+  const PathEventDefinition({
+    required this.canAppear,
+    required this.visit,
+  });
+}
+
+final pathEventDefinitionById =
+    Map<PathEventId, PathEventDefinition>.unmodifiable({
+  PathEventId.debtCollection: PathEventDefinition(
+    canAppear: _canAppearForDebtCollection,
+    visit: _visitDebtCollection,
+  ),
+  PathEventId.shadyTechnosurgeon: PathEventDefinition(
+    canAppear: _canAppearForTechnosurgeon,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.afterHoursTechnosurgeon: PathEventDefinition(
+    canAppear: _canAppearForTechnosurgeon,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.blackTechnoMarket: PathEventDefinition(
+    canAppear: _canAppearForBlackTechnoMarket,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.sobreKar: PathEventDefinition(
+    canAppear: _canAppearForSobreKar,
+    visit: _visitDefaultPathEvent,
+  ),
+});
+
 class SobreKarUpgradeResolution {
   final PathEventVisitResult visitResult;
   final Item upgradedItem;
@@ -21,43 +67,22 @@ class PathEventService {
     required EventPathNode node,
     required Battler? player,
   }) {
-    switch (node.id) {
-      case PathEventId.debtCollection:
-        return player?.statusById(DeudaStatus.statusId) is DeudaStatus;
-      case PathEventId.shadyTechnosurgeon:
-      case PathEventId.afterHoursTechnosurgeon:
-        return player?.abilities.isNotEmpty ?? false;
-      case PathEventId.blackTechnoMarket:
-        if (player == null) return abilityPresets.isNotEmpty;
-
-        return abilityPresets.any((ability) {
-          final ownedAbility = player.abilityById(ability.id);
-          return ownedAbility == null || ownedAbility.canUpgrade;
-        });
-      case PathEventId.sobreKar:
-        if (player == null) {
-          return itemPresets.any(_isSobreKarItemEligible);
-        }
-        return buildSobreKarEligibleItems(player).isNotEmpty;
-    }
+    return _definitionFor(node.id).canAppear(
+      this,
+      node: node,
+      player: player,
+    );
   }
 
   PathEventVisitResult visit({
     required EventPathNode node,
     required Battler player,
   }) {
-    switch (node.id) {
-      case PathEventId.debtCollection:
-        return _resolveDebtCollection(player);
-      case PathEventId.shadyTechnosurgeon:
-      case PathEventId.afterHoursTechnosurgeon:
-      case PathEventId.blackTechnoMarket:
-      case PathEventId.sobreKar:
-        return PathEventVisitResult(
-          player: player,
-          outcomeText: node.outcomeText,
-        );
-    }
+    return _definitionFor(node.id).visit(
+      this,
+      node: node,
+      player: player,
+    );
   }
 
   List<Item> buildSobreKarEligibleItems(Battler player) {
@@ -414,4 +439,76 @@ class _SobreKarDebuffRoll {
     required this.status,
     required this.label,
   });
+}
+
+PathEventDefinition _definitionFor(PathEventId id) {
+  final definition = pathEventDefinitionById[id];
+  if (definition != null) {
+    return definition;
+  }
+
+  throw StateError(
+      'No existe definicion registrada para el evento ${id.name}.');
+}
+
+bool _canAppearForDebtCollection(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return player?.statusById(DeudaStatus.statusId) is DeudaStatus;
+}
+
+bool _canAppearForTechnosurgeon(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return player?.abilities.isNotEmpty ?? false;
+}
+
+bool _canAppearForBlackTechnoMarket(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) {
+    return abilityPresets.isNotEmpty;
+  }
+
+  return abilityPresets.any((ability) {
+    final ownedAbility = player.abilityById(ability.id);
+    return ownedAbility == null || ownedAbility.canUpgrade;
+  });
+}
+
+bool _canAppearForSobreKar(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) {
+    return itemPresets.any(service._isSobreKarItemEligible);
+  }
+
+  return service.buildSobreKarEligibleItems(player).isNotEmpty;
+}
+
+PathEventVisitResult _visitDebtCollection(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler player,
+}) {
+  return service._resolveDebtCollection(player);
+}
+
+PathEventVisitResult _visitDefaultPathEvent(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler player,
+}) {
+  return PathEventVisitResult(
+    player: player,
+    outcomeText: node.outcomeText,
+  );
 }

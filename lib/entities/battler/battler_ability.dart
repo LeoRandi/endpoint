@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/battler_runtime_service.dart';
 
 part 'abilities/battler_ability_effects.dart';
 part 'abilities/battler_ability_presets.dart';
@@ -491,48 +492,12 @@ class BattlerAbility {
 
   /// Devuelve el preset canonico asociado a un id de habilidad.
   static BattlerAbility presetForId(BattlerAbilityId id) {
-    switch (id) {
-      case BattlerAbilityId.criticalScanner:
-        return criticalScannerAbility;
-      case BattlerAbilityId.weaknessHunter:
-        return weaknessHunterAbility;
-      case BattlerAbilityId.ghostMesh:
-        return ghostMeshAbility;
-      case BattlerAbilityId.cruelCatalysis:
-        return cruelCatalysisAbility;
-      case BattlerAbilityId.venousOverload:
-        return venousOverloadAbility;
-      case BattlerAbilityId.hardReset:
-        return hardResetAbility;
-      case BattlerAbilityId.cashflow:
-        return cashflowAbility;
-      case BattlerAbilityId.pulsoRepL:
-        return pulsoRepLAbility;
-      case BattlerAbilityId.sustraccion:
-        return sustraccionAbility;
-      case BattlerAbilityId.limpiezaCache:
-        return limpiezaCacheAbility;
-      case BattlerAbilityId.hemostasiaAgresiva:
-        return hemostasiaAgresivaAbility;
-      case BattlerAbilityId.mallaRebote:
-        return mallaReboteAbility;
-      case BattlerAbilityId.inyeccionCorrosiva:
-        return inyeccionCorrosivaAbility;
-      case BattlerAbilityId.escanerRuptura:
-        return escanerRupturaAbility;
-      case BattlerAbilityId.reenrutadoInverso:
-        return reenrutadoInversoAbility;
-      case BattlerAbilityId.jaulaSenal:
-        return jaulaSenalAbility;
-      case BattlerAbilityId.nucleoParasitario:
-        return nucleoParasitarioAbility;
-      case BattlerAbilityId.espejoDolor:
-        return espejoDolorAbility;
-      case BattlerAbilityId.protocoloUsurpacion:
-        return protocoloUsurpacionAbility;
-      case BattlerAbilityId.refactorizacionTimeline:
-        return refactorizacionTimelineAbility;
+    final preset = abilityPresetRegistry[id];
+    if (preset != null) {
+      return preset;
     }
+
+    throw StateError('No existe preset para la habilidad ${id.name}.');
   }
 
   /// Ajusta la rareza visual de habilidades legacy segun sus mejoras ya guardadas.

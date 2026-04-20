@@ -80,6 +80,9 @@ class BattleSceneController extends ChangeNotifier {
   /// Reexpone el enemigo actual para HUD y detalles del combate.
   Battler get enemy => _battleController.enemy;
 
+  /// Reexpone la fuente de azar compartida por combate, overlays y recompensas.
+  RunRandomizer get randomizer => _randomizer;
+
   /// Reexpone el turno actual del combate.
   BattleTurnState get turn => _battleController.turn;
 

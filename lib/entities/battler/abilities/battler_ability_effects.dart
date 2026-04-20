@@ -112,7 +112,7 @@ class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbility ability,
     required BattlerAbilityActivationContext screenContext,
   }) {
-    final updatedOpponent = opponent.applyStatus(
+    final updatedOpponent = opponent.applyStatusFromSource(
       CatalisisCruelStatus(value: max(2, ability.currentValue)),
       source: owner,
     );
@@ -179,7 +179,7 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
 
     final burnTurns = max(1, ability.currentValue ~/ 2);
     final updatedOwner = owner
-        .applyStatus(
+        .applyStatusFromSource(
           QuemaduraStatus(remainingTurns: burnTurns),
           source: owner,
         )
@@ -499,7 +499,7 @@ class InyeccionCorrosivaAbilityEffect extends BattlerAbilityEffect {
               value: currentPoison.value + poisonValue,
             ),
           )
-        : opponent.applyStatus(
+        : opponent.applyStatusFromSource(
             IntoxicacionStatus(value: max(1, poisonValue)),
             source: owner,
           );

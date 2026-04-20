@@ -32,95 +32,6 @@ extension BattlerAbilityManagement on Battler {
     );
   }
 
-  /// Ejecuta todos los hooks de inicio de turno de las habilidades activas.
-  BattlerAbilityEffectResolution applyAbilityTurnStartEffects({
-    required Battler opponent,
-    required bool isOwnerTurn,
-  }) {
-    return Battler._effectPipeline.applyAbilityTurnStartEffects(
-      owner: this,
-      opponent: opponent,
-      isOwnerTurn: isOwnerTurn,
-    );
-  }
-
-  /// Ejecuta todos los hooks de final de turno de las habilidades activas.
-  BattlerAbilityEffectResolution applyAbilityTurnEndEffects({
-    required Battler opponent,
-    required bool isOwnerTurn,
-  }) {
-    return Battler._effectPipeline.applyAbilityTurnEndEffects(
-      owner: this,
-      opponent: opponent,
-      isOwnerTurn: isOwnerTurn,
-    );
-  }
-
-  /// Aplica a un dano saliente todos los modificadores provenientes de habilidades.
-  int applyAbilityOutgoingDamageModifiers({
-    required Battler target,
-    required int damage,
-  }) {
-    return Battler._effectPipeline.applyAbilityOutgoingDamageModifiers(
-      owner: this,
-      target: target,
-      damage: damage,
-    );
-  }
-
-  /// Aplica a un dano entrante todos los modificadores provenientes de habilidades.
-  int applyAbilityIncomingDamageModifiers({
-    required Battler source,
-    required int damage,
-  }) {
-    return Battler._effectPipeline.applyAbilityIncomingDamageModifiers(
-      owner: this,
-      source: source,
-      damage: damage,
-    );
-  }
-
-  /// Ejecuta efectos de habilidades que reaccionan despues de atacar.
-  BattlerAbilityEffectResolution applyAbilityAttackResolvedEffects({
-    required Battler target,
-    required int damageDealt,
-  }) {
-    return Battler._effectPipeline.applyAbilityAttackResolvedEffects(
-      owner: this,
-      target: target,
-      damageDealt: damageDealt,
-    );
-  }
-
-  /// Ejecuta efectos de habilidades que reaccionan despues de recibir dano.
-  BattlerAbilityEffectResolution applyAbilityReceiveDamageResolvedEffects({
-    required Battler source,
-    required int damageTaken,
-  }) {
-    return Battler._effectPipeline.applyAbilityReceiveDamageResolvedEffects(
-      owner: this,
-      source: source,
-      damageTaken: damageTaken,
-    );
-  }
-
-  /// Ejecuta efectos de habilidades que se disparan al comenzar una nueva hora.
-  Battler applyAbilityHourStartEffects() {
-    return Battler._effectPipeline.applyAbilityHourStartEffects(
-      owner: this,
-    );
-  }
-
-  /// Ejecuta todos los efectos pasivos de habilidades activas o presentes.
-  BattlerAbilityEffectResolution applyAbilityPassiveEffects({
-    required Battler opponent,
-  }) {
-    return Battler._effectPipeline.applyAbilityPassiveEffects(
-      owner: this,
-      opponent: opponent,
-    );
-  }
-
   /// Anade una habilidad nueva o mejora la existente si admite upgrade.
   Battler addAbility(BattlerAbility ability) {
     final existingIndex = abilities.indexWhere(
@@ -200,20 +111,6 @@ extension BattlerAbilityManagement on Battler {
       abilities: abilities
           .map((ability) => ability.resetState())
           .toList(growable: false),
-    );
-  }
-
-  /// Activa o desactiva una habilidad manual y resuelve sus hooks asociados.
-  BattlerAbilityEffectResolution toggleAbilityActivation({
-    required BattlerAbilityId abilityId,
-    required BattlerAbilityActivationContext screenContext,
-    Battler? opponent,
-  }) {
-    return Battler._effectPipeline.toggleAbilityActivation(
-      owner: this,
-      abilityId: abilityId,
-      screenContext: screenContext,
-      opponent: opponent,
     );
   }
 

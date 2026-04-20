@@ -1,6 +1,7 @@
 import '../_imports.dart';
 import '../path/operative_sketch_recognition_helper.dart';
 import '../../services/battle_drawing_bonus_resolver.dart';
+import '../../services/run_randomizer.dart';
 
 const _battleSketchCanvasBorderRadius = 20.0;
 const _battleSketchNoiseSeed = 9187;
@@ -26,12 +27,14 @@ class BattleDrawAttackOverlay extends StatefulWidget {
   final Battler attacker;
   final Battler defender;
   final int playerInitialBarrier;
+  final RunRandomizer randomizer;
 
   const BattleDrawAttackOverlay({
     super.key,
     required this.attacker,
     required this.defender,
     required this.playerInitialBarrier,
+    required this.randomizer,
   });
 
   @override
@@ -96,6 +99,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
       player: widget.attacker,
       enemy: widget.defender,
       playerInitialBarrier: widget.playerInitialBarrier,
+      randomizer: widget.randomizer,
       enemyItems: enemyMalusItems,
     );
     _bonusItemGroups = BattleDrawingGrouping.groupBonusItems(_bonusItems);

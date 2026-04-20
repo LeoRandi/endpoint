@@ -65,7 +65,7 @@ class InterferenceCannonItemEffect extends ItemEffect {
   }) {
     final resolvedDuration = max(1, item.value);
     final hadInterference = target.hasStatus(InterferenciaStatus.statusId);
-    var updatedTarget = target.applyStatus(
+    var updatedTarget = target.applyStatusFromSource(
       InterferenciaStatus(remainingTurns: resolvedDuration),
       source: owner,
     );
@@ -304,7 +304,7 @@ class ReboundLensItemEffect extends ItemEffect {
 
     return ItemEffectResolution(
       owner: owner.addCombatFlag(triggeredFlag),
-      opponent: source.applyStatus(
+      opponent: source.applyStatusFromSource(
         FragilidadStatus(remainingTurns: max(1, item.value)),
         source: owner,
       ),

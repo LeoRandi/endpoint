@@ -109,7 +109,7 @@ class RunNodeFlowCoordinator {
         await _openNodeScene<PathEventVisitResult>(
           context: context,
           session: session,
-          page: _buildEventPage(
+          page: buildPathEventPage(
             player: session.player,
             node: eventNode,
             randomizer: session.randomizer,
@@ -117,39 +117,6 @@ class RunNodeFlowCoordinator {
           onCompleted: session.completeEventVisit,
         );
         return;
-    }
-  }
-
-  Widget _buildEventPage({
-    required Battler player,
-    required EventPathNode node,
-    required RunRandomizer randomizer,
-  }) {
-    switch (node.id) {
-      case PathEventId.shadyTechnosurgeon:
-      case PathEventId.afterHoursTechnosurgeon:
-        return TechnosurgeonEventPage(
-          player: player,
-          node: node,
-          randomizer: randomizer,
-        );
-      case PathEventId.blackTechnoMarket:
-        return BlackTechnoMarketEventPage(
-          player: player,
-          node: node,
-          randomizer: randomizer,
-        );
-      case PathEventId.sobreKar:
-        return SobreKarEventPage(
-          player: player,
-          node: node,
-          randomizer: randomizer,
-        );
-      case PathEventId.debtCollection:
-        return PathEventPage(
-          player: player,
-          node: node,
-        );
     }
   }
 

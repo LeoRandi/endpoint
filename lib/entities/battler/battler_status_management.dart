@@ -32,27 +32,13 @@ extension BattlerStatusManagement on Battler {
     return _removeExpiredStatuses();
   }
 
-  /// Aplica un estado nuevo pasando por modificadores de equipo, stacking y reemplazos.
+  /// Aplica un estado nuevo resolviendo stacking, reemplazos y hooks de estado.
   Battler applyStatus(
     BattlerStatus status, {
-    Battler? source,
-    bool applyEquipmentModifiers = true,
+    bool applyEquipmentModifiers = false,
   }) {
     var updatedOwner = this;
     BattlerStatus? instancedStatus = status.copyWith();
-
-    if (applyEquipmentModifiers && source != null) {
-      instancedStatus = source.applyEquippedItemOutgoingStatusModifiers(
-        target: updatedOwner,
-        status: instancedStatus,
-      );
-      if (instancedStatus != null) {
-        instancedStatus = updatedOwner.applyEquippedItemIncomingStatusModifiers(
-          source: source,
-          status: instancedStatus,
-        );
-      }
-    }
 
     if (instancedStatus == null || instancedStatus.isExpired) {
       return updatedOwner;

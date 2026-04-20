@@ -74,13 +74,13 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
     final resolvedAmount = max(1, item.value > 0 ? item.value : amount);
     final currentPoison = target.statusById(IntoxicacionStatus.statusId);
     final updatedTarget = currentPoison is IntoxicacionStatus
-        ? target.applyStatus(
+        ? target.applyStatusFromSource(
             currentPoison.copyWith(
               value: currentPoison.value + resolvedAmount,
             ),
             source: owner,
           )
-        : target.applyStatus(
+        : target.applyStatusFromSource(
             IntoxicacionStatus(value: resolvedAmount),
             source: owner,
           );
@@ -314,7 +314,7 @@ class ShockMeshItemEffect extends ItemEffect {
 
     return ItemEffectResolution(
       owner: owner,
-      opponent: source.applyStatus(
+      opponent: source.applyStatusFromSource(
         ConmocionStatus(value: max(1, item.value)),
         source: owner,
       ),
@@ -352,13 +352,13 @@ class ToxicScalpelItemEffect extends ItemEffect {
     final hadPoison = currentPoison is IntoxicacionStatus;
 
     var updatedTarget = hadPoison
-        ? target.applyStatus(
+        ? target.applyStatusFromSource(
             currentPoison.copyWith(
               value: currentPoison.value + resolvedAmount,
             ),
             source: owner,
           )
-        : target.applyStatus(
+        : target.applyStatusFromSource(
             IntoxicacionStatus(value: resolvedAmount),
             source: owner,
           );
@@ -512,7 +512,7 @@ class MagnetiCHammerItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: owner.applyStatus(
+      owner: owner.applyStatusFromSource(
         PotenciaStatus(value: potencyValue),
         source: owner,
       ),
@@ -578,10 +578,11 @@ class ClavoReactorItemEffect extends ItemEffect {
     }
 
     final resolvedValue = max(1, item.value);
-    final updatedOwner = owner.addCombatFlag(triggeredFlag).applyStatus(
-          QuemaduraStatus(remainingTurns: resolvedValue),
-          source: owner,
-        );
+    final updatedOwner =
+        owner.addCombatFlag(triggeredFlag).applyStatusFromSource(
+              QuemaduraStatus(remainingTurns: resolvedValue),
+              source: owner,
+            );
     final updatedTarget = target.receiveDirectDamage(
       resolvedValue * 2,
       source: owner,
@@ -634,7 +635,7 @@ class BombaMiocardicaItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: updatedOwner.applyStatus(
+      owner: updatedOwner.applyStatusFromSource(
         InerciaAtaqueStatus(value: resolvedValue * 2),
         source: updatedOwner,
       ),

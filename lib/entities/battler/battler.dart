@@ -1,6 +1,4 @@
 import '../_imports.dart';
-import '../../services/battler_effect_pipeline.dart';
-import '../../services/run_randomizer.dart';
 
 part 'battler_ability_management.dart';
 part 'battler_combat_runtime.dart';
@@ -350,7 +348,6 @@ class Battler {
   static const pendingBasicAttackFollowUpFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.pendingBasicAttackFollowUp,
   );
-  static const BattlerEffectPipeline _effectPipeline = BattlerEffectPipeline();
   static final Expando<_BattlerDerivedState> _derivedStateCache =
       Expando<_BattlerDerivedState>('battlerDerivedState');
 

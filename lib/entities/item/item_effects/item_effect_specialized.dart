@@ -30,12 +30,12 @@ class InertiaCrownItemEffect extends ItemEffect {
     }
 
     final resolvedValue = max(1, item.value);
-    final ownerWithAttackReserve = owner.applyStatus(
+    final ownerWithAttackReserve = owner.applyStatusFromSource(
       InerciaAtaqueStatus(value: resolvedValue),
       source: owner,
     );
     return ItemEffectResolution(
-      owner: ownerWithAttackReserve.applyStatus(
+      owner: ownerWithAttackReserve.applyStatusFromSource(
         InerciaBarreraStatus(value: resolvedValue),
         source: ownerWithAttackReserve,
       ),
@@ -128,7 +128,7 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
     return ItemEffectResolution(
       owner: owner,
-      opponent: target.applyStatus(
+      opponent: target.applyStatusFromSource(
         QuemaduraStatus(remainingTurns: resolvedDuration),
         source: owner,
       ),
@@ -171,7 +171,7 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
     return ItemEffectResolution(
       owner: owner,
-      opponent: source.applyStatus(
+      opponent: source.applyStatusFromSource(
         QuemaduraStatus(remainingTurns: resolvedDuration),
         source: owner,
       ),
@@ -542,7 +542,7 @@ class PortableOvenItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: owner.applyStatus(
+      owner: owner.applyStatusFromSource(
         QuemaduraStatus(remainingTurns: item.value),
         source: owner,
       ),
@@ -850,7 +850,7 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectTrigger.attackTarget:
         return ItemEffectResolution(
           owner: owner,
-          opponent: target.applyStatus(
+          opponent: target.applyStatusFromSource(
             _buildStatus(item),
             source: owner,
           ),
@@ -884,7 +884,7 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectTrigger.receiveDamageSource:
         return ItemEffectResolution(
           owner: owner,
-          opponent: source.applyStatus(
+          opponent: source.applyStatusFromSource(
             _buildStatus(item),
             source: owner,
           ),
@@ -918,7 +918,7 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
         if (owner.hasStatus(status.id)) return owner;
 
-        return owner.applyStatus(
+        return owner.applyStatusFromSource(
           status,
           source: source,
         );
@@ -931,13 +931,13 @@ class StatusItemEffect extends ItemEffect {
 
         final refreshedOwner =
             currentStatus == null ? owner : owner.removeStatus(status.id);
-        return refreshedOwner.applyStatus(
+        return refreshedOwner.applyStatusFromSource(
           status,
           source: source,
         );
       case ItemStatusEffectTrigger.attackOwnerReinforce:
         if (kind != ItemStatusEffectKind.calentando) {
-          return owner.applyStatus(
+          return owner.applyStatusFromSource(
             status,
             source: source,
           );
@@ -945,7 +945,7 @@ class StatusItemEffect extends ItemEffect {
 
         final currentStatus = owner.statusById(CalentandoStatus.statusId);
         if (currentStatus is! CalentandoStatus) {
-          return owner.applyStatus(
+          return owner.applyStatusFromSource(
             status,
             source: source,
           );
@@ -963,7 +963,7 @@ class StatusItemEffect extends ItemEffect {
         );
       case ItemStatusEffectTrigger.attackOwner:
       case ItemStatusEffectTrigger.receiveDamageOwner:
-        return owner.applyStatus(
+        return owner.applyStatusFromSource(
           status,
           source: source,
         );

@@ -29,3 +29,89 @@ const quemaduraStatus = QuemaduraStatus();
 
 /// Preset rapido de Intoxicacion con el valor inicial mas simple.
 const intoxicacionStatus = IntoxicacionStatus();
+
+/// Firma comun para reconstruir estados serializados desde ids estables.
+typedef BattlerStatusFactory = BattlerStatus Function({
+  required int remainingTurns,
+  required int value,
+});
+
+/// Registro canonico de factorias de estados para codec y contenido runtime.
+final battlerStatusFactoryById =
+    Map<BattlerStatusId, BattlerStatusFactory>.unmodifiable({
+  BattlerStatusId.calentando: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      CalentandoStatus(
+        remainingTurns: remainingTurns,
+        value: value,
+      ),
+  BattlerStatusId.potencia: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      PotenciaStatus(value: value),
+  BattlerStatusId.quemadura: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      QuemaduraStatus(
+        remainingTurns: remainingTurns,
+        value: value,
+      ),
+  BattlerStatusId.intoxicacion: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      IntoxicacionStatus(
+        remainingTurns: remainingTurns,
+        value: value,
+      ),
+  BattlerStatusId.catalisisCruel: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      CatalisisCruelStatus(value: value),
+  BattlerStatusId.fragilidad: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      FragilidadStatus(
+        remainingTurns: remainingTurns,
+        value: value,
+      ),
+  BattlerStatusId.interferencia: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      InterferenciaStatus(
+        remainingTurns: remainingTurns,
+        value: value,
+      ),
+  BattlerStatusId.conmocion: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      ConmocionStatus(value: value),
+  BattlerStatusId.inercia: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      InerciaStatus(value: value),
+  BattlerStatusId.inerciaAtaque: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      InerciaAtaqueStatus(value: value),
+  BattlerStatusId.inerciaBarrera: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      InerciaBarreraStatus(value: value),
+  BattlerStatusId.deuda: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      DeudaStatus(value: value),
+});

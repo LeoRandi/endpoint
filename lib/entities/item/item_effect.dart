@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/battler_runtime_service.dart';
 import '../../services/run_randomizer.dart';
 
 part 'item_effects/item_effect_attack_and_sustain.dart';

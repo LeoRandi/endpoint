@@ -236,48 +236,13 @@ BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
     json['value'],
     fallback: 1,
   );
+  final statusFactory = battlerStatusFactoryById[statusId];
+  if (statusFactory == null) return null;
 
-  switch (statusId) {
-    case BattlerStatusId.calentando:
-      return CalentandoStatus(
-        remainingTurns: remainingTurns,
-        value: value,
-      );
-    case BattlerStatusId.potencia:
-      return PotenciaStatus(value: value);
-    case BattlerStatusId.quemadura:
-      return QuemaduraStatus(
-        remainingTurns: remainingTurns,
-        value: value,
-      );
-    case BattlerStatusId.intoxicacion:
-      return IntoxicacionStatus(
-        remainingTurns: remainingTurns,
-        value: value,
-      );
-    case BattlerStatusId.catalisisCruel:
-      return CatalisisCruelStatus(value: value);
-    case BattlerStatusId.fragilidad:
-      return FragilidadStatus(
-        remainingTurns: remainingTurns,
-        value: value,
-      );
-    case BattlerStatusId.interferencia:
-      return InterferenciaStatus(
-        remainingTurns: remainingTurns,
-        value: value,
-      );
-    case BattlerStatusId.conmocion:
-      return ConmocionStatus(value: value);
-    case BattlerStatusId.inercia:
-      return InerciaStatus(value: value);
-    case BattlerStatusId.inerciaAtaque:
-      return InerciaAtaqueStatus(value: value);
-    case BattlerStatusId.inerciaBarrera:
-      return InerciaBarreraStatus(value: value);
-    case BattlerStatusId.deuda:
-      return DeudaStatus(value: value);
-  }
+  return statusFactory(
+    remainingTurns: remainingTurns,
+    value: value,
+  );
 }
 
 Item? _deserializeItem(Map<String, dynamic> json) {
