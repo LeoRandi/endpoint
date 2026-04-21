@@ -43,8 +43,19 @@ class WeaponShopController extends ChangeNotifier {
 
   String stockActionLabelFor(Item item) {
     if (!_stock.contains(item)) return 'Agotado';
-    if (canBuy(item)) return 'Comprar (${purchasePriceFor(item)}C)';
-    return 'Sin fondos (${purchasePriceFor(item)}C)';
+    final verb = willUpgradeItem(item) ? 'Mejorar' : 'Comprar';
+    return '$verb (${purchasePriceFor(item)}C)';
+  }
+
+  bool willUpgradeItem(Item item) => _player.wouldUpgradeItem(item);
+
+  String stockPrimaryActionTooltipFor(Item item) {
+    final price = purchasePriceFor(item);
+    if (willUpgradeItem(item)) {
+      return 'Mejorar objeto por $price creditos';
+    }
+
+    return 'Comprar objeto por $price creditos';
   }
 
   String inventoryStatusLabelFor(Item item) {

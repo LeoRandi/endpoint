@@ -176,6 +176,14 @@ class _BlackTechnoMarketEventPageState
     final selectedAbility = _selectedAbility;
     final selectedPrice = _selectedPrice;
     final blockReason = _selectionBlockReason;
+    final willUpgradeSelectedAbility = selectedAbility != null &&
+        widget.player.wouldUpgradeAbility(selectedAbility);
+    final actionTooltip = blockReason ??
+        (selectedAbility == null
+            ? 'Elige una habilidad'
+            : willUpgradeSelectedAbility
+                ? 'Mejorar ${selectedAbility.displayName}'
+                : 'Comprar ${selectedAbility.displayName}');
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 620),
@@ -239,12 +247,14 @@ class _BlackTechnoMarketEventPageState
             EndpointActionButton(
               label: selectedAbility == null
                   ? 'Elige una habilidad'
-                  : 'Comprar seleccion',
+                  : willUpgradeSelectedAbility
+                      ? 'Mejorar seleccion'
+                      : 'Comprar seleccion',
               icon: Icons.shopping_bag_rounded,
               onPressed: blockReason == null && !_isResolvingPurchase
                   ? _buySelectedAbility
                   : null,
-              tooltip: blockReason ?? 'Comprar ${selectedAbility?.displayName}',
+              tooltip: actionTooltip,
               accent: selectedAbility?.accent ?? widget.node.accent,
               backgroundColor: EndpointPalette.blend(
                 EndpointPalette.panelBackgroundGold,
@@ -256,6 +266,8 @@ class _BlackTechnoMarketEventPageState
               ),
               expands: true,
               useMarquee: false,
+              showUpgradeIndicator: willUpgradeSelectedAbility,
+              upgradeIndicatorColor: endpointUpgradeIndicatorNeonYellow,
             ),
           ],
         ),

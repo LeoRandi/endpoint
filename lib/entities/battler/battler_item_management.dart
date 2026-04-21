@@ -12,6 +12,15 @@ extension BattlerItemManagement on Battler {
         _derivedState.equippedItemsByType.containsKey(itemId);
   }
 
+  /// Indica si recibir este item acabaria mejorando una copia ya poseida.
+  bool wouldUpgradeItem(Item item) {
+    final upgradeTemplate = item.canUpgrade ? item : Item.presetForId(item.id);
+    if (!upgradeTemplate.canUpgrade) return false;
+
+    return equippedItemOfType(item.id) != null ||
+        inventoryItemOfType(item.id) != null;
+  }
+
   /// Indica si hay algun item equipado con hooks de efecto.
   bool get hasItemEffects => _derivedState.hasItemEffects;
 

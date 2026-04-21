@@ -32,6 +32,12 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   bool get _hasPendingLoot => _hasLootReward && !_isLootCollected;
   bool get _hasPendingMoney => widget.moneyReward > 0 && !_isMoneyCollected;
   bool get _hasPendingRewards => _hasPendingLoot || _hasPendingMoney;
+  bool get _lootWillUpgradeItem =>
+      widget.lootItem != null &&
+      widget.player.wouldUpgradeItem(widget.lootItem!);
+  bool get _lootWillUpgradeAbility =>
+      widget.lootAbility != null &&
+      widget.player.wouldUpgradeAbility(widget.lootAbility!);
 
   @override
   void initState() {
@@ -110,7 +116,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                       'Te has dejado recompensas. Seguro que quieres seguir?',
                       maxLines: null,
                       style: textMedium.copyWith(
-                        color: EndpointPalette.softForeground.withOpacity(0.84),
+                        color: EndpointPalette.softForeground.withValues(
+                          alpha: 0.84,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -200,7 +208,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _handleBackNavigation();
       },
@@ -237,8 +245,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                             'Recoge las recompensas del combate contra ${widget.enemyName}.',
                             maxLines: null,
                             style: textMedium.copyWith(
-                              color: EndpointPalette.softForeground
-                                  .withOpacity(0.76),
+                              color: EndpointPalette.softForeground.withValues(
+                                alpha: 0.76,
+                              ),
                               fontSize: 14,
                             ),
                           ),
@@ -279,8 +288,13 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           accent: widget.lootItem!.rarity.accent,
                           emoji: widget.lootItem!.iconEmoji,
                           isCollected: _isLootCollected,
-                          collectedLabel: 'RECOGIDO',
-                          pendingLabel: 'RECLAMAR',
+                          collectedLabel:
+                              _lootWillUpgradeItem ? 'MEJORADO' : 'RECOGIDO',
+                          pendingLabel:
+                              _lootWillUpgradeItem ? 'MEJORAR' : 'RECLAMAR',
+                          showUpgradeIndicator: _lootWillUpgradeItem,
+                          upgradeIndicatorColor:
+                              endpointUpgradeIndicatorNeonYellow,
                           onPressed: _collectLoot,
                         ),
                       if (widget.lootItem != null && widget.lootAbility != null)
@@ -292,8 +306,14 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           accent: widget.lootAbility!.accent,
                           icon: widget.lootAbility!.icon,
                           isCollected: _isLootCollected,
-                          collectedLabel: 'APRENDIDA',
-                          pendingLabel: 'APRENDER',
+                          collectedLabel: _lootWillUpgradeAbility
+                              ? 'MEJORADA'
+                              : 'APRENDIDA',
+                          pendingLabel:
+                              _lootWillUpgradeAbility ? 'MEJORAR' : 'APRENDER',
+                          showUpgradeIndicator: _lootWillUpgradeAbility,
+                          upgradeIndicatorColor:
+                              endpointUpgradeIndicatorNeonYellow,
                           onPressed: _collectLoot,
                         ),
                       if (_hasLootReward && widget.moneyReward > 0)
@@ -354,6 +374,8 @@ class _BattleLootRewardCard extends StatelessWidget {
   final bool isCollected;
   final String collectedLabel;
   final String pendingLabel;
+  final bool showUpgradeIndicator;
+  final Color? upgradeIndicatorColor;
   final VoidCallback onPressed;
 
   const _BattleLootRewardCard({
@@ -363,6 +385,8 @@ class _BattleLootRewardCard extends StatelessWidget {
     required this.isCollected,
     required this.collectedLabel,
     required this.pendingLabel,
+    this.showUpgradeIndicator = false,
+    this.upgradeIndicatorColor,
     required this.onPressed,
     this.emoji,
     this.icon,
@@ -371,9 +395,86 @@ class _BattleLootRewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foregroundColor = isCollected
-        ? Colors.white.withOpacity(0.5)
+        ? Colors.white.withValues(alpha: 0.5)
         : EndpointPalette.softForeground;
-    final statusColor = isCollected ? Colors.white.withOpacity(0.54) : accent;
+    final statusColor =
+        isCollected ? Colors.white.withValues(alpha: 0.54) : accent;
+    final rewardContent = Row(
+      children: [
+        _BattleLootRewardLead(
+          accent: accent,
+          emoji: emoji,
+          icon: icon,
+          isCollected: isCollected,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EndpointText(
+                title,
+                overflow: TextOverflow.ellipsis,
+                style: textMediumBold.copyWith(
+                  color: foregroundColor,
+                  fontSize: 14,
+                  letterSpacing: 0.9,
+                ),
+              ),
+              const SizedBox(height: 2),
+              EndpointText(
+                subtitle,
+                overflow: TextOverflow.ellipsis,
+                style: textSmallBold.copyWith(
+                  color: foregroundColor.withValues(alpha: 0.72),
+                  fontSize: 10,
+                  letterSpacing: 0.7,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        EndpointText(
+          isCollected ? collectedLabel : pendingLabel,
+          textAlign: TextAlign.right,
+          style: textSmallBold.copyWith(
+            color: statusColor,
+            fontSize: 10,
+            letterSpacing: 1.1,
+          ),
+        ),
+      ],
+    );
+    final rewardPanel = EndpointPanel(
+      accent: accent,
+      backgroundColor: isCollected
+          ? EndpointPalette.panelBackgroundMuted
+          : EndpointPalette.panelBackgroundSoft,
+      borderRadius: 14,
+      glowOpacity: isCollected ? 0.01 : 0.05,
+      padding: EdgeInsets.zero,
+      child: !isCollected && showUpgradeIndicator
+          ? EndpointUpgradeBackdrop(
+              color:
+                  upgradeIndicatorColor ?? endpointUpgradeIndicatorNeonYellow,
+              iconSize: 19,
+              spacing: 4,
+              horizontalInset: 8,
+              borderRadius: BorderRadius.circular(14),
+              child: SizedBox.expand(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+                  child: rewardContent,
+                ),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+              child: rewardContent,
+            ),
+    );
 
     return SizedBox(
       width: double.infinity,
@@ -383,63 +484,7 @@ class _BattleLootRewardCard extends StatelessWidget {
         child: InkWell(
           onTap: isCollected ? null : onPressed,
           borderRadius: BorderRadius.circular(14),
-          child: EndpointPanel(
-            accent: accent,
-            backgroundColor: isCollected
-                ? EndpointPalette.panelBackgroundMuted
-                : EndpointPalette.panelBackgroundSoft,
-            borderRadius: 14,
-            glowOpacity: isCollected ? 0.01 : 0.05,
-            padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-            child: Row(
-              children: [
-                _BattleLootRewardLead(
-                  accent: accent,
-                  emoji: emoji,
-                  icon: icon,
-                  isCollected: isCollected,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      EndpointText(
-                        title,
-                        overflow: TextOverflow.ellipsis,
-                        style: textMediumBold.copyWith(
-                          color: foregroundColor,
-                          fontSize: 14,
-                          letterSpacing: 0.9,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      EndpointText(
-                        subtitle,
-                        overflow: TextOverflow.ellipsis,
-                        style: textSmallBold.copyWith(
-                          color: foregroundColor.withOpacity(0.72),
-                          fontSize: 10,
-                          letterSpacing: 0.7,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                EndpointText(
-                  isCollected ? collectedLabel : pendingLabel,
-                  textAlign: TextAlign.right,
-                  style: textSmallBold.copyWith(
-                    color: statusColor,
-                    fontSize: 10,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: rewardPanel,
         ),
       ),
     );
@@ -465,10 +510,10 @@ class _BattleLootRewardLead extends StatelessWidget {
       width: 34,
       height: 34,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(isCollected ? 0.16 : 0.24),
+        color: Colors.black.withValues(alpha: isCollected ? 0.16 : 0.24),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: accent.withOpacity(isCollected ? 0.28 : 0.56),
+          color: accent.withValues(alpha: isCollected ? 0.28 : 0.56),
         ),
       ),
       alignment: Alignment.center,
@@ -477,13 +522,15 @@ class _BattleLootRewardLead extends StatelessWidget {
               emoji!,
               style: TextStyle(
                 fontSize: 18,
-                color: isCollected ? Colors.white.withOpacity(0.56) : null,
+                color:
+                    isCollected ? Colors.white.withValues(alpha: 0.56) : null,
               ),
             )
           : Icon(
               icon,
               size: 18,
-              color: isCollected ? Colors.white.withOpacity(0.56) : accent,
+              color:
+                  isCollected ? Colors.white.withValues(alpha: 0.56) : accent,
             ),
     );
   }

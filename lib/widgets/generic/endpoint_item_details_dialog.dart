@@ -16,6 +16,8 @@ class EndpointItemDetailsDialog extends StatefulWidget {
   final bool isActionEnabled;
   final String enabledActionTooltip;
   final String disabledActionTooltip;
+  final bool showPrimaryActionUpgradeIndicator;
+  final Color? primaryActionUpgradeIndicatorColor;
   final String? secondaryActionLabel;
   final IconData secondaryActionIcon;
   final VoidCallback? onSecondaryAction;
@@ -36,6 +38,8 @@ class EndpointItemDetailsDialog extends StatefulWidget {
     this.isActionEnabled = false,
     this.enabledActionTooltip = '',
     this.disabledActionTooltip = '',
+    this.showPrimaryActionUpgradeIndicator = false,
+    this.primaryActionUpgradeIndicatorColor,
     this.secondaryActionLabel,
     this.secondaryActionIcon = Icons.swap_vert_rounded,
     this.onSecondaryAction,
@@ -276,6 +280,10 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
                         vertical: 6,
                       ),
                       textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
+                      showUpgradeIndicator:
+                          widget.showPrimaryActionUpgradeIndicator,
+                      upgradeIndicatorColor:
+                          widget.primaryActionUpgradeIndicatorColor,
                     ),
                 ],
               ),

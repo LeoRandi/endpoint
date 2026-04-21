@@ -112,9 +112,14 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                     }
                   : null,
               isActionEnabled: _controller.canBuy(item),
-              enabledActionTooltip:
-                  'Comprar objeto por ${_controller.purchasePriceFor(item)} creditos',
+              enabledActionTooltip: _controller.stockPrimaryActionTooltipFor(
+                item,
+              ),
               disabledActionTooltip: 'No tienes dinero suficiente',
+              showPrimaryActionUpgradeIndicator:
+                  _controller.willUpgradeItem(item),
+              primaryActionUpgradeIndicatorColor:
+                  endpointUpgradeIndicatorNeonYellow,
             );
           },
         );

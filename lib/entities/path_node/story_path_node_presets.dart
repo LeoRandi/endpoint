@@ -7,7 +7,7 @@ final velozArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_veloz',
   label: 'Veloz',
   tooltip:
-      'Cyber Latigos + Gafas de Sol. Perfil agil de doble golpe que envenena con cada impacto. Empieza con 8C y 3 income.',
+      'Cyber Latigos + Gafas de Sol. Perfil agil de doble golpe que envenena con cada impacto. Empieza con 8C y 4 income.',
   iconEmoji: cyberWhipsItem.iconEmoji,
   playerIconEmoji: cyberWhipsItem.iconEmoji,
   accent: const Color(0xFF59B7FF),
@@ -16,7 +16,7 @@ final velozArchetypeNode = ArchetypePathNode(
     BattlerStat.attack: 1,
   },
   moneyModifier: 8,
-  incomeModifier: 3,
+  incomeModifier: 4,
   startingItems: const [
     cyberWhipsItem,
     sunglassesItem,
@@ -32,7 +32,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
-      'Escudo + Amuleto de Bastion. Perfil resistente con regeneracion pasiva, mas barrera y Reinicio en seco. Empieza con 12C y 2 income.',
+      'Escudo + Amuleto de Bastion. Perfil resistente con regeneracion pasiva, mas barrera y Reinicio en seco. Empieza con 12C y 3 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
   accent: const Color(0xFF5AF78E),
@@ -42,7 +42,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
     BattlerStat.barrier: 1,
   },
   moneyModifier: 12,
-  incomeModifier: 2,
+  incomeModifier: 3,
   startingItems: const [
     shieldItem,
     bulwarkAmuletItem,
@@ -58,7 +58,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
-      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base y Sobrecarga venosa de salida. Empieza con 8C y 2 income.',
+      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base y Sobrecarga venosa de salida. Empieza con 8C y 3 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
   accent: const Color(0xFFF3D35C),
@@ -67,7 +67,7 @@ final imparableArchetypeNode = ArchetypePathNode(
     BattlerStat.attack: 2,
   },
   moneyModifier: 8,
-  incomeModifier: 2,
+  incomeModifier: 3,
   startingItems: const [
     ironSwordItem,
     emberCharmItem,
@@ -127,13 +127,13 @@ final mercanteArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_mercante',
   label: 'Mercante',
   tooltip:
-      '2 objetos grises aleatorios + 1 verde aleatorio. Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 13C, 4 income y Flujo de Caja.',
+      '2 objetos grises aleatorios + 1 verde aleatorio. Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 13C, 5 income y Flujo de Caja.',
   iconEmoji: '\u{1F4B0}',
   playerIconEmoji: '\u{1F4B3}',
   accent: const Color(0xFFEBCB5A),
   rarity: RarityTier.blue,
   moneyModifier: 13,
-  incomeModifier: 4,
+  incomeModifier: 5,
   startingItems: [
     _merchantGrayPreviewItem,
     _merchantGrayPreviewItem,

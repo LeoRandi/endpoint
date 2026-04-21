@@ -24,9 +24,10 @@
 --Añadir más arquetipos, unos 7 en total[4/7]
 [--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.]
 
-[-Página de Selección de Camino]
+-Página de Selección de Camino
 [--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
 [--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
+--Aplicar el efecto día/noche a diferentes objetos y habilidades
 
 -Sistema de acompañantes
 --Implementar
@@ -73,7 +74,7 @@
 [--Cambiar sistema de equipamiento]
 [---Slots por tamaño]
 [--Objetos duplicados=>Mejora]
---Añadir algún indicio de que se va a mejorar el item, no a añadir, o una animación de algún tipo
+[--Añadir algún indicio de que se va a mejorar el item, no a añadir, o una animación de algún tipo]
 --Equipar/desequipar arrastrando
 
 -Tiendas
@@ -87,11 +88,11 @@
 [--Texto de flavor a cada evento]
 
 -Enemigos
---Crear Presets(al menos 40 distintos)[33/40]
+--Crear Presets(al menos 60 distintos)[33/60]
 --Equipar adecuadamente
 
 -Codex
---Códice con todos los items y habilidades descubiertos por el jugador
+--Códice con todos los items, enemigos, habilidades y eventos descubiertos por el jugador
 
 -General
 --SEGUNDO DÍA
@@ -109,6 +110,7 @@
 ARREGLAR:
 -El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
 -El botón de tutorial del menú principal no funciona
+-La row de inventario en la pantalla del inventario no es un singleScrollChild, se puede hacer overflow
 
 ////
 PROBAR:
@@ -130,3 +132,161 @@ IDEAS:
 ////////////////////////////////
 
 Quiero que escanees el código del proyecto actual para que tengas en contexto sus flujos de combate, entidades, etc. Necesito que no hagas tests a no ser que lo pida, y que no me resumas lo que encuentres. En vez de eso, una vez tengas el contexto completo:
+
+tag nueva EntityTag.ciclo, usando el cambio real de RunHourPhase como estado base y dejando las excepciones en tres capas muy claras.
+
+Tag
+EntityTag.ciclo
+label: 'Ciclo'
+accent: Color(0xFFDFFF00)
+
+Regla
+
+Sin overrides, los items y habilidades Ciclo resuelven su rama de dia o noche según la fase real de la run.
+Manto del Eclipse overridea eso dentro del combate: turno 1 entra en modo dia/barrera, turno 2 en modo noche/ataque, y alterna así.
+Amanecer Sintetico y Luna Artificial fuerzan el siguiente combate a dia o noche respectivamente, por encima de la fase real.
+Eclipse Manual tiene la prioridad más alta: durante sus turnos activos, cada item Ciclo dispara ambas ramas.
+Items
+
+Gafas Fotocromaticas
+id: ItemId.gafasFotocromaticas
+rarity: RarityTier.gray
+baseCost: 2
+equipCost: 1
+value: 1
+upgradeValue: 1
+archetypeAffinities: [general]
+tags: [ciclo, economia, ataque]
+Efecto: de dia otorgan +value INCOME; de noche otorgan +value ATK. Es la pieza gris simple y legible del set.
+
+Bateria Crepuscular
+id: ItemId.bateriaCrepuscular
+rarity: RarityTier.green
+baseCost: 4
+equipCost: 1
+value: 2
+upgradeValue: 1
+archetypeAffinities: [general]
+tags: [ciclo, barrera, ataque, buff]
+Efecto: de dia, al inicio de tu turno, si tienes menos Barrera que value, subes tu Barrera hasta value; de noche, el primer ataque de cada turno inflige +value dano directo.
+
+Reloj de Turno
+id: ItemId.relojDeTurno
+rarity: RarityTier.blue
+baseCost: 6
+equipCost: 2
+value: 2
+upgradeValue: 1
+archetypeAffinities: [general]
+tags: [ciclo, vida, ataque]
+Efecto: de dia da +value*3 HP MAX; de noche da +value ATK. Es el stat-stick del set y se nota mucho al cambiar la fase.
+
+Faro Noctivago
+id: ItemId.faroNoctivago
+rarity: RarityTier.green
+baseCost: 4
+equipCost: 1
+value: 1
+upgradeValue: 1
+archetypeAffinities: [general]
+tags: [ciclo, debuff, intoxicacion]
+Efecto: de dia, la primera vez por combate que recibes un debuff purgable, pierde value turnos; de noche, el primer ataque de cada turno aplica o refuerza Intoxicacion(value).
+
+Prisma Circadiano
+id: ItemId.prismaCircadiano
+rarity: RarityTier.purple
+baseCost: 8
+equipCost: 2
+value: 2
+upgradeValue: 1
+archetypeAffinities: [general]
+tags: [ciclo, barrera, debuff, buff]
+Efecto: de dia, al empezar el combate ganas value*2 de Barrera; de noche, la primera desventaja que apliques cada turno gana +value de potencia, o +1 turno si esa desventaja no usa potencia. Es la pieza de payoff.
+
+Manto del Eclipse
+id: ItemId.eclipseMantle
+rarity: RarityTier.yellow
+baseCost: 10
+equipCost: 2
+value: 3
+upgradeValue: 1
+archetypeAffinities: [inamovible, mercante]
+tags: [ciclo, ataque, barrera, buff]
+Efecto: turno impar modo dia, ganas +value Barrera; turno par modo noche, ganas +value ATK. Mientras este equipado, tus otros items Ciclo se resuelven según el modo actual del Manto en vez de según la fase real de la run.
+
+Habilidades
+
+Ritmo Circadiano
+id: BattlerAbilityId.ritmoCircadiano
+rarity: RarityTier.green
+cooldownTurns: 0
+value: 2
+upgradeValue: 1
+manualActivationContext: null
+tags: [ciclo, buff, barrera, ataque]
+Pasiva. Al inicio de tu turno, si el modo actual es de dia ganas value de Barrera; si es de noche ganas Potencia(value).
+
+Cambio de Guardia
+id: BattlerAbilityId.cambioGuardia
+rarity: RarityTier.green
+cooldownTurns: 2
+value: 3
+upgradeValue: 1
+manualActivationContext: BattlerAbilityActivationContext.battle
+tags: [ciclo, ataque, barrera]
+Manual de combate. Si el modo actual es de dia, ganas value de Barrera; si es de noche, tu siguiente ataque inflige +value dano.
+
+Toque de Queda
+id: BattlerAbilityId.toqueDeQueda
+rarity: RarityTier.blue
+cooldownTurns: 0
+value: 1
+upgradeValue: 1
+manualActivationContext: null
+tags: [ciclo, debuff, barrera]
+Pasiva. Al inicio del turno enemigo, si el modo actual es de dia le aplicas Conmocion(value); si es de noche le aplicas Fragilidad(value).
+
+Turno de Noche
+id: BattlerAbilityId.turnoDeNoche
+rarity: RarityTier.purple
+cooldownTurns: 0
+value: 3
+upgradeValue: 1
+manualActivationContext: null
+tags: [ciclo, ataque, buff]
+Pasiva. Mientras el modo actual sea de noche, el primer ataque de cada turno inflige +value dano y el primer debuff aplicado por un item Ciclo ese turno gana +1 stack. Mientras sea de dia, al final de tu turno ganas 1 de Barrera.
+
+Amanecer Sintetico
+id: BattlerAbilityId.amanecerSintetico
+rarity: RarityTier.blue
+cooldownTurns: 4
+value: 2
+upgradeValue: 1
+manualActivationContext: BattlerAbilityActivationContext.pathSelection
+tags: [ciclo, buff, barrera]
+Manual de ruta. El siguiente combate empieza con un buff que fuerza a todos tus items Ciclo a resolver siempre su rama de dia. Ademas, al empezar ese combate ganas value de Barrera.
+
+Luna Artificial
+id: BattlerAbilityId.lunaArtificial
+rarity: RarityTier.blue
+cooldownTurns: 4
+value: 2
+upgradeValue: 1
+manualActivationContext: BattlerAbilityActivationContext.pathSelection
+tags: [ciclo, buff, ataque]
+Manual de ruta. El siguiente combate empieza con un buff que fuerza a todos tus items Ciclo a resolver siempre su rama de noche. Ademas, al empezar ese combate ganas Potencia(value).
+
+Eclipse Manual
+id: BattlerAbilityId.eclipseManual
+rarity: RarityTier.blue
+cooldownTurns: 4
+value: 1
+upgradeValue: 1
+manualActivationContext: BattlerAbilityActivationContext.battle
+tags: [ciclo, buff, ataque, barrera]
+Manual de combate. Durante value turnos, todos tus items Ciclo activan a la vez su rama de dia y su rama de noche. El maximo efectivo deberia caparse en 3 turnos.
+
+Lo más fuerte de esta versión es que el set tiene una identidad clara:
+de dia prepara economía, vida y barrera; de noche convierte esa preparación en daño y debuffs; y Manto del Eclipse te deja romper la dependencia de la fase real para construir turnos “artificiales” dentro del combate.
+
+Vamos a meter estos items y habilidades en el arquetipo Veloz. También cambiaría y dejaría el equipCost de todos los items en 1 de momento(por lo menos hasta que me de por cambiar y hacer legibles los costes de equipamiento. Es importante también que el efecto de Manto del Eclipse también afecte a las habilidades(para que éstas cuenten como día o noche según el turno). Asegúrate de meter textos descriptivos correctos y no muy redundantes o largos. 

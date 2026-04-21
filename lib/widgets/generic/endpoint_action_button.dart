@@ -1,5 +1,20 @@
 import '../_imports.dart';
 
+const endpointUpgradeIndicatorNeonYellow = Color(0xFFDFFF00);
+
+Color endpointComplementaryAccent(Color color) {
+  final hslColor = HSLColor.fromColor(color);
+  final complementaryHue = (hslColor.hue + 180) % 360;
+  final complementarySaturation = hslColor.saturation.clamp(0.62, 0.96);
+  final complementaryLightness = hslColor.lightness < 0.5 ? 0.66 : 0.38;
+
+  return hslColor
+      .withHue(complementaryHue)
+      .withSaturation(complementarySaturation)
+      .withLightness(complementaryLightness)
+      .toColor();
+}
+
 class EndpointActionButton extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -22,6 +37,8 @@ class EndpointActionButton extends StatelessWidget {
   final double? width;
   final double? height;
   final bool useMarquee;
+  final bool showUpgradeIndicator;
+  final Color? upgradeIndicatorColor;
 
   const EndpointActionButton({
     super.key,
@@ -46,6 +63,8 @@ class EndpointActionButton extends StatelessWidget {
     this.width,
     this.height,
     this.useMarquee = true,
+    this.showUpgradeIndicator = false,
+    this.upgradeIndicatorColor,
   });
 
   @override
@@ -62,6 +81,9 @@ class EndpointActionButton extends StatelessWidget {
         labelTextAlign: labelTextAlign,
         iconSpacing: iconSpacing,
         useMarquee: useMarquee,
+        showUpgradeIndicator: showUpgradeIndicator,
+        upgradeIndicatorColor:
+            upgradeIndicatorColor ?? endpointUpgradeIndicatorNeonYellow,
       ),
     );
 
@@ -92,7 +114,7 @@ class EndpointActionButton extends StatelessWidget {
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
       disabledBackgroundColor: backgroundColor,
-      disabledForegroundColor: foregroundColor.withOpacity(0.42),
+      disabledForegroundColor: foregroundColor.withValues(alpha: 0.42),
       padding: padding,
       textStyle: textStyle,
       side: BorderSide(color: accent, width: borderWidth),
@@ -101,7 +123,9 @@ class EndpointActionButton extends StatelessWidget {
       ),
       elevation: 0,
     ).copyWith(
-      overlayColor: MaterialStatePropertyAll(accent.withOpacity(0.14)),
+      overlayColor: WidgetStatePropertyAll(
+        accent.withValues(alpha: 0.14),
+      ),
     );
   }
 }
@@ -115,6 +139,8 @@ class _ButtonContent extends StatelessWidget {
   final TextAlign labelTextAlign;
   final double iconSpacing;
   final bool useMarquee;
+  final bool showUpgradeIndicator;
+  final Color upgradeIndicatorColor;
 
   const _ButtonContent({
     required this.label,
@@ -125,6 +151,8 @@ class _ButtonContent extends StatelessWidget {
     required this.labelTextAlign,
     required this.iconSpacing,
     required this.useMarquee,
+    required this.showUpgradeIndicator,
+    required this.upgradeIndicatorColor,
   });
 
   @override
@@ -141,6 +169,22 @@ class _ButtonContent extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           );
 
+    final coreContent = _buildCoreContent(labelWidget);
+    if (!showUpgradeIndicator) {
+      return coreContent;
+    }
+
+    return EndpointUpgradeBackdrop(
+      color: upgradeIndicatorColor,
+      iconSize: max(20, iconSize - 1),
+      spacing: max(4, iconSpacing + 2),
+      child: Center(
+        child: coreContent,
+      ),
+    );
+  }
+
+  Widget _buildCoreContent(Widget labelWidget) {
     if (icon == null) {
       return labelWidget;
     }
@@ -165,5 +209,181 @@ class _ButtonContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: children,
     );
+  }
+}
+
+class EndpointUpgradeBackdrop extends StatefulWidget {
+  final Widget child;
+  final Color color;
+  final double iconSize;
+  final double spacing;
+  final double horizontalInset;
+  final BorderRadius? borderRadius;
+  final Duration duration;
+
+  const EndpointUpgradeBackdrop({
+    super.key,
+    required this.child,
+    required this.color,
+    this.iconSize = 22,
+    this.spacing = 6,
+    this.horizontalInset = 2,
+    this.borderRadius,
+    this.duration = const Duration(milliseconds: 1150),
+  });
+
+  @override
+  State<EndpointUpgradeBackdrop> createState() =>
+      _EndpointUpgradeBackdropState();
+}
+
+class _EndpointUpgradeBackdropState extends State<EndpointUpgradeBackdrop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  )..repeat();
+
+  @override
+  void didUpdateWidget(covariant EndpointUpgradeBackdrop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.duration != widget.duration) {
+      _controller.duration = widget.duration;
+      _controller
+        ..reset()
+        ..repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content = LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final stack = Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: ClipRect(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: widget.horizontalInset,
+                    ),
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: _EndpointUpgradeArrowPatternPainter(
+                            color: widget.color,
+                            iconSize: widget.iconSize,
+                            spacing: widget.spacing,
+                            progress: _controller.value,
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: width.isFinite
+                          ? SizedBox(width: width)
+                          : SizedBox(
+                              width:
+                                  (widget.iconSize * 3) + (widget.spacing * 2),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            widget.child,
+          ],
+        );
+
+        if (!width.isFinite) {
+          return stack;
+        }
+
+        return SizedBox(
+          width: width,
+          child: stack,
+        );
+      },
+    );
+
+    if (widget.borderRadius == null) {
+      return content;
+    }
+
+    return ClipRRect(
+      borderRadius: widget.borderRadius!,
+      child: content,
+    );
+  }
+}
+
+class _EndpointUpgradeArrowPatternPainter extends CustomPainter {
+  final Color color;
+  final double iconSize;
+  final double spacing;
+  final double progress;
+
+  const _EndpointUpgradeArrowPatternPainter({
+    required this.color,
+    required this.iconSize,
+    required this.spacing,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+
+    const iconData = Icons.arrow_upward_rounded;
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(iconData.codePoint),
+        style: TextStyle(
+          inherit: false,
+          fontSize: iconSize,
+          fontFamily: iconData.fontFamily,
+          package: iconData.fontPackage,
+          color: color.withValues(alpha: 0.5),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final stepX = textPainter.width + spacing;
+    final stepY = textPainter.height + spacing;
+    final columns = max(1, ((size.width + spacing) / stepX).ceil());
+    final centeredRowY = (size.height - textPainter.height) / 2;
+    final firstRowY = centeredRowY - stepY - (stepY * progress);
+    final rowCount = max(3, ((size.height / stepY).ceil()) + 2);
+
+    for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+      final y = firstRowY + (rowIndex * stepY);
+      if (y > size.height || y + textPainter.height < 0) {
+        continue;
+      }
+
+      for (var columnIndex = 0; columnIndex < columns; columnIndex++) {
+        final x = columnIndex * stepX;
+        textPainter.paint(canvas, Offset(x, y));
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(
+      covariant _EndpointUpgradeArrowPatternPainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.iconSize != iconSize ||
+        oldDelegate.spacing != spacing ||
+        oldDelegate.progress != progress;
   }
 }

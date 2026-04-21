@@ -14,6 +14,12 @@ extension BattlerAbilityManagement on Battler {
     return _derivedState.abilitiesById[abilityId];
   }
 
+  /// Indica si recibir esta habilidad acabaria mejorando una copia ya poseida.
+  bool wouldUpgradeAbility(BattlerAbility ability) {
+    final existingAbility = abilityById(ability.id);
+    return existingAbility != null && existingAbility.canUpgrade;
+  }
+
   /// Devuelve los ids de habilidad que registraron un hook concreto para el pipeline.
   List<BattlerAbilityId> abilityIdsForHook(BattlerAbilityHook hook) {
     return _derivedState.abilityIdsByHook[hook] ?? const <BattlerAbilityId>[];
