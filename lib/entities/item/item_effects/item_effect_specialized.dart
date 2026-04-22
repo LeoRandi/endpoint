@@ -592,68 +592,6 @@ class ParasiticCapacitorItemEffect extends ItemEffect {
   }
 }
 
-/// Potencia la primera activacion manual de cada combate.
-class EclipseMantleItemEffect extends ItemEffect {
-  /// Crea un efecto reutilizable para el Manto de Eclipse.
-  const EclipseMantleItemEffect()
-      : super(
-          description:
-              'La primera activacion manual de cada combate obtiene un bonus al value.',
-          hooks: const {
-            ItemEffectHook.manualAbilityPreparation,
-          },
-        );
-
-  @override
-
-  /// Genera la descripcion final usando el value real del item equipado.
-  String descriptionFor(Item item) {
-    return 'La primera activacion manual de cada combate obtiene +${item.value} al value.';
-  }
-
-  @override
-
-  /// Aumenta temporalmente el value de la primera habilidad manual del combate.
-  ItemAbilityPreparationResolution onManualAbilityPreparing({
-    required Battler owner,
-    required Battler opponent,
-    required Item item,
-    required BattlerAbility ability,
-    required BattlerAbilityActivationContext screenContext,
-  }) {
-    if (screenContext != BattlerAbilityActivationContext.battle ||
-        !owner.hasCombatFlag(Battler.combatActiveFlag)) {
-      return ItemAbilityPreparationResolution(
-        owner: owner,
-        opponent: opponent,
-        ability: ability,
-      );
-    }
-
-    final usedFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.eclipseMantleUsed,
-    );
-    if (owner.hasCombatFlag(usedFlag)) {
-      return ItemAbilityPreparationResolution(
-        owner: owner,
-        opponent: opponent,
-        ability: ability,
-      );
-    }
-
-    final boostedAbility = ability.addRuntimeValueBonus(item.value);
-    final updatedOwner =
-        owner.updateAbility(boostedAbility).addCombatFlag(usedFlag);
-
-    return ItemAbilityPreparationResolution(
-      owner: updatedOwner,
-      opponent: opponent,
-      ability: boostedAbility,
-    );
-  }
-}
-
 /// Evita una muerte por combate, deja 1 HP y refresca todas las habilidades.
 class OperativeBlackBoxItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para la Caja Negra del Operativo.

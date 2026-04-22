@@ -8,6 +8,7 @@ class BattlePage extends StatefulWidget {
   final Battler enemy;
   final Battler player;
   final RunRandomizer? randomizer;
+  final RunHourPhase phase;
   final String showTitle;
   final int victoryMoneyFactor;
   final int enemyTier;
@@ -20,6 +21,7 @@ class BattlePage extends StatefulWidget {
     this.enemy = defaultEnemyBattler,
     this.player = defaultPlayerBattler,
     this.randomizer,
+    this.phase = RunHourPhase.day,
     this.showTitle = 'ENCOUNTER',
     this.victoryMoneyFactor = 0,
     this.enemyTier = 1,
@@ -44,6 +46,7 @@ class _BattlePageState extends State<BattlePage> {
     _sceneController = BattleSceneController(
       enemy: widget.enemy,
       player: widget.player,
+      phase: widget.phase,
       enemyTier: widget.enemyTier,
       enemyTurnDelay: widget.enemyTurnDelay,
       combatEndDelay: widget.combatEndDelay,

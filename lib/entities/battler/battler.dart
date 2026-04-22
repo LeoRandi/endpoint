@@ -82,12 +82,16 @@ enum BattlerCombatFlag {
   combatActive,
   manualAbilityActivatedThisTurn,
   pendingBasicAttackFollowUp,
+  cycleDayContext,
+  cycleNightContext,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
 enum ItemCombatFlagKind {
   crackedBatteryUsed,
   eclipseMantleUsed,
+  eclipseMantleInitialized,
+  eclipseMantleNightMode,
   operativeBlackBoxUsed,
   operativeBlackBoxProtection,
   succionaCreditosTriggeredThisTurn,
@@ -347,6 +351,12 @@ class Battler {
   );
   static const pendingBasicAttackFollowUpFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.pendingBasicAttackFollowUp,
+  );
+  static const cycleDayContextFlag = CombatRuntimeFlag.battler(
+    BattlerCombatFlag.cycleDayContext,
+  );
+  static const cycleNightContextFlag = CombatRuntimeFlag.battler(
+    BattlerCombatFlag.cycleNightContext,
   );
   static final Expando<_BattlerDerivedState> _derivedStateCache =
       Expando<_BattlerDerivedState>('battlerDerivedState');

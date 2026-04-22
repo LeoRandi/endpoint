@@ -36,6 +36,29 @@ const _ataqueBuffTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.buff,
 ];
+const _cicloTags = <EntityTag>[
+  EntityTag.ciclo,
+];
+const _cicloAtaqueBarreraTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.ataque,
+  EntityTag.barrera,
+];
+const _cicloBuffTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.buff,
+];
+const _cicloAtaqueBarreraBuffTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.ataque,
+  EntityTag.barrera,
+  EntityTag.buff,
+];
+const _cicloBarreraDebuffTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.barrera,
+  EntityTag.debuff,
+];
 const _ataqueDebuffIntoxicacionTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
@@ -248,6 +271,90 @@ const crackedBatteryItem = Item(
   value: 1,
   upgradeValue: 1,
   effect: CrackedBatteryItemEffect(),
+);
+
+/// Accesorio gris de Ciclo que cambia entre barrera diurna y ataque nocturno.
+const gafasFotocromaticasItem = Item(
+  id: ItemId.gafasFotocromaticas,
+  archetypeAffinities: _velozAffinities,
+  tags: _cicloAtaqueBarreraTags,
+  name: 'Gafas Fotocromaticas',
+  description: 'Ciclo. De dia: +1 Barrera. De noche: +1 ATK.',
+  iconEmoji: '\u{1F453}',
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  equipCost: 1,
+  value: 1,
+  upgradeValue: 1,
+  effect: GafasFotocromaticasItemEffect(),
+);
+
+/// Accesorio verde que convierte el Ciclo en recarga defensiva u ofensiva.
+const bateriaCrepuscularItem = Item(
+  id: ItemId.bateriaCrepuscular,
+  archetypeAffinities: _velozAffinities,
+  tags: _cicloBuffTags,
+  name: 'Bateria Crepuscular',
+  description:
+      'Ciclo. Al inicio de tu turno: de dia recuperas Barrera; de noche ganas Potencia.',
+  iconEmoji: '\u{1F50B}',
+  rarity: RarityTier.green,
+  baseCost: 4,
+  equipCost: 1,
+  value: 2,
+  upgradeValue: 1,
+  effect: BateriaCrepuscularItemEffect(),
+);
+
+/// Accesorio azul que marca pulsos de curacion o dano segun el momento del Ciclo.
+const relojDeTurnoItem = Item(
+  id: ItemId.relojDeTurno,
+  archetypeAffinities: _velozAffinities,
+  tags: _cicloTags,
+  name: 'Reloj de Turno',
+  description:
+      'Ciclo. Al final de tu turno: de dia te curas; de noche infliges dano directo.',
+  iconEmoji: '\u23F1',
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  equipCost: 1,
+  value: 2,
+  upgradeValue: 1,
+  effect: RelojDeTurnoItemEffect(),
+);
+
+/// Accesorio azul que senala al rival con efectos distintos segun el Ciclo.
+const faroNoctivagoItem = Item(
+  id: ItemId.faroNoctivago,
+  archetypeAffinities: _velozAffinities,
+  tags: _cicloBarreraDebuffTags,
+  name: 'Faro Noctivago',
+  description:
+      'Ciclo. De dia, al defender: Interferencia. De noche, al atacar: Fragilidad.',
+  iconEmoji: '\u{1F6A8}',
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  equipCost: 1,
+  value: 2,
+  upgradeValue: 1,
+  effect: FaroNoctivagoItemEffect(),
+);
+
+/// Accesorio morado que refuerza la defensa diurna y la pegada nocturna.
+const prismaCircadianoItem = Item(
+  id: ItemId.prismaCircadiano,
+  archetypeAffinities: _velozAffinities,
+  tags: _cicloAtaqueBarreraBuffTags,
+  name: 'Prisma Circadiano',
+  description:
+      'Ciclo. De dia reduces dano recibido. De noche infliges dano extra.',
+  iconEmoji: '\u{1F48E}',
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  equipCost: 1,
+  value: 2,
+  upgradeValue: 1,
+  effect: PrismaCircadianoItemEffect(),
 );
 
 /// Arma gris que castiga a objetivos sin buffs activos.
@@ -1153,22 +1260,17 @@ const voidInjectorItem = Item(
 /// Soporte amarillo que potencia la primera activacion manual del combate.
 const eclipseMantleItem = Item(
   id: ItemId.eclipseMantle,
-  archetypeAffinities: _inamovibleMercanteAffinities,
-  tags: _barreraTags,
+  archetypeAffinities: _velozAffinities,
+  tags: _cicloAtaqueBarreraTags,
   name: 'Manto de Eclipse',
   description:
-      '+4 Barrera y un pulso de potencia en la primera activacion manual del combate.',
+      'Ciclo. Alterna entre Barrera y ATK, y marca el ritmo para tus efectos de Ciclo.',
   iconEmoji: '\u{1F318}',
   rarity: RarityTier.yellow,
   baseCost: 10,
+  equipCost: 1,
   value: 3,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 4,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: EclipseMantleItemEffect(),
 );
 
@@ -1434,6 +1536,11 @@ const itemPresets = <Item>[
   shieldItem,
   bulwarkAmuletItem,
   crackedBatteryItem,
+  gafasFotocromaticasItem,
+  bateriaCrepuscularItem,
+  relojDeTurnoItem,
+  faroNoctivagoItem,
+  prismaCircadianoItem,
   impactGlovesItem,
   toxicCatalystItem,
   emberCharmItem,

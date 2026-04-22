@@ -3,6 +3,7 @@ import '../../services/battler_runtime_service.dart';
 import '../../services/run_randomizer.dart';
 
 part 'item_effects/item_effect_attack_and_sustain.dart';
+part 'item_effects/item_effect_cycle.dart';
 part 'item_effects/item_effect_reactive_defense.dart';
 part 'item_effects/item_effect_specialized.dart';
 

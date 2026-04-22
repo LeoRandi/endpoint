@@ -97,9 +97,14 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
 
   void _rollVisualPreviewAbility() {
     final selectedAbility = _selectedAbility;
-    final candidates = abilityPresets
+    var candidates = abilityPoolForArchetype(widget.player.archetypeId)
         .where((ability) => ability.id != selectedAbility?.id)
         .toList(growable: false);
+    if (candidates.isEmpty) {
+      candidates = abilityPresets
+          .where((ability) => ability.id != selectedAbility?.id)
+          .toList(growable: false);
+    }
     if (candidates.isEmpty) return;
 
     var nextAbility = candidates[_visualRandom.nextInt(candidates.length)];

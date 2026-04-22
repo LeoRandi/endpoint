@@ -3,6 +3,7 @@ import 'dart:math';
 import '../entities/_exports.dart';
 import 'battler_effect_pipeline.dart';
 import 'run_randomizer.dart';
+import 'run_hour_snapshot.dart';
 
 const BattlerEffectPipeline _battlerEffectPipeline = BattlerEffectPipeline();
 
@@ -67,11 +68,23 @@ extension BattlerRuntimeService on Battler {
   }
 
   /// Activa el estado runtime de combate y rellena la Barrera temporal inicial.
-  Battler prepareForCombat() {
+  Battler prepareForCombat({
+    RunHourPhase phase = RunHourPhase.day,
+  }) {
     final preparedOwner = materializeOwnedItems().clearCombatFlags();
+    final cycleFlags = switch (phase) {
+      RunHourPhase.day || RunHourPhase.sunrise => <CombatRuntimeFlag>{
+          Battler.cycleDayContextFlag,
+        },
+      RunHourPhase.dusk || RunHourPhase.night => <CombatRuntimeFlag>{
+          Battler.cycleNightContextFlag,
+        },
+    };
+
     return preparedOwner.copyWith(
       combatFlags: <CombatRuntimeFlag>{
         Battler.combatActiveFlag,
+        ...cycleFlags,
       },
       currentBarrier: preparedOwner.maxBarrier,
     );

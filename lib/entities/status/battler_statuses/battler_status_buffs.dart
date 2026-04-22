@@ -187,6 +187,41 @@ class PotenciaStatus extends BattlerStatus {
   }
 }
 
+/// Buff temporal que hace que los efectos de Ciclo cuenten como dia y noche a la vez.
+class CicloEclipseStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.cicloEclipse;
+
+  /// Crea una instancia temporal para Eclipse Manual.
+  const CicloEclipseStatus({
+    int remainingTurns = 1,
+    int value = 1,
+  }) : super(
+          id: statusId,
+          name: 'Eclipse Manual',
+          type: BattlerStatusType.buff,
+          tags: _buffCicloStatusTags,
+          icon: Icons.brightness_medium_rounded,
+          description:
+              'Tus efectos de Ciclo cuentan como dia y noche a la vez.',
+          remainingTurns: remainingTurns,
+          value: value,
+        );
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return CicloEclipseStatus(
+      remainingTurns: remainingTurns ?? this.remainingTurns,
+      value: value ?? this.value,
+    );
+  }
+}
+
 /// Buff generador que crea reservas de ATK o de Barrera si no se usaron habilidades manuales.
 class InerciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.inercia;

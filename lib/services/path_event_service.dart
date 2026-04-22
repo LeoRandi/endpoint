@@ -266,7 +266,8 @@ class PathEventService {
         .where((ability) => ability.id != selectedAbility.id)
         .map((ability) => ability.id)
         .toSet();
-    var candidates = abilityPresets
+    final scopedPool = abilityPoolForArchetype(player.archetypeId);
+    var candidates = scopedPool
         .where(
           (ability) =>
               ability.id != selectedAbility.id &&
@@ -275,7 +276,7 @@ class PathEventService {
         .toList(growable: false);
 
     if (candidates.isEmpty) {
-      candidates = abilityPresets
+      candidates = scopedPool
           .where((ability) => ability.id != selectedAbility.id)
           .toList(growable: false);
     }

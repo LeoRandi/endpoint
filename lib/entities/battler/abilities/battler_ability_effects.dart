@@ -98,6 +98,264 @@ class GhostMeshAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Mantiene el ritmo del Ciclo con cura de dia y Potencia de noche.
+class RitmoCircadianoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Ritmo Circadiano.
+  const RitmoCircadianoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.turnStart,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final cycleContext = cycleContextFor(owner);
+    final amount = max(1, ability.currentValue);
+    var updatedOwner = owner;
+
+    if (cycleContext.isDay) {
+      updatedOwner = updatedOwner.heal(amount);
+    }
+    if (cycleContext.isNight) {
+      updatedOwner = updatedOwner.applyStatusFromSource(
+        PotenciaStatus(value: amount),
+        source: updatedOwner,
+      );
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+    );
+  }
+}
+
+/// Activa un relevo defensivo de dia u ofensivo de noche.
+class CambioDeGuardiaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Cambio de Guardia.
+  const CambioDeGuardiaAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final cycleContext = cycleContextFor(owner);
+    final amount = max(1, ability.currentValue);
+    var updatedOwner = owner;
+
+    if (cycleContext.isDay) {
+      updatedOwner = updatedOwner.copyWith(
+        currentBarrier: updatedOwner.currentBarrier + (amount * 2),
+      );
+    }
+    if (cycleContext.isNight) {
+      updatedOwner = updatedOwner.applyStatusFromSource(
+        PotenciaStatus(value: amount),
+        source: updatedOwner,
+      );
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner.updateAbility(ability.startCooldown()),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Aplica control distinto al rival dependiendo del momento del Ciclo.
+class ToqueDeQuedaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Toque de Queda.
+  const ToqueDeQuedaAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final cycleContext = cycleContextFor(owner);
+    final amount = max(1, ability.currentValue);
+    var updatedOpponent = opponent;
+
+    if (cycleContext.isDay) {
+      updatedOpponent = updatedOpponent.applyStatusFromSource(
+        InterferenciaStatus(remainingTurns: amount),
+        source: owner,
+      );
+    }
+    if (cycleContext.isNight) {
+      updatedOpponent = updatedOpponent.applyStatusFromSource(
+        FragilidadStatus(remainingTurns: amount),
+        source: owner,
+      );
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.updateAbility(ability.startCooldown()),
+      opponent: updatedOpponent,
+    );
+  }
+}
+
+/// Protege de dia y anade presion ofensiva de noche.
+class TurnoDeNocheAbilityEffect extends BattlerAbilityEffect {
+  /// Crea la pasiva de Turno de Noche.
+  const TurnoDeNocheAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.outgoingDamageModifier,
+            BattlerAbilityHook.incomingDamageModifier,
+          },
+        );
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    final cycleContext = cycleContextFor(owner);
+    if (!cycleContext.isNight) {
+      return damage;
+    }
+
+    return damage + max(1, ability.currentValue);
+  }
+
+  @override
+  int modifyIncomingDamage({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    final cycleContext = cycleContextFor(owner);
+    if (!cycleContext.isDay) {
+      return damage;
+    }
+
+    return max(0, damage - max(1, ability.currentValue));
+  }
+}
+
+/// Fuerza el amanecer del siguiente combate.
+class AmanecerSinteticoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto persistente de Amanecer Sintetico.
+  const AmanecerSinteticoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.combatEnd,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    return BattlerAbilityEffectResolution(
+      owner: _deactivateCycleRouteAbility(
+        owner: owner,
+        excludedAbilityId: ability.id,
+        targetAbilityId: BattlerAbilityId.lunaArtificial,
+      ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    if (!ability.isActive) return owner;
+
+    return owner.updateAbility(ability.startCooldown());
+  }
+}
+
+/// Fuerza la noche del siguiente combate.
+class LunaArtificialAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto persistente de Luna Artificial.
+  const LunaArtificialAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.combatEnd,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    return BattlerAbilityEffectResolution(
+      owner: _deactivateCycleRouteAbility(
+        owner: owner,
+        excludedAbilityId: ability.id,
+        targetAbilityId: BattlerAbilityId.amanecerSintetico,
+      ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    if (!ability.isActive) return owner;
+
+    return owner.updateAbility(ability.startCooldown());
+  }
+}
+
+/// Activa ambas ramas del Ciclo durante un numero corto de turnos.
+class EclipseManualAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Eclipse Manual.
+  const EclipseManualAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final activeTurns = min(3, max(1, ability.currentValue));
+    final updatedOwner = owner
+        .applyStatusFromSource(
+          CicloEclipseStatus(remainingTurns: activeTurns),
+          source: owner,
+        )
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+    );
+  }
+}
+
 /// Aplica Catalisis Cruel al rival y consume la activacion en combate.
 class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Catalisis Cruel.
@@ -819,4 +1077,19 @@ class RefactorizacionTimelineAbilityEffect extends BattlerAbilityEffect {
       opponent: opponent,
     );
   }
+}
+
+Battler _deactivateCycleRouteAbility({
+  required Battler owner,
+  required BattlerAbilityId excludedAbilityId,
+  required BattlerAbilityId targetAbilityId,
+}) {
+  final targetAbility = owner.abilityById(targetAbilityId);
+  if (targetAbility == null ||
+      targetAbility.id == excludedAbilityId ||
+      !targetAbility.isActive) {
+    return owner;
+  }
+
+  return owner.updateAbility(targetAbility.deactivate());
 }

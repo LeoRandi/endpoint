@@ -21,6 +21,7 @@ enum DamageKind {
 enum BattlerStatusId {
   calentando,
   potencia,
+  cicloEclipse,
   quemadura,
   intoxicacion,
   catalisisCruel,
@@ -316,6 +317,10 @@ class BattlerStatusApplicationResolution {
 const _buffAtaqueStatusTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.ataque,
+];
+const _buffCicloStatusTags = <EntityTag>[
+  EntityTag.buff,
+  EntityTag.ciclo,
 ];
 const _debuffQuemaduraStatusTags = <EntityTag>[
   EntityTag.debuff,

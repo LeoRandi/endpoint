@@ -24,6 +24,7 @@ class RunNodeFlowCoordinator {
             enemy: encounterNode.enemy,
             player: session.player,
             randomizer: session.randomizer,
+            phase: session.currentHour.phase,
             showTitle: encounterNode.showTitle,
             victoryMoneyFactor: encounterNode.tier.factor,
             enemyTier: encounterNode.tier.factor,

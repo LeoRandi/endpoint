@@ -46,6 +46,7 @@ class BattleController extends ChangeNotifier {
   BattleController({
     required Battler enemy,
     required Battler player,
+    required RunHourPhase phase,
     required int enemyTier,
     required this.enemyTurnDelay,
     required this.combatEndDelay,
@@ -53,8 +54,12 @@ class BattleController extends ChangeNotifier {
     BattlerEffectPipeline effectPipeline = const BattlerEffectPipeline(),
     BattleResolver resolver = const BattleResolver(),
     BattleTurnEngine turnEngine = const BattleTurnEngine(),
-  })  : _enemy = enemy.prepareForCombat(),
-        _player = player.prepareForCombat(),
+  })  : _enemy = enemy.prepareForCombat(
+          phase: phase,
+        ),
+        _player = player.prepareForCombat(
+          phase: phase,
+        ),
         _resolver = resolver,
         _effectPipeline = effectPipeline,
         _randomizer = randomizer ?? RunRandomizer(),

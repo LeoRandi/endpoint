@@ -9,6 +9,13 @@ enum BattlerAbilityId {
   criticalScanner,
   weaknessHunter,
   ghostMesh,
+  ritmoCircadiano,
+  cambioDeGuardia,
+  toqueDeQueda,
+  turnoDeNoche,
+  amanecerSintetico,
+  lunaArtificial,
+  eclipseManual,
   cruelCatalysis,
   venousOverload,
   hardReset,
@@ -43,6 +50,52 @@ enum BattlerAbilityActivationContext {
         return 'Ruta';
       case BattlerAbilityActivationContext.shop:
         return 'Tienda';
+    }
+  }
+}
+
+/// Identifica a que arquetipos pertenece una habilidad para ofertas y contenido.
+enum BattlerAbilityArchetypeAffinity {
+  general,
+  veloz,
+  inamovible,
+  imparable,
+  mercante,
+}
+
+/// Traduce afinidades de habilidad a arquetipos jugables.
+extension BattlerAbilityArchetypeAffinityMapping
+    on BattlerAbilityArchetypeAffinity {
+  bool get isSpecific => this != BattlerAbilityArchetypeAffinity.general;
+
+  ArchetypeId? get archetypeId {
+    switch (this) {
+      case BattlerAbilityArchetypeAffinity.general:
+        return null;
+      case BattlerAbilityArchetypeAffinity.veloz:
+        return ArchetypeId.veloz;
+      case BattlerAbilityArchetypeAffinity.inamovible:
+        return ArchetypeId.inamovible;
+      case BattlerAbilityArchetypeAffinity.imparable:
+        return ArchetypeId.imparable;
+      case BattlerAbilityArchetypeAffinity.mercante:
+        return ArchetypeId.mercante;
+    }
+  }
+}
+
+/// Traduce arquetipos jugables a la afinidad usada por las habilidades.
+extension ArchetypeIdAbilityAffinity on ArchetypeId {
+  BattlerAbilityArchetypeAffinity get abilityAffinity {
+    switch (this) {
+      case ArchetypeId.veloz:
+        return BattlerAbilityArchetypeAffinity.veloz;
+      case ArchetypeId.inamovible:
+        return BattlerAbilityArchetypeAffinity.inamovible;
+      case ArchetypeId.imparable:
+        return BattlerAbilityArchetypeAffinity.imparable;
+      case ArchetypeId.mercante:
+        return BattlerAbilityArchetypeAffinity.mercante;
     }
   }
 }
@@ -108,6 +161,28 @@ const _buffAtaqueAbilityTags = <EntityTag>[
 ];
 const _buffDebuffAbilityTags = <EntityTag>[
   EntityTag.buff,
+  EntityTag.debuff,
+];
+const _cicloBuffAbilityTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.buff,
+];
+const _cicloVidaAtaqueBuffAbilityTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.vida,
+  EntityTag.ataque,
+  EntityTag.buff,
+];
+const _cicloAtaqueBarreraBuffAbilityTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.ataque,
+  EntityTag.barrera,
+  EntityTag.buff,
+];
+const _cicloAtaqueBarreraDebuffAbilityTags = <EntityTag>[
+  EntityTag.ciclo,
+  EntityTag.ataque,
+  EntityTag.barrera,
   EntityTag.debuff,
 ];
 
@@ -254,6 +329,7 @@ abstract class BattlerAbilityEffect {
 /// Describe una habilidad completa, incluyendo su estado runtime y su efecto.
 class BattlerAbility {
   final BattlerAbilityId id;
+  final List<BattlerAbilityArchetypeAffinity> archetypeAffinities;
   final RarityTier rarity;
   final List<EntityTag> tags;
   final String name;
@@ -272,6 +348,9 @@ class BattlerAbility {
   /// Crea una habilidad inmutable lista para usarse como preset o como instancia runtime.
   const BattlerAbility({
     required this.id,
+    this.archetypeAffinities = const [
+      BattlerAbilityArchetypeAffinity.general,
+    ],
     this.rarity = RarityTier.gray,
     this.tags = const [],
     required this.name,
@@ -301,6 +380,23 @@ class BattlerAbility {
 
   /// Comprueba si esta habilidad pertenece a una tag concreta.
   bool hasTag(EntityTag tag) => tags.contains(tag);
+
+  /// Comprueba si la habilidad declara afinidad con un arquetipo concreto.
+  bool hasArchetypeAffinity(BattlerAbilityArchetypeAffinity affinity) {
+    return archetypeAffinities.contains(affinity);
+  }
+
+  /// Comprueba si comparte afinidad con alguna de las pedidas.
+  bool hasAnyArchetypeAffinity(
+    Iterable<BattlerAbilityArchetypeAffinity> affinities,
+  ) {
+    for (final affinity in affinities) {
+      if (hasArchetypeAffinity(affinity)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /// Reexpone el color de rareza para que la UI no tenga que duplicar este lookup.
   Color get accent => rarity.accent;
@@ -381,6 +477,7 @@ class BattlerAbility {
     if (!upgradeTemplate.canUpgrade) return this;
 
     return copyWith(
+      archetypeAffinities: upgradeTemplate.archetypeAffinities,
       rarity: rarity.nextTier,
       tags: upgradeTemplate.tags,
       name: upgradeTemplate.name,
@@ -449,6 +546,7 @@ class BattlerAbility {
 
   /// Clona la habilidad permitiendo cambiar cualquier parte de su estado.
   BattlerAbility copyWith({
+    List<BattlerAbilityArchetypeAffinity>? archetypeAffinities,
     RarityTier? rarity,
     List<EntityTag>? tags,
     String? name,
@@ -468,6 +566,7 @@ class BattlerAbility {
   }) {
     return BattlerAbility(
       id: id,
+      archetypeAffinities: archetypeAffinities ?? this.archetypeAffinities,
       rarity: rarity ?? this.rarity,
       tags: tags ?? this.tags,
       name: name ?? this.name,

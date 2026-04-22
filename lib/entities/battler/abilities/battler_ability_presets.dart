@@ -1,8 +1,22 @@
 part of '../battler_ability.dart';
 
+const _velozAbilityAffinities = <BattlerAbilityArchetypeAffinity>[
+  BattlerAbilityArchetypeAffinity.veloz,
+];
+const _inamovibleAbilityAffinities = <BattlerAbilityArchetypeAffinity>[
+  BattlerAbilityArchetypeAffinity.inamovible,
+];
+const _imparableAbilityAffinities = <BattlerAbilityArchetypeAffinity>[
+  BattlerAbilityArchetypeAffinity.imparable,
+];
+const _mercanteAbilityAffinities = <BattlerAbilityArchetypeAffinity>[
+  BattlerAbilityArchetypeAffinity.mercante,
+];
+
 /// Preset que prepara un siguiente ataque potenciado y luego entra en cooldown.
 const criticalScannerAbility = BattlerAbility(
   id: BattlerAbilityId.criticalScanner,
+  archetypeAffinities: _velozAbilityAffinities,
   rarity: RarityTier.blue,
   tags: _ataqueAbilityTags,
   name: 'Escaner critico',
@@ -20,6 +34,7 @@ const criticalScannerAbility = BattlerAbility(
 /// Preset pasivo que castiga a los enemigos que ya tienen algun debuff.
 const weaknessHunterAbility = BattlerAbility(
   id: BattlerAbilityId.weaknessHunter,
+  archetypeAffinities: _velozAbilityAffinities,
   tags: _ataqueDebuffAbilityTags,
   name: 'Caza de debilidades',
   description:
@@ -34,6 +49,7 @@ const weaknessHunterAbility = BattlerAbility(
 /// Preset pasivo defensivo que protege mientras la vida siga llena.
 const ghostMeshAbility = BattlerAbility(
   id: BattlerAbilityId.ghostMesh,
+  archetypeAffinities: _inamovibleAbilityAffinities,
   tags: _vidaBarreraAbilityTags,
   name: 'Malla Fantasma',
   description:
@@ -41,6 +57,126 @@ const ghostMeshAbility = BattlerAbility(
   icon: Icons.security_rounded,
   value: 2,
   effect: GhostMeshAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Ciclo que cura de dia y carga Potencia de noche.
+const ritmoCircadianoAbility = BattlerAbility(
+  id: BattlerAbilityId.ritmoCircadiano,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _cicloVidaAtaqueBuffAbilityTags,
+  name: 'Ritmo Circadiano',
+  description:
+      'Pasiva. Al inicio de tu turno: de dia te curas y de noche ganas Potencia.',
+  icon: Icons.av_timer_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: RitmoCircadianoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual de combate que cambia entre refuerzo defensivo y ofensivo.
+const cambioDeGuardiaAbility = BattlerAbility(
+  id: BattlerAbilityId.cambioDeGuardia,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _cicloAtaqueBarreraBuffAbilityTags,
+  name: 'Cambio de Guardia',
+  description:
+      'Activacion manual en combate. De dia ganas Barrera; de noche ganas Potencia.',
+  icon: Icons.change_circle_rounded,
+  cooldownTurns: 3,
+  value: 2,
+  upgradeValue: 1,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: CambioDeGuardiaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual de combate que aplica control distinto segun el Ciclo.
+const toqueDeQuedaAbility = BattlerAbility(
+  id: BattlerAbilityId.toqueDeQueda,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _cicloAtaqueBarreraDebuffAbilityTags,
+  name: 'Toque de Queda',
+  description:
+      'Activacion manual en combate. De dia aplica Interferencia; de noche aplica Fragilidad.',
+  icon: Icons.notifications_paused_rounded,
+  cooldownTurns: 3,
+  value: 2,
+  upgradeValue: 1,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: ToqueDeQuedaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Ciclo que protege de dia y remata de noche.
+const turnoDeNocheAbility = BattlerAbility(
+  id: BattlerAbilityId.turnoDeNoche,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _cicloAtaqueBarreraBuffAbilityTags,
+  name: 'Turno de Noche',
+  description:
+      'Pasiva. De dia reduces dano recibido. De noche infliges dano adicional.',
+  icon: Icons.bedtime_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: TurnoDeNocheAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Buff de ruta que fuerza la rama diurna en el siguiente combate.
+const amanecerSinteticoAbility = BattlerAbility(
+  id: BattlerAbilityId.amanecerSintetico,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _cicloBuffAbilityTags,
+  name: 'Amanecer Sintetico',
+  description:
+      'Activacion manual en ruta. Hasta el final del proximo combate, tus efectos de Ciclo cuentan siempre como dia.',
+  icon: Icons.wb_sunny_rounded,
+  cooldownTurns: 4,
+  value: 1,
+  manualActivationContext: BattlerAbilityActivationContext.pathSelection,
+  effect: AmanecerSinteticoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Buff de ruta que fuerza la rama nocturna en el siguiente combate.
+const lunaArtificialAbility = BattlerAbility(
+  id: BattlerAbilityId.lunaArtificial,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _cicloBuffAbilityTags,
+  name: 'Luna Artificial',
+  description:
+      'Activacion manual en ruta. Hasta el final del proximo combate, tus efectos de Ciclo cuentan siempre como noche.',
+  icon: Icons.dark_mode_rounded,
+  cooldownTurns: 4,
+  value: 1,
+  manualActivationContext: BattlerAbilityActivationContext.pathSelection,
+  effect: LunaArtificialAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual de combate que abre un Eclipse completo durante pocos turnos.
+const eclipseManualAbility = BattlerAbility(
+  id: BattlerAbilityId.eclipseManual,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.yellow,
+  tags: _cicloBuffAbilityTags,
+  name: 'Eclipse Manual',
+  description:
+      'Activacion manual en combate. Durante unos turnos, tus efectos de Ciclo cuentan como dia y noche a la vez.',
+  icon: Icons.brightness_medium_rounded,
+  cooldownTurns: 4,
+  value: 1,
+  upgradeValue: 1,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: EclipseManualAbilityEffect(),
   isImplemented: true,
 );
 
@@ -63,6 +199,7 @@ const cruelCatalysisAbility = BattlerAbility(
 /// Preset manual que potencia un golpe y aplica Quemadura al propio usuario.
 const venousOverloadAbility = BattlerAbility(
   id: BattlerAbilityId.venousOverload,
+  archetypeAffinities: _imparableAbilityAffinities,
   tags: _ataqueQuemaduraAbilityTags,
   name: 'Sobrecarga venosa',
   description:
@@ -78,6 +215,7 @@ const venousOverloadAbility = BattlerAbility(
 /// Preset manual de ruta que purga debuffs purgables a cambio de vida.
 const hardResetAbility = BattlerAbility(
   id: BattlerAbilityId.hardReset,
+  archetypeAffinities: _inamovibleAbilityAffinities,
   tags: _vidaDebuffAbilityTags,
   name: 'Reinicio en seco',
   description:
@@ -93,6 +231,7 @@ const hardResetAbility = BattlerAbility(
 /// Preset pasivo economico que entrega creditos al comienzo de cada hora.
 const cashflowAbility = BattlerAbility(
   id: BattlerAbilityId.cashflow,
+  archetypeAffinities: _mercanteAbilityAffinities,
   rarity: RarityTier.green,
   tags: _economiaAbilityTags,
   name: 'Flujo de Caja',
@@ -107,6 +246,7 @@ const cashflowAbility = BattlerAbility(
 /// Preset pasivo de barrera minima al inicio de cada turno propio.
 const pulsoRepLAbility = BattlerAbility(
   id: BattlerAbilityId.pulsoRepL,
+  archetypeAffinities: _inamovibleAbilityAffinities,
   rarity: RarityTier.green,
   tags: _buffBarreraAbilityTags,
   name: 'Pulso REP-L',
@@ -154,6 +294,7 @@ const limpiezaCacheAbility = BattlerAbility(
 /// Preset pasivo amarillo que convierte debuffs enemigos en curacion.
 const hemostasiaAgresivaAbility = BattlerAbility(
   id: BattlerAbilityId.hemostasiaAgresiva,
+  archetypeAffinities: _imparableAbilityAffinities,
   rarity: RarityTier.yellow,
   tags: _vidaAtaqueAbilityTags,
   name: 'Hemostasia Agresiva',
@@ -169,6 +310,7 @@ const hemostasiaAgresivaAbility = BattlerAbility(
 /// Preset pasivo morado que refleja dano del primer impacto de cada turno.
 const mallaReboteAbility = BattlerAbility(
   id: BattlerAbilityId.mallaRebote,
+  archetypeAffinities: _inamovibleAbilityAffinities,
   rarity: RarityTier.purple,
   tags: _buffBarreraAbilityTags,
   name: 'Malla de Rebote',
@@ -184,6 +326,7 @@ const mallaReboteAbility = BattlerAbility(
 /// Preset manual de combate centrado en Intoxicacion acumulativa.
 const inyeccionCorrosivaAbility = BattlerAbility(
   id: BattlerAbilityId.inyeccionCorrosiva,
+  archetypeAffinities: _velozAbilityAffinities,
   rarity: RarityTier.green,
   tags: _intoxicacionDebuffAbilityTags,
   name: 'Inyeccion Corrosiva',
@@ -250,6 +393,7 @@ const jaulaSenalAbility = BattlerAbility(
 /// Preset pasivo que drena vida en el primer ataque de cada turno propio.
 const nucleoParasitarioAbility = BattlerAbility(
   id: BattlerAbilityId.nucleoParasitario,
+  archetypeAffinities: _imparableAbilityAffinities,
   rarity: RarityTier.purple,
   tags: _vidaAtaqueAbilityTags,
   name: 'Nucleo Parasitario',
@@ -265,6 +409,7 @@ const nucleoParasitarioAbility = BattlerAbility(
 /// Preset manual morado defensivo con contraataque reflejado.
 const espejoDolorAbility = BattlerAbility(
   id: BattlerAbilityId.espejoDolor,
+  archetypeAffinities: _inamovibleAbilityAffinities,
   rarity: RarityTier.purple,
   tags: _vidaBarreraAbilityTags,
   name: 'Espejo de Dolor',
@@ -282,6 +427,7 @@ const espejoDolorAbility = BattlerAbility(
 /// Preset manual verde que roba buffs activos del rival.
 const protocoloUsurpacionAbility = BattlerAbility(
   id: BattlerAbilityId.protocoloUsurpacion,
+  archetypeAffinities: _velozAbilityAffinities,
   rarity: RarityTier.green,
   tags: _buffDebuffAbilityTags,
   name: 'Protocolo de Usurpacion',
@@ -299,6 +445,7 @@ const protocoloUsurpacionAbility = BattlerAbility(
 /// Preset manual de ruta que paga creditos para rerolear nodos visibles.
 const refactorizacionTimelineAbility = BattlerAbility(
   id: BattlerAbilityId.refactorizacionTimeline,
+  archetypeAffinities: _mercanteAbilityAffinities,
   rarity: RarityTier.green,
   tags: _economiaAbilityTags,
   name: 'Refactorizacion de Timeline',
@@ -318,6 +465,13 @@ const abilityPresets = <BattlerAbility>[
   criticalScannerAbility,
   weaknessHunterAbility,
   ghostMeshAbility,
+  ritmoCircadianoAbility,
+  cambioDeGuardiaAbility,
+  toqueDeQuedaAbility,
+  turnoDeNocheAbility,
+  amanecerSinteticoAbility,
+  lunaArtificialAbility,
+  eclipseManualAbility,
   cruelCatalysisAbility,
   venousOverloadAbility,
   hardResetAbility,

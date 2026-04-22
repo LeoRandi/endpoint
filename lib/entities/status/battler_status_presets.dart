@@ -6,6 +6,9 @@ const calentandoStatus = CalentandoStatus();
 /// Preset rapido del buff Potencia con su bonus inicial.
 const potenciaStatus = PotenciaStatus();
 
+/// Preset rapido del buff de Eclipse Manual con su duracion base.
+const cicloEclipseStatus = CicloEclipseStatus();
+
 /// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
 const catalisisCruelStatus = CatalisisCruelStatus();
 
@@ -52,6 +55,14 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       PotenciaStatus(value: value),
+  BattlerStatusId.cicloEclipse: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      CicloEclipseStatus(
+        remainingTurns: remainingTurns,
+        value: value,
+      ),
   BattlerStatusId.quemadura: ({
     required int remainingTurns,
     required int value,
