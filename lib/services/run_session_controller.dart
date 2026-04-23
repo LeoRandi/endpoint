@@ -196,7 +196,10 @@ class RunSessionController extends ChangeNotifier {
   }
 
   void completeEventVisit(PathEventVisitResult result) {
-    _completeScene(updatedPlayer: result.player);
+    _completeScene(
+      updatedPlayer: result.player,
+      guaranteedNextNode: result.guaranteedNextNode,
+    );
   }
 
   void completeArchetypeSelection(Battler player) {
@@ -210,6 +213,7 @@ class RunSessionController extends ChangeNotifier {
   void _completeScene({
     required Battler updatedPlayer,
     RunCompletionType? forcedCompletionType,
+    PathNode? guaranteedNextNode,
   }) {
     final resolvedCompletionType = forcedCompletionType ??
         _resolveCompletionType(updatedPlayer: updatedPlayer);
@@ -244,6 +248,10 @@ class RunSessionController extends ChangeNotifier {
         nodeCount: _nodeCount,
       );
     }
+    nextHour = _injectGuaranteedNextNode(
+      hour: nextHour,
+      guaranteedNextNode: guaranteedNextNode,
+    );
 
     _state = _state.copyWith(
       player: nextPlayer,
@@ -255,6 +263,31 @@ class RunSessionController extends ChangeNotifier {
     _activeNode = null;
     notifyListeners();
     unawaited(_persistCurrentRun(trigger: 'exitNode'));
+  }
+
+  RunHourSnapshot _injectGuaranteedNextNode({
+    required RunHourSnapshot hour,
+    PathNode? guaranteedNextNode,
+  }) {
+    final guaranteedNode = guaranteedNextNode;
+    if (guaranteedNode == null || hour.nodes.isEmpty) {
+      return hour;
+    }
+    if (hour.nodes.any((node) => node.nodeId == guaranteedNode.nodeId)) {
+      return hour;
+    }
+
+    final updatedNodes = List<PathNode>.from(hour.nodes);
+    final replaceIndex = _randomizer.nextInt(updatedNodes.length);
+    updatedNodes[replaceIndex] = guaranteedNode;
+
+    return RunHourSnapshot(
+      stageIndex: hour.stageIndex,
+      phase: hour.phase,
+      title: hour.title,
+      subtitle: hour.subtitle,
+      nodes: List<PathNode>.unmodifiable(updatedNodes),
+    );
   }
 
   /// Entrega la XP del encuentro segun su rareza y deja fuera al boss amarillo final.

@@ -377,6 +377,28 @@ final sobreKarNode = EventPathNode(
   ],
 );
 
+/// Evento azul donde una mujer cromada ofrece asegurar un nodo futuro.
+final pasadizoSecretoNode = EventPathNode(
+  id: PathEventId.pasadizoSecreto,
+  nodeId: 'event_pasadizo_secreto',
+  label: 'Pasadizo Secreto',
+  tooltip: 'Ofrece forzar una oferta de tienda o evento por 10 creditos',
+  iconEmoji: '\u{1F9CA}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'TRATO',
+  showTitle: 'Pasadizo Secreto',
+  eventTitle: 'PASADIZO SECRETO',
+  description:
+      'Una mujer cromada te ofrece un trato: pagar 10C para asegurar una ruta concreta en la siguiente eleccion.',
+  outcomeText:
+      'Selecciona una tienda o evento, paga 10C y ese nodo aparecera en la siguiente tanda.',
+  flavorTexts: [
+    'Desde un callejon lateral, una mujer cromada de pies a cabeza te hace una senal con la mano.',
+    'Promete una via mas placentera si aceptas el trato y pones creditos sobre la mesa.',
+  ],
+);
+
 /// Tienda morada nocturna centrada en armas mas agresivas.
 final afterHoursArsenalNode = ShopPathNode(
   nodeId: 'shop_after_hours_arsenal',
@@ -553,6 +575,7 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
   shadyTechnosurgeonNode,
   blackTechnoMarketNode,
   sobreKarNode,
+  pasadizoSecretoNode,
   debtCollectionNode,
 ]);
 
@@ -574,6 +597,7 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
   blackTechnoMarketNode,
   shadyTechnosurgeonNode,
   sobreKarNode,
+  pasadizoSecretoNode,
   debtCollectionNode,
 ]);
 

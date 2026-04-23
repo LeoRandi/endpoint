@@ -121,13 +121,15 @@ IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
 -Añadir color a cada buzzword, y que se coloreen automático en textos?
 -Sistema de guardar dibujo en favorito + quick draw?
+--Se guarda por grupo de objetos equipado, y si se cambia el equipamiento se pierde y hay que volver a hacerlo
+--Se puede pegar en combate para cubrir tus bonuses, pero los malus se siguen teniendo que dibujar
+--Si no hay espacio para dibujar el favorito, no se añade y hay que hacerlo a mano
 
 -Objetos:
 --Manto del Eclipse: Su bonus de dibujo cambia entre triángulo y Cuadrado según si se ataca o se bloquea
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
---Pasadizo Secreto: A cambio de dinero, una mujer cromada te permite decidir uno de los nodos en la siguiente hora(te deja elegir uno entre 5 eventos, y ese aparecerá asegurado en la siguiente hora como nodo secundario(en los laterales). No puede salir este mismo evento en esa selección de 5)
 
 ////////////////////////////////
 

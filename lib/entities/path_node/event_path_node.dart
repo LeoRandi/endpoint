@@ -5,6 +5,7 @@ enum PathEventId {
   shadyTechnosurgeon,
   afterHoursTechnosurgeon,
   blackTechnoMarket,
+  pasadizoSecreto,
   debtCollection,
   sobreKar,
 }

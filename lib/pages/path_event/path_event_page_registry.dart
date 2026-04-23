@@ -3,6 +3,7 @@ import '../../services/_exports.dart';
 import 'package:flutter/widgets.dart';
 
 import 'black_techno_market_event_page.dart';
+import 'secret_path_event_page.dart';
 import 'path_event_page.dart';
 import 'sobre_kar_event_page.dart';
 import 'technosurgeon_event_page.dart';
@@ -19,6 +20,7 @@ final pathEventPageBuilderById =
   PathEventId.shadyTechnosurgeon: _buildTechnosurgeonEventPage,
   PathEventId.afterHoursTechnosurgeon: _buildTechnosurgeonEventPage,
   PathEventId.blackTechnoMarket: _buildBlackTechnoMarketEventPage,
+  PathEventId.pasadizoSecreto: _buildPasadizoSecretoEventPage,
   PathEventId.sobreKar: _buildSobreKarEventPage,
   PathEventId.debtCollection: _buildDefaultPathEventPage,
 });
@@ -63,6 +65,20 @@ Widget _buildBlackTechnoMarketEventPage({
   required PathEventService eventService,
 }) {
   return BlackTechnoMarketEventPage(
+    player: player,
+    node: node,
+    randomizer: randomizer,
+    eventService: eventService,
+  );
+}
+
+Widget _buildPasadizoSecretoEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+}) {
+  return SecretPassageEventPage(
     player: player,
     node: node,
     randomizer: randomizer,

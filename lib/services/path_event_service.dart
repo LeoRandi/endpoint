@@ -40,6 +40,10 @@ final pathEventDefinitionById =
     canAppear: _canAppearForBlackTechnoMarket,
     visit: _visitDefaultPathEvent,
   ),
+  PathEventId.pasadizoSecreto: PathEventDefinition(
+    canAppear: _canAppearForPasadizoSecreto,
+    visit: _visitDefaultPathEvent,
+  ),
   PathEventId.sobreKar: PathEventDefinition(
     canAppear: _canAppearForSobreKar,
     visit: _visitDefaultPathEvent,
@@ -221,6 +225,52 @@ class PathEventService {
     );
   }
 
+  List<PathNode> buildSecretPassageOffers({
+    required RunRandomizer randomizer,
+    int count = 5,
+  }) {
+    final offerPool = allPathNodes
+        .where(_isPasadizoSecretoOfferCandidate)
+        .toList(growable: false);
+    if (count <= 0 || offerPool.isEmpty) {
+      return const <PathNode>[];
+    }
+
+    return List<PathNode>.unmodifiable(
+      randomizer.pickDistinct(offerPool, count),
+    );
+  }
+
+  int get pasadizoSecretoDealCost => 10;
+
+  PathEventVisitResult resolvePasadizoSecretoDeal({
+    required Battler player,
+    required PathNode selectedNode,
+  }) {
+    if (!_isPasadizoSecretoOfferCandidate(selectedNode)) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'El trato no puede cerrarse con ese nodo.',
+      );
+    }
+
+    final price = pasadizoSecretoDealCost;
+    if (!player.canAfford(price)) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'No tienes creditos suficientes para cerrar el trato.',
+      );
+    }
+
+    final updatedPlayer = player.spendMoney(price);
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Pagas ${price}C. En la siguiente eleccion aparecera ${selectedNode.label}.',
+      guaranteedNextNode: selectedNode,
+    );
+  }
+
   PathEventVisitResult _resolveDebtCollection(Battler player) {
     final debtStatus = player.statusById(DeudaStatus.statusId);
     if (debtStatus is! DeudaStatus) {
@@ -364,6 +414,17 @@ class PathEventService {
     return promotedAbility.copyWith(rarity: targetRarity);
   }
 
+  bool _isPasadizoSecretoOfferCandidate(PathNode node) {
+    if (node is ShopPathNode) {
+      return true;
+    }
+    if (node is EventPathNode) {
+      return node.id != PathEventId.pasadizoSecreto;
+    }
+
+    return false;
+  }
+
   bool _isSobreKarItemEligible(Item item) {
     return item.canUpgrade && item.rarity != RarityTier.yellow;
   }
@@ -481,6 +542,14 @@ bool _canAppearForBlackTechnoMarket(
     final ownedAbility = player.abilityById(ability.id);
     return ownedAbility == null || ownedAbility.canUpgrade;
   });
+}
+
+bool _canAppearForPasadizoSecreto(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return allPathNodes.any(service._isPasadizoSecretoOfferCandidate);
 }
 
 bool _canAppearForSobreKar(
