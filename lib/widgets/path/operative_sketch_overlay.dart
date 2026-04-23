@@ -558,6 +558,37 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
                                 ),
                               ),
                             ),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 12,
+                              child: Center(
+                                child: EndpointActionButton(
+                                  label: 'QUICK DRAW',
+                                  icon: Icons.auto_awesome_rounded,
+                                  onPressed:
+                                      _canUseQuickDraw
+                                          ? _handleQuickDrawPressed
+                                          : null,
+                                  tooltip: _canUseQuickDraw
+                                      ? 'Pegar runa precargada en el centro'
+                                      : 'No hay runa precargada',
+                                  accent: EndpointPalette.infoAccent,
+                                  backgroundColor: EndpointPalette.blend(
+                                    EndpointPalette.panelBackgroundBattle,
+                                    EndpointPalette.infoAccent,
+                                    _canUseQuickDraw ? 0.18 : 0.05,
+                                  ),
+                                  foregroundColor: _canUseQuickDraw
+                                      ? EndpointPalette.softForegroundWarm
+                                      : EndpointPalette.softForeground,
+                                  borderRadius: 999,
+                                  borderWidth: 1.4,
+                                  height: 34,
+                                  useMarquee: false,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -628,28 +659,6 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
                     0.1,
                   ),
                   foregroundColor: EndpointPalette.softForegroundWarm,
-                  height: 44,
-                  useMarquee: false,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: EndpointActionButton(
-                  label: 'QUICK DRAW',
-                  icon: Icons.auto_awesome_rounded,
-                  onPressed: _canUseQuickDraw ? _handleQuickDrawPressed : null,
-                  tooltip: _canUseQuickDraw
-                      ? 'Pegar runa precargada en el centro'
-                      : 'No hay runa precargada',
-                  accent: EndpointPalette.infoAccent,
-                  backgroundColor: EndpointPalette.blend(
-                    EndpointPalette.panelBackground,
-                    EndpointPalette.infoAccent,
-                    _canUseQuickDraw ? 0.16 : 0.06,
-                  ),
-                  foregroundColor: _canUseQuickDraw
-                      ? EndpointPalette.softForegroundWarm
-                      : EndpointPalette.softForeground,
                   height: 44,
                   useMarquee: false,
                 ),
