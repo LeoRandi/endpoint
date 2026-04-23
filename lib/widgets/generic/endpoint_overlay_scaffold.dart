@@ -14,6 +14,7 @@ class EndpointOverlayScaffold extends StatelessWidget {
   final double bottomInset;
   final double maxWidth;
   final double maxHeight;
+  final Widget? headerContent;
   final Widget child;
 
   const EndpointOverlayScaffold({
@@ -32,6 +33,7 @@ class EndpointOverlayScaffold extends StatelessWidget {
     this.bottomInset = 112,
     this.maxWidth = 420,
     this.maxHeight = 360,
+    this.headerContent,
   });
 
   @override
@@ -68,26 +70,27 @@ class EndpointOverlayScaffold extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              EndpointText(
-                                title,
-                                style: textTitleMediumBold.copyWith(
-                                  color: EndpointPalette.softForeground,
-                                  letterSpacing: 1.8,
-                                ),
+                          child: headerContent ??
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  EndpointText(
+                                    title,
+                                    style: textTitleMediumBold.copyWith(
+                                      color: EndpointPalette.softForeground,
+                                      letterSpacing: 1.8,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  EndpointText(
+                                    subtitle,
+                                    style: textSmallBold.copyWith(
+                                      color: Colors.white.withOpacity(0.72),
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              EndpointText(
-                                subtitle,
-                                style: textSmallBold.copyWith(
-                                  color: Colors.white.withOpacity(0.72),
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                         if (showCloseButton)
                           EndpointSceneCloseButton(

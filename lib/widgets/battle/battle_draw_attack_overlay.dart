@@ -28,6 +28,7 @@ class BattleDrawAttackOverlay extends StatefulWidget {
   final Battler defender;
   final int playerInitialBarrier;
   final RunRandomizer randomizer;
+  final bool isQuickDrawAvailable;
 
   const BattleDrawAttackOverlay({
     super.key,
@@ -35,6 +36,7 @@ class BattleDrawAttackOverlay extends StatefulWidget {
     required this.defender,
     required this.playerInitialBarrier,
     required this.randomizer,
+    required this.isQuickDrawAvailable,
   });
 
   @override
@@ -79,6 +81,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
   Size? _canvasSize;
   int _nextBrushColorIndex = 0;
   bool _isSubmitting = false;
+  bool _hasConsumedQuickDraw = false;
   late final BattleDrawingBonusResolution _baseBonusResolution;
   OperativeSketchRecognitionResult _lastRecognitionResult =
       _emptyRecognitionResult;
@@ -199,16 +202,61 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     _runRecognitionScan(showFeedback: true);
   }
 
+  bool get _canUseQuickDraw {
+    return widget.isQuickDrawAvailable &&
+        !_hasConsumedQuickDraw &&
+        PreparedSketchRuneStore.hasPreparedRune;
+  }
+
+  void _handleQuickDrawPressed() {
+    final canvasSize = _canvasSize;
+    if (canvasSize == null || canvasSize.isEmpty || !_canUseQuickDraw) {
+      return;
+    }
+
+    final preparedStrokes = PreparedSketchRuneStore.clonePreparedStrokes();
+    if (preparedStrokes.isEmpty) {
+      return;
+    }
+
+    _feedbackController.dismiss();
+    if (_sketchController.pasteStrokesCentered(
+      sourceStrokes: preparedStrokes,
+      canvasSize: canvasSize,
+    )) {
+      _invalidatePreview();
+      _feedbackController.show(
+        label: 'QUICK DRAW',
+        color: EndpointPalette.infoAccent,
+      );
+      setState(() {
+        _hasConsumedQuickDraw = true;
+      });
+    }
+  }
+
   Future<void> _submitAttack({required bool autoTriggered}) async {
     if (_isSubmitting) return;
 
     final resolution = _runRecognitionScan(showFeedback: !autoTriggered);
+    final overlayResult = BattleDrawOverlayResult(
+      resolution: resolution,
+      consumedQuickDraw: _hasConsumedQuickDraw,
+      achievedPerfect: _isPerfectResolution(resolution),
+    );
     setState(() {
       _isSubmitting = true;
     });
 
     if (!mounted) return;
-    Navigator.of(context).pop(resolution);
+    Navigator.of(context).pop(overlayResult);
+  }
+
+  bool _isPerfectResolution(BattleDrawingBonusResolution resolution) {
+    final hasNeutralizedAllNuisances = !resolution.hasTriggeredNuisances;
+    final hasActivatedAllBonuses =
+        resolution.activatedItems.length >= _bonusItems.length;
+    return hasNeutralizedAllNuisances && hasActivatedAllBonuses;
   }
 
   BattleDrawingBonusResolution _runRecognitionScan({
@@ -415,6 +463,36 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
                                       lifetime: _battleSketchFeedbackLifetime,
                                     ),
                                   ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 12,
+                              child: Center(
+                                child: EndpointActionButton(
+                                  label: 'QUICK DRAW',
+                                  icon: Icons.auto_awesome_rounded,
+                                  onPressed: _isSubmitting || !_canUseQuickDraw
+                                      ? null
+                                      : _handleQuickDrawPressed,
+                                  tooltip: _canUseQuickDraw
+                                      ? 'Pegar runa precargada en el centro'
+                                      : 'Quick Draw inactivo',
+                                  accent: EndpointPalette.infoAccent,
+                                  backgroundColor: EndpointPalette.blend(
+                                    EndpointPalette.panelBackgroundBattle,
+                                    EndpointPalette.infoAccent,
+                                    _canUseQuickDraw ? 0.18 : 0.05,
+                                  ),
+                                  foregroundColor: _canUseQuickDraw
+                                      ? EndpointPalette.softForegroundWarm
+                                      : EndpointPalette.softForeground,
+                                  borderRadius: 999,
+                                  borderWidth: 1.4,
+                                  height: 34,
+                                  useMarquee: false,
                                 ),
                               ),
                             ),

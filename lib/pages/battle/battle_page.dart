@@ -39,6 +39,7 @@ class _BattlePageState extends State<BattlePage> {
   EndpointSettingsSnapshot? _settingsSnapshot;
   bool _isPresentingDrawAttack = false;
   bool _isPresentingDrawDefense = false;
+  bool _isQuickDrawAvailable = true;
 
   @override
   void initState() {
@@ -168,8 +169,7 @@ class _BattlePageState extends State<BattlePage> {
     });
 
     try {
-      final resolution =
-          await showEndpointOverlay<BattleDrawingBonusResolution>(
+      final drawResult = await showEndpointOverlay<BattleDrawOverlayResult>(
         context: context,
         barrierDismissible: false,
         barrierColor: EndpointPalette.overlayScrimStrong,
@@ -178,14 +178,16 @@ class _BattlePageState extends State<BattlePage> {
           defender: _sceneController.enemy,
           playerInitialBarrier: _sceneController.playerInitialBarrier,
           randomizer: _sceneController.randomizer,
+          isQuickDrawAvailable: _isQuickDrawAvailable,
         ),
       );
-      if (!mounted || resolution == null) return;
+      if (!mounted || drawResult == null) return;
 
       _sceneController.handlePlayerAttack(
-        drawingBonus: resolution.bonus,
-        drawingPenalty: resolution.penalty,
+        drawingBonus: drawResult.resolution.bonus,
+        drawingPenalty: drawResult.resolution.penalty,
       );
+      _syncQuickDrawState(drawResult);
     } finally {
       if (mounted) {
         setState(() {
@@ -214,8 +216,7 @@ class _BattlePageState extends State<BattlePage> {
     });
 
     try {
-      final resolution =
-          await showEndpointOverlay<BattleDrawingBonusResolution>(
+      final drawResult = await showEndpointOverlay<BattleDrawOverlayResult>(
         context: context,
         barrierDismissible: false,
         barrierColor: EndpointPalette.overlayScrimStrong,
@@ -224,14 +225,16 @@ class _BattlePageState extends State<BattlePage> {
           attacker: _sceneController.enemy,
           playerInitialBarrier: _sceneController.playerInitialBarrier,
           randomizer: _sceneController.randomizer,
+          isQuickDrawAvailable: _isQuickDrawAvailable,
         ),
       );
-      if (!mounted || resolution == null) return;
+      if (!mounted || drawResult == null) return;
 
       _sceneController.handlePlayerBlock(
-        drawingBonus: resolution.bonus,
-        drawingPenalty: resolution.penalty,
+        drawingBonus: drawResult.resolution.bonus,
+        drawingPenalty: drawResult.resolution.penalty,
       );
+      _syncQuickDrawState(drawResult);
     } finally {
       if (mounted) {
         setState(() {
@@ -254,6 +257,26 @@ class _BattlePageState extends State<BattlePage> {
     if (exitResult != null) {
       _completeBattleExit(exitResult);
     }
+  }
+
+  void _syncQuickDrawState(BattleDrawOverlayResult drawResult) {
+    var shouldNotify = false;
+    var nextValue = _isQuickDrawAvailable;
+    if (drawResult.consumedQuickDraw) {
+      nextValue = false;
+      shouldNotify = true;
+    }
+    if (drawResult.achievedPerfect) {
+      nextValue = true;
+      shouldNotify = true;
+    }
+
+    if (!mounted || !shouldNotify || nextValue == _isQuickDrawAvailable) {
+      return;
+    }
+    setState(() {
+      _isQuickDrawAvailable = nextValue;
+    });
   }
 
   Future<void> _handleOpenEquippedItemDetails(

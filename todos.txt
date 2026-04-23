@@ -11,8 +11,13 @@
 [---Tijera]
 ---Espiral
 ---"F" inversa
---Añadir herramienta "mover", que coge todo el trazo unido al seleccionado y lo mueve a lo largo del canvas
+[--Añadir herramienta "mover", que coge todo el trazo unido al seleccionado y lo mueve a lo largo del canvas]
 --Cambiar diseño/UI del overlay del canvas, y hacer más grande dicho overlay
+--Sistema de guardar dibujo en favorito + quick draw
+---Se guarda por grupo de objetos equipado, y si se cambia el equipamiento se pierde y hay que volver a hacerlo
+---Se puede pegar en combate para cubrir tus bonuses, pero los malus se siguen teniendo que dibujar
+---Si no hay espacio para dibujar el favorito, no se añade y hay que hacerlo a mano
+---Contador de tiempo para dibujar, desde 0, el dibujo favorito.
 
 [-Economía]
 [--Bajar Income base a la mitad o algo]
@@ -27,7 +32,7 @@
 -Página de Selección de Camino
 [--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
 [--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
---Aplicar el efecto día/noche a diferentes objetos y habilidades
+[--Aplicar el efecto día/noche a diferentes objetos y habilidades][Tag CICLO]
 
 -Sistema de acompañantes
 --Implementar
@@ -111,6 +116,7 @@ ARREGLAR:
 -El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
 -El botón de tutorial del menú principal no funciona
 -La row de inventario en la pantalla del inventario no es un singleScrollChild, se puede hacer overflow
+-En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña
 
 ////
 PROBAR:
@@ -120,10 +126,6 @@ PROBAR:
 IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
 -Añadir color a cada buzzword, y que se coloreen automático en textos?
--Sistema de guardar dibujo en favorito + quick draw?
---Se guarda por grupo de objetos equipado, y si se cambia el equipamiento se pierde y hay que volver a hacerlo
---Se puede pegar en combate para cubrir tus bonuses, pero los malus se siguen teniendo que dibujar
---Si no hay espacio para dibujar el favorito, no se añade y hay que hacerlo a mano
 
 -Objetos:
 --Manto del Eclipse: Su bonus de dibujo cambia entre triángulo y Cuadrado según si se ataca o se bloquea

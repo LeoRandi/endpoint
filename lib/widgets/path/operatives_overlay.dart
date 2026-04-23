@@ -118,10 +118,10 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                 item,
                 canUnequip,
               )
-                      ? () {
-                          _controller.handleUnequipItem(item);
-                        }
-                      : null,
+                  ? () {
+                      _controller.handleUnequipItem(item);
+                    }
+                  : null,
               isActionEnabled: _controller.isUnequipEnabled(
                 detailBattler,
                 item,
@@ -303,7 +303,9 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
       context: context,
       barrierLabel: 'Abrir lienzo operativo',
       barrierColor: EndpointPalette.overlayScrimStrong,
-      builder: (_) => const OperativeSketchOverlay(),
+      builder: (_) => OperativeSketchOverlay(
+        player: _controller.player,
+      ),
     );
   }
 }

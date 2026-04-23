@@ -1,15 +1,18 @@
 import '../_imports.dart';
-import 'endpoint_sketch_canvas_controller.dart';
 
 /// Pinta el fondo granular del lienzo y los trazos persistentes activos del usuario.
 class EndpointSketchPainter extends CustomPainter {
   final List<EndpointSketchStroke> strokes;
   final List<EndpointSketchNoiseDot> noiseDots;
+  final Set<int> selectedStrokeIds;
+  final bool hasLiftedSelection;
 
   /// Recibe los trazos visibles y el ruido precomputado necesarios para el canvas.
   const EndpointSketchPainter({
     required this.strokes,
     required this.noiseDots,
+    this.selectedStrokeIds = const <int>{},
+    this.hasLiftedSelection = false,
   });
 
   /// Dibuja el fondo oscuro del lienzo, el grano y las lineas activas del usuario.
@@ -62,12 +65,29 @@ class EndpointSketchPainter extends CustomPainter {
     }
 
     for (final stroke in strokes) {
-      _paintStroke(canvas, stroke);
+      _paintStroke(
+        canvas,
+        stroke,
+        isSelected: selectedStrokeIds.contains(stroke.id),
+      );
     }
   }
 
   /// Pinta un trazo con un halo suave y un nucleo mas intenso para que destaque.
-  void _paintStroke(Canvas canvas, EndpointSketchStroke stroke) {
+  void _paintStroke(
+    Canvas canvas,
+    EndpointSketchStroke stroke, {
+    required bool isSelected,
+  }) {
+    final selectionPaint = Paint()
+      ..color = EndpointPalette.softForegroundWarm.withValues(
+        alpha: isSelected ? (hasLiftedSelection ? 0.54 : 0.44) : 0,
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..strokeWidth = hasLiftedSelection ? 12 : 10
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
     final glowPaint = Paint()
       ..color = stroke.color.withValues(alpha: 0.28)
       ..style = PaintingStyle.stroke
@@ -84,6 +104,13 @@ class EndpointSketchPainter extends CustomPainter {
 
     if (stroke.points.length < 2) {
       final point = stroke.points.first;
+      if (isSelected) {
+        canvas.drawCircle(
+          point,
+          hasLiftedSelection ? 8.6 : 7.6,
+          selectionPaint..style = PaintingStyle.fill,
+        );
+      }
       canvas.drawCircle(point, 5.2, glowPaint..style = PaintingStyle.fill);
       canvas.drawCircle(point, 2.8, corePaint..style = PaintingStyle.fill);
       return;
@@ -107,6 +134,9 @@ class EndpointSketchPainter extends CustomPainter {
     final lastPoint = stroke.points.last;
     path.lineTo(lastPoint.dx, lastPoint.dy);
 
+    if (isSelected) {
+      canvas.drawPath(path, selectionPaint);
+    }
     canvas.drawPath(path, glowPaint);
     canvas.drawPath(path, corePaint);
   }
