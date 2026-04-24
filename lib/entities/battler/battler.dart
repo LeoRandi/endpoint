@@ -77,6 +77,56 @@ enum BattlerLevelReward {
   health,
 }
 
+/// Identifica que tipo de eleccion concreta resuelve una subida de nivel.
+enum BattlerLevelRewardChoiceType {
+  stat,
+  ability,
+  item,
+}
+
+/// Describe una opcion seleccionable de subida de nivel.
+class BattlerLevelRewardChoice {
+  final BattlerLevelRewardChoiceType type;
+  final BattlerLevelReward? statReward;
+  final BattlerAbility? ability;
+  final Item? item;
+
+  const BattlerLevelRewardChoice.stat(BattlerLevelReward reward)
+      : type = BattlerLevelRewardChoiceType.stat,
+        statReward = reward,
+        ability = null,
+        item = null;
+
+  const BattlerLevelRewardChoice.ability(BattlerAbility reward)
+      : type = BattlerLevelRewardChoiceType.ability,
+        statReward = null,
+        ability = reward,
+        item = null;
+
+  const BattlerLevelRewardChoice.item(Item reward)
+      : type = BattlerLevelRewardChoiceType.item,
+        statReward = null,
+        ability = null,
+        item = reward;
+
+  RarityTier? get rarity => ability?.rarity ?? item?.rarity;
+}
+
+/// Agrupa las opciones ya tiradas para una subida de nivel concreta.
+class BattlerLevelRewardOffer {
+  final int nextLevel;
+  final BattlerLevelRewardChoiceType type;
+  final RarityTier? rarity;
+  final List<BattlerLevelRewardChoice> choices;
+
+  const BattlerLevelRewardOffer({
+    required this.nextLevel,
+    required this.type,
+    required this.choices,
+    this.rarity,
+  });
+}
+
 /// Enumera las flags globales del runtime de combate del battler.
 enum BattlerCombatFlag {
   combatActive,

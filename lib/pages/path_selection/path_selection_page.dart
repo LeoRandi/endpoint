@@ -37,6 +37,7 @@ class PathSelectionPage extends StatefulWidget {
 class _PathSelectionPageState extends State<PathSelectionPage> {
   static const _abilitiesBottomInset = 164.0;
   static const _flowCoordinator = RunNodeFlowCoordinator();
+  static const _levelUpRewardService = LevelUpRewardService();
 
   late final RunSessionController _sessionController;
   bool _isPresentingRunOutcome = false;
@@ -58,7 +59,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             snapshot: widget.restoredRun!,
           );
 
-    if (_sessionController.isResolvingNode && _sessionController.activeNode != null) {
+    if (_sessionController.isResolvingNode &&
+        _sessionController.activeNode != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(_resumeSavedNodeIfNeeded());
       });
@@ -135,17 +137,25 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   }
 
   Future<void> _handleOpenLevelUp() async {
-    if (_sessionController.isRunComplete || !_sessionController.player.canLevelUp) {
+    if (_sessionController.isRunComplete ||
+        !_sessionController.player.canLevelUp) {
       return;
     }
 
     final player = _sessionController.player;
-    final reward = await showEndpointDialog<BattlerLevelReward>(
+    final offer = _levelUpRewardService.buildOffer(
+      player: player,
+      randomizer: _sessionController.randomizer,
+    );
+    final reward = await showEndpointDialog<BattlerLevelRewardChoice>(
       context: context,
       barrierLabel: 'Seleccionar recompensa de nivel',
       barrierDismissible: false,
       barrierColor: EndpointPalette.overlayScrimStrong,
-      builder: (context) => LevelUpRewardDialog(player: player),
+      builder: (context) => LevelUpRewardDialog(
+        player: player,
+        offer: offer,
+      ),
     );
     if (!mounted || reward == null) return;
 
@@ -197,7 +207,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             final currentHour = _sessionController.currentHour;
             final isOpeningNode = _sessionController.isResolvingNode;
             final hasEndedRun = _sessionController.isRunComplete;
-            final canOpenLevelUp = player.canLevelUp && !isOpeningNode && !hasEndedRun;
+            final canOpenLevelUp =
+                player.canLevelUp && !isOpeningNode && !hasEndedRun;
 
             return Stack(
               fit: StackFit.expand,
@@ -459,7 +470,8 @@ class _PathLevelUpAvatarButton extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: EndpointPalette.rewardAccent.withValues(alpha: 0.14),
+                      color:
+                          EndpointPalette.rewardAccent.withValues(alpha: 0.14),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),

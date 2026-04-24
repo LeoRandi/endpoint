@@ -3,24 +3,24 @@ import '../_imports.dart';
 /// Fuerza a resolver la recompensa de nivel antes de volver a la pantalla de ruta.
 class LevelUpRewardDialog extends StatelessWidget {
   final Battler player;
+  final BattlerLevelRewardOffer offer;
 
-  /// Recibe el jugador actual para pintar el salto de stats y las recompensas posibles.
+  /// Recibe el jugador actual y la oferta ya tirada para esta subida.
   const LevelUpRewardDialog({
     super.key,
     required this.player,
+    required this.offer,
   });
 
   @override
   Widget build(BuildContext context) {
-    final nextLevel = min(Battler.maximumLevel, player.level + 1);
-
     return PopScope(
       canPop: false,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: const BoxConstraints(maxWidth: 430),
             child: EndpointPanel(
               accent: EndpointPalette.rewardAccent,
               backgroundColor: EndpointPalette.panelBackgroundBattleOpaque,
@@ -41,7 +41,7 @@ class LevelUpRewardDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   EndpointText(
-                    'Nivel ${player.level} -> $nextLevel',
+                    'Nivel ${player.level} -> ${offer.nextLevel}',
                     style: textMediumBold.copyWith(
                       color: EndpointPalette.rewardAccent,
                       letterSpacing: 1.2,
@@ -62,39 +62,22 @@ class LevelUpRewardDialog extends StatelessWidget {
                   const _LevelUpStatPreviewRow(),
                   const SizedBox(height: 14),
                   EndpointText(
-                    'ELIGE UNA RECOMPENSA EXTRA',
+                    _sectionTitle,
                     style: textSmallBold.copyWith(
-                      color: EndpointPalette.rewardAccent,
+                      color: _sectionAccent,
                       letterSpacing: 1.5,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const _LevelUpRewardCard(
-                    reward: BattlerLevelReward.income,
-                    title: '+1 INCOME',
-                    description:
-                        'Aumenta el income base permanente del operativo.',
-                    accent: EndpointPalette.infoAccent,
-                    icon: Icons.trending_up_rounded,
-                  ),
-                  const SizedBox(height: 10),
-                  const _LevelUpRewardCard(
-                    reward: BattlerLevelReward.attack,
-                    title: '+1 ATK EXTRA',
-                    description:
-                        'Suma un punto de ataque adicional al bonus base del nivel.',
-                    accent: EndpointPalette.dangerAccent,
-                    icon: Icons.flash_on_rounded,
-                  ),
-                  const SizedBox(height: 10),
-                  const _LevelUpRewardCard(
-                    reward: BattlerLevelReward.health,
-                    title: '+10 VIDA EXTRA',
-                    description:
-                        'Suma diez puntos mas de vida maxima sobre el bonus base del nivel.',
-                    accent: EndpointPalette.primaryAccent,
-                    icon: Icons.favorite_rounded,
-                  ),
+                  for (var index = 0;
+                      index < offer.choices.length;
+                      index++) ...[
+                    if (index > 0) const SizedBox(height: 10),
+                    _LevelUpRewardCard(
+                      player: player,
+                      choice: offer.choices[index],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -103,6 +86,20 @@ class LevelUpRewardDialog extends StatelessWidget {
       ),
     );
   }
+
+  String get _sectionTitle {
+    switch (offer.type) {
+      case BattlerLevelRewardChoiceType.stat:
+        return 'ELIGE UNA RECOMPENSA EXTRA';
+      case BattlerLevelRewardChoiceType.ability:
+        return 'ELIGE UNA HABILIDAD ${offer.rarity?.label ?? ''}'.trim();
+      case BattlerLevelRewardChoiceType.item:
+        return 'ELIGE UN OBJETO ${offer.rarity?.label ?? ''}'.trim();
+    }
+  }
+
+  Color get _sectionAccent =>
+      offer.rarity?.accent ?? EndpointPalette.rewardAccent;
 }
 
 /// Resume las mejoras base fijas de cualquier subida de nivel antes de la recompensa elegida.
@@ -134,27 +131,22 @@ class _LevelUpStatPreviewRow extends StatelessWidget {
 
 /// Pinta una accion seleccionable que devuelve al caller la recompensa elegida.
 class _LevelUpRewardCard extends StatelessWidget {
-  final BattlerLevelReward reward;
-  final String title;
-  final String description;
-  final Color accent;
-  final IconData icon;
+  final Battler player;
+  final BattlerLevelRewardChoice choice;
 
-  /// Recibe la metadata visible necesaria para describir una recompensa concreta.
   const _LevelUpRewardCard({
-    required this.reward,
-    required this.title,
-    required this.description,
-    required this.accent,
-    required this.icon,
+    required this.player,
+    required this.choice,
   });
 
   @override
   Widget build(BuildContext context) {
+    final accent = _accent;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => Navigator.of(context).pop(reward),
+        onTap: () => Navigator.of(context).pop(choice),
         borderRadius: BorderRadius.circular(16),
         child: EndpointPanel(
           accent: accent,
@@ -164,18 +156,9 @@ class _LevelUpRewardCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
           child: Row(
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: accent.withValues(alpha: 0.56),
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Icon(icon, color: accent, size: 22),
+              _LevelUpChoiceLead(
+                choice: choice,
+                accent: accent,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -183,7 +166,9 @@ class _LevelUpRewardCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     EndpointText(
-                      title,
+                      _title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: textMediumBold.copyWith(
                         color: EndpointPalette.softForeground,
                         letterSpacing: 1,
@@ -191,12 +176,24 @@ class _LevelUpRewardCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     EndpointText(
-                      description,
-                      maxLines: null,
+                      _description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: textSmall.copyWith(
                         color: EndpointPalette.softForeground.withValues(
                           alpha: 0.74,
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    EndpointText(
+                      _meta,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textSmallBold.copyWith(
+                        color: accent,
+                        fontSize: 10,
+                        letterSpacing: 1.1,
                       ),
                     ),
                   ],
@@ -207,6 +204,159 @@ class _LevelUpRewardCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color get _accent {
+    final statReward = choice.statReward;
+    if (statReward != null) return _statAccent(statReward);
+
+    return choice.rarity?.accent ?? EndpointPalette.rewardAccent;
+  }
+
+  String get _title {
+    final statReward = choice.statReward;
+    if (statReward != null) return _statTitle(statReward);
+
+    final ability = choice.ability;
+    if (ability != null) return ability.displayName;
+
+    return choice.item?.displayName ?? 'Recompensa';
+  }
+
+  String get _description {
+    final statReward = choice.statReward;
+    if (statReward != null) return _statDescription(statReward);
+
+    final ability = choice.ability;
+    if (ability != null) return ability.description;
+
+    return choice.item?.tooltipDescription ?? '';
+  }
+
+  String get _meta {
+    final statReward = choice.statReward;
+    if (statReward != null) return _statMeta(statReward);
+
+    final ability = choice.ability;
+    if (ability != null) {
+      final status = player.wouldUpgradeAbility(ability) ? 'MEJORA' : 'NUEVA';
+      return '$status | ${ability.rarity.label} | VALOR ${ability.currentValue}';
+    }
+
+    final item = choice.item;
+    if (item != null) {
+      final status = player.wouldUpgradeItem(item) ? 'MEJORA' : 'NUEVO';
+      return '$status | ${item.rarity.label} | VENTA ${item.sellValue}C';
+    }
+
+    return '';
+  }
+
+  Color _statAccent(BattlerLevelReward reward) {
+    switch (reward) {
+      case BattlerLevelReward.income:
+        return EndpointPalette.infoAccent;
+      case BattlerLevelReward.attack:
+        return EndpointPalette.dangerAccent;
+      case BattlerLevelReward.health:
+        return EndpointPalette.primaryAccent;
+    }
+  }
+
+  String _statTitle(BattlerLevelReward reward) {
+    switch (reward) {
+      case BattlerLevelReward.income:
+        return '+1 INCOME';
+      case BattlerLevelReward.attack:
+        return '+1 ATK EXTRA';
+      case BattlerLevelReward.health:
+        return '+10 VIDA EXTRA';
+    }
+  }
+
+  String _statDescription(BattlerLevelReward reward) {
+    switch (reward) {
+      case BattlerLevelReward.income:
+        return 'Aumenta el income base permanente del operativo.';
+      case BattlerLevelReward.attack:
+        return 'Suma un punto de ataque adicional al bonus base del nivel.';
+      case BattlerLevelReward.health:
+        return 'Suma diez puntos mas de vida maxima sobre el bonus base del nivel.';
+    }
+  }
+
+  String _statMeta(BattlerLevelReward reward) {
+    switch (reward) {
+      case BattlerLevelReward.income:
+        return 'STATS | ECONOMIA';
+      case BattlerLevelReward.attack:
+        return 'STATS | ATAQUE';
+      case BattlerLevelReward.health:
+        return 'STATS | VIDA';
+    }
+  }
+}
+
+class _LevelUpChoiceLead extends StatelessWidget {
+  final BattlerLevelRewardChoice choice;
+  final Color accent;
+
+  const _LevelUpChoiceLead({
+    required this.choice,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.56),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: _buildLead(),
+    );
+  }
+
+  Widget _buildLead() {
+    final statReward = choice.statReward;
+    if (statReward != null) {
+      return Icon(_statIcon(statReward), color: accent, size: 22);
+    }
+
+    final ability = choice.ability;
+    if (ability != null) {
+      return Icon(ability.icon, color: accent, size: 22);
+    }
+
+    final item = choice.item;
+    if (item != null) {
+      return EndpointText(
+        item.iconEmoji,
+        style: const TextStyle(
+          fontSize: 20,
+          height: 1,
+        ),
+      );
+    }
+
+    return Icon(Icons.redeem_rounded, color: accent, size: 22);
+  }
+
+  IconData _statIcon(BattlerLevelReward reward) {
+    switch (reward) {
+      case BattlerLevelReward.income:
+        return Icons.trending_up_rounded;
+      case BattlerLevelReward.attack:
+        return Icons.flash_on_rounded;
+      case BattlerLevelReward.health:
+        return Icons.favorite_rounded;
+    }
   }
 }
 

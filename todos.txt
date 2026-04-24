@@ -1,4 +1,7 @@
 ﻿TODOs:
+-Level up
+--Cambiar recompensas de level up: 1º stats, luego habilidad, luego item, etc
+
 -Tutorial
 --Tuto de combate
 --Tuto de dibujo

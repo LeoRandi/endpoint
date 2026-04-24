@@ -24,7 +24,7 @@ extension BattlerProgression on Battler {
   }
 
   /// Consume una subida de nivel pendiente, aplica la mejora base y la recompensa elegida.
-  Battler applyLevelReward(BattlerLevelReward reward) {
+  Battler applyLevelReward(BattlerLevelRewardChoice reward) {
     if (!canLevelUp) return this;
 
     final requiredExperience = experienceToNextLevel;
@@ -34,16 +34,19 @@ extension BattlerProgression on Battler {
     var healthGain = 10;
     var incomeGain = 0;
 
-    switch (reward) {
-      case BattlerLevelReward.income:
-        incomeGain = 1;
-        break;
-      case BattlerLevelReward.attack:
-        attackGain += 1;
-        break;
-      case BattlerLevelReward.health:
-        healthGain += 10;
-        break;
+    final statReward = reward.statReward;
+    if (statReward != null) {
+      switch (statReward) {
+        case BattlerLevelReward.income:
+          incomeGain = 1;
+          break;
+        case BattlerLevelReward.attack:
+          attackGain += 1;
+          break;
+        case BattlerLevelReward.health:
+          healthGain += 10;
+          break;
+      }
     }
 
     updatedBaseStats[BattlerStat.attack] =
@@ -51,10 +54,11 @@ extension BattlerProgression on Battler {
     updatedBaseStats[BattlerStat.health] =
         max(0, (updatedBaseStats[BattlerStat.health] ?? 0) + healthGain);
 
-    final remainingExperience =
-        nextLevel >= Battler.maximumLevel ? 0 : max(0, experience - requiredExperience);
+    final remainingExperience = nextLevel >= Battler.maximumLevel
+        ? 0
+        : max(0, experience - requiredExperience);
 
-    return copyWith(
+    var updatedPlayer = copyWith(
       health: health + healthGain,
       income: baseIncome + incomeGain,
       equipmentCapacity: equipmentCapacity + 1,
@@ -62,5 +66,17 @@ extension BattlerProgression on Battler {
       experience: remainingExperience,
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
     );
+
+    final abilityReward = reward.ability;
+    if (abilityReward != null) {
+      updatedPlayer = updatedPlayer.addAbility(abilityReward.resetState());
+    }
+
+    final itemReward = reward.item;
+    if (itemReward != null) {
+      updatedPlayer = updatedPlayer.addItem(itemReward);
+    }
+
+    return updatedPlayer;
   }
 }
