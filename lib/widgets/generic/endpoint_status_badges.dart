@@ -8,6 +8,9 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
   final double badgeSize;
   final double badgeOverlap;
   final WrapAlignment badgeAlignment;
+  final Duration healthAnimationDuration;
+  final Duration barrierAnimationDuration;
+  final int? barrierReferenceValue;
 
   const EndpointHealthBarWithStatuses({
     super.key,
@@ -18,13 +21,23 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
     this.badgeSize = 28,
     this.badgeOverlap = 6,
     this.badgeAlignment = WrapAlignment.start,
+    this.healthAnimationDuration = Duration.zero,
+    this.barrierAnimationDuration = Duration.zero,
+    this.barrierReferenceValue,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasStatuses = battler.statuses.isNotEmpty;
+    final animatedBarrierIsVisible = (barrierReferenceValue ?? 0) > 0;
     final showsBarrier = battler.hasCombatFlag(Battler.combatActiveFlag) &&
-        battler.currentBarrier > 0;
+        (battler.currentBarrier > 0 || animatedBarrierIsVisible);
+    final barrierReference = max(
+      1,
+      barrierReferenceValue ?? max(battler.maxBarrier, battler.currentBarrier),
+    );
+    final barrierValue =
+        (battler.currentBarrier / barrierReference).clamp(0.0, 1.0).toDouble();
     final barrierHeight = max(5.0, height + 4);
     final barSpacing = showsBarrier ? 4.0 : 0.0;
     final barsHeight =
@@ -45,24 +58,33 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
                   child: _EndpointShieldBarrierBar(
                     height: barrierHeight,
                     accent: BattlerStat.barrier.accent,
+                    value: barrierValue,
+                    animationDuration: barrierAnimationDuration,
                   ),
                 ),
                 if (showBarrierValue)
-                  IgnorePointer(
-                    child: EndpointText(
-                      '${battler.currentBarrier}',
-                      style: textSmallNumericBold.copyWith(
-                        color: Colors.white,
-                        fontSize: 11,
-                        letterSpacing: 0.6,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withAlpha(128),
-                            blurRadius: 2,
+                  TweenAnimationBuilder<int>(
+                    tween: IntTween(end: max(0, battler.currentBarrier)),
+                    duration: barrierAnimationDuration,
+                    curve: Curves.easeOutCubic,
+                    builder: (context, animatedBarrier, _) {
+                      return IgnorePointer(
+                        child: EndpointText(
+                          '$animatedBarrier',
+                          style: textSmallNumericBold.copyWith(
+                            color: Colors.white,
+                            fontSize: 11,
+                            letterSpacing: 0.6,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withAlpha(128),
+                                blurRadius: 2,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
               ],
             ),
@@ -73,6 +95,7 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
           value: value,
           accent: accent,
           height: height,
+          animationDuration: healthAnimationDuration,
         ),
       ],
     );
@@ -111,10 +134,14 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
 class _EndpointShieldBarrierBar extends StatelessWidget {
   final double height;
   final Color accent;
+  final double value;
+  final Duration animationDuration;
 
   const _EndpointShieldBarrierBar({
     required this.height,
     required this.accent,
+    required this.value,
+    required this.animationDuration,
   });
 
   @override
@@ -132,21 +159,36 @@ class _EndpointShieldBarrierBar extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(1.2),
-            child: ClipPath(
-              clipper: const _EndpointShieldBarClipper(),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [
-                      accent.withAlpha(117),
-                      accent.withAlpha(245),
-                      accent.withAlpha(117),
-                    ],
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: value.clamp(0.0, 1.0).toDouble()),
+              duration: animationDuration,
+              curve: Curves.easeOutCubic,
+              builder: (context, animatedValue, _) {
+                return ClipPath(
+                  clipper: const _EndpointShieldBarClipper(),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: animatedValue,
+                      child: SizedBox.expand(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                accent.withAlpha(117),
+                                accent.withAlpha(245),
+                                accent.withAlpha(117),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
           Padding(

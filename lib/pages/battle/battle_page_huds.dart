@@ -51,6 +51,10 @@ class _PlayerBattleHud extends StatelessWidget {
   final bool Function(BattlerAbility ability) canQuickActivateAbility;
   final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
   final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
+  final Key? statusBarKey;
+  final Duration healthAnimationDuration;
+  final Duration barrierAnimationDuration;
+  final int? barrierAnimationReference;
 
   const _PlayerBattleHud({
     required this.player,
@@ -64,6 +68,10 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.canQuickActivateAbility,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
+    required this.statusBarKey,
+    required this.healthAnimationDuration,
+    required this.barrierAnimationDuration,
+    required this.barrierAnimationReference,
   });
 
   @override
@@ -85,10 +93,14 @@ class _PlayerBattleHud extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _BattleStatusBar(
+          key: statusBarKey,
           battler: player,
           accent: EndpointPalette.primaryAccent,
           factionLabel: 'ALLY',
           mirrorHorizontally: false,
+          healthAnimationDuration: healthAnimationDuration,
+          barrierAnimationDuration: barrierAnimationDuration,
+          barrierAnimationReference: barrierAnimationReference,
         ),
         const SizedBox(height: 8),
         Row(
@@ -182,6 +194,10 @@ class _EnemyBattleHud extends StatelessWidget {
   final List<BattlerAbility> visibleAbilities;
   final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
   final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
+  final Key? statusBarKey;
+  final Duration healthAnimationDuration;
+  final Duration barrierAnimationDuration;
+  final int? barrierAnimationReference;
 
   const _EnemyBattleHud({
     required this.enemy,
@@ -189,6 +205,10 @@ class _EnemyBattleHud extends StatelessWidget {
     required this.visibleAbilities,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
+    required this.statusBarKey,
+    required this.healthAnimationDuration,
+    required this.barrierAnimationDuration,
+    required this.barrierAnimationReference,
   });
 
   @override
@@ -215,10 +235,14 @@ class _EnemyBattleHud extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _BattleStatusBar(
+          key: statusBarKey,
           battler: enemy,
           accent: EndpointPalette.dangerAccent,
           factionLabel: 'HOSTILE',
           mirrorHorizontally: true,
+          healthAnimationDuration: healthAnimationDuration,
+          barrierAnimationDuration: barrierAnimationDuration,
+          barrierAnimationReference: barrierAnimationReference,
         ),
         const SizedBox(height: 8),
         _BattleLoadoutStrip(
@@ -381,12 +405,19 @@ class _BattleStatusBar extends StatelessWidget {
   final Color accent;
   final String factionLabel;
   final bool mirrorHorizontally;
+  final Duration healthAnimationDuration;
+  final Duration barrierAnimationDuration;
+  final int? barrierAnimationReference;
 
   const _BattleStatusBar({
+    super.key,
     required this.battler,
     required this.accent,
     required this.factionLabel,
     required this.mirrorHorizontally,
+    required this.healthAnimationDuration,
+    required this.barrierAnimationDuration,
+    required this.barrierAnimationReference,
   });
 
   @override
@@ -462,6 +493,9 @@ class _BattleStatusBar extends StatelessWidget {
                 height: 10,
                 badgeSize: 20,
                 badgeOverlap: 6,
+                healthAnimationDuration: healthAnimationDuration,
+                barrierAnimationDuration: barrierAnimationDuration,
+                barrierReferenceValue: barrierAnimationReference,
                 badgeAlignment: mirrorHorizontally
                     ? WrapAlignment.end
                     : WrapAlignment.start,

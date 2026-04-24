@@ -35,6 +35,7 @@ class BattleSceneController extends ChangeNotifier {
     required int victoryMoneyFactor,
     RunRandomizer? randomizer,
     BattleRewardService rewardService = const BattleRewardService(),
+    BattleCombatAnimationCallback? onCombatAnimation,
   }) : this._(
           enemy: enemy,
           player: player,
@@ -45,6 +46,7 @@ class BattleSceneController extends ChangeNotifier {
           victoryMoneyFactor: victoryMoneyFactor,
           randomizer: randomizer ?? RunRandomizer(),
           rewardService: rewardService,
+          onCombatAnimation: onCombatAnimation,
         );
 
   /// Reutiliza una unica fuente de azar para el motor de combate y las recompensas posteriores.
@@ -58,6 +60,7 @@ class BattleSceneController extends ChangeNotifier {
     required int victoryMoneyFactor,
     required RunRandomizer randomizer,
     required BattleRewardService rewardService,
+    required BattleCombatAnimationCallback? onCombatAnimation,
   })  : _rewardService = rewardService,
         _randomizer = randomizer,
         _battleController = BattleController(
@@ -68,6 +71,7 @@ class BattleSceneController extends ChangeNotifier {
           randomizer: randomizer,
           enemyTurnDelay: enemyTurnDelay,
           combatEndDelay: combatEndDelay,
+          onCombatAnimation: onCombatAnimation,
         ),
         _victoryMoneyFactor = victoryMoneyFactor {
     _battleController.addListener(_handleBattleControllerChanged);
@@ -137,39 +141,39 @@ class BattleSceneController extends ChangeNotifier {
   }
 
   /// Ejecuta el ataque basico del jugador cuando la escena lo solicita.
-  void handlePlayerAttack({
+  Future<void> handlePlayerAttack({
     BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
     BattleAttackDrawingPenalty drawingPenalty =
         BattleAttackDrawingPenalty.empty,
   }) {
-    _battleController.handleAttack(
+    return _battleController.handleAttack(
       drawingBonus: drawingBonus,
       drawingPenalty: drawingPenalty,
     );
   }
 
   /// Ejecuta la accion de bloqueo del jugador y termina su turno.
-  void handlePlayerBlock({
+  Future<void> handlePlayerBlock({
     BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
     BattleAttackDrawingPenalty drawingPenalty =
         BattleAttackDrawingPenalty.empty,
   }) {
-    _battleController.handleBlock(
+    return _battleController.handleBlock(
       drawingBonus: drawingBonus,
       drawingPenalty: drawingPenalty,
     );
   }
 
   /// Alterna una habilidad manual del jugador dentro del combate.
-  void togglePlayerAbility(BattlerAbility ability) {
-    _battleController.togglePlayerAbility(ability);
+  Future<void> togglePlayerAbility(BattlerAbility ability) {
+    return _battleController.togglePlayerAbility(ability);
   }
 
   /// Activa una habilidad manual de combate sin abrir primero el dialogo de detalle.
-  void quickActivateAbility(BattlerAbility ability) {
-    if (!canQuickActivateAbility(ability)) return;
+  Future<void> quickActivateAbility(BattlerAbility ability) {
+    if (!canQuickActivateAbility(ability)) return Future<void>.value();
 
-    _battleController.togglePlayerAbility(ability);
+    return _battleController.togglePlayerAbility(ability);
   }
 
   /// Indica si la escena puede abrir el overlay de inventario de combate.
@@ -306,7 +310,10 @@ class BattleSceneController extends ChangeNotifier {
   /// Reacciona a los resultados diferidos del motor de combate y los traduce a salidas de escena.
   void _handleBattleControllerChanged() {
     final exitResult = _battleController.consumePendingExitResult();
-    if (exitResult == null) return;
+    if (exitResult == null) {
+      notifyListeners();
+      return;
+    }
 
     if (exitResult.type != BattleFlowResultType.victory) {
       _pendingImmediateExitResult =

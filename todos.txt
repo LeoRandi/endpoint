@@ -57,6 +57,8 @@
 ---Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas en direccion al enemigo(o hacia el jugador, dependiendo si es ofensivo o defensivo)
 ---Animación de vibración en cada battler al recibir daño, y de escudo azul vibrando si le da a la barrera instead
 ---El turno del enemigo debe convertir cada intent en una animación, e ir eliminandolos uno a uno. Luego se debe rellenar, apareciendo desde la derecha
+---Mejorar animación de bloquear para que solo vaya hasta la mitad de la pantalla antes de volver
+---Añadir animaciones separadas para quemado e intoxicación, que ocurran antes de la de daño
 
 -Estados
 [--Añadir Tags]

@@ -33,6 +33,8 @@ void main() {
           BattlerStat.vampirism: 0,
         },
       ),
+      phase: RunHourPhase.day,
+      enemyTier: 1,
       enemyTurnDelay: const Duration(days: 1),
       combatEndDelay: const Duration(days: 1),
     );

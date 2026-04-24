@@ -29,9 +29,23 @@ EndpointSectionPreset _buildBattlePanelPreset(
 class _BattleSceneView extends StatelessWidget {
   final String showTitle;
   final BattleSceneController sceneController;
+  final Battler displayPlayer;
+  final Battler displayEnemy;
   final bool isDrawingMode;
   final bool isPresentingDrawAttack;
   final bool isPresentingDrawDefense;
+  final bool isPlayingBattleAnimation;
+  final GlobalKey battleAnimationRootKey;
+  final GlobalKey playerSideKey;
+  final GlobalKey enemySideKey;
+  final GlobalKey playerStatusBarKey;
+  final GlobalKey enemyStatusBarKey;
+  final Animation<double> attackFlightAnimation;
+  final _BattleCombatIconMotion? activeCombatIconMotion;
+  final int? playerBarrierAnimationReference;
+  final int? enemyBarrierAnimationReference;
+  final Set<BattleCombatantSide> animatedHealthSides;
+  final Set<BattleCombatantSide> animatedBarrierSides;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
   final Future<void> Function() onAdvancePressed;
@@ -43,9 +57,23 @@ class _BattleSceneView extends StatelessWidget {
   const _BattleSceneView({
     required this.showTitle,
     required this.sceneController,
+    required this.displayPlayer,
+    required this.displayEnemy,
     required this.isDrawingMode,
     required this.isPresentingDrawAttack,
     required this.isPresentingDrawDefense,
+    required this.isPlayingBattleAnimation,
+    required this.battleAnimationRootKey,
+    required this.playerSideKey,
+    required this.enemySideKey,
+    required this.playerStatusBarKey,
+    required this.enemyStatusBarKey,
+    required this.attackFlightAnimation,
+    required this.activeCombatIconMotion,
+    required this.playerBarrierAnimationReference,
+    required this.enemyBarrierAnimationReference,
+    required this.animatedHealthSides,
+    required this.animatedBarrierSides,
     required this.onAttack,
     required this.onBlock,
     required this.onAdvancePressed,
@@ -102,28 +130,54 @@ class _BattleSceneView extends StatelessWidget {
                   ];
                   final playerActionsEnabled = sceneController.canUseActions &&
                       !isPresentingDrawAttack &&
-                      !isPresentingDrawDefense;
+                      !isPresentingDrawDefense &&
+                      !isPlayingBattleAnimation;
+                  final playerHealthAnimationDuration =
+                      animatedHealthSides.contains(BattleCombatantSide.player)
+                          ? _battleImpactBarDuration
+                          : Duration.zero;
+                  final enemyHealthAnimationDuration =
+                      animatedHealthSides.contains(BattleCombatantSide.enemy)
+                          ? _battleImpactBarDuration
+                          : Duration.zero;
+                  final playerBarrierAnimationDuration =
+                      animatedBarrierSides.contains(BattleCombatantSide.player)
+                          ? _battleImpactBarDuration
+                          : Duration.zero;
+                  final enemyBarrierAnimationDuration =
+                      animatedBarrierSides.contains(BattleCombatantSide.enemy)
+                          ? _battleImpactBarDuration
+                          : Duration.zero;
 
                   return Stack(
+                    key: battleAnimationRootKey,
                     fit: StackFit.expand,
                     children: [
                       Column(
                         children: [
                           Expanded(
                             child: _BattleSide(
+                              key: enemySideKey,
                               title: 'THREAT',
                               subtitle: 'Enemy',
                               accent: enemyAccent,
                               background: enemyBackground,
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
-                                  enemy: sceneController.enemy,
+                                  enemy: displayEnemy,
                                   enemyIntent:
                                       sceneController.enemyTurnIntentPreview,
                                   visibleAbilities:
                                       sceneController.visibleAbilitiesFor(
-                                    sceneController.enemy,
+                                    displayEnemy,
                                   ),
+                                  statusBarKey: enemyStatusBarKey,
+                                  healthAnimationDuration:
+                                      enemyHealthAnimationDuration,
+                                  barrierAnimationDuration:
+                                      enemyBarrierAnimationDuration,
+                                  barrierAnimationReference:
+                                      enemyBarrierAnimationReference,
                                   onOpenEquippedItemDetails:
                                       onOpenEnemyItemDetails,
                                   onOpenAbilityDetails:
@@ -138,16 +192,17 @@ class _BattleSceneView extends StatelessWidget {
                           ),
                           Expanded(
                             child: _BattleSide(
+                              key: playerSideKey,
                               title: 'OPERATIVE',
                               subtitle: 'Player',
                               accent: playerAccent,
                               background: playerBackground,
                               child: SizedBox.expand(
                                 child: _PlayerBattleHud(
-                                  player: sceneController.player,
+                                  player: displayPlayer,
                                   visibleAbilities:
                                       sceneController.visibleAbilitiesFor(
-                                    sceneController.player,
+                                    displayPlayer,
                                   ),
                                   isEnabled: playerActionsEnabled,
                                   isDrawingMode: isDrawingMode,
@@ -163,6 +218,13 @@ class _BattleSceneView extends StatelessWidget {
                                       onOpenPlayerItemDetails,
                                   onOpenAbilityDetails:
                                       onOpenPlayerAbilityDetails,
+                                  statusBarKey: playerStatusBarKey,
+                                  healthAnimationDuration:
+                                      playerHealthAnimationDuration,
+                                  barrierAnimationDuration:
+                                      playerBarrierAnimationDuration,
+                                  barrierAnimationReference:
+                                      playerBarrierAnimationReference,
                                 ),
                               ),
                             ),
@@ -178,11 +240,19 @@ class _BattleSceneView extends StatelessWidget {
                               sceneController.turn == BattleTurnState.enemy,
                           isCombatFinished: sceneController.isCombatFinished,
                           onAdvancePressed:
-                              sceneController.hasPendingVictoryRewards
+                              sceneController.hasPendingVictoryRewards &&
+                                      !isPlayingBattleAnimation
                                   ? onAdvancePressed
                                   : null,
                         ),
                       ),
+                      if (activeCombatIconMotion != null)
+                        Positioned.fill(
+                          child: _BattleCombatIconAnimationLayer(
+                            animation: attackFlightAnimation,
+                            motion: activeCombatIconMotion!,
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -203,6 +273,7 @@ class _BattleSide extends StatelessWidget {
   final Widget child;
 
   const _BattleSide({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.accent,
@@ -256,6 +327,111 @@ class _BattleSide extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BattleCombatIconAnimationLayer extends StatelessWidget {
+  static final Animatable<double> _attackProgress = TweenSequence<double>(
+    [
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0, end: 0.42).chain(
+          CurveTween(curve: Curves.easeInOutCubic),
+        ),
+        weight: _battleAttackSlowLaunchDuration.inMilliseconds.toDouble(),
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0.42, end: 1).chain(
+          CurveTween(curve: Curves.easeInCubic),
+        ),
+        weight: _battleAttackFastImpactDuration.inMilliseconds.toDouble(),
+      ),
+    ],
+  );
+  static final Animatable<double> _blockProgress = TweenSequence<double>(
+    [
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0, end: 1).chain(
+          CurveTween(curve: Curves.easeInOutCubic),
+        ),
+        weight: _battleAttackSlowLaunchDuration.inMilliseconds.toDouble(),
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 1, end: 0).chain(
+          CurveTween(curve: Curves.easeInCubic),
+        ),
+        weight: _battleAttackFastImpactDuration.inMilliseconds.toDouble(),
+      ),
+    ],
+  );
+
+  final Animation<double> animation;
+  final _BattleCombatIconMotion motion;
+
+  const _BattleCombatIconAnimationLayer({
+    required this.animation,
+    required this.motion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = motion.primarySide == BattleCombatantSide.player
+        ? EndpointPalette.primaryAccent
+        : EndpointPalette.dangerAccent;
+    final delta = motion.end - motion.start;
+    final angle = motion.hook == BattleCombatAnimationHook.blockMotion
+        ? 0.0
+        : atan2(delta.dy, delta.dx) + pi / 4;
+    const swordSize = _battleSwordAnimationSize;
+    final progressTween = motion.hook == BattleCombatAnimationHook.blockMotion
+        ? _blockProgress
+        : _attackProgress;
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final progress = progressTween.transform(animation.value);
+        final position = Offset.lerp(motion.start, motion.end, progress)!;
+        final impactGlow = Curves.easeIn.transform(progress);
+
+        return IgnorePointer(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: position.dx - swordSize / 2,
+                top: position.dy - swordSize / 2,
+                width: swordSize,
+                height: swordSize,
+                child: Transform.rotate(
+                  angle: angle,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withAlpha(
+                            (64 + 64 * impactGlow).round(),
+                          ),
+                          blurRadius: 10 + 8 * impactGlow,
+                          spreadRadius: 0.5 + 1.5 * impactGlow,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      motion.assetPath,
+                      width: swordSize,
+                      height: swordSize,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

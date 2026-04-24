@@ -4,6 +4,30 @@ part 'battle_page_view.dart';
 part 'battle_page_huds.dart';
 part 'battle_page_loadout.dart';
 
+const _battleAttackFlightDuration = Duration(milliseconds: 750);
+const _battleAttackSlowLaunchDuration = Duration(milliseconds: 550);
+const _battleAttackFastImpactDuration = Duration(milliseconds: 200);
+const _battleImpactBarDuration = Duration(milliseconds: 250);
+const _battleSwordAssetPath = 'assets/images/icons/icon_sword.png';
+const _battleShieldAssetPath = 'assets/images/icons/icon_shield.png';
+const _battleSwordAnimationSize = 46.0;
+
+class _BattleCombatIconMotion {
+  final BattleCombatAnimationHook hook;
+  final Offset start;
+  final Offset end;
+  final BattleCombatantSide primarySide;
+  final String assetPath;
+
+  const _BattleCombatIconMotion({
+    required this.hook,
+    required this.start,
+    required this.end,
+    required this.primarySide,
+    required this.assetPath,
+  });
+}
+
 class BattlePage extends StatefulWidget {
   final Battler enemy;
   final Battler player;
@@ -34,9 +58,24 @@ class BattlePage extends StatefulWidget {
   State<BattlePage> createState() => _BattlePageState();
 }
 
-class _BattlePageState extends State<BattlePage> {
+class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   late final BattleSceneController _sceneController;
+  late final AnimationController _attackFlightController;
+  final GlobalKey _battleAnimationRootKey = GlobalKey();
+  final GlobalKey _playerSideKey = GlobalKey();
+  final GlobalKey _enemySideKey = GlobalKey();
+  final GlobalKey _playerStatusBarKey = GlobalKey();
+  final GlobalKey _enemyStatusBarKey = GlobalKey();
   EndpointSettingsSnapshot? _settingsSnapshot;
+  _BattleCombatIconMotion? _activeCombatIconMotion;
+  Battler? _displayPlayerOverride;
+  Battler? _displayEnemyOverride;
+  int? _playerBarrierAnimationReference;
+  int? _enemyBarrierAnimationReference;
+  Set<BattleCombatantSide> _animatedHealthSides = const {};
+  Set<BattleCombatantSide> _animatedBarrierSides = const {};
+  bool _isPlayingBattleAnimation = false;
+  bool _releaseDisplayOverrideOnNextSceneChange = false;
   bool _isPresentingDrawAttack = false;
   bool _isPresentingDrawDefense = false;
   bool _isQuickDrawAvailable = true;
@@ -46,6 +85,10 @@ class _BattlePageState extends State<BattlePage> {
   @override
   void initState() {
     super.initState();
+    _attackFlightController = AnimationController(
+      vsync: this,
+      duration: _battleAttackFlightDuration,
+    );
     _sceneController = BattleSceneController(
       enemy: widget.enemy,
       player: widget.player,
@@ -55,8 +98,12 @@ class _BattlePageState extends State<BattlePage> {
       combatEndDelay: widget.combatEndDelay,
       victoryMoneyFactor: widget.victoryMoneyFactor,
       randomizer: widget.randomizer,
+      onCombatAnimation: _playCombatAnimationCue,
     )..addListener(_handleSceneChanged);
     unawaited(_loadSettingsSnapshot());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_playInitialCombatHealthAnimations());
+    });
   }
 
   @override
@@ -64,12 +111,27 @@ class _BattlePageState extends State<BattlePage> {
     _sceneController
       ..removeListener(_handleSceneChanged)
       ..dispose();
+    _attackFlightController.dispose();
     super.dispose();
   }
 
   /// Sincroniza la navegacion real con las salidas diferidas que publica el controlador de escena.
   void _handleSceneChanged() {
     if (!mounted) return;
+
+    if (_releaseDisplayOverrideOnNextSceneChange) {
+      setState(() {
+        _releaseDisplayOverrideOnNextSceneChange = false;
+        _displayPlayerOverride = null;
+        _displayEnemyOverride = null;
+        _activeCombatIconMotion = null;
+        _playerBarrierAnimationReference = null;
+        _enemyBarrierAnimationReference = null;
+        _animatedHealthSides = const {};
+        _animatedBarrierSides = const {};
+        _isPlayingBattleAnimation = false;
+      });
+    }
 
     final exitResult = _sceneController.consumeImmediateExitResult();
     if (exitResult != null) {
@@ -143,6 +205,9 @@ class _BattlePageState extends State<BattlePage> {
 
   bool get _isDrawingMode =>
       _settingsSnapshot?.gameMode == EndpointGameMode.drawing;
+  Battler get _displayPlayer =>
+      _displayPlayerOverride ?? _sceneController.player;
+  Battler get _displayEnemy => _displayEnemyOverride ?? _sceneController.enemy;
 
   void _handlePlayerAttack() {
     unawaited(_handlePlayerAttackFlow());
@@ -154,14 +219,15 @@ class _BattlePageState extends State<BattlePage> {
 
   Future<void> _handlePlayerAttackFlow() async {
     if (!_sceneController.canUseActions ||
-        _sceneController.hasPendingVictoryRewards) {
+        _sceneController.hasPendingVictoryRewards ||
+        _isPlayingBattleAnimation) {
       return;
     }
 
     final settings = await _ensureSettingsSnapshot();
     if (!mounted) return;
     if (settings.gameMode != EndpointGameMode.drawing) {
-      _sceneController.handlePlayerAttack();
+      await _sceneController.handlePlayerAttack();
       return;
     }
     if (_isPresentingDrawAttack) return;
@@ -187,7 +253,7 @@ class _BattlePageState extends State<BattlePage> {
       );
       if (!mounted || drawResult == null) return;
 
-      _sceneController.handlePlayerAttack(
+      await _sceneController.handlePlayerAttack(
         drawingBonus: drawResult.resolution.bonus,
         drawingPenalty: drawResult.resolution.penalty,
       );
@@ -203,14 +269,15 @@ class _BattlePageState extends State<BattlePage> {
 
   Future<void> _handlePlayerBlockFlow() async {
     if (!_sceneController.canUseActions ||
-        _sceneController.hasPendingVictoryRewards) {
+        _sceneController.hasPendingVictoryRewards ||
+        _isPlayingBattleAnimation) {
       return;
     }
 
     final settings = await _ensureSettingsSnapshot();
     if (!mounted) return;
     if (settings.gameMode != EndpointGameMode.drawing) {
-      _sceneController.handlePlayerBlock();
+      await _sceneController.handlePlayerBlock();
       return;
     }
     if (_isPresentingDrawDefense) return;
@@ -236,7 +303,7 @@ class _BattlePageState extends State<BattlePage> {
       );
       if (!mounted || drawResult == null) return;
 
-      _sceneController.handlePlayerBlock(
+      await _sceneController.handlePlayerBlock(
         drawingBonus: drawResult.resolution.bonus,
         drawingPenalty: drawResult.resolution.penalty,
       );
@@ -263,6 +330,199 @@ class _BattlePageState extends State<BattlePage> {
     if (exitResult != null) {
       _completeBattleExit(exitResult);
     }
+  }
+
+  Future<void> _playCombatAnimationCue(BattleCombatAnimationCue cue) async {
+    if (!mounted) return;
+
+    switch (cue.hook) {
+      case BattleCombatAnimationHook.attackMotion:
+      case BattleCombatAnimationHook.blockMotion:
+        await _playCombatMotionCue(cue);
+        break;
+      case BattleCombatAnimationHook.damageTaken:
+      case BattleCombatAnimationHook.healthLoss:
+      case BattleCombatAnimationHook.healthGain:
+      case BattleCombatAnimationHook.barrierGain:
+      case BattleCombatAnimationHook.barrierLoss:
+        await _playCombatStatCue(cue);
+        break;
+    }
+  }
+
+  Future<void> _playInitialCombatHealthAnimations() async {
+    if (!mounted || _sceneController.isCombatFinished) return;
+
+    final playerBefore = widget.player.prepareForCombat(phase: widget.phase);
+    final enemyBefore = widget.enemy.prepareForCombat(phase: widget.phase);
+    final playerAfter = _sceneController.player;
+    final enemyAfter = _sceneController.enemy;
+    if (playerAfter.health > playerBefore.health) {
+      await _playCombatAnimationCue(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.healthGain,
+          primarySide: BattleCombatantSide.player,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerAfter,
+          enemyAfter: enemyBefore,
+        ),
+      );
+    }
+    if (!mounted) return;
+    if (enemyAfter.health > enemyBefore.health) {
+      await _playCombatAnimationCue(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.healthGain,
+          primarySide: BattleCombatantSide.enemy,
+          playerBefore: playerAfter,
+          enemyBefore: enemyBefore,
+          playerAfter: playerAfter,
+          enemyAfter: enemyAfter,
+        ),
+      );
+    }
+    if (!mounted) return;
+    setState(() {
+      _releaseDisplayOverrideOnNextSceneChange = false;
+      _displayPlayerOverride = null;
+      _displayEnemyOverride = null;
+      _animatedHealthSides = const {};
+      _animatedBarrierSides = const {};
+      _isPlayingBattleAnimation = false;
+    });
+  }
+
+  Future<void> _playCombatMotionCue(BattleCombatAnimationCue cue) async {
+    final secondarySide = cue.secondarySide;
+    if (secondarySide == null) return;
+
+    final start = _centerForSide(cue.primarySide);
+    final end = cue.hook == BattleCombatAnimationHook.blockMotion
+        ? _centerForSide(secondarySide)
+        : _centerForStatusBar(secondarySide);
+    final assetPath = cue.hook == BattleCombatAnimationHook.blockMotion
+        ? _battleShieldAssetPath
+        : _battleSwordAssetPath;
+    setState(() {
+      _isPlayingBattleAnimation = true;
+      _releaseDisplayOverrideOnNextSceneChange = false;
+      _displayPlayerOverride = cue.playerBefore;
+      _displayEnemyOverride = cue.enemyBefore;
+      _animatedHealthSides = const {};
+      _animatedBarrierSides = const {};
+      _activeCombatIconMotion = _BattleCombatIconMotion(
+        hook: cue.hook,
+        start: start,
+        end: end,
+        primarySide: cue.primarySide,
+        assetPath: assetPath,
+      );
+    });
+
+    try {
+      await _attackFlightController.forward(from: 0).orCancel;
+    } on TickerCanceled {
+      return;
+    }
+    if (!mounted) return;
+
+    setState(() {
+      _activeCombatIconMotion = null;
+      _isPlayingBattleAnimation = false;
+    });
+  }
+
+  Future<void> _playCombatStatCue(BattleCombatAnimationCue cue) async {
+    final animatedSide = cue.primarySide;
+    final animatesHealth = cue.hook == BattleCombatAnimationHook.damageTaken ||
+        cue.hook == BattleCombatAnimationHook.healthLoss ||
+        cue.hook == BattleCombatAnimationHook.healthGain;
+    final animatesBarrier = cue.hook == BattleCombatAnimationHook.damageTaken ||
+        cue.hook == BattleCombatAnimationHook.barrierLoss ||
+        cue.hook == BattleCombatAnimationHook.barrierGain;
+
+    setState(() {
+      _isPlayingBattleAnimation = true;
+      _releaseDisplayOverrideOnNextSceneChange = false;
+      _displayPlayerOverride = cue.playerBefore;
+      _displayEnemyOverride = cue.enemyBefore;
+      _playerBarrierAnimationReference = _barrierAnimationReferenceFor(
+        cue.playerBefore,
+        cue.playerAfter,
+      );
+      _enemyBarrierAnimationReference = _barrierAnimationReferenceFor(
+        cue.enemyBefore,
+        cue.enemyAfter,
+      );
+      _animatedHealthSides = const {};
+      _animatedBarrierSides = const {};
+      _activeCombatIconMotion = null;
+    });
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    setState(() {
+      _displayPlayerOverride = cue.playerAfter;
+      _displayEnemyOverride = cue.enemyAfter;
+      _animatedHealthSides = animatesHealth
+          ? <BattleCombatantSide>{animatedSide}
+          : const <BattleCombatantSide>{};
+      _animatedBarrierSides = animatesBarrier
+          ? <BattleCombatantSide>{animatedSide}
+          : const <BattleCombatantSide>{};
+    });
+
+    await Future<void>.delayed(_battleImpactBarDuration);
+    if (!mounted) return;
+    _releaseDisplayOverrideOnNextSceneChange = true;
+  }
+
+  int? _barrierAnimationReferenceFor(Battler before, Battler after) {
+    final reference = max(
+      max(before.currentBarrier, before.maxBarrier),
+      max(after.currentBarrier, after.maxBarrier),
+    );
+    return reference > 0 ? reference : null;
+  }
+
+  Offset _centerForSide(BattleCombatantSide side) {
+    final key =
+        side == BattleCombatantSide.player ? _playerSideKey : _enemySideKey;
+    return _centerOfKey(key) ?? _fallbackCenterForSide(side);
+  }
+
+  Offset _centerForStatusBar(BattleCombatantSide side) {
+    final key = side == BattleCombatantSide.player
+        ? _playerStatusBarKey
+        : _enemyStatusBarKey;
+    return _centerOfKey(key) ?? _fallbackCenterForSide(side);
+  }
+
+  Offset? _centerOfKey(GlobalKey key) {
+    final rootBox = _battleAnimationRootKey.currentContext?.findRenderObject();
+    final targetBox = key.currentContext?.findRenderObject();
+    if (rootBox is! RenderBox ||
+        targetBox is! RenderBox ||
+        !rootBox.hasSize ||
+        !targetBox.hasSize) {
+      return null;
+    }
+
+    final targetCenter = targetBox.localToGlobal(
+      targetBox.size.center(Offset.zero),
+    );
+    return rootBox.globalToLocal(targetCenter);
+  }
+
+  Offset _fallbackCenterForSide(BattleCombatantSide side) {
+    final rootBox = _battleAnimationRootKey.currentContext?.findRenderObject();
+    final size = rootBox is RenderBox && rootBox.hasSize
+        ? rootBox.size
+        : MediaQuery.sizeOf(context);
+    final verticalFactor = side == BattleCombatantSide.enemy ? 0.25 : 0.75;
+    return Offset(size.width * 0.5, size.height * verticalFactor);
   }
 
   void _syncQuickDrawState(BattleDrawOverlayResult drawResult) {
@@ -299,7 +559,10 @@ class _BattlePageState extends State<BattlePage> {
     Battler battler,
     Item item,
   ) async {
-    if (_sceneController.hasPendingVictoryRewards) return;
+    if (_sceneController.hasPendingVictoryRewards ||
+        _isPlayingBattleAnimation) {
+      return;
+    }
 
     await showEndpointDialog<void>(
       context: context,
@@ -320,7 +583,10 @@ class _BattlePageState extends State<BattlePage> {
     BattlerAbility ability, {
     required bool canControlOwner,
   }) async {
-    if (_sceneController.hasPendingVictoryRewards) return;
+    if (_sceneController.hasPendingVictoryRewards ||
+        _isPlayingBattleAnimation) {
+      return;
+    }
 
     await showEndpointDialog<void>(
       context: context,
@@ -352,7 +618,9 @@ class _BattlePageState extends State<BattlePage> {
                 canControlOwner: canControlOwner,
               )
                   ? () {
-                      _sceneController.togglePlayerAbility(currentAbility);
+                      unawaited(
+                        _sceneController.togglePlayerAbility(currentAbility),
+                      );
                     }
                   : null,
               isActionEnabled: _sceneController.isAbilityActionEnabled(
@@ -379,9 +647,23 @@ class _BattlePageState extends State<BattlePage> {
     return _BattleSceneView(
       showTitle: widget.showTitle,
       sceneController: _sceneController,
+      displayPlayer: _displayPlayer,
+      displayEnemy: _displayEnemy,
       isDrawingMode: _isDrawingMode,
       isPresentingDrawAttack: _isPresentingDrawAttack,
       isPresentingDrawDefense: _isPresentingDrawDefense,
+      isPlayingBattleAnimation: _isPlayingBattleAnimation,
+      battleAnimationRootKey: _battleAnimationRootKey,
+      playerSideKey: _playerSideKey,
+      enemySideKey: _enemySideKey,
+      playerStatusBarKey: _playerStatusBarKey,
+      enemyStatusBarKey: _enemyStatusBarKey,
+      attackFlightAnimation: _attackFlightController,
+      activeCombatIconMotion: _activeCombatIconMotion,
+      playerBarrierAnimationReference: _playerBarrierAnimationReference,
+      enemyBarrierAnimationReference: _enemyBarrierAnimationReference,
+      animatedHealthSides: _animatedHealthSides,
+      animatedBarrierSides: _animatedBarrierSides,
       onAttack: _handlePlayerAttack,
       onBlock: _handlePlayerBlock,
       onAdvancePressed: _handleOpenPendingRewards,

@@ -17,6 +17,45 @@ enum EnemyAiDifficultyLevel {
   omega,
 }
 
+enum BattleCombatantSide {
+  player,
+  enemy,
+}
+
+enum BattleCombatAnimationHook {
+  attackMotion,
+  blockMotion,
+  damageTaken,
+  healthLoss,
+  healthGain,
+  barrierGain,
+  barrierLoss,
+}
+
+class BattleCombatAnimationCue {
+  final BattleCombatAnimationHook hook;
+  final BattleCombatantSide primarySide;
+  final BattleCombatantSide? secondarySide;
+  final Battler playerBefore;
+  final Battler enemyBefore;
+  final Battler playerAfter;
+  final Battler enemyAfter;
+
+  const BattleCombatAnimationCue({
+    required this.hook,
+    required this.primarySide,
+    this.secondarySide,
+    required this.playerBefore,
+    required this.enemyBefore,
+    required this.playerAfter,
+    required this.enemyAfter,
+  });
+}
+
+typedef BattleCombatAnimationCallback = Future<void> Function(
+  BattleCombatAnimationCue cue,
+);
+
 class BattleController extends ChangeNotifier {
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
@@ -24,6 +63,7 @@ class BattleController extends ChangeNotifier {
   final RunRandomizer _randomizer;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
+  final BattleCombatAnimationCallback? onCombatAnimation;
   final EnemyAiDifficultyLevel _enemyAiDifficulty;
 
   Battler _enemy;
@@ -39,6 +79,7 @@ class BattleController extends ChangeNotifier {
   int _playerBlockUseCount = 0;
   late final int _playerInitialBlockBarrier;
   late final int _enemyInitialBlockBarrier;
+  bool _isDisposed = false;
 
   Timer? _enemyTurnTimer;
   Timer? _combatExitTimer;
@@ -54,6 +95,7 @@ class BattleController extends ChangeNotifier {
     BattlerEffectPipeline effectPipeline = const BattlerEffectPipeline(),
     BattleResolver resolver = const BattleResolver(),
     BattleTurnEngine turnEngine = const BattleTurnEngine(),
+    this.onCombatAnimation,
   })  : _enemy = enemy.prepareForCombat(
           phase: phase,
         ),
@@ -68,7 +110,7 @@ class BattleController extends ChangeNotifier {
     _playerInitialBlockBarrier = max(0, _player.maxBarrier);
     _enemyInitialBlockBarrier = max(0, _enemy.maxBarrier);
     _enemyNextAction = _rollEnemyTurnAction();
-    _beginTurn(BattleTurnState.player, notify: false);
+    _beginTurnWithoutAnimation(BattleTurnState.player, notify: false);
   }
 
   Battler get enemy => _enemy;
@@ -111,15 +153,24 @@ class BattleController extends ChangeNotifier {
     return pendingExitResult;
   }
 
-  void togglePlayerAbility(BattlerAbility ability) {
+  Future<void> togglePlayerAbility(BattlerAbility ability) async {
     if (!canUseActions) return;
 
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
     final resolution = _effectPipeline.toggleAbilityActivation(
       owner: _player,
       abilityId: ability.id,
       screenContext: BattlerAbilityActivationContext.battle,
       opponent: _enemy,
     );
+    await _playCombatStateTransitionAnimations(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: resolution.owner,
+      enemyAfter: resolution.opponent,
+    );
+    if (_isDisposed || !canUseActions) return;
     _player = resolution.owner;
     _enemy = resolution.opponent;
     if (_finishImmediatelyIfPlayerIsDown()) {
@@ -128,29 +179,52 @@ class BattleController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void handleAttack({
+  Future<void> handleAttack({
     BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
     BattleAttackDrawingPenalty drawingPenalty =
         BattleAttackDrawingPenalty.empty,
-  }) {
+  }) async {
     if (!canUseActions) return;
 
     if (drawingPenalty.hasAnyPenalty) {
-      _applyDrawingPenalty(drawingPenalty);
+      await _applyDrawingPenalty(drawingPenalty);
       if (_finishImmediatelyIfPlayerIsDown()) {
         return;
       }
     }
 
     if (drawingBonus.healAmount > 0) {
-      _player = _player.heal(drawingBonus.healAmount);
+      await _applyPlayerHealing(drawingBonus.healAmount);
     }
 
+    final attackerBefore = _player;
+    final defenderBefore = _enemy;
     final resolution = _resolveAttackAction(
       attacker: _player,
       defender: _enemy,
       flatAttackBonus: drawingBonus.attackBonus,
     );
+
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.attackMotion,
+        primarySide: BattleCombatantSide.player,
+        secondarySide: BattleCombatantSide.enemy,
+        playerBefore: attackerBefore,
+        enemyBefore: defenderBefore,
+        playerAfter: attackerBefore,
+        enemyAfter: defenderBefore,
+      ),
+    );
+    if (_isDisposed || !canUseActions) return;
+
+    await _playCombatStateTransitionAnimations(
+      playerBefore: attackerBefore,
+      enemyBefore: defenderBefore,
+      playerAfter: resolution.attacker,
+      enemyAfter: resolution.defender,
+    );
+    if (_isDisposed || !canUseActions) return;
 
     _player = resolution.attacker;
     _enemy = resolution.defender;
@@ -158,39 +232,38 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    if (_completeTurn(BattleTurnState.player)) {
+    if (await _completeTurn(BattleTurnState.player)) {
       return;
     }
 
     if (drawingBonus.endTurnBarrierAmount > 0) {
-      _player = _applyDrawingEndTurnBarrier(
-        _player,
+      await _applyDrawingEndTurnBarrierToPlayer(
         drawingBonus.endTurnBarrierAmount,
       );
     }
 
-    _beginTurn(BattleTurnState.enemy);
+    await _beginTurn(BattleTurnState.enemy);
     if (_turn == BattleTurnState.enemy) {
       _scheduleEnemyTurn();
     }
   }
 
-  void handleBlock({
+  Future<void> handleBlock({
     BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
     BattleAttackDrawingPenalty drawingPenalty =
         BattleAttackDrawingPenalty.empty,
-  }) {
+  }) async {
     if (!canUseActions) return;
 
     if (drawingPenalty.hasAnyPenalty) {
-      _applyDrawingPenalty(drawingPenalty);
+      await _applyDrawingPenalty(drawingPenalty);
       if (_finishImmediatelyIfPlayerIsDown()) {
         return;
       }
     }
 
     if (drawingBonus.healAmount > 0) {
-      _player = _player.heal(drawingBonus.healAmount);
+      await _applyPlayerHealing(drawingBonus.healAmount);
     }
 
     if (drawingBonus.attackBonus > 0) {
@@ -202,11 +275,22 @@ class BattleController extends ChangeNotifier {
 
     final baseBarrierGain = _playerCurrentBlockBarrierGain();
     _playerBlockUseCount++;
+    final defenderBefore = _player;
+    final opponentBefore = _enemy;
     final defendResolution = _resolveDefendAction(
       defender: _player,
       opponent: _enemy,
       barrierGain: baseBarrierGain,
     );
+    await _playBlockResolutionAnimation(
+      defenderSide: BattleCombatantSide.player,
+      defenderBefore: defenderBefore,
+      opponentBefore: opponentBefore,
+      defenderAfter: defendResolution.defender,
+      opponentAfter: defendResolution.opponent,
+    );
+    if (_isDisposed || !canUseActions) return;
+
     _player = defendResolution.defender;
     _enemy = defendResolution.opponent;
 
@@ -214,18 +298,17 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    if (_completeTurn(BattleTurnState.player)) {
+    if (await _completeTurn(BattleTurnState.player)) {
       return;
     }
 
     if (drawingBonus.endTurnBarrierAmount > 0) {
-      _player = _applyDrawingEndTurnBarrier(
-        _player,
+      await _applyDrawingEndTurnBarrierToPlayer(
         drawingBonus.endTurnBarrierAmount,
       );
     }
 
-    _beginTurn(BattleTurnState.enemy);
+    await _beginTurn(BattleTurnState.enemy);
     if (_turn == BattleTurnState.enemy) {
       _scheduleEnemyTurn();
     }
@@ -253,17 +336,28 @@ class BattleController extends ChangeNotifier {
 
   void _scheduleEnemyTurn() {
     _enemyTurnTimer?.cancel();
-    _enemyTurnTimer = Timer(enemyTurnDelay, _resolveEnemyTurn);
+    _enemyTurnTimer = Timer(enemyTurnDelay, () {
+      unawaited(_resolveEnemyTurn());
+    });
   }
 
-  void _resolveEnemyTurn() {
+  Future<void> _resolveEnemyTurn() async {
     if (_turn != BattleTurnState.enemy) return;
 
     final plannedAction = _enemyNextAction;
+    final preAttackPlayerBefore = _player;
+    final preAttackEnemyBefore = _enemy;
     final preAttackResolution = _resolveEnemyPreAttackState(
       enemy: _enemy,
       player: _player,
     );
+    await _playCombatStateTransitionAnimations(
+      playerBefore: preAttackPlayerBefore,
+      enemyBefore: preAttackEnemyBefore,
+      playerAfter: preAttackResolution.player,
+      enemyAfter: preAttackResolution.enemy,
+    );
+    if (_isDisposed || _turn != BattleTurnState.enemy) return;
     _enemy = preAttackResolution.enemy;
     _player = preAttackResolution.player;
     if (_finishImmediatelyIfPlayerIsDown()) {
@@ -281,11 +375,12 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    final enemyActionResolution = _resolveEnemyAction(
+    final enemyActionResolution = await _resolveEnemyActionWithAnimation(
       enemy: _enemy,
       player: _player,
       action: plannedAction,
     );
+    if (_isDisposed || _turn != BattleTurnState.enemy) return;
     _enemy = enemyActionResolution.enemy;
     _player = enemyActionResolution.player;
     _registerEnemyResolvedAction(plannedAction);
@@ -293,12 +388,12 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    if (_completeTurn(BattleTurnState.enemy)) {
+    if (await _completeTurn(BattleTurnState.enemy)) {
       return;
     }
 
     _enemyNextAction = _rollEnemyTurnAction();
-    _beginTurn(BattleTurnState.player);
+    await _beginTurn(BattleTurnState.player);
   }
 
   _EnemyPreAttackResolution _resolveEnemyPreAttackState({
@@ -492,6 +587,55 @@ class BattleController extends ChangeNotifier {
     );
   }
 
+  Future<_EnemyActionResolution> _resolveEnemyActionWithAnimation({
+    required Battler enemy,
+    required Battler player,
+    required EnemyTurnAction action,
+  }) async {
+    if (action == EnemyTurnAction.defend) {
+      final defendResolution = _resolveEnemyAction(
+        enemy: enemy,
+        player: player,
+        action: action,
+      );
+      await _playBlockResolutionAnimation(
+        defenderSide: BattleCombatantSide.enemy,
+        defenderBefore: enemy,
+        opponentBefore: player,
+        defenderAfter: defendResolution.enemy,
+        opponentAfter: defendResolution.player,
+      );
+      return defendResolution;
+    }
+
+    final attackResolution = _resolveAttackAction(
+      attacker: enemy,
+      defender: player,
+    );
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.attackMotion,
+        primarySide: BattleCombatantSide.enemy,
+        secondarySide: BattleCombatantSide.player,
+        playerBefore: player,
+        enemyBefore: enemy,
+        playerAfter: player,
+        enemyAfter: enemy,
+      ),
+    );
+    await _playCombatStateTransitionAnimations(
+      playerBefore: player,
+      enemyBefore: enemy,
+      playerAfter: attackResolution.defender,
+      enemyAfter: attackResolution.attacker,
+    );
+
+    return _EnemyActionResolution(
+      enemy: attackResolution.attacker,
+      player: attackResolution.defender,
+    );
+  }
+
   _DefendActionResolution _resolveDefendAction({
     required Battler defender,
     required Battler opponent,
@@ -560,6 +704,190 @@ class BattleController extends ChangeNotifier {
     );
   }
 
+  Future<void> _playBlockResolutionAnimation({
+    required BattleCombatantSide defenderSide,
+    required Battler defenderBefore,
+    required Battler opponentBefore,
+    required Battler defenderAfter,
+    required Battler opponentAfter,
+  }) async {
+    final opponentSide = defenderSide == BattleCombatantSide.player
+        ? BattleCombatantSide.enemy
+        : BattleCombatantSide.player;
+    final playerBefore = defenderSide == BattleCombatantSide.player
+        ? defenderBefore
+        : opponentBefore;
+    final enemyBefore = defenderSide == BattleCombatantSide.enemy
+        ? defenderBefore
+        : opponentBefore;
+    final playerAfter = defenderSide == BattleCombatantSide.player
+        ? defenderAfter
+        : opponentAfter;
+    final enemyAfter = defenderSide == BattleCombatantSide.enemy
+        ? defenderAfter
+        : opponentAfter;
+
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.blockMotion,
+        primarySide: defenderSide,
+        secondarySide: opponentSide,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: playerBefore,
+        enemyAfter: enemyBefore,
+      ),
+    );
+    await _playCombatStateTransitionAnimations(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyAfter,
+    );
+  }
+
+  Future<void> _playCombatStateTransitionAnimations({
+    required Battler playerBefore,
+    required Battler enemyBefore,
+    required Battler playerAfter,
+    required Battler enemyAfter,
+  }) async {
+    var visualPlayer = playerBefore;
+    var visualEnemy = enemyBefore;
+
+    for (final side in BattleCombatantSide.values) {
+      final before =
+          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
+      final after =
+          side == BattleCombatantSide.player ? playerAfter : enemyAfter;
+      final barrierLoss = after.currentBarrier < before.currentBarrier;
+      final healthLoss = after.health < before.health;
+      if (!barrierLoss && !healthLoss) continue;
+
+      final hook = barrierLoss && healthLoss
+          ? BattleCombatAnimationHook.damageTaken
+          : healthLoss
+              ? BattleCombatAnimationHook.healthLoss
+              : BattleCombatAnimationHook.barrierLoss;
+      final next = _buildVisualBattlerTransition(
+        before: before,
+        after: after,
+        includeHealth: healthLoss,
+        includeBarrier: barrierLoss,
+      );
+      await _playCombatAnimation(
+        _stateTransitionCue(
+          hook: hook,
+          side: side,
+          playerBefore: visualPlayer,
+          enemyBefore: visualEnemy,
+          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
+          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
+        ),
+      );
+      if (side == BattleCombatantSide.player) {
+        visualPlayer = next;
+      } else {
+        visualEnemy = next;
+      }
+    }
+
+    for (final side in BattleCombatantSide.values) {
+      final before =
+          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
+      final after =
+          side == BattleCombatantSide.player ? playerAfter : enemyAfter;
+      if (after.currentBarrier <= before.currentBarrier) continue;
+
+      final next = _buildVisualBattlerTransition(
+        before: before,
+        after: after,
+        includeBarrier: true,
+      );
+      await _playCombatAnimation(
+        _stateTransitionCue(
+          hook: BattleCombatAnimationHook.barrierGain,
+          side: side,
+          playerBefore: visualPlayer,
+          enemyBefore: visualEnemy,
+          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
+          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
+        ),
+      );
+      if (side == BattleCombatantSide.player) {
+        visualPlayer = next;
+      } else {
+        visualEnemy = next;
+      }
+    }
+
+    for (final side in BattleCombatantSide.values) {
+      final before =
+          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
+      final after =
+          side == BattleCombatantSide.player ? playerAfter : enemyAfter;
+      if (after.health <= before.health) continue;
+
+      final next = _buildVisualBattlerTransition(
+        before: before,
+        after: after,
+        includeHealth: true,
+      );
+      await _playCombatAnimation(
+        _stateTransitionCue(
+          hook: BattleCombatAnimationHook.healthGain,
+          side: side,
+          playerBefore: visualPlayer,
+          enemyBefore: visualEnemy,
+          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
+          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
+        ),
+      );
+      if (side == BattleCombatantSide.player) {
+        visualPlayer = next;
+      } else {
+        visualEnemy = next;
+      }
+    }
+  }
+
+  BattleCombatAnimationCue _stateTransitionCue({
+    required BattleCombatAnimationHook hook,
+    required BattleCombatantSide side,
+    required Battler playerBefore,
+    required Battler enemyBefore,
+    required Battler playerAfter,
+    required Battler enemyAfter,
+  }) {
+    return BattleCombatAnimationCue(
+      hook: hook,
+      primarySide: side,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyAfter,
+    );
+  }
+
+  Battler _buildVisualBattlerTransition({
+    required Battler before,
+    required Battler after,
+    bool includeHealth = false,
+    bool includeBarrier = false,
+  }) {
+    return before.copyWith(
+      health: includeHealth ? after.health : before.health,
+      currentBarrier:
+          includeBarrier ? after.currentBarrier : before.currentBarrier,
+    );
+  }
+
+  Future<void> _playCombatAnimation(BattleCombatAnimationCue cue) async {
+    final callback = onCombatAnimation;
+    if (callback == null) return;
+    await callback(cue);
+  }
+
   void _finishCombat({
     required BattleFlowResultType resultType,
     required String resultText,
@@ -606,8 +934,13 @@ class BattleController extends ChangeNotifier {
     return true;
   }
 
-  void _beginTurn(BattleTurnState nextTurn, {bool notify = true}) {
+  Future<void> _beginTurn(
+    BattleTurnState nextTurn, {
+    bool notify = true,
+  }) async {
     _turn = nextTurn;
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
     final resolution = _turnEngine.beginTurn(
       isPlayerTurn: nextTurn == BattleTurnState.player,
       player: _player,
@@ -615,10 +948,19 @@ class BattleController extends ChangeNotifier {
       randomizer: _randomizer,
     );
 
-    _player = resolution.player;
-    _enemy = resolution.enemy;
+    var nextPlayer = resolution.player;
+    var nextEnemy = resolution.enemy;
 
     if (resolution.finish != null) {
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: nextPlayer,
+        enemyAfter: nextEnemy,
+      );
+      if (_isDisposed) return;
+      _player = nextPlayer;
+      _enemy = nextEnemy;
       _finishCombat(
         resultType: resolution.finish!.resultType,
         resultText: resolution.finish!.resultText,
@@ -626,7 +968,21 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    _applyTurnPressureDamageIfNeeded();
+    final pressureResolution = _applyTurnPressureDamageIfNeeded(
+      player: nextPlayer,
+      enemy: nextEnemy,
+    );
+    nextPlayer = pressureResolution.player;
+    nextEnemy = pressureResolution.enemy;
+    await _playCombatStateTransitionAnimations(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: nextPlayer,
+      enemyAfter: nextEnemy,
+    );
+    if (_isDisposed) return;
+    _player = nextPlayer;
+    _enemy = nextEnemy;
     final pressureFinish = _turnEngine.finishFor(
       player: _player,
       enemy: _enemy,
@@ -644,7 +1000,55 @@ class BattleController extends ChangeNotifier {
     }
   }
 
-  bool _completeTurn(BattleTurnState completedTurn) {
+  void _beginTurnWithoutAnimation(
+    BattleTurnState nextTurn, {
+    bool notify = true,
+  }) {
+    _turn = nextTurn;
+    final resolution = _turnEngine.beginTurn(
+      isPlayerTurn: nextTurn == BattleTurnState.player,
+      player: _player,
+      enemy: _enemy,
+      randomizer: _randomizer,
+    );
+
+    if (resolution.finish != null) {
+      _player = resolution.player;
+      _enemy = resolution.enemy;
+      _finishCombat(
+        resultType: resolution.finish!.resultType,
+        resultText: resolution.finish!.resultText,
+      );
+      return;
+    }
+
+    final pressureResolution = _applyTurnPressureDamageIfNeeded(
+      player: resolution.player,
+      enemy: resolution.enemy,
+    );
+    _player = pressureResolution.player;
+    _enemy = pressureResolution.enemy;
+
+    final finish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (finish != null) {
+      _finishCombat(
+        resultType: finish.resultType,
+        resultText: finish.resultText,
+      );
+      return;
+    }
+
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _completeTurn(BattleTurnState completedTurn) async {
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
     final resolution = _turnEngine.completeTurn(
       didPlayerAct: completedTurn == BattleTurnState.player,
       player: _player,
@@ -652,6 +1056,13 @@ class BattleController extends ChangeNotifier {
       randomizer: _randomizer,
     );
 
+    await _playCombatStateTransitionAnimations(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: resolution.player,
+      enemyAfter: resolution.enemy,
+    );
+    if (_isDisposed) return true;
     _player = resolution.player;
     _enemy = resolution.enemy;
     _registerCompletedTurn();
@@ -677,23 +1088,28 @@ class BattleController extends ChangeNotifier {
     _currentRound++;
   }
 
-  void _applyTurnPressureDamageIfNeeded() {
+  BattleTurnResolution _applyTurnPressureDamageIfNeeded({
+    required Battler player,
+    required Battler enemy,
+  }) {
     final pressurePercent = _turnPressureDamagePercentForRound(_currentRound);
     if (pressurePercent <= 0) {
-      return;
+      return BattleTurnResolution(player: player, enemy: enemy);
     }
 
     final playerDamage = _turnPressureDamageForBattler(
-      battler: _player,
+      battler: player,
       pressurePercent: pressurePercent,
     );
     final enemyDamage = _turnPressureDamageForBattler(
-      battler: _enemy,
+      battler: enemy,
       pressurePercent: pressurePercent,
     );
 
-    _player = playerDamage > 0 ? _player.receiveDamage(playerDamage) : _player;
-    _enemy = enemyDamage > 0 ? _enemy.receiveDamage(enemyDamage) : _enemy;
+    return BattleTurnResolution(
+      player: playerDamage > 0 ? player.receiveDamage(playerDamage) : player,
+      enemy: enemyDamage > 0 ? enemy.receiveDamage(enemyDamage) : enemy,
+    );
   }
 
   int _turnPressureDamageForBattler({
@@ -714,6 +1130,34 @@ class BattleController extends ChangeNotifier {
     }
 
     return (round - 9) * 10;
+  }
+
+  Future<void> _applyDrawingEndTurnBarrierToPlayer(int amount) async {
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
+    final playerAfter = _applyDrawingEndTurnBarrier(_player, amount);
+    await _playCombatStateTransitionAnimations(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyBefore,
+    );
+    if (_isDisposed) return;
+    _player = playerAfter;
+  }
+
+  Future<void> _applyPlayerHealing(int amount) async {
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
+    final playerAfter = _player.heal(amount);
+    await _playCombatStateTransitionAnimations(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyBefore,
+    );
+    if (_isDisposed) return;
+    _player = playerAfter;
   }
 
   Battler _applyDrawingEndTurnBarrier(Battler battler, int amount) {
@@ -812,7 +1256,9 @@ class BattleController extends ChangeNotifier {
     return EnemyAiDifficultyLevel.alpha;
   }
 
-  void _applyDrawingPenalty(BattleAttackDrawingPenalty penalty) {
+  Future<void> _applyDrawingPenalty(BattleAttackDrawingPenalty penalty) async {
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
     if (penalty.directDamage > 0) {
       _player = _player.receiveDirectDamage(
         penalty.directDamage,
@@ -856,6 +1302,13 @@ class BattleController extends ChangeNotifier {
       _player = transferResolution.source;
       _enemy = transferResolution.target;
     }
+
+    await _playCombatStateTransitionAnimations(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: _player,
+      enemyAfter: _enemy,
+    );
   }
 
   _DrawingBuffTransferResolution _transferBuffStatuses({
@@ -895,6 +1348,7 @@ class BattleController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _cancelTimers();
     super.dispose();
   }
