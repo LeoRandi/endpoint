@@ -29,6 +29,8 @@ class BattleDrawAttackOverlay extends StatefulWidget {
   final int playerInitialBarrier;
   final RunRandomizer randomizer;
   final bool isQuickDrawAvailable;
+  final int quickDrawPerfectsRemaining;
+  final int nextQuickDrawPerfectCost;
 
   const BattleDrawAttackOverlay({
     super.key,
@@ -37,6 +39,8 @@ class BattleDrawAttackOverlay extends StatefulWidget {
     required this.playerInitialBarrier,
     required this.randomizer,
     required this.isQuickDrawAvailable,
+    required this.quickDrawPerfectsRemaining,
+    required this.nextQuickDrawPerfectCost,
   });
 
   @override
@@ -206,6 +210,21 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
     return widget.isQuickDrawAvailable &&
         !_hasConsumedQuickDraw &&
         PreparedSketchRuneStore.hasPreparedRune;
+  }
+
+  String get _quickDrawButtonLabel {
+    if (_canUseQuickDraw) {
+      return 'QUICK DRAW';
+    }
+
+    final remainingPerfects = _hasConsumedQuickDraw
+        ? widget.nextQuickDrawPerfectCost
+        : widget.quickDrawPerfectsRemaining;
+    if (remainingPerfects > 0) {
+      return '$remainingPerfects perfects';
+    }
+
+    return 'QUICK DRAW';
   }
 
   void _handleQuickDrawPressed() {
@@ -472,7 +491,7 @@ class _BattleDrawAttackOverlayState extends State<BattleDrawAttackOverlay>
                               bottom: 12,
                               child: Center(
                                 child: EndpointActionButton(
-                                  label: 'QUICK DRAW',
+                                  label: _quickDrawButtonLabel,
                                   icon: Icons.auto_awesome_rounded,
                                   onPressed: _isSubmitting || !_canUseQuickDraw
                                       ? null

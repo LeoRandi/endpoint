@@ -9,7 +9,8 @@ const _sketchRecognitionFeedbackLifetime = Duration(seconds: 1);
 const _sketchRecognitionFeedbackGap = Duration(milliseconds: 500);
 const _sketchEraserRadius = 18.0;
 const _sketchMoveLongPressDuration = Duration(milliseconds: 200);
-const _sketchPreloadExtraHoldDuration = Duration(milliseconds: 300);
+const _sketchPreloadWarmupDuration = Duration(seconds: 3);
+const _sketchPreloadDrawingDuration = Duration(seconds: 15);
 const _operativeAttackBonusHooks = <ItemEffectHook>{
   ItemEffectHook.attackResolved,
   ItemEffectHook.turnStart,
@@ -27,6 +28,12 @@ enum _OperativeSketchPracticeMode {
   defense,
 }
 
+enum _OperativeSketchPreloadPhase {
+  idle,
+  countdown,
+  drawing,
+}
+
 /// Overlay autocontenido que ofrece un lienzo persistente para dibujar con el dedo.
 class OperativeSketchOverlay extends StatefulWidget {
   final Battler player;
@@ -41,7 +48,8 @@ class OperativeSketchOverlay extends StatefulWidget {
   State<OperativeSketchOverlay> createState() => _OperativeSketchOverlayState();
 }
 
-class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
+class _OperativeSketchOverlayState extends State<OperativeSketchOverlay>
+    with TickerProviderStateMixin {
   static const _brushColors = <Color>[
     EndpointPalette.primaryAccent,
     EndpointPalette.dangerAccent,
@@ -60,8 +68,19 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
       const BattleDrawingBonusResolver();
   final BattleDrawingEligibleItemPlanner _eligibleItemPlanner =
       const BattleDrawingEligibleItemPlanner();
-  Timer? _pendingPreloadTimer;
-  bool _isPreloadModeEnabled = false;
+  late final AnimationController _preloadCountdownController =
+      AnimationController(
+    vsync: this,
+    duration: _sketchPreloadWarmupDuration,
+  )..addStatusListener(_handlePreloadCountdownStatus);
+  late final AnimationController _preloadTimerController = AnimationController(
+    vsync: this,
+    duration: _sketchPreloadDrawingDuration,
+  )..addStatusListener(_handlePreloadTimerStatus);
+  _OperativeSketchPreloadPhase _preloadPhase =
+      _OperativeSketchPreloadPhase.idle;
+  bool _isShowingPreloadDecisionDialog = false;
+  bool _isShowingQuickDrawPasteDialog = false;
   _OperativeSketchPracticeMode _practiceMode =
       _OperativeSketchPracticeMode.attack;
   late final EndpointSketchCanvasController _sketchController;
@@ -72,6 +91,18 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   late BattleDrawingBonusResolution _baseBonusResolution;
   late BattleDrawingBonusResolution _lastBonusResolution;
   Size? _canvasSize;
+
+  bool get _isPreloadSession =>
+      _preloadPhase != _OperativeSketchPreloadPhase.idle;
+  bool get _isPreloadCountdown =>
+      _preloadPhase == _OperativeSketchPreloadPhase.countdown;
+  bool get _isPreloadDrawing =>
+      _preloadPhase == _OperativeSketchPreloadPhase.drawing;
+
+  int get _preloadRecognizableShapeLimit {
+    return widget.player.equipmentCapacity +
+        widget.player.remainingEquipmentCapacity;
+  }
 
   @override
   void initState() {
@@ -127,6 +158,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   }
 
   void _selectPracticeMode(_OperativeSketchPracticeMode mode) {
+    if (_isPreloadSession) return;
     if (_practiceMode == mode) return;
 
     _feedbackController.dismiss();
@@ -138,6 +170,10 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Inicia un trazo nuevo usando el color seleccionado en la paleta visible.
   void _handlePanStart(DragStartDetails details) {
+    if (_isPreloadCountdown) {
+      return;
+    }
+
     if (_sketchController.toolMode == EndpointSketchToolMode.move) {
       return;
     }
@@ -151,6 +187,10 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Anade nuevos puntos al trazo activo mientras el usuario arrastra el dedo.
   void _handlePanUpdate(DragUpdateDetails details) {
+    if (_isPreloadCountdown) {
+      return;
+    }
+
     if (_sketchController.toolMode == EndpointSketchToolMode.move) {
       return;
     }
@@ -163,13 +203,16 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Cierra el trazo activo al terminar el gesto y deja el contenido en pantalla.
   void _handlePanEnd(DragEndDetails details) {
+    if (_isPreloadCountdown) {
+      return;
+    }
+
     _sketchController.handlePanEnd();
   }
 
   /// Selecciona y levanta un bloque de trazos conectados cuando la herramienta mano esta activa.
   void _handleLongPressStart(LongPressStartDetails details) {
-    if (_isPreloadModeEnabled) {
-      _schedulePreloadCapture(details.localPosition);
+    if (_isPreloadCountdown) {
       return;
     }
 
@@ -186,8 +229,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Mueve en bloque la seleccion levantada siguiendo el dedo.
   void _handleLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
-    if (_isPreloadModeEnabled) {
-      _cancelPendingPreload();
+    if (_isPreloadCountdown) {
       return;
     }
 
@@ -203,8 +245,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Suelta el bloque seleccionado en la posicion final.
   void _handleLongPressEnd(LongPressEndDetails details) {
-    _cancelPendingPreload();
-    if (_isPreloadModeEnabled) {
+    if (_isPreloadCountdown) {
       return;
     }
 
@@ -214,8 +255,7 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
   }
 
   void _handleLongPressCancel() {
-    _cancelPendingPreload();
-    if (_isPreloadModeEnabled) {
+    if (_isPreloadCountdown) {
       return;
     }
 
@@ -226,6 +266,8 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Limpia manualmente todos los trazos visibles del lienzo.
   void _clearStrokes() {
+    if (_isPreloadCountdown) return;
+
     _feedbackController.dismiss();
     if (_sketchController.clear()) {
       _resetRecognitionPreview();
@@ -235,6 +277,8 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Deshace el ultimo trazo completo del lienzo.
   void _undoLastStroke() {
+    if (_isPreloadCountdown) return;
+
     _feedbackController.dismiss();
     if (_sketchController.undoLastStroke()) {
       _resetRecognitionPreview();
@@ -244,6 +288,8 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Cambia el color del pincel que usara el siguiente trazo del jugador.
   void _selectBrushColor(Color color) {
+    if (_isPreloadSession) return;
+
     if (_sketchController.selectBrushColor(color)) {
       setState(() {});
     }
@@ -251,55 +297,179 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
 
   /// Cambia de forma explicita la herramienta activa del lienzo.
   void _selectToolMode(EndpointSketchToolMode mode) {
+    if (_isPreloadSession) return;
+
     _feedbackController.dismiss();
-    _cancelPendingPreload();
     if (_sketchController.setToolMode(mode)) {
       setState(() {});
     }
   }
 
-  void _togglePreloadMode() {
+  Future<void> _handlePreloadPressed() async {
+    if (_isPreloadSession || _isShowingPreloadDecisionDialog) return;
+
     _feedbackController.dismiss();
-    _cancelPendingPreload();
-    setState(() {
-      _isPreloadModeEnabled = !_isPreloadModeEnabled;
-    });
-  }
-
-  void _schedulePreloadCapture(Offset position) {
-    _cancelPendingPreload();
-    _pendingPreloadTimer = Timer(_sketchPreloadExtraHoldDuration, () {
-      _pendingPreloadTimer = null;
-      if (!mounted || !_isPreloadModeEnabled) {
-        return;
-      }
-      _capturePreloadedRuneAt(position);
-    });
-  }
-
-  void _cancelPendingPreload() {
-    _pendingPreloadTimer?.cancel();
-    _pendingPreloadTimer = null;
-  }
-
-  void _capturePreloadedRuneAt(Offset position) {
-    final connectedStrokes = _sketchController.exportConnectedStrokesAt(
-      position,
+    _isShowingPreloadDecisionDialog = true;
+    final accepted = await showEndpointDialog<bool>(
+      context: context,
+      barrierLabel: 'Confirmar precarga de runa',
+      barrierDismissible: false,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      builder: (context) {
+        return _OperativeSketchPreloadPromptDialog(
+          onCancel: () => Navigator.of(context).pop(false),
+          onConfirm: () => Navigator.of(context).pop(true),
+        );
+      },
     );
-    if (connectedStrokes.isEmpty) {
-      _feedbackController.show(
-        label: 'Sin trazo',
-        color: EndpointPalette.warningAccent,
+    if (!mounted) return;
+
+    _isShowingPreloadDecisionDialog = false;
+    if (accepted == true) {
+      _startPreloadCountdown();
+    }
+  }
+
+  void _startPreloadCountdown() {
+    _preloadCountdownController.stop();
+    _preloadTimerController.stop();
+    _preloadCountdownController.reset();
+    _preloadTimerController.reset();
+    _feedbackController.dismiss();
+    _sketchController
+      ..clear()
+      ..selectBrushColor(_brushColors.first)
+      ..setToolMode(EndpointSketchToolMode.paint);
+    _resetRecognitionPreview();
+
+    setState(() {
+      _preloadPhase = _OperativeSketchPreloadPhase.countdown;
+    });
+    _preloadCountdownController.forward(from: 0);
+  }
+
+  void _handlePreloadCountdownStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed ||
+        !mounted ||
+        !_isPreloadCountdown) {
+      return;
+    }
+
+    _preloadTimerController.reset();
+    setState(() {
+      _preloadPhase = _OperativeSketchPreloadPhase.drawing;
+    });
+    _preloadTimerController.forward(from: 0);
+  }
+
+  void _handlePreloadTimerStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed ||
+        !mounted ||
+        !_isPreloadDrawing ||
+        _isShowingPreloadDecisionDialog) {
+      return;
+    }
+
+    unawaited(
+      _showPreloadRetryDialog(
+        message: 'Tiempo agotado. ¿Volver a intentar?',
+      ),
+    );
+  }
+
+  Future<void> _handlePreloadDonePressed() async {
+    if (!_isPreloadDrawing || _isShowingPreloadDecisionDialog) return;
+
+    _feedbackController.dismiss();
+    if (!_sketchController.hasStrokes) {
+      await _showPreloadRetryDialog(
+        message: 'No hay trazo para precargar. ¿Volver a intentar?',
       );
       return;
     }
 
-    PreparedSketchRuneStore.saveFromStrokes(connectedStrokes);
+    final recognitionResult = _scanCurrentDrawing();
+    final recognizedShapeCount = recognitionResult.totalCount;
+    final allowedShapeCount = _preloadRecognizableShapeLimit;
+    if (recognizedShapeCount > allowedShapeCount) {
+      await _showPreloadRetryDialog(
+        message:
+            'Reconocidas $recognizedShapeCount formas. Permitidas $allowedShapeCount formas. ¿Volver a intentar?',
+      );
+      return;
+    }
+
+    PreparedSketchRuneStore.saveFromStrokes(_sketchController.strokes);
+    _preloadCountdownController.reset();
+    _preloadTimerController
+      ..stop()
+      ..reset();
     _feedbackController.show(
       label: 'RUNA PRECARGADA',
       color: EndpointPalette.rewardAccent,
     );
-    setState(() {});
+    setState(() {
+      _preloadPhase = _OperativeSketchPreloadPhase.idle;
+    });
+  }
+
+  Future<void> _showPreloadRetryDialog({
+    required String message,
+  }) async {
+    if (_isShowingPreloadDecisionDialog) return;
+
+    _preloadCountdownController.stop();
+    _preloadTimerController.stop();
+    _isShowingPreloadDecisionDialog = true;
+    final shouldRetry = await showEndpointDialog<bool>(
+      context: context,
+      barrierLabel: 'Reintentar precarga de runa',
+      barrierDismissible: false,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      builder: (context) {
+        return _OperativeSketchPreloadRetryDialog(
+          message: message,
+          onCancel: () => Navigator.of(context).pop(false),
+          onRetry: () => Navigator.of(context).pop(true),
+        );
+      },
+    );
+    if (!mounted) return;
+
+    _isShowingPreloadDecisionDialog = false;
+    if (shouldRetry == true) {
+      _startPreloadCountdown();
+      return;
+    }
+
+    _finishPreloadSession();
+  }
+
+  void _finishPreloadSession() {
+    _preloadCountdownController
+      ..stop()
+      ..reset();
+    _preloadTimerController
+      ..stop()
+      ..reset();
+    setState(() {
+      _preloadPhase = _OperativeSketchPreloadPhase.idle;
+      _lastBonusResolution = _baseBonusResolution;
+    });
+  }
+
+  OperativeSketchRecognitionResult _scanCurrentDrawing() {
+    final canvasSize = _canvasSize;
+    if (canvasSize == null ||
+        canvasSize.isEmpty ||
+        !_sketchController.hasStrokes) {
+      return _emptyRecognitionResult;
+    }
+
+    return _recognitionHelper.scan(
+      strokes: _sketchController.strokePointLists,
+      canvasSize: canvasSize,
+    );
   }
 
   /// Ejecuta el helper sobre el dibujo actual y lo traduce a feedback visual.
@@ -398,9 +568,11 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     return PreparedSketchRuneStore.hasPreparedRune;
   }
 
-  void _handleQuickDrawPressed() {
+  Future<void> _handleQuickDrawPressed() async {
     final canvasSize = _canvasSize;
-    if (canvasSize == null || canvasSize.isEmpty) {
+    if (canvasSize == null ||
+        canvasSize.isEmpty ||
+        _isShowingQuickDrawPasteDialog) {
       return;
     }
 
@@ -414,281 +586,746 @@ class _OperativeSketchOverlayState extends State<OperativeSketchOverlay> {
     }
 
     _feedbackController.dismiss();
-    if (_sketchController.pasteStrokesCentered(
+    _isShowingQuickDrawPasteDialog = true;
+    final shouldPaste = await showEndpointDialog<bool>(
+      context: context,
+      barrierLabel: 'Confirmar Quick Draw',
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      builder: (context) {
+        return _OperativeSketchQuickDrawPromptDialog(
+          onCancel: () => Navigator.of(context).pop(false),
+          onConfirm: () => Navigator.of(context).pop(true),
+        );
+      },
+    );
+    if (!mounted) return;
+
+    _isShowingQuickDrawPasteDialog = false;
+    if (shouldPaste != true) {
+      return;
+    }
+
+    final didClear = _sketchController.clear();
+    final didPaste = _sketchController.pasteStrokesCentered(
       sourceStrokes: preparedStrokes,
       canvasSize: canvasSize,
-    )) {
+    );
+    if (didClear || didPaste) {
       _resetRecognitionPreview();
+      setState(() {});
+    }
+    if (didPaste) {
       _feedbackController.show(
         label: 'QUICK DRAW',
         color: EndpointPalette.infoAccent,
       );
-      setState(() {});
     }
+  }
+
+  Color _timerAccentFor(double remainingFactor) {
+    if (remainingFactor > 0.66) {
+      return EndpointPalette.primaryAccent;
+    }
+    if (remainingFactor > 0.33) {
+      return EndpointPalette.warningAccent;
+    }
+    return EndpointPalette.dangerAccent;
   }
 
   /// Libera los temporizadores del overlay al cerrar la ventana.
   @override
   void dispose() {
-    _cancelPendingPreload();
     _feedbackController
       ..removeListener(_handleFeedbackChanged)
+      ..dispose();
+    _preloadCountdownController
+      ..removeStatusListener(_handlePreloadCountdownStatus)
+      ..dispose();
+    _preloadTimerController
+      ..removeStatusListener(_handlePreloadTimerStatus)
       ..dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return EndpointOverlayScaffold(
-      title: 'TRAZADO',
-      headerContent: _OperativeSketchPracticeTabs(
-        mode: _practiceMode,
-        onSelectMode: _selectPracticeMode,
-      ),
-      sectionLabel: 'PRACTICA',
-      sectionValue: _practiceMode == _OperativeSketchPracticeMode.attack
-          ? 'ATAQUE'
-          : 'BLOQUEO',
-      closeTooltip: 'Cerrar lienzo',
-      accent: EndpointPalette.infoAccent,
-      bottomInset: 24,
-      maxWidth: 540,
-      maxHeight: 700,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _OperativeSketchBonusesStrip(
-            bonusItemGroups: _bonusItemGroups,
-            resolution: _lastBonusResolution,
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                _canvasSize = Size(
-                  constraints.maxWidth,
-                  constraints.maxHeight,
-                );
-                return RepaintBoundary(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        _sketchCanvasBorderRadius,
-                      ),
-                      border: Border.all(
-                        color: EndpointPalette.softForeground.withValues(
-                          alpha: 0.76,
-                        ),
-                        width: 1.6,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: EndpointPalette.infoAccent.withValues(
-                            alpha: 0.1,
+    final sectionValue = _isPreloadSession
+        ? (_isPreloadCountdown ? 'PREPARANDO' : 'PRECARGA')
+        : _practiceMode == _OperativeSketchPracticeMode.attack
+            ? 'ATAQUE'
+            : 'BLOQUEO';
+
+    return Stack(
+      children: [
+        EndpointOverlayScaffold(
+          title: _isPreloadSession ? 'PRECARGA' : 'TRAZADO',
+          subtitle: _isPreloadSession ? 'RUNA FAVORITA' : '',
+          headerContent: _isPreloadSession
+              ? null
+              : _OperativeSketchPracticeTabs(
+                  mode: _practiceMode,
+                  onSelectMode: _selectPracticeMode,
+                ),
+          sectionLabel: 'PRACTICA',
+          sectionValue: sectionValue,
+          closeTooltip: 'Cerrar lienzo',
+          accent: _isPreloadSession
+              ? EndpointPalette.rewardAccent
+              : EndpointPalette.infoAccent,
+          bottomInset: 24,
+          maxWidth: 540,
+          maxHeight: _isPreloadSession ? 740 : 700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _OperativeSketchBonusesStrip(
+                bonusItemGroups: _bonusItemGroups,
+                resolution: _lastBonusResolution,
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    _canvasSize = Size(
+                      constraints.maxWidth,
+                      constraints.maxHeight,
+                    );
+                    return RepaintBoundary(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                            _sketchCanvasBorderRadius,
                           ),
-                          blurRadius: 20,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        _sketchCanvasBorderRadius - 1,
-                      ),
-                      child: RawGestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        gestures: <Type, GestureRecognizerFactory>{
-                          PanGestureRecognizer:
-                              GestureRecognizerFactoryWithHandlers<
-                                  PanGestureRecognizer>(
-                            () => PanGestureRecognizer(),
-                            (PanGestureRecognizer recognizer) {
-                              recognizer
-                                ..onStart = _handlePanStart
-                                ..onUpdate = _handlePanUpdate
-                                ..onEnd = _handlePanEnd
-                                ..onCancel = () => _handlePanEnd(
-                                      DragEndDetails(primaryVelocity: 0),
-                                    );
-                            },
+                          border: Border.all(
+                            color: EndpointPalette.softForeground.withValues(
+                              alpha: 0.76,
+                            ),
+                            width: 1.6,
                           ),
-                          LongPressGestureRecognizer:
-                              GestureRecognizerFactoryWithHandlers<
-                                  LongPressGestureRecognizer>(
-                            () => LongPressGestureRecognizer(
-                              duration: _sketchMoveLongPressDuration,
-                            ),
-                            (LongPressGestureRecognizer recognizer) {
-                              recognizer
-                                ..onLongPressStart = _handleLongPressStart
-                                ..onLongPressMoveUpdate =
-                                    _handleLongPressMoveUpdate
-                                ..onLongPressEnd = _handleLongPressEnd
-                                ..onLongPressCancel = _handleLongPressCancel;
-                            },
-                          ),
-                        },
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: CustomPaint(
-                                painter: EndpointSketchPainter(
-                                  strokes: _sketchController.strokes,
-                                  noiseDots: _noiseDots,
-                                  selectedStrokeIds:
-                                      _sketchController.selectedStrokeIds,
-                                  hasLiftedSelection:
-                                      _sketchController.hasLiftedSelection,
-                                ),
-                                child: const SizedBox.expand(),
+                          boxShadow: [
+                            BoxShadow(
+                              color: EndpointPalette.infoAccent.withValues(
+                                alpha: 0.1,
                               ),
-                            ),
-                            Positioned.fill(
-                              child: IgnorePointer(
-                                child: Align(
-                                  alignment: Alignment.topCenter,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 20),
-                                    child: EndpointSketchFeedbackBanner(
-                                      feedback: _feedbackController.feedback,
-                                      lifetime:
-                                          _sketchRecognitionFeedbackLifetime,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: 12,
-                              child: Center(
-                                child: EndpointActionButton(
-                                  label: 'QUICK DRAW',
-                                  icon: Icons.auto_awesome_rounded,
-                                  onPressed:
-                                      _canUseQuickDraw
-                                          ? _handleQuickDrawPressed
-                                          : null,
-                                  tooltip: _canUseQuickDraw
-                                      ? 'Pegar runa precargada en el centro'
-                                      : 'No hay runa precargada',
-                                  accent: EndpointPalette.infoAccent,
-                                  backgroundColor: EndpointPalette.blend(
-                                    EndpointPalette.panelBackgroundBattle,
-                                    EndpointPalette.infoAccent,
-                                    _canUseQuickDraw ? 0.18 : 0.05,
-                                  ),
-                                  foregroundColor: _canUseQuickDraw
-                                      ? EndpointPalette.softForegroundWarm
-                                      : EndpointPalette.softForeground,
-                                  borderRadius: 999,
-                                  borderWidth: 1.4,
-                                  height: 34,
-                                  useMarquee: false,
-                                ),
-                              ),
+                              blurRadius: 20,
+                              spreadRadius: 1,
                             ),
                           ],
                         ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            _sketchCanvasBorderRadius - 1,
+                          ),
+                          child: RawGestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            gestures: <Type, GestureRecognizerFactory>{
+                              PanGestureRecognizer:
+                                  GestureRecognizerFactoryWithHandlers<
+                                      PanGestureRecognizer>(
+                                () => PanGestureRecognizer(),
+                                (PanGestureRecognizer recognizer) {
+                                  recognizer
+                                    ..onStart = _handlePanStart
+                                    ..onUpdate = _handlePanUpdate
+                                    ..onEnd = _handlePanEnd
+                                    ..onCancel = () => _handlePanEnd(
+                                          DragEndDetails(primaryVelocity: 0),
+                                        );
+                                },
+                              ),
+                              LongPressGestureRecognizer:
+                                  GestureRecognizerFactoryWithHandlers<
+                                      LongPressGestureRecognizer>(
+                                () => LongPressGestureRecognizer(
+                                  duration: _sketchMoveLongPressDuration,
+                                ),
+                                (LongPressGestureRecognizer recognizer) {
+                                  recognizer
+                                    ..onLongPressStart = _handleLongPressStart
+                                    ..onLongPressMoveUpdate =
+                                        _handleLongPressMoveUpdate
+                                    ..onLongPressEnd = _handleLongPressEnd
+                                    ..onLongPressCancel =
+                                        _handleLongPressCancel;
+                                },
+                              ),
+                            },
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    painter: EndpointSketchPainter(
+                                      strokes: _sketchController.strokes,
+                                      noiseDots: _noiseDots,
+                                      selectedStrokeIds:
+                                          _sketchController.selectedStrokeIds,
+                                      hasLiftedSelection:
+                                          _sketchController.hasLiftedSelection,
+                                    ),
+                                    child: const SizedBox.expand(),
+                                  ),
+                                ),
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 20),
+                                        child: EndpointSketchFeedbackBanner(
+                                          feedback:
+                                              _feedbackController.feedback,
+                                          lifetime:
+                                              _sketchRecognitionFeedbackLifetime,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (!_isPreloadSession)
+                                  Positioned(
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 12,
+                                    child: Center(
+                                      child: EndpointActionButton(
+                                        label: 'QUICK DRAW',
+                                        icon: Icons.auto_awesome_rounded,
+                                        onPressed: _canUseQuickDraw
+                                            ? () => unawaited(
+                                                  _handleQuickDrawPressed(),
+                                                )
+                                            : null,
+                                        tooltip: _canUseQuickDraw
+                                            ? 'Pegar runa precargada en el centro'
+                                            : 'No hay runa precargada',
+                                        accent: EndpointPalette.infoAccent,
+                                        backgroundColor: EndpointPalette.blend(
+                                          EndpointPalette.panelBackgroundBattle,
+                                          EndpointPalette.infoAccent,
+                                          _canUseQuickDraw ? 0.18 : 0.05,
+                                        ),
+                                        foregroundColor: _canUseQuickDraw
+                                            ? EndpointPalette.softForegroundWarm
+                                            : EndpointPalette.softForeground,
+                                        borderRadius: 999,
+                                        borderWidth: 1.4,
+                                        height: 34,
+                                        useMarquee: false,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (_isPreloadSession) ...[
+                _OperativeSketchPreloadTimerBar(
+                  animation: _preloadTimerController,
+                  duration: _sketchPreloadDrawingDuration,
+                  accentBuilder: _timerAccentFor,
+                ),
+                const SizedBox(height: 10),
+                _OperativeSketchPreloadControls(
+                  hasStrokes: _sketchController.hasStrokes,
+                  isEnabled: _isPreloadDrawing,
+                  onUndo: _undoLastStroke,
+                  onClear: _clearStrokes,
+                  onCheck: _handleCheckPressed,
+                  onDone: () => unawaited(_handlePreloadDonePressed()),
+                ),
+              ] else ...[
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final color in _brushColors)
+                      _SketchBrushSwatch(
+                        color: color,
+                        isSelected: _sketchController.toolMode ==
+                                EndpointSketchToolMode.paint &&
+                            _sketchController.selectedBrushColor == color,
+                        onPressed: () => _selectBrushColor(color),
+                      ),
+                    _SketchToolModeButton(
+                      icon: Icons.cleaning_services_rounded,
+                      tooltip: 'Activar borrador',
+                      accent: EndpointPalette.warningAccent,
+                      isSelected: _sketchController.toolMode ==
+                          EndpointSketchToolMode.erase,
+                      onPressed: () =>
+                          _selectToolMode(EndpointSketchToolMode.erase),
+                    ),
+                    _SketchToolModeButton(
+                      icon: Icons.pan_tool_alt_rounded,
+                      tooltip: 'Activar mano para mover trazos conectados',
+                      accent: EndpointPalette.infoAccent,
+                      isSelected: _sketchController.toolMode ==
+                          EndpointSketchToolMode.move,
+                      onPressed: () =>
+                          _selectToolMode(EndpointSketchToolMode.move),
+                    ),
+                    _SketchCircularActionButton(
+                      icon: Icons.undo_rounded,
+                      tooltip: 'Eliminar el ultimo trazo',
+                      accent: EndpointPalette.primaryAccent,
+                      isEnabled: _sketchController.hasStrokes,
+                      onPressed: _undoLastStroke,
+                    ),
+                    _SketchCircularActionButton(
+                      icon: Icons.layers_clear_rounded,
+                      tooltip: 'Borrar todos los trazos',
+                      accent: EndpointPalette.infoAccent,
+                      isEnabled: _sketchController.hasStrokes,
+                      onPressed: _clearStrokes,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: EndpointActionButton(
+                        label: 'CHECK',
+                        icon: Icons.fact_check_rounded,
+                        onPressed: _handleCheckPressed,
+                        tooltip: 'Escanear el dibujo actual',
+                        accent: EndpointPalette.warningAccent,
+                        backgroundColor: EndpointPalette.blend(
+                          EndpointPalette.panelBackground,
+                          EndpointPalette.warningAccent,
+                          0.1,
+                        ),
+                        foregroundColor: EndpointPalette.softForegroundWarm,
+                        height: 44,
+                        useMarquee: false,
                       ),
                     ),
-                  ),
-                );
-              },
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: EndpointActionButton(
+                        label: 'Precargar Runas',
+                        icon: Icons.auto_fix_high_rounded,
+                        onPressed: () => unawaited(_handlePreloadPressed()),
+                        tooltip: 'Activar precarga de runas',
+                        accent: EndpointPalette.rewardAccent,
+                        backgroundColor: EndpointPalette.blend(
+                          EndpointPalette.panelBackground,
+                          EndpointPalette.rewardAccent,
+                          0.1,
+                        ),
+                        foregroundColor: EndpointPalette.softForeground,
+                        height: 44,
+                        useMarquee: false,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (_isPreloadCountdown)
+          Positioned.fill(
+            child: _OperativeSketchPreloadCountdownOverlay(
+              animation: _preloadCountdownController,
+              duration: _sketchPreloadWarmupDuration,
             ),
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final color in _brushColors)
-                _SketchBrushSwatch(
-                  color: color,
-                  isSelected: _sketchController.toolMode ==
-                          EndpointSketchToolMode.paint &&
-                      _sketchController.selectedBrushColor == color,
-                  onPressed: () => _selectBrushColor(color),
-                ),
-              _SketchToolModeButton(
-                icon: Icons.cleaning_services_rounded,
-                tooltip: 'Activar borrador',
-                accent: EndpointPalette.warningAccent,
-                isSelected:
-                    _sketchController.toolMode == EndpointSketchToolMode.erase,
-                onPressed: () => _selectToolMode(EndpointSketchToolMode.erase),
-              ),
-              _SketchToolModeButton(
-                icon: Icons.pan_tool_alt_rounded,
-                tooltip: 'Activar mano para mover trazos conectados',
-                accent: EndpointPalette.infoAccent,
-                isSelected:
-                    _sketchController.toolMode == EndpointSketchToolMode.move,
-                onPressed: () => _selectToolMode(EndpointSketchToolMode.move),
-              ),
-              _SketchCircularActionButton(
-                icon: Icons.undo_rounded,
-                tooltip: 'Eliminar el ultimo trazo',
-                accent: EndpointPalette.primaryAccent,
-                isEnabled: _sketchController.hasStrokes,
-                onPressed: _undoLastStroke,
-              ),
-              _SketchCircularActionButton(
-                icon: Icons.layers_clear_rounded,
-                tooltip: 'Borrar todos los trazos',
-                accent: EndpointPalette.infoAccent,
-                isEnabled: _sketchController.hasStrokes,
-                onPressed: _clearStrokes,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: EndpointActionButton(
-                  label: 'CHECK',
-                  icon: Icons.fact_check_rounded,
-                  onPressed: _handleCheckPressed,
-                  tooltip: 'Escanear el dibujo actual',
-                  accent: EndpointPalette.warningAccent,
-                  backgroundColor: EndpointPalette.blend(
-                    EndpointPalette.panelBackground,
-                    EndpointPalette.warningAccent,
-                    0.1,
+      ],
+    );
+  }
+}
+
+class _OperativeSketchQuickDrawPromptDialog extends StatelessWidget {
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  const _OperativeSketchQuickDrawPromptDialog({
+    required this.onCancel,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _OperativeSketchPreloadDecisionPanel(
+      title: 'QUICK DRAW',
+      message: '¿Limpiar el canvas actual para pegar el trazo guardado?',
+      confirmLabel: 'Si',
+      confirmAccent: EndpointPalette.infoAccent,
+      onCancel: onCancel,
+      onConfirm: onConfirm,
+    );
+  }
+}
+
+class _OperativeSketchPreloadPromptDialog extends StatelessWidget {
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  const _OperativeSketchPreloadPromptDialog({
+    required this.onCancel,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _OperativeSketchPreloadDecisionPanel(
+      title: 'PRECARGAR RUNAS',
+      message:
+          'Para precargar un trazo, deberás dibujarlo en un tiempo de 15 segundos. '
+          'El dibujo no puede contener más formas reconocibles que tu límite de equipamiento. '
+          'Cada hueco libre en tu equipamiento sumará 1 al límite de formas reconocibles. '
+          '¿Preparado?',
+      confirmLabel: 'Si',
+      confirmAccent: EndpointPalette.rewardAccent,
+      onCancel: onCancel,
+      onConfirm: onConfirm,
+    );
+  }
+}
+
+class _OperativeSketchPreloadRetryDialog extends StatelessWidget {
+  final String message;
+  final VoidCallback onCancel;
+  final VoidCallback onRetry;
+
+  const _OperativeSketchPreloadRetryDialog({
+    required this.message,
+    required this.onCancel,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _OperativeSketchPreloadDecisionPanel(
+      title: 'PRECARGA RECHAZADA',
+      message: message,
+      confirmLabel: 'Si',
+      confirmAccent: EndpointPalette.warningAccent,
+      onCancel: onCancel,
+      onConfirm: onRetry,
+    );
+  }
+}
+
+class _OperativeSketchPreloadDecisionPanel extends StatelessWidget {
+  final String title;
+  final String message;
+  final String confirmLabel;
+  final Color confirmAccent;
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  const _OperativeSketchPreloadDecisionPanel({
+    required this.title,
+    required this.message,
+    required this.confirmLabel,
+    required this.confirmAccent,
+    required this.onCancel,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: EndpointPanel(
+            accent: confirmAccent,
+            backgroundColor: EndpointPalette.panelBackgroundBattleOpaque,
+            borderRadius: 18,
+            glowOpacity: 0.1,
+            blurRadius: 24,
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                EndpointText(
+                  title,
+                  style: textMediumBold.copyWith(
+                    color: confirmAccent,
+                    letterSpacing: 1.4,
                   ),
-                  foregroundColor: EndpointPalette.softForegroundWarm,
-                  height: 44,
-                  useMarquee: false,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: EndpointActionButton(
-                  label: 'Precargar Runas',
-                  icon: Icons.auto_fix_high_rounded,
-                  onPressed: _togglePreloadMode,
-                  tooltip: _isPreloadModeEnabled
-                      ? 'Modo precarga activo: manten pulsado un trazo para guardarlo'
-                      : 'Activar modo precarga de runas',
-                  accent: EndpointPalette.rewardAccent,
-                  backgroundColor: EndpointPalette.blend(
-                    EndpointPalette.panelBackground,
-                    EndpointPalette.rewardAccent,
-                    _isPreloadModeEnabled ? 0.2 : 0.1,
+                const SizedBox(height: 10),
+                EndpointText(
+                  message,
+                  maxLines: null,
+                  style: textMedium.copyWith(
+                    color: EndpointPalette.softForeground.withValues(
+                      alpha: 0.86,
+                    ),
+                    height: 1.18,
                   ),
-                  foregroundColor: _isPreloadModeEnabled
-                      ? EndpointPalette.softForegroundWarm
-                      : EndpointPalette.softForeground,
-                  height: 44,
-                  useMarquee: false,
                 ),
-              ),
-            ],
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: EndpointActionButton(
+                        label: 'No',
+                        onPressed: onCancel,
+                        accent: EndpointPalette.primaryAccent,
+                        backgroundColor: EndpointPalette.closeButtonBackground,
+                        foregroundColor: EndpointPalette.softForeground,
+                        height: 42,
+                        useMarquee: false,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: EndpointActionButton(
+                        label: confirmLabel,
+                        onPressed: onConfirm,
+                        accent: confirmAccent,
+                        backgroundColor: EndpointPalette.blend(
+                          EndpointPalette.panelBackgroundBattle,
+                          confirmAccent,
+                          0.28,
+                        ),
+                        foregroundColor: EndpointPalette.softForegroundWarm,
+                        height: 42,
+                        useMarquee: false,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _OperativeSketchPreloadCountdownOverlay extends StatelessWidget {
+  final Animation<double> animation;
+  final Duration duration;
+
+  const _OperativeSketchPreloadCountdownOverlay({
+    required this.animation,
+    required this.duration,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AbsorbPointer(
+      absorbing: true,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.overlayScrimStrong.withValues(alpha: 0.72),
+        ),
+        child: Center(
+          child: AnimatedBuilder(
+            animation: animation,
+            builder: (context, _) {
+              final remainingFactor = (1 - animation.value).clamp(0.0, 1.0);
+              final remainingMillis =
+                  (duration.inMilliseconds * remainingFactor).ceil();
+              final remainingSeconds = max(
+                1,
+                (remainingMillis / 1000).ceil(),
+              );
+
+              return EndpointText(
+                '$remainingSeconds',
+                style: textTitleMediumBold.copyWith(
+                  color: EndpointPalette.softForegroundWarm,
+                  fontSize: 92,
+                  letterSpacing: 0,
+                  shadows: [
+                    Shadow(
+                      color: EndpointPalette.rewardAccent.withValues(
+                        alpha: 0.74,
+                      ),
+                      blurRadius: 28,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OperativeSketchPreloadTimerBar extends StatelessWidget {
+  final Animation<double> animation;
+  final Duration duration;
+  final Color Function(double remainingFactor) accentBuilder;
+
+  const _OperativeSketchPreloadTimerBar({
+    required this.animation,
+    required this.duration,
+    required this.accentBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final remainingFactor = (1 - animation.value).clamp(0.0, 1.0);
+        final remainingMillis =
+            (duration.inMilliseconds * remainingFactor).ceil();
+        final remainingSeconds = max(
+          0,
+          (remainingMillis / 1000).ceil(),
+        );
+        final accent = accentBuilder(remainingFactor);
+
+        return EndpointPanel(
+          accent: accent,
+          backgroundColor: EndpointPalette.panelBackgroundBattle,
+          borderRadius: 12,
+          glowOpacity: 0.06,
+          blurRadius: 18,
+          spreadRadius: 1,
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EndpointText(
+                'TIEMPO RESTANTE',
+                style: textSmallBold.copyWith(
+                  color: accent,
+                  fontSize: 10,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: remainingFactor,
+                      minHeight: 16,
+                      backgroundColor: EndpointPalette.softForeground
+                          .withValues(alpha: 0.08),
+                      valueColor: AlwaysStoppedAnimation<Color>(accent),
+                    ),
+                  ),
+                  EndpointText(
+                    '$remainingSeconds s',
+                    style: textSmallNumericBold.copyWith(
+                      color: EndpointPalette.panelBackgroundOpaque,
+                      fontSize: 11,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _OperativeSketchPreloadControls extends StatelessWidget {
+  final bool hasStrokes;
+  final bool isEnabled;
+  final VoidCallback onUndo;
+  final VoidCallback onClear;
+  final VoidCallback onCheck;
+  final VoidCallback onDone;
+
+  const _OperativeSketchPreloadControls({
+    required this.hasStrokes,
+    required this.isEnabled,
+    required this.onUndo,
+    required this.onClear,
+    required this.onCheck,
+    required this.onDone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: EndpointActionButton(
+            label: 'UNDO',
+            icon: Icons.undo_rounded,
+            onPressed: isEnabled && hasStrokes ? onUndo : null,
+            tooltip: 'Eliminar el ultimo trazo',
+            accent: EndpointPalette.primaryAccent,
+            backgroundColor: EndpointPalette.closeButtonBackground,
+            foregroundColor: EndpointPalette.softForeground,
+            height: 42,
+            textStyle: textSmallBold,
+            useMarquee: false,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: EndpointActionButton(
+            label: 'LIMPIAR',
+            icon: Icons.layers_clear_rounded,
+            onPressed: isEnabled && hasStrokes ? onClear : null,
+            tooltip: 'Borrar todos los trazos',
+            accent: EndpointPalette.infoAccent,
+            backgroundColor: EndpointPalette.closeButtonBackground,
+            foregroundColor: EndpointPalette.softForeground,
+            height: 42,
+            textStyle: textSmallBold,
+            useMarquee: false,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: EndpointActionButton(
+            label: 'CHECK',
+            icon: Icons.fact_check_rounded,
+            onPressed: isEnabled ? onCheck : null,
+            tooltip: 'Escanear el dibujo actual',
+            accent: EndpointPalette.warningAccent,
+            backgroundColor: EndpointPalette.blend(
+              EndpointPalette.panelBackground,
+              EndpointPalette.warningAccent,
+              0.1,
+            ),
+            foregroundColor: EndpointPalette.softForegroundWarm,
+            height: 42,
+            textStyle: textSmallBold,
+            useMarquee: false,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: EndpointActionButton(
+            label: 'DONE',
+            icon: Icons.done_rounded,
+            onPressed: isEnabled ? onDone : null,
+            tooltip: 'Guardar el trazo para Quick Draw',
+            accent: EndpointPalette.rewardAccent,
+            backgroundColor: EndpointPalette.blend(
+              EndpointPalette.panelBackground,
+              EndpointPalette.rewardAccent,
+              0.16,
+            ),
+            foregroundColor: EndpointPalette.softForegroundWarm,
+            height: 42,
+            textStyle: textSmallBold,
+            useMarquee: false,
+          ),
+        ),
+      ],
     );
   }
 }

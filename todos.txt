@@ -14,10 +14,9 @@
 [--Añadir herramienta "mover", que coge todo el trazo unido al seleccionado y lo mueve a lo largo del canvas]
 --Cambiar diseño/UI del overlay del canvas, y hacer más grande dicho overlay
 --Sistema de guardar dibujo en favorito + quick draw
----Se guarda por grupo de objetos equipado, y si se cambia el equipamiento se pierde y hay que volver a hacerlo
----Se puede pegar en combate para cubrir tus bonuses, pero los malus se siguen teniendo que dibujar
+[---Se puede pegar en combate para cubrir tus bonuses, pero los malus se siguen teniendo que dibujar]
 ---Si no hay espacio para dibujar el favorito, no se añade y hay que hacerlo a mano
----Contador de tiempo para dibujar, desde 0, el dibujo favorito.
+[---Contador de tiempo para dibujar, desde 0, el dibujo favorito.]
 
 [-Economía]
 [--Bajar Income base a la mitad o algo]

@@ -40,6 +40,8 @@ class _BattlePageState extends State<BattlePage> {
   bool _isPresentingDrawAttack = false;
   bool _isPresentingDrawDefense = false;
   bool _isQuickDrawAvailable = true;
+  int _quickDrawUseCount = 0;
+  int _quickDrawPerfectsRemaining = 0;
 
   @override
   void initState() {
@@ -179,6 +181,8 @@ class _BattlePageState extends State<BattlePage> {
           playerInitialBarrier: _sceneController.playerInitialBarrier,
           randomizer: _sceneController.randomizer,
           isQuickDrawAvailable: _isQuickDrawAvailable,
+          quickDrawPerfectsRemaining: _quickDrawPerfectsRemaining,
+          nextQuickDrawPerfectCost: _quickDrawUseCount + 1,
         ),
       );
       if (!mounted || drawResult == null) return;
@@ -226,6 +230,8 @@ class _BattlePageState extends State<BattlePage> {
           playerInitialBarrier: _sceneController.playerInitialBarrier,
           randomizer: _sceneController.randomizer,
           isQuickDrawAvailable: _isQuickDrawAvailable,
+          quickDrawPerfectsRemaining: _quickDrawPerfectsRemaining,
+          nextQuickDrawPerfectCost: _quickDrawUseCount + 1,
         ),
       );
       if (!mounted || drawResult == null) return;
@@ -260,22 +266,32 @@ class _BattlePageState extends State<BattlePage> {
   }
 
   void _syncQuickDrawState(BattleDrawOverlayResult drawResult) {
-    var shouldNotify = false;
-    var nextValue = _isQuickDrawAvailable;
+    var nextAvailability = _isQuickDrawAvailable;
+    var nextUseCount = _quickDrawUseCount;
+    var nextPerfectsRemaining = _quickDrawPerfectsRemaining;
+
     if (drawResult.consumedQuickDraw) {
-      nextValue = false;
-      shouldNotify = true;
-    }
-    if (drawResult.achievedPerfect) {
-      nextValue = true;
-      shouldNotify = true;
+      nextUseCount += 1;
+      nextPerfectsRemaining = nextUseCount;
+      nextAvailability = false;
     }
 
-    if (!mounted || !shouldNotify || nextValue == _isQuickDrawAvailable) {
+    if (drawResult.achievedPerfect && !nextAvailability) {
+      nextPerfectsRemaining = max(0, nextPerfectsRemaining - 1);
+      nextAvailability = nextPerfectsRemaining <= 0;
+    }
+
+    if (!mounted ||
+        (nextAvailability == _isQuickDrawAvailable &&
+            nextUseCount == _quickDrawUseCount &&
+            nextPerfectsRemaining == _quickDrawPerfectsRemaining)) {
       return;
     }
     setState(() {
-      _isQuickDrawAvailable = nextValue;
+      _isQuickDrawAvailable = nextAvailability;
+      _quickDrawUseCount = nextUseCount;
+      _quickDrawPerfectsRemaining =
+          nextAvailability ? 0 : nextPerfectsRemaining;
     });
   }
 

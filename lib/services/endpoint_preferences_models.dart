@@ -32,7 +32,7 @@ class EndpointSettingsSnapshot {
         animationSpeed = 2,
         customAvatarEnabled = false,
         customAvatarSelectionEnabled = false,
-        gameMode = EndpointGameMode.classic;
+        gameMode = EndpointGameMode.drawing;
 
   EndpointSettingsSnapshot copyWith({
     bool? soundEnabled,
