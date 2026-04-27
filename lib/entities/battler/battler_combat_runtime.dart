@@ -21,6 +21,25 @@ extension BattlerCombatRuntime on Battler {
     return copyWith(health: min(maxHealth, health + safeAmount));
   }
 
+  /// Suma Barrera temporal durante combate sin saltarse las invariantes del modelo.
+  Battler gainCombatBarrier(
+    int amount, {
+    bool allowAboveMax = true,
+  }) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 ||
+        isDefeated ||
+        !hasCombatFlag(Battler.combatActiveFlag)) {
+      return this;
+    }
+
+    final nextBarrier = currentBarrier + safeAmount;
+    return copyWith(
+      currentBarrier:
+          allowAboveMax ? nextBarrier : min(maxBarrier, nextBarrier),
+    );
+  }
+
   /// Anade una flag de combate sin duplicarla.
   Battler addCombatFlag(CombatRuntimeFlag flag) {
     if (combatFlags.contains(flag)) return this;

@@ -42,6 +42,8 @@ class _BattleSceneView extends StatelessWidget {
   final GlobalKey enemyStatusBarKey;
   final Animation<double> attackFlightAnimation;
   final _BattleCombatIconMotion? activeCombatIconMotion;
+  final _BattleStatusEffectBurst? activeStatusEffectBurst;
+  final _BattleFloatingNumberBurst? activeFloatingNumberBurst;
   final int? playerBarrierAnimationReference;
   final int? enemyBarrierAnimationReference;
   final Set<BattleCombatantSide> animatedHealthSides;
@@ -70,6 +72,8 @@ class _BattleSceneView extends StatelessWidget {
     required this.enemyStatusBarKey,
     required this.attackFlightAnimation,
     required this.activeCombatIconMotion,
+    required this.activeStatusEffectBurst,
+    required this.activeFloatingNumberBurst,
     required this.playerBarrierAnimationReference,
     required this.enemyBarrierAnimationReference,
     required this.animatedHealthSides,
@@ -253,6 +257,18 @@ class _BattleSceneView extends StatelessWidget {
                             motion: activeCombatIconMotion!,
                           ),
                         ),
+                      if (activeStatusEffectBurst != null)
+                        Positioned.fill(
+                          child: _BattleStatusEffectAnimationLayer(
+                            burst: activeStatusEffectBurst!,
+                          ),
+                        ),
+                      if (activeFloatingNumberBurst != null)
+                        Positioned.fill(
+                          child: _BattleFloatingNumberAnimationLayer(
+                            burst: activeFloatingNumberBurst!,
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -326,6 +342,298 @@ class _BattleSide extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _BattleFloatingNumberAnimationLayer extends StatelessWidget {
+  final _BattleFloatingNumberBurst burst;
+
+  const _BattleFloatingNumberAnimationLayer({
+    required this.burst,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey<int>(burst.id),
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: _battleFloatingNumberDuration,
+      curve: Curves.linear,
+      builder: (context, progress, _) {
+        return IgnorePointer(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (final particle in burst.particles)
+                _BattleFloatingNumberParticleView(
+                  particle: particle,
+                  progress: progress,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BattleFloatingNumberParticleView extends StatelessWidget {
+  final _BattleFloatingNumberParticle particle;
+  final double progress;
+
+  const _BattleFloatingNumberParticleView({
+    required this.particle,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final localProgress = ((progress - particle.delay) / (1 - particle.delay))
+        .clamp(0.0, 1.0)
+        .toDouble();
+    if (localProgress <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    final rise = Curves.easeOutCubic.transform(localProgress) * -18;
+    final popScale = 0.82 + 0.24 * Curves.easeOutBack.transform(localProgress);
+    final opacity = _opacityForFloatingNumberProgress(localProgress);
+
+    return Positioned(
+      left: particle.start.dx - 36,
+      top: particle.start.dy - 16,
+      width: 72,
+      height: 32,
+      child: Opacity(
+        opacity: opacity,
+        child: Transform.translate(
+          offset: Offset(0, rise),
+          child: Transform.scale(
+            scale: popScale,
+            child: _BattleOutlinedFloatingNumberText(
+              label: particle.label,
+              color: particle.color,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  double _opacityForFloatingNumberProgress(double progress) {
+    if (progress < 0.12) {
+      return (progress / 0.12).clamp(0.0, 1.0).toDouble();
+    }
+    if (progress > 0.72) {
+      return ((1 - progress) / 0.28).clamp(0.0, 1.0).toDouble();
+    }
+
+    return 1;
+  }
+}
+
+class _BattleOutlinedFloatingNumberText extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _BattleOutlinedFloatingNumberText({
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final baseStyle = textTitleSmallBold.copyWith(
+      fontSize: 18,
+      letterSpacing: 0.8,
+      height: 1,
+    );
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: baseStyle.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 3.2
+              ..color = Colors.black.withAlpha(230),
+            shadows: [
+              Shadow(
+                color: Colors.black.withAlpha(204),
+                blurRadius: 5,
+              ),
+            ],
+          ),
+        ),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: baseStyle.copyWith(
+            color: color,
+            shadows: [
+              Shadow(
+                color: color.withAlpha(112),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BattleStatusEffectAnimationLayer extends StatelessWidget {
+  final _BattleStatusEffectBurst burst;
+
+  const _BattleStatusEffectAnimationLayer({
+    required this.burst,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey<int>(burst.id),
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: _battleStatusEffectBurstDuration,
+      curve: Curves.linear,
+      builder: (context, progress, _) {
+        return IgnorePointer(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (final particle in burst.particles)
+                _BattleStatusEffectParticleView(
+                  burst: burst,
+                  particle: particle,
+                  progress: progress,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BattleStatusEffectParticleView extends StatelessWidget {
+  final _BattleStatusEffectBurst burst;
+  final _BattleStatusEffectParticle particle;
+  final double progress;
+
+  const _BattleStatusEffectParticleView({
+    required this.burst,
+    required this.particle,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final localProgress = ((progress - particle.delay) / (1 - particle.delay))
+        .clamp(0.0, 1.0)
+        .toDouble();
+    if (localProgress <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    final travelProgress = Curves.easeOutCubic.transform(
+      ((localProgress - 0.22) / 0.78).clamp(0.0, 1.0).toDouble(),
+    );
+    final floatProgress = Curves.easeInOutSine.transform(
+      (localProgress / 0.32).clamp(0.0, 1.0).toDouble(),
+    );
+    final direction = burst.rises ? -1.0 : 1.0;
+    final offset = Offset(
+      particle.drift * Curves.easeInOutCubic.transform(localProgress),
+      direction * particle.travelDistance * travelProgress +
+          sin(floatProgress * pi * 2) * 5 * (1 - travelProgress),
+    );
+    final opacity = _opacityForStatusEffectProgress(localProgress);
+    final size = _battleSwordAnimationSize * 0.62 * particle.scale;
+
+    return Positioned(
+      left: particle.start.dx - size / 2,
+      top: particle.start.dy - size / 2,
+      width: size,
+      height: size,
+      child: Opacity(
+        opacity: opacity,
+        child: Transform.translate(
+          offset: offset,
+          child: Transform.scale(
+            scale: 0.88 + 0.16 * Curves.easeOutBack.transform(localProgress),
+            child: _BattleStatusEffectGlyph(
+              burst: burst,
+              size: size,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  double _opacityForStatusEffectProgress(double progress) {
+    if (progress < 0.14) {
+      return (progress / 0.14).clamp(0.0, 1.0).toDouble();
+    }
+    if (progress > 0.68) {
+      return ((1 - progress) / 0.32).clamp(0.0, 1.0).toDouble();
+    }
+
+    return 1;
+  }
+}
+
+class _BattleStatusEffectGlyph extends StatelessWidget {
+  final _BattleStatusEffectBurst burst;
+  final double size;
+
+  const _BattleStatusEffectGlyph({
+    required this.burst,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final symbol = burst.symbol;
+    if (symbol != null) {
+      return Text(
+        symbol,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: size,
+          height: 1,
+          shadows: [
+            Shadow(
+              color: burst.accent.withAlpha(179),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: EndpointPalette.panelBackgroundBattleOpaque.withAlpha(210),
+        boxShadow: [
+          BoxShadow(
+            color: burst.accent.withAlpha(112),
+            blurRadius: 12,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Icon(
+        burst.icon,
+        color: burst.accent,
+        size: size * 0.72,
       ),
     );
   }

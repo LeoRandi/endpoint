@@ -175,7 +175,26 @@ class BattlerEffectPipeline {
     if (activeStatuses.isEmpty) return owner;
     var updatedOwner = owner;
 
+    if (isOwnerTurn) {
+      final burnDamage = activeStatuses
+          .whereType<QuemaduraStatus>()
+          .where((status) => !status.isExpired)
+          .fold<int>(
+            0,
+            (total, status) => total + status.currentDamage(updatedOwner),
+          );
+      if (burnDamage > 0) {
+        updatedOwner = receiveDebuffDamage(
+          owner: updatedOwner,
+          damage: burnDamage,
+          source: opponent,
+        );
+      }
+    }
+
     for (final status in activeStatuses) {
+      if (status is QuemaduraStatus) continue;
+
       final resolvedStatus = status.resolved(updatedOwner);
       updatedOwner = resolvedStatus.onTurnEnd(
         owner: updatedOwner,

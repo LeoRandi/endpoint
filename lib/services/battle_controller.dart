@@ -25,11 +25,32 @@ enum BattleCombatantSide {
 enum BattleCombatAnimationHook {
   attackMotion,
   blockMotion,
+  burnDamage,
+  poisonDamage,
   damageTaken,
   healthLoss,
   healthGain,
   barrierGain,
   barrierLoss,
+}
+
+enum BattleCombatFloatingNumberTone {
+  healthDamage,
+  barrierDamage,
+  burnDamage,
+  poisonDamage,
+  healing,
+  barrierGain,
+}
+
+class BattleCombatFloatingNumberCue {
+  final BattleCombatFloatingNumberTone tone;
+  final int amount;
+
+  const BattleCombatFloatingNumberCue({
+    required this.tone,
+    required this.amount,
+  }) : assert(amount > 0);
 }
 
 class BattleCombatAnimationCue {
@@ -40,6 +61,8 @@ class BattleCombatAnimationCue {
   final Battler enemyBefore;
   final Battler playerAfter;
   final Battler enemyAfter;
+  final int effectCount;
+  final List<BattleCombatFloatingNumberCue> floatingNumbers;
 
   const BattleCombatAnimationCue({
     required this.hook,
@@ -49,6 +72,8 @@ class BattleCombatAnimationCue {
     required this.enemyBefore,
     required this.playerAfter,
     required this.enemyAfter,
+    this.effectCount = 1,
+    this.floatingNumbers = const <BattleCombatFloatingNumberCue>[],
   });
 }
 
@@ -751,6 +776,8 @@ class BattleController extends ChangeNotifier {
     required Battler enemyBefore,
     required Battler playerAfter,
     required Battler enemyAfter,
+    Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>> floatingNumbersBySide =
+        const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{},
   }) async {
     var visualPlayer = playerBefore;
     var visualEnemy = enemyBefore;
@@ -775,6 +802,11 @@ class BattleController extends ChangeNotifier {
         includeHealth: healthLoss,
         includeBarrier: barrierLoss,
       );
+      final floatingNumbers = floatingNumbersBySide[side] ??
+          _buildLossFloatingNumbers(
+            before: before,
+            after: after,
+          );
       await _playCombatAnimation(
         _stateTransitionCue(
           hook: hook,
@@ -783,6 +815,7 @@ class BattleController extends ChangeNotifier {
           enemyBefore: visualEnemy,
           playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
           enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
+          floatingNumbers: floatingNumbers,
         ),
       );
       if (side == BattleCombatantSide.player) {
@@ -812,6 +845,11 @@ class BattleController extends ChangeNotifier {
           enemyBefore: visualEnemy,
           playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
           enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
+          floatingNumbers: _buildGainFloatingNumbers(
+            before: before,
+            after: after,
+            includeBarrier: true,
+          ),
         ),
       );
       if (side == BattleCombatantSide.player) {
@@ -841,6 +879,11 @@ class BattleController extends ChangeNotifier {
           enemyBefore: visualEnemy,
           playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
           enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
+          floatingNumbers: _buildGainFloatingNumbers(
+            before: before,
+            after: after,
+            includeHealth: true,
+          ),
         ),
       );
       if (side == BattleCombatantSide.player) {
@@ -858,6 +901,8 @@ class BattleController extends ChangeNotifier {
     required Battler enemyBefore,
     required Battler playerAfter,
     required Battler enemyAfter,
+    List<BattleCombatFloatingNumberCue> floatingNumbers =
+        const <BattleCombatFloatingNumberCue>[],
   }) {
     return BattleCombatAnimationCue(
       hook: hook,
@@ -866,7 +911,52 @@ class BattleController extends ChangeNotifier {
       enemyBefore: enemyBefore,
       playerAfter: playerAfter,
       enemyAfter: enemyAfter,
+      floatingNumbers: floatingNumbers,
     );
+  }
+
+  List<BattleCombatFloatingNumberCue> _buildLossFloatingNumbers({
+    required Battler before,
+    required Battler after,
+  }) {
+    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
+    final healthLoss = max(0, before.health - after.health);
+    return List<BattleCombatFloatingNumberCue>.unmodifiable([
+      if (healthLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.healthDamage,
+          amount: healthLoss,
+        ),
+      if (barrierLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.barrierDamage,
+          amount: barrierLoss,
+        ),
+    ]);
+  }
+
+  List<BattleCombatFloatingNumberCue> _buildGainFloatingNumbers({
+    required Battler before,
+    required Battler after,
+    bool includeHealth = false,
+    bool includeBarrier = false,
+  }) {
+    final healthGain = includeHealth ? max(0, after.health - before.health) : 0;
+    final barrierGain = includeBarrier
+        ? max(0, after.currentBarrier - before.currentBarrier)
+        : 0;
+    return List<BattleCombatFloatingNumberCue>.unmodifiable([
+      if (healthGain > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.healing,
+          amount: healthGain,
+        ),
+      if (barrierGain > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.barrierGain,
+          amount: barrierGain,
+        ),
+    ]);
   }
 
   Battler _buildVisualBattlerTransition({
@@ -1055,12 +1145,27 @@ class BattleController extends ChangeNotifier {
       enemy: _enemy,
       randomizer: _randomizer,
     );
+    final turnEndFloatingNumbers = _buildTurnEndDebuffFloatingNumbers(
+      completedTurn: completedTurn,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: resolution.player,
+      enemyAfter: resolution.enemy,
+    );
+
+    await _playTurnEndDebuffDamageAnimations(
+      completedTurn: completedTurn,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+    );
+    if (_isDisposed) return true;
 
     await _playCombatStateTransitionAnimations(
       playerBefore: playerBefore,
       enemyBefore: enemyBefore,
       playerAfter: resolution.player,
       enemyAfter: resolution.enemy,
+      floatingNumbersBySide: turnEndFloatingNumbers,
     );
     if (_isDisposed) return true;
     _player = resolution.player;
@@ -1076,6 +1181,135 @@ class BattleController extends ChangeNotifier {
     }
 
     return false;
+  }
+
+  Future<void> _playTurnEndDebuffDamageAnimations({
+    required BattleTurnState completedTurn,
+    required Battler playerBefore,
+    required Battler enemyBefore,
+  }) async {
+    final affectedSide = completedTurn == BattleTurnState.player
+        ? BattleCombatantSide.player
+        : BattleCombatantSide.enemy;
+    final affectedBefore =
+        affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
+
+    final burnApplicationCount = _burnApplicationCountFor(affectedBefore);
+    if (burnApplicationCount > 0) {
+      await _playCombatAnimation(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.burnDamage,
+          primarySide: affectedSide,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerBefore,
+          enemyAfter: enemyBefore,
+          effectCount: burnApplicationCount,
+        ),
+      );
+      if (_isDisposed) return;
+    }
+
+    final poisonStackCount = _poisonStackCountFor(affectedBefore);
+    if (poisonStackCount > 0) {
+      await _playCombatAnimation(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.poisonDamage,
+          primarySide: affectedSide,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerBefore,
+          enemyAfter: enemyBefore,
+          effectCount: poisonStackCount,
+        ),
+      );
+    }
+  }
+
+  int _burnApplicationCountFor(Battler battler) {
+    return battler.statuses.whereType<QuemaduraStatus>().where((status) {
+      return !status.isExpired && status.currentDamage(battler) > 0;
+    }).length;
+  }
+
+  int _poisonStackCountFor(Battler battler) {
+    final poison = battler.statusById(IntoxicacionStatus.statusId);
+    if (poison is! IntoxicacionStatus || poison.isExpired) {
+      return 0;
+    }
+
+    return max(0, poison.currentDamage(battler));
+  }
+
+  Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
+      _buildTurnEndDebuffFloatingNumbers({
+    required BattleTurnState completedTurn,
+    required Battler playerBefore,
+    required Battler enemyBefore,
+    required Battler playerAfter,
+    required Battler enemyAfter,
+  }) {
+    final affectedSide = completedTurn == BattleTurnState.player
+        ? BattleCombatantSide.player
+        : BattleCombatantSide.enemy;
+    final before =
+        affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
+    final after =
+        affectedSide == BattleCombatantSide.player ? playerAfter : enemyAfter;
+    final hasBurn = _burnApplicationCountFor(before) > 0;
+    final poisonDamage = _poisonStackCountFor(before);
+    if (!hasBurn && poisonDamage <= 0) {
+      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
+    }
+
+    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
+    final healthLoss = max(0, before.health - after.health);
+    if (barrierLoss <= 0 && healthLoss <= 0) {
+      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
+    }
+
+    final floatingNumbers = <BattleCombatFloatingNumberCue>[];
+
+    var remainingHealthLoss = healthLoss;
+    if (poisonDamage > 0 && remainingHealthLoss > 0) {
+      final poisonShown = min(poisonDamage, remainingHealthLoss);
+      floatingNumbers.add(
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.poisonDamage,
+          amount: poisonShown,
+        ),
+      );
+      remainingHealthLoss -= poisonShown;
+    }
+    if (hasBurn && remainingHealthLoss > 0) {
+      floatingNumbers.add(
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.burnDamage,
+          amount: remainingHealthLoss,
+        ),
+      );
+    } else if (remainingHealthLoss > 0) {
+      floatingNumbers.add(
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.healthDamage,
+          amount: remainingHealthLoss,
+        ),
+      );
+    }
+    if (barrierLoss > 0) {
+      floatingNumbers.add(
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.barrierDamage,
+          amount: barrierLoss,
+        ),
+      );
+    }
+
+    return <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{
+      affectedSide: List<BattleCombatFloatingNumberCue>.unmodifiable(
+        floatingNumbers,
+      ),
+    };
   }
 
   void _registerCompletedTurn() {
@@ -1161,38 +1395,13 @@ class BattleController extends ChangeNotifier {
   }
 
   Battler _applyDrawingEndTurnBarrier(Battler battler, int amount) {
-    final safeAmount = max(0, amount);
-    if (safeAmount <= 0 || battler.isDefeated) return battler;
-
     // El bonus de dibujo representa una barrera temporal y no debe anularse
     // solo porque el tope base del battler sea cero.
-    return Battler(
-      name: battler.name,
-      iconEmoji: battler.iconEmoji,
-      archetypeId: battler.archetypeId,
-      health: battler.health,
-      currentBarrier: battler.currentBarrier + safeAmount,
-      money: battler.money,
-      income: battler.baseIncome,
-      equipmentCapacity: battler.equipmentCapacity,
-      level: battler.level,
-      experience: battler.experience,
-      baseStats: battler.baseStats,
-      abilities: battler.abilities,
-      statuses: battler.statuses,
-      inventoryItems: battler.inventoryItems,
-      equippedItems: battler.equippedItems,
-      combatFlags: battler.combatFlags,
-    );
+    return battler.gainCombatBarrier(amount);
   }
 
   Battler _applyBarrierGain(Battler battler, int amount) {
-    final safeAmount = max(0, amount);
-    if (safeAmount <= 0 || battler.isDefeated) return battler;
-
-    return battler.copyWith(
-      currentBarrier: battler.currentBarrier + safeAmount,
-    );
+    return battler.gainCombatBarrier(amount);
   }
 
   int _playerCurrentBlockBarrierGain() {

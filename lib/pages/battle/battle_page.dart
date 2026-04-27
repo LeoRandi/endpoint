@@ -8,6 +8,8 @@ const _battleAttackFlightDuration = Duration(milliseconds: 750);
 const _battleAttackSlowLaunchDuration = Duration(milliseconds: 550);
 const _battleAttackFastImpactDuration = Duration(milliseconds: 200);
 const _battleImpactBarDuration = Duration(milliseconds: 250);
+const _battleFloatingNumberDuration = Duration(milliseconds: 520);
+const _battleStatusEffectBurstDuration = Duration(milliseconds: 500);
 const _battleSwordAssetPath = 'assets/images/icons/icon_sword.png';
 const _battleShieldAssetPath = 'assets/images/icons/icon_shield.png';
 const _battleSwordAnimationSize = 46.0;
@@ -25,6 +27,64 @@ class _BattleCombatIconMotion {
     required this.end,
     required this.primarySide,
     required this.assetPath,
+  });
+}
+
+class _BattleStatusEffectParticle {
+  final Offset start;
+  final double drift;
+  final double travelDistance;
+  final double delay;
+  final double scale;
+
+  const _BattleStatusEffectParticle({
+    required this.start,
+    required this.drift,
+    required this.travelDistance,
+    required this.delay,
+    required this.scale,
+  });
+}
+
+class _BattleStatusEffectBurst {
+  final int id;
+  final bool rises;
+  final String? symbol;
+  final IconData? icon;
+  final Color accent;
+  final List<_BattleStatusEffectParticle> particles;
+
+  const _BattleStatusEffectBurst({
+    required this.id,
+    required this.rises,
+    this.symbol,
+    this.icon,
+    required this.accent,
+    required this.particles,
+  }) : assert(symbol != null || icon != null);
+}
+
+class _BattleFloatingNumberParticle {
+  final String label;
+  final Color color;
+  final Offset start;
+  final double delay;
+
+  const _BattleFloatingNumberParticle({
+    required this.label,
+    required this.color,
+    required this.start,
+    required this.delay,
+  });
+}
+
+class _BattleFloatingNumberBurst {
+  final int id;
+  final List<_BattleFloatingNumberParticle> particles;
+
+  const _BattleFloatingNumberBurst({
+    required this.id,
+    required this.particles,
   });
 }
 
@@ -61,6 +121,7 @@ class BattlePage extends StatefulWidget {
 class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   late final BattleSceneController _sceneController;
   late final AnimationController _attackFlightController;
+  final Random _statusEffectVisualRandom = Random();
   final GlobalKey _battleAnimationRootKey = GlobalKey();
   final GlobalKey _playerSideKey = GlobalKey();
   final GlobalKey _enemySideKey = GlobalKey();
@@ -68,6 +129,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   final GlobalKey _enemyStatusBarKey = GlobalKey();
   EndpointSettingsSnapshot? _settingsSnapshot;
   _BattleCombatIconMotion? _activeCombatIconMotion;
+  _BattleStatusEffectBurst? _activeStatusEffectBurst;
+  _BattleFloatingNumberBurst? _activeFloatingNumberBurst;
   Battler? _displayPlayerOverride;
   Battler? _displayEnemyOverride;
   int? _playerBarrierAnimationReference;
@@ -81,6 +144,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   bool _isQuickDrawAvailable = true;
   int _quickDrawUseCount = 0;
   int _quickDrawPerfectsRemaining = 0;
+  int _statusEffectBurstSequence = 0;
+  int _floatingNumberBurstSequence = 0;
 
   @override
   void initState() {
@@ -125,6 +190,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         _displayPlayerOverride = null;
         _displayEnemyOverride = null;
         _activeCombatIconMotion = null;
+        _activeStatusEffectBurst = null;
         _playerBarrierAnimationReference = null;
         _enemyBarrierAnimationReference = null;
         _animatedHealthSides = const {};
@@ -340,6 +406,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       case BattleCombatAnimationHook.blockMotion:
         await _playCombatMotionCue(cue);
         break;
+      case BattleCombatAnimationHook.burnDamage:
+      case BattleCombatAnimationHook.poisonDamage:
+        await _playStatusEffectCue(cue);
+        break;
       case BattleCombatAnimationHook.damageTaken:
       case BattleCombatAnimationHook.healthLoss:
       case BattleCombatAnimationHook.healthGain:
@@ -394,13 +464,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   Future<void> _playCombatMotionCue(BattleCombatAnimationCue cue) async {
-    final secondarySide = cue.secondarySide;
-    if (secondarySide == null) return;
-
     final start = _centerForSide(cue.primarySide);
-    final end = cue.hook == BattleCombatAnimationHook.blockMotion
-        ? _centerForSide(secondarySide)
-        : _centerForStatusBar(secondarySide);
+    final end = _motionEndForCue(cue);
+    if (end == null) return;
+
     final assetPath = cue.hook == BattleCombatAnimationHook.blockMotion
         ? _battleShieldAssetPath
         : _battleSwordAssetPath;
@@ -411,6 +478,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _displayEnemyOverride = cue.enemyBefore;
       _animatedHealthSides = const {};
       _animatedBarrierSides = const {};
+      _activeStatusEffectBurst = null;
+      _activeFloatingNumberBurst = null;
       _activeCombatIconMotion = _BattleCombatIconMotion(
         hook: cue.hook,
         start: start,
@@ -433,6 +502,97 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     });
   }
 
+  Future<void> _playStatusEffectCue(BattleCombatAnimationCue cue) async {
+    if (cue.effectCount <= 0) return;
+
+    final burst = _buildStatusEffectBurst(cue);
+    setState(() {
+      _isPlayingBattleAnimation = true;
+      _releaseDisplayOverrideOnNextSceneChange = false;
+      _displayPlayerOverride = cue.playerBefore;
+      _displayEnemyOverride = cue.enemyBefore;
+      _animatedHealthSides = const {};
+      _animatedBarrierSides = const {};
+      _activeCombatIconMotion = null;
+      _activeFloatingNumberBurst = null;
+      _activeStatusEffectBurst = burst;
+    });
+
+    await Future<void>.delayed(_battleStatusEffectBurstDuration);
+    if (!mounted) return;
+
+    setState(() {
+      if (_activeStatusEffectBurst?.id == burst.id) {
+        _activeStatusEffectBurst = null;
+      }
+      _isPlayingBattleAnimation = false;
+    });
+  }
+
+  Future<void> _clearFloatingNumberBurstAfterDelay(
+    _BattleFloatingNumberBurst burst,
+  ) async {
+    await Future<void>.delayed(_battleFloatingNumberDuration);
+    if (!mounted || _activeFloatingNumberBurst?.id != burst.id) return;
+
+    setState(() {
+      _activeFloatingNumberBurst = null;
+    });
+  }
+
+  _BattleStatusEffectBurst _buildStatusEffectBurst(
+    BattleCombatAnimationCue cue,
+  ) {
+    final sideRect = _rectForSide(cue.primarySide);
+    final isBurn = cue.hook == BattleCombatAnimationHook.burnDamage;
+    final poisonStatus = const IntoxicacionStatus();
+    final count = max(1, cue.effectCount);
+    final particles = List<_BattleStatusEffectParticle>.generate(
+      count,
+      (_) => _buildStatusEffectParticle(sideRect),
+      growable: false,
+    );
+
+    return _BattleStatusEffectBurst(
+      id: ++_statusEffectBurstSequence,
+      rises: isBurn,
+      symbol: isBurn ? '\u{1F525}' : null,
+      icon: isBurn ? null : poisonStatus.icon,
+      accent: isBurn ? const Color(0xFFFF9B3D) : poisonStatus.type.foreground,
+      particles: List<_BattleStatusEffectParticle>.unmodifiable(particles),
+    );
+  }
+
+  _BattleStatusEffectParticle _buildStatusEffectParticle(Rect sideRect) {
+    final random = _statusEffectVisualRandom;
+    final horizontalInset = min(44.0, sideRect.width * 0.18);
+    final verticalInset = min(36.0, sideRect.height * 0.18);
+    final usableWidth = max(1.0, sideRect.width - horizontalInset * 2);
+    final usableHeight = max(1.0, sideRect.height - verticalInset * 2);
+
+    return _BattleStatusEffectParticle(
+      start: Offset(
+        sideRect.left + horizontalInset + random.nextDouble() * usableWidth,
+        sideRect.top + verticalInset + random.nextDouble() * usableHeight,
+      ),
+      drift: (random.nextDouble() * 2 - 1) * 26,
+      travelDistance: 34 + random.nextDouble() * 22,
+      delay: random.nextDouble() * 0.16,
+      scale: 0.82 + random.nextDouble() * 0.36,
+    );
+  }
+
+  Offset? _motionEndForCue(BattleCombatAnimationCue cue) {
+    if (cue.hook == BattleCombatAnimationHook.blockMotion) {
+      return _centerOfBattleArea();
+    }
+
+    final secondarySide = cue.secondarySide;
+    if (secondarySide == null) return null;
+
+    return _centerForStatusBar(secondarySide);
+  }
+
   Future<void> _playCombatStatCue(BattleCombatAnimationCue cue) async {
     final animatedSide = cue.primarySide;
     final animatesHealth = cue.hook == BattleCombatAnimationHook.damageTaken ||
@@ -441,6 +601,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final animatesBarrier = cue.hook == BattleCombatAnimationHook.damageTaken ||
         cue.hook == BattleCombatAnimationHook.barrierLoss ||
         cue.hook == BattleCombatAnimationHook.barrierGain;
+    final floatingNumberBurst = _buildFloatingNumberBurst(cue);
 
     setState(() {
       _isPlayingBattleAnimation = true;
@@ -457,8 +618,13 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       );
       _animatedHealthSides = const {};
       _animatedBarrierSides = const {};
+      _activeStatusEffectBurst = null;
       _activeCombatIconMotion = null;
+      _activeFloatingNumberBurst = floatingNumberBurst;
     });
+    if (floatingNumberBurst != null) {
+      unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
+    }
 
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
@@ -477,6 +643,107 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     await Future<void>.delayed(_battleImpactBarDuration);
     if (!mounted) return;
     _releaseDisplayOverrideOnNextSceneChange = true;
+  }
+
+  _BattleFloatingNumberBurst? _buildFloatingNumberBurst(
+    BattleCombatAnimationCue cue,
+  ) {
+    final floatingNumbers = cue.floatingNumbers.isNotEmpty
+        ? cue.floatingNumbers
+        : _fallbackFloatingNumbersForCue(cue);
+    if (floatingNumbers.isEmpty) return null;
+
+    final statusBarRect = _rectForStatusBar(cue.primarySide);
+    final center = statusBarRect.center;
+    const spacing = 50.0;
+    final particles = <_BattleFloatingNumberParticle>[];
+
+    for (var index = 0; index < floatingNumbers.length; index++) {
+      final floatingNumber = floatingNumbers[index];
+      final centeredIndex = index - (floatingNumbers.length - 1) / 2;
+      particles.add(
+        _BattleFloatingNumberParticle(
+          label: _floatingNumberLabelFor(floatingNumber),
+          color: _floatingNumberColorFor(floatingNumber.tone),
+          start: Offset(
+            center.dx + centeredIndex * spacing,
+            center.dy + statusBarRect.height * 0.08,
+          ),
+          delay: index * 0.04,
+        ),
+      );
+    }
+
+    return _BattleFloatingNumberBurst(
+      id: ++_floatingNumberBurstSequence,
+      particles: List<_BattleFloatingNumberParticle>.unmodifiable(particles),
+    );
+  }
+
+  List<BattleCombatFloatingNumberCue> _fallbackFloatingNumbersForCue(
+    BattleCombatAnimationCue cue,
+  ) {
+    final before = cue.primarySide == BattleCombatantSide.player
+        ? cue.playerBefore
+        : cue.enemyBefore;
+    final after = cue.primarySide == BattleCombatantSide.player
+        ? cue.playerAfter
+        : cue.enemyAfter;
+    final healthLoss = max(0, before.health - after.health);
+    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
+    final healthGain = max(0, after.health - before.health);
+    final barrierGain = max(0, after.currentBarrier - before.currentBarrier);
+
+    return List<BattleCombatFloatingNumberCue>.unmodifiable([
+      if (healthLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.healthDamage,
+          amount: healthLoss,
+        ),
+      if (barrierLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.barrierDamage,
+          amount: barrierLoss,
+        ),
+      if (healthGain > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.healing,
+          amount: healthGain,
+        ),
+      if (barrierGain > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.barrierGain,
+          amount: barrierGain,
+        ),
+    ]);
+  }
+
+  String _floatingNumberLabelFor(BattleCombatFloatingNumberCue floatingNumber) {
+    final prefix = switch (floatingNumber.tone) {
+      BattleCombatFloatingNumberTone.healing ||
+      BattleCombatFloatingNumberTone.barrierGain =>
+        '+',
+      BattleCombatFloatingNumberTone.healthDamage ||
+      BattleCombatFloatingNumberTone.barrierDamage ||
+      BattleCombatFloatingNumberTone.burnDamage ||
+      BattleCombatFloatingNumberTone.poisonDamage =>
+        '',
+    };
+
+    return '$prefix${floatingNumber.amount}';
+  }
+
+  Color _floatingNumberColorFor(BattleCombatFloatingNumberTone tone) {
+    return switch (tone) {
+      BattleCombatFloatingNumberTone.healthDamage =>
+        EndpointPalette.dangerAccent,
+      BattleCombatFloatingNumberTone.barrierDamage ||
+      BattleCombatFloatingNumberTone.barrierGain =>
+        BattlerStat.barrier.accent,
+      BattleCombatFloatingNumberTone.burnDamage => const Color(0xFFFF9B3D),
+      BattleCombatFloatingNumberTone.poisonDamage => const Color(0xFFC084FC),
+      BattleCombatFloatingNumberTone.healing => const Color(0xFF8DFFB2),
+    };
   }
 
   int? _barrierAnimationReferenceFor(Battler before, Battler after) {
@@ -498,6 +765,47 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         ? _playerStatusBarKey
         : _enemyStatusBarKey;
     return _centerOfKey(key) ?? _fallbackCenterForSide(side);
+  }
+
+  Rect _rectForStatusBar(BattleCombatantSide side) {
+    final key = side == BattleCombatantSide.player
+        ? _playerStatusBarKey
+        : _enemyStatusBarKey;
+    return _rectOfKey(key) ??
+        Rect.fromCenter(
+          center: _fallbackCenterForSide(side),
+          width: 300,
+          height: 48,
+        );
+  }
+
+  Rect _rectForSide(BattleCombatantSide side) {
+    final key =
+        side == BattleCombatantSide.player ? _playerSideKey : _enemySideKey;
+    return _rectOfKey(key) ?? _fallbackRectForSide(side);
+  }
+
+  Offset _centerOfBattleArea() {
+    final rootBox = _battleAnimationRootKey.currentContext?.findRenderObject();
+    final size = rootBox is RenderBox && rootBox.hasSize
+        ? rootBox.size
+        : MediaQuery.sizeOf(context);
+
+    return size.center(Offset.zero);
+  }
+
+  Rect? _rectOfKey(GlobalKey key) {
+    final rootBox = _battleAnimationRootKey.currentContext?.findRenderObject();
+    final targetBox = key.currentContext?.findRenderObject();
+    if (rootBox is! RenderBox ||
+        targetBox is! RenderBox ||
+        !rootBox.hasSize ||
+        !targetBox.hasSize) {
+      return null;
+    }
+
+    final targetTopLeft = targetBox.localToGlobal(Offset.zero);
+    return rootBox.globalToLocal(targetTopLeft) & targetBox.size;
   }
 
   Offset? _centerOfKey(GlobalKey key) {
@@ -523,6 +831,17 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         : MediaQuery.sizeOf(context);
     final verticalFactor = side == BattleCombatantSide.enemy ? 0.25 : 0.75;
     return Offset(size.width * 0.5, size.height * verticalFactor);
+  }
+
+  Rect _fallbackRectForSide(BattleCombatantSide side) {
+    final rootBox = _battleAnimationRootKey.currentContext?.findRenderObject();
+    final size = rootBox is RenderBox && rootBox.hasSize
+        ? rootBox.size
+        : MediaQuery.sizeOf(context);
+    final halfHeight = size.height * 0.5;
+    final top = side == BattleCombatantSide.enemy ? 0.0 : halfHeight;
+
+    return Rect.fromLTWH(0, top, size.width, halfHeight);
   }
 
   void _syncQuickDrawState(BattleDrawOverlayResult drawResult) {
@@ -660,6 +979,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       enemyStatusBarKey: _enemyStatusBarKey,
       attackFlightAnimation: _attackFlightController,
       activeCombatIconMotion: _activeCombatIconMotion,
+      activeStatusEffectBurst: _activeStatusEffectBurst,
+      activeFloatingNumberBurst: _activeFloatingNumberBurst,
       playerBarrierAnimationReference: _playerBarrierAnimationReference,
       enemyBarrierAnimationReference: _enemyBarrierAnimationReference,
       animatedHealthSides: _animatedHealthSides,
