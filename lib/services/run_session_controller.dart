@@ -4,7 +4,9 @@ class RunSessionController extends ChangeNotifier {
   final RunRandomizer _randomizer;
   final PathNodeService _pathNodeService;
   final List<PathNode>? _availableNodesOverride;
+  final Map<int, List<PathNode>>? _scriptedNodesByStage;
   final int _nodeCount;
+  final bool _persistRun;
   RunState _state;
   bool _isResolvingNode = false;
   PathNode? _activeNode;
@@ -14,15 +16,19 @@ class RunSessionController extends ChangeNotifier {
     required Duration battleEnemyTurnDelay,
     required Duration battleCombatEndDelay,
     List<PathNode>? availableNodes,
+    Map<int, List<PathNode>>? scriptedNodesByStage,
     int nodeCount = 3,
     int? randomSeed,
+    bool persistRun = true,
   }) : this._(
           player: player,
           battleEnemyTurnDelay: battleEnemyTurnDelay,
           battleCombatEndDelay: battleCombatEndDelay,
           availableNodes: availableNodes,
+          scriptedNodesByStage: scriptedNodesByStage,
           nodeCount: nodeCount,
           randomizer: RunRandomizer(seed: randomSeed),
+          persistRun: persistRun,
         );
 
   RunSessionController.resume({
@@ -56,10 +62,12 @@ class RunSessionController extends ChangeNotifier {
     required Duration battleCombatEndDelay,
     required RunRandomizer randomizer,
     List<PathNode>? availableNodes,
+    Map<int, List<PathNode>>? scriptedNodesByStage,
     int nodeCount = 3,
     RunState? restoredState,
     bool initialIsResolvingNode = false,
     PathNode? initialActiveNode,
+    bool persistRun = true,
   })  : _randomizer = randomizer,
         _pathNodeService = PathNodeService(
           randomizer: randomizer,
@@ -67,7 +75,14 @@ class RunSessionController extends ChangeNotifier {
         _availableNodesOverride = availableNodes == null
             ? null
             : List<PathNode>.unmodifiable(availableNodes),
+        _scriptedNodesByStage = scriptedNodesByStage == null
+            ? null
+            : Map<int, List<PathNode>>.unmodifiable({
+                for (final entry in scriptedNodesByStage.entries)
+                  entry.key: List<PathNode>.unmodifiable(entry.value),
+              }),
         _nodeCount = max(1, nodeCount),
+        _persistRun = persistRun,
         _state = restoredState ??
             RunState(
               player: player.materializeOwnedItems(),
@@ -106,6 +121,10 @@ class RunSessionController extends ChangeNotifier {
       previousPlayer: _state.player,
       updatedPlayer: player,
     );
+    final shouldConveneShopNodes = _didTriggerSuddenConvention(
+      previousPlayer: _state.player,
+      updatedPlayer: player,
+    );
     final resolvedCompletionType = _resolveCompletionType(
       updatedPlayer: player,
     );
@@ -114,23 +133,33 @@ class RunSessionController extends ChangeNotifier {
       isRunComplete: resolvedCompletionType != null,
       completionType: resolvedCompletionType,
     );
-    if (resolvedCompletionType == null &&
-        shouldRerollVisibleNodes &&
-        !_isResolvingNode) {
-      final rerolledHour = _buildRefactoredHourSnapshot(
-        player: player,
-        previousNodes: _state.visibleNodes,
-      );
-      nextState = nextState.copyWith(
-        currentHour: rerolledHour,
-        visibleNodes: List<PathNode>.unmodifiable(rerolledHour.nodes),
-      );
+    if (resolvedCompletionType == null && !_isResolvingNode) {
+      if (shouldConveneShopNodes && _canApplySuddenConvention()) {
+        final conventionHour = _buildSuddenConventionHourSnapshot(
+          player: player,
+        );
+        nextState = nextState.copyWith(
+          currentHour: conventionHour,
+          visibleNodes: List<PathNode>.unmodifiable(conventionHour.nodes),
+        );
+      } else if (shouldRerollVisibleNodes) {
+        final rerolledHour = _buildRefactoredHourSnapshot(
+          player: player,
+          previousNodes: _state.visibleNodes,
+        );
+        nextState = nextState.copyWith(
+          currentHour: rerolledHour,
+          visibleNodes: List<PathNode>.unmodifiable(rerolledHour.nodes),
+        );
+      }
     }
 
     _state = nextState;
     notifyListeners();
     if (resolvedCompletionType != null) {
-      unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
+      if (_persistRun) {
+        unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
+      }
       return;
     }
     unawaited(_persistCurrentRun(trigger: 'playerUpdated'));
@@ -161,7 +190,8 @@ class RunSessionController extends ChangeNotifier {
     final currentHour = _pathNodeService.buildHourSnapshot(
       stageIndex: _state.stageIndex,
       player: _state.player,
-      availableNodes: _availableNodesOverride,
+      availableNodes:
+          _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
       nodeCount: _nodeCount,
     );
 
@@ -227,7 +257,9 @@ class RunSessionController extends ChangeNotifier {
       _isResolvingNode = false;
       _activeNode = null;
       notifyListeners();
-      unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
+      if (_persistRun) {
+        unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
+      }
       return;
     }
 
@@ -236,7 +268,8 @@ class RunSessionController extends ChangeNotifier {
     var nextHour = _pathNodeService.buildHourSnapshot(
       stageIndex: nextStageIndex,
       player: nextPlayer,
-      availableNodes: _availableNodesOverride,
+      availableNodes:
+          _scriptedNodesForStage(nextStageIndex) ?? _availableNodesOverride,
       nodeCount: _nodeCount,
     );
     if (_shouldApplyHourStartEffects(nextHour)) {
@@ -244,7 +277,8 @@ class RunSessionController extends ChangeNotifier {
       nextHour = _pathNodeService.buildHourSnapshot(
         stageIndex: nextStageIndex,
         player: nextPlayer,
-        availableNodes: _availableNodesOverride,
+        availableNodes:
+            _scriptedNodesForStage(nextStageIndex) ?? _availableNodesOverride,
         nodeCount: _nodeCount,
       );
     }
@@ -354,6 +388,27 @@ class RunSessionController extends ChangeNotifier {
     return cooldownRaised && spentCredits;
   }
 
+  bool _didTriggerSuddenConvention({
+    required Battler previousPlayer,
+    required Battler updatedPlayer,
+  }) {
+    final previousAbility =
+        previousPlayer.abilityById(BattlerAbilityId.convencionRepentina);
+    final updatedAbility =
+        updatedPlayer.abilityById(BattlerAbilityId.convencionRepentina);
+    if (previousAbility == null || updatedAbility == null) {
+      return false;
+    }
+
+    return updatedAbility.remainingCooldownTurns >
+        previousAbility.remainingCooldownTurns;
+  }
+
+  bool _canApplySuddenConvention() {
+    return currentHour.phase != RunHourPhase.dusk &&
+        currentHour.phase != RunHourPhase.sunrise;
+  }
+
   Battler _progressPathSelectionAbilityCooldowns(Battler player) {
     if (player.abilities.isEmpty) return player;
 
@@ -388,7 +443,8 @@ class RunSessionController extends ChangeNotifier {
     RunHourSnapshot latestSnapshot = _pathNodeService.buildHourSnapshot(
       stageIndex: _state.stageIndex,
       player: player,
-      availableNodes: _availableNodesOverride,
+      availableNodes:
+          _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
       nodeCount: _nodeCount,
     );
 
@@ -398,7 +454,8 @@ class RunSessionController extends ChangeNotifier {
           : _pathNodeService.buildHourSnapshot(
               stageIndex: _state.stageIndex,
               player: player,
-              availableNodes: _availableNodesOverride,
+              availableNodes: _scriptedNodesForStage(_state.stageIndex) ??
+                  _availableNodesOverride,
               nodeCount: _nodeCount,
             );
       latestSnapshot = candidateSnapshot;
@@ -418,6 +475,16 @@ class RunSessionController extends ChangeNotifier {
     }
 
     return firstDifferentSnapshot ?? latestSnapshot;
+  }
+
+  RunHourSnapshot _buildSuddenConventionHourSnapshot({
+    required Battler player,
+  }) {
+    return _pathNodeService.buildSuddenConventionSnapshot(
+      stageIndex: _state.stageIndex,
+      player: player,
+      nodeCount: _nodeCount,
+    );
   }
 
   bool _areNodeListsEqualById(
@@ -453,6 +520,8 @@ class RunSessionController extends ChangeNotifier {
     required String trigger,
     PathNode? activeNodeOverride,
   }) {
+    if (!_persistRun) return Future<void>.value();
+
     return EndpointPreferencesService.saveCurrentRunSnapshot(
       state: _state,
       randomizer: _randomizer,
@@ -460,5 +529,12 @@ class RunSessionController extends ChangeNotifier {
       trigger: trigger,
       activeNode: activeNodeOverride ?? _activeNode,
     );
+  }
+
+  List<PathNode>? _scriptedNodesForStage(int stageIndex) {
+    final scriptedNodes = _scriptedNodesByStage?[stageIndex];
+    if (scriptedNodes == null || scriptedNodes.isEmpty) return null;
+
+    return scriptedNodes;
   }
 }

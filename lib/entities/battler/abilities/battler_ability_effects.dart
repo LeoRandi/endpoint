@@ -1079,6 +1079,389 @@ class RefactorizacionTimelineAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Cura al portador al inicio de turno si su catalogo no rompe el monopolio.
+class MonopolioAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Monopolio.
+  const MonopolioAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.turnStart,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn || !_hasOnlyMercanteOrGeneralOwnedItems(owner)) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.heal(max(0, ability.currentValue)),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Compra una preparacion ofensiva que tambien recompone barrera por variedad.
+class CompraDeOportunidadAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Compra de Oportunidad.
+  const CompraDeOportunidadAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.outgoingDamageModifier,
+            BattlerAbilityHook.attackResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final price = max(0, ability.currentValue);
+    if (!owner.canAfford(price)) {
+      return BattlerAbilityEffectResolution(
+        owner: owner.updateAbility(ability.deactivate()),
+        opponent: opponent,
+      );
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.spendMoney(price),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    if (!ability.isActive) return damage;
+
+    return damage + max(0, ability.currentValue);
+  }
+
+  @override
+  BattlerAbilityEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damageDealt,
+  }) {
+    if (!ability.isActive || owner.hasPendingBasicAttackFollowUp) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: target);
+    }
+
+    final barrierRecovered = _distinctEquippedSpecificArchetypes(owner).length;
+    final updatedOwner = owner
+        .gainCombatBarrier(barrierRecovered)
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: target,
+    );
+  }
+}
+
+/// Convierte la diversidad no mercante equipada en dano extra estable.
+class DiversificacionHostilAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Diversificacion Hostil.
+  const DiversificacionHostilAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.outgoingDamageModifier,
+          },
+        );
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    final foreignArchetypeCount = _distinctEquippedSpecificArchetypes(
+      owner,
+      includeMercante: false,
+    ).length;
+    if (foreignArchetypeCount <= 0) return damage;
+
+    return damage + (max(0, ability.currentValue) * foreignArchetypeCount);
+  }
+}
+
+/// Marca una sustitucion inmediata de nodos por tiendas especiales.
+class ConvencionRepentinaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Convencion repentina.
+  const ConvencionRepentinaAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    return BattlerAbilityEffectResolution(
+      owner: owner.updateAbility(ability.startCooldown()),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Potencia el primer ataque del turno segun la vida maxima que falte.
+class FuriaHematicaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Furia Hematica.
+  const FuriaHematicaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.turnStart,
+            BattlerAbilityHook.outgoingDamageModifier,
+            BattlerAbilityHook.attackResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn || ability.isActive) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.updateAbility(ability.activate()),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    if (!ability.isActive) return damage;
+
+    return damage + _missingHealthStepBonus(owner, ability);
+  }
+
+  @override
+  BattlerAbilityEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damageDealt,
+  }) {
+    if (!ability.isActive || owner.hasPendingBasicAttackFollowUp) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: target);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.updateAbility(ability.deactivate()),
+      opponent: target,
+    );
+  }
+}
+
+/// Prepara un mordisco reforzado y cura por parte del dano de la habilidad.
+class MordidaDeAceroAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Mordida de Acero.
+  const MordidaDeAceroAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.outgoingDamageModifier,
+            BattlerAbilityHook.attackResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    if (!ability.isActive) return damage;
+
+    return damage + max(0, ability.currentValue);
+  }
+
+  @override
+  BattlerAbilityEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required BattlerAbility ability,
+    required int damageDealt,
+  }) {
+    if (!ability.isActive || owner.hasPendingBasicAttackFollowUp) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: target);
+    }
+
+    final abilityDamage = min(
+      max(0, ability.currentValue),
+      max(0, damageDealt),
+    );
+    final updatedOwner =
+        owner.heal(abilityDamage ~/ 2).updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: target,
+    );
+  }
+}
+
+/// Convierte el primer dano recibido de cada turno en empuje ofensivo.
+class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de No Hay Retirada.
+  const NoHayRetiradaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.turnStart,
+            BattlerAbilityHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required bool isOwnerTurn,
+  }) {
+    if (ability.isActive) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.updateAbility(ability.activate()),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  BattlerAbilityEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damageTaken,
+  }) {
+    if (!ability.isActive || damageTaken <= 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: source);
+    }
+
+    final amount = max(1, ability.currentValue);
+    final hadPotencia = owner.hasStatus(PotenciaStatus.statusId);
+    var updatedOwner = owner.applyStatusFromSource(
+      PotenciaStatus(value: amount),
+      source: owner,
+    );
+    if (hadPotencia) {
+      updatedOwner = _applyOrIncreaseCalentando(
+        owner: updatedOwner,
+        amount: amount,
+      );
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner.updateAbility(ability.deactivate()),
+      opponent: source,
+    );
+  }
+}
+
+bool _hasOnlyMercanteOrGeneralOwnedItems(Battler owner) {
+  final ownedItems = <Item>[
+    ...owner.inventoryItems,
+    ...owner.equippedItems,
+  ];
+
+  return ownedItems.every(
+    (item) =>
+        item.hasArchetypeAffinity(ItemArchetypeAffinity.general) ||
+        item.hasArchetypeAffinity(ItemArchetypeAffinity.mercante),
+  );
+}
+
+Set<ItemArchetypeAffinity> _distinctEquippedSpecificArchetypes(
+  Battler owner, {
+  bool includeMercante = true,
+}) {
+  final archetypes = <ItemArchetypeAffinity>{};
+
+  for (final item in owner.equippedItems) {
+    for (final affinity in item.archetypeAffinities) {
+      if (!affinity.isSpecific) continue;
+      if (!includeMercante && affinity == ItemArchetypeAffinity.mercante) {
+        continue;
+      }
+      archetypes.add(affinity);
+    }
+  }
+
+  return archetypes;
+}
+
+int _missingHealthStepBonus(Battler owner, BattlerAbility ability) {
+  if (owner.maxHealth <= 0) return 0;
+
+  final missingHealth = max(0, owner.maxHealth - owner.health);
+  final missingPercent = min(90, (missingHealth * 100) ~/ owner.maxHealth);
+  final missingSteps = missingPercent ~/ 15;
+
+  return max(0, ability.currentValue) * missingSteps;
+}
+
+Battler _applyOrIncreaseCalentando({
+  required Battler owner,
+  required int amount,
+}) {
+  final currentStatus = owner.statusById(CalentandoStatus.statusId);
+  if (currentStatus is! CalentandoStatus) {
+    return owner.applyStatusFromSource(
+      CalentandoStatus(value: amount),
+      source: owner,
+    );
+  }
+
+  return owner.applyStatus(
+    currentStatus.copyWith(
+      value: currentStatus.value + amount,
+      remainingTurns: max(
+        currentStatus.remainingTurns,
+        CalentandoStatus.defaultDuration,
+      ),
+    ),
+    applyEquipmentModifiers: false,
+  );
+}
+
 Battler _deactivateCycleRouteAbility({
   required Battler owner,
   required BattlerAbilityId excludedAbilityId,

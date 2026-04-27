@@ -460,6 +460,124 @@ const refactorizacionTimelineAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Pasiva que recompensa mantener el inventario dentro del monopolio mercante.
+const monopolioAbility = BattlerAbility(
+  id: BattlerAbilityId.monopolio,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.gray,
+  tags: _vidaAbilityTags,
+  name: 'Monopolio',
+  description:
+      'Pasiva. Si todos tus objetos son de Mercante o generales, te curas value al principio de cada turno.',
+  icon: Icons.storefront_rounded,
+  value: 2,
+  upgradeValue: 2,
+  effect: MonopolioAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual de combate que paga creditos para preparar un golpe rentable.
+const compraDeOportunidadAbility = BattlerAbility(
+  id: BattlerAbilityId.compraDeOportunidad,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _economiaAtaqueBarreraAbilityTags,
+  name: 'Compra de Oportunidad',
+  description:
+      'Activacion manual en combate. Pagas value creditos. Tu siguiente ataque inflige dano adicional y recuperas Barrera igual al numero de arquetipos distintos entre tus objetos equipados.',
+  icon: Icons.price_check_rounded,
+  cooldownTurns: 3,
+  value: 3,
+  upgradeValue: -1,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: CompraDeOportunidadAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva que monetiza en dano la diversidad hostil del equipo.
+const diversificacionHostilAbility = BattlerAbility(
+  id: BattlerAbilityId.diversificacionHostil,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _ataqueAbilityTags,
+  name: 'Diversificacion Hostil',
+  description:
+      'Pasiva. Tus ataques infligen +value dano por cada arquetipo no mercante distinto entre tus objetos equipados.',
+  icon: Icons.hub_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: DiversificacionHostilAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual de ruta que transforma las opciones visibles en tiendas por tier.
+const convencionRepentinaAbility = BattlerAbility(
+  id: BattlerAbilityId.convencionRepentina,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.yellow,
+  tags: _economiaAbilityTags,
+  name: 'Convencion repentina',
+  description:
+      'Activacion manual en ruta. Si no es al atardecer o al amanecer, cambia todos los nodos actuales por diferentes tiendas de tiers azul, morada y amarilla.',
+  icon: Icons.groups_2_rounded,
+  cooldownTurns: 4,
+  value: 0,
+  upgradeValue: 0,
+  manualActivationContext: BattlerAbilityActivationContext.pathSelection,
+  effect: ConvencionRepentinaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva imparable que convierte la vida perdida en furia para el primer golpe.
+const furiaHematicaAbility = BattlerAbility(
+  id: BattlerAbilityId.furiaHematica,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _vidaAtaqueAbilityTags,
+  name: 'Furia Hematica',
+  description:
+      'Pasiva. El primer ataque de tu turno inflige dano adicional igual a value por cada 15% de vida maxima que te falte, hasta un maximo de 90%.',
+  icon: Icons.bloodtype_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: FuriaHematicaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual de combate que muerde fuerte y devuelve parte del golpe como vida.
+const mordidaDeAceroAbility = BattlerAbility(
+  id: BattlerAbilityId.mordidaDeAcero,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _vidaAtaqueAbilityTags,
+  name: 'Mordida de Acero',
+  description:
+      'Activacion manual en combate. Tu siguiente ataque inflige value dano adicional y te cura la mitad del dano infligido por esta habilidad.',
+  icon: Icons.hardware_rounded,
+  cooldownTurns: 3,
+  value: 4,
+  upgradeValue: 2,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: MordidaDeAceroAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva reactiva que transforma el primer dano recibido en escalada ofensiva.
+const noHayRetiradaAbility = BattlerAbility(
+  id: BattlerAbilityId.noHayRetirada,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _buffAtaqueAbilityTags,
+  name: 'No Hay Retirada',
+  description:
+      'Pasiva. La primera vez que recibes dano cada turno, ganas value de Potencia. Si ya tenias Potencia, tambien ganas value de Calentando.',
+  icon: Icons.vertical_align_top_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: NoHayRetiradaAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Pool canonica de habilidades que pueden usarse como recompensa o mutacion.
 const abilityPresets = <BattlerAbility>[
   criticalScannerAbility,
@@ -489,6 +607,13 @@ const abilityPresets = <BattlerAbility>[
   espejoDolorAbility,
   protocoloUsurpacionAbility,
   refactorizacionTimelineAbility,
+  monopolioAbility,
+  compraDeOportunidadAbility,
+  diversificacionHostilAbility,
+  convencionRepentinaAbility,
+  furiaHematicaAbility,
+  mordidaDeAceroAbility,
+  noHayRetiradaAbility,
 ];
 
 /// Indice canonico de presets para resolver ids sin duplicar switches.

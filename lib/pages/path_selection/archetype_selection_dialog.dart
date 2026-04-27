@@ -1,20 +1,100 @@
 import '../_imports.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// Muestra el detalle completo de un arquetipo antes de aplicarlo al jugador.
-class ArchetypeSelectionDialog extends StatelessWidget {
+class ArchetypeSelectionDialog extends StatefulWidget {
   final Battler player;
   final ArchetypePathNode archetype;
   final Battler projectedPlayer;
+  final bool isTutorialRun;
 
   const ArchetypeSelectionDialog({
     super.key,
     required this.player,
     required this.archetype,
     required this.projectedPlayer,
+    this.isTutorialRun = false,
   });
 
   @override
+  State<ArchetypeSelectionDialog> createState() =>
+      _ArchetypeSelectionDialogState();
+}
+
+class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
+  static const _tutorialShowcaseScope = 'archetype_selection.tutorial';
+
+  final GlobalKey _dialogShowcaseKey = GlobalKey();
+  final GlobalKey _confirmShowcaseKey = GlobalKey();
+  ShowcaseView? _tutorialShowcase;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.isTutorialRun) return;
+
+    _tutorialShowcase = ShowcaseView.register(
+      scope: _tutorialShowcaseScope,
+      disableBarrierInteraction: true,
+      disableMovingAnimation: true,
+      disableScaleAnimation: true,
+      blurValue: 0,
+      skipIfTargetNotPresent: true,
+      globalTooltipActionConfig: const TooltipActionConfig(
+        alignment: MainAxisAlignment.end,
+        actionGap: 8,
+        position: TooltipActionPosition.inside,
+      ),
+      globalTooltipActions: [
+        TooltipActionButton(
+          type: TooltipDefaultActionType.next,
+          name: 'SIGUIENTE',
+          backgroundColor: EndpointPalette.blend(
+            EndpointPalette.panelBackgroundBattle,
+            EndpointPalette.infoAccent,
+            0.22,
+          ),
+          textStyle: textSmallBold.copyWith(
+            color: EndpointPalette.softForegroundWarm,
+            letterSpacing: 0.8,
+          ),
+          border: Border.all(
+            color: EndpointPalette.infoAccent.withValues(alpha: 0.72),
+          ),
+        ),
+      ],
+    );
+    _scheduleTutorialShowcase();
+  }
+
+  @override
+  void dispose() {
+    _tutorialShowcase?.unregister();
+    super.dispose();
+  }
+
+  void _scheduleTutorialShowcase() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      Future<void>.delayed(const Duration(milliseconds: 180), () {
+        if (!mounted) return;
+
+        _tutorialShowcase?.startShowCase([
+          _dialogShowcaseKey,
+          _confirmShowcaseKey,
+        ]);
+      });
+    });
+  }
+
+  void _confirmArchetype() {
+    Navigator.of(context).pop(true);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final archetype = widget.archetype;
     final accent = archetype.accent;
     final foreground = EndpointPalette.soften(accent);
     final screenSize = MediaQuery.sizeOf(context);
@@ -28,189 +108,183 @@ class ArchetypeSelectionDialog extends StatelessWidget {
             maxWidth: min(560, screenSize.width - 36),
             maxHeight: screenSize.height * 0.86,
           ),
-          child: EndpointPanel(
-            accent: accent,
-            backgroundColor: EndpointPalette.panelBackgroundOpaque,
-            borderRadius: 20,
-            glowOpacity: 0.12,
-            blurRadius: 26,
-            spreadRadius: 2,
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Scrollbar(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _ArchetypeHeader(
-                            archetype: archetype,
-                            foreground: foreground,
-                          ),
-                          const SizedBox(height: 12),
-                          _ArchetypeSectionHeader(
-                            title: 'DESCRIPCION',
-                            caption: archetype.badgeLabel,
-                            accent: accent,
-                          ),
-                          const SizedBox(height: 6),
-                          EndpointPanel(
-                            accent: accent,
-                            backgroundColor: EndpointPalette.blend(
-                              EndpointPalette.panelBackgroundGold,
-                              accent,
-                              0.1,
+          child: _buildDialogShowcase(
+            child: EndpointPanel(
+              accent: accent,
+              backgroundColor: EndpointPalette.panelBackgroundOpaque,
+              borderRadius: 20,
+              glowOpacity: 0.12,
+              blurRadius: 26,
+              spreadRadius: 2,
+              padding: EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Scrollbar(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _ArchetypeHeader(
+                              archetype: archetype,
+                              foreground: foreground,
                             ),
-                            borderRadius: 14,
-                            glowOpacity: 0.04,
-                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                            child: EndpointText(
-                              archetype.tooltip,
-                              maxLines: null,
-                              style: textMedium.copyWith(
-                                color: EndpointPalette.softForeground.withAlpha(
-                                  219,
+                            const SizedBox(height: 12),
+                            _ArchetypeSectionHeader(
+                              title: 'DESCRIPCION',
+                              caption: archetype.badgeLabel,
+                              accent: accent,
+                            ),
+                            const SizedBox(height: 6),
+                            EndpointPanel(
+                              accent: accent,
+                              backgroundColor: EndpointPalette.blend(
+                                EndpointPalette.panelBackgroundGold,
+                                accent,
+                                0.1,
+                              ),
+                              borderRadius: 14,
+                              glowOpacity: 0.04,
+                              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                              child: EndpointText(
+                                archetype.tooltip,
+                                maxLines: null,
+                                style: textMedium.copyWith(
+                                  color:
+                                      EndpointPalette.softForeground.withAlpha(
+                                    219,
+                                  ),
+                                  height: 1.3,
                                 ),
-                                height: 1.3,
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 14),
-                          _ArchetypeSectionHeader(
-                            title: 'IMPACTO TOTAL',
-                            caption: '${impactEntries.length} CAMBIOS',
-                            accent: accent,
-                          ),
-                          const SizedBox(height: 6),
-                          if (impactEntries.isEmpty)
-                            const _ArchetypeEmptyState(
-                              message:
-                                  'Este arquetipo no altera ninguna stat del operativo actual.',
-                            )
-                          else
-                            Column(
-                              children: [
-                                for (int index = 0;
-                                    index < impactEntries.length;
-                                    index++) ...[
-                                  if (index > 0) const SizedBox(height: 8),
-                                  _ArchetypeImpactCard(
-                                    entry: impactEntries[index],
-                                    accent: accent,
-                                  ),
-                                ],
-                              ],
+                            const SizedBox(height: 14),
+                            _ArchetypeSectionHeader(
+                              title: 'IMPACTO TOTAL',
+                              caption: '${impactEntries.length} CAMBIOS',
+                              accent: accent,
                             ),
-                          const SizedBox(height: 14),
-                          _ArchetypeSectionHeader(
-                            title: 'OBJETOS INICIALES',
-                            caption: '${archetype.startingItems.length}',
-                            accent: accent,
-                          ),
-                          const SizedBox(height: 6),
-                          if (archetype.startingItems.isEmpty)
-                            const _ArchetypeEmptyState(
-                              message: 'No entrega objetos iniciales.',
-                            )
-                          else
-                            Column(
-                              children: [
-                                for (int index = 0;
-                                    index < archetype.startingItems.length;
-                                    index++) ...[
-                                  if (index > 0) const SizedBox(height: 10),
-                                  _ArchetypeItemCard(
-                                    item: archetype.startingItems[index],
-                                  ),
+                            const SizedBox(height: 6),
+                            if (impactEntries.isEmpty)
+                              const _ArchetypeEmptyState(
+                                message:
+                                    'Este arquetipo no altera ninguna stat del operativo actual.',
+                              )
+                            else
+                              Column(
+                                children: [
+                                  for (int index = 0;
+                                      index < impactEntries.length;
+                                      index++) ...[
+                                    if (index > 0) const SizedBox(height: 8),
+                                    _ArchetypeImpactCard(
+                                      entry: impactEntries[index],
+                                      accent: accent,
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
+                            const SizedBox(height: 14),
+                            _ArchetypeSectionHeader(
+                              title: 'OBJETOS INICIALES',
+                              caption: '${archetype.startingItems.length}',
+                              accent: accent,
                             ),
-                          const SizedBox(height: 14),
-                          _ArchetypeSectionHeader(
-                            title: 'HABILIDADES',
-                            caption: '${archetype.startingAbilities.length}',
-                            accent: accent,
-                          ),
-                          const SizedBox(height: 6),
-                          if (archetype.startingAbilities.isEmpty)
-                            const _ArchetypeEmptyState(
-                              message: 'No entrega habilidades iniciales.',
-                            )
-                          else
-                            Column(
-                              children: [
-                                for (int index = 0;
-                                    index < archetype.startingAbilities.length;
-                                    index++) ...[
-                                  if (index > 0) const SizedBox(height: 10),
-                                  _ArchetypeAbilityCard(
-                                    ability: archetype.startingAbilities[index],
-                                  ),
+                            const SizedBox(height: 6),
+                            if (archetype.startingItems.isEmpty)
+                              const _ArchetypeEmptyState(
+                                message: 'No entrega objetos iniciales.',
+                              )
+                            else
+                              Column(
+                                children: [
+                                  for (int index = 0;
+                                      index < archetype.startingItems.length;
+                                      index++) ...[
+                                    if (index > 0) const SizedBox(height: 10),
+                                    _ArchetypeItemCard(
+                                      item: archetype.startingItems[index],
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
+                            const SizedBox(height: 14),
+                            _ArchetypeSectionHeader(
+                              title: 'HABILIDADES',
+                              caption: '${archetype.startingAbilities.length}',
+                              accent: accent,
                             ),
+                            const SizedBox(height: 6),
+                            if (archetype.startingAbilities.isEmpty)
+                              const _ArchetypeEmptyState(
+                                message: 'No entrega habilidades iniciales.',
+                              )
+                            else
+                              Column(
+                                children: [
+                                  for (int index = 0;
+                                      index <
+                                          archetype.startingAbilities.length;
+                                      index++) ...[
+                                    if (index > 0) const SizedBox(height: 10),
+                                    _ArchetypeAbilityCard(
+                                      ability:
+                                          archetype.startingAbilities[index],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: accent.withAlpha(92),
+                        ),
+                      ),
+                      color: EndpointPalette.blend(
+                        EndpointPalette.panelBackgroundGold,
+                        accent,
+                        0.08,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: EndpointActionButton(
+                              label: 'Volver',
+                              icon: Icons.arrow_back_rounded,
+                              onPressed: () => Navigator.of(context).pop(false),
+                              tooltip: 'Volver a la seleccion de arquetipo',
+                              accent: EndpointPalette.softForeground,
+                              backgroundColor:
+                                  EndpointPalette.closeButtonBackground,
+                              foregroundColor: EndpointPalette.softForeground,
+                              expands: true,
+                              useMarquee: false,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildConfirmButton(
+                              accent: accent,
+                              foreground: foreground,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: accent.withAlpha(92),
-                      ),
-                    ),
-                    color: EndpointPalette.blend(
-                      EndpointPalette.panelBackgroundGold,
-                      accent,
-                      0.08,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: EndpointActionButton(
-                            label: 'Volver',
-                            icon: Icons.arrow_back_rounded,
-                            onPressed: () => Navigator.of(context).pop(false),
-                            tooltip: 'Volver a la seleccion de arquetipo',
-                            accent: EndpointPalette.softForeground,
-                            backgroundColor:
-                                EndpointPalette.closeButtonBackground,
-                            foregroundColor: EndpointPalette.softForeground,
-                            expands: true,
-                            useMarquee: false,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: EndpointActionButton(
-                            label: 'Aceptar',
-                            icon: Icons.check_rounded,
-                            onPressed: () => Navigator.of(context).pop(true),
-                            tooltip: 'Aplicar arquetipo y avanzar',
-                            accent: accent,
-                            backgroundColor: EndpointPalette.blend(
-                              EndpointPalette.panelBackgroundGold,
-                              accent,
-                              0.18,
-                            ),
-                            foregroundColor: foreground,
-                            expands: true,
-                            useMarquee: false,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -218,8 +292,100 @@ class ArchetypeSelectionDialog extends StatelessWidget {
     );
   }
 
+  Widget _buildDialogShowcase({
+    required Widget child,
+  }) {
+    if (!widget.isTutorialRun) return child;
+
+    return Showcase(
+      key: _dialogShowcaseKey,
+      scope: _tutorialShowcaseScope,
+      title: 'Arquetipo',
+      description:
+          'El arquetipo dicta gran parte de los objetos y habilidades con los que interactuaras durante una partida.',
+      targetBorderRadius: BorderRadius.circular(20),
+      targetPadding: const EdgeInsets.all(4),
+      overlayColor: EndpointPalette.overlayScrimStrong,
+      overlayOpacity: 0.9,
+      tooltipBackgroundColor: EndpointPalette.panelBackgroundOpaque,
+      tooltipBorderRadius: BorderRadius.circular(12),
+      tooltipPadding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      titleTextStyle: textMediumBold.copyWith(
+        color: EndpointPalette.infoAccent,
+        letterSpacing: 1.1,
+      ),
+      descTextStyle: textSmallBold.copyWith(
+        color: EndpointPalette.softForeground,
+        fontSize: 14,
+        letterSpacing: 0.4,
+        height: 1.25,
+      ),
+      textColor: EndpointPalette.softForeground,
+      disableDefaultTargetGestures: true,
+      disableBarrierInteraction: true,
+      movingAnimationDuration: Duration.zero,
+      child: child,
+    );
+  }
+
+  Widget _buildConfirmButton({
+    required Color accent,
+    required Color foreground,
+  }) {
+    final button = EndpointActionButton(
+      label: widget.isTutorialRun ? 'Continuar' : 'Aceptar',
+      icon: Icons.check_rounded,
+      onPressed: _confirmArchetype,
+      tooltip: 'Aplicar arquetipo y avanzar',
+      accent: accent,
+      backgroundColor: EndpointPalette.blend(
+        EndpointPalette.panelBackgroundGold,
+        accent,
+        0.18,
+      ),
+      foregroundColor: foreground,
+      expands: true,
+      useMarquee: false,
+    );
+    if (!widget.isTutorialRun) return button;
+
+    return Showcase(
+      key: _confirmShowcaseKey,
+      scope: _tutorialShowcaseScope,
+      title: 'Continuar',
+      description: 'Elijamos el arquetipo Imparable',
+      targetBorderRadius: BorderRadius.circular(12),
+      targetPadding: const EdgeInsets.all(6),
+      overlayColor: EndpointPalette.overlayScrimStrong,
+      overlayOpacity: 0.9,
+      tooltipBackgroundColor: EndpointPalette.panelBackgroundOpaque,
+      tooltipBorderRadius: BorderRadius.circular(12),
+      tooltipPadding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      titleTextStyle: textMediumBold.copyWith(
+        color: EndpointPalette.infoAccent,
+        letterSpacing: 1.1,
+      ),
+      descTextStyle: textSmallBold.copyWith(
+        color: EndpointPalette.softForeground,
+        fontSize: 14,
+        letterSpacing: 0.4,
+        height: 1.25,
+      ),
+      textColor: EndpointPalette.softForeground,
+      disableDefaultTargetGestures: false,
+      disableBarrierInteraction: true,
+      movingAnimationDuration: Duration.zero,
+      onTargetClick: _confirmArchetype,
+      disposeOnTap: true,
+      tooltipActions: const [],
+      child: button,
+    );
+  }
+
   // La preview muestra solo cambios base; los items dinamicos se resuelven al aceptar.
   List<_ArchetypeImpactEntry> _buildImpactEntries() {
+    final player = widget.player;
+    final projectedPlayer = widget.projectedPlayer;
     final entries = <_ArchetypeImpactEntry>[
       _ArchetypeImpactEntry(
         label: 'HP MAX',

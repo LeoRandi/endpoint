@@ -4,6 +4,7 @@ class EndpointAbilitiesOverlay extends StatefulWidget {
   final Battler player;
   final BattlerAbilityActivationContext screenContext;
   final ValueChanged<Battler>? onPlayerChanged;
+  final AbilityActivationBlockReason? abilityActivationBlockReason;
   final String title;
   final String subtitle;
   final String emptyText;
@@ -18,6 +19,7 @@ class EndpointAbilitiesOverlay extends StatefulWidget {
     required this.player,
     required this.screenContext,
     this.onPlayerChanged,
+    this.abilityActivationBlockReason,
     this.title = 'Habilidades',
     this.subtitle = 'Panel tactico',
     this.emptyText = EndpointStrings.noSkills,
@@ -48,7 +50,9 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.player == widget.player &&
         oldWidget.screenContext == widget.screenContext &&
-        oldWidget.onPlayerChanged == widget.onPlayerChanged) {
+        oldWidget.onPlayerChanged == widget.onPlayerChanged &&
+        oldWidget.abilityActivationBlockReason ==
+            widget.abilityActivationBlockReason) {
       return;
     }
 
@@ -62,6 +66,7 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
       player: widget.player,
       screenContext: widget.screenContext,
       onPlayerChanged: widget.onPlayerChanged,
+      activationBlockReason: widget.abilityActivationBlockReason,
     );
   }
 

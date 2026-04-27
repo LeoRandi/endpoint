@@ -2,12 +2,17 @@ import '../entities/_exports.dart';
 import '../services/_exports.dart';
 import 'package:flutter/foundation.dart';
 
+typedef AbilityActivationBlockReason = String? Function(
+  BattlerAbility ability,
+);
+
 /// Orquesta el overlay de habilidades y concentra las reglas de activacion visibles en UI.
 class AbilitiesOverlayController extends ChangeNotifier {
   static const BattlerEffectPipeline _effectPipeline = BattlerEffectPipeline();
 
   final BattlerAbilityActivationContext screenContext;
   final ValueChanged<Battler>? onPlayerChanged;
+  final AbilityActivationBlockReason? activationBlockReason;
   Battler _player;
 
   /// Crea el controlador del overlay a partir del battler visible y del contexto de activacion actual.
@@ -15,6 +20,7 @@ class AbilitiesOverlayController extends ChangeNotifier {
     required Battler player,
     required this.screenContext,
     this.onPlayerChanged,
+    this.activationBlockReason,
   }) : _player = player;
 
   /// Expone el battler actual para tiles, dialogs y callbacks externos.
@@ -52,12 +58,15 @@ class AbilitiesOverlayController extends ChangeNotifier {
   bool isActionEnabled(BattlerAbility ability) {
     if (!ability.canToggleOn(screenContext)) return false;
     if (ability.isActive) return true;
+    if (activationBlockReason?.call(ability) != null) return false;
     return !ability.isOnCooldown && ability.isImplemented;
   }
 
   /// Explica por que la accion principal esta bloqueada en el dialogo de detalle.
   String disabledActionTooltipFor(BattlerAbility ability) {
     if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
+    final contextualBlockReason = activationBlockReason?.call(ability);
+    if (contextualBlockReason != null) return contextualBlockReason;
     if (ability.isOnCooldown) {
       return 'Recarga restante: ${ability.remainingCooldownLabel}';
     }

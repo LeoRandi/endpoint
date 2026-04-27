@@ -10,7 +10,6 @@ import 'package:flutter/foundation.dart';
 abstract final class EndpointPreferencesService {
   static const String currentRunPreferenceKey = 'endpoint.current_run';
   static const String settingsPreferenceKey = 'endpoint.settings';
-  static const String _tutorialPreferencePrefix = 'endpoint.tutorial';
 
   static Future<void> saveCurrentRunSnapshot({
     required RunState state,
@@ -86,49 +85,5 @@ abstract final class EndpointPreferencesService {
       );
       return const EndpointSettingsSnapshot.defaults();
     }
-  }
-
-  static Future<bool> hasSeenTutorial({
-    required String tutorialId,
-    int version = 1,
-  }) async {
-    final key = _buildTutorialPreferenceKey(
-      tutorialId: tutorialId,
-      version: version,
-    );
-    final rawValue = await EndpointPreferencesStore.readString(key);
-    return rawValue == '1';
-  }
-
-  static Future<void> markTutorialSeen({
-    required String tutorialId,
-    int version = 1,
-  }) {
-    final key = _buildTutorialPreferenceKey(
-      tutorialId: tutorialId,
-      version: version,
-    );
-    return EndpointPreferencesStore.writeString(
-      key: key,
-      rawValue: '1',
-    );
-  }
-
-  static Future<void> clearTutorialSeen({
-    required String tutorialId,
-    int version = 1,
-  }) {
-    final key = _buildTutorialPreferenceKey(
-      tutorialId: tutorialId,
-      version: version,
-    );
-    return EndpointPreferencesStore.remove(key);
-  }
-
-  static String _buildTutorialPreferenceKey({
-    required String tutorialId,
-    required int version,
-  }) {
-    return '$_tutorialPreferencePrefix.$tutorialId.v$version';
   }
 }

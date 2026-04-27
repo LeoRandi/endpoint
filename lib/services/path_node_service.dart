@@ -54,6 +54,10 @@ class PathNodeService {
       _buildWeightedNodes(dayShopNodes);
   late final List<_WeightedPathNode> _nightShopCandidates =
       _buildWeightedNodes(nightShopNodes);
+  late final List<ShopPathNode> _allShopNodes = _deduplicateShopNodes([
+    ...dayShopNodes,
+    ...nightShopNodes,
+  ]);
   late final List<_WeightedPathNode> _nightCombatCandidates =
       List<_WeightedPathNode>.unmodifiable(
     nightCombatNodes.map(
@@ -106,6 +110,29 @@ class PathNodeService {
           player: player,
         ),
       ),
+    );
+  }
+
+  RunHourSnapshot buildSuddenConventionSnapshot({
+    required int stageIndex,
+    Battler? player,
+    int nodeCount = 3,
+  }) {
+    final clampedStageIndex = stageIndex.clamp(
+      startStageIndex,
+      sunriseStageIndex,
+    );
+    final definition = _definitionFor(clampedStageIndex);
+    final nodes = _buildSuddenConventionShopNodes(player)
+        .take(max(1, nodeCount))
+        .toList(growable: false);
+
+    return RunHourSnapshot(
+      stageIndex: clampedStageIndex,
+      phase: definition.phase,
+      title: definition.titleBuilder(clampedStageIndex),
+      subtitle: definition.subtitle,
+      nodes: List<PathNode>.unmodifiable(nodes),
     );
   }
 
@@ -245,6 +272,53 @@ class PathNodeService {
       centerNode,
       severeMedicationCampNode,
     ];
+  }
+
+  List<ShopPathNode> _buildSuddenConventionShopNodes(Battler? player) {
+    const tiers = [
+      RarityTier.blue,
+      RarityTier.purple,
+      RarityTier.yellow,
+    ];
+    final selectedNodes = <ShopPathNode>[];
+    final selectedNodeIds = <String>{};
+
+    for (final tier in tiers) {
+      var candidates = _shopCandidatesForTier(
+        tier,
+        player: player,
+        excludedNodeIds: selectedNodeIds,
+      );
+      if (candidates.isEmpty) {
+        candidates = _shopCandidatesForTier(
+          tier,
+          player: null,
+          excludedNodeIds: selectedNodeIds,
+        );
+      }
+      if (candidates.isEmpty) continue;
+
+      final selected = candidates[_randomizer.nextInt(candidates.length)];
+      selectedNodes.add(selected);
+      selectedNodeIds.add(selected.nodeId);
+    }
+
+    return List<ShopPathNode>.unmodifiable(selectedNodes);
+  }
+
+  List<ShopPathNode> _shopCandidatesForTier(
+    RarityTier tier, {
+    required Battler? player,
+    required Set<String> excludedNodeIds,
+  }) {
+    return _allShopNodes
+        .where(
+          (node) =>
+              node.rarity == tier &&
+              !excludedNodeIds.contains(node.nodeId) &&
+              node.canAppearForArchetype(player?.archetypeId),
+        )
+        .toList(growable: false);
   }
 
   List<PathNode> _buildUniqueHourNodes({
@@ -400,6 +474,18 @@ class PathNodeService {
     }
 
     return candidates.last.node;
+  }
+
+  List<ShopPathNode> _deduplicateShopNodes(Iterable<ShopPathNode> nodes) {
+    final seenIds = <String>{};
+    final result = <ShopPathNode>[];
+
+    for (final node in nodes) {
+      if (!seenIds.add(node.nodeId)) continue;
+      result.add(node);
+    }
+
+    return List<ShopPathNode>.unmodifiable(result);
   }
 }
 

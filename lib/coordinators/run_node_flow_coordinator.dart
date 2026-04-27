@@ -13,6 +13,7 @@ class RunNodeFlowCoordinator {
     required BuildContext context,
     required PathNode node,
     required RunSessionController session,
+    bool isTutorialRun = false,
   }) async {
     switch (node.type) {
       case PathNodeType.encounter:
@@ -47,12 +48,14 @@ class RunNodeFlowCoordinator {
         final shouldConfirm = await showEndpointDialog<bool>(
           context: context,
           barrierLabel: 'Seleccionar arquetipo',
+          barrierDismissible: !isTutorialRun,
           barrierColor: EndpointPalette.overlayScrimStrong,
           builder: (context) {
             return ArchetypeSelectionDialog(
               player: session.player,
               archetype: archetypeNode,
               projectedPlayer: projectedPlayer,
+              isTutorialRun: isTutorialRun,
             );
           },
         );

@@ -1,34 +1,59 @@
 import '../_imports.dart';
 import '../../coordinators/run_node_flow_coordinator.dart';
+import 'package:showcaseview/showcaseview.dart';
+
+const _pathTutorialShowcaseScope = 'path_selection.tutorial';
 
 class PathSelectionPage extends StatefulWidget {
   final Battler player;
   final List<PathNode>? availableNodes;
+  final Map<int, List<PathNode>>? scriptedNodesByStage;
   final int nodeCount;
   final int? randomSeed;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
   final EndpointCurrentRunSnapshot? restoredRun;
+  final bool isTutorialRun;
+  final bool persistRun;
 
   const PathSelectionPage({
     super.key,
     this.player = defaultPlayerBattler,
     this.availableNodes,
+    this.scriptedNodesByStage,
     this.nodeCount = 3,
     this.randomSeed,
     this.battleEnemyTurnDelay = const Duration(milliseconds: 900),
     this.battleCombatEndDelay = const Duration(seconds: 2),
+    this.isTutorialRun = false,
+    this.persistRun = true,
   }) : restoredRun = null;
+
+  PathSelectionPage.tutorial({
+    super.key,
+    this.battleEnemyTurnDelay = const Duration(milliseconds: 900),
+    this.battleCombatEndDelay = const Duration(seconds: 2),
+  })  : player = defaultPlayerBattler,
+        availableNodes = null,
+        scriptedNodesByStage = TutorialRunDefinition.scriptedNodesByStage,
+        nodeCount = TutorialRunDefinition.nodeCount,
+        randomSeed = TutorialRunDefinition.randomSeed,
+        restoredRun = null,
+        isTutorialRun = true,
+        persistRun = false;
 
   const PathSelectionPage.continueRun({
     super.key,
     required this.restoredRun,
   })  : player = defaultPlayerBattler,
         availableNodes = null,
+        scriptedNodesByStage = null,
         nodeCount = 3,
         randomSeed = null,
         battleEnemyTurnDelay = const Duration(milliseconds: 900),
-        battleCombatEndDelay = const Duration(seconds: 2);
+        battleCombatEndDelay = const Duration(seconds: 2),
+        isTutorialRun = false,
+        persistRun = true;
 
   @override
   State<PathSelectionPage> createState() => _PathSelectionPageState();
@@ -40,8 +65,11 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   static const _levelUpRewardService = LevelUpRewardService();
 
   late final RunSessionController _sessionController;
+  late final _PathTutorialShowcaseKeys _tutorialKeys;
+  ShowcaseView? _tutorialShowcase;
   bool _isPresentingRunOutcome = false;
   bool _didResumeSavedNode = false;
+  bool _didStartOpeningTutorial = false;
 
   @override
   void initState() {
@@ -52,12 +80,50 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             battleEnemyTurnDelay: widget.battleEnemyTurnDelay,
             battleCombatEndDelay: widget.battleCombatEndDelay,
             availableNodes: widget.availableNodes,
+            scriptedNodesByStage: widget.scriptedNodesByStage,
             nodeCount: widget.nodeCount,
             randomSeed: widget.randomSeed,
+            persistRun: widget.persistRun,
           )
         : RunSessionController.resume(
             snapshot: widget.restoredRun!,
           );
+
+    _tutorialKeys = _PathTutorialShowcaseKeys();
+    if (widget.isTutorialRun) {
+      _tutorialShowcase = ShowcaseView.register(
+        scope: _pathTutorialShowcaseScope,
+        disableBarrierInteraction: true,
+        disableMovingAnimation: true,
+        disableScaleAnimation: true,
+        blurValue: 0,
+        skipIfTargetNotPresent: true,
+        globalTooltipActionConfig: const TooltipActionConfig(
+          alignment: MainAxisAlignment.end,
+          actionGap: 8,
+          position: TooltipActionPosition.inside,
+        ),
+        globalTooltipActions: [
+          TooltipActionButton(
+            type: TooltipDefaultActionType.next,
+            name: 'SIGUIENTE',
+            backgroundColor: EndpointPalette.blend(
+              EndpointPalette.panelBackgroundBattle,
+              EndpointPalette.infoAccent,
+              0.22,
+            ),
+            textStyle: textSmallBold.copyWith(
+              color: EndpointPalette.softForegroundWarm,
+              letterSpacing: 0.8,
+            ),
+            border: Border.all(
+              color: EndpointPalette.infoAccent.withValues(alpha: 0.72),
+            ),
+          ),
+        ],
+      );
+      _scheduleOpeningTutorialShowcase();
+    }
 
     if (_sessionController.isResolvingNode &&
         _sessionController.activeNode != null) {
@@ -69,8 +135,32 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
   @override
   void dispose() {
+    _tutorialShowcase?.unregister();
     _sessionController.dispose();
     super.dispose();
+  }
+
+  void _scheduleOpeningTutorialShowcase() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _didStartOpeningTutorial) return;
+
+      Future<void>.delayed(const Duration(milliseconds: 180), () {
+        if (!mounted || _didStartOpeningTutorial) return;
+
+        _didStartOpeningTutorial = true;
+        _tutorialShowcase?.startShowCase(
+          [
+            _tutorialKeys.nodes,
+            _tutorialKeys.playerStats,
+            _tutorialKeys.money,
+            _tutorialKeys.operatives,
+            _tutorialKeys.abilities,
+            _tutorialKeys.timeline,
+            _tutorialKeys.archetypeNode,
+          ],
+        );
+      });
+    });
   }
 
   Future<void> _handleOpenAbilities() async {
@@ -83,12 +173,24 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         screenContext: BattlerAbilityActivationContext.pathSelection,
         subtitle: 'Protocolos disponibles en ruta',
         bottomInset: _abilitiesBottomInset,
+        abilityActivationBlockReason: _pathAbilityActivationBlockReason,
         onPlayerChanged: _sessionController.updatePlayer,
       ),
     );
     if (!mounted) return;
 
     await _maybePresentRunOutcome();
+  }
+
+  String? _pathAbilityActivationBlockReason(BattlerAbility ability) {
+    if (ability.id != BattlerAbilityId.convencionRepentina) return null;
+
+    final phase = _sessionController.currentHour.phase;
+    if (phase == RunHourPhase.dusk || phase == RunHourPhase.sunrise) {
+      return 'No se puede usar al atardecer ni al amanecer';
+    }
+
+    return null;
   }
 
   Future<void> _handleOpenOperatives() async {
@@ -112,6 +214,34 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     await _openNode(node);
   }
 
+  Widget _buildPathNodeCard({
+    required PathNode node,
+    required bool isTutorialTarget,
+    VoidCallback? onPressed,
+  }) {
+    final card = PathNodeCard(
+      node: node,
+      onPressed: onPressed,
+    );
+    if (!isTutorialTarget) return card;
+
+    return _PathShowcaseStep(
+      showcaseKey: _tutorialKeys.archetypeNode,
+      title: 'Elige Imparable',
+      description:
+          'Para empezar la primera hora del tutorial, pulsa este arquetipo. El resto de la pantalla queda bloqueado hasta que lo elijas.',
+      allowTargetInteraction: true,
+      tooltipActions: const [],
+      targetBorderRadius: BorderRadius.circular(18),
+      targetPadding: const EdgeInsets.all(8),
+      onTargetClick: () {
+        if (!mounted) return;
+        unawaited(_handleNodePressed(node));
+      },
+      child: card,
+    );
+  }
+
   Future<void> _resumeSavedNodeIfNeeded() async {
     if (_didResumeSavedNode || !mounted) return;
 
@@ -127,6 +257,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       context: context,
       node: node,
       session: _sessionController,
+      isTutorialRun: widget.isTutorialRun,
     );
     if (!mounted) return;
 
@@ -209,6 +340,17 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             final hasEndedRun = _sessionController.isRunComplete;
             final canOpenLevelUp =
                 player.canLevelUp && !isOpeningNode && !hasEndedRun;
+            final tutorialKeys = widget.isTutorialRun ? _tutorialKeys : null;
+            Widget pathHeader = _PathHeader(currentHour: currentHour);
+            if (tutorialKeys != null) {
+              pathHeader = _PathShowcaseStep(
+                showcaseKey: tutorialKeys.timeline,
+                title: 'Horas',
+                description:
+                    'Esta barra muestra el avance de las horas. La run termina al llegar al amanecer.',
+                child: pathHeader,
+              );
+            }
 
             return Stack(
               fit: StackFit.expand,
@@ -219,7 +361,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                     padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                     child: Column(
                       children: [
-                        _PathHeader(currentHour: currentHour),
+                        pathHeader,
                         Expanded(
                           child: Column(
                             children: [
@@ -235,7 +377,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                     availableWidth / encounterCount,
                                   );
 
-                                  return Row(
+                                  Widget nodesRow = Row(
                                     mainAxisAlignment: encounterCount == 1
                                         ? MainAxisAlignment.center
                                         : MainAxisAlignment.start,
@@ -249,8 +391,11 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                           const SizedBox(width: spacing),
                                         SizedBox(
                                           width: nodeWidth,
-                                          child: PathNodeCard(
+                                          child: _buildPathNodeCard(
                                             node: nodes[index],
+                                            isTutorialTarget:
+                                                tutorialKeys != null &&
+                                                    index == 0,
                                             onPressed:
                                                 isOpeningNode || hasEndedRun
                                                     ? null
@@ -262,6 +407,22 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                       ],
                                     ],
                                   );
+
+                                  if (tutorialKeys != null) {
+                                    nodesRow = _PathShowcaseStep(
+                                      showcaseKey: tutorialKeys.nodes,
+                                      title: 'Nodos',
+                                      description:
+                                          'En Death at Sunrise, deberás sobrevivir para acercarte un poco más al amanecer. Cada hora, deberás elegir un nodo para avanzar, siendo el primero siempre tu Arquetipo.',
+                                      targetPadding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 8,
+                                      ),
+                                      child: nodesRow,
+                                    );
+                                  }
+
+                                  return nodesRow;
                                 },
                               ),
                               const Spacer(),
@@ -273,6 +434,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                   onOpenAbilities: _handleOpenAbilities,
                                   onOpenLevelUp: _handleOpenLevelUp,
                                   canOpenLevelUp: canOpenLevelUp,
+                                  tutorialKeys: tutorialKeys,
                                 ),
                               ),
                             ],
@@ -287,6 +449,75 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
           },
         ),
       ),
+    );
+  }
+}
+
+class _PathTutorialShowcaseKeys {
+  final GlobalKey nodes = GlobalKey();
+  final GlobalKey playerStats = GlobalKey();
+  final GlobalKey money = GlobalKey();
+  final GlobalKey operatives = GlobalKey();
+  final GlobalKey abilities = GlobalKey();
+  final GlobalKey timeline = GlobalKey();
+  final GlobalKey archetypeNode = GlobalKey();
+}
+
+class _PathShowcaseStep extends StatelessWidget {
+  final GlobalKey showcaseKey;
+  final String title;
+  final String description;
+  final Widget child;
+  final bool allowTargetInteraction;
+  final VoidCallback? onTargetClick;
+  final List<TooltipActionButton>? tooltipActions;
+  final EdgeInsets targetPadding;
+  final BorderRadius targetBorderRadius;
+
+  const _PathShowcaseStep({
+    required this.showcaseKey,
+    required this.title,
+    required this.description,
+    required this.child,
+    this.allowTargetInteraction = false,
+    this.onTargetClick,
+    this.tooltipActions,
+    this.targetPadding = const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+    this.targetBorderRadius = const BorderRadius.all(Radius.circular(12)),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Showcase(
+      key: showcaseKey,
+      scope: _pathTutorialShowcaseScope,
+      title: title,
+      description: description,
+      targetBorderRadius: targetBorderRadius,
+      targetPadding: targetPadding,
+      overlayColor: EndpointPalette.overlayScrimStrong,
+      overlayOpacity: 0.9,
+      tooltipBackgroundColor: EndpointPalette.panelBackgroundOpaque,
+      tooltipBorderRadius: BorderRadius.circular(12),
+      tooltipPadding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      titleTextStyle: textMediumBold.copyWith(
+        color: EndpointPalette.infoAccent,
+        letterSpacing: 1.1,
+      ),
+      descTextStyle: textSmallBold.copyWith(
+        color: EndpointPalette.softForeground,
+        fontSize: 14,
+        letterSpacing: 0.4,
+        height: 1.25,
+      ),
+      textColor: EndpointPalette.softForeground,
+      disableDefaultTargetGestures: !allowTargetInteraction,
+      disableBarrierInteraction: true,
+      movingAnimationDuration: Duration.zero,
+      onTargetClick: onTargetClick,
+      disposeOnTap: onTargetClick == null ? null : true,
+      tooltipActions: tooltipActions,
+      child: child,
     );
   }
 }
@@ -315,6 +546,7 @@ class _PathBottomHud extends StatelessWidget {
   final Future<void> Function() onOpenAbilities;
   final Future<void> Function() onOpenLevelUp;
   final bool canOpenLevelUp;
+  final _PathTutorialShowcaseKeys? tutorialKeys;
 
   const _PathBottomHud({
     required this.player,
@@ -322,6 +554,7 @@ class _PathBottomHud extends StatelessWidget {
     required this.onOpenAbilities,
     required this.onOpenLevelUp,
     required this.canOpenLevelUp,
+    this.tutorialKeys,
   });
 
   @override
@@ -331,14 +564,70 @@ class _PathBottomHud extends StatelessWidget {
       letterSpacing: 1.2,
     );
 
+    Widget playerStatus = _PathPlayerStatus(player: player);
+    if (tutorialKeys != null) {
+      playerStatus = _PathShowcaseStep(
+        showcaseKey: tutorialKeys!.playerStats,
+        title: 'Operativo',
+        description:
+            'Aqui ves tu personaje, su vida y sus stats principales antes de escoger el siguiente nodo.',
+        child: playerStatus,
+      );
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _PathPlayerStatus(player: player),
+        playerStatus,
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
             final avatarSize = constraints.maxWidth < 360 ? 82.0 : 98.0;
+            Widget operativesButton = PathActionButton(
+              label: 'Operativos',
+              icon: Icons.groups_2_outlined,
+              onPressed: onOpenOperatives,
+              tooltip: 'Abrir ventana de operativos',
+            );
+            Widget abilitiesButton = PathActionButton(
+              label: 'Habilidades',
+              icon: Icons.auto_awesome_rounded,
+              onPressed: onOpenAbilities,
+              tooltip: 'Abrir panel de habilidades',
+            );
+            Widget moneyChip = EndpointValueChip(
+              icon: Icons.monetization_on_rounded,
+              value: player.money,
+              accent: EndpointPalette.warningAccent,
+              foreground: EndpointPalette.softForegroundWarm,
+              textStyle: chipTextStyle,
+            );
+
+            final keys = tutorialKeys;
+            if (keys != null) {
+              operativesButton = _PathShowcaseStep(
+                showcaseKey: keys.operatives,
+                title: 'Operativos',
+                description:
+                    'Este boton abre la gestion del operativo, su inventario y el equipo disponible.',
+                child: operativesButton,
+              );
+              abilitiesButton = _PathShowcaseStep(
+                showcaseKey: keys.abilities,
+                title: 'Habilidades',
+                description:
+                    'Este boton abre los protocolos y habilidades que puedes revisar o activar en ruta.',
+                child: abilitiesButton,
+              );
+              moneyChip = _PathShowcaseStep(
+                showcaseKey: keys.money,
+                title: 'Creditos',
+                description:
+                    'Este contador muestra el dinero disponible. Los creditos sirven para comprar y activar ciertos efectos.',
+                targetPadding: const EdgeInsets.all(4),
+                child: moneyChip,
+              );
+            }
 
             return Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -348,12 +637,7 @@ class _PathBottomHud extends StatelessWidget {
                     alignment: Alignment.bottomLeft,
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 132),
-                      child: PathActionButton(
-                        label: 'Operativos',
-                        icon: Icons.groups_2_outlined,
-                        onPressed: onOpenOperatives,
-                        tooltip: 'Abrir ventana de operativos',
-                      ),
+                      child: operativesButton,
                     ),
                   ),
                 ),
@@ -372,13 +656,7 @@ class _PathBottomHud extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            EndpointValueChip(
-                              icon: Icons.monetization_on_rounded,
-                              value: player.money,
-                              accent: EndpointPalette.warningAccent,
-                              foreground: EndpointPalette.softForegroundWarm,
-                              textStyle: chipTextStyle,
-                            ),
+                            moneyChip,
                             const SizedBox(width: 8),
                             EndpointValueChip(
                               icon: Icons.trending_up_rounded,
@@ -399,12 +677,7 @@ class _PathBottomHud extends StatelessWidget {
                     alignment: Alignment.bottomRight,
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 118),
-                      child: PathActionButton(
-                        label: 'Habilidades',
-                        icon: Icons.auto_awesome_rounded,
-                        onPressed: onOpenAbilities,
-                        tooltip: 'Abrir panel de habilidades',
-                      ),
+                      child: abilitiesButton,
                     ),
                   ),
                 ),

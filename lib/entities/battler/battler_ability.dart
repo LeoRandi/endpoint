@@ -33,6 +33,13 @@ enum BattlerAbilityId {
   espejoDolor,
   protocoloUsurpacion,
   refactorizacionTimeline,
+  monopolio,
+  compraDeOportunidad,
+  diversificacionHostil,
+  convencionRepentina,
+  furiaHematica,
+  mordidaDeAcero,
+  noHayRetirada,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -139,8 +146,16 @@ const _vidaDebuffAbilityTags = <EntityTag>[
 const _economiaAbilityTags = <EntityTag>[
   EntityTag.economia,
 ];
+const _vidaAbilityTags = <EntityTag>[
+  EntityTag.vida,
+];
 const _buffBarreraAbilityTags = <EntityTag>[
   EntityTag.buff,
+  EntityTag.barrera,
+];
+const _economiaAtaqueBarreraAbilityTags = <EntityTag>[
+  EntityTag.economia,
+  EntityTag.ataque,
   EntityTag.barrera,
 ];
 const _ataqueBarreraAbilityTags = <EntityTag>[

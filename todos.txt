@@ -3,6 +3,7 @@
 [--Cambiar recompensas de level up: 1º stats, luego habilidad, luego item, etc]
 
 -Tutorial
+[--Tuto de menú principal]
 --Tuto de combate
 --Tuto de dibujo
 --Tuto de rutas
@@ -69,13 +70,13 @@
 -Habilidades
 [--Añadir Tags]
 [--Meter en el loot]
---Crear presets(al menos 50)[20/50]
+--Crear al menos 20 generales y 20 por arquetipo[general: 6, veloz: 11, inamovible: 5, imparable: 6, mercante: 6]
 
 -Items
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 100-120[64/100]
+--Meter al menos 60 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 18, Imparable: 17, Mercante: 16]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
@@ -115,27 +116,22 @@
 
 ////
 ARREGLAR:
--El botón de equipar/desequipar en el inventario a veces desaparece al desequipar
+-El botón de equipar/desequipar en al tienda a veces desaparece al desequipar/vender en una tienda?
 -El botón de tutorial del menú principal no funciona
 -La row de inventario en la pantalla del inventario no es un singleScrollChild, se puede hacer overflow
--En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña
+-En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña(pequeño cambio visual)
 
 ////
 PROBAR:
--Deuda(debuff): reduce el income a 1 hasta que se cumpla un evento(no stackeable ni repetible, no se puede purgar de formas convencionales. Esto debe quedar explicado en la info del estado).
 
 ///
 IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
 -Añadir color a cada buzzword, y que se coloreen automático en textos?
 
--Objetos:
---Manto del Eclipse: Su bonus de dibujo cambia entre triángulo y Cuadrado según si se ataca o se bloquea
-
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
 
 ////////////////////////////////
 
-Quiero que escanees el código del proyecto actual para que tengas en contexto sus flujos de combate, entidades, etc. Necesito que no hagas tests a no ser que lo pida, y que no me resumas lo que encuentres. En vez de eso, una vez tengas el contexto completo:
 
