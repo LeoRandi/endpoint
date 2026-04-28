@@ -306,14 +306,14 @@ const bateriaCrepuscularItem = Item(
   effect: BateriaCrepuscularItemEffect(),
 );
 
-/// Accesorio azul que marca pulsos de curacion o dano segun el momento del Ciclo.
+/// Accesorio azul que marca pulsos de curacion o daño segun el momento del Ciclo.
 const relojDeTurnoItem = Item(
   id: ItemId.relojDeTurno,
   archetypeAffinities: _velozAffinities,
   tags: _cicloTags,
   name: 'Reloj de Turno',
   description:
-      'Ciclo. Al final de tu turno: de dia te curas; de noche infliges dano directo.',
+      'Ciclo. Al final de tu turno: de dia te curas; de noche infliges daño directo.',
   iconEmoji: '\u23F1',
   rarity: RarityTier.blue,
   baseCost: 6,
@@ -347,7 +347,7 @@ const prismaCircadianoItem = Item(
   tags: _cicloAtaqueBarreraBuffTags,
   name: 'Prisma Circadiano',
   description:
-      'Ciclo. De dia reduces dano recibido. De noche infliges dano extra.',
+      'Ciclo. De dia reduces daño recibido. De noche infliges daño extra.',
   iconEmoji: '\u{1F308}',
   rarity: RarityTier.purple,
   baseCost: 8,
@@ -487,8 +487,7 @@ const roperaUnidaItem = Item(
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaAtaqueTags,
   name: 'Ropera Unida',
-  description:
-      'Otorga un bonus de ATK igual a su value mas tus items de otro arquetipo.',
+  description: 'Otorga un bonus de ATK segun tus items de otro arquetipo.',
   iconEmoji: '\u{1F455}',
   rarity: RarityTier.purple,
   baseCost: 8,
@@ -504,7 +503,7 @@ const mamparaPortatilItem = Item(
   tags: _barreraDebuffTags,
   name: 'Mampara Portatil',
   description:
-      '+2 Barrera. Al inicio de tu turno, reduce 1 turno de un debuff aleatorio tantas veces como su value.',
+      '+2 Barrera. Al inicio de tu turno, reduce turnos de debuffs aleatorios.',
   iconEmoji: '\u{1F6AA}',
   rarity: RarityTier.gray,
   baseCost: 2,
@@ -598,7 +597,7 @@ const silbatoMudoItem = Item(
   archetypeAffinities: _generalAffinities,
   tags: _barreraDebuffTags,
   name: 'Silbato Mudo',
-  description: '+1 Barrera. Al recibir dano: aplica Interferencia al agresor.',
+  description: '+1 Barrera. Al recibir daño: aplica Interferencia al agresor.',
   iconEmoji: '\u{1F507}',
   rarity: RarityTier.blue,
   baseCost: 6,
@@ -655,7 +654,7 @@ const clavoReactorItem = Item(
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Clavo Reactor',
   description:
-      '+2 ATK. La primera vez por turno que atacas, infliges dano directo extra y te aplicas Quemadura.',
+      '+2 ATK. La primera vez por turno que atacas, infliges daño directo extra y te aplicas Quemadura.',
   iconEmoji: '\u{1F529}',
   rarity: RarityTier.green,
   baseCost: 4,
@@ -683,14 +682,14 @@ const bombaMiocardicaItem = Item(
   effect: BombaMiocardicaItemEffect(),
 );
 
-/// Accesorio morado que convierte la vida faltante en dano explosivo para el primer ataque del turno.
+/// Accesorio morado que convierte la vida faltante en daño explosivo para el primer ataque del turno.
 const ultimaMarchaItem = Item(
   id: ItemId.ultimaMarcha,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueVidaTags,
   name: 'Ultima Marcha',
   description:
-      '+1 ATK. La primera vez por turno que atacas, infliges dano extra segun la vida que te falta.',
+      '+1 ATK. La primera vez por turno que atacas, infliges daño extra segun la vida que te falta.',
   iconEmoji: '\u{1FA78}',
   rarity: RarityTier.purple,
   baseCost: 8,
@@ -809,7 +808,7 @@ const pocketJammerItem = Item(
   archetypeAffinities: _velozAffinities,
   tags: _barreraDebuffTags,
   name: 'Interferidor de Bolsillo',
-  description: 'Al recibir dano: aplica Interferencia al agresor.',
+  description: 'Al recibir daño: aplica Interferencia al agresor.',
   iconEmoji: '\u{1F4F6}',
   rarity: RarityTier.gray,
   baseCost: 2,
@@ -840,7 +839,7 @@ const kunaiAnchoItem = Item(
   effect: KunaiAnchoItemEffect(),
 );
 
-/// Arma verde orientada a abrir ventanas de dano de forma estable.
+/// Arma verde orientada a abrir ventanas de daño de forma estable.
 const serratedEdgeItem = Item(
   id: ItemId.serratedEdge,
   archetypeAffinities: _velozImparableAffinities,
@@ -997,7 +996,7 @@ const reboundHarnessItem = Item(
   tags: _barreraBuffTags,
   name: 'Arnes de Rebote',
   description:
-      '+2 Barrera. Al recibir dano: ganas Reserva de Inercia: Barrera.',
+      '+2 Barrera. Al recibir daño: ganas Reserva de Inercia: Barrera.',
   iconEmoji: '\u{1FAA2}',
   rarity: RarityTier.purple,
   baseCost: 8,
@@ -1021,7 +1020,7 @@ const concussionPrismItem = Item(
   archetypeAffinities: _velozInamovibleAffinities,
   tags: _barreraDebuffTags,
   name: 'Prisma Concusivo',
-  description: 'Al recibir dano: aplica Conmocion al agresor.',
+  description: 'Al recibir daño: aplica Conmocion al agresor.',
   iconEmoji: '\u{1F48E}',
   rarity: RarityTier.purple,
   baseCost: 8,
@@ -1118,7 +1117,7 @@ const contingencySealItem = Item(
   effect: RefreshMinimumBarrierOnTurnStartItemEffect(),
 );
 
-/// Arma amarilla de dano alto para el tramo final.
+/// Arma amarilla de daño alto para el tramo final.
 const sunsteelBladeItem = Item(
   id: ItemId.sunsteelBlade,
   archetypeAffinities: _generalAffinities,
@@ -1319,7 +1318,7 @@ const shockMeshItem = Item(
   tags: _barreraDebuffTags,
   name: 'Malla de Choque',
   description:
-      '+1 Barrera. Al recibir dano mientras conservas Barrera, aplicas Conmocion al agresor.',
+      '+1 Barrera. Al recibir daño mientras conservas Barrera, aplicas Conmocion al agresor.',
   iconEmoji: '\u{1F4A5}',
   rarity: RarityTier.gray,
   baseCost: 2,
@@ -1341,7 +1340,7 @@ const toxicScalpelItem = Item(
   tags: _ataqueDebuffIntoxicacionTags,
   name: 'Bisturi Toxico',
   description:
-      '+1 ATK. Al atacar: aplica o aumenta Intoxicacion. Si ya la tenia, infliges 1 dano directo extra.',
+      '+1 ATK. Al atacar: aplica o aumenta Intoxicacion. Si ya la tenia, infliges 1 daño directo extra.',
   iconEmoji: '\u{1F9A0}',
   rarity: RarityTier.green,
   baseCost: 4,
@@ -1408,7 +1407,7 @@ const responseFrameItem = Item(
   tags: _barreraBuffTags,
   name: 'Bastidor de Respuesta',
   description:
-      '+2 Barrera. Al final de tu turno, si no has recibido dano, recuperas 2 de Barrera.',
+      '+2 Barrera. Al final de tu turno, si no has recibido daño, recuperas 2 de Barrera.',
   iconEmoji: '\u{1F5BC}',
   rarity: RarityTier.blue,
   baseCost: 6,
@@ -1473,7 +1472,7 @@ const reboundLensItem = Item(
   tags: _barreraDebuffTags,
   name: 'Lente de Rebote',
   description:
-      '+1 Barrera. La primera vez que recibes dano cada turno, aplicas Fragilidad al agresor.',
+      '+1 Barrera. La primera vez que recibes daño cada turno, aplicas Fragilidad al agresor.',
   iconEmoji: '\u{1F52E}',
   rarity: RarityTier.purple,
   baseCost: 8,
@@ -1506,14 +1505,14 @@ const inertiaCrownItem = Item(
   bonusShapeOverride: ItemBonusShape.circle,
 );
 
-/// Arma amarilla de remate que convierte la Quemadura acumulada en dano inmediato.
+/// Arma amarilla de remate que convierte la Quemadura acumulada en daño inmediato.
 const sunExecutionBladeItem = Item(
   id: ItemId.sunExecutionBlade,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Hoja de Ejecucion Solar',
   description:
-      '+4 ATK. Si el objetivo tiene Quemadura, la consume y anade dano directo extra.',
+      '+4 ATK. Si el objetivo tiene Quemadura, la consume y anade daño directo extra.',
   iconEmoji: '\u{1F506}',
   rarity: RarityTier.yellow,
   baseCost: 10,

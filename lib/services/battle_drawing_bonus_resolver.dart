@@ -69,7 +69,7 @@ class BattleDrawingEnemyNuisance {
   String get pendingDescription {
     switch (kind) {
       case BattleDrawingEnemyNuisanceKind.directDamage:
-        return 'Recibes $amount de dano.';
+        return 'Recibes $amount de daño.';
       case BattleDrawingEnemyNuisanceKind.barrierTransfer:
         return 'Transfieres $amount de Barrera al enemigo.';
       case BattleDrawingEnemyNuisanceKind.healthTransfer:

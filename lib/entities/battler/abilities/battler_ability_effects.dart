@@ -45,7 +45,7 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Premia atacar objetivos ya debilitados con dano extra constante.
+/// Premia atacar objetivos ya debilitados con daño extra constante.
 class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Caza de debilidades.
   const WeaknessHunterAbilityEffect()
@@ -57,7 +57,7 @@ class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
 
   @override
 
-  /// Suma dano solo si el objetivo ya tiene al menos un debuff.
+  /// Suma daño solo si el objetivo ya tiene al menos un debuff.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -73,7 +73,7 @@ class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Reduce el dano recibido mientras el portador siga con la vida al maximo.
+/// Reduce el daño recibido mientras el portador siga con la vida al maximo.
 class GhostMeshAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Malla Fantasma.
   const GhostMeshAbilityEffect()
@@ -85,7 +85,7 @@ class GhostMeshAbilityEffect extends BattlerAbilityEffect {
 
   @override
 
-  /// Divide el dano entrante por el value cuando el usuario esta intacto.
+  /// Divide el daño entrante por el value cuando el usuario esta intacto.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -457,7 +457,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
 
   @override
 
-  /// Purga debuffs, luego hace dano propio y finalmente inicia el cooldown.
+  /// Purga debuffs, luego hace daño propio y finalmente inicia el cooldown.
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -682,7 +682,7 @@ class HemostasiaAgresivaAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Devuelve dano al primer ataque recibido en cada turno del portador.
+/// Devuelve daño al primer ataque recibido en cada turno del portador.
 class MallaReboteAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Malla de Rebote.
   const MallaReboteAbilityEffect()
@@ -769,7 +769,7 @@ class InyeccionCorrosivaAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Aumenta el dano al golpear enemigos que tengan buffs activos.
+/// Aumenta el daño al golpear enemigos que tengan buffs activos.
 class EscanerRupturaAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Escaner de Ruptura.
   const EscanerRupturaAbilityEffect()
@@ -951,7 +951,7 @@ class NucleoParasitarioAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Reduce el siguiente dano recibido y refleja un contraataque adicional.
+/// Reduce el siguiente daño recibido y refleja un contraataque adicional.
 class EspejoDolorAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Espejo de Dolor.
   const EspejoDolorAbilityEffect()
@@ -1174,7 +1174,7 @@ class CompraDeOportunidadAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Convierte la diversidad no mercante equipada en dano extra estable.
+/// Convierte la diversidad no mercante equipada en daño extra estable.
 class DiversificacionHostilAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto pasivo de Diversificacion Hostil.
   const DiversificacionHostilAbilityEffect()
@@ -1279,7 +1279,7 @@ class FuriaHematicaAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Prepara un mordisco reforzado y cura por parte del dano de la habilidad.
+/// Prepara un mordisco reforzado y cura por parte del daño de la habilidad.
 class MordidaDeAceroAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Mordida de Acero.
   const MordidaDeAceroAbilityEffect()
@@ -1337,7 +1337,7 @@ class MordidaDeAceroAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Convierte el primer dano recibido de cada turno en empuje ofensivo.
+/// Convierte el primer daño recibido de cada turno en empuje ofensivo.
 class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto pasivo de No Hay Retirada.
   const NoHayRetiradaAbilityEffect()

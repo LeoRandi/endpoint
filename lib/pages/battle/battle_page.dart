@@ -891,7 +891,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         return EndpointItemDetailsDialog(
           item: item,
           accent: item.rarity.accent,
-          price: item.cost,
+          price: item.sellValue,
+          priceLabel: 'VENTA',
           statusText: _sceneController.statusLabelFor(battler, item),
         );
       },

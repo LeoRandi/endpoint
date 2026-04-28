@@ -10,6 +10,7 @@ const _battleDefenseFeedbackGap = Duration(milliseconds: 450);
 const _battleDefenseMissAccent = Color(0xFFC178FF);
 const _battleDefenseEnemyMalusAccent = Color(0xFFF95A62);
 const _battleDefenseEraserRadius = 18.0;
+const _battleDefenseDuration = Duration(seconds: 20);
 const _defenseBonusHooks = <ItemEffectHook>{
   ItemEffectHook.defendResolved,
   ItemEffectHook.receiveDamageResolved,
@@ -47,7 +48,8 @@ class BattleDrawDefenseOverlay extends StatefulWidget {
       _BattleDrawDefenseOverlayState();
 }
 
-class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay> {
+class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay>
+    with SingleTickerProviderStateMixin {
   final OperativeSketchRecognitionHelper _recognitionHelper =
       const OperativeSketchRecognitionHelper();
   final BattleDrawingBonusResolver _bonusResolver =
@@ -65,6 +67,10 @@ class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay> {
   late final List<BattleDrawingEnemyNuisance> _enemyNuisances;
   late final List<BattleDrawingEnemyNuisanceGroup> _enemyNuisanceGroups;
   late final BattleDrawingBonusResolution _baseBonusResolution;
+  late final AnimationController _timerController = AnimationController(
+    vsync: this,
+    duration: _battleDefenseDuration,
+  )..addStatusListener(_handleTimerStatus);
 
   Size? _canvasSize;
   bool _isSubmitting = false;
@@ -112,11 +118,17 @@ class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay> {
       enemyNuisances: _enemyNuisances,
     );
     _lastBonusResolution = _baseBonusResolution;
+    _timerController.forward();
   }
 
   void _handleFeedbackChanged() {
     if (!mounted) return;
     setState(() {});
+  }
+
+  void _handleTimerStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed || _isSubmitting) return;
+    unawaited(_submitDefense(autoTriggered: true));
   }
 
   void _handlePanStart(DragStartDetails details) {
@@ -218,10 +230,10 @@ class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay> {
     }
   }
 
-  Future<void> _submitDefense() async {
+  Future<void> _submitDefense({required bool autoTriggered}) async {
     if (_isSubmitting) return;
 
-    final resolution = _runRecognitionScan(showFeedback: true);
+    final resolution = _runRecognitionScan(showFeedback: !autoTriggered);
     final overlayResult = BattleDrawOverlayResult(
       resolution: resolution,
       consumedQuickDraw: _hasConsumedQuickDraw,
@@ -360,6 +372,9 @@ class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay> {
   void dispose() {
     _feedbackController
       ..removeListener(_handleFeedbackChanged)
+      ..dispose();
+    _timerController
+      ..removeStatusListener(_handleTimerStatus)
       ..dispose();
     super.dispose();
   }
@@ -542,10 +557,34 @@ class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay> {
             ],
           ),
           const SizedBox(height: 10),
+          AnimatedBuilder(
+            animation: _timerController,
+            builder: (context, _) {
+              final remainingFactor =
+                  (1 - _timerController.value).clamp(0.0, 1.0);
+              final remainingMillis =
+                  (_battleDefenseDuration.inMilliseconds * remainingFactor)
+                      .ceil();
+              final remainingSeconds = max(
+                0,
+                (remainingMillis / 1000).ceil(),
+              );
+              final timerAccent = _timerAccentFor(remainingFactor);
+
+              return _BattleDefenseCountdownBar(
+                remainingFactor: remainingFactor,
+                remainingSeconds: remainingSeconds,
+                accent: timerAccent,
+              );
+            },
+          ),
+          const SizedBox(height: 10),
           EndpointActionButton(
             label: _isSubmitting ? 'RESOLVIENDO' : 'BLOQUEAR',
             icon: Icons.shield_rounded,
-            onPressed: _isSubmitting ? null : () => unawaited(_submitDefense()),
+            onPressed: _isSubmitting
+                ? null
+                : () => unawaited(_submitDefense(autoTriggered: false)),
             tooltip: 'Resolver el bloqueo con los bonus detectados',
             accent: EndpointPalette.infoAccent,
             backgroundColor: EndpointPalette.blend(
@@ -556,6 +595,78 @@ class _BattleDrawDefenseOverlayState extends State<BattleDrawDefenseOverlay> {
             foregroundColor: EndpointPalette.softForegroundWarm,
             height: 52,
             useMarquee: false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _timerAccentFor(double remainingFactor) {
+    if (remainingFactor > 0.66) {
+      return EndpointPalette.primaryAccent;
+    }
+    if (remainingFactor > 0.33) {
+      return EndpointPalette.warningAccent;
+    }
+    return EndpointPalette.dangerAccent;
+  }
+}
+
+class _BattleDefenseCountdownBar extends StatelessWidget {
+  final double remainingFactor;
+  final int remainingSeconds;
+  final Color accent;
+
+  const _BattleDefenseCountdownBar({
+    required this.remainingFactor,
+    required this.remainingSeconds,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return EndpointPanel(
+      accent: accent,
+      backgroundColor: EndpointPalette.panelBackgroundBattle,
+      borderRadius: 12,
+      glowOpacity: 0.06,
+      blurRadius: 18,
+      spreadRadius: 1,
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EndpointText(
+            'TIEMPO RESTANTE',
+            style: textSmallBold.copyWith(
+              color: accent,
+              fontSize: 10,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: remainingFactor,
+                  minHeight: 16,
+                  backgroundColor:
+                      EndpointPalette.softForeground.withValues(alpha: 0.08),
+                  valueColor: AlwaysStoppedAnimation<Color>(accent),
+                ),
+              ),
+              EndpointText(
+                '$remainingSeconds s',
+                style: textSmallNumericBold.copyWith(
+                  color: EndpointPalette.panelBackgroundOpaque,
+                  fontSize: 11,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
           ),
         ],
       ),

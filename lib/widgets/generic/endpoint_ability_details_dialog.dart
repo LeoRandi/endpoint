@@ -146,8 +146,9 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
             backgroundColor: descriptionSurface,
             glowOpacity: 0.03,
             padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-            child: EndpointText(
-              ability.description,
+            child: EndpointHighlightedValueText(
+              ability.displayDescription,
+              tags: ability.tags,
               maxLines: null,
               style: textMedium.copyWith(
                 fontSize: 14,
@@ -213,7 +214,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
 
   String _buildInfoText(BattlerAbility ability) {
     final parts = <String>[
-      'VALOR ${ability.currentValue}',
+      'POTENCIA ${ability.currentValue}',
       'MEJORA +${ability.upgradeValue}',
       'RECARGA ${ability.remainingCooldownLabel}',
     ];

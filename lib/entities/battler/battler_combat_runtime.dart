@@ -9,7 +9,7 @@ extension BattlerCombatRuntime on Battler {
     return hasCombatFlag(Battler.pendingBasicAttackFollowUpFlag);
   }
 
-  /// Calcula el dano base de un ataque directo usando solo el ataque total del portador.
+  /// Calcula el daño base de un ataque directo usando solo el ataque total del portador.
   int calculateDamageAgainst(Battler target) {
     // TODO: Apply thorns, damage reduction, and vampirism when their combat rules are defined.
     return max(1, calculatedStat(BattlerStat.attack));

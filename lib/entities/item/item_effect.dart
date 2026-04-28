@@ -115,7 +115,7 @@ abstract class ItemEffect {
     return owner;
   }
 
-  /// Ajusta el dano saliente del portador antes de que se aplique.
+  /// Ajusta el daño saliente del portador antes de que se aplique.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -125,7 +125,7 @@ abstract class ItemEffect {
     return damage;
   }
 
-  /// Ajusta el dano entrante del portador antes de que se aplique.
+  /// Ajusta el daño entrante del portador antes de que se aplique.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -164,7 +164,7 @@ abstract class ItemEffect {
     return ItemEffectResolution(owner: owner, opponent: target);
   }
 
-  /// Resuelve efectos posteriores a que el portador reciba dano.
+  /// Resuelve efectos posteriores a que el portador reciba daño.
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
     required Battler source,

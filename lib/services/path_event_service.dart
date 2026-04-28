@@ -302,7 +302,7 @@ class PathEventService {
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'No te alcanzaba para cubrir la cuota. Entregas ${payment}C, recibes 10 de dano y aun debes ${remainingDebt}C.',
+          'No te alcanzaba para cubrir la cuota. Entregas ${payment}C, recibes 10 de daño y aun debes ${remainingDebt}C.',
     );
   }
 

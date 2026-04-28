@@ -17,7 +17,7 @@ const grayEnemyBattler = Battler(
   equippedItems: [woodenStickItem],
 );
 
-/// Variante gris evasiva que intercambia dano por mas impactos.
+/// Variante gris evasiva que intercambia daño por mas impactos.
 const shadeSkipperEnemyBattler = Battler(
   name: 'SHADE SKIPPER',
   health: 38,
@@ -51,7 +51,7 @@ const lensRuntEnemyBattler = Battler(
   equippedItems: [impactGlovesItem],
 );
 
-/// Variante gris defensiva apoyada en una pasiva de mitigar dano.
+/// Variante gris defensiva apoyada en una pasiva de mitigar daño.
 const phaseMoteEnemyBattler = Battler(
   name: 'PHASE MOTE',
   health: 40,
@@ -187,7 +187,7 @@ const greenEnemyBattler = Battler(
   equippedItems: [guardShieldItem],
 );
 
-/// Variante verde toxica que combina dano base con castigo a debuffs.
+/// Variante verde toxica que combina daño base con castigo a debuffs.
 const venomStitchEnemyBattler = Battler(
   name: 'VENOM STITCH',
   health: 58,
@@ -352,7 +352,7 @@ const shieldmendBruteEnemyBattler = Battler(
   equippedItems: _greenShieldmendSetItems,
 );
 
-/// Enemigo azul que mezcla barrera y dano para el tramo medio de la run.
+/// Enemigo azul que mezcla barrera y daño para el tramo medio de la run.
 const blueEnemyBattler = Battler(
   name: 'RIFT HOUND',
   health: 82,

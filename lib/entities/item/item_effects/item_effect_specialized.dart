@@ -44,13 +44,13 @@ class InertiaCrownItemEffect extends ItemEffect {
   }
 }
 
-/// Consume Quemadura para convertirla en dano directo inmediato.
+/// Consume Quemadura para convertirla en daño directo inmediato.
 class SunExecutionBladeItemEffect extends ItemEffect {
   /// Crea el efecto propio de la Hoja de Ejecucion Solar.
   const SunExecutionBladeItemEffect()
       : super(
           description:
-              'Consume la Quemadura del objetivo para infligir dano directo extra.',
+              'Consume la Quemadura del objetivo para infligir daño directo extra.',
           hooks: const {
             ItemEffectHook.attackResolved,
           },
@@ -58,7 +58,7 @@ class SunExecutionBladeItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Si el objetivo tiene Quemadura, la consume e inflige dano directo extra igual a su dano actual total + ${max(1, item.value)}.';
+    return 'Si el objetivo tiene Quemadura, la consume e inflige daño directo extra igual a su daño actual total + ${max(1, item.value)}.';
   }
 
   @override
@@ -140,7 +140,7 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
 class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
   final int duration;
 
-  /// Crea un efecto reutilizable que castiga al rival al recibir dano.
+  /// Crea un efecto reutilizable que castiga al rival al recibir daño.
   const QuemaduraOnHitReceivedItemEffect({
     this.duration = 4,
   }) : super(
@@ -236,13 +236,13 @@ class CrackedBatteryItemEffect extends ItemEffect {
   }
 }
 
-/// Aumenta el dano si el objetivo no tiene ningun buff activo.
+/// Aumenta el daño si el objetivo no tiene ningun buff activo.
 class ImpactGlovesItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para los Guantes de Impacto.
   const ImpactGlovesItemEffect()
       : super(
           description:
-              'Tus ataques infligen dano adicional si el objetivo no tiene buffs.',
+              'Tus ataques infligen daño adicional si el objetivo no tiene buffs.',
           hooks: const {
             ItemEffectHook.outgoingDamageModifier,
           },
@@ -252,12 +252,12 @@ class ImpactGlovesItemEffect extends ItemEffect {
 
   /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
-    return 'Tus ataques infligen ${item.value} de dano adicional si el objetivo no tiene buffs.';
+    return 'Tus ataques infligen ${item.value} de daño adicional si el objetivo no tiene buffs.';
   }
 
   @override
 
-  /// Suma dano solo cuando el objetivo esta completamente sin buffs.
+  /// Suma daño solo cuando el objetivo esta completamente sin buffs.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -345,7 +345,7 @@ class PagareRevalorizableItemEffect extends ItemEffect {
   const PagareRevalorizableItemEffect()
       : super(
           description:
-              'No hace nada en combate. Al terminar un combate equipado, aumenta su valor de venta.',
+              'No hace nada en combate. Al terminar un combate equipado, aumenta su precio de venta.',
           hooks: const {
             ItemEffectHook.combatEnd,
           },
@@ -353,7 +353,7 @@ class PagareRevalorizableItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al terminar un combate equipado, aumenta su valor de venta en ${item.value}C.';
+    return 'Al terminar un combate equipado, aumenta su precio de venta en ${item.value}C.';
   }
 
   @override
@@ -428,7 +428,7 @@ class MuestrarioContrabandoItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al atacar, te curas ${max(1, item.value)} HP por cada item de otro arquetipo en tu inventario, hasta ${healCap} HP.';
+    return 'Al atacar, te curas ${max(1, item.value)} HP por cada item de otro arquetipo en tu inventario, hasta $healCap HP.';
   }
 
   @override
@@ -470,7 +470,7 @@ class RoperaUnidaItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Obtienes +ATK igual a ${max(1, item.value)} + el numero de items de otro arquetipo que posees, hasta ${attackCap}.';
+    return 'Obtienes +ATK igual a ${max(1, item.value)} + el numero de items de otro arquetipo que posees, hasta $attackCap.';
   }
 
   @override
@@ -614,7 +614,7 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
 
   @override
 
-  /// Intercepta el dano letal y aplica la proteccion una sola vez por combate.
+  /// Intercepta el daño letal y aplica la proteccion una sola vez por combate.
   Battler onReceiveFatalDamage({
     required Battler owner,
     required Item item,
@@ -735,9 +735,9 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectTrigger.attackOwnerReinforce:
         return 'Al atacar: genera o aumenta $phrase.';
       case ItemStatusEffectTrigger.receiveDamageSource:
-        return 'Al recibir dano: aplica $phrase al agresor.';
+        return 'Al recibir daño: aplica $phrase al agresor.';
       case ItemStatusEffectTrigger.receiveDamageOwner:
-        return 'Al recibir dano: ganas $phrase.';
+        return 'Al recibir daño: ganas $phrase.';
       case ItemStatusEffectTrigger.turnStartOwnerRefreshMinimum:
         return 'Al inicio de tu turno, recuperas $phrase.';
       case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
@@ -937,11 +937,11 @@ class StatusItemEffect extends ItemEffect {
 
     switch (kind) {
       case ItemStatusEffectKind.calentando:
-        return 'Calentando (+$resolvedValue dano)';
+        return 'Calentando (+$resolvedValue daño)';
       case ItemStatusEffectKind.conmocion:
-        return 'Conmocion (-$resolvedValue dano en el siguiente ataque)';
+        return 'Conmocion (-$resolvedValue daño en el siguiente ataque)';
       case ItemStatusEffectKind.fragilidad:
-        return 'Fragilidad (+$resolvedValue dano recibido en el siguiente ataque)';
+        return 'Fragilidad (+$resolvedValue daño recibido en el siguiente ataque)';
       case ItemStatusEffectKind.inercia:
         return 'Inercia (+$resolvedValue por acumulacion)';
       case ItemStatusEffectKind.inerciaAtaque:

@@ -374,31 +374,21 @@ class Item {
   /// Devuelve el nombre visible del objeto sin marcadores extras de mejora.
   String get displayName => name;
 
-  /// Genera una descripcion visible que refleja mejor los valores ya mejorados.
+  /// Genera la descripcion visible unica, priorizando el efecto con valores de instancia.
   String get displayDescription {
+    final effectDescription = effect?.descriptionFor(this);
+    if (effectDescription != null) return effectDescription;
+
     if (upgradeCount <= 0) return description;
 
     final entries = _modifierDescriptionEntries();
-    if (entries.isEmpty) {
-      return effect?.descriptionFor(this) ?? description;
-    }
-
-    return entries.join('. ');
-  }
-
-  /// Devuelve una descripcion compacta para tooltips, incluyendo el efecto si procede.
-  String get tooltipDescription {
-    if (upgradeCount <= 0) return description;
-
-    final entries = _modifierDescriptionEntries();
-    if (effect != null) {
-      entries.add(effect!.descriptionFor(this));
-    }
-
     if (entries.isEmpty) return description;
 
     return entries.join('. ');
   }
+
+  /// Devuelve la misma descripcion canonica para tooltips y tarjetas compactas.
+  String get tooltipDescription => displayDescription;
 
   List<String> _modifierDescriptionEntries() {
     final entries = <String>[

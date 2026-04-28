@@ -196,7 +196,7 @@ class _EndpointAbilityOrbState extends State<EndpointAbilityOrb>
     final resolvedAccent = currentAbility?.accent ?? widget.accent;
     final isActive = currentAbility?.isActive ?? false;
     final isOnCooldown = currentAbility?.isOnCooldown ?? false;
-    final tooltip = currentAbility?.description ?? widget.emptyTooltip;
+    final tooltip = currentAbility?.displayDescription ?? widget.emptyTooltip;
     final borderColor = currentAbility == null
         ? resolvedAccent.withAlpha(87)
         : isActive

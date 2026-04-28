@@ -185,7 +185,8 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
             return EndpointItemDetailsDialog(
               item: item,
               accent: item.rarity.accent,
-              price: item.cost,
+              price: _controller.sellPriceFor(item),
+              priceLabel: 'VENTA',
               statusText: _controller.equippedStatusLabelFor(item),
               secondaryActionLabel:
                   _controller.equippedSecondaryActionLabelFor(item),
@@ -559,8 +560,9 @@ class _ShopOfferCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      EndpointText(
+                      EndpointHighlightedValueText(
                         item.tooltipDescription,
+                        tags: item.tags,
                         overflow: TextOverflow.ellipsis,
                         style: textSmallBold.copyWith(
                           color: Colors.white.withAlpha(173),

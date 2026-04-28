@@ -1,6 +1,6 @@
 part of '../battler_status.dart';
 
-/// Debuff que hace dano al final de turno segun los turnos que le queden.
+/// Debuff que hace daño al final de turno segun los turnos que le queden.
 class QuemaduraStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.quemadura;
   static const defaultDuration = 3;
@@ -19,12 +19,12 @@ class QuemaduraStatus extends BattlerStatus {
           },
           icon: Icons.whatshot_rounded,
           description:
-              'Al final del turno del objetivo, este estado inflige dano igual a su duracion restante.',
+              'Al final del turno del objetivo, este estado inflige daño igual a su duracion restante.',
           remainingTurns: remainingTurns,
           value: value ?? remainingTurns,
         );
 
-  /// Devuelve el dano efectivo que va a infligir ahora mismo.
+  /// Devuelve el daño efectivo que va a infligir ahora mismo.
   int currentDamage(Battler owner) => resolved(owner).value;
 
   @override
@@ -39,9 +39,9 @@ class QuemaduraStatus extends BattlerStatus {
 
   @override
 
-  /// Anade a la descripcion el dano actual ya resuelto.
+  /// Anade a la descripcion el daño actual ya resuelto.
   String descriptionFor(Battler owner) {
-    return '$description Dano actual: ${currentDamage(owner)}';
+    return '$description Daño actual: ${currentDamage(owner)}';
   }
 
   @override
@@ -72,7 +72,7 @@ class QuemaduraStatus extends BattlerStatus {
 
   @override
 
-  /// Al final del turno propio inflige dano de debuff igual a su valor actual.
+  /// Al final del turno propio inflige daño de debuff igual a su valor actual.
   Battler onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -89,13 +89,13 @@ class QuemaduraStatus extends BattlerStatus {
   }
 }
 
-/// Debuff indefinido que inflige dano fijo al final del turno y se renueva solo.
+/// Debuff indefinido que inflige daño fijo al final del turno y se renueva solo.
 class IntoxicacionStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.intoxicacion;
   static const defaultDuration = 1;
   static const defaultValue = 1;
 
-  /// Crea una instancia de Intoxicacion con su dano fijo inicial.
+  /// Crea una instancia de Intoxicacion con su daño fijo inicial.
   const IntoxicacionStatus({
     int remainingTurns = defaultDuration,
     int value = defaultValue,
@@ -110,7 +110,7 @@ class IntoxicacionStatus extends BattlerStatus {
           },
           icon: Icons.science_rounded,
           description:
-              'Al final del turno del objetivo, este estado inflige dano fijo igual a su value directamente a la vida (ignora Barrera) y renueva su duracion.',
+              'Al final del turno del objetivo, este estado inflige daño fijo igual a su value directamente a la vida (ignora Barrera) y renueva su duracion.',
           remainingTurns: remainingTurns,
           value: value,
         );
@@ -120,14 +120,14 @@ class IntoxicacionStatus extends BattlerStatus {
   /// Hace que la Intoxicacion no caduque por decremento normal de turnos.
   bool get isIndefinite => true;
 
-  /// Devuelve el dano fijo efectivo que inflige este estado.
+  /// Devuelve el daño fijo efectivo que inflige este estado.
   int currentDamage(Battler owner) => resolved(owner).value;
 
   @override
 
-  /// Anade a la descripcion el dano actual ya resuelto.
+  /// Anade a la descripcion el daño actual ya resuelto.
   String descriptionFor(Battler owner) {
-    return '$description Dano actual: ${currentDamage(owner)}';
+    return '$description Daño actual: ${currentDamage(owner)}';
   }
 
   @override
@@ -145,7 +145,7 @@ class IntoxicacionStatus extends BattlerStatus {
 
   @override
 
-  /// Al final del turno propio reaplica su duracion y luego inflige dano fijo.
+  /// Al final del turno propio reaplica su duracion y luego inflige daño fijo.
   Battler onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -272,12 +272,12 @@ class CatalisisCruelStatus extends BattlerStatus {
   }
 }
 
-/// Debuff que aumenta el dano del siguiente ataque recibido y luego se consume.
+/// Debuff que aumenta el daño del siguiente ataque recibido y luego se consume.
 class FragilidadStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.fragilidad;
   static const defaultDuration = 3;
 
-  /// Crea una instancia de Fragilidad con dano extra fijo hasta consumirse.
+  /// Crea una instancia de Fragilidad con daño extra fijo hasta consumirse.
   const FragilidadStatus({
     int remainingTurns = defaultDuration,
     int? value,
@@ -292,21 +292,21 @@ class FragilidadStatus extends BattlerStatus {
           },
           icon: Icons.flash_on_outlined,
           description:
-              'Aumenta el dano del siguiente ataque recibido y luego se consume.',
+              'Aumenta el daño del siguiente ataque recibido y luego se consume.',
           remainingTurns: remainingTurns,
           value: value ?? remainingTurns,
         );
 
   @override
 
-  /// Anade a la descripcion el dano extra que recibira el portador.
+  /// Anade a la descripcion el daño extra que recibira el portador.
   String descriptionFor(Battler owner) {
-    return '$description Dano extra actual: +${resolved(owner).value}';
+    return '$description Daño extra actual: +${resolved(owner).value}';
   }
 
   @override
 
-  /// Aumenta el siguiente dano de ataque que reciba el portador.
+  /// Aumenta el siguiente daño de ataque que reciba el portador.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -401,7 +401,7 @@ class ConmocionStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.conmocion;
   static const defaultValue = 2;
 
-  /// Crea una instancia de Conmocion con la reduccion de dano pendiente.
+  /// Crea una instancia de Conmocion con la reduccion de daño pendiente.
   const ConmocionStatus({
     int value = defaultValue,
   }) : super(
@@ -415,7 +415,7 @@ class ConmocionStatus extends BattlerStatus {
           },
           icon: Icons.flash_off_rounded,
           description:
-              'Reduce el dano del siguiente ataque del portador y luego desaparece.',
+              'Reduce el daño del siguiente ataque del portador y luego desaparece.',
           remainingTurns: 1,
           value: value,
         );
@@ -427,7 +427,7 @@ class ConmocionStatus extends BattlerStatus {
 
   @override
 
-  /// Resta dano al siguiente ataque sin permitir valores negativos.
+  /// Resta daño al siguiente ataque sin permitir valores negativos.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,

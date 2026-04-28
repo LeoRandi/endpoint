@@ -96,7 +96,7 @@ final furnaceFangCombatNode = CombatPathNode(
   label: furnaceFangEnemyBattler.name,
 );
 
-/// Nodo verde equilibrado con mezcla de sosten y dano estable.
+/// Nodo verde equilibrado con mezcla de sosten y daño estable.
 final shieldmendBruteCombatNode = CombatPathNode(
   nodeId: 'combat_shieldmend_brute',
   enemy: shieldmendBruteEnemyBattler,
@@ -144,7 +144,7 @@ final jammerHowlerCombatNode = CombatPathNode(
   label: jammerHowlerEnemyBattler.name,
 );
 
-/// Nodo azul de burst que convierte barrera en dano puntual.
+/// Nodo azul de burst que convierte barrera en daño puntual.
 final magnetMaulerCombatNode = CombatPathNode(
   nodeId: 'combat_magnet_mauler',
   enemy: magnetMaulerEnemyBattler,

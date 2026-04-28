@@ -11,7 +11,7 @@ enum BattlerStatusType {
   debuff,
 }
 
-/// Distingue si el dano viene de un golpe directo o de un efecto de estado.
+/// Distingue si el daño viene de un golpe directo o de un efecto de estado.
 enum DamageKind {
   direct,
   debuff,
@@ -50,12 +50,12 @@ enum BattlerStatusHook {
   statusApplied,
 }
 
-/// Agrupa el estado del portador y el dano final tras procesar hooks defensivos.
+/// Agrupa el estado del portador y el daño final tras procesar hooks defensivos.
 class BattlerIncomingDamageResolution {
   final Battler owner;
   final int damage;
 
-  /// Crea una resolucion inmutable con el dano ya ajustado.
+  /// Crea una resolucion inmutable con el daño ya ajustado.
   const BattlerIncomingDamageResolution({
     required this.owner,
     required this.damage,
@@ -241,7 +241,7 @@ abstract class BattlerStatus {
     return owner;
   }
 
-  /// Permite absorber o modificar dano entrante segun su tipo.
+  /// Permite absorber o modificar daño entrante segun su tipo.
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -254,7 +254,7 @@ abstract class BattlerStatus {
     );
   }
 
-  /// Permite ajustar el dano saliente del portador.
+  /// Permite ajustar el daño saliente del portador.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -263,7 +263,7 @@ abstract class BattlerStatus {
     return damage;
   }
 
-  /// Permite ajustar el dano entrante del portador.
+  /// Permite ajustar el daño entrante del portador.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -281,7 +281,7 @@ abstract class BattlerStatus {
     return owner;
   }
 
-  /// Resuelve efectos posteriores a que el portador reciba dano.
+  /// Resuelve efectos posteriores a que el portador reciba daño.
   Battler onReceiveDamageResolved({
     required Battler owner,
     required Battler source,

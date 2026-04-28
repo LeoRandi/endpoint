@@ -52,7 +52,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   ],
 );
 
-/// Arquetipo ofensivo que arranca con mas presion de dano.
+/// Arquetipo ofensivo que arranca con mas presion de daño.
 final imparableArchetypeNode = ArchetypePathNode(
   archetypeId: ArchetypeId.imparable,
   nodeId: 'archetype_imparable',

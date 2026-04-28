@@ -11,6 +11,7 @@ export "endpoint_details_dialog_scaffold.dart";
 export "endpoint_dialog.dart";
 export "endpoint_equipment_slots_strip.dart";
 export "endpoint_health_bar.dart";
+export "endpoint_highlighted_value_text.dart";
 export "endpoint_inventory_overlay.dart";
 export "endpoint_inventory_item_tile.dart";
 export "endpoint_item_details_dialog.dart";

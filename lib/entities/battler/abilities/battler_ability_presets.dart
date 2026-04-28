@@ -21,7 +21,7 @@ const criticalScannerAbility = BattlerAbility(
   tags: _ataqueAbilityTags,
   name: 'Escaner critico',
   description:
-      'Activacion manual en combate. El siguiente ataque inflige dano adicional igual a su value.',
+      'Activacion manual en combate. El siguiente ataque inflige daño adicional.',
   icon: Icons.radar_rounded,
   cooldownTurns: 3,
   value: 3,
@@ -38,7 +38,7 @@ const weaknessHunterAbility = BattlerAbility(
   tags: _ataqueDebuffAbilityTags,
   name: 'Caza de debilidades',
   description:
-      'Pasiva. Tus ataques infligen dano adicional si el objetivo ya tiene al menos un debuff.',
+      'Pasiva. Tus ataques infligen daño adicional si el objetivo ya tiene al menos un debuff.',
   icon: Icons.track_changes_rounded,
   value: 2,
   upgradeValue: 2,
@@ -53,7 +53,7 @@ const ghostMeshAbility = BattlerAbility(
   tags: _vidaBarreraAbilityTags,
   name: 'Malla Fantasma',
   description:
-      'Pasiva. Si tu vida esta al maximo, el dano recibido por ataques se reduce a la mitad, redondeando hacia arriba.',
+      'Pasiva. Si tu vida esta al maximo, el daño recibido por ataques se reduce a la mitad, redondeando hacia arriba.',
   icon: Icons.security_rounded,
   value: 2,
   effect: GhostMeshAbilityEffect(),
@@ -120,7 +120,7 @@ const turnoDeNocheAbility = BattlerAbility(
   tags: _cicloAtaqueBarreraBuffAbilityTags,
   name: 'Turno de Noche',
   description:
-      'Pasiva. De dia reduces dano recibido. De noche infliges dano adicional.',
+      'Pasiva. De dia reduces daño recibido. De noche infliges daño adicional.',
   icon: Icons.bedtime_rounded,
   value: 2,
   upgradeValue: 1,
@@ -187,7 +187,7 @@ const cruelCatalysisAbility = BattlerAbility(
   tags: _debuffAbilityTags,
   name: 'Catalisis Cruel',
   description:
-      'Activacion manual en combate. Aplica al enemigo un debuff que duplica el valor de la siguiente desventaja que reciba.',
+      'Activacion manual en combate. Aplica al enemigo un debuff que multiplica la siguiente desventaja que reciba.',
   icon: Icons.biotech_rounded,
   cooldownTurns: 2,
   value: 2,
@@ -203,7 +203,7 @@ const venousOverloadAbility = BattlerAbility(
   tags: _ataqueQuemaduraAbilityTags,
   name: 'Sobrecarga venosa',
   description:
-      'Activacion manual en combate. El siguiente ataque inflige dano adicional igual a su value, pero te aplica Quemadura por value/2 turnos.',
+      'Activacion manual en combate. El siguiente ataque inflige daño adicional, pero te aplica Quemadura.',
   icon: Icons.flash_on_rounded,
   value: 4,
   upgradeValue: 2,
@@ -219,7 +219,7 @@ const hardResetAbility = BattlerAbility(
   tags: _vidaDebuffAbilityTags,
   name: 'Reinicio en seco',
   description:
-      'Activacion manual en ruta. Elimina debuffs propios y luego te inflige dano igual al 10% de tu vida maxima por cada punto de value.',
+      'Activacion manual en ruta. Elimina debuffs propios y luego te inflige daño segun tu vida maxima.',
   icon: Icons.refresh_rounded,
   value: 1,
   upgradeValue: 1,
@@ -251,7 +251,7 @@ const pulsoRepLAbility = BattlerAbility(
   tags: _buffBarreraAbilityTags,
   name: 'Pulso REP-L',
   description:
-      'Pasiva. Al inicio de tu turno, si tienes menos barrera que value, subes tu barrera hasta value.',
+      'Pasiva. Al inicio de tu turno, si tienes poca barrera, subes tu barrera hasta el minimo de la habilidad.',
   icon: Icons.shield_rounded,
   value: 4,
   upgradeValue: 2,
@@ -265,7 +265,7 @@ const sustraccionAbility = BattlerAbility(
   tags: _ataqueBarreraAbilityTags,
   name: 'Sustraccion',
   description:
-      'Activacion manual en combate. Tras el siguiente ataque, absorbes hasta value de barrera del objetivo.',
+      'Activacion manual en combate. Tras el siguiente ataque, absorbes barrera del objetivo.',
   icon: Icons.swap_horiz_rounded,
   cooldownTurns: 3,
   value: 4,
@@ -281,7 +281,7 @@ const limpiezaCacheAbility = BattlerAbility(
   tags: _debuffAbilityTags,
   name: 'Limpieza de Cache',
   description:
-      'Activacion manual en combate. Elimina 1 turno de un buff enemigo aleatorio, value veces.',
+      'Activacion manual en combate. Elimina turnos de buffs enemigos aleatorios.',
   icon: Icons.cleaning_services_rounded,
   cooldownTurns: 2,
   value: 1,
@@ -298,8 +298,7 @@ const hemostasiaAgresivaAbility = BattlerAbility(
   rarity: RarityTier.yellow,
   tags: _vidaAtaqueAbilityTags,
   name: 'Hemostasia Agresiva',
-  description:
-      'Pasiva. Al golpear a un objetivo con debuff, te curas value de vida.',
+  description: 'Pasiva. Al golpear a un objetivo con debuff, te curas vida.',
   icon: Icons.favorite_rounded,
   value: 5,
   upgradeValue: 0,
@@ -307,7 +306,7 @@ const hemostasiaAgresivaAbility = BattlerAbility(
   isImplemented: true,
 );
 
-/// Preset pasivo morado que refleja dano del primer impacto de cada turno.
+/// Preset pasivo morado que refleja daño del primer impacto de cada turno.
 const mallaReboteAbility = BattlerAbility(
   id: BattlerAbilityId.mallaRebote,
   archetypeAffinities: _inamovibleAbilityAffinities,
@@ -315,7 +314,7 @@ const mallaReboteAbility = BattlerAbility(
   tags: _buffBarreraAbilityTags,
   name: 'Malla de Rebote',
   description:
-      'Pasiva. El primer ataque que recibes cada turno devuelve value de dano al atacante.',
+      'Pasiva. El primer ataque que recibes cada turno devuelve daño al atacante.',
   icon: Icons.sync_alt_rounded,
   value: 4,
   upgradeValue: 4,
@@ -331,7 +330,7 @@ const inyeccionCorrosivaAbility = BattlerAbility(
   tags: _intoxicacionDebuffAbilityTags,
   name: 'Inyeccion Corrosiva',
   description:
-      'Activacion manual en combate. Aplica Intoxicacion con value de potencia al objetivo, o aumenta en value si el objetivo ya tiene Intoxicacion.',
+      'Activacion manual en combate. Aplica Intoxicacion al objetivo, o la aumenta si ya la tenia.',
   icon: Icons.science_rounded,
   cooldownTurns: 2,
   value: 2,
@@ -341,14 +340,14 @@ const inyeccionCorrosivaAbility = BattlerAbility(
   isImplemented: true,
 );
 
-/// Preset pasivo que explota buffs activos del enemigo para infligir dano extra.
+/// Preset pasivo que explota buffs activos del enemigo para infligir daño extra.
 const escanerRupturaAbility = BattlerAbility(
   id: BattlerAbilityId.escanerRuptura,
   rarity: RarityTier.blue,
   tags: _buffAtaqueAbilityTags,
   name: 'Escaner de Ruptura',
   description:
-      'Pasiva. Tus ataques infligen +value dano si el objetivo tiene al menos un buff.',
+      'Pasiva. Tus ataques infligen daño adicional si el objetivo tiene al menos un buff.',
   icon: Icons.radar_rounded,
   value: 3,
   upgradeValue: 2,
@@ -363,7 +362,7 @@ const reenrutadoInversoAbility = BattlerAbility(
   tags: _debuffAbilityTags,
   name: 'Reenrutado Inverso',
   description:
-      'Activacion manual en combate. Transfiere 1 turno de un debuff aleatorio tuyo al enemigo, value veces.',
+      'Activacion manual en combate. Transfiere turnos de debuffs aleatorios tuyos al enemigo.',
   icon: Icons.alt_route_rounded,
   cooldownTurns: 3,
   value: 2,
@@ -380,7 +379,7 @@ const jaulaSenalAbility = BattlerAbility(
   tags: _debuffAbilityTags,
   name: 'Jaula de Senal',
   description:
-      'Activacion manual en combate. Una habilidad manual del enemigo se desactiva y gana +value turnos de cooldown.',
+      'Activacion manual en combate. Una habilidad manual del enemigo se desactiva y gana cooldown.',
   icon: Icons.wifi_lock_rounded,
   cooldownTurns: 3,
   value: 1,
@@ -398,7 +397,7 @@ const nucleoParasitarioAbility = BattlerAbility(
   tags: _vidaAtaqueAbilityTags,
   name: 'Nucleo Parasitario',
   description:
-      'Pasiva. En el primer ataque durante tu turno, drenas value de vida al objetivo.',
+      'Pasiva. En el primer ataque durante tu turno, drenas vida al objetivo.',
   icon: Icons.bloodtype_rounded,
   value: 4,
   upgradeValue: 1,
@@ -414,7 +413,7 @@ const espejoDolorAbility = BattlerAbility(
   tags: _vidaBarreraAbilityTags,
   name: 'Espejo de Dolor',
   description:
-      'Activacion manual en combate. El siguiente ataque recibido reduce su dano en value y refleja el dano prevenido + value.',
+      'Activacion manual en combate. El siguiente ataque recibido reduce su daño y refleja daño directo.',
   icon: Icons.health_and_safety_rounded,
   cooldownTurns: 3,
   value: 4,
@@ -432,7 +431,7 @@ const protocoloUsurpacionAbility = BattlerAbility(
   tags: _buffDebuffAbilityTags,
   name: 'Protocolo de Usurpacion',
   description:
-      'Activacion manual en combate. Robas hasta value buffs activos del enemigo y te los aplicas.',
+      'Activacion manual en combate. Robas buffs activos del enemigo y te los aplicas.',
   icon: Icons.call_split_rounded,
   cooldownTurns: 4,
   value: 2,
@@ -450,7 +449,7 @@ const refactorizacionTimelineAbility = BattlerAbility(
   tags: _economiaAbilityTags,
   name: 'Refactorizacion de Timeline',
   description:
-      'Activacion manual en ruta. A cambio de value creditos, cambias todos los nodos visibles por otros distintos.',
+      'Activacion manual en ruta. Pagas creditos para cambiar todos los nodos visibles por otros distintos.',
   icon: Icons.timeline_rounded,
   cooldownTurns: 4,
   value: 20,
@@ -468,7 +467,7 @@ const monopolioAbility = BattlerAbility(
   tags: _vidaAbilityTags,
   name: 'Monopolio',
   description:
-      'Pasiva. Si todos tus objetos son de Mercante o generales, te curas value al principio de cada turno.',
+      'Pasiva. Si todos tus objetos son de Mercante o generales, te curas al principio de cada turno.',
   icon: Icons.storefront_rounded,
   value: 2,
   upgradeValue: 2,
@@ -484,7 +483,7 @@ const compraDeOportunidadAbility = BattlerAbility(
   tags: _economiaAtaqueBarreraAbilityTags,
   name: 'Compra de Oportunidad',
   description:
-      'Activacion manual en combate. Pagas value creditos. Tu siguiente ataque inflige dano adicional y recuperas Barrera igual al numero de arquetipos distintos entre tus objetos equipados.',
+      'Activacion manual en combate. Pagas creditos. Tu siguiente ataque inflige daño adicional y recuperas Barrera segun tus arquetipos equipados.',
   icon: Icons.price_check_rounded,
   cooldownTurns: 3,
   value: 3,
@@ -494,7 +493,7 @@ const compraDeOportunidadAbility = BattlerAbility(
   isImplemented: true,
 );
 
-/// Pasiva que monetiza en dano la diversidad hostil del equipo.
+/// Pasiva que monetiza en daño la diversidad hostil del equipo.
 const diversificacionHostilAbility = BattlerAbility(
   id: BattlerAbilityId.diversificacionHostil,
   archetypeAffinities: _mercanteAbilityAffinities,
@@ -502,7 +501,7 @@ const diversificacionHostilAbility = BattlerAbility(
   tags: _ataqueAbilityTags,
   name: 'Diversificacion Hostil',
   description:
-      'Pasiva. Tus ataques infligen +value dano por cada arquetipo no mercante distinto entre tus objetos equipados.',
+      'Pasiva. Tus ataques infligen daño adicional por cada arquetipo no mercante distinto entre tus objetos equipados.',
   icon: Icons.hub_rounded,
   value: 2,
   upgradeValue: 1,
@@ -536,7 +535,7 @@ const furiaHematicaAbility = BattlerAbility(
   tags: _vidaAtaqueAbilityTags,
   name: 'Furia Hematica',
   description:
-      'Pasiva. El primer ataque de tu turno inflige dano adicional igual a value por cada 15% de vida maxima que te falte, hasta un maximo de 90%.',
+      'Pasiva. El primer ataque de tu turno inflige daño adicional por cada tramo de vida maxima que te falte.',
   icon: Icons.bloodtype_rounded,
   value: 2,
   upgradeValue: 1,
@@ -552,7 +551,7 @@ const mordidaDeAceroAbility = BattlerAbility(
   tags: _vidaAtaqueAbilityTags,
   name: 'Mordida de Acero',
   description:
-      'Activacion manual en combate. Tu siguiente ataque inflige value dano adicional y te cura la mitad del dano infligido por esta habilidad.',
+      'Activacion manual en combate. Tu siguiente ataque inflige daño adicional y te cura la mitad del daño infligido por esta habilidad.',
   icon: Icons.hardware_rounded,
   cooldownTurns: 3,
   value: 4,
@@ -562,7 +561,7 @@ const mordidaDeAceroAbility = BattlerAbility(
   isImplemented: true,
 );
 
-/// Pasiva reactiva que transforma el primer dano recibido en escalada ofensiva.
+/// Pasiva reactiva que transforma el primer daño recibido en escalada ofensiva.
 const noHayRetiradaAbility = BattlerAbility(
   id: BattlerAbilityId.noHayRetirada,
   archetypeAffinities: _imparableAbilityAffinities,
@@ -570,7 +569,7 @@ const noHayRetiradaAbility = BattlerAbility(
   tags: _buffAtaqueAbilityTags,
   name: 'No Hay Retirada',
   description:
-      'Pasiva. La primera vez que recibes dano cada turno, ganas value de Potencia. Si ya tenias Potencia, tambien ganas value de Calentando.',
+      'Pasiva. La primera vez que recibes daño cada turno, ganas Potencia. Si ya tenias Potencia, tambien ganas Calentando.',
   icon: Icons.vertical_align_top_rounded,
   value: 1,
   upgradeValue: 1,

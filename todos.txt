@@ -84,6 +84,7 @@
 [--Objetos duplicados=>Mejora]
 [--Añadir algún indicio de que se va a mejorar el item, no a añadir, o una animación de algún tipo]
 --Equipar/desequipar arrastrando
+[--Añadir color a cada buzzword, y que se coloreen automático en textos]
 
 -Tiendas
 [--Mejorar aspecto y diseño]
@@ -117,8 +118,6 @@
 ////
 ARREGLAR:
 -El botón de equipar/desequipar en al tienda a veces desaparece al desequipar/vender en una tienda?
--El botón de tutorial del menú principal no funciona
--La row de inventario en la pantalla del inventario no es un singleScrollChild, se puede hacer overflow
 -En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña(pequeño cambio visual)
 
 ////
@@ -127,7 +126,6 @@ PROBAR:
 ///
 IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
--Añadir color a cada buzzword, y que se coloreen automático en textos?
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.

@@ -285,6 +285,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                         _BattleLootRewardCard(
                           title: widget.lootItem!.displayName,
                           subtitle: widget.lootItem!.tooltipDescription,
+                          tags: widget.lootItem!.tags,
                           accent: widget.lootItem!.rarity.accent,
                           emoji: widget.lootItem!.iconEmoji,
                           isCollected: _isLootCollected,
@@ -302,7 +303,8 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                       if (widget.lootAbility != null)
                         _BattleLootRewardCard(
                           title: widget.lootAbility!.displayName,
-                          subtitle: widget.lootAbility!.description,
+                          subtitle: widget.lootAbility!.displayDescription,
+                          tags: widget.lootAbility!.tags,
                           accent: widget.lootAbility!.accent,
                           icon: widget.lootAbility!.icon,
                           isCollected: _isLootCollected,
@@ -368,6 +370,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
 class _BattleLootRewardCard extends StatelessWidget {
   final String title;
   final String subtitle;
+  final Iterable<EntityTag> tags;
   final Color accent;
   final String? emoji;
   final IconData? icon;
@@ -381,6 +384,7 @@ class _BattleLootRewardCard extends StatelessWidget {
   const _BattleLootRewardCard({
     required this.title,
     required this.subtitle,
+    this.tags = const [],
     required this.accent,
     required this.isCollected,
     required this.collectedLabel,
@@ -423,8 +427,9 @@ class _BattleLootRewardCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              EndpointText(
+              EndpointHighlightedValueText(
                 subtitle,
+                tags: tags,
                 overflow: TextOverflow.ellipsis,
                 style: textSmallBold.copyWith(
                   color: foregroundColor.withValues(alpha: 0.72),

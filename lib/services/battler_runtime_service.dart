@@ -9,7 +9,7 @@ const BattlerEffectPipeline _battlerEffectPipeline = BattlerEffectPipeline();
 
 /// Ejecuta hooks runtime de combate y habilidades fuera del modelo inmutable.
 extension BattlerRuntimeService on Battler {
-  /// Recibe un ataque basico de otro battler y resuelve dano directo.
+  /// Recibe un ataque basico de otro battler y resuelve daño directo.
   Battler receiveAttack(Battler attacker) {
     return receiveDirectDamage(
       attacker.calculateDamageAgainst(this),
@@ -55,7 +55,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Procesa dano de debuff con hooks defensivos antes de restar vida.
+  /// Procesa daño de debuff con hooks defensivos antes de restar vida.
   Battler receiveDebuffDamage(
     int damage, {
     required Battler source,
@@ -118,7 +118,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Aplica a un dano saliente todos los modificadores provenientes de estados.
+  /// Aplica a un daño saliente todos los modificadores provenientes de estados.
   int applyOutgoingDamageModifiers({
     required Battler target,
     required int damage,
@@ -130,7 +130,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Aplica a un dano saliente todos los modificadores de items equipados.
+  /// Aplica a un daño saliente todos los modificadores de items equipados.
   int applyEquippedItemOutgoingDamageModifiers({
     required Battler target,
     required int damage,
@@ -154,7 +154,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Aplica a un dano entrante todos los modificadores provenientes de estados.
+  /// Aplica a un daño entrante todos los modificadores provenientes de estados.
   int applyIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -166,7 +166,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Ejecuta hooks defensivos complejos de estados sobre un dano entrante.
+  /// Ejecuta hooks defensivos complejos de estados sobre un daño entrante.
   BattlerIncomingDamageResolution applyIncomingDamageEffects({
     required Battler source,
     required int damage,
@@ -180,7 +180,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Aplica a un dano entrante todos los modificadores de items equipados.
+  /// Aplica a un daño entrante todos los modificadores de items equipados.
   int applyEquippedItemIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -272,7 +272,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Ejecuta efectos de estados que reaccionan despues de recibir dano.
+  /// Ejecuta efectos de estados que reaccionan despues de recibir daño.
   Battler applyReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
@@ -284,7 +284,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Ejecuta efectos de items equipados que reaccionan despues de recibir dano.
+  /// Ejecuta efectos de items equipados que reaccionan despues de recibir daño.
   ItemEffectResolution applyEquippedItemReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
@@ -386,7 +386,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Aplica a un dano saliente todos los modificadores provenientes de habilidades.
+  /// Aplica a un daño saliente todos los modificadores provenientes de habilidades.
   int applyAbilityOutgoingDamageModifiers({
     required Battler target,
     required int damage,
@@ -398,7 +398,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Aplica a un dano entrante todos los modificadores provenientes de habilidades.
+  /// Aplica a un daño entrante todos los modificadores provenientes de habilidades.
   int applyAbilityIncomingDamageModifiers({
     required Battler source,
     required int damage,
@@ -422,7 +422,7 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Ejecuta efectos de habilidades que reaccionan despues de recibir dano.
+  /// Ejecuta efectos de habilidades que reaccionan despues de recibir daño.
   BattlerAbilityEffectResolution applyAbilityReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,

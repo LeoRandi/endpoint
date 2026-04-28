@@ -66,7 +66,7 @@ class WeaponShopController extends ChangeNotifier {
       return 'El objeto ya no esta en tu inventario.';
     }
 
-    return 'Valor de venta: ${sellPriceFor(item)}C. Coste de equipo: ${item.equipmentCost}.';
+    return 'Venta: ${sellPriceFor(item)}C. Coste de equipo: ${item.equipmentCost}.';
   }
 
   String inventoryActionLabelFor(Item item) {

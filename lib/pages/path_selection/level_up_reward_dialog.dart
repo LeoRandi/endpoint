@@ -175,15 +175,9 @@ class _LevelUpRewardCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    EndpointText(
-                      _description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: textSmall.copyWith(
-                        color: EndpointPalette.softForeground.withValues(
-                          alpha: 0.74,
-                        ),
-                      ),
+                    _LevelUpDescriptionText(
+                      choice: choice,
+                      description: _description,
                     ),
                     const SizedBox(height: 5),
                     EndpointText(
@@ -228,7 +222,7 @@ class _LevelUpRewardCard extends StatelessWidget {
     if (statReward != null) return _statDescription(statReward);
 
     final ability = choice.ability;
-    if (ability != null) return ability.description;
+    if (ability != null) return ability.displayDescription;
 
     return choice.item?.tooltipDescription ?? '';
   }
@@ -240,7 +234,7 @@ class _LevelUpRewardCard extends StatelessWidget {
     final ability = choice.ability;
     if (ability != null) {
       final status = player.wouldUpgradeAbility(ability) ? 'MEJORA' : 'NUEVA';
-      return '$status | ${ability.rarity.label} | VALOR ${ability.currentValue}';
+      return '$status | ${ability.rarity.label} | POTENCIA ${ability.currentValue}';
     }
 
     final item = choice.item;
@@ -294,6 +288,51 @@ class _LevelUpRewardCard extends StatelessWidget {
       case BattlerLevelReward.health:
         return 'STATS | VIDA';
     }
+  }
+}
+
+class _LevelUpDescriptionText extends StatelessWidget {
+  final BattlerLevelRewardChoice choice;
+  final String description;
+
+  const _LevelUpDescriptionText({
+    required this.choice,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = textSmall.copyWith(
+      color: EndpointPalette.softForeground.withValues(alpha: 0.74),
+    );
+    final ability = choice.ability;
+    if (ability != null) {
+      return EndpointHighlightedValueText(
+        description,
+        tags: ability.tags,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      );
+    }
+
+    final item = choice.item;
+    if (item != null) {
+      return EndpointHighlightedValueText(
+        description,
+        tags: item.tags,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      );
+    }
+
+    return EndpointText(
+      description,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: style,
+    );
   }
 }
 

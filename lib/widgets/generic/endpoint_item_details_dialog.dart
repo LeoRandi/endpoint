@@ -76,8 +76,6 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
   @override
   Widget build(BuildContext context) {
     final foreground = EndpointPalette.soften(widget.accent);
-    final effectSurface = EndpointPalette.blend(
-        EndpointPalette.panelBackground, widget.accent, 0.12);
     final statusSurface = EndpointPalette.blend(
       EndpointPalette.panelBackgroundGold,
       widget.accent,
@@ -88,9 +86,6 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
       widget.accent,
       0.08,
     );
-    final effectDescription = widget.item.effect?.descriptionFor(widget.item);
-    final shouldShowEffectPanel = effectDescription != null &&
-        effectDescription != widget.item.displayDescription;
     final shouldShowBonusSketch =
         _gameMode == EndpointGameMode.drawing && widget.item.hasDrawingBonus;
 
@@ -186,32 +181,15 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
             ],
           ),
           const SizedBox(height: 12),
-          EndpointText(
+          EndpointHighlightedValueText(
             widget.item.displayDescription,
+            tags: widget.item.tags,
             maxLines: null,
             style: textMedium.copyWith(
               fontSize: 14,
               color: EndpointPalette.softForeground.withValues(alpha: 0.84),
             ),
           ),
-          if (shouldShowEffectPanel) ...[
-            const SizedBox(height: 12),
-            EndpointPanel(
-              accent: widget.accent,
-              backgroundColor: effectSurface,
-              glowOpacity: 0.03,
-              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-              child: EndpointText(
-                effectDescription,
-                maxLines: null,
-                style: textSmallBold.copyWith(
-                  fontSize: 10,
-                  color: EndpointPalette.softForeground,
-                  letterSpacing: 0.9,
-                ),
-              ),
-            ),
-          ],
           const SizedBox(height: 12),
           EndpointText(
             _buildModifiersText(widget.item),

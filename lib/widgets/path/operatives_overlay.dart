@@ -70,7 +70,8 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
             return EndpointItemDetailsDialog(
               item: item,
               accent: item.rarity.accent,
-              price: item.cost,
+              price: item.sellValue,
+              priceLabel: 'VENTA',
               statusText: _controller.statusLabelFor(item),
               actionLabel: _controller.actionLabelFor(item),
               onPrimaryAction: _controller.isActionEnabled(item)
@@ -106,7 +107,8 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
             return EndpointItemDetailsDialog(
               item: item,
               accent: item.rarity.accent,
-              price: item.cost,
+              price: item.sellValue,
+              priceLabel: 'VENTA',
               statusText: _controller.statusLabelForOwner(detailBattler, item),
               actionLabel: _controller.unequipActionLabelFor(
                 detailBattler,
@@ -410,11 +412,15 @@ class _EquipmentRow extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Center(
-            child: EndpointEquipmentSlotsStrip(
-              battler: battler,
-              layout: EndpointEquipmentLayout.standard,
-              onItemPressed: onItemPressed,
+          SizedBox(
+            width: double.infinity,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: EndpointEquipmentSlotsStrip(
+                battler: battler,
+                layout: EndpointEquipmentLayout.standard,
+                onItemPressed: onItemPressed,
+              ),
             ),
           ),
         ],

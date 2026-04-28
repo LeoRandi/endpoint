@@ -29,7 +29,7 @@ extension BattlerStatPresentation on BattlerStat {
       case BattlerStat.thorns:
         return 'Espinas';
       case BattlerStat.damageReduction:
-        return 'Red. dano';
+        return 'Red. daño';
       case BattlerStat.vampirism:
         return 'Vampirismo';
     }
@@ -492,10 +492,10 @@ class Battler {
   /// Devuelve el thorns ya calculado con equipo y estados.
   int get thorns => calculatedStat(BattlerStat.thorns);
 
-  /// Devuelve la reduccion de dano base sin modificadores de equipo ni estados.
+  /// Devuelve la reduccion de daño base sin modificadores de equipo ni estados.
   int get baseDamageReduction => baseStat(BattlerStat.damageReduction);
 
-  /// Devuelve la reduccion de dano ya calculada con equipo y estados.
+  /// Devuelve la reduccion de daño ya calculada con equipo y estados.
   int get damageReduction => calculatedStat(BattlerStat.damageReduction);
 
   /// Devuelve el vampirismo base sin modificadores de equipo ni estados.

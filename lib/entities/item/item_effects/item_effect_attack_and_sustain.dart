@@ -48,7 +48,7 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
     this.amount = 1,
   }) : super(
           description:
-              'Al atacar: intoxica el enemigo en 1, o aumenta su valor de Intoxicacion en 1.',
+              'Al atacar: intoxica el enemigo en 1, o aumenta su Intoxicacion en 1.',
           hooks: const {
             ItemEffectHook.attackResolved,
           },
@@ -216,7 +216,7 @@ class RefreshMinimumBarrierOnTurnStartItemEffect extends ItemEffect {
   const RefreshMinimumBarrierOnTurnStartItemEffect()
       : super(
           description:
-              'Al inicio de tu turno, si tu barrera esta por debajo de un minimo, se ajusta a ese valor.',
+              'Al inicio de tu turno, si tu barrera esta por debajo de un minimo, se ajusta a esa cantidad.',
           hooks: const {
             ItemEffectHook.turnStart,
           },
@@ -224,7 +224,7 @@ class RefreshMinimumBarrierOnTurnStartItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al inicio de tu turno, si tienes menos de ${max(1, item.value)} de Barrera, la subes hasta ese valor.';
+    return 'Al inicio de tu turno, si tienes menos de ${max(1, item.value)} de Barrera, la subes hasta esa cantidad.';
   }
 
   @override
@@ -290,7 +290,7 @@ class ShockMeshItemEffect extends ItemEffect {
   const ShockMeshItemEffect()
       : super(
           description:
-              'Al recibir dano mientras sigues teniendo barrera, aplicas Conmocion al agresor.',
+              'Al recibir daño mientras sigues teniendo barrera, aplicas Conmocion al agresor.',
           hooks: const {
             ItemEffectHook.receiveDamageResolved,
           },
@@ -298,7 +298,7 @@ class ShockMeshItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al recibir dano mientras conservas Barrera, aplicas Conmocion (-${item.value} dano) al agresor.';
+    return 'Al recibir daño mientras conservas Barrera, aplicas Conmocion (-${item.value} daño) al agresor.';
   }
 
   @override
@@ -337,7 +337,7 @@ class ToxicScalpelItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedAmount = max(1, item.value);
-    return 'Al atacar: aplica o aumenta Intoxicacion en $resolvedAmount. Si el objetivo ya estaba intoxicado, infliges $resolvedAmount dano directo extra.';
+    return 'Al atacar: aplica o aumenta Intoxicacion en $resolvedAmount. Si el objetivo ya estaba intoxicado, infliges $resolvedAmount daño directo extra.';
   }
 
   @override
@@ -497,7 +497,7 @@ class MagnetiCHammerItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al defender, ganas Potencia con un bonus de dano igual a tu Barrera total actual para el siguiente golpe.';
+    return 'Al defender, ganas Potencia con un bonus de daño igual a tu Barrera total actual para el siguiente golpe.';
   }
 
   @override
@@ -527,7 +527,7 @@ class ClavoReactorItemEffect extends ItemEffect {
   const ClavoReactorItemEffect()
       : super(
           description:
-              'La primera vez por turno que atacas, infliges dano directo extra y te aplicas Quemadura.',
+              'La primera vez por turno que atacas, infliges daño directo extra y te aplicas Quemadura.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.attackResolved,
@@ -537,7 +537,7 @@ class ClavoReactorItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedValue = max(1, item.value);
-    return 'La primera vez por turno que atacas, infliges ${resolvedValue * 2} de dano directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
+    return 'La primera vez por turno que atacas, infliges ${resolvedValue * 2} de daño directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
   }
 
   @override
@@ -650,7 +650,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
   const UltimaMarchaItemEffect()
       : super(
           description:
-              'La primera vez por turno que atacas, infliges dano extra segun la vida que te falta.',
+              'La primera vez por turno que atacas, infliges daño extra segun la vida que te falta.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.outgoingDamageModifier,
@@ -660,7 +660,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera vez por turno que atacas, infliges dano adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
+    return 'La primera vez por turno que atacas, infliges daño adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
   }
 
   @override

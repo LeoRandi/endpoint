@@ -89,7 +89,7 @@ class ResponseFrameItemEffect extends ItemEffect {
   const ResponseFrameItemEffect()
       : super(
           description:
-              'Si no recibes dano durante tu turno, recuperas barrera al final.',
+              'Si no recibes daño durante tu turno, recuperas barrera al final.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.turnEnd,
@@ -99,7 +99,7 @@ class ResponseFrameItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al final de tu turno, si no has recibido dano, recuperas ${max(1, item.value)} de Barrera.';
+    return 'Al final de tu turno, si no has recibido daño, recuperas ${max(1, item.value)} de Barrera.';
   }
 
   @override
@@ -249,7 +249,7 @@ class ReboundLensItemEffect extends ItemEffect {
   const ReboundLensItemEffect()
       : super(
           description:
-              'La primera vez que recibes dano cada turno, aplicas Fragilidad al agresor.',
+              'La primera vez que recibes daño cada turno, aplicas Fragilidad al agresor.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.receiveDamageResolved,
@@ -258,7 +258,7 @@ class ReboundLensItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera vez que recibes dano cada turno, aplicas Fragilidad (+${max(1, item.value)} dano recibido en el siguiente ataque) al agresor.';
+    return 'La primera vez que recibes daño cada turno, aplicas Fragilidad (+${max(1, item.value)} daño recibido en el siguiente ataque) al agresor.';
   }
 
   @override

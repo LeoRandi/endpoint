@@ -291,7 +291,7 @@ abstract class BattlerAbilityEffect {
     return owner;
   }
 
-  /// Ajusta el dano que el portador va a infligir antes de aplicarlo.
+  /// Ajusta el daño que el portador va a infligir antes de aplicarlo.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -301,7 +301,7 @@ abstract class BattlerAbilityEffect {
     return damage;
   }
 
-  /// Ajusta el dano que el portador va a recibir antes de aplicarlo.
+  /// Ajusta el daño que el portador va a recibir antes de aplicarlo.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -321,7 +321,7 @@ abstract class BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: target);
   }
 
-  /// Resuelve efectos posteriores a que el portador reciba dano.
+  /// Resuelve efectos posteriores a que el portador reciba daño.
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
     required Battler source,
@@ -451,6 +451,9 @@ class BattlerAbility {
 
   /// Devuelve el nombre visible de la habilidad sin marcadores extras de mejora.
   String get displayName => name;
+
+  /// Devuelve la descripcion mecanica usando el valor actual de esta instancia.
+  String get displayDescription => _abilityDescriptionFor(this);
 
   /// Devuelve el cooldown base en un formato corto para la interfaz.
   String get cooldownLabel {
@@ -621,5 +624,82 @@ class BattlerAbility {
     if (rarity.index >= inferredRarity.index) return this;
 
     return copyWith(rarity: inferredRarity);
+  }
+}
+
+String _abilityDescriptionFor(BattlerAbility ability) {
+  final amount = max(0, ability.currentValue);
+  final positiveAmount = max(1, ability.currentValue);
+
+  switch (ability.id) {
+    case BattlerAbilityId.criticalScanner:
+      return 'Activacion manual en combate. El siguiente ataque inflige +$amount daño adicional.';
+    case BattlerAbilityId.weaknessHunter:
+      return 'Pasiva. Tus ataques infligen +$amount daño si el objetivo ya tiene al menos un debuff.';
+    case BattlerAbilityId.ghostMesh:
+      return 'Pasiva. Si tu vida esta al maximo, el daño recibido por ataques se divide entre $positiveAmount, redondeando hacia arriba.';
+    case BattlerAbilityId.ritmoCircadiano:
+      return 'Pasiva. Al inicio de tu turno: de dia te curas $positiveAmount HP y de noche ganas $positiveAmount de Potencia.';
+    case BattlerAbilityId.cambioDeGuardia:
+      return 'Activacion manual en combate. De dia ganas ${positiveAmount * 2} de Barrera; de noche ganas $positiveAmount de Potencia.';
+    case BattlerAbilityId.toqueDeQueda:
+      return 'Activacion manual en combate. De dia aplica Interferencia durante $positiveAmount turnos; de noche aplica Fragilidad durante $positiveAmount turnos.';
+    case BattlerAbilityId.turnoDeNoche:
+      return 'Pasiva. De dia reduces el daño recibido en $positiveAmount. De noche infliges +$positiveAmount daño.';
+    case BattlerAbilityId.amanecerSintetico:
+      return 'Activacion manual en ruta. Durante el proximo combate, tus efectos de Ciclo cuentan siempre como dia.';
+    case BattlerAbilityId.lunaArtificial:
+      return 'Activacion manual en ruta. Durante el proximo combate, tus efectos de Ciclo cuentan siempre como noche.';
+    case BattlerAbilityId.eclipseManual:
+      final activeTurns = min(3, positiveAmount);
+      return 'Activacion manual en combate. Durante $activeTurns turnos, tus efectos de Ciclo cuentan como dia y noche a la vez.';
+    case BattlerAbilityId.cruelCatalysis:
+      return 'Activacion manual en combate. Aplica al enemigo un debuff que multiplica x${max(2, ability.currentValue)} la siguiente desventaja que reciba.';
+    case BattlerAbilityId.venousOverload:
+      return 'Activacion manual en combate. El siguiente ataque inflige +$amount daño adicional, pero te aplica Quemadura durante ${max(1, ability.currentValue ~/ 2)} turnos.';
+    case BattlerAbilityId.hardReset:
+      return 'Activacion manual en ruta. Elimina hasta $amount debuffs propios y luego te inflige ${max(0, amount * 10)}% de tu vida maxima como daño.';
+    case BattlerAbilityId.cashflow:
+      return 'Pasiva. Al comienzo de cada hora, ganas creditos iguales a tu income actual.';
+    case BattlerAbilityId.pulsoRepL:
+      return 'Pasiva. Al inicio de tu turno, si tienes menos de $amount de Barrera, subes tu Barrera hasta $amount.';
+    case BattlerAbilityId.sustraccion:
+      return 'Activacion manual en combate. Tras el siguiente ataque, absorbes hasta $amount de Barrera del objetivo.';
+    case BattlerAbilityId.limpiezaCache:
+      return 'Activacion manual en combate. Elimina 1 turno de un buff enemigo aleatorio $amount veces.';
+    case BattlerAbilityId.hemostasiaAgresiva:
+      return 'Pasiva. Al golpear a un objetivo con debuff, te curas $amount HP.';
+    case BattlerAbilityId.mallaRebote:
+      return 'Pasiva. El primer ataque que recibes cada turno devuelve $amount de daño al atacante.';
+    case BattlerAbilityId.inyeccionCorrosiva:
+      return 'Activacion manual en combate. Aplica Intoxicacion ($positiveAmount) al objetivo, o aumenta su Intoxicacion en $positiveAmount si ya la tenia.';
+    case BattlerAbilityId.escanerRuptura:
+      return 'Pasiva. Tus ataques infligen +$amount daño si el objetivo tiene al menos un buff.';
+    case BattlerAbilityId.reenrutadoInverso:
+      return 'Activacion manual en combate. Transfiere 1 turno de un debuff aleatorio tuyo al enemigo $amount veces.';
+    case BattlerAbilityId.jaulaSenal:
+      return 'Activacion manual en combate. Una habilidad manual del enemigo se desactiva y gana +$amount turnos de cooldown.';
+    case BattlerAbilityId.nucleoParasitario:
+      return 'Pasiva. En el primer ataque durante tu turno, drenas $amount de vida al objetivo.';
+    case BattlerAbilityId.espejoDolor:
+      return 'Activacion manual en combate. El siguiente ataque recibido reduce su daño en $amount y refleja ${amount * 2} de daño directo.';
+    case BattlerAbilityId.protocoloUsurpacion:
+      return 'Activacion manual en combate. Robas hasta $amount buffs activos del enemigo y te los aplicas.';
+    case BattlerAbilityId.refactorizacionTimeline:
+      return 'Activacion manual en ruta. Pagas ${max(0, amount)} creditos y cambias todos los nodos visibles por otros distintos.';
+    case BattlerAbilityId.monopolio:
+      return 'Pasiva. Si todos tus objetos son de Mercante o generales, te curas $amount HP al principio de cada turno.';
+    case BattlerAbilityId.compraDeOportunidad:
+      return 'Activacion manual en combate. Pagas $amount creditos. Tu siguiente ataque inflige +$amount daño y recuperas Barrera igual al numero de arquetipos distintos entre tus objetos equipados.';
+    case BattlerAbilityId.diversificacionHostil:
+      return 'Pasiva. Tus ataques infligen +$amount daño por cada arquetipo no mercante distinto entre tus objetos equipados.';
+    case BattlerAbilityId.convencionRepentina:
+      return 'Activacion manual en ruta. Si no es al atardecer o al amanecer, cambia todos los nodos actuales por diferentes tiendas de tiers azul, morada y amarilla.';
+    case BattlerAbilityId.furiaHematica:
+      return 'Pasiva. El primer ataque de tu turno inflige +$amount daño por cada 15% de vida maxima que te falte, hasta 90%.';
+    case BattlerAbilityId.mordidaDeAcero:
+      return 'Activacion manual en combate. Tu siguiente ataque inflige +$amount daño adicional y te cura la mitad del daño infligido por esta habilidad.';
+    case BattlerAbilityId.noHayRetirada:
+      return 'Pasiva. La primera vez que recibes daño cada turno, ganas $positiveAmount de Potencia. Si ya tenias Potencia, tambien ganas $positiveAmount de Calentando.';
   }
 }

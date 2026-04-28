@@ -99,7 +99,7 @@ class RelojDeTurnoItemEffect extends ItemEffect {
   const RelojDeTurnoItemEffect()
       : super(
           description:
-              'Marca el cierre del turno con curacion diurna o dano nocturno.',
+              'Marca el cierre del turno con curacion diurna o daño nocturno.',
           hooks: const {
             ItemEffectHook.turnEnd,
           },
@@ -108,7 +108,7 @@ class RelojDeTurnoItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
-    return 'Al final de tu turno, de dia te curas $amount HP y de noche infliges $amount de dano directo.';
+    return 'Al final de tu turno, de dia te curas $amount HP y de noche infliges $amount de daño directo.';
   }
 
   @override
@@ -212,7 +212,7 @@ class PrismaCircadianoItemEffect extends ItemEffect {
   const PrismaCircadianoItemEffect()
       : super(
           description:
-              'De dia recorta dano recibido y de noche suma dano saliente.',
+              'De dia recorta daño recibido y de noche suma daño saliente.',
           hooks: const {
             ItemEffectHook.outgoingDamageModifier,
             ItemEffectHook.incomingDamageModifier,
@@ -222,7 +222,7 @@ class PrismaCircadianoItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
-    return 'De dia reduces en $amount el dano recibido. De noche tus ataques infligen $amount de dano adicional.';
+    return 'De dia reduces en $amount el daño recibido. De noche tus ataques infligen $amount de daño adicional.';
   }
 
   @override

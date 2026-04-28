@@ -409,7 +409,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
         nextValue: projectedPlayer.thorns,
       ),
       _ArchetypeImpactEntry(
-        label: 'RED. DANO',
+        label: 'RED. DAÑO',
         currentValue: player.damageReduction,
         nextValue: projectedPlayer.damageReduction,
       ),
@@ -661,7 +661,6 @@ class _ArchetypeItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = item.rarity.accent;
-    final effectDescription = item.effect?.descriptionFor(item);
     final modifiersText = _buildModifiersText(item);
 
     return EndpointPanel(
@@ -713,8 +712,9 @@ class _ArchetypeItemCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                EndpointText(
+                EndpointHighlightedValueText(
                   item.displayDescription,
+                  tags: item.tags,
                   maxLines: null,
                   style: textSmallBold.copyWith(
                     color: Colors.white.withAlpha(196),
@@ -722,30 +722,6 @@ class _ArchetypeItemCard extends StatelessWidget {
                     height: 1.25,
                   ),
                 ),
-                if (effectDescription != null &&
-                    effectDescription != item.displayDescription) ...[
-                  const SizedBox(height: 6),
-                  EndpointPanel(
-                    accent: accent,
-                    backgroundColor: EndpointPalette.blend(
-                      EndpointPalette.panelBackground,
-                      accent,
-                      0.08,
-                    ),
-                    borderRadius: 12,
-                    glowOpacity: 0.01,
-                    padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-                    child: EndpointText(
-                      effectDescription,
-                      maxLines: null,
-                      style: textSmallBold.copyWith(
-                        color: EndpointPalette.softForeground,
-                        fontSize: 10,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                  ),
-                ],
                 if (modifiersText != null) ...[
                   const SizedBox(height: 6),
                   EndpointText(
@@ -858,8 +834,9 @@ class _ArchetypeAbilityCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                EndpointText(
-                  ability.description,
+                EndpointHighlightedValueText(
+                  ability.displayDescription,
+                  tags: ability.tags,
                   maxLines: null,
                   style: textSmallBold.copyWith(
                     color: Colors.white.withAlpha(196),
@@ -887,7 +864,7 @@ class _ArchetypeAbilityCard extends StatelessWidget {
 
   String _buildAbilitySummary(BattlerAbility ability) {
     final parts = <String>[
-      'VALOR ${ability.currentValue}',
+      'POTENCIA ${ability.currentValue}',
     ];
 
     if (ability.upgradeValue > 0) {

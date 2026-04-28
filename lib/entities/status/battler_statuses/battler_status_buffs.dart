@@ -1,6 +1,6 @@
 part of '../battler_status.dart';
 
-/// Buff ofensivo que aumenta su dano bonus al final de cada turno propio.
+/// Buff ofensivo que aumenta su daño bonus al final de cada turno propio.
 class CalentandoStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.calentando;
   static const defaultDuration = 5;
@@ -21,19 +21,19 @@ class CalentandoStatus extends BattlerStatus {
             BattlerStatusHook.combatEnd,
           },
           icon: Icons.local_fire_department_rounded,
-          description: 'El usuario suma su value al dano total al atacar.',
+          description: 'El usuario suma su value al daño total al atacar.',
           remainingTurns: remainingTurns,
           value: value,
         );
 
-  /// Devuelve el bonus de dano efectivo que tiene ahora mismo este estado.
+  /// Devuelve el bonus de daño efectivo que tiene ahora mismo este estado.
   int currentDamageBonus(Battler owner) => resolved(owner).value;
 
   @override
 
-  /// Anade a la descripcion el bonus de dano actual ya resuelto.
+  /// Anade a la descripcion el bonus de daño actual ya resuelto.
   String descriptionFor(Battler owner) {
-    return '$description Dano actual: +${currentDamageBonus(owner)}';
+    return '$description Daño actual: +${currentDamageBonus(owner)}';
   }
 
   @override
@@ -51,7 +51,7 @@ class CalentandoStatus extends BattlerStatus {
 
   @override
 
-  /// Suma su bonus al dano de cada ataque del portador.
+  /// Suma su bonus al daño de cada ataque del portador.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -93,7 +93,7 @@ class PotenciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.potencia;
   static const defaultValue = 1;
 
-  /// Crea una instancia de Potencia con su bonus de dano pendiente.
+  /// Crea una instancia de Potencia con su bonus de daño pendiente.
   const PotenciaStatus({
     int value = defaultValue,
   }) : super(
@@ -108,7 +108,7 @@ class PotenciaStatus extends BattlerStatus {
           },
           icon: Icons.bolt_rounded,
           description:
-              'Aumenta el dano del siguiente golpe en su value y luego se consume.',
+              'Aumenta el daño del siguiente golpe en su value y luego se consume.',
           remainingTurns: 1,
           value: value,
         );
@@ -125,9 +125,9 @@ class PotenciaStatus extends BattlerStatus {
 
   @override
 
-  /// Anade a la descripcion el bonus de dano actual ya resuelto.
+  /// Anade a la descripcion el bonus de daño actual ya resuelto.
   String descriptionFor(Battler owner) {
-    return '$description Dano extra actual: +${resolved(owner).value}';
+    return '$description Daño extra actual: +${resolved(owner).value}';
   }
 
   @override
@@ -154,7 +154,7 @@ class PotenciaStatus extends BattlerStatus {
 
   @override
 
-  /// Si vuelve a aplicarse, conserva el mayor valor pendiente.
+  /// Si vuelve a aplicarse, acumula el daño pendiente.
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
     required BattlerStatus appliedStatus,
@@ -169,7 +169,7 @@ class PotenciaStatus extends BattlerStatus {
     return BattlerStatusApplicationResolution(
       owner: owner.removeStatusInstance(this),
       appliedStatus: copyWith(
-        value: max(value, appliedStatus.value),
+        value: value + appliedStatus.value,
       ),
     );
   }
