@@ -7,9 +7,14 @@ const _effectBuffAccent = EndpointPalette.warningAccent;
 const _effectDebuffAccent = Color(0xFFB77945);
 const _effectBurnAccent = Color(0xFFFF8C42);
 const _effectPoisonAccent = Color(0xFFC178FF);
+const _effectResonanceAccent = Color(0xFFD0D5DE);
 
 final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
+);
+final RegExp _highlightedTermPattern = RegExp(
+  r'\b(?:resonancia|intoxicacion|intoxicación|quemadura|debuffs?|buffs?|curar|curas?|curacion|curación|recuperas?|recupera|vida|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|dano|ataques?|atacar|atacas|atk)\b',
+  caseSensitive: false,
 );
 
 /// Renderiza descripciones mecanicas resaltando los importes numericos.
@@ -72,15 +77,35 @@ class EndpointHighlightedValueText extends StatelessWidget {
 
   List<TextSpan> _buildSpans(TextStyle baseStyle) {
     final spans = <TextSpan>[];
+    final tokens = <_HighlightedToken>[
+      for (final match in _highlightedValuePattern.allMatches(data))
+        _HighlightedToken(
+          start: match.start,
+          end: match.end,
+          accent: _accentForValue(match.start, match.end),
+        ),
+      for (final match in _highlightedTermPattern.allMatches(data))
+        _HighlightedToken(
+          start: match.start,
+          end: match.end,
+          accent: _accentForTerm(match.group(0) ?? ''),
+        ),
+    ]..sort((left, right) {
+        final startComparison = left.start.compareTo(right.start);
+        if (startComparison != 0) return startComparison;
+        return (right.end - right.start).compareTo(left.end - left.start);
+      });
     var cursor = 0;
 
-    for (final match in _highlightedValuePattern.allMatches(data)) {
-      if (match.start > cursor) {
-        spans.add(TextSpan(text: data.substring(cursor, match.start)));
+    for (final tokenMatch in tokens) {
+      if (tokenMatch.start < cursor) continue;
+
+      if (tokenMatch.start > cursor) {
+        spans.add(TextSpan(text: data.substring(cursor, tokenMatch.start)));
       }
 
-      final token = data.substring(match.start, match.end);
-      final accent = _accentForValue(match.start, match.end);
+      final token = data.substring(tokenMatch.start, tokenMatch.end);
+      final accent = tokenMatch.accent;
       spans.add(
         TextSpan(
           text: token,
@@ -96,7 +121,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
           ),
         ),
       );
-      cursor = match.end;
+      cursor = tokenMatch.end;
     }
 
     if (cursor < data.length) {
@@ -104,6 +129,49 @@ class EndpointHighlightedValueText extends StatelessWidget {
     }
 
     return spans;
+  }
+
+  Color _accentForTerm(String token) {
+    final normalizedToken = token
+        .toLowerCase()
+        .replaceAll('ó', 'o')
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n');
+
+    if (normalizedToken.contains('resonancia')) {
+      return _effectResonanceAccent;
+    }
+    if (normalizedToken.contains('intoxicacion')) {
+      return _effectPoisonAccent;
+    }
+    if (normalizedToken.contains('quemadura')) {
+      return _effectBurnAccent;
+    }
+    if (normalizedToken.startsWith('debuff')) {
+      return _effectDebuffAccent;
+    }
+    if (normalizedToken.startsWith('buff')) {
+      return _effectBuffAccent;
+    }
+    if (normalizedToken.startsWith('cur') ||
+        normalizedToken == 'vida' ||
+        normalizedToken.startsWith('recupera')) {
+      return _effectHealingAccent;
+    }
+    if (normalizedToken.contains('barrera') ||
+        normalizedToken.startsWith('bloque')) {
+      return _effectBarrierAccent;
+    }
+    if (normalizedToken == 'atk' ||
+        normalizedToken == 'dano' ||
+        normalizedToken.startsWith('atac')) {
+      return _effectAttackAccent;
+    }
+
+    return EndpointPalette.rewardAccent;
   }
 
   Color _accentForValue(int start, int end) {
@@ -119,6 +187,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     }
     if (tagSet.contains(EntityTag.barrera)) {
       return _effectBarrierAccent;
+    }
+    if (tagSet.contains(EntityTag.resonancia)) {
+      return _effectResonanceAccent;
     }
     if (tagSet.contains(EntityTag.vida)) {
       return _effectHealingAccent;
@@ -137,10 +208,21 @@ class EndpointHighlightedValueText extends StatelessWidget {
   }
 
   Color? _nearestContextualAccent(int start, int end) {
-    final lowerData = data.toLowerCase();
+    final lowerData = data
+        .toLowerCase()
+        .replaceAll('ó', 'o')
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n');
     const maxDistance = 56.0;
     final midpoint = (start + end) / 2;
     final candidates = [
+      const _ValueAccentCandidate(
+        color: _effectResonanceAccent,
+        patterns: ['resonancia'],
+      ),
       const _ValueAccentCandidate(
         color: _effectPoisonAccent,
         patterns: ['intoxicacion'],
@@ -151,13 +233,14 @@ class EndpointHighlightedValueText extends StatelessWidget {
       ),
       const _ValueAccentCandidate(
         color: _effectBarrierAccent,
-        patterns: ['barrera', 'blindaje'],
+        patterns: ['barrera', 'blindaje', 'bloquea', 'bloquear', 'bloqueo'],
       ),
       const _ValueAccentCandidate(
         color: _effectHealingAccent,
         patterns: [
           'cura',
           'curas',
+          'curar',
           'curacion',
           'recupera',
           'recuperas',
@@ -180,6 +263,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
         color: _effectDebuffAccent,
         patterns: [
           'debuff',
+          'debuffs',
           'desventaja',
           'fragilidad',
           'interferencia',
@@ -189,10 +273,12 @@ class EndpointHighlightedValueText extends StatelessWidget {
       const _ValueAccentCandidate(
         color: _effectAttackAccent,
         patterns: [
-          'daño',
-          'daño',
+          'dano',
           'atk',
           'ataque',
+          'ataques',
+          'atacar',
+          'atacas',
           'golpe',
         ],
       ),
@@ -221,6 +307,18 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (bestDistance <= maxDistance) return bestColor;
     return null;
   }
+}
+
+class _HighlightedToken {
+  final int start;
+  final int end;
+  final Color accent;
+
+  const _HighlightedToken({
+    required this.start,
+    required this.end,
+    required this.accent,
+  });
 }
 
 class _ValueAccentCandidate {

@@ -15,6 +15,24 @@ extension BattlerCombatRuntime on Battler {
     return 1;
   }
 
+  /// Devuelve cuanta Barrera se ha perdido en el ultimo impacto resuelto.
+  int get barrierLostThisHit {
+    return _secondaryValueForBattlerFlag(BattlerCombatFlag.barrierLostThisHit);
+  }
+
+  /// Devuelve cuanta vida real se ha perdido en el ultimo impacto resuelto.
+  int get healthLostThisHit {
+    return _secondaryValueForBattlerFlag(BattlerCombatFlag.healthLostThisHit);
+  }
+
+  /// Bonus plano que las pasivas de Resonancia anaden a su dano propio.
+  int get resonanceDamageBonus {
+    final ability = abilityById(BattlerAbilityId.masaCritica);
+    if (ability == null || currentBarrier * 2 <= maxHealth) return 0;
+
+    return max(0, ability.currentValue);
+  }
+
   /// Indica si el ataque basico actual todavia tiene impactos pendientes.
   bool get hasPendingBasicAttackFollowUp {
     return hasCombatFlag(Battler.pendingBasicAttackFollowUpFlag);
@@ -49,7 +67,25 @@ extension BattlerCombatRuntime on Battler {
       currentBarrier:
           allowAboveMax ? nextBarrier : min(maxBarrier, nextBarrier),
     );
-    return updatedOwner._recordCombatBarrierGain(safeAmount);
+    return updatedOwner
+        ._recordCombatBarrierGain(safeAmount)
+        ._gainResonanceFromBarrierGain(safeAmount);
+  }
+
+  /// Calcula dano de Resonancia aplicando bonuses pasivos relevantes.
+  int resonanceDamageFor(int baseDamage) {
+    return max(0, baseDamage + resonanceDamageBonus);
+  }
+
+  /// Aplica efectos que recompensan el dano infligido por Resonancia.
+  Battler gainBarrierFromResonanceDamage(int damage) {
+    final safeDamage = max(0, damage);
+    if (safeDamage <= 0 ||
+        !equippedItems.any((item) => item.id == ItemId.canonContrapresion)) {
+      return this;
+    }
+
+    return gainCombatBarrier(safeDamage ~/ 2);
   }
 
   /// Sincroniza la ronda visible para efectos que necesitan historial temporal.
@@ -118,6 +154,22 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Devuelve el primer valor asociado a una flag de item.
+  int? itemCombatFlagValue({
+    required Item item,
+    required ItemCombatFlagKind kind,
+  }) {
+    for (final flag in combatFlags) {
+      if (flag.itemFlag == kind &&
+          flag.itemId == item.id &&
+          flag.itemInstanceId == item.instanceId) {
+        return flag.value ?? flag.secondaryValue;
+      }
+    }
+
+    return null;
+  }
+
   /// Anade una flag de combate sin duplicarla.
   Battler addCombatFlag(CombatRuntimeFlag flag) {
     if (combatFlags.contains(flag)) return this;
@@ -135,6 +187,42 @@ extension BattlerCombatRuntime on Battler {
     if (!combatFlags.contains(flag)) return this;
 
     final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags)..remove(flag);
+    return copyWith(
+      combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
+    );
+  }
+
+  /// Elimina todas las flags globales de un tipo concreto.
+  Battler removeCombatFlagsFor(BattlerCombatFlag kind) {
+    if (!combatFlags.any((flag) => flag.battlerFlag == kind)) {
+      return this;
+    }
+
+    final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags)
+      ..removeWhere((flag) => flag.battlerFlag == kind);
+    return copyWith(
+      combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
+    );
+  }
+
+  /// Elimina todas las flags de una clase concreta asociadas a un item.
+  Battler removeItemCombatFlagsFor({
+    required Item item,
+    required ItemCombatFlagKind kind,
+  }) {
+    final hasMatchingFlag = combatFlags.any((flag) {
+      return flag.itemFlag == kind &&
+          flag.itemId == item.id &&
+          flag.itemInstanceId == item.instanceId;
+    });
+    if (!hasMatchingFlag) return this;
+
+    final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags)
+      ..removeWhere((flag) {
+        return flag.itemFlag == kind &&
+            flag.itemId == item.id &&
+            flag.itemInstanceId == item.instanceId;
+      });
     return copyWith(
       combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
     );
@@ -176,5 +264,47 @@ extension BattlerCombatRuntime on Battler {
     return copyWith(
       combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
     );
+  }
+
+  int _secondaryValueForBattlerFlag(BattlerCombatFlag kind) {
+    var total = 0;
+    for (final flag in combatFlags) {
+      if (flag.battlerFlag != kind) continue;
+      total += max(0, flag.secondaryValue ?? flag.value ?? 0);
+    }
+    return total;
+  }
+
+  Battler _gainResonanceFromBarrierGain(int amount) {
+    if (amount <= 0 || equippedItems.isEmpty) return this;
+
+    var updatedOwner = this;
+    final currentCombatRound = updatedOwner.combatRound;
+    for (final item in equippedItems) {
+      if (item.id != ItemId.nucleoPiezoelectrico) continue;
+
+      final alreadyTriggered = updatedOwner.combatFlags.any((flag) {
+        return flag.itemFlag ==
+                ItemCombatFlagKind.nucleoPiezoelectricoTriggeredThisTurn &&
+            flag.itemId == item.id &&
+            flag.itemInstanceId == item.instanceId &&
+            flag.value == currentCombatRound;
+      });
+      if (alreadyTriggered) continue;
+
+      updatedOwner = updatedOwner
+          .addCombatFlag(
+            CombatRuntimeFlag.item(
+              itemFlag:
+                  ItemCombatFlagKind.nucleoPiezoelectricoTriggeredThisTurn,
+              itemId: item.id,
+              itemInstanceId: item.instanceId,
+              value: currentCombatRound,
+            ),
+          )
+          .gainResonance(max(1, item.value));
+    }
+
+    return updatedOwner;
   }
 }

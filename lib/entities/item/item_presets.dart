@@ -118,6 +118,16 @@ const _economiaBarreraDebuffTags = <EntityTag>[
   EntityTag.barrera,
   EntityTag.debuff,
 ];
+const _resonanciaBarreraBuffTags = <EntityTag>[
+  EntityTag.resonancia,
+  EntityTag.barrera,
+  EntityTag.buff,
+];
+const _resonanciaAtaqueBarreraTags = <EntityTag>[
+  EntityTag.resonancia,
+  EntityTag.ataque,
+  EntityTag.barrera,
+];
 const _generalAffinities = <ItemArchetypeAffinity>[
   ItemArchetypeAffinity.general,
 ];
@@ -1123,6 +1133,107 @@ const contingencySealItem = Item(
   effect: ContingencySealItemEffect(),
 );
 
+/// Accesorio verde que convierte las recargas de Barrera en Resonancia.
+const nucleoPiezoelectricoItem = Item(
+  id: ItemId.nucleoPiezoelectrico,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _resonanciaBarreraBuffTags,
+  name: 'Nucleo Piezoelectrico',
+  description:
+      '+2 Barrera. La primera vez cada turno que ganas Barrera, ganas Resonancia.',
+  iconEmoji: '\u{1F50A}',
+  rarity: RarityTier.green,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: NucleoPiezoelectricoItemEffect(),
+);
+
+/// Accesorio azul que transforma impactos sobre Barrera en carga acumulada.
+const placasCompresionItem = Item(
+  id: ItemId.placasCompresion,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _resonanciaBarreraBuffTags,
+  name: 'Placas de Compresion',
+  description:
+      '+3 Barrera. Cuando recibes dano a Barrera, ganas Resonancia por la Barrera perdida.',
+  iconEmoji: '\u{1F4BF}',
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 3,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 3,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: PlacasCompresionItemEffect(),
+);
+
+/// Accesorio morado que sacrifica Barrera al defender para cargar Resonancia.
+const torreRetornoItem = Item(
+  id: ItemId.torreRetorno,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _resonanciaBarreraBuffTags,
+  name: 'Torre de Retorno',
+  description:
+      'Al defender, conviertes parte de tu Barrera actual en Resonancia duplicada.',
+  iconEmoji: '\u{1F5FC}',
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 1,
+  effect: TorreRetornoItemEffect(),
+);
+
+/// Accesorio gris que premia turnos cerrados sin perder vida real.
+const aislanteArmonicoItem = Item(
+  id: ItemId.aislanteArmonico,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _resonanciaBarreraBuffTags,
+  name: 'Aislante Armonico',
+  description:
+      '+1 Barrera. Si no pierdes vida durante tu turno, ganas Resonancia al final.',
+  iconEmoji: '\u{1F9F1}',
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: AislanteArmonicoItemEffect(),
+);
+
+/// Accesorio amarillo que devuelve Barrera cuando la Resonancia hace dano.
+const canonContrapresionItem = Item(
+  id: ItemId.canonContrapresion,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _resonanciaAtaqueBarreraTags,
+  name: 'Canon de Contrapresion',
+  description:
+      '+2 Barrera. Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad del dano infligido.',
+  iconEmoji: '\u{1F4E3}',
+  rarity: RarityTier.yellow,
+  baseCost: 10,
+  value: 0,
+  upgradeValue: 0,
+  statModifiers: {
+    BattlerStat.barrier: 2,
+  },
+  effect: CanonContrapresionItemEffect(),
+);
+
 /// Arma amarilla de daño alto para el tramo final.
 const sunsteelBladeItem = Item(
   id: ItemId.sunsteelBlade,
@@ -1577,6 +1688,11 @@ const itemPresets = <Item>[
   overloadInjectorItem,
   vectorBulwarkItem,
   contingencySealItem,
+  nucleoPiezoelectricoItem,
+  placasCompresionItem,
+  torreRetornoItem,
+  aislanteArmonicoItem,
+  canonContrapresionItem,
   ironSwordItem,
   guardShieldItem,
   platedJacketItem,

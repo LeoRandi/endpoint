@@ -32,8 +32,11 @@ extension BattlerRuntimeService on Battler {
     final safeDamage = max(0, damage);
     if (safeDamage <= 0) return this;
 
-    final ownerBeforeDamage =
-        removeCombatFlag(Battler.barrierBrokenThisHitFlag);
+    final ownerBeforeDamage = removeCombatFlagsFor(
+      BattlerCombatFlag.barrierBrokenThisHit,
+    )
+        .removeCombatFlagsFor(BattlerCombatFlag.barrierLostThisHit)
+        .removeCombatFlagsFor(BattlerCombatFlag.healthLostThisHit);
     final absorbedByBarrier = min(ownerBeforeDamage.currentBarrier, safeDamage);
     final ownerAfterBarrier = absorbedByBarrier <= 0
         ? ownerBeforeDamage
@@ -41,19 +44,37 @@ extension BattlerRuntimeService on Battler {
             currentBarrier:
                 ownerBeforeDamage.currentBarrier - absorbedByBarrier,
           );
-    final resolvedOwnerAfterBarrier = ownerBeforeDamage.currentBarrier > 0 &&
-            absorbedByBarrier > 0 &&
-            ownerAfterBarrier.currentBarrier <= 0
-        ? ownerAfterBarrier.addCombatFlag(Battler.barrierBrokenThisHitFlag)
-        : ownerAfterBarrier;
+    var resolvedOwnerAfterBarrier = ownerAfterBarrier;
+    if (absorbedByBarrier > 0) {
+      resolvedOwnerAfterBarrier = resolvedOwnerAfterBarrier.addCombatFlag(
+        CombatRuntimeFlag.battler(
+          BattlerCombatFlag.barrierLostThisHit,
+          secondaryValue: absorbedByBarrier,
+        ),
+      );
+    }
+    if (ownerBeforeDamage.currentBarrier > 0 &&
+        absorbedByBarrier > 0 &&
+        ownerAfterBarrier.currentBarrier <= 0) {
+      resolvedOwnerAfterBarrier = resolvedOwnerAfterBarrier.addCombatFlag(
+        Battler.barrierBrokenThisHitFlag,
+      );
+    }
     final remainingDamage = max(0, safeDamage - absorbedByBarrier);
     if (remainingDamage <= 0) {
       return resolvedOwnerAfterBarrier;
     }
 
-    final damagedOwner = resolvedOwnerAfterBarrier.copyWith(
-      health: max(0, resolvedOwnerAfterBarrier.health - remainingDamage),
-    );
+    final damagedOwner = resolvedOwnerAfterBarrier
+        .copyWith(
+          health: max(0, resolvedOwnerAfterBarrier.health - remainingDamage),
+        )
+        .addCombatFlag(
+          CombatRuntimeFlag.battler(
+            BattlerCombatFlag.healthLostThisHit,
+            secondaryValue: remainingDamage,
+          ),
+        );
     if (damagedOwner.health > 0) {
       return damagedOwner;
     }

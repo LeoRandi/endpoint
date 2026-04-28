@@ -549,6 +549,86 @@ class PulsoRepLAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Manual de combate que carga Barrera y Resonancia a la vez.
+class PulsoArmonicoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Pulso Armonico.
+  const PulsoArmonicoAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final amount = max(1, ability.currentValue);
+    final updatedOwner = owner
+        .gainCombatBarrier(amount)
+        .gainResonance(amount)
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+    );
+  }
+}
+
+/// Pasiva que aumenta el dano de Resonancia con Barrera alta.
+class MasaCriticaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Masa Critica.
+  const MasaCriticaAbilityEffect();
+}
+
+/// Convierte Barrera activa en una descarga directa de Resonancia.
+class DescargaSismicaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Descarga Sismica.
+  const DescargaSismicaAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final availableBarrier = max(0, owner.currentBarrier);
+    final consumedBarrier = min(availableBarrier, max(0, ability.currentValue));
+    final resonanceDamage =
+        consumedBarrier <= 0 ? 0 : owner.resonanceDamageFor(consumedBarrier);
+    var updatedOwner = owner.copyWith(
+      currentBarrier: max(0, owner.currentBarrier - consumedBarrier),
+    );
+    var updatedOpponent = resonanceDamage <= 0
+        ? opponent
+        : opponent.receiveDirectDamage(
+            resonanceDamage,
+            source: updatedOwner,
+          );
+
+    if (consumedBarrier > 0 && consumedBarrier >= availableBarrier) {
+      final statusResolution = _applyAbilityStatusToOpponentFromOwner(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        status: ConmocionStatus(
+          value: max(1, ability.currentValue ~/ 2),
+        ),
+      );
+      updatedOwner = statusResolution.owner;
+      updatedOpponent = statusResolution.opponent;
+    }
+
+    updatedOwner = updatedOwner
+        .gainBarrierFromResonanceDamage(resonanceDamage)
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: updatedOpponent,
+    );
+  }
+}
+
 /// Prepara la absorcion de barrera para el siguiente ataque resuelto.
 class SustraccionAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Sustraccion.

@@ -27,6 +27,49 @@ extension BattlerStatusManagement on Battler {
     return statusById(statusId) != null;
   }
 
+  /// Devuelve la Resonancia acumulada durante el combate.
+  int get resonanceValue {
+    final status = statusById(ResonanciaStatus.statusId);
+    if (status is! ResonanciaStatus) return 0;
+
+    return max(0, status.resolved(this).value);
+  }
+
+  /// Acumula Resonancia como buff temporal de combate.
+  Battler gainResonance(int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || isDefeated) return this;
+
+    return applyStatus(
+      ResonanciaStatus(value: safeAmount),
+      applyEquipmentModifiers: false,
+    );
+  }
+
+  /// Consume hasta la cantidad indicada de Resonancia acumulada.
+  Battler spendResonance(int amount) {
+    final safeAmount = max(0, amount);
+    final currentStatus = statusById(ResonanciaStatus.statusId);
+    if (safeAmount <= 0 || currentStatus is! ResonanciaStatus) {
+      return this;
+    }
+
+    final nextValue = max(0, currentStatus.resolved(this).value - safeAmount);
+    if (nextValue <= 0) {
+      return removeStatusInstance(currentStatus);
+    }
+
+    return replaceStatusInstance(
+      currentStatus: currentStatus,
+      replacement: currentStatus.copyWith(value: nextValue),
+    );
+  }
+
+  /// Limpia toda la Resonancia acumulada y devuelve la cantidad consumida.
+  Battler clearResonance() {
+    return removeStatus(ResonanciaStatus.statusId);
+  }
+
   /// Limpia solo las instancias de estado ya caducadas y deja el resto intacto.
   Battler pruneExpiredStatuses() {
     return _removeExpiredStatuses();

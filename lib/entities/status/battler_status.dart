@@ -31,6 +31,7 @@ enum BattlerStatusId {
   inercia,
   inerciaAtaque,
   inerciaBarrera,
+  resonancia,
   deuda,
 }
 
@@ -336,6 +337,10 @@ const _debuffStatusTags = <EntityTag>[
 const _buffBarreraStatusTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.barrera,
+];
+const _buffResonanciaStatusTags = <EntityTag>[
+  EntityTag.buff,
+  EntityTag.resonancia,
 ];
 const _debuffAtaqueStatusTags = <EntityTag>[
   EntityTag.debuff,

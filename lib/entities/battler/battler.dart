@@ -137,6 +137,8 @@ enum BattlerCombatFlag {
   currentRoundMarker,
   barrierGainMarker,
   barrierBrokenThisHit,
+  barrierLostThisHit,
+  healthLostThisHit,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
@@ -156,6 +158,9 @@ enum ItemCombatFlagKind {
   reboundLensTriggeredThisTurn,
   emergencyPlatingAutoBlockUsed,
   deflectiveCapacitorReflectedDebuff,
+  nucleoPiezoelectricoTriggeredThisTurn,
+  aislanteArmonicoLostHealthThisTurn,
+  aislanteArmonicoTurnStartHealth,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.

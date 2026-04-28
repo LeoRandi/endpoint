@@ -40,6 +40,9 @@ enum BattlerAbilityId {
   furiaHematica,
   mordidaDeAcero,
   noHayRetirada,
+  pulsoArmonico,
+  masaCritica,
+  descargaSismica,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -196,6 +199,22 @@ const _cicloAtaqueBarreraBuffAbilityTags = <EntityTag>[
 ];
 const _cicloAtaqueBarreraDebuffAbilityTags = <EntityTag>[
   EntityTag.ciclo,
+  EntityTag.ataque,
+  EntityTag.barrera,
+  EntityTag.debuff,
+];
+const _resonanciaBarreraAbilityTags = <EntityTag>[
+  EntityTag.resonancia,
+  EntityTag.barrera,
+  EntityTag.buff,
+];
+const _resonanciaAtaqueBarreraAbilityTags = <EntityTag>[
+  EntityTag.resonancia,
+  EntityTag.ataque,
+  EntityTag.barrera,
+];
+const _resonanciaAtaqueBarreraDebuffAbilityTags = <EntityTag>[
+  EntityTag.resonancia,
   EntityTag.ataque,
   EntityTag.barrera,
   EntityTag.debuff,
@@ -718,5 +737,11 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Activacion manual en combate. Tu siguiente ataque inflige +$amount daño adicional y te cura la mitad del daño infligido por esta habilidad.';
     case BattlerAbilityId.noHayRetirada:
       return 'Pasiva. La primera vez que recibes daño cada turno, ganas $positiveAmount de Potencia. Si ya tenias Potencia, tambien ganas $positiveAmount de Calentando.';
+    case BattlerAbilityId.pulsoArmonico:
+      return 'Activacion manual en combate. Ganas $positiveAmount de Barrera y $positiveAmount de Resonancia.';
+    case BattlerAbilityId.masaCritica:
+      return 'Pasiva. Tus efectos de Resonancia infligen +$positiveAmount dano si tu Barrera es mayor que la mitad de tu vida maxima.';
+    case BattlerAbilityId.descargaSismica:
+      return 'Activacion manual en combate. Consume hasta $positiveAmount de tu Barrera e inflige esa cantidad como dano directo de Resonancia. Si consumes toda tu Barrera, aplica Conmocion ${max(1, positiveAmount ~/ 2)}.';
   }
 }

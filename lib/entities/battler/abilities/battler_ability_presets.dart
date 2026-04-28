@@ -258,6 +258,57 @@ const pulsoRepLAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Manual defensivo que carga Barrera y Resonancia.
+const pulsoArmonicoAbility = BattlerAbility(
+  id: BattlerAbilityId.pulsoArmonico,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _resonanciaBarreraAbilityTags,
+  name: 'Pulso Armonico',
+  description: 'Activacion manual en combate. Ganas Barrera y Resonancia.',
+  icon: Icons.graphic_eq_rounded,
+  cooldownTurns: 3,
+  value: 3,
+  upgradeValue: 1,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: PulsoArmonicoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva que vuelve mas peligrosa la Resonancia cuando sobra Barrera.
+const masaCriticaAbility = BattlerAbility(
+  id: BattlerAbilityId.masaCritica,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _resonanciaAtaqueBarreraAbilityTags,
+  name: 'Masa Critica',
+  description:
+      'Pasiva. Tus efectos de Resonancia infligen dano adicional si tu Barrera supera la mitad de tu vida maxima.',
+  icon: Icons.hub_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: MasaCriticaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual morado que convierte Barrera actual en dano directo.
+const descargaSismicaAbility = BattlerAbility(
+  id: BattlerAbilityId.descargaSismica,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _resonanciaAtaqueBarreraDebuffAbilityTags,
+  name: 'Descarga Sismica',
+  description:
+      'Activacion manual en combate. Consume Barrera e inflige dano directo de Resonancia.',
+  icon: Icons.waves_rounded,
+  cooldownTurns: 3,
+  value: 10,
+  upgradeValue: 10,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: DescargaSismicaAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Preset manual de combate que roba barrera tras el siguiente ataque.
 const sustraccionAbility = BattlerAbility(
   id: BattlerAbilityId.sustraccion,
@@ -593,6 +644,9 @@ const abilityPresets = <BattlerAbility>[
   hardResetAbility,
   cashflowAbility,
   pulsoRepLAbility,
+  pulsoArmonicoAbility,
+  masaCriticaAbility,
+  descargaSismicaAbility,
   sustraccionAbility,
   limpiezaCacheAbility,
   hemostasiaAgresivaAbility,

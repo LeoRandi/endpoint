@@ -10,6 +10,7 @@ enum EntityTag {
   vida,
   ataque,
   barrera,
+  resonancia,
   economia,
   arma,
   accesorio;
@@ -35,6 +36,8 @@ extension EntityTagPresentation on EntityTag {
         return 'Ataque';
       case EntityTag.barrera:
         return 'Barrera';
+      case EntityTag.resonancia:
+        return 'Resonancia';
       case EntityTag.economia:
         return 'Economia';
       case EntityTag.arma:
@@ -62,6 +65,8 @@ extension EntityTagPresentation on EntityTag {
         return const Color(0xFFF3D35C);
       case EntityTag.barrera:
         return const Color(0xFF59B7FF);
+      case EntityTag.resonancia:
+        return const Color(0xFFD0D5DE);
       case EntityTag.economia:
         return const Color(0xFFEBCB5A);
       case EntityTag.arma:

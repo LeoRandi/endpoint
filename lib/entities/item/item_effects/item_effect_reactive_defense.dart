@@ -117,6 +117,211 @@ class ContingencySealItemEffect extends ItemEffect {
   }
 }
 
+/// Acumula Resonancia la primera vez por turno que el portador gana Barrera.
+class NucleoPiezoelectricoItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Nucleo Piezoelectrico.
+  const NucleoPiezoelectricoItemEffect()
+      : super(
+          description:
+              'La primera vez cada turno que ganas Barrera, acumulas Resonancia.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return '+2 Barrera. La primera vez cada turno que ganas Barrera, ganas ${max(1, item.value)} de Resonancia.';
+  }
+}
+
+/// Transforma la Barrera perdida por impactos en Resonancia.
+class PlacasCompresionItemEffect extends ItemEffect {
+  /// Crea el efecto propio de las Placas de Compresion.
+  const PlacasCompresionItemEffect()
+      : super(
+          description: 'Al perder Barrera por un golpe, acumulas Resonancia.',
+          hooks: const {
+            ItemEffectHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return '+3 Barrera. Cuando recibes dano a Barrera, ganas 1 Resonancia por cada punto de Barrera perdido, hasta ${max(1, item.value)} por golpe.';
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    final barrierLost = owner.barrierLostThisHit;
+    if (barrierLost <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.gainResonance(min(barrierLost, max(1, item.value))),
+      opponent: source,
+    );
+  }
+}
+
+/// Convierte una parte de la Barrera activa en Resonancia al defender.
+class TorreRetornoItemEffect extends ItemEffect {
+  /// Crea el efecto propio de Torre de Retorno.
+  const TorreRetornoItemEffect()
+      : super(
+          description:
+              'Al defender, convierte Barrera actual en Resonancia duplicada.',
+          hooks: const {
+            ItemEffectHook.defendResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al defender, conviertes hasta ${max(1, item.value)} de tu Barrera actual en el doble de Resonancia.';
+  }
+
+  @override
+  ItemEffectResolution onDefendResolved({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+  }) {
+    final convertedBarrier = min(owner.currentBarrier, max(1, item.value));
+    if (convertedBarrier <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final updatedOwner = owner
+        .copyWith(currentBarrier: owner.currentBarrier - convertedBarrier)
+        .gainResonance(convertedBarrier * 2);
+    return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+  }
+}
+
+/// Premia cerrar el turno sin haber perdido vida real.
+class AislanteArmonicoItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Aislante Armonico.
+  const AislanteArmonicoItemEffect()
+      : super(
+          description:
+              'Al final de tu turno, si no has perdido vida, ganas Resonancia.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.turnEnd,
+            ItemEffectHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return '+1 Barrera. Al final de tu turno, si no has perdido vida este turno, ganas ${max(1, item.value)} de Resonancia.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final updatedOwner = owner
+        .removeItemCombatFlagsFor(
+          item: item,
+          kind: ItemCombatFlagKind.aislanteArmonicoLostHealthThisTurn,
+        )
+        .removeItemCombatFlagsFor(
+          item: item,
+          kind: ItemCombatFlagKind.aislanteArmonicoTurnStartHealth,
+        )
+        .addCombatFlag(
+          _itemCombatFlag(
+            item,
+            ItemCombatFlagKind.aislanteArmonicoTurnStartHealth,
+            owner.health,
+          ),
+        );
+    return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    if (owner.healthLostThisHit <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(
+        _itemCombatFlag(
+          item,
+          ItemCombatFlagKind.aislanteArmonicoLostHealthThisTurn,
+        ),
+      ),
+      opponent: source,
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final lostHealthFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.aislanteArmonicoLostHealthThisTurn,
+    );
+    final turnStartHealth = owner.itemCombatFlagValue(
+      item: item,
+      kind: ItemCombatFlagKind.aislanteArmonicoTurnStartHealth,
+    );
+    final lostLifeSinceTurnStart =
+        turnStartHealth != null && owner.health < turnStartHealth;
+    if (owner.hasCombatFlag(lostHealthFlag) || lostLifeSinceTurnStart) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.gainResonance(max(1, item.value)),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Recompensa el dano infligido por Resonancia con Barrera sin limite.
+class CanonContrapresionItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Canon de Contrapresion.
+  const CanonContrapresionItemEffect()
+      : super(
+          description:
+              'Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return '+2 Barrera. Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad del dano infligido por Resonancia.';
+  }
+}
+
 /// Aplica interferencia y erosiona barrera si el objetivo ya estaba bloqueado.
 class InterferenceCannonItemEffect extends ItemEffect {
   /// Crea el efecto propio del Canon de Interferencia.

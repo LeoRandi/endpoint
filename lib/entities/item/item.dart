@@ -72,6 +72,11 @@ enum ItemId {
   capaDelContrabandista,
   inertiaCrown,
   sunExecutionBlade,
+  nucleoPiezoelectrico,
+  placasCompresion,
+  torreRetorno,
+  aislanteArmonico,
+  canonContrapresion,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -177,6 +182,11 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.overloadAnchor,
   ItemId.reboundLens,
   ItemId.inertiaCrown,
+  ItemId.nucleoPiezoelectrico,
+  ItemId.placasCompresion,
+  ItemId.torreRetorno,
+  ItemId.aislanteArmonico,
+  ItemId.canonContrapresion,
 };
 
 const _drawingBonusEligibleHooks = <ItemEffectHook>{

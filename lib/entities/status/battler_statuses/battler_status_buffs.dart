@@ -473,3 +473,65 @@ class InerciaBarreraStatus extends BattlerStatus {
     );
   }
 }
+
+/// Carga defensiva acumulada que otros efectos pueden convertir en dano.
+class ResonanciaStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.resonancia;
+
+  /// Crea una reserva de Resonancia acumulada durante el combate.
+  const ResonanciaStatus({
+    int value = 1,
+  }) : super(
+          id: statusId,
+          name: 'Resonancia',
+          type: BattlerStatusType.buff,
+          tags: _buffResonanciaStatusTags,
+          hooks: const {
+            BattlerStatusHook.statusApplied,
+          },
+          icon: Icons.graphic_eq_rounded,
+          description:
+              'Carga defensiva acumulada. Algunos efectos la usan para infligir dano directo.',
+          remainingTurns: 1,
+          value: value,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Resonancia actual: ${resolved(owner).value}';
+  }
+
+  @override
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    if (appliedStatus.id != id) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    return BattlerStatusApplicationResolution(
+      owner: owner.removeStatusInstance(this),
+      appliedStatus: copyWith(value: value + appliedStatus.value),
+    );
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return ResonanciaStatus(
+      value: value ?? this.value,
+    );
+  }
+}
