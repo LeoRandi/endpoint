@@ -7,7 +7,8 @@
 --Tuto de combate
 --Tuto de dibujo
 --Tuto de rutas
---Tuto de arquetipos
+--Tuto de tiendas
+[--Tuto de arquetipos]
 
 -Dibujo
 [--Crear dibujos básicos y aplicarlos al combate]
