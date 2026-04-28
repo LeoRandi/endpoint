@@ -126,12 +126,10 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
     required int damageDealt,
   }) {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
-    return ItemEffectResolution(
+    return _applyStatusToOpponentFromOwner(
       owner: owner,
-      opponent: target.applyStatusFromSource(
-        QuemaduraStatus(remainingTurns: resolvedDuration),
-        source: owner,
-      ),
+      opponent: target,
+      status: QuemaduraStatus(remainingTurns: resolvedDuration),
     );
   }
 }
@@ -169,12 +167,10 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
     required int damageTaken,
   }) {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
-    return ItemEffectResolution(
+    return _applyStatusToOpponentFromOwner(
       owner: owner,
-      opponent: source.applyStatusFromSource(
-        QuemaduraStatus(remainingTurns: resolvedDuration),
-        source: owner,
-      ),
+      opponent: source,
+      status: QuemaduraStatus(remainingTurns: resolvedDuration),
     );
   }
 }
@@ -786,12 +782,10 @@ class StatusItemEffect extends ItemEffect {
   }) {
     switch (trigger) {
       case ItemStatusEffectTrigger.attackTarget:
-        return ItemEffectResolution(
+        return _applyStatusToOpponentFromOwner(
           owner: owner,
-          opponent: target.applyStatusFromSource(
-            _buildStatus(item),
-            source: owner,
-          ),
+          opponent: target,
+          status: _buildStatus(item),
         );
       case ItemStatusEffectTrigger.attackOwner:
       case ItemStatusEffectTrigger.attackOwnerReinforce:
@@ -820,12 +814,10 @@ class StatusItemEffect extends ItemEffect {
   }) {
     switch (trigger) {
       case ItemStatusEffectTrigger.receiveDamageSource:
-        return ItemEffectResolution(
+        return _applyStatusToOpponentFromOwner(
           owner: owner,
-          opponent: source.applyStatusFromSource(
-            _buildStatus(item),
-            source: owner,
-          ),
+          opponent: source,
+          status: _buildStatus(item),
         );
       case ItemStatusEffectTrigger.receiveDamageOwner:
         return ItemEffectResolution(

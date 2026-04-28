@@ -157,9 +157,7 @@ class CambioDeGuardiaAbilityEffect extends BattlerAbilityEffect {
     var updatedOwner = owner;
 
     if (cycleContext.isDay) {
-      updatedOwner = updatedOwner.copyWith(
-        currentBarrier: updatedOwner.currentBarrier + (amount * 2),
-      );
+      updatedOwner = updatedOwner.gainCombatBarrier(amount * 2);
     }
     if (cycleContext.isNight) {
       updatedOwner = updatedOwner.applyStatusFromSource(
@@ -189,23 +187,30 @@ class ToqueDeQuedaAbilityEffect extends BattlerAbilityEffect {
   }) {
     final cycleContext = cycleContextFor(owner);
     final amount = max(1, ability.currentValue);
+    var updatedOwner = owner;
     var updatedOpponent = opponent;
 
     if (cycleContext.isDay) {
-      updatedOpponent = updatedOpponent.applyStatusFromSource(
-        InterferenciaStatus(remainingTurns: amount),
-        source: owner,
+      final resolution = _applyAbilityStatusToOpponentFromOwner(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        status: InterferenciaStatus(remainingTurns: amount),
       );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
     }
     if (cycleContext.isNight) {
-      updatedOpponent = updatedOpponent.applyStatusFromSource(
-        FragilidadStatus(remainingTurns: amount),
-        source: owner,
+      final resolution = _applyAbilityStatusToOpponentFromOwner(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        status: FragilidadStatus(remainingTurns: amount),
       );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
     }
 
     return BattlerAbilityEffectResolution(
-      owner: owner.updateAbility(ability.startCooldown()),
+      owner: updatedOwner.updateAbility(ability.startCooldown()),
       opponent: updatedOpponent,
     );
   }
@@ -370,14 +375,15 @@ class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbility ability,
     required BattlerAbilityActivationContext screenContext,
   }) {
-    final updatedOpponent = opponent.applyStatusFromSource(
-      CatalisisCruelStatus(value: max(2, ability.currentValue)),
-      source: owner,
+    final resolution = _applyAbilityStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: CatalisisCruelStatus(value: max(2, ability.currentValue)),
     );
 
     return BattlerAbilityEffectResolution(
-      owner: owner.updateAbility(ability.startCooldown()),
-      opponent: updatedOpponent,
+      owner: resolution.owner.updateAbility(ability.startCooldown()),
+      opponent: resolution.opponent,
     );
   }
 }
@@ -521,12 +527,12 @@ class PulsoRepLAbilityEffect extends BattlerAbilityEffect {
   const PulsoRepLAbilityEffect()
       : super(
           hooks: const {
-            BattlerAbilityHook.turnStart,
+            BattlerAbilityHook.turnEnd,
           },
         );
 
   @override
-  BattlerAbilityEffectResolution onTurnStart({
+  BattlerAbilityEffectResolution onTurnEnd({
     required Battler owner,
     required Battler opponent,
     required BattlerAbility ability,
@@ -536,13 +542,8 @@ class PulsoRepLAbilityEffect extends BattlerAbilityEffect {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final targetBarrier = max(0, ability.currentValue);
-    if (owner.currentBarrier >= targetBarrier) {
-      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
-    }
-
     return BattlerAbilityEffectResolution(
-      owner: owner.copyWith(currentBarrier: targetBarrier),
+      owner: owner.gainCombatBarrier(max(0, ability.currentValue)),
       opponent: opponent,
     );
   }
@@ -587,9 +588,7 @@ class SustraccionAbilityEffect extends BattlerAbilityEffect {
       currentBarrier: max(0, target.currentBarrier - drainedBarrier),
     );
     final updatedOwner = owner
-        .copyWith(
-          currentBarrier: owner.currentBarrier + drainedBarrier,
-        )
+        .gainCombatBarrier(drainedBarrier)
         .updateAbility(ability.startCooldown());
 
     return BattlerAbilityEffectResolution(
@@ -750,21 +749,27 @@ class InyeccionCorrosivaAbilityEffect extends BattlerAbilityEffect {
   }) {
     final poisonValue = max(0, ability.currentValue);
     final currentPoison = opponent.statusById(IntoxicacionStatus.statusId);
-    final updatedOpponent = currentPoison is IntoxicacionStatus
-        ? opponent.replaceStatusInstance(
-            currentStatus: currentPoison,
-            replacement: currentPoison.copyWith(
-              value: currentPoison.value + poisonValue,
-            ),
-          )
-        : opponent.applyStatusFromSource(
-            IntoxicacionStatus(value: max(1, poisonValue)),
-            source: owner,
-          );
+    if (currentPoison is IntoxicacionStatus) {
+      return BattlerAbilityEffectResolution(
+        owner: owner.updateAbility(ability.startCooldown()),
+        opponent: opponent.replaceStatusInstance(
+          currentStatus: currentPoison,
+          replacement: currentPoison.copyWith(
+            value: currentPoison.value + poisonValue,
+          ),
+        ),
+      );
+    }
+
+    final resolution = _applyAbilityStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: IntoxicacionStatus(value: max(1, poisonValue)),
+    );
 
     return BattlerAbilityEffectResolution(
-      owner: owner.updateAbility(ability.startCooldown()),
-      opponent: updatedOpponent,
+      owner: resolution.owner.updateAbility(ability.startCooldown()),
+      opponent: resolution.opponent,
     );
   }
 }
@@ -809,40 +814,48 @@ class ReenrutadoInversoAbilityEffect extends BattlerAbilityEffect {
   }) {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
-    final loops = max(0, ability.currentValue);
+    final loops = max(1, ability.currentValue);
 
     for (var index = 0; index < loops; index++) {
-      final transferableDebuffs = updatedOwner.statuses
-          .where(
-            (status) =>
-                status.type == BattlerStatusType.debuff &&
-                !status.isIndefinite &&
-                status.remainingTurns > 0,
-          )
-          .toList(growable: false);
-      if (transferableDebuffs.isEmpty) break;
+      final transferableIndexes = <int>[];
+      for (var statusIndex = 0;
+          statusIndex < updatedOwner.statuses.length;
+          statusIndex++) {
+        final status = updatedOwner.statuses[statusIndex];
+        if (status.type != BattlerStatusType.debuff ||
+            status.isIndefinite ||
+            status.remainingTurns <= 0) {
+          continue;
+        }
+        transferableIndexes.add(statusIndex);
+      }
+      if (transferableIndexes.isEmpty) break;
 
       final selectedIndex = _stableSelectionIndex(
         owner: updatedOwner,
         opponent: updatedOpponent,
-        length: transferableDebuffs.length,
+        length: transferableIndexes.length,
         salt: index + 211,
       );
-      final selectedDebuff = transferableDebuffs[selectedIndex];
+      final selectedStatusIndex = transferableIndexes[selectedIndex];
+      final selectedDebuff = updatedOwner.statuses[selectedStatusIndex];
+      final transferredDebuff = selectedDebuff.copyWith(remainingTurns: 1);
       final nextRemainingTurns = selectedDebuff.remainingTurns - 1;
+
+      final updatedStatuses = List<BattlerStatus>.from(updatedOwner.statuses);
       if (nextRemainingTurns <= 0) {
-        updatedOwner = updatedOwner.removeStatusInstance(selectedDebuff);
+        updatedStatuses.removeAt(selectedStatusIndex);
       } else {
-        updatedOwner = updatedOwner.replaceStatusInstance(
-          currentStatus: selectedDebuff,
-          replacement: selectedDebuff.copyWith(
-            remainingTurns: nextRemainingTurns,
-          ),
+        updatedStatuses[selectedStatusIndex] = selectedDebuff.copyWith(
+          remainingTurns: nextRemainingTurns,
         );
       }
+      updatedOwner = updatedOwner.copyWith(
+        statuses: List<BattlerStatus>.unmodifiable(updatedStatuses),
+      );
 
       updatedOpponent = updatedOpponent.applyStatus(
-        selectedDebuff.copyWith(remainingTurns: 1),
+        transferredDebuff,
         applyEquipmentModifiers: false,
       );
     }

@@ -67,6 +67,9 @@ class BattleResolver {
       damage: damageDealt,
       source: attacker,
     );
+    final barrierWasBrokenByAttack = defender.currentBarrier > 0 &&
+        defenderAfterDamage.currentBarrier <= 0 &&
+        damageDealt > 0;
     var updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
       owner: attacker,
       target: defenderAfterDamage,
@@ -90,6 +93,11 @@ class BattleResolver {
     );
     updatedAttacker = attackItemResolution.owner;
     updatedDefender = attackItemResolution.opponent;
+    if (barrierWasBrokenByAttack) {
+      updatedDefender = updatedDefender.addCombatFlag(
+        Battler.barrierBrokenThisHitFlag,
+      );
+    }
 
     updatedDefender = _effectPipeline.applyReceiveDamageResolvedEffects(
       owner: updatedDefender,

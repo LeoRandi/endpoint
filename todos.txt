@@ -121,6 +121,9 @@ ARREGLAR:
 -El botón de equipar/desequipar en al tienda a veces desaparece al desequipar/vender en una tienda?
 -En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña(pequeño cambio visual)
 
+-Nerf:
+--Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
+
 ////
 PROBAR:
 

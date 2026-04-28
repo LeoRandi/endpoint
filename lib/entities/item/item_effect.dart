@@ -62,6 +62,20 @@ class ItemAbilityPreparationResolution {
   });
 }
 
+/// Devuelve el estado resultante cuando un item intercepta un estado entrante.
+class ItemIncomingStatusResolution {
+  final Battler owner;
+  final Battler source;
+  final BattlerStatus? status;
+
+  /// Crea una resolucion para modificar/cancelar/redirigir un estado entrante.
+  const ItemIncomingStatusResolution({
+    required this.owner,
+    required this.source,
+    required this.status,
+  });
+}
+
 /// Sirve como base comun para todos los hooks reactivos de los objetos equipados.
 abstract class ItemEffect {
   final String description;
@@ -230,6 +244,25 @@ abstract class ItemEffect {
     return status;
   }
 
+  /// Permite que un item reaccione a un estado recibido y tambien altere la fuente.
+  ItemIncomingStatusResolution onIncomingStatus({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required BattlerStatus status,
+  }) {
+    return ItemIncomingStatusResolution(
+      owner: owner,
+      source: source,
+      status: modifyIncomingStatus(
+        owner: owner,
+        source: source,
+        item: item,
+        status: status,
+      ),
+    );
+  }
+
   /// Permite interceptar un golpe letal justo antes de que el portador muera.
   Battler onReceiveFatalDamage({
     required Battler owner,
@@ -258,9 +291,7 @@ Battler _recoverBarrier({
     return owner;
   }
 
-  return owner.copyWith(
-    currentBarrier: owner.currentBarrier + safeAmount,
-  );
+  return owner.gainCombatBarrier(safeAmount);
 }
 
 /// Suma barrera directa sin aplicar tope de barrera maxima.
@@ -435,15 +466,34 @@ Battler _refreshMinimumBarrier({
   );
 }
 
+ItemEffectResolution _applyStatusToOpponentFromOwner({
+  required Battler owner,
+  required Battler opponent,
+  required BattlerStatus status,
+  bool applyEquipmentModifiers = true,
+}) {
+  final resolution = opponent.applyStatusFromSourceResolved(
+    status,
+    source: owner,
+    applyEquipmentModifiers: applyEquipmentModifiers,
+  );
+  return ItemEffectResolution(
+    owner: resolution.source,
+    opponent: resolution.owner,
+  );
+}
+
 /// Genera flags de combate estables para que cada item controle usos por instancia.
 /// Genera una flag runtime tipada para aislar usos de efectos por item o por instancia.
 CombatRuntimeFlag _itemCombatFlag(
   Item item,
-  ItemCombatFlagKind flag,
-) {
+  ItemCombatFlagKind flag, [
+  int? value,
+]) {
   return CombatRuntimeFlag.item(
     itemFlag: flag,
     itemId: item.id,
     itemInstanceId: item.instanceId,
+    value: value,
   );
 }

@@ -4,6 +4,17 @@ extension BattlerCombatRuntime on Battler {
   /// Comprueba si una flag de combate concreta sigue activa.
   bool hasCombatFlag(CombatRuntimeFlag flag) => combatFlags.contains(flag);
 
+  /// Devuelve la ronda de combate que el controlador ha sincronizado.
+  int get combatRound {
+    for (final flag in combatFlags) {
+      if (flag.battlerFlag == BattlerCombatFlag.currentRoundMarker) {
+        return max(1, flag.value ?? 1);
+      }
+    }
+
+    return 1;
+  }
+
   /// Indica si el ataque basico actual todavia tiene impactos pendientes.
   bool get hasPendingBasicAttackFollowUp {
     return hasCombatFlag(Battler.pendingBasicAttackFollowUpFlag);
@@ -34,9 +45,76 @@ extension BattlerCombatRuntime on Battler {
     }
 
     final nextBarrier = currentBarrier + safeAmount;
-    return copyWith(
+    final updatedOwner = copyWith(
       currentBarrier:
           allowAboveMax ? nextBarrier : min(maxBarrier, nextBarrier),
+    );
+    return updatedOwner._recordCombatBarrierGain(safeAmount);
+  }
+
+  /// Sincroniza la ronda visible para efectos que necesitan historial temporal.
+  Battler withCombatRound(int round) {
+    final safeRound = max(1, round);
+    final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags)
+      ..removeWhere(
+        (flag) => flag.battlerFlag == BattlerCombatFlag.currentRoundMarker,
+      )
+      ..add(
+        CombatRuntimeFlag.battler(
+          BattlerCombatFlag.currentRoundMarker,
+          value: safeRound,
+        ),
+      );
+
+    return copyWith(
+      combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
+    );
+  }
+
+  /// Suma cuanta Barrera se ha ganado durante las ultimas rondas de combate.
+  int barrierGainedInRecentCombatRounds(int roundCount) {
+    final safeRoundCount = max(1, roundCount);
+    final currentCombatRound = combatRound;
+    final oldestRound = max(1, currentCombatRound - safeRoundCount + 1);
+    var total = 0;
+
+    for (final flag in combatFlags) {
+      if (flag.battlerFlag != BattlerCombatFlag.barrierGainMarker) continue;
+      final round = flag.value;
+      if (round == null || round < oldestRound || round > currentCombatRound) {
+        continue;
+      }
+      total += max(0, flag.secondaryValue ?? 0);
+    }
+
+    return total;
+  }
+
+  /// Cuenta activaciones de un item concreto durante este combate.
+  int itemCombatFlagUseCount({
+    required Item item,
+    required ItemCombatFlagKind kind,
+  }) {
+    return combatFlags.where((flag) {
+      return flag.itemFlag == kind &&
+          flag.itemId == item.id &&
+          flag.itemInstanceId == item.instanceId;
+    }).length;
+  }
+
+  /// Registra una activacion adicional de un item para efectos limitados.
+  Battler addItemCombatFlagUse({
+    required Item item,
+    required ItemCombatFlagKind kind,
+  }) {
+    final nextUse = itemCombatFlagUseCount(item: item, kind: kind);
+    return addCombatFlag(
+      CombatRuntimeFlag.item(
+        itemFlag: kind,
+        itemId: item.id,
+        itemInstanceId: item.instanceId,
+        value: nextUse,
+      ),
     );
   }
 
@@ -67,5 +145,36 @@ extension BattlerCombatRuntime on Battler {
     if (combatFlags.isEmpty) return this;
 
     return copyWith(combatFlags: const <CombatRuntimeFlag>{});
+  }
+
+  Battler _recordCombatBarrierGain(int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || !hasCombatFlag(Battler.combatActiveFlag)) {
+      return this;
+    }
+
+    final currentCombatRound = combatRound;
+    var previousAmount = 0;
+    final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags);
+    updatedFlags.removeWhere((flag) {
+      final isRoundMarker =
+          flag.battlerFlag == BattlerCombatFlag.barrierGainMarker &&
+              flag.value == currentCombatRound;
+      if (isRoundMarker) {
+        previousAmount += max(0, flag.secondaryValue ?? 0);
+      }
+      return isRoundMarker;
+    });
+    updatedFlags.add(
+      CombatRuntimeFlag.battler(
+        BattlerCombatFlag.barrierGainMarker,
+        value: currentCombatRound,
+        secondaryValue: previousAmount + safeAmount,
+      ),
+    );
+
+    return copyWith(
+      combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
+    );
   }
 }

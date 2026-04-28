@@ -429,22 +429,44 @@ class BattlerEffectPipeline {
     required Battler source,
     required BattlerStatus status,
   }) {
+    return applyEquippedItemIncomingStatusEffects(
+      owner: owner,
+      source: source,
+      status: status,
+    ).status;
+  }
+
+  ItemIncomingStatusResolution applyEquippedItemIncomingStatusEffects({
+    required Battler owner,
+    required Battler source,
+    required BattlerStatus status,
+  }) {
+    var updatedOwner = owner;
+    var updatedSource = source;
     BattlerStatus? updatedStatus = status;
 
-    for (final item
-        in owner.equippedItemsForHook(ItemEffectHook.incomingStatusModifier)) {
+    for (final item in updatedOwner.equippedItemsForHook(
+      ItemEffectHook.incomingStatusModifier,
+    )) {
       final effect = item.effect;
       if (effect == null || updatedStatus == null) continue;
 
-      updatedStatus = effect.modifyIncomingStatus(
-        owner: owner,
-        source: source,
+      final resolution = effect.onIncomingStatus(
+        owner: updatedOwner,
+        source: updatedSource,
         item: item,
         status: updatedStatus,
       );
+      updatedOwner = resolution.owner;
+      updatedSource = resolution.source;
+      updatedStatus = resolution.status;
     }
 
-    return updatedStatus;
+    return ItemIncomingStatusResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      source: updatedSource.pruneExpiredStatuses(),
+      status: updatedStatus,
+    );
   }
 
   int applyAbilityIncomingDamageModifiers({

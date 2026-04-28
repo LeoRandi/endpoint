@@ -134,6 +134,7 @@ class BattleController extends ChangeNotifier {
         _turnEngine = turnEngine {
     _playerInitialBlockBarrier = max(0, _player.maxBarrier);
     _enemyInitialBlockBarrier = max(0, _enemy.maxBarrier);
+    _syncCombatRoundFlags();
     _enemyNextAction = _rollEnemyTurnAction();
     _beginTurnWithoutAnimation(BattleTurnState.player, notify: false);
   }
@@ -1024,11 +1025,144 @@ class BattleController extends ChangeNotifier {
     return true;
   }
 
+  void _syncCombatRoundFlags() {
+    _player = _player.withCombatRound(_currentRound);
+    _enemy = _enemy.withCombatRound(_currentRound);
+  }
+
+  Future<void> _resolveEmergencyPlatingAutoBlockForTurnStart(
+    BattleTurnState activeTurn,
+  ) async {
+    final side = _combatantSideForTurn(activeTurn);
+    if (side == null) return;
+
+    final defender = side == BattleCombatantSide.player ? _player : _enemy;
+    final opponent = side == BattleCombatantSide.player ? _enemy : _player;
+    final item = _eligibleEmergencyPlatingAutoBlockItem(defender);
+    if (item == null) return;
+
+    final defendResolution = _resolveEmergencyPlatingAutoBlock(
+      defender: defender,
+      opponent: opponent,
+      side: side,
+      item: item,
+    );
+    await _playBlockResolutionAnimation(
+      defenderSide: side,
+      defenderBefore: defender,
+      opponentBefore: opponent,
+      defenderAfter: defendResolution.defender,
+      opponentAfter: defendResolution.opponent,
+    );
+    if (_isDisposed) return;
+    _applyDefendResolutionForSide(
+      side: side,
+      resolution: defendResolution,
+    );
+  }
+
+  void _resolveEmergencyPlatingAutoBlockForTurnStartWithoutAnimation(
+    BattleTurnState activeTurn,
+  ) {
+    final side = _combatantSideForTurn(activeTurn);
+    if (side == null) return;
+
+    final defender = side == BattleCombatantSide.player ? _player : _enemy;
+    final opponent = side == BattleCombatantSide.player ? _enemy : _player;
+    final item = _eligibleEmergencyPlatingAutoBlockItem(defender);
+    if (item == null) return;
+
+    final defendResolution = _resolveEmergencyPlatingAutoBlock(
+      defender: defender,
+      opponent: opponent,
+      side: side,
+      item: item,
+    );
+    _applyDefendResolutionForSide(
+      side: side,
+      resolution: defendResolution,
+    );
+  }
+
+  _DefendActionResolution _resolveEmergencyPlatingAutoBlock({
+    required Battler defender,
+    required Battler opponent,
+    required BattleCombatantSide side,
+    required Item item,
+  }) {
+    final defendResolution = _resolveDefendAction(
+      defender: defender,
+      opponent: opponent,
+      barrierGain: _blockBarrierGainForSide(side),
+    );
+    return _DefendActionResolution(
+      defender: defendResolution.defender.addItemCombatFlagUse(
+        item: item,
+        kind: ItemCombatFlagKind.emergencyPlatingAutoBlockUsed,
+      ),
+      opponent: defendResolution.opponent,
+    );
+  }
+
+  Item? _eligibleEmergencyPlatingAutoBlockItem(Battler battler) {
+    if (battler.isDefeated ||
+        battler.maxHealth <= 0 ||
+        battler.health * 2 >= battler.maxHealth) {
+      return null;
+    }
+
+    for (final item in battler.equippedItems) {
+      if (item.id != ItemId.emergencyPlating) continue;
+      final maxUses = max(1, item.value);
+      final used = battler.itemCombatFlagUseCount(
+        item: item,
+        kind: ItemCombatFlagKind.emergencyPlatingAutoBlockUsed,
+      );
+      if (used < maxUses) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
+  BattleCombatantSide? _combatantSideForTurn(BattleTurnState activeTurn) {
+    switch (activeTurn) {
+      case BattleTurnState.player:
+        return BattleCombatantSide.player;
+      case BattleTurnState.enemy:
+        return BattleCombatantSide.enemy;
+      case BattleTurnState.finished:
+        return null;
+    }
+  }
+
+  int _blockBarrierGainForSide(BattleCombatantSide side) {
+    return side == BattleCombatantSide.player
+        ? _playerCurrentBlockBarrierGain()
+        : _enemyInitialBlockBarrier;
+  }
+
+  void _applyDefendResolutionForSide({
+    required BattleCombatantSide side,
+    required _DefendActionResolution resolution,
+  }) {
+    if (side == BattleCombatantSide.player) {
+      _player = resolution.defender;
+      _enemy = resolution.opponent;
+      return;
+    }
+
+    _enemy = resolution.defender;
+    _player = resolution.opponent;
+  }
+
   Future<void> _beginTurn(
     BattleTurnState nextTurn, {
     bool notify = true,
   }) async {
     _turn = nextTurn;
+    _syncCombatRoundFlags();
     final playerBefore = _player;
     final enemyBefore = _enemy;
     final resolution = _turnEngine.beginTurn(
@@ -1058,12 +1192,6 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    final pressureResolution = _applyTurnPressureDamageIfNeeded(
-      player: nextPlayer,
-      enemy: nextEnemy,
-    );
-    nextPlayer = pressureResolution.player;
-    nextEnemy = pressureResolution.enemy;
     await _playCombatStateTransitionAnimations(
       playerBefore: playerBefore,
       enemyBefore: enemyBefore,
@@ -1073,6 +1201,36 @@ class BattleController extends ChangeNotifier {
     if (_isDisposed) return;
     _player = nextPlayer;
     _enemy = nextEnemy;
+
+    await _resolveEmergencyPlatingAutoBlockForTurnStart(nextTurn);
+    if (_isDisposed) return;
+    final autoBlockFinish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (autoBlockFinish != null) {
+      _finishCombat(
+        resultType: autoBlockFinish.resultType,
+        resultText: autoBlockFinish.resultText,
+      );
+      return;
+    }
+
+    final pressureBeforePlayer = _player;
+    final pressureBeforeEnemy = _enemy;
+    final pressureResolution = _applyTurnPressureDamageIfNeeded(
+      player: _player,
+      enemy: _enemy,
+    );
+    await _playCombatStateTransitionAnimations(
+      playerBefore: pressureBeforePlayer,
+      enemyBefore: pressureBeforeEnemy,
+      playerAfter: pressureResolution.player,
+      enemyAfter: pressureResolution.enemy,
+    );
+    if (_isDisposed) return;
+    _player = pressureResolution.player;
+    _enemy = pressureResolution.enemy;
     final pressureFinish = _turnEngine.finishFor(
       player: _player,
       enemy: _enemy,
@@ -1095,6 +1253,7 @@ class BattleController extends ChangeNotifier {
     bool notify = true,
   }) {
     _turn = nextTurn;
+    _syncCombatRoundFlags();
     final resolution = _turnEngine.beginTurn(
       isPlayerTurn: nextTurn == BattleTurnState.player,
       player: _player,
@@ -1112,9 +1271,25 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
+    _player = resolution.player;
+    _enemy = resolution.enemy;
+    _resolveEmergencyPlatingAutoBlockForTurnStartWithoutAnimation(nextTurn);
+
+    final autoBlockFinish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (autoBlockFinish != null) {
+      _finishCombat(
+        resultType: autoBlockFinish.resultType,
+        resultText: autoBlockFinish.resultText,
+      );
+      return;
+    }
+
     final pressureResolution = _applyTurnPressureDamageIfNeeded(
-      player: resolution.player,
-      enemy: resolution.enemy,
+      player: _player,
+      enemy: _enemy,
     );
     _player = pressureResolution.player;
     _enemy = pressureResolution.enemy;
@@ -1484,9 +1659,7 @@ class BattleController extends ChangeNotifier {
         _player = _player.copyWith(
           currentBarrier: _player.currentBarrier - transferredBarrier,
         );
-        _enemy = _enemy.copyWith(
-          currentBarrier: _enemy.currentBarrier + transferredBarrier,
-        );
+        _enemy = _enemy.gainCombatBarrier(transferredBarrier);
       }
     }
 

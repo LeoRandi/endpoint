@@ -73,21 +73,14 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
   }) {
     final resolvedAmount = max(1, item.value > 0 ? item.value : amount);
     final currentPoison = target.statusById(IntoxicacionStatus.statusId);
-    final updatedTarget = currentPoison is IntoxicacionStatus
-        ? target.applyStatusFromSource(
-            currentPoison.copyWith(
-              value: currentPoison.value + resolvedAmount,
-            ),
-            source: owner,
-          )
-        : target.applyStatusFromSource(
-            IntoxicacionStatus(value: resolvedAmount),
-            source: owner,
-          );
-
-    return ItemEffectResolution(
+    return _applyStatusToOpponentFromOwner(
       owner: owner,
-      opponent: updatedTarget,
+      opponent: target,
+      status: currentPoison is IntoxicacionStatus
+          ? currentPoison.copyWith(
+              value: currentPoison.value + resolvedAmount,
+            )
+          : IntoxicacionStatus(value: resolvedAmount),
     );
   }
 }
@@ -202,9 +195,7 @@ class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: owner.copyWith(
-        currentBarrier: owner.currentBarrier + amount,
-      ),
+      owner: owner.gainCombatBarrier(amount),
       opponent: opponent,
     );
   }
@@ -312,12 +303,10 @@ class ShockMeshItemEffect extends ItemEffect {
       return ItemEffectResolution(owner: owner, opponent: source);
     }
 
-    return ItemEffectResolution(
+    return _applyStatusToOpponentFromOwner(
       owner: owner,
-      opponent: source.applyStatusFromSource(
-        ConmocionStatus(value: max(1, item.value)),
-        source: owner,
-      ),
+      opponent: source,
+      status: ConmocionStatus(value: max(1, item.value)),
     );
   }
 }
@@ -351,27 +340,27 @@ class ToxicScalpelItemEffect extends ItemEffect {
     final currentPoison = target.statusById(IntoxicacionStatus.statusId);
     final hadPoison = currentPoison is IntoxicacionStatus;
 
-    var updatedTarget = hadPoison
-        ? target.applyStatusFromSource(
-            currentPoison.copyWith(
+    var resolution = _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: target,
+      status: currentPoison is IntoxicacionStatus
+          ? currentPoison.copyWith(
               value: currentPoison.value + resolvedAmount,
-            ),
-            source: owner,
-          )
-        : target.applyStatusFromSource(
-            IntoxicacionStatus(value: resolvedAmount),
-            source: owner,
-          );
+            )
+          : IntoxicacionStatus(value: resolvedAmount),
+    );
+    var updatedOwner = resolution.owner;
+    var updatedTarget = resolution.opponent;
 
     if (hadPoison) {
       updatedTarget = updatedTarget.receiveDirectDamage(
         resolvedAmount,
-        source: owner,
+        source: updatedOwner,
       );
     }
 
     return ItemEffectResolution(
-      owner: owner,
+      owner: updatedOwner,
       opponent: updatedTarget,
     );
   }

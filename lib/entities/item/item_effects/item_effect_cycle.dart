@@ -176,12 +176,10 @@ class FaroNoctivagoItemEffect extends ItemEffect {
       return ItemEffectResolution(owner: owner, opponent: target);
     }
 
-    return ItemEffectResolution(
+    return _applyStatusToOpponentFromOwner(
       owner: owner,
-      opponent: target.applyStatusFromSource(
-        FragilidadStatus(remainingTurns: max(1, item.value)),
-        source: owner,
-      ),
+      opponent: target,
+      status: FragilidadStatus(remainingTurns: max(1, item.value)),
     );
   }
 
@@ -196,12 +194,10 @@ class FaroNoctivagoItemEffect extends ItemEffect {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
-    return ItemEffectResolution(
+    return _applyStatusToOpponentFromOwner(
       owner: owner,
-      opponent: opponent.applyStatusFromSource(
-        InterferenciaStatus(remainingTurns: max(1, item.value)),
-        source: owner,
-      ),
+      opponent: opponent,
+      status: InterferenciaStatus(remainingTurns: max(1, item.value)),
     );
   }
 }

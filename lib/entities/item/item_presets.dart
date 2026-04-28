@@ -780,26 +780,26 @@ const stunBatonItem = Item(
   ),
 );
 
-/// Armadura gris basica que asegura un minimo de barrera al iniciar turno.
+/// Armadura morada que bloquea automaticamente cuando la vida cae demasiado.
 const emergencyPlatingItem = Item(
   id: ItemId.emergencyPlating,
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Placa de Emergencia',
   description:
-      '+1 Barrera. Al inicio de tu turno, si tienes menos de 2 de Barrera, la subes hasta 2.',
+      '+2 Barrera. Las primeras 2 veces en combate que empieces tu turno por debajo de la mitad de vida, bloqueas sin gastar tu turno.',
   iconEmoji: '\u{1F6A7}',
-  rarity: RarityTier.gray,
-  baseCost: 2,
+  rarity: RarityTier.purple,
+  baseCost: 8,
   value: 2,
-  upgradeValue: 1,
+  upgradeValue: 2,
   statModifiers: {
-    BattlerStat.barrier: 1,
+    BattlerStat.barrier: 2,
   },
   upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
+    BattlerStat.barrier: 2,
   },
-  effect: RefreshMinimumBarrierOnTurnStartItemEffect(),
+  effect: EmergencyPlatingItemEffect(),
 );
 
 /// Accesorio gris reactivo que silencia al agresor.
@@ -1101,20 +1101,26 @@ const vectorBulwarkItem = Item(
   ),
 );
 
-/// Accesorio amarillo que asegura un suelo de barrera alto al arrancar turno.
+/// Accesorio azul que descarga la barrera ganada cuando se rompe.
 const contingencySealItem = Item(
   id: ItemId.contingencySeal,
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Sello de Contingencia',
   description:
-      'Al inicio de tu turno, si tienes menos de 4 de Barrera, la subes hasta 4.',
+      '+1 Barrera. Cuando se rompe tu Barrera, haces dano al agresor igual a la Barrera ganada en la ultima ronda de este combate.',
   iconEmoji: '\u2726',
-  rarity: RarityTier.yellow,
-  baseCost: 10,
-  value: 4,
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 1,
   upgradeValue: 1,
-  effect: RefreshMinimumBarrierOnTurnStartItemEffect(),
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: ContingencySealItemEffect(),
 );
 
 /// Arma amarilla de daño alto para el tramo final.
@@ -1355,23 +1361,20 @@ const toxicScalpelItem = Item(
   effect: ToxicScalpelItemEffect(),
 );
 
-/// Accesorio verde de seguridad que convierte turnos sin barrera en recarga minima.
+/// Accesorio gris de seguridad que redirige los primeros debuffs recibidos.
 const deflectiveCapacitorItem = Item(
   id: ItemId.deflectiveCapacitor,
   archetypeAffinities: _velozInamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Condensador Deflectivo',
   description:
-      '+1 Barrera. Al inicio de tu turno, si estas a 0 de Barrera, subes tu Barrera hasta 2.',
+      '+1 Barrera. La primera vez que fueras a recibir un debuff, se lo aplicas al enemigo.',
   iconEmoji: '\u{1F530}',
-  rarity: RarityTier.green,
-  baseCost: 4,
-  value: 2,
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 1,
   upgradeValue: 1,
   statModifiers: {
-    BattlerStat.barrier: 1,
-  },
-  upgradeStatModifiers: {
     BattlerStat.barrier: 1,
   },
   effect: DeflectiveCapacitorItemEffect(),

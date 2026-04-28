@@ -1,40 +1,118 @@
 part of '../item_effect.dart';
 
-/// Convierte el turno sin barrera en una recarga minima de barrera.
+/// Describe el autobloqueo de emergencia que resuelve el controlador.
+class EmergencyPlatingItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Placa de Emergencia.
+  const EmergencyPlatingItemEffect()
+      : super(
+          description:
+              'Bloquea automaticamente al inicio de turno con poca vida.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final amount = max(1, item.value);
+    return '+$amount Barrera. Las primeras $amount veces en combate que empieces tu turno por debajo de la mitad de vida, bloqueas sin gastar tu turno.';
+  }
+}
+
+/// Redirige los primeros debuffs recibidos hacia quien los envio.
 class DeflectiveCapacitorItemEffect extends ItemEffect {
   /// Crea el efecto propio del Condensador Deflectivo.
   const DeflectiveCapacitorItemEffect()
       : super(
           description:
-              'Si empiezas tu turno sin barrera, recuperas barrera minima.',
+              'Redirige los primeros debuffs recibidos hacia la fuente.',
           hooks: const {
-            ItemEffectHook.turnStart,
+            ItemEffectHook.incomingStatusModifier,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al inicio de tu turno, si estas a 0 de Barrera, subes tu Barrera hasta ${max(1, item.value)}.';
+    return '+1 Barrera. Las primeras ${max(1, item.value)} veces que fueras a recibir un debuff en combate, se lo aplicas al enemigo.';
   }
 
   @override
-  ItemEffectResolution onTurnStart({
+  ItemIncomingStatusResolution onIncomingStatus({
     required Battler owner,
-    required Battler opponent,
+    required Battler source,
     required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    required BattlerStatus status,
   }) {
-    if (!isOwnerTurn || owner.currentBarrier > 0) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
+    final maxReflections = max(1, item.value);
+    final usedReflections = owner.itemCombatFlagUseCount(
+      item: item,
+      kind: ItemCombatFlagKind.deflectiveCapacitorReflectedDebuff,
+    );
+    if (status.type != BattlerStatusType.debuff ||
+        identical(owner, source) ||
+        usedReflections >= maxReflections) {
+      return ItemIncomingStatusResolution(
+        owner: owner,
+        source: source,
+        status: status,
+      );
+    }
+
+    final updatedOwner = owner.addItemCombatFlagUse(
+      item: item,
+      kind: ItemCombatFlagKind.deflectiveCapacitorReflectedDebuff,
+    );
+    final updatedSource = source.applyStatus(
+      status.copyWith(),
+      applyEquipmentModifiers: false,
+    );
+    return ItemIncomingStatusResolution(
+      owner: updatedOwner,
+      source: updatedSource,
+      status: null,
+    );
+  }
+}
+
+/// Devuelve una descarga cuando la barrera del portador se rompe.
+class ContingencySealItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Sello de Contingencia.
+  const ContingencySealItemEffect()
+      : super(
+          description:
+              'Cuando tu barrera se rompe, descarga la barrera ganada recientemente.',
+          hooks: const {
+            ItemEffectHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final rounds = max(1, item.value);
+    return '+$rounds Barrera. Cuando se rompe tu Barrera, haces al agresor dano directo igual a la Barrera ganada en las ultimas $rounds rondas de este combate.';
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    if (!owner.hasCombatFlag(Battler.barrierBrokenThisHitFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+
+    final reflectedDamage = owner.barrierGainedInRecentCombatRounds(
+      max(1, item.value),
+    );
+    if (reflectedDamage <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: source);
     }
 
     return ItemEffectResolution(
-      owner: _refreshMinimumBarrier(
-        owner: owner,
-        value: item.value,
+      owner: owner,
+      opponent: source.receiveDirectDamage(
+        reflectedDamage,
+        source: owner,
       ),
-      opponent: opponent,
     );
   }
 }
@@ -65,10 +143,13 @@ class InterferenceCannonItemEffect extends ItemEffect {
   }) {
     final resolvedDuration = max(1, item.value);
     final hadInterference = target.hasStatus(InterferenciaStatus.statusId);
-    var updatedTarget = target.applyStatusFromSource(
-      InterferenciaStatus(remainingTurns: resolvedDuration),
-      source: owner,
+    var resolution = _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: target,
+      status: InterferenciaStatus(remainingTurns: resolvedDuration),
     );
+    var updatedOwner = resolution.owner;
+    var updatedTarget = resolution.opponent;
 
     if (hadInterference && updatedTarget.currentBarrier > 0) {
       updatedTarget = updatedTarget.copyWith(
@@ -77,7 +158,7 @@ class InterferenceCannonItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: owner,
+      owner: updatedOwner,
       opponent: updatedTarget,
     );
   }
@@ -302,12 +383,10 @@ class ReboundLensItemEffect extends ItemEffect {
       return ItemEffectResolution(owner: owner, opponent: source);
     }
 
-    return ItemEffectResolution(
+    return _applyStatusToOpponentFromOwner(
       owner: owner.addCombatFlag(triggeredFlag),
-      opponent: source.applyStatusFromSource(
-        FragilidadStatus(remainingTurns: max(1, item.value)),
-        source: owner,
-      ),
+      opponent: source,
+      status: FragilidadStatus(remainingTurns: max(1, item.value)),
     );
   }
 }

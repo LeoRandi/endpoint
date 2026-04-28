@@ -224,6 +224,23 @@ int _stableSelectionIndex({
   return seed.abs() % length;
 }
 
+BattlerAbilityEffectResolution _applyAbilityStatusToOpponentFromOwner({
+  required Battler owner,
+  required Battler opponent,
+  required BattlerStatus status,
+  bool applyEquipmentModifiers = true,
+}) {
+  final resolution = opponent.applyStatusFromSourceResolved(
+    status,
+    source: owner,
+    applyEquipmentModifiers: applyEquipmentModifiers,
+  );
+  return BattlerAbilityEffectResolution(
+    owner: resolution.source,
+    opponent: resolution.owner,
+  );
+}
+
 /// Agrupa el estado final del usuario y del rival tras resolver un efecto de habilidad.
 class BattlerAbilityEffectResolution {
   final Battler owner;
@@ -662,7 +679,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.cashflow:
       return 'Pasiva. Al comienzo de cada hora, ganas creditos iguales a tu income actual.';
     case BattlerAbilityId.pulsoRepL:
-      return 'Pasiva. Al inicio de tu turno, si tienes menos de $amount de Barrera, subes tu Barrera hasta $amount.';
+      return 'Pasiva. Al final de tu turno, ganas $amount de Barrera.';
     case BattlerAbilityId.sustraccion:
       return 'Activacion manual en combate. Tras el siguiente ataque, absorbes hasta $amount de Barrera del objetivo.';
     case BattlerAbilityId.limpiezaCache:
@@ -676,7 +693,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.escanerRuptura:
       return 'Pasiva. Tus ataques infligen +$amount daño si el objetivo tiene al menos un buff.';
     case BattlerAbilityId.reenrutadoInverso:
-      return 'Activacion manual en combate. Transfiere 1 turno de un debuff aleatorio tuyo al enemigo $amount veces.';
+      return 'Activacion manual en combate. Transfiere 1 turno de un debuff aleatorio tuyo al enemigo $positiveAmount veces.';
     case BattlerAbilityId.jaulaSenal:
       return 'Activacion manual en combate. Una habilidad manual del enemigo se desactiva y gana +$amount turnos de cooldown.';
     case BattlerAbilityId.nucleoParasitario:

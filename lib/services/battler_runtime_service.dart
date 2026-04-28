@@ -7,6 +7,16 @@ import 'run_hour_snapshot.dart';
 
 const BattlerEffectPipeline _battlerEffectPipeline = BattlerEffectPipeline();
 
+class BattlerStatusFromSourceResolution {
+  final Battler owner;
+  final Battler source;
+
+  const BattlerStatusFromSourceResolution({
+    required this.owner,
+    required this.source,
+  });
+}
+
 /// Ejecuta hooks runtime de combate y habilidades fuera del modelo inmutable.
 extension BattlerRuntimeService on Battler {
   /// Recibe un ataque basico de otro battler y resuelve daño directo.
@@ -22,17 +32,27 @@ extension BattlerRuntimeService on Battler {
     final safeDamage = max(0, damage);
     if (safeDamage <= 0) return this;
 
-    final absorbedByBarrier = min(currentBarrier, safeDamage);
+    final ownerBeforeDamage =
+        removeCombatFlag(Battler.barrierBrokenThisHitFlag);
+    final absorbedByBarrier = min(ownerBeforeDamage.currentBarrier, safeDamage);
     final ownerAfterBarrier = absorbedByBarrier <= 0
-        ? this
-        : copyWith(currentBarrier: currentBarrier - absorbedByBarrier);
+        ? ownerBeforeDamage
+        : ownerBeforeDamage.copyWith(
+            currentBarrier:
+                ownerBeforeDamage.currentBarrier - absorbedByBarrier,
+          );
+    final resolvedOwnerAfterBarrier = ownerBeforeDamage.currentBarrier > 0 &&
+            absorbedByBarrier > 0 &&
+            ownerAfterBarrier.currentBarrier <= 0
+        ? ownerAfterBarrier.addCombatFlag(Battler.barrierBrokenThisHitFlag)
+        : ownerAfterBarrier;
     final remainingDamage = max(0, safeDamage - absorbedByBarrier);
     if (remainingDamage <= 0) {
-      return ownerAfterBarrier;
+      return resolvedOwnerAfterBarrier;
     }
 
-    final damagedOwner = ownerAfterBarrier.copyWith(
-      health: max(0, ownerAfterBarrier.health - remainingDamage),
+    final damagedOwner = resolvedOwnerAfterBarrier.copyWith(
+      health: max(0, resolvedOwnerAfterBarrier.health - remainingDamage),
     );
     if (damagedOwner.health > 0) {
       return damagedOwner;
@@ -210,31 +230,55 @@ extension BattlerRuntimeService on Battler {
     required Battler source,
     bool applyEquipmentModifiers = true,
   }) {
+    return applyStatusFromSourceResolved(
+      status,
+      source: source,
+      applyEquipmentModifiers: applyEquipmentModifiers,
+    ).owner;
+  }
+
+  /// Aplica un estado y devuelve tambien la fuente por si el equipo lo redirige.
+  BattlerStatusFromSourceResolution applyStatusFromSourceResolved(
+    BattlerStatus status, {
+    required Battler source,
+    bool applyEquipmentModifiers = true,
+  }) {
+    var updatedOwner = this;
+    var updatedSource = source;
     BattlerStatus? instancedStatus = status.copyWith();
     if (applyEquipmentModifiers) {
       instancedStatus =
           _battlerEffectPipeline.applyEquippedItemOutgoingStatusModifiers(
-        owner: source,
-        target: this,
+        owner: updatedSource,
+        target: updatedOwner,
         status: instancedStatus,
       );
       if (instancedStatus != null) {
-        instancedStatus =
-            _battlerEffectPipeline.applyEquippedItemIncomingStatusModifiers(
-          owner: this,
-          source: source,
+        final incomingResolution =
+            _battlerEffectPipeline.applyEquippedItemIncomingStatusEffects(
+          owner: updatedOwner,
+          source: updatedSource,
           status: instancedStatus,
         );
+        updatedOwner = incomingResolution.owner;
+        updatedSource = incomingResolution.source;
+        instancedStatus = incomingResolution.status;
       }
     }
 
     if (instancedStatus == null || instancedStatus.isExpired) {
-      return this;
+      return BattlerStatusFromSourceResolution(
+        owner: updatedOwner,
+        source: updatedSource,
+      );
     }
 
-    return applyStatus(
-      instancedStatus,
-      applyEquipmentModifiers: false,
+    return BattlerStatusFromSourceResolution(
+      owner: updatedOwner.applyStatus(
+        instancedStatus,
+        applyEquipmentModifiers: false,
+      ),
+      source: updatedSource,
     );
   }
 

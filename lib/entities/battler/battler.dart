@@ -134,6 +134,9 @@ enum BattlerCombatFlag {
   pendingBasicAttackFollowUp,
   cycleDayContext,
   cycleNightContext,
+  currentRoundMarker,
+  barrierGainMarker,
+  barrierBrokenThisHit,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
@@ -151,6 +154,8 @@ enum ItemCombatFlagKind {
   ultimaMarchaTriggeredThisTurn,
   responseFrameDamagedThisTurn,
   reboundLensTriggeredThisTurn,
+  emergencyPlatingAutoBlockUsed,
+  deflectiveCapacitorReflectedDebuff,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.
@@ -159,10 +164,15 @@ class CombatRuntimeFlag {
   final ItemCombatFlagKind? itemFlag;
   final ItemId? itemId;
   final String? itemInstanceId;
+  final int? value;
+  final int? secondaryValue;
 
   /// Crea una flag global asociada solo al battler.
-  const CombatRuntimeFlag.battler(this.battlerFlag)
-      : itemFlag = null,
+  const CombatRuntimeFlag.battler(
+    this.battlerFlag, {
+    this.value,
+    this.secondaryValue,
+  })  : itemFlag = null,
         itemId = null,
         itemInstanceId = null;
 
@@ -171,6 +181,8 @@ class CombatRuntimeFlag {
     required this.itemFlag,
     required this.itemId,
     this.itemInstanceId,
+    this.value,
+    this.secondaryValue,
   })  : battlerFlag = null,
         assert(itemFlag != null),
         assert(itemId != null);
@@ -182,7 +194,9 @@ class CombatRuntimeFlag {
         other.battlerFlag == battlerFlag &&
         other.itemFlag == itemFlag &&
         other.itemId == itemId &&
-        other.itemInstanceId == itemInstanceId;
+        other.itemInstanceId == itemInstanceId &&
+        other.value == value &&
+        other.secondaryValue == secondaryValue;
   }
 
   /// Calcula el hash estable que permite almacenar la flag en `Set` y `Map`.
@@ -192,6 +206,8 @@ class CombatRuntimeFlag {
         itemFlag,
         itemId,
         itemInstanceId,
+        value,
+        secondaryValue,
       );
 }
 
@@ -407,6 +423,9 @@ class Battler {
   );
   static const cycleNightContextFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.cycleNightContext,
+  );
+  static const barrierBrokenThisHitFlag = CombatRuntimeFlag.battler(
+    BattlerCombatFlag.barrierBrokenThisHit,
   );
   static final Expando<_BattlerDerivedState> _derivedStateCache =
       Expando<_BattlerDerivedState>('battlerDerivedState');

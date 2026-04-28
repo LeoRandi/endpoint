@@ -250,11 +250,10 @@ const pulsoRepLAbility = BattlerAbility(
   rarity: RarityTier.green,
   tags: _buffBarreraAbilityTags,
   name: 'Pulso REP-L',
-  description:
-      'Pasiva. Al inicio de tu turno, si tienes poca barrera, subes tu barrera hasta el minimo de la habilidad.',
+  description: 'Pasiva. Al final de tu turno, ganas Barrera.',
   icon: Icons.shield_rounded,
-  value: 4,
-  upgradeValue: 2,
+  value: 3,
+  upgradeValue: 1,
   effect: PulsoRepLAbilityEffect(),
   isImplemented: true,
 );
