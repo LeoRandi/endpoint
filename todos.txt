@@ -71,13 +71,13 @@
 -Habilidades
 [--Añadir Tags]
 [--Meter en el loot]
---Crear al menos 20 generales y 20 por arquetipo[general: 6, veloz: 11, inamovible: 5, imparable: 6, mercante: 6]
+--Crear al menos 20 generales y 20 por arquetipo[general: 6, veloz: 11, inamovible: 8, imparable: 6, mercante: 6]
 
 -Items
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 60 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 18, Imparable: 17, Mercante: 16]
+--Meter al menos 30 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 23, Imparable: 17, Mercante: 16]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
@@ -94,7 +94,7 @@
 [--Texto de flavor a cada tienda]
 
 -Eventos
---Crear más eventos, al menos 15[6/15]
+--Crear más eventos, al menos 15[8/15]
 [--Texto de flavor a cada evento]
 
 -Enemigos

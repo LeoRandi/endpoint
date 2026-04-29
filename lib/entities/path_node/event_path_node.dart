@@ -8,6 +8,8 @@ enum PathEventId {
   pasadizoSecreto,
   debtCollection,
   sobreKar,
+  suBastaYa,
+  pitonisaQuitapenas,
 }
 
 /// Define un nodo de evento con su contenido base y el id que resuelve su efecto.

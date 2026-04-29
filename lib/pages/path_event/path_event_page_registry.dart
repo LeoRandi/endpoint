@@ -3,9 +3,11 @@ import '../../services/_exports.dart';
 import 'package:flutter/widgets.dart';
 
 import 'black_techno_market_event_page.dart';
+import 'pitonisa_quitapenas_event_page.dart';
 import 'secret_path_event_page.dart';
 import 'path_event_page.dart';
 import 'sobre_kar_event_page.dart';
+import 'su_basta_ya_event_page.dart';
 import 'technosurgeon_event_page.dart';
 
 typedef PathEventPageBuilder = Widget Function({
@@ -22,6 +24,8 @@ final pathEventPageBuilderById =
   PathEventId.blackTechnoMarket: _buildBlackTechnoMarketEventPage,
   PathEventId.pasadizoSecreto: _buildPasadizoSecretoEventPage,
   PathEventId.sobreKar: _buildSobreKarEventPage,
+  PathEventId.suBastaYa: _buildSuBastaYaEventPage,
+  PathEventId.pitonisaQuitapenas: _buildPitonisaQuitapenasEventPage,
   PathEventId.debtCollection: _buildDefaultPathEventPage,
 });
 
@@ -96,6 +100,33 @@ Widget _buildSobreKarEventPage({
     player: player,
     node: node,
     randomizer: randomizer,
+    eventService: eventService,
+  );
+}
+
+Widget _buildSuBastaYaEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+}) {
+  return SuBastaYaEventPage(
+    player: player,
+    node: node,
+    randomizer: randomizer,
+    eventService: eventService,
+  );
+}
+
+Widget _buildPitonisaQuitapenasEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+}) {
+  return PitonisaQuitapenasEventPage(
+    player: player,
+    node: node,
     eventService: eventService,
   );
 }

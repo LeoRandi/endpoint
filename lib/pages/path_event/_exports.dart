@@ -2,5 +2,7 @@ export "black_techno_market_event_page.dart";
 export "secret_path_event_page.dart";
 export "path_event_page.dart";
 export "path_event_page_registry.dart";
+export "pitonisa_quitapenas_event_page.dart";
 export "sobre_kar_event_page.dart";
+export "su_basta_ya_event_page.dart";
 export "technosurgeon_event_page.dart";

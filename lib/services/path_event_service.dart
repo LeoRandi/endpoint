@@ -48,7 +48,45 @@ final pathEventDefinitionById =
     canAppear: _canAppearForSobreKar,
     visit: _visitDefaultPathEvent,
   ),
+  PathEventId.suBastaYa: const PathEventDefinition(
+    canAppear: _canAppearForSuBastaYa,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.pitonisaQuitapenas: const PathEventDefinition(
+    canAppear: _canAppearForPitonisaQuitapenas,
+    visit: _visitDefaultPathEvent,
+  ),
 });
+
+enum SuBastaYaStatReward {
+  health,
+  attack,
+  barrier,
+}
+
+extension SuBastaYaStatRewardPresentation on SuBastaYaStatReward {
+  BattlerStat get stat {
+    switch (this) {
+      case SuBastaYaStatReward.health:
+        return BattlerStat.health;
+      case SuBastaYaStatReward.attack:
+        return BattlerStat.attack;
+      case SuBastaYaStatReward.barrier:
+        return BattlerStat.barrier;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case SuBastaYaStatReward.health:
+        return 'HP';
+      case SuBastaYaStatReward.attack:
+        return 'ATK';
+      case SuBastaYaStatReward.barrier:
+        return 'Barrera';
+    }
+  }
+}
 
 class SobreKarUpgradeResolution {
   final PathEventVisitResult visitResult;
@@ -271,6 +309,224 @@ class PathEventService {
     );
   }
 
+  List<Item> buildSuBastaYaEligibleItems(Battler player) {
+    return List<Item>.unmodifiable([
+      ...player.equippedItems,
+      ...player.inventoryItems,
+    ]);
+  }
+
+  List<BattlerAbility> buildSuBastaYaEligibleAbilities(Battler player) {
+    return List<BattlerAbility>.unmodifiable(player.abilities);
+  }
+
+  int suBastaYaAuctionPriceFor(Item item) {
+    return max(item.cost, item.sellValue * 3);
+  }
+
+  Map<BattlerStat, int> suBastaYaStatRewardFor({
+    required Item item,
+    required SuBastaYaStatReward selectedReward,
+  }) {
+    if (item.rarity == RarityTier.yellow) {
+      return const <BattlerStat, int>{
+        BattlerStat.health: 15,
+        BattlerStat.attack: 3,
+        BattlerStat.barrier: 3,
+      };
+    }
+
+    final factor = max(1, item.rarity.factor);
+    return <BattlerStat, int>{
+      selectedReward.stat:
+          selectedReward == SuBastaYaStatReward.health ? 5 * factor : factor,
+    };
+  }
+
+  PathEventVisitResult resolveSuBastaYaAuctionSale({
+    required Battler player,
+    required Item selectedItem,
+  }) {
+    if (!_ownsItem(player, selectedItem)) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'Ese objeto ya no esta disponible para subasta.',
+      );
+    }
+
+    final payout = suBastaYaAuctionPriceFor(selectedItem);
+    final updatedPlayer = player.removeItem(selectedItem).earnMoney(payout);
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText: 'Subastas ${selectedItem.displayName} y cobras ${payout}C.',
+    );
+  }
+
+  PathEventVisitResult resolveSuBastaYaStatSacrifice({
+    required Battler player,
+    required Item selectedItem,
+    required SuBastaYaStatReward selectedReward,
+  }) {
+    if (!_ownsItem(player, selectedItem)) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'Ese objeto ya no esta disponible para reciclar.',
+      );
+    }
+
+    final statRewards = suBastaYaStatRewardFor(
+      item: selectedItem,
+      selectedReward: selectedReward,
+    );
+    final updatedPlayer = _applyPermanentStatRewards(
+      player.removeItem(selectedItem),
+      statRewards,
+    );
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Entregas ${selectedItem.displayName}. Recibes ${_statRewardSummary(statRewards)} permanente.',
+    );
+  }
+
+  PathEventVisitResult resolveSuBastaYaAbilitySwap({
+    required Battler player,
+    required BattlerAbility selectedAbility,
+    required RunRandomizer randomizer,
+  }) {
+    if (player.abilityById(selectedAbility.id) == null) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'Esa habilidad ya no esta disponible para intercambiar.',
+      );
+    }
+
+    final replacementAbility = _rollSuBastaYaReplacementAbility(
+      selectedAbility: selectedAbility,
+      player: player,
+      randomizer: randomizer,
+    );
+    final updatedPlayer = player.replaceAbility(
+      currentAbility: selectedAbility,
+      replacementAbility: replacementAbility,
+    );
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Cambias ${selectedAbility.displayName} por ${replacementAbility.displayName}.',
+      gainedAbility: replacementAbility,
+    );
+  }
+
+  List<Item> buildPitonisaItemOfferings(Battler player) {
+    return List<Item>.unmodifiable([
+      ...player.equippedItems,
+      ...player.inventoryItems,
+    ]);
+  }
+
+  List<BattlerStatus> buildPitonisaPurgeableDebuffs(Battler player) {
+    return List<BattlerStatus>.unmodifiable(
+      player.statuses.where(
+        (status) =>
+            status.type == BattlerStatusType.debuff && status.isPurgeable,
+      ),
+    );
+  }
+
+  List<BattlerAbility> buildPitonisaCooldownAbilities(Battler player) {
+    return List<BattlerAbility>.unmodifiable(
+      player.abilities.where(
+        (ability) =>
+            ability.manualActivationContext != null &&
+            ability.cooldownTurns > 0,
+      ),
+    );
+  }
+
+  int get pitonisaCooldownReductionCost => 10;
+
+  PathEventVisitResult resolvePitonisaDebuffPurge({
+    required Battler player,
+  }) {
+    final debuffs = buildPitonisaPurgeableDebuffs(player);
+    if (debuffs.isEmpty) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'La pitonisa no encuentra penas que quitar.',
+      );
+    }
+
+    var updatedPlayer = player;
+    for (final debuff in debuffs) {
+      updatedPlayer = updatedPlayer.removeStatusInstance(debuff);
+    }
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText: 'La pitonisa elimina ${debuffs.length} debuffs activos.',
+    );
+  }
+
+  PathEventVisitResult resolvePitonisaItemHealing({
+    required Battler player,
+    required Item selectedItem,
+  }) {
+    if (!_ownsItem(player, selectedItem)) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'Ese objeto ya no esta disponible como ofrenda.',
+      );
+    }
+
+    final updatedPlayer = player.removeItem(selectedItem);
+    return PathEventVisitResult(
+      player: updatedPlayer.copyWith(health: updatedPlayer.maxHealth),
+      outcomeText:
+          'La pitonisa acepta ${selectedItem.displayName} y restaura toda tu vida.',
+    );
+  }
+
+  PathEventVisitResult resolvePitonisaCooldownReduction({
+    required Battler player,
+    required BattlerAbility selectedAbility,
+  }) {
+    final currentAbility = player.abilityById(selectedAbility.id);
+    if (currentAbility == null ||
+        currentAbility.manualActivationContext == null ||
+        currentAbility.cooldownTurns <= 0) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'Esa habilidad no puede reducir su recarga.',
+      );
+    }
+
+    final price = pitonisaCooldownReductionCost;
+    if (!player.canAfford(price)) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText:
+            'No tienes creditos suficientes para reducir la recarga de ${currentAbility.displayName}.',
+      );
+    }
+
+    final nextCooldown = max(0, currentAbility.cooldownTurns - 1);
+    final updatedAbility = currentAbility.copyWith(
+      cooldownTurns: nextCooldown,
+      remainingCooldownTurns: min(
+        currentAbility.remainingCooldownTurns,
+        nextCooldown,
+      ),
+    );
+
+    return PathEventVisitResult(
+      player: player.spendMoney(price).updateAbility(updatedAbility),
+      outcomeText:
+          'Pagas ${price}C. ${currentAbility.displayName} reduce su cooldown permanente a $nextCooldown turnos.',
+    );
+  }
+
   PathEventVisitResult _resolveDebtCollection(Battler player) {
     final debtStatus = player.statusById(DeudaStatus.statusId);
     if (debtStatus is! DeudaStatus) {
@@ -361,6 +617,45 @@ class PathEventService {
     return _promoteAbilityToAtLeast(preset, targetRarity).resetState();
   }
 
+  BattlerAbility _rollSuBastaYaReplacementAbility({
+    required BattlerAbility selectedAbility,
+    required Battler player,
+    required RunRandomizer randomizer,
+  }) {
+    final ownedAbilityIds = player.abilities
+        .where((ability) => ability.id != selectedAbility.id)
+        .map((ability) => ability.id)
+        .toSet();
+    var candidates = abilityPoolForArchetype(player.archetypeId)
+        .where(
+          (ability) =>
+              ability.id != selectedAbility.id &&
+              ability.rarity.index >= selectedAbility.rarity.index &&
+              !ownedAbilityIds.contains(ability.id),
+        )
+        .toList(growable: false);
+
+    if (candidates.isEmpty) {
+      candidates = abilityPoolForArchetype(player.archetypeId)
+          .where((ability) => ability.id != selectedAbility.id)
+          .toList(growable: false);
+    }
+    if (candidates.isEmpty) {
+      candidates = abilityPresets
+          .where((ability) => ability.id != selectedAbility.id)
+          .toList(growable: false);
+    }
+    if (candidates.isEmpty) {
+      return selectedAbility.resetState();
+    }
+
+    final rolledAbility = candidates[randomizer.nextInt(candidates.length)];
+    return _promoteAbilityToAtLeast(
+      rolledAbility,
+      selectedAbility.rarity,
+    ).resetState();
+  }
+
   RarityTier _rollWeightedRarity({
     required RarityTier minimumRarity,
     required RunRandomizer randomizer,
@@ -427,6 +722,42 @@ class PathEventService {
 
   bool _isSobreKarItemEligible(Item item) {
     return item.canUpgrade && item.rarity != RarityTier.yellow;
+  }
+
+  bool _ownsItem(Battler player, Item item) {
+    return player.equippedItems.contains(item) ||
+        player.inventoryItems.contains(item);
+  }
+
+  Battler _applyPermanentStatRewards(
+    Battler player,
+    Map<BattlerStat, int> rewards,
+  ) {
+    if (rewards.isEmpty) return player;
+
+    final updatedBaseStats = Map<BattlerStat, int>.from(player.baseStats);
+    for (final entry in rewards.entries) {
+      updatedBaseStats[entry.key] =
+          max(0, (updatedBaseStats[entry.key] ?? 0) + entry.value);
+    }
+
+    final healthGain = rewards[BattlerStat.health] ?? 0;
+    return player.copyWith(
+      health: player.health + healthGain,
+      baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
+    );
+  }
+
+  String _statRewardSummary(Map<BattlerStat, int> rewards) {
+    final entries = <String>[];
+    final healthGain = rewards[BattlerStat.health] ?? 0;
+    if (healthGain > 0) entries.add('+$healthGain HP');
+    final attackGain = rewards[BattlerStat.attack] ?? 0;
+    if (attackGain > 0) entries.add('+$attackGain ATK');
+    final barrierGain = rewards[BattlerStat.barrier] ?? 0;
+    if (barrierGain > 0) entries.add('+$barrierGain Barrera');
+
+    return entries.isEmpty ? 'sin cambios' : entries.join(', ');
   }
 
   _SobreKarUpgradedItemResolution? _upgradeOwnedItem({
@@ -562,6 +893,34 @@ bool _canAppearForSobreKar(
   }
 
   return service.buildSobreKarEligibleItems(player).isNotEmpty;
+}
+
+bool _canAppearForSuBastaYa(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) {
+    return itemPresets.isNotEmpty || abilityPresets.isNotEmpty;
+  }
+
+  return service.buildSuBastaYaEligibleItems(player).isNotEmpty ||
+      service.buildSuBastaYaEligibleAbilities(player).isNotEmpty;
+}
+
+bool _canAppearForPitonisaQuitapenas(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) {
+    return true;
+  }
+
+  return service.buildPitonisaPurgeableDebuffs(player).isNotEmpty ||
+      service.buildPitonisaItemOfferings(player).isNotEmpty ||
+      (player.canAfford(service.pitonisaCooldownReductionCost) &&
+          service.buildPitonisaCooldownAbilities(player).isNotEmpty);
 }
 
 PathEventVisitResult _visitDebtCollection(

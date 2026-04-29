@@ -399,6 +399,48 @@ final pasadizoSecretoNode = EventPathNode(
   ],
 );
 
+/// Evento de subasta donde puedes vender, reciclar o intercambiar piezas de la run.
+final suBastaYaNode = EventPathNode(
+  id: PathEventId.suBastaYa,
+  nodeId: 'event_su_basta_ya',
+  label: 'SU-Basta-Ya',
+  tooltip: 'Subasta objetos, recicla stats o intercambia habilidades',
+  iconEmoji: '\u{1F4E2}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'SUBASTA',
+  showTitle: 'Has encontrado una subasta de chatarra',
+  eventTitle: 'SU-BASTA-YA',
+  description:
+      'Un operador ha puesto precio a todo lo que llevas encima. Puedes subastar un objeto, reciclarlo por stats o cambiar una habilidad.',
+  outcomeText: 'Elige un trato o rechaza todas las ofertas.',
+  flavorTexts: [
+    'Varias pantallas se iluminan cuando cruzas el umbral. Tu inventario aparece listado antes de que lo autorices.',
+    'El subastador no mira a nadie en concreto. Solo golpea la mesa, sonrie y espera que algo tuyo deje de pertenecerte.',
+  ],
+);
+
+/// Evento ritual que elimina debuffs, cura con ofrendas o reduce cooldowns.
+final pitonisaQuitapenasNode = EventPathNode(
+  id: PathEventId.pitonisaQuitapenas,
+  nodeId: 'event_pitonisa_quitapenas',
+  label: 'Pitonisa Quitapenas',
+  tooltip: 'Purga debuffs, cura con una ofrenda o paga por reducir un cooldown',
+  iconEmoji: '\u{1F52E}',
+  rarity: RarityTier.purple,
+  accent: RarityTier.purple.accent,
+  badgeLabel: 'RITUAL',
+  showTitle: 'Has encontrado a la Pitonisa Quitapenas',
+  eventTitle: 'PITONISA QUITAPENAS',
+  description:
+      'La cabina huele a incienso quemado y plastico caliente. La pitonisa promete quitarte una pena, pero cada alivio exige una decision o creditos.',
+  outcomeText: 'Elige que pena quieres dejar atras.',
+  flavorTexts: [
+    'La cortina se cierra sola a tu espalda. Una voz suave enumera tus fallos con una precision bastante incomoda.',
+    'Sobre la mesa hay cartas, cables y un lector de cooldowns. La pitonisa no pregunta que te duele; ya lo sabe.',
+  ],
+);
+
 /// Tienda morada nocturna centrada en armas mas agresivas.
 final afterHoursArsenalNode = ShopPathNode(
   nodeId: 'shop_after_hours_arsenal',
@@ -576,6 +618,8 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
   blackTechnoMarketNode,
   sobreKarNode,
   pasadizoSecretoNode,
+  suBastaYaNode,
+  pitonisaQuitapenasNode,
   debtCollectionNode,
 ]);
 
@@ -598,6 +642,8 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
   shadyTechnosurgeonNode,
   sobreKarNode,
   pasadizoSecretoNode,
+  suBastaYaNode,
+  pitonisaQuitapenasNode,
   debtCollectionNode,
 ]);
 
