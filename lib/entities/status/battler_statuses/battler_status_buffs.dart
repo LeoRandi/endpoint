@@ -222,6 +222,46 @@ class CicloEclipseStatus extends BattlerStatus {
   }
 }
 
+/// Buff defensivo que hace fallar los ataques enemigos contra el portador.
+class PuntoCiegoStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.puntoCiego;
+
+  /// Crea una instancia de Punto Ciego con duracion ajustada al ciclo de turnos.
+  const PuntoCiegoStatus({
+    int remainingTurns = 2,
+    int value = 1,
+  }) : super(
+          id: statusId,
+          name: 'Punto Ciego',
+          type: BattlerStatusType.buff,
+          tags: _buffStatusTags,
+          icon: Icons.visibility_off_rounded,
+          description:
+              'Los ataques enemigos fallan contra el portador mientras permanezca activo.',
+          remainingTurns: remainingTurns,
+          value: value,
+        );
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Turnos protegidos: $value';
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return PuntoCiegoStatus(
+      remainingTurns: remainingTurns ?? this.remainingTurns,
+      value: value ?? this.value,
+    );
+  }
+}
+
 /// Buff generador que crea reservas de ATK o de Barrera si no se usaron habilidades manuales.
 class InerciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.inercia;

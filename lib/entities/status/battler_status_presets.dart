@@ -9,6 +9,9 @@ const potenciaStatus = PotenciaStatus();
 /// Preset rapido del buff de Eclipse Manual con su duracion base.
 const cicloEclipseStatus = CicloEclipseStatus();
 
+/// Preset rapido del buff Punto Ciego con su proteccion base.
+const puntoCiegoStatus = PuntoCiegoStatus();
+
 /// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
 const catalisisCruelStatus = CatalisisCruelStatus();
 
@@ -60,6 +63,14 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       CicloEclipseStatus(
+        remainingTurns: remainingTurns,
+        value: value,
+      ),
+  BattlerStatusId.puntoCiego: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      PuntoCiegoStatus(
         remainingTurns: remainingTurns,
         value: value,
       ),

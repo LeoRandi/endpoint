@@ -138,6 +138,22 @@ extension BattlerCombatRuntime on Battler {
     }).length;
   }
 
+  /// Cuenta activaciones globales de una flag de combate del battler.
+  int battlerCombatFlagUseCount(BattlerCombatFlag kind) {
+    return combatFlags.where((flag) => flag.battlerFlag == kind).length;
+  }
+
+  /// Registra una activacion adicional asociada a una flag global del battler.
+  Battler addBattlerCombatFlagUse(BattlerCombatFlag kind) {
+    final nextUse = battlerCombatFlagUseCount(kind);
+    return addCombatFlag(
+      CombatRuntimeFlag.battler(
+        kind,
+        value: nextUse,
+      ),
+    );
+  }
+
   /// Registra una activacion adicional de un item para efectos limitados.
   Battler addItemCombatFlagUse({
     required Item item,

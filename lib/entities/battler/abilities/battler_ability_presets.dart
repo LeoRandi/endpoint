@@ -341,6 +341,147 @@ const limpiezaCacheAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Pasiva general que bloquea debuffs entrantes y los convierte en Barrera.
+const cortafuegosPortatilAbility = BattlerAbility(
+  id: BattlerAbilityId.cortafuegosPortatil,
+  rarity: RarityTier.gray,
+  tags: _debuffBarreraAbilityTags,
+  name: 'Cortafuegos Portatil',
+  description:
+      'Pasiva. Ignora los primeros debuffs recibidos en combate y gana Barrera.',
+  icon: Icons.security_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: CortafuegosPortatilAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual general que marca al objetivo y castiga enemigos sin debuffs.
+const marcaDeCazaAbility = BattlerAbility(
+  id: BattlerAbilityId.marcaDeCaza,
+  rarity: RarityTier.green,
+  tags: _ataqueDebuffAbilityTags,
+  name: 'Marca de Caza',
+  description:
+      'Activacion manual en combate. Aplica Fragilidad. Si el enemigo no tenia debuffs, haces un ataque inmediato.',
+  icon: Icons.adjust_rounded,
+  cooldownTurns: 2,
+  value: 2,
+  upgradeValue: 1,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: MarcaDeCazaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva general que limita el cooldown maximo de tus habilidades manuales.
+const cadenciaRapidaAbility = BattlerAbility(
+  id: BattlerAbilityId.cadenciaRapida,
+  rarity: RarityTier.blue,
+  tags: _buffAbilityTags,
+  name: 'Cadencia Rapida',
+  description:
+      'Pasiva. El cooldown maximo de tus habilidades manuales queda limitado.',
+  icon: Icons.speed_rounded,
+  value: 3,
+  upgradeValue: -1,
+  isImplemented: true,
+);
+
+/// Manual general que bloquea parte del siguiente impacto recibido.
+const extrabloqueoAbility = BattlerAbility(
+  id: BattlerAbilityId.extrabloqueo,
+  rarity: RarityTier.blue,
+  tags: _vidaBarreraAbilityTags,
+  name: 'Extrabloqueo',
+  description:
+      'Activacion manual en combate. El siguiente dano que recibas se reduce.',
+  icon: Icons.shield_rounded,
+  cooldownTurns: 3,
+  value: 4,
+  upgradeValue: 2,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: ExtrabloqueoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva general de emergencia que convierte curacion en purga gradual.
+const triageAutomaticoAbility = BattlerAbility(
+  id: BattlerAbilityId.triageAutomatico,
+  rarity: RarityTier.blue,
+  tags: _vidaDebuffAbilityTags,
+  name: 'Triage Automatico',
+  description:
+      'Pasiva. Con poca vida, cura o reduce debuffs propios antes de curar.',
+  icon: Icons.medical_services_rounded,
+  value: 3,
+  upgradeValue: 2,
+  effect: TriageAutomaticoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva general que gana Barrera cuando desaparecen buffs enemigos o debuffs propios.
+const opresionTacticaAbility = BattlerAbility(
+  id: BattlerAbilityId.opresionTactica,
+  rarity: RarityTier.blue,
+  tags: _buffDebuffBarreraAbilityTags,
+  name: 'Opresion Tactica',
+  description:
+      'Pasiva. Si desaparece un buff enemigo o un debuff propio, ganas Barrera una vez por turno.',
+  icon: Icons.control_camera_rounded,
+  value: 4,
+  upgradeValue: 2,
+  isImplemented: true,
+);
+
+/// Manual general que compra Potencia a costa de la siguiente recarga manual.
+const sobrecargaReguladaAbility = BattlerAbility(
+  id: BattlerAbilityId.sobrecargaRegulada,
+  rarity: RarityTier.purple,
+  tags: _buffAtaqueAbilityTags,
+  name: 'Sobrecarga Regulada',
+  description:
+      'Activacion manual en combate. Ganas Potencia, pero la siguiente habilidad manual gana cooldown extra.',
+  icon: Icons.offline_bolt_rounded,
+  cooldownTurns: 4,
+  value: 5,
+  upgradeValue: 5,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: SobrecargaReguladaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva general que salva de un ataque letal una vez por combate.
+const copiaDeSeguridadAbility = BattlerAbility(
+  id: BattlerAbilityId.copiaDeSeguridad,
+  rarity: RarityTier.purple,
+  tags: _vidaBarreraAbilityTags,
+  name: 'Copia de Seguridad',
+  description:
+      'Pasiva. Una vez por combate, sobrevives a un ataque letal y ganas Barrera.',
+  icon: Icons.backup_rounded,
+  value: 8,
+  upgradeValue: 4,
+  effect: CopiaDeSeguridadAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual general que hace fallar los ataques enemigos durante una ventana corta.
+const puntoCiegoAbility = BattlerAbility(
+  id: BattlerAbilityId.puntoCiego,
+  rarity: RarityTier.yellow,
+  tags: _buffAbilityTags,
+  name: 'Punto Ciego',
+  description:
+      'Activacion manual en combate. Durante unos turnos, los ataques enemigos fallan contra ti.',
+  icon: Icons.visibility_off_rounded,
+  cooldownTurns: 3,
+  value: 1,
+  upgradeValue: 0,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: PuntoCiegoAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Preset pasivo amarillo que convierte debuffs enemigos en curacion.
 const hemostasiaAgresivaAbility = BattlerAbility(
   id: BattlerAbilityId.hemostasiaAgresiva,
@@ -649,6 +790,15 @@ const abilityPresets = <BattlerAbility>[
   descargaSismicaAbility,
   sustraccionAbility,
   limpiezaCacheAbility,
+  cortafuegosPortatilAbility,
+  marcaDeCazaAbility,
+  cadenciaRapidaAbility,
+  extrabloqueoAbility,
+  triageAutomaticoAbility,
+  opresionTacticaAbility,
+  sobrecargaReguladaAbility,
+  copiaDeSeguridadAbility,
+  puntoCiegoAbility,
   hemostasiaAgresivaAbility,
   mallaReboteAbility,
   inyeccionCorrosivaAbility,

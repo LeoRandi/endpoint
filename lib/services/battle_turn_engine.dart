@@ -36,11 +36,23 @@ class BattleTurnEngine {
     RunRandomizer? randomizer,
   }) {
     var updatedPlayer = isPlayerTurn
-        ? player.removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag)
+        ? player
+            .removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag)
+            .removeCombatFlag(
+              const CombatRuntimeFlag.battler(
+                BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
+              ),
+            )
         : player;
     var updatedEnemy = isPlayerTurn
         ? enemy
-        : enemy.removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag);
+        : enemy
+            .removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag)
+            .removeCombatFlag(
+              const CombatRuntimeFlag.battler(
+                BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
+              ),
+            );
 
     updatedPlayer = updatedPlayer.progressAbilityCooldownsOnTurnStart(
       isOwnerTurn: isPlayerTurn,
@@ -93,6 +105,15 @@ class BattleTurnEngine {
     );
     updatedEnemy = enemyItemResolution.owner;
     updatedPlayer = enemyItemResolution.opponent;
+
+    final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
+      ownerBefore: player,
+      ownerAfter: updatedPlayer,
+      opponentBefore: enemy,
+      opponentAfter: updatedEnemy,
+    );
+    updatedPlayer = statusLossResolution.owner;
+    updatedEnemy = statusLossResolution.opponent;
 
     return BattleTurnResolution(
       player: updatedPlayer,
@@ -159,6 +180,15 @@ class BattleTurnEngine {
     } else {
       updatedEnemy = updatedEnemy.decrementStatusDurations();
     }
+
+    final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
+      ownerBefore: player,
+      ownerAfter: updatedPlayer,
+      opponentBefore: enemy,
+      opponentAfter: updatedEnemy,
+    );
+    updatedPlayer = statusLossResolution.owner;
+    updatedEnemy = statusLossResolution.opponent;
 
     return BattleTurnResolution(
       player: updatedPlayer,

@@ -146,6 +146,10 @@ class BattlerEffectPipeline {
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
+      updatedOwner = _applyRegulatedOverloadCooldownPenalty(
+        owner: updatedOwner,
+        previousAbility: previousAbility,
+      );
 
       final itemResolution = applyEquippedItemAbilityResolvedEffects(
         owner: updatedOwner,
@@ -235,6 +239,10 @@ class BattlerEffectPipeline {
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
+      updatedOwner = _applyRegulatedOverloadCooldownPenalty(
+        owner: updatedOwner,
+        previousAbility: previousAbility,
+      );
 
       final itemResolution = applyEquippedItemAbilityResolvedEffects(
         owner: updatedOwner,
@@ -469,6 +477,44 @@ class BattlerEffectPipeline {
     );
   }
 
+  BattlerAbilityIncomingStatusResolution applyAbilityIncomingStatusEffects({
+    required Battler owner,
+    required Battler source,
+    required BattlerStatus status,
+  }) {
+    var updatedOwner = owner;
+    var updatedSource = source;
+    BattlerStatus? updatedStatus = status;
+
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.incomingStatusModifier),
+    );
+
+    for (final abilityId in activeAbilityIds) {
+      final ability = updatedOwner.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null || updatedStatus == null) {
+        continue;
+      }
+
+      final resolution = effect.onIncomingStatus(
+        owner: updatedOwner,
+        source: updatedSource,
+        ability: ability,
+        status: updatedStatus,
+      );
+      updatedOwner = resolution.owner;
+      updatedSource = resolution.source;
+      updatedStatus = resolution.status;
+    }
+
+    return BattlerAbilityIncomingStatusResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      source: updatedSource.pruneExpiredStatuses(),
+      status: updatedStatus,
+    );
+  }
+
   int applyAbilityIncomingDamageModifiers({
     required Battler owner,
     required Battler source,
@@ -577,6 +623,10 @@ class BattlerEffectPipeline {
       );
       updatedOwner = resolution.owner;
       updatedTarget = resolution.opponent;
+      updatedOwner = _applyRegulatedOverloadCooldownPenalty(
+        owner: updatedOwner,
+        previousAbility: previousAbility,
+      );
 
       final itemResolution = applyEquippedItemAbilityResolvedEffects(
         owner: updatedOwner,
@@ -677,6 +727,10 @@ class BattlerEffectPipeline {
       );
       updatedOwner = resolution.owner;
       updatedSource = resolution.opponent;
+      updatedOwner = _applyRegulatedOverloadCooldownPenalty(
+        owner: updatedOwner,
+        previousAbility: previousAbility,
+      );
 
       final itemResolution = applyEquippedItemAbilityResolvedEffects(
         owner: updatedOwner,
@@ -1004,6 +1058,62 @@ class BattlerEffectPipeline {
     return updatedOwner.pruneExpiredStatuses();
   }
 
+  Battler applyAbilityFatalDamageEffects({
+    required Battler owner,
+    required int incomingDamage,
+  }) {
+    var updatedOwner = owner;
+
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.fatalDamage),
+    );
+
+    for (final abilityId in activeAbilityIds) {
+      final ability = updatedOwner.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      updatedOwner = effect.onReceiveFatalDamage(
+        owner: updatedOwner,
+        ability: ability,
+        incomingDamage: incomingDamage,
+      );
+      if (updatedOwner.health > 0) {
+        break;
+      }
+    }
+
+    return updatedOwner.pruneExpiredStatuses();
+  }
+
+  BattlerAbilityEffectResolution applyStatusLossBarrierTriggers({
+    required Battler ownerBefore,
+    required Battler ownerAfter,
+    required Battler opponentBefore,
+    required Battler opponentAfter,
+  }) {
+    var updatedOwner = ownerAfter;
+    var updatedOpponent = opponentAfter;
+
+    updatedOwner = _applyOpresionTacticaStatusLossTrigger(
+      abilityOwnerBefore: ownerBefore,
+      abilityOwnerAfter: updatedOwner,
+      opponentBefore: opponentBefore,
+      opponentAfter: updatedOpponent,
+    );
+    updatedOpponent = _applyOpresionTacticaStatusLossTrigger(
+      abilityOwnerBefore: opponentBefore,
+      abilityOwnerAfter: updatedOpponent,
+      opponentBefore: ownerBefore,
+      opponentAfter: updatedOwner,
+    );
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: updatedOpponent,
+    );
+  }
+
   BattlerAbilityEffectResolution toggleAbilityActivation({
     required Battler owner,
     required BattlerAbilityId abilityId,
@@ -1073,9 +1183,11 @@ class BattlerEffectPipeline {
         previousAbility: currentAbility,
         context: ItemAbilityResolutionContext.manualActivation,
       );
-      return BattlerAbilityEffectResolution(
-        owner: itemResolution.owner,
-        opponent: itemResolution.opponent,
+      return applyStatusLossBarrierTriggers(
+        ownerBefore: owner,
+        ownerAfter: itemResolution.owner,
+        opponentBefore: resolvedOpponent,
+        opponentAfter: itemResolution.opponent,
       );
     }
 
@@ -1085,16 +1197,22 @@ class BattlerEffectPipeline {
       ability: activatedAbility,
       screenContext: screenContext,
     );
-    final itemResolution = applyEquippedItemAbilityResolvedEffects(
+    final ownerAfterPenalty = _applyRegulatedOverloadCooldownPenalty(
       owner: abilityResolution.owner,
+      previousAbility: currentAbility,
+    );
+    final itemResolution = applyEquippedItemAbilityResolvedEffects(
+      owner: ownerAfterPenalty,
       opponent: abilityResolution.opponent,
       previousAbility: currentAbility,
       context: ItemAbilityResolutionContext.manualActivation,
     );
 
-    return BattlerAbilityEffectResolution(
-      owner: itemResolution.owner,
-      opponent: itemResolution.opponent,
+    return applyStatusLossBarrierTriggers(
+      ownerBefore: owner,
+      ownerAfter: itemResolution.owner,
+      opponentBefore: resolvedOpponent,
+      opponentAfter: itemResolution.opponent,
     );
   }
 
@@ -1110,5 +1228,103 @@ class BattlerEffectPipeline {
               activeStatus.remainingTurns == target.remainingTurns &&
               activeStatus.value == target.value),
     );
+  }
+
+  Battler _applyRegulatedOverloadCooldownPenalty({
+    required Battler owner,
+    required BattlerAbility previousAbility,
+  }) {
+    if (previousAbility.id == BattlerAbilityId.sobrecargaRegulada ||
+        previousAbility.manualActivationContext == null ||
+        !owner.hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.sobrecargaReguladaPendingCooldownPenalty,
+          ),
+        )) {
+      return owner;
+    }
+
+    final resolvedAbility = owner.abilityById(previousAbility.id);
+    if (resolvedAbility == null ||
+        !_abilityEnteredCooldown(previousAbility, resolvedAbility)) {
+      return owner;
+    }
+
+    return owner
+        .updateAbility(
+          resolvedAbility.copyWith(
+            remainingCooldownTurns: resolvedAbility.remainingCooldownTurns + 1,
+          ),
+        )
+        .removeCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.sobrecargaReguladaPendingCooldownPenalty,
+          ),
+        );
+  }
+
+  Battler _applyOpresionTacticaStatusLossTrigger({
+    required Battler abilityOwnerBefore,
+    required Battler abilityOwnerAfter,
+    required Battler opponentBefore,
+    required Battler opponentAfter,
+  }) {
+    final ability = abilityOwnerAfter.abilityById(
+      BattlerAbilityId.opresionTactica,
+    );
+    if (ability == null ||
+        abilityOwnerAfter.isDefeated ||
+        !abilityOwnerAfter.hasCombatFlag(Battler.combatActiveFlag) ||
+        abilityOwnerAfter.hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
+          ),
+        )) {
+      return abilityOwnerAfter;
+    }
+
+    final lostOwnDebuff = _lostStatusMatching(
+      before: abilityOwnerBefore,
+      after: abilityOwnerAfter,
+      predicate: (status) => status.type == BattlerStatusType.debuff,
+    );
+    final lostEnemyBuff = _lostStatusMatching(
+      before: opponentBefore,
+      after: opponentAfter,
+      predicate: (status) => status.type == BattlerStatusType.buff,
+    );
+    if (!lostOwnDebuff && !lostEnemyBuff) {
+      return abilityOwnerAfter;
+    }
+
+    return abilityOwnerAfter
+        .addCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
+          ),
+        )
+        .gainCombatBarrier(max(1, ability.currentValue));
+  }
+
+  bool _lostStatusMatching({
+    required Battler before,
+    required Battler after,
+    required bool Function(BattlerStatus status) predicate,
+  }) {
+    return _statusCount(before, predicate) > _statusCount(after, predicate);
+  }
+
+  int _statusCount(
+    Battler battler,
+    bool Function(BattlerStatus status) predicate,
+  ) {
+    return battler.statuses.where(predicate).length;
+  }
+
+  bool _abilityEnteredCooldown(
+    BattlerAbility previousAbility,
+    BattlerAbility resolvedAbility,
+  ) {
+    return !previousAbility.isOnCooldown && resolvedAbility.isOnCooldown;
   }
 }

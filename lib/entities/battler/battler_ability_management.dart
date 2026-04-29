@@ -9,6 +9,14 @@ extension BattlerAbilityManagement on Battler {
   /// Indica si el battler tiene al menos una habilidad.
   bool get hasAbilities => _derivedState.abilitiesById.isNotEmpty;
 
+  /// Devuelve el tope de cooldown impuesto por Cadencia Rapida, si existe.
+  int? get manualAbilityCooldownCap {
+    final ability = abilityById(BattlerAbilityId.cadenciaRapida);
+    if (ability == null) return null;
+
+    return max(0, ability.currentValue);
+  }
+
   /// Busca la habilidad activa con el id indicado.
   BattlerAbility? abilityById(BattlerAbilityId abilityId) {
     return _derivedState.abilitiesById[abilityId];
@@ -29,10 +37,11 @@ extension BattlerAbilityManagement on Battler {
   Battler progressAbilityCooldownsOnTurnStart({
     required bool isOwnerTurn,
   }) {
-    if (!isOwnerTurn || abilities.isEmpty) return this;
+    final cappedOwner = enforceAbilityCooldownCap();
+    if (!isOwnerTurn || cappedOwner.abilities.isEmpty) return cappedOwner;
 
-    return copyWith(
-      abilities: abilities
+    return cappedOwner.copyWith(
+      abilities: cappedOwner.abilities
           .map((ability) => ability.tickCooldown())
           .toList(growable: false),
     );
@@ -49,7 +58,7 @@ extension BattlerAbilityManagement on Battler {
           ...abilities,
           ability,
         ]),
-      );
+      ).enforceAbilityCooldownCap();
     }
 
     final updatedAbilities = List<BattlerAbility>.from(abilities);
@@ -58,7 +67,7 @@ extension BattlerAbilityManagement on Battler {
 
     return copyWith(
       abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
-    );
+    ).enforceAbilityCooldownCap();
   }
 
   /// Sustituye la version activa de una habilidad por la recibida.
@@ -72,7 +81,7 @@ extension BattlerAbilityManagement on Battler {
     updatedAbilities[existingIndex] = ability;
     return copyWith(
       abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
-    );
+    ).enforceAbilityCooldownCap();
   }
 
   /// Cambia una habilidad concreta por otra, manteniendo el orden visible.
@@ -87,6 +96,33 @@ extension BattlerAbilityManagement on Battler {
     if (existingIndex < 0) return addAbility(replacementAbility);
 
     updatedAbilities[existingIndex] = replacementAbility.resetState();
+    return copyWith(
+      abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
+    ).enforceAbilityCooldownCap();
+  }
+
+  /// Aplica el tope de cooldown de Cadencia Rapida sobre las habilidades manuales.
+  Battler enforceAbilityCooldownCap() {
+    final cap = manualAbilityCooldownCap;
+    if (cap == null || abilities.isEmpty) return this;
+
+    var changed = false;
+    final updatedAbilities = abilities.map((ability) {
+      if (ability.manualActivationContext == null ||
+          (ability.cooldownTurns <= cap &&
+              ability.remainingCooldownTurns <= cap)) {
+        return ability;
+      }
+
+      changed = true;
+      return ability.copyWith(
+        cooldownTurns: min(ability.cooldownTurns, cap),
+        remainingCooldownTurns: min(ability.remainingCooldownTurns, cap),
+      );
+    }).toList(growable: false);
+
+    if (!changed) return this;
+
     return copyWith(
       abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
     );

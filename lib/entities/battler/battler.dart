@@ -139,6 +139,10 @@ enum BattlerCombatFlag {
   barrierBrokenThisHit,
   barrierLostThisHit,
   healthLostThisHit,
+  cortafuegosPortatilBlockedDebuff,
+  opresionTacticaTriggeredThisTurn,
+  copiaSeguridadUsed,
+  sobrecargaReguladaPendingCooldownPenalty,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.

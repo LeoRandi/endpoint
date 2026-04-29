@@ -275,6 +275,17 @@ extension BattlerRuntimeService on Battler {
         status: instancedStatus,
       );
       if (instancedStatus != null) {
+        final abilityIncomingResolution =
+            _battlerEffectPipeline.applyAbilityIncomingStatusEffects(
+          owner: updatedOwner,
+          source: updatedSource,
+          status: instancedStatus,
+        );
+        updatedOwner = abilityIncomingResolution.owner;
+        updatedSource = abilityIncomingResolution.source;
+        instancedStatus = abilityIncomingResolution.status;
+      }
+      if (instancedStatus != null) {
         final incomingResolution =
             _battlerEffectPipeline.applyEquippedItemIncomingStatusEffects(
           owner: updatedOwner,

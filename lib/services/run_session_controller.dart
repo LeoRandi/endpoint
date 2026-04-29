@@ -410,10 +410,11 @@ class RunSessionController extends ChangeNotifier {
   }
 
   Battler _progressPathSelectionAbilityCooldowns(Battler player) {
-    if (player.abilities.isEmpty) return player;
+    final cappedPlayer = player.enforceAbilityCooldownCap();
+    if (cappedPlayer.abilities.isEmpty) return cappedPlayer;
 
     var hasChanges = false;
-    final updatedAbilities = player.abilities.map((ability) {
+    final updatedAbilities = cappedPlayer.abilities.map((ability) {
       if (ability.manualActivationContext !=
           BattlerAbilityActivationContext.pathSelection) {
         return ability;
@@ -427,9 +428,9 @@ class RunSessionController extends ChangeNotifier {
       return tickedAbility;
     }).toList(growable: false);
 
-    if (!hasChanges) return player;
+    if (!hasChanges) return cappedPlayer;
 
-    return player.copyWith(
+    return cappedPlayer.copyWith(
       abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
     );
   }

@@ -1489,6 +1489,422 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Ignora debuffs entrantes limitados por combate y convierte el bloqueo en Barrera.
+class CortafuegosPortatilAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Cortafuegos Portatil.
+  const CortafuegosPortatilAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.incomingStatusModifier,
+          },
+        );
+
+  @override
+  BattlerAbilityIncomingStatusResolution onIncomingStatus({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required BattlerStatus status,
+  }) {
+    final maxBlocks = max(1, ability.currentValue);
+    final usedBlocks = owner.battlerCombatFlagUseCount(
+      BattlerCombatFlag.cortafuegosPortatilBlockedDebuff,
+    );
+    if (status.type != BattlerStatusType.debuff ||
+        usedBlocks >= maxBlocks ||
+        !owner.hasCombatFlag(Battler.combatActiveFlag)) {
+      return BattlerAbilityIncomingStatusResolution(
+        owner: owner,
+        source: source,
+        status: status,
+      );
+    }
+
+    final updatedOwner = owner
+        .addBattlerCombatFlagUse(
+          BattlerCombatFlag.cortafuegosPortatilBlockedDebuff,
+        )
+        .gainCombatBarrier(2);
+    return BattlerAbilityIncomingStatusResolution(
+      owner: updatedOwner,
+      source: source,
+      status: null,
+    );
+  }
+}
+
+/// Aplica Fragilidad y castiga objetivos limpios con un ataque inmediato.
+class MarcaDeCazaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Marca de Caza.
+  const MarcaDeCazaAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final amount = max(1, ability.currentValue);
+    final hadDebuffs = _hasAnyDebuff(opponent);
+    final fragilityResolution = _applyAbilityStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: FragilidadStatus(remainingTurns: amount),
+    );
+    var updatedOwner = fragilityResolution.owner;
+    var updatedOpponent = fragilityResolution.opponent;
+
+    if (!hadDebuffs) {
+      final attackResolution = _resolveFixedDamageAttack(
+        owner: updatedOwner,
+        target: updatedOpponent,
+        damage: amount,
+      );
+      updatedOwner = attackResolution.owner;
+      updatedOpponent = attackResolution.target;
+    }
+
+    final resolvedAbility = updatedOwner.abilityById(ability.id) ?? ability;
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner.updateAbility(resolvedAbility.startCooldown()),
+      opponent: updatedOpponent,
+    );
+  }
+}
+
+/// Reduce el siguiente impacto recibido y luego entra en cooldown.
+class ExtrabloqueoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Extrabloqueo.
+  const ExtrabloqueoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.incomingDamageModifier,
+            BattlerAbilityHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  int modifyIncomingDamage({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damage,
+  }) {
+    if (!ability.isActive) return damage;
+
+    return max(0, damage - max(0, ability.currentValue));
+  }
+
+  @override
+  BattlerAbilityEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damageTaken,
+  }) {
+    if (!ability.isActive) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: source);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.updateAbility(ability.startCooldown()),
+      opponent: source,
+    );
+  }
+}
+
+/// Cura en peligro o convierte esa curacion en reduccion de debuffs propios.
+class TriageAutomaticoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Triage Automatico.
+  const TriageAutomaticoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.turnStart,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn ||
+        owner.maxHealth <= 0 ||
+        owner.health * 2 >= owner.maxHealth) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    final reduction = _reducePurgeableDebuffsWithHealingBudget(
+      owner: owner,
+      opponent: opponent,
+      budget: amount,
+    );
+    final updatedOwner = reduction.owner.heal(amount - reduction.spentBudget);
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+    );
+  }
+}
+
+/// Gana Potencia y deja preparada una penalizacion para el siguiente cooldown manual.
+class SobrecargaReguladaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Sobrecarga Regulada.
+  const SobrecargaReguladaAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final amount = max(1, ability.currentValue);
+    final updatedOwner = owner
+        .applyStatusFromSource(
+          PotenciaStatus(value: amount),
+          source: owner,
+        )
+        .addCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.sobrecargaReguladaPendingCooldownPenalty,
+          ),
+        )
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+    );
+  }
+}
+
+/// Evita una muerte por ataque una vez por combate.
+class CopiaDeSeguridadAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto pasivo de Copia de Seguridad.
+  const CopiaDeSeguridadAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.fatalDamage,
+          },
+        );
+
+  @override
+  Battler onReceiveFatalDamage({
+    required Battler owner,
+    required BattlerAbility ability,
+    required int incomingDamage,
+  }) {
+    final alreadyUsed = owner.battlerCombatFlagUseCount(
+      BattlerCombatFlag.copiaSeguridadUsed,
+    );
+    if (owner.health > 0 || alreadyUsed > 0) return owner;
+
+    return owner
+        .copyWith(health: 1)
+        .addBattlerCombatFlagUse(BattlerCombatFlag.copiaSeguridadUsed)
+        .gainCombatBarrier(max(1, ability.currentValue));
+  }
+}
+
+/// Aplica una ventana en la que los ataques enemigos fallan contra el portador.
+class PuntoCiegoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto manual de Punto Ciego.
+  const PuntoCiegoAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    final turns = max(1, ability.currentValue);
+    final updatedOwner = owner
+        .applyStatusFromSource(
+          PuntoCiegoStatus(
+            remainingTurns: turns + 1,
+            value: turns,
+          ),
+          source: owner,
+        )
+        .updateAbility(ability.startCooldown());
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+    );
+  }
+}
+
+class _FixedDamageAttackResolution {
+  final Battler owner;
+  final Battler target;
+
+  const _FixedDamageAttackResolution({
+    required this.owner,
+    required this.target,
+  });
+}
+
+class _DebuffBudgetReduction {
+  final Battler owner;
+  final int spentBudget;
+
+  const _DebuffBudgetReduction({
+    required this.owner,
+    required this.spentBudget,
+  });
+}
+
+_FixedDamageAttackResolution _resolveFixedDamageAttack({
+  required Battler owner,
+  required Battler target,
+  required int damage,
+}) {
+  final baseDamage = max(0, damage);
+  final outgoingStatusModifiedDamage = owner.applyOutgoingDamageModifiers(
+    target: target,
+    damage: baseDamage,
+  );
+  final outgoingAbilityModifiedDamage =
+      owner.applyAbilityOutgoingDamageModifiers(
+    target: target,
+    damage: outgoingStatusModifiedDamage,
+  );
+  final outgoingModifiedDamage = owner.applyEquippedItemOutgoingDamageModifiers(
+    target: target,
+    damage: outgoingAbilityModifiedDamage,
+  );
+  final incomingStatusModifiedDamage = target.applyIncomingDamageModifiers(
+    source: owner,
+    damage: outgoingModifiedDamage,
+  );
+  final incomingAbilityModifiedDamage =
+      target.applyAbilityIncomingDamageModifiers(
+    source: owner,
+    damage: incomingStatusModifiedDamage,
+  );
+  final damageDealt = target.applyEquippedItemIncomingDamageModifiers(
+    source: owner,
+    damage: incomingAbilityModifiedDamage,
+  );
+  final targetAfterDamage = target.receiveDirectDamage(
+    damageDealt,
+    source: owner,
+  );
+  final barrierWasBrokenByAttack = target.currentBarrier > 0 &&
+      targetAfterDamage.currentBarrier <= 0 &&
+      damageDealt > 0;
+
+  var updatedOwner = owner.applyAttackResolvedEffects(
+    target: targetAfterDamage,
+    damageDealt: damageDealt,
+  );
+  var updatedTarget = targetAfterDamage;
+  final attackAbilityResolution =
+      updatedOwner.applyAbilityAttackResolvedEffects(
+    target: updatedTarget,
+    damageDealt: damageDealt,
+  );
+  updatedOwner = attackAbilityResolution.owner;
+  updatedTarget = attackAbilityResolution.opponent;
+
+  final attackItemResolution =
+      updatedOwner.applyEquippedItemAttackResolvedEffects(
+    target: updatedTarget,
+    damageDealt: damageDealt,
+  );
+  updatedOwner = attackItemResolution.owner;
+  updatedTarget = attackItemResolution.opponent;
+  if (barrierWasBrokenByAttack) {
+    updatedTarget = updatedTarget.addCombatFlag(
+      Battler.barrierBrokenThisHitFlag,
+    );
+  }
+
+  updatedTarget = updatedTarget.applyReceiveDamageResolvedEffects(
+    source: updatedOwner,
+    damageTaken: damageDealt,
+  );
+  final receiveAbilityResolution =
+      updatedTarget.applyAbilityReceiveDamageResolvedEffects(
+    source: updatedOwner,
+    damageTaken: damageDealt,
+  );
+  updatedTarget = receiveAbilityResolution.owner;
+  updatedOwner = receiveAbilityResolution.opponent;
+  final receiveItemResolution =
+      updatedTarget.applyEquippedItemReceiveDamageResolvedEffects(
+    source: updatedOwner,
+    damageTaken: damageDealt,
+  );
+  updatedTarget = receiveItemResolution.owner;
+  updatedOwner = receiveItemResolution.opponent;
+
+  return _FixedDamageAttackResolution(
+    owner: updatedOwner,
+    target: updatedTarget,
+  );
+}
+
+_DebuffBudgetReduction _reducePurgeableDebuffsWithHealingBudget({
+  required Battler owner,
+  required Battler opponent,
+  required int budget,
+}) {
+  var updatedOwner = owner;
+  var spentBudget = 0;
+
+  for (var index = 0; index < max(0, budget); index++) {
+    final debuffs = _purgeableDebuffs(updatedOwner);
+    if (debuffs.isEmpty) break;
+
+    final selectedIndex = _stableSelectionIndex(
+      owner: updatedOwner,
+      opponent: opponent,
+      length: debuffs.length,
+      salt: index + spentBudget,
+    );
+    final selectedDebuff = debuffs[selectedIndex];
+    final reducedTurns = max(0, selectedDebuff.remainingTurns - 1);
+    if (reducedTurns <= 0) {
+      updatedOwner = updatedOwner.removeStatusInstance(selectedDebuff);
+    } else {
+      updatedOwner = updatedOwner.replaceStatusInstance(
+        currentStatus: selectedDebuff,
+        replacement: selectedDebuff.copyWith(remainingTurns: reducedTurns),
+      );
+    }
+    spentBudget++;
+  }
+
+  return _DebuffBudgetReduction(
+    owner: updatedOwner.pruneExpiredStatuses(),
+    spentBudget: spentBudget,
+  );
+}
+
+List<BattlerStatus> _purgeableDebuffs(Battler battler) {
+  return battler.statuses
+      .where(
+        (status) =>
+            status.type == BattlerStatusType.debuff && status.isPurgeable,
+      )
+      .toList(growable: false);
+}
+
+bool _hasAnyDebuff(Battler battler) {
+  return battler.statuses.any(
+    (status) => status.type == BattlerStatusType.debuff,
+  );
+}
+
 bool _hasOnlyMercanteOrGeneralOwnedItems(Battler owner) {
   final ownedItems = <Item>[
     ...owner.inventoryItems,

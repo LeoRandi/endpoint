@@ -231,24 +231,11 @@ class BattleController extends ChangeNotifier {
       flatAttackBonus: drawingBonus.attackBonus,
     );
 
-    await _playCombatAnimation(
-      BattleCombatAnimationCue(
-        hook: BattleCombatAnimationHook.attackMotion,
-        primarySide: BattleCombatantSide.player,
-        secondarySide: BattleCombatantSide.enemy,
-        playerBefore: attackerBefore,
-        enemyBefore: defenderBefore,
-        playerAfter: attackerBefore,
-        enemyAfter: defenderBefore,
-      ),
-    );
-    if (_isDisposed || !canUseActions) return;
-
-    await _playCombatStateTransitionAnimations(
-      playerBefore: attackerBefore,
-      enemyBefore: defenderBefore,
-      playerAfter: resolution.attacker,
-      enemyAfter: resolution.defender,
+    await _playAttackActionAnimations(
+      attackerSide: BattleCombatantSide.player,
+      attackerBefore: attackerBefore,
+      defenderBefore: defenderBefore,
+      resolution: resolution,
     );
     if (_isDisposed || !canUseActions) return;
 
@@ -638,22 +625,11 @@ class BattleController extends ChangeNotifier {
       attacker: enemy,
       defender: player,
     );
-    await _playCombatAnimation(
-      BattleCombatAnimationCue(
-        hook: BattleCombatAnimationHook.attackMotion,
-        primarySide: BattleCombatantSide.enemy,
-        secondarySide: BattleCombatantSide.player,
-        playerBefore: player,
-        enemyBefore: enemy,
-        playerAfter: player,
-        enemyAfter: enemy,
-      ),
-    );
-    await _playCombatStateTransitionAnimations(
-      playerBefore: player,
-      enemyBefore: enemy,
-      playerAfter: attackResolution.defender,
-      enemyAfter: attackResolution.attacker,
+    await _playAttackActionAnimations(
+      attackerSide: BattleCombatantSide.enemy,
+      attackerBefore: enemy,
+      defenderBefore: player,
+      resolution: attackResolution,
     );
 
     return _EnemyActionResolution(
@@ -683,7 +659,7 @@ class BattleController extends ChangeNotifier {
     );
   }
 
-  BattleAttackResolution _resolveAttackAction({
+  _BattleAttackActionResolution _resolveAttackAction({
     required Battler attacker,
     required Battler defender,
     int flatAttackBonus = 0,
@@ -694,6 +670,7 @@ class BattleController extends ChangeNotifier {
     var updatedDefender = defender;
     var totalDamageDealt = 0;
     final attackCount = attacker.basicAttackCount;
+    final hits = <_BattleAttackHitResolution>[];
 
     for (var attackIndex = 0; attackIndex < attackCount; attackIndex++) {
       if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
@@ -708,6 +685,8 @@ class BattleController extends ChangeNotifier {
           : updatedAttacker.removeCombatFlag(
               Battler.pendingBasicAttackFollowUpFlag,
             );
+      final attackerBeforeHit = updatedAttacker;
+      final defenderBeforeHit = updatedDefender;
 
       final resolution = _resolver.resolveAttack(
         attacker: updatedAttacker,
@@ -719,15 +698,81 @@ class BattleController extends ChangeNotifier {
       );
       updatedDefender = resolution.defender;
       totalDamageDealt += resolution.damageDealt;
+      hits.add(
+        _BattleAttackHitResolution(
+          attackerBefore: attackerBeforeHit.removeCombatFlag(
+            Battler.pendingBasicAttackFollowUpFlag,
+          ),
+          defenderBefore: defenderBeforeHit,
+          attackerAfter: updatedAttacker,
+          defenderAfter: updatedDefender,
+          damageDealt: resolution.damageDealt,
+        ),
+      );
     }
 
-    return BattleAttackResolution(
+    return _BattleAttackActionResolution(
       attacker: updatedAttacker.removeCombatFlag(
         Battler.pendingBasicAttackFollowUpFlag,
       ),
       defender: updatedDefender,
       damageDealt: totalDamageDealt,
+      hits: List<_BattleAttackHitResolution>.unmodifiable(hits),
     );
+  }
+
+  Future<void> _playAttackActionAnimations({
+    required BattleCombatantSide attackerSide,
+    required Battler attackerBefore,
+    required Battler defenderBefore,
+    required _BattleAttackActionResolution resolution,
+  }) async {
+    final defenderSide = attackerSide == BattleCombatantSide.player
+        ? BattleCombatantSide.enemy
+        : BattleCombatantSide.player;
+    final playerBefore = attackerSide == BattleCombatantSide.player
+        ? attackerBefore
+        : defenderBefore;
+    final enemyBefore = attackerSide == BattleCombatantSide.enemy
+        ? attackerBefore
+        : defenderBefore;
+
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.attackMotion,
+        primarySide: attackerSide,
+        secondarySide: defenderSide,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: playerBefore,
+        enemyAfter: enemyBefore,
+        effectCount: max(1, resolution.hits.length),
+      ),
+    );
+    if (_isDisposed) return;
+
+    for (final hit in resolution.hits) {
+      final hitPlayerBefore = attackerSide == BattleCombatantSide.player
+          ? hit.attackerBefore
+          : hit.defenderBefore;
+      final hitEnemyBefore = attackerSide == BattleCombatantSide.enemy
+          ? hit.attackerBefore
+          : hit.defenderBefore;
+      final hitPlayerAfter = attackerSide == BattleCombatantSide.player
+          ? hit.attackerAfter
+          : hit.defenderAfter;
+      final hitEnemyAfter = attackerSide == BattleCombatantSide.enemy
+          ? hit.attackerAfter
+          : hit.defenderAfter;
+
+      await _playCombatStateTransitionAnimations(
+        playerBefore: hitPlayerBefore,
+        enemyBefore: hitEnemyBefore,
+        playerAfter: hitPlayerAfter,
+        enemyAfter: hitEnemyAfter,
+      );
+      if (_isDisposed) return;
+    }
   }
 
   Future<void> _playBlockResolutionAnimation({
@@ -1743,6 +1788,36 @@ class _DrawingBuffTransferResolution {
   const _DrawingBuffTransferResolution({
     required this.source,
     required this.target,
+  });
+}
+
+class _BattleAttackHitResolution {
+  final Battler attackerBefore;
+  final Battler defenderBefore;
+  final Battler attackerAfter;
+  final Battler defenderAfter;
+  final int damageDealt;
+
+  const _BattleAttackHitResolution({
+    required this.attackerBefore,
+    required this.defenderBefore,
+    required this.attackerAfter,
+    required this.defenderAfter,
+    required this.damageDealt,
+  });
+}
+
+class _BattleAttackActionResolution {
+  final Battler attacker;
+  final Battler defender;
+  final int damageDealt;
+  final List<_BattleAttackHitResolution> hits;
+
+  const _BattleAttackActionResolution({
+    required this.attacker,
+    required this.defender,
+    required this.damageDealt,
+    required this.hits,
   });
 }
 

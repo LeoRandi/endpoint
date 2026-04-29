@@ -71,7 +71,7 @@
 -Habilidades
 [--Añadir Tags]
 [--Meter en el loot]
---Crear al menos 20 generales y 20 por arquetipo[general: 6, veloz: 11, inamovible: 8, imparable: 6, mercante: 6]
+--Crear al menos 20 generales y 20 por arquetipo[general: 15, veloz: 11, inamovible: 8, imparable: 6, mercante: 6]
 
 -Items
 [--Añadir Tags]

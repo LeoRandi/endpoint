@@ -5,6 +5,7 @@ part 'battle_page_huds.dart';
 part 'battle_page_loadout.dart';
 
 const _battleAttackFlightDuration = Duration(milliseconds: 750);
+const _battleAttackFollowUpStagger = Duration(milliseconds: 330);
 const _battleAttackSlowLaunchDuration = Duration(milliseconds: 550);
 const _battleAttackFastImpactDuration = Duration(milliseconds: 200);
 const _battleImpactBarDuration = Duration(milliseconds: 250);
@@ -20,6 +21,8 @@ class _BattleCombatIconMotion {
   final Offset end;
   final BattleCombatantSide primarySide;
   final String assetPath;
+  final int effectCount;
+  final Duration totalDuration;
 
   const _BattleCombatIconMotion({
     required this.hook,
@@ -27,6 +30,8 @@ class _BattleCombatIconMotion {
     required this.end,
     required this.primarySide,
     required this.assetPath,
+    required this.effectCount,
+    required this.totalDuration,
   });
 }
 
@@ -468,9 +473,15 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final end = _motionEndForCue(cue);
     if (end == null) return;
 
+    final effectCount = max(1, cue.effectCount);
+    final totalDuration = cue.hook == BattleCombatAnimationHook.attackMotion
+        ? _battleAttackFlightDuration +
+            _battleAttackFollowUpStagger * (effectCount - 1)
+        : _battleAttackFlightDuration;
     final assetPath = cue.hook == BattleCombatAnimationHook.blockMotion
         ? _battleShieldAssetPath
         : _battleSwordAssetPath;
+    _attackFlightController.duration = totalDuration;
     setState(() {
       _isPlayingBattleAnimation = true;
       _releaseDisplayOverrideOnNextSceneChange = false;
@@ -486,6 +497,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         end: end,
         primarySide: cue.primarySide,
         assetPath: assetPath,
+        effectCount: effectCount,
+        totalDuration: totalDuration,
       );
     });
 

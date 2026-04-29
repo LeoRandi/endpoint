@@ -32,6 +32,7 @@ enum BattlerStatusId {
   inerciaAtaque,
   inerciaBarrera,
   resonancia,
+  puntoCiego,
   deuda,
 }
 
@@ -318,6 +319,9 @@ class BattlerStatusApplicationResolution {
 const _buffAtaqueStatusTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.ataque,
+];
+const _buffStatusTags = <EntityTag>[
+  EntityTag.buff,
 ];
 const _buffCicloStatusTags = <EntityTag>[
   EntityTag.buff,

@@ -694,48 +694,66 @@ class _BattleCombatIconAnimationLayer extends StatelessWidget {
     final progressTween = motion.hook == BattleCombatAnimationHook.blockMotion
         ? _blockProgress
         : _attackProgress;
+    final totalMs = max(1, motion.totalDuration.inMilliseconds);
+    final flightMs = max(1, _battleAttackFlightDuration.inMilliseconds);
+    final staggerMs = _battleAttackFollowUpStagger.inMilliseconds;
+    final effectCount = max(1, motion.effectCount);
 
     return AnimatedBuilder(
       animation: animation,
       builder: (context, _) {
-        final progress = progressTween.transform(animation.value);
-        final position = Offset.lerp(motion.start, motion.end, progress)!;
-        final impactGlow = Curves.easeIn.transform(progress);
-
         return IgnorePointer(
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              Positioned(
-                left: position.dx - swordSize / 2,
-                top: position.dy - swordSize / 2,
-                width: swordSize,
-                height: swordSize,
-                child: Transform.rotate(
-                  angle: angle,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: accent.withAlpha(
-                            (64 + 64 * impactGlow).round(),
-                          ),
-                          blurRadius: 10 + 8 * impactGlow,
-                          spreadRadius: 0.5 + 1.5 * impactGlow,
-                        ),
-                      ],
-                    ),
-                    child: Image.asset(
-                      motion.assetPath,
+              for (var index = 0; index < effectCount; index++)
+                Builder(
+                  builder: (context) {
+                    final elapsedMs = animation.value * totalMs;
+                    final localElapsedMs = elapsedMs - index * staggerMs;
+                    if (localElapsedMs < 0 || localElapsedMs > flightMs) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final localProgress =
+                        (localElapsedMs / flightMs).clamp(0.0, 1.0).toDouble();
+                    final progress = progressTween.transform(localProgress);
+                    final position =
+                        Offset.lerp(motion.start, motion.end, progress)!;
+                    final impactGlow = Curves.easeIn.transform(progress);
+
+                    return Positioned(
+                      left: position.dx - swordSize / 2,
+                      top: position.dy - swordSize / 2,
                       width: swordSize,
                       height: swordSize,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.none,
-                    ),
-                  ),
+                      child: Transform.rotate(
+                        angle: angle,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withAlpha(
+                                  (64 + 64 * impactGlow).round(),
+                                ),
+                                blurRadius: 10 + 8 * impactGlow,
+                                spreadRadius: 0.5 + 1.5 * impactGlow,
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            motion.assetPath,
+                            width: swordSize,
+                            height: swordSize,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.none,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
             ],
           ),
         );

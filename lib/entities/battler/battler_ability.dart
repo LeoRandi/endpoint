@@ -43,6 +43,15 @@ enum BattlerAbilityId {
   pulsoArmonico,
   masaCritica,
   descargaSismica,
+  cortafuegosPortatil,
+  marcaDeCaza,
+  cadenciaRapida,
+  extrabloqueo,
+  triageAutomatico,
+  opresionTactica,
+  sobrecargaRegulada,
+  copiaDeSeguridad,
+  puntoCiego,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -118,8 +127,10 @@ enum BattlerAbilityHook {
   combatEnd,
   outgoingDamageModifier,
   incomingDamageModifier,
+  incomingStatusModifier,
   attackResolved,
   receiveDamageResolved,
+  fatalDamage,
   passive,
 }
 
@@ -136,6 +147,13 @@ const _vidaBarreraAbilityTags = <EntityTag>[
 ];
 const _debuffAbilityTags = <EntityTag>[
   EntityTag.debuff,
+];
+const _debuffBarreraAbilityTags = <EntityTag>[
+  EntityTag.debuff,
+  EntityTag.barrera,
+];
+const _buffAbilityTags = <EntityTag>[
+  EntityTag.buff,
 ];
 const _ataqueQuemaduraAbilityTags = <EntityTag>[
   EntityTag.ataque,
@@ -180,6 +198,11 @@ const _buffAtaqueAbilityTags = <EntityTag>[
 const _buffDebuffAbilityTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.debuff,
+];
+const _buffDebuffBarreraAbilityTags = <EntityTag>[
+  EntityTag.buff,
+  EntityTag.debuff,
+  EntityTag.barrera,
 ];
 const _cicloBuffAbilityTags = <EntityTag>[
   EntityTag.ciclo,
@@ -272,6 +295,20 @@ class BattlerAbilityEffectResolution {
   });
 }
 
+/// Agrupa el resultado de interceptar un estado entrante con una habilidad.
+class BattlerAbilityIncomingStatusResolution {
+  final Battler owner;
+  final Battler source;
+  final BattlerStatus? status;
+
+  /// Crea una resolucion para modificar o cancelar un estado entrante.
+  const BattlerAbilityIncomingStatusResolution({
+    required this.owner,
+    required this.source,
+    required this.status,
+  });
+}
+
 /// Sirve como base comun para los hooks de habilidades activas y pasivas.
 abstract class BattlerAbilityEffect {
   final Set<BattlerAbilityHook> hooks;
@@ -347,6 +384,20 @@ abstract class BattlerAbilityEffect {
     return damage;
   }
 
+  /// Permite alterar o cancelar un estado recibido antes de que se aplique.
+  BattlerAbilityIncomingStatusResolution onIncomingStatus({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required BattlerStatus status,
+  }) {
+    return BattlerAbilityIncomingStatusResolution(
+      owner: owner,
+      source: source,
+      status: status,
+    );
+  }
+
   /// Resuelve efectos posteriores a que el portador complete un ataque.
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
@@ -374,6 +425,15 @@ abstract class BattlerAbilityEffect {
     required BattlerAbility ability,
   }) {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  /// Permite interceptar un golpe letal justo antes de que el portador muera.
+  Battler onReceiveFatalDamage({
+    required Battler owner,
+    required BattlerAbility ability,
+    required int incomingDamage,
+  }) {
+    return owner;
   }
 }
 
@@ -468,21 +528,32 @@ class BattlerAbility {
   bool get canUpgrade {
     final baseAbility = presetForId(id);
     final resolvedUpgradeValue =
-        upgradeValue > 0 ? upgradeValue : baseAbility.upgradeValue;
+        upgradeValue != 0 ? upgradeValue : baseAbility.upgradeValue;
 
-    return resolvedUpgradeValue > 0 && !rarity.isMaxTier;
+    return resolvedUpgradeValue != 0 && !rarity.isMaxTier;
   }
 
   /// Indica cuantas mejoras visibles lleva esta habilidad respecto a su preset.
   int get upgradeCount {
     final baseAbility = presetForId(id);
     final resolvedUpgradeValue =
-        upgradeValue > 0 ? upgradeValue : baseAbility.upgradeValue;
-    if (resolvedUpgradeValue <= 0 || value <= baseAbility.value) {
+        upgradeValue != 0 ? upgradeValue : baseAbility.upgradeValue;
+    if (resolvedUpgradeValue == 0) {
       return 0;
     }
 
-    return max(0, (value - baseAbility.value) ~/ resolvedUpgradeValue);
+    if (resolvedUpgradeValue > 0) {
+      if (value <= baseAbility.value) return 0;
+
+      return max(0, (value - baseAbility.value) ~/ resolvedUpgradeValue);
+    }
+
+    if (value >= baseAbility.value) return 0;
+
+    return max(
+      0,
+      (baseAbility.value - value) ~/ resolvedUpgradeValue.abs(),
+    );
   }
 
   /// Devuelve el nombre visible de la habilidad sin marcadores extras de mejora.
@@ -703,6 +774,24 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Activacion manual en combate. Tras el siguiente ataque, absorbes hasta $amount de Barrera del objetivo.';
     case BattlerAbilityId.limpiezaCache:
       return 'Activacion manual en combate. Elimina 1 turno de un buff enemigo aleatorio $amount veces.';
+    case BattlerAbilityId.cortafuegosPortatil:
+      return 'Pasiva. La primera $positiveAmount vez por combate que fueras a recibir un debuff, lo ignoras y ganas 2 de Barrera.';
+    case BattlerAbilityId.marcaDeCaza:
+      return 'Activacion manual en combate. Aplica $positiveAmount de Fragilidad al enemigo. Si el enemigo no tenia debuffs, haces un ataque con $positiveAmount de dano inmediatamente despues.';
+    case BattlerAbilityId.cadenciaRapida:
+      return 'Pasiva. El maximo cooldown que pueden tener tus habilidades manuales es $positiveAmount.';
+    case BattlerAbilityId.extrabloqueo:
+      return 'Activacion manual en combate. El siguiente dano que recibas se reduce en $amount.';
+    case BattlerAbilityId.triageAutomatico:
+      return 'Pasiva. Al inicio de tu turno, si estas por debajo de la mitad de vida, te curas $positiveAmount HP. Si tienes algun debuff, reduces 1 turno de un debuff purgable por cada punto que fueras a curarte y conviertes el restante en vida.';
+    case BattlerAbilityId.opresionTactica:
+      return 'Pasiva. Cada vez que un buff enemigo o un debuff propio se elimina o expira, ganas $positiveAmount de Barrera. Maximo una vez por turno.';
+    case BattlerAbilityId.sobrecargaRegulada:
+      return 'Activacion manual en combate. Ganas $positiveAmount de Potencia, pero tu siguiente habilidad manual gana +1 turno de cooldown.';
+    case BattlerAbilityId.copiaDeSeguridad:
+      return 'Pasiva. Una vez por combate, si un ataque te dejaria a 0 HP, sobrevives con 1 HP y ganas $positiveAmount de Barrera.';
+    case BattlerAbilityId.puntoCiego:
+      return 'Activacion manual en combate. Durante $positiveAmount turnos, el enemigo falla sus ataques contra ti, evitando su dano y los efectos aplicados sobre ti.';
     case BattlerAbilityId.hemostasiaAgresiva:
       return 'Pasiva. Al golpear a un objetivo con debuff, te curas $amount HP.';
     case BattlerAbilityId.mallaRebote:

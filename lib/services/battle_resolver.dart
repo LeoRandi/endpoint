@@ -24,6 +24,13 @@ class BattleResolver {
     required Battler defender,
     int flatAttackBonus = 0,
   }) {
+    if (defender.hasStatus(PuntoCiegoStatus.statusId)) {
+      return _resolvePuntoCiegoMissedAttack(
+        attacker: attacker,
+        defender: defender,
+      );
+    }
+
     final bonusDamage = max(0, flatAttackBonus).toInt();
     final baseDamage = attacker.calculateDamageAgainst(defender) + bonusDamage;
     final outgoingStatusModifiedDamage =
@@ -62,11 +69,17 @@ class BattleResolver {
       source: attacker,
       damage: incomingAbilityModifiedDamage,
     );
-    final defenderAfterDamage = _effectPipeline.receiveDirectDamage(
+    var defenderAfterDamage = _effectPipeline.receiveDirectDamage(
       owner: defender,
       damage: damageDealt,
       source: attacker,
     );
+    if (defenderAfterDamage.isDefeated && damageDealt > 0) {
+      defenderAfterDamage = _effectPipeline.applyAbilityFatalDamageEffects(
+        owner: defenderAfterDamage,
+        incomingDamage: damageDealt,
+      );
+    }
     final barrierWasBrokenByAttack = defender.currentBarrier > 0 &&
         defenderAfterDamage.currentBarrier <= 0 &&
         damageDealt > 0;
@@ -120,12 +133,63 @@ class BattleResolver {
     );
     updatedDefender = receiveItemResolution.owner;
     updatedAttacker = receiveItemResolution.opponent;
+    final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
+      ownerBefore: attacker,
+      ownerAfter: updatedAttacker,
+      opponentBefore: defender,
+      opponentAfter: updatedDefender,
+    );
+    updatedAttacker = statusLossResolution.owner;
+    updatedDefender = statusLossResolution.opponent;
 
     // TODO: Apply thorns, damage reduction, and vampirism once combat rules are finalized.
     return BattleAttackResolution(
       attacker: updatedAttacker,
       defender: updatedDefender,
       damageDealt: damageDealt,
+    );
+  }
+
+  BattleAttackResolution _resolvePuntoCiegoMissedAttack({
+    required Battler attacker,
+    required Battler defender,
+  }) {
+    var updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
+      owner: attacker,
+      target: defender,
+      damageDealt: 0,
+    );
+    var updatedDefender = defender;
+
+    final attackAbilityResolution =
+        _effectPipeline.applyAbilityAttackResolvedEffects(
+      owner: updatedAttacker,
+      target: updatedDefender,
+      damageDealt: 0,
+    );
+    updatedAttacker = attackAbilityResolution.owner;
+    updatedDefender = defender;
+
+    final attackItemResolution =
+        _effectPipeline.applyEquippedItemAttackResolvedEffects(
+      owner: updatedAttacker,
+      target: updatedDefender,
+      damageDealt: 0,
+    );
+    updatedAttacker = attackItemResolution.owner;
+    updatedDefender = defender;
+
+    final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
+      ownerBefore: attacker,
+      ownerAfter: updatedAttacker,
+      opponentBefore: defender,
+      opponentAfter: updatedDefender,
+    );
+
+    return BattleAttackResolution(
+      attacker: statusLossResolution.owner,
+      defender: statusLossResolution.opponent,
+      damageDealt: 0,
     );
   }
 }
