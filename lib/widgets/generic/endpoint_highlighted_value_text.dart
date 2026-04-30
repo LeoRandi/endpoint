@@ -8,12 +8,13 @@ const _effectDebuffAccent = Color(0xFFB77945);
 const _effectBurnAccent = Color(0xFFFF8C42);
 const _effectPoisonAccent = Color(0xFFC178FF);
 const _effectResonanceAccent = Color(0xFFD0D5DE);
+const _effectChallengeAccent = Color(0xFF55D6C2);
 
 final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
 );
 final RegExp _highlightedTermPattern = RegExp(
-  r'\b(?:resonancia|intoxicacion|intoxicación|quemadura|debuffs?|buffs?|curar|curas?|curacion|curación|recuperas?|recupera|vida|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|dano|ataques?|atacar|atacas|atk)\b',
+  r'\b(?:desafio|desafío|resonancia|intoxicacion|intoxicación|quemadura|debuffs?|buffs?|curar|curas?|curacion|curación|recuperas?|recupera|vida|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|dano|ataques?|atacar|atacas|atk)\b',
   caseSensitive: false,
 );
 
@@ -144,6 +145,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (normalizedToken.contains('resonancia')) {
       return _effectResonanceAccent;
     }
+    if (normalizedToken.contains('desafio')) {
+      return _effectChallengeAccent;
+    }
     if (normalizedToken.contains('intoxicacion')) {
       return _effectPoisonAccent;
     }
@@ -191,6 +195,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (tagSet.contains(EntityTag.resonancia)) {
       return _effectResonanceAccent;
     }
+    if (tagSet.contains(EntityTag.desafio)) {
+      return _effectChallengeAccent;
+    }
     if (tagSet.contains(EntityTag.vida)) {
       return _effectHealingAccent;
     }
@@ -222,6 +229,10 @@ class EndpointHighlightedValueText extends StatelessWidget {
       const _ValueAccentCandidate(
         color: _effectResonanceAccent,
         patterns: ['resonancia'],
+      ),
+      const _ValueAccentCandidate(
+        color: _effectChallengeAccent,
+        patterns: ['desafio'],
       ),
       const _ValueAccentCandidate(
         color: _effectPoisonAccent,

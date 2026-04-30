@@ -52,6 +52,9 @@ enum BattlerAbilityId {
   sobrecargaRegulada,
   copiaDeSeguridad,
   puntoCiego,
+  provocacionFrontal,
+  cargaTemeraria,
+  mandatoColiseo,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -203,6 +206,11 @@ const _buffDebuffBarreraAbilityTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.debuff,
   EntityTag.barrera,
+];
+const _desafioAtaqueAbilityTags = <EntityTag>[
+  EntityTag.desafio,
+  EntityTag.ataque,
+  EntityTag.buff,
 ];
 const _cicloBuffAbilityTags = <EntityTag>[
   EntityTag.ciclo,
@@ -792,6 +800,12 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Pasiva. Una vez por combate, si un ataque te dejaria a 0 HP, sobrevives con 1 HP y ganas $positiveAmount de Barrera.';
     case BattlerAbilityId.puntoCiego:
       return 'Activacion manual en combate. Durante $positiveAmount turnos, el enemigo falla sus ataques contra ti, evitando su dano y los efectos aplicados sobre ti.';
+    case BattlerAbilityId.provocacionFrontal:
+      return 'Activacion manual en combate. Ganas $positiveAmount Desafio.';
+    case BattlerAbilityId.cargaTemeraria:
+      return 'Activacion manual en combate. Ganas $positiveAmount Desafio y haces un ataque inmediato. Si el enemigo sobrevive, el contraataque de Desafio hace +3 dano.';
+    case BattlerAbilityId.mandatoColiseo:
+      return 'Pasiva. Al principio del combate ganas $positiveAmount Desafio. La primera vez por turno que consumes Desafio, no provoca contraataque.';
     case BattlerAbilityId.hemostasiaAgresiva:
       return 'Pasiva. Al golpear a un objetivo con debuff, te curas $amount HP.';
     case BattlerAbilityId.mallaRebote:

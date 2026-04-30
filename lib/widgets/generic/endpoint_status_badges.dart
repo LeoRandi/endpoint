@@ -326,7 +326,12 @@ class _EndpointStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = status.type.accent;
+    final accent = status.hasTag(EntityTag.desafio)
+        ? EntityTag.desafio.accent
+        : status.type.accent;
+    final foreground = status.hasTag(EntityTag.desafio)
+        ? EndpointPalette.soften(accent)
+        : status.type.foreground;
     final badgeLabel = status.badgeLabelFor(battler);
 
     return MouseRegion(
@@ -359,7 +364,7 @@ class _EndpointStatusBadge extends StatelessWidget {
                     child: Icon(
                       status.icon,
                       size: size * 0.56,
-                      color: status.type.foreground,
+                      color: foreground,
                     ),
                   ),
                 ),
@@ -423,7 +428,12 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = status.type.accent;
+    final accent = status.hasTag(EntityTag.desafio)
+        ? EntityTag.desafio.accent
+        : status.type.accent;
+    final foreground = status.hasTag(EntityTag.desafio)
+        ? EndpointPalette.soften(accent)
+        : status.type.foreground;
     final screenSize = MediaQuery.sizeOf(context);
 
     return Center(
@@ -457,7 +467,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                       child: Icon(
                         status.icon,
                         size: 28,
-                        color: status.type.foreground,
+                        color: foreground,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -493,8 +503,9 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 12),
-                    EndpointText(
+                    EndpointHighlightedValueText(
                       status.descriptionFor(battler),
+                      tags: status.tags,
                       textAlign: TextAlign.center,
                       maxLines: null,
                       style: textMedium.copyWith(

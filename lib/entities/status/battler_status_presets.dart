@@ -12,6 +12,12 @@ const cicloEclipseStatus = CicloEclipseStatus();
 /// Preset rapido del buff Punto Ciego con su proteccion base.
 const puntoCiegoStatus = PuntoCiegoStatus();
 
+/// Preset rapido del buff Desafio con su golpe reservado base.
+const desafioStatus = DesafioStatus();
+
+/// Preset rapido del buff que mejora los siguientes Desafios.
+const desafioExcitanteStatus = DesafioExcitanteStatus();
+
 /// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
 const catalisisCruelStatus = CatalisisCruelStatus();
 
@@ -74,6 +80,16 @@ final battlerStatusFactoryById =
         remainingTurns: remainingTurns,
         value: value,
       ),
+  BattlerStatusId.desafio: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      DesafioStatus(value: value),
+  BattlerStatusId.desafioExcitante: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      DesafioExcitanteStatus(value: value),
   BattlerStatusId.quemadura: ({
     required int remainingTurns,
     required int value,

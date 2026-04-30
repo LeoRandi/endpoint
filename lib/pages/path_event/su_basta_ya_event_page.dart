@@ -18,6 +18,13 @@ class SuBastaYaEventPage extends StatefulWidget {
   State<SuBastaYaEventPage> createState() => _SuBastaYaEventPageState();
 }
 
+enum _SuBastaYaEventStage {
+  options,
+  auction,
+  stats,
+  ability,
+}
+
 class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
   late final RunRandomizer _eventRandomizer;
   late final List<Item> _eligibleItems;
@@ -26,6 +33,7 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
   Item? _statItem;
   BattlerAbility? _swapAbility;
   SuBastaYaStatReward _selectedReward = SuBastaYaStatReward.health;
+  _SuBastaYaEventStage _stage = _SuBastaYaEventStage.options;
   int _flavorPageIndex = 0;
   bool _isResolving = false;
 
@@ -62,52 +70,31 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
     });
   }
 
-  Future<void> _selectAuctionItem() async {
-    final item = await _selectItem('Selecciona un objeto para subastar');
-    if (!mounted || item == null) return;
+  void _chooseStage(_SuBastaYaEventStage stage) {
+    setState(() {
+      _stage = stage;
+    });
+  }
+
+  void _backToOptions() {
+    setState(() {
+      _stage = _SuBastaYaEventStage.options;
+    });
+  }
+
+  void _selectAuctionItem(Item item) {
     setState(() {
       _auctionItem = item;
     });
   }
 
-  Future<void> _selectStatItem() async {
-    final item = await _selectItem('Selecciona un objeto para reciclar');
-    if (!mounted || item == null) return;
+  void _selectStatItem(Item item) {
     setState(() {
       _statItem = item;
     });
   }
 
-  Future<Item?> _selectItem(String subtitle) {
-    if (_eligibleItems.isEmpty) {
-      return Future<Item?>.value();
-    }
-
-    return showEndpointOverlay<Item>(
-      context: context,
-      barrierLabel: 'Seleccionar objeto',
-      barrierColor: EndpointPalette.overlayScrim,
-      builder: (_) => _SuBastaYaItemSelectionOverlay(
-        items: _eligibleItems,
-        subtitle: subtitle,
-        accent: widget.node.accent,
-      ),
-    );
-  }
-
-  Future<void> _selectSwapAbility() async {
-    if (_eligibleAbilities.isEmpty) return;
-
-    final ability = await showEndpointOverlay<BattlerAbility>(
-      context: context,
-      barrierLabel: 'Seleccionar habilidad',
-      barrierColor: EndpointPalette.overlayScrim,
-      builder: (_) => _SuBastaYaAbilitySelectionOverlay(
-        abilities: _eligibleAbilities,
-        accent: widget.node.accent,
-      ),
-    );
-    if (!mounted || ability == null) return;
+  void _selectSwapAbility(BattlerAbility ability) {
     setState(() {
       _swapAbility = ability;
     });
@@ -177,110 +164,298 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
       closeTooltip: EndpointStrings.backToRoute,
       accent: widget.node.accent,
       emoji: widget.node.iconEmoji,
+      emojiSize: 108,
       title: widget.node.eventTitle,
-      content: _buildContent(),
+      content: _buildContent(context),
     );
   }
 
-  Widget _buildContent() {
-    final auctionItem = _auctionItem;
-    final statItem = _statItem;
-    final swapAbility = _swapAbility;
+  Widget _buildContent(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final maxPanelHeight = min(430.0, max(300.0, screenHeight - 270.0));
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 680),
+      constraints: BoxConstraints(
+        maxWidth: 700,
+        maxHeight: maxPanelHeight,
+      ),
       child: EndpointPanel(
         accent: widget.node.accent,
         backgroundColor: EndpointPalette.panelBackgroundSoft,
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            EndpointText(
-              widget.node.description,
-              textAlign: TextAlign.center,
-              maxLines: null,
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withAlpha(214),
-                letterSpacing: 0.6,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              EndpointText(
+                widget.node.description,
+                textAlign: TextAlign.center,
+                maxLines: null,
+                style: textSmallBold.copyWith(
+                  color: EndpointPalette.softForeground.withAlpha(214),
+                  letterSpacing: 0.6,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.center,
-              children: [
-                _SuBastaYaDealCard(
-                  title: 'SUBASTAR',
-                  icon: Icons.sell_rounded,
-                  accent: auctionItem?.rarity.accent ?? widget.node.accent,
-                  body: auctionItem == null
-                      ? 'Vende un objeto por encima de su valor normal.'
-                      : '${auctionItem.displayName}: ${widget.eventService.suBastaYaAuctionPriceFor(auctionItem)}C',
-                  actionLabel: auctionItem == null ? 'Elegir objeto' : 'Vender',
-                  actionIcon: auctionItem == null
-                      ? Icons.inventory_2_rounded
-                      : Icons.payments_rounded,
-                  onPressed: _isResolving
-                      ? null
-                      : auctionItem == null
-                          ? _selectAuctionItem
-                          : _sellAuctionItem,
-                ),
-                _SuBastaYaDealCard(
-                  title: 'RECICLAR',
-                  icon: Icons.auto_fix_high_rounded,
-                  accent: statItem?.rarity.accent ?? widget.node.accent,
-                  body: statItem == null
-                      ? 'Sacrifica un objeto para ganar stats permanentes.'
-                      : _statRewardText(statItem),
-                  extra: _buildRewardSelector(statItem),
-                  actionLabel: statItem == null ? 'Elegir objeto' : 'Reciclar',
-                  actionIcon: statItem == null
-                      ? Icons.inventory_rounded
-                      : Icons.trending_up_rounded,
-                  onPressed: _isResolving
-                      ? null
-                      : statItem == null
-                          ? _selectStatItem
-                          : _sacrificeStatItem,
-                ),
-                _SuBastaYaDealCard(
-                  title: 'INTERCAMBIAR',
-                  icon: Icons.swap_horiz_rounded,
-                  accent: swapAbility?.accent ?? widget.node.accent,
-                  body: swapAbility == null
-                      ? 'Entrega una habilidad y recibe otra del mismo tier o superior.'
-                      : swapAbility.displayName,
-                  actionLabel:
-                      swapAbility == null ? 'Elegir habilidad' : 'Cambiar',
-                  actionIcon: swapAbility == null
-                      ? Icons.bubble_chart_rounded
-                      : Icons.shuffle_rounded,
-                  onPressed: _isResolving
-                      ? null
-                      : swapAbility == null
-                          ? _selectSwapAbility
-                          : _swapSelectedAbility,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            EndpointActionButton(
-              label: 'Rechazar todo',
-              icon: Icons.close_rounded,
-              onPressed: _isResolving ? null : _close,
-              tooltip: 'Salir del evento sin cambios',
-              accent: EndpointPalette.softForeground.withAlpha(190),
-              backgroundColor: EndpointPalette.panelBackgroundMuted,
-              foregroundColor: EndpointPalette.softForeground,
-              expands: true,
-              useMarquee: false,
-            ),
-          ],
+              const SizedBox(height: 12),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                reverseDuration: const Duration(milliseconds: 140),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  final offset = Tween<Offset>(
+                    begin: const Offset(1.12, 0),
+                    end: Offset.zero,
+                  ).animate(animation);
+
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: offset,
+                      child: child,
+                    ),
+                  );
+                },
+                child: _buildStageContent(),
+              ),
+              const SizedBox(height: 12),
+              EndpointActionButton(
+                label: 'Rechazar todo',
+                icon: Icons.close_rounded,
+                onPressed: _isResolving ? null : _close,
+                tooltip: 'Salir del evento sin cambios',
+                accent: EndpointPalette.softForeground.withAlpha(190),
+                backgroundColor: EndpointPalette.panelBackgroundMuted,
+                foregroundColor: EndpointPalette.softForeground,
+                expands: true,
+                useMarquee: false,
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStageContent() {
+    switch (_stage) {
+      case _SuBastaYaEventStage.options:
+        return _buildOptionsStage();
+      case _SuBastaYaEventStage.auction:
+        return _buildAuctionStage();
+      case _SuBastaYaEventStage.stats:
+        return _buildStatsStage();
+      case _SuBastaYaEventStage.ability:
+        return _buildAbilityStage();
+    }
+  }
+
+  Widget _buildOptionsStage() {
+    final hasItems = _eligibleItems.isNotEmpty;
+    final hasAbilities = _eligibleAbilities.isNotEmpty;
+
+    return Column(
+      key: const ValueKey<String>('su-basta-options'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SuBastaYaOptionCard(
+          title: 'SUBASTAR',
+          icon: Icons.sell_rounded,
+          accent: widget.node.accent,
+          body: hasItems
+              ? 'Vende un objeto por encima de su valor normal.'
+              : 'No tienes objetos disponibles para subastar.',
+          onPressed: _isResolving || !hasItems
+              ? null
+              : () => _chooseStage(_SuBastaYaEventStage.auction),
+        ),
+        const SizedBox(height: 8),
+        _SuBastaYaOptionCard(
+          title: 'RECICLAR',
+          icon: Icons.auto_fix_high_rounded,
+          accent: widget.node.accent,
+          body: hasItems
+              ? 'Sacrifica un objeto para ganar stats permanentes.'
+              : 'No tienes objetos disponibles para reciclar.',
+          onPressed: _isResolving || !hasItems
+              ? null
+              : () => _chooseStage(_SuBastaYaEventStage.stats),
+        ),
+        const SizedBox(height: 8),
+        _SuBastaYaOptionCard(
+          title: 'INTERCAMBIAR',
+          icon: Icons.swap_horiz_rounded,
+          accent: widget.node.accent,
+          body: hasAbilities
+              ? 'Entrega una habilidad y recibe otra del mismo tier o superior.'
+              : 'No tienes habilidades disponibles para intercambiar.',
+          onPressed: _isResolving || !hasAbilities
+              ? null
+              : () => _chooseStage(_SuBastaYaEventStage.ability),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAuctionStage() {
+    final auctionItem = _auctionItem;
+
+    return Column(
+      key: const ValueKey<String>('su-basta-auction'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SuBastaYaStageHeader(
+          title: 'SUBASTAR',
+          icon: Icons.sell_rounded,
+          accent: auctionItem?.rarity.accent ?? widget.node.accent,
+          onBack: _backToOptions,
+        ),
+        const SizedBox(height: 10),
+        _buildItemPicker(
+          selectedItem: auctionItem,
+          onSelected: _selectAuctionItem,
+        ),
+        const SizedBox(height: 10),
+        EndpointActionButton(
+          label: auctionItem == null
+              ? 'Elige un objeto'
+              : 'Vender por ${widget.eventService.suBastaYaAuctionPriceFor(auctionItem)}C',
+          icon: Icons.payments_rounded,
+          onPressed:
+              _isResolving || auctionItem == null ? null : _sellAuctionItem,
+          tooltip: 'Subastar objeto',
+          accent: auctionItem?.rarity.accent ?? widget.node.accent,
+          backgroundColor: EndpointPalette.panelBackgroundMuted,
+          foregroundColor: EndpointPalette.soften(
+              auctionItem?.rarity.accent ?? widget.node.accent),
+          expands: true,
+          useMarquee: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsStage() {
+    final statItem = _statItem;
+
+    return Column(
+      key: const ValueKey<String>('su-basta-stats'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SuBastaYaStageHeader(
+          title: 'RECICLAR',
+          icon: Icons.auto_fix_high_rounded,
+          accent: statItem?.rarity.accent ?? widget.node.accent,
+          onBack: _backToOptions,
+        ),
+        const SizedBox(height: 10),
+        _buildItemPicker(
+          selectedItem: statItem,
+          onSelected: _selectStatItem,
+        ),
+        if (statItem != null) ...[
+          const SizedBox(height: 10),
+          _buildRewardSelector(statItem) ?? const SizedBox.shrink(),
+          const SizedBox(height: 8),
+          EndpointText(
+            _statRewardText(statItem),
+            textAlign: TextAlign.center,
+            maxLines: null,
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.softForeground.withAlpha(214),
+              fontSize: 11,
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        EndpointActionButton(
+          label: statItem == null ? 'Elige un objeto' : 'Reciclar',
+          icon: Icons.trending_up_rounded,
+          onPressed:
+              _isResolving || statItem == null ? null : _sacrificeStatItem,
+          tooltip: 'Reciclar objeto',
+          accent: statItem?.rarity.accent ?? widget.node.accent,
+          backgroundColor: EndpointPalette.panelBackgroundMuted,
+          foregroundColor: EndpointPalette.soften(
+              statItem?.rarity.accent ?? widget.node.accent),
+          expands: true,
+          useMarquee: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAbilityStage() {
+    final swapAbility = _swapAbility;
+
+    return Column(
+      key: const ValueKey<String>('su-basta-ability'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SuBastaYaStageHeader(
+          title: 'INTERCAMBIAR',
+          icon: Icons.swap_horiz_rounded,
+          accent: swapAbility?.accent ?? widget.node.accent,
+          onBack: _backToOptions,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final ability in _eligibleAbilities)
+              _SuBastaYaAbilityPickTile(
+                ability: ability,
+                isSelected: swapAbility?.id == ability.id,
+                onPressed: () => _selectSwapAbility(ability),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        EndpointActionButton(
+          label: swapAbility == null ? 'Elige una habilidad' : 'Cambiar',
+          icon: Icons.shuffle_rounded,
+          onPressed:
+              _isResolving || swapAbility == null ? null : _swapSelectedAbility,
+          tooltip: 'Intercambiar habilidad',
+          accent: swapAbility?.accent ?? widget.node.accent,
+          backgroundColor: EndpointPalette.panelBackgroundMuted,
+          foregroundColor:
+              EndpointPalette.soften(swapAbility?.accent ?? widget.node.accent),
+          expands: true,
+          useMarquee: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemPicker({
+    required Item? selectedItem,
+    required ValueChanged<Item> onSelected,
+  }) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.center,
+      children: [
+        for (final item in _eligibleItems)
+          SizedBox(
+            width: 82,
+            height: 92,
+            child: EndpointInventoryItemTile(
+              item: item,
+              onPressed: () => onSelected(item),
+              backgroundColor: EndpointPalette.blend(
+                EndpointPalette.panelBackgroundMuted,
+                item.rarity.accent,
+                selectedItem == item ? 0.22 : 0.04,
+              ),
+              borderRadius: 12,
+              glowOpacity: selectedItem == item ? 0.18 : 0.08,
+            ),
+          ),
+      ],
     );
   }
 
@@ -335,200 +510,240 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
   }
 }
 
-class _SuBastaYaDealCard extends StatelessWidget {
+class _SuBastaYaOptionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color accent;
   final String body;
-  final Widget? extra;
-  final String actionLabel;
-  final IconData actionIcon;
   final VoidCallback? onPressed;
 
-  const _SuBastaYaDealCard({
+  const _SuBastaYaOptionCard({
     required this.title,
     required this.icon,
     required this.accent,
     required this.body,
-    this.extra,
-    required this.actionLabel,
-    required this.actionIcon,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 206,
-      child: EndpointPanel(
-        accent: accent,
-        backgroundColor: EndpointPalette.blend(
-          EndpointPalette.panelBackgroundGold,
-          accent,
-          0.1,
-        ),
-        borderRadius: 12,
-        glowOpacity: 0.08,
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: EndpointPalette.soften(accent), size: 24),
-            const SizedBox(height: 6),
-            EndpointText(
-              title,
-              textAlign: TextAlign.center,
-              style: textSmallBold.copyWith(
-                color: accent,
-                fontSize: 10,
-                letterSpacing: 1.4,
-              ),
-            ),
-            const SizedBox(height: 8),
-            EndpointText(
-              body,
-              textAlign: TextAlign.center,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withAlpha(210),
-                fontSize: 10,
-                letterSpacing: 0.6,
-              ),
-            ),
-            if (extra != null) ...[
-              const SizedBox(height: 8),
-              extra!,
-            ],
-            const SizedBox(height: 10),
-            EndpointActionButton(
-              label: actionLabel,
-              icon: actionIcon,
-              onPressed: onPressed,
-              tooltip: actionLabel,
-              accent: accent,
-              backgroundColor: EndpointPalette.panelBackgroundMuted,
-              foregroundColor: EndpointPalette.soften(accent),
-              expands: true,
-              useMarquee: false,
-              labelMaxLines: 1,
-              textStyle: textSmallBold,
-              iconSize: 18,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    final isEnabled = onPressed != null;
 
-class _SuBastaYaItemSelectionOverlay extends StatelessWidget {
-  final List<Item> items;
-  final String subtitle;
-  final Color accent;
-
-  const _SuBastaYaItemSelectionOverlay({
-    required this.items,
-    required this.subtitle,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return EndpointOverlayScaffold(
-      title: 'SU-Basta-Ya',
-      subtitle: subtitle,
-      sectionLabel: 'OBJETOS',
-      sectionValue: '${items.length}',
-      closeTooltip: 'Cerrar seleccion',
-      accent: accent,
-      bottomInset: 108,
-      maxWidth: 460,
-      maxHeight: 420,
-      child: SingleChildScrollView(
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final item in items)
-              SizedBox(
-                width: 86,
-                height: 96,
-                child: EndpointInventoryItemTile(
-                  item: item,
-                  onPressed: () => Navigator.of(context).pop(item),
-                  backgroundColor: EndpointPalette.panelBackgroundMuted,
-                  borderRadius: 12,
-                  glowOpacity: 0.08,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: EndpointPalette.blend(
+              EndpointPalette.panelBackgroundGold,
+              accent,
+              isEnabled ? 0.12 : 0.04,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: accent.withAlpha(isEnabled ? 156 : 64),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 9, 8, 9),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 42,
+                  height: 42,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: EndpointPalette.panelBackgroundBattleOpaque,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: accent.withAlpha(128)),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: isEnabled
+                          ? EndpointPalette.soften(accent)
+                          : EndpointPalette.softForeground.withAlpha(112),
+                      size: 22,
+                    ),
+                  ),
                 ),
-              ),
-          ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      EndpointText(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: isEnabled
+                              ? accent
+                              : EndpointPalette.softForeground.withAlpha(120),
+                          fontSize: 11,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      EndpointText(
+                        body,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: EndpointPalette.softForeground.withAlpha(
+                            isEnabled ? 210 : 128,
+                          ),
+                          fontSize: 10,
+                          letterSpacing: 0.45,
+                          height: 1.15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: isEnabled
+                      ? EndpointPalette.soften(accent)
+                      : EndpointPalette.softForeground.withAlpha(96),
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _SuBastaYaAbilitySelectionOverlay extends StatelessWidget {
-  final List<BattlerAbility> abilities;
+class _SuBastaYaStageHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
   final Color accent;
+  final VoidCallback onBack;
 
-  const _SuBastaYaAbilitySelectionOverlay({
-    required this.abilities,
+  const _SuBastaYaStageHeader({
+    required this.title,
+    required this.icon,
     required this.accent,
+    required this.onBack,
   });
 
   @override
   Widget build(BuildContext context) {
-    return EndpointOverlayScaffold(
-      title: 'SU-Basta-Ya',
-      subtitle: 'Selecciona una habilidad para intercambiar',
-      sectionLabel: 'HABILIDADES',
-      sectionValue: '${abilities.length}',
-      closeTooltip: 'Cerrar seleccion',
-      accent: accent,
-      bottomInset: 104,
-      maxWidth: 420,
-      maxHeight: 360,
-      child: GridView.builder(
-        itemCount: abilities.length,
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 104,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          mainAxisExtent: 96,
-        ),
-        itemBuilder: (context, index) {
-          final ability = abilities[index];
-          return Material(
+    return Row(
+      children: [
+        HoldTooltip(
+          message: 'Elegir otro trato',
+          child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => Navigator.of(context).pop(ability),
+              onTap: onBack,
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: EndpointPalette.panelBackgroundMuted,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: accent),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                    color: EndpointPalette.soften(accent),
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Icon(icon, color: EndpointPalette.soften(accent), size: 24),
+        const SizedBox(width: 8),
+        Expanded(
+          child: EndpointText(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textMediumBold.copyWith(
+              color: accent,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SuBastaYaAbilityPickTile extends StatelessWidget {
+  final BattlerAbility ability;
+  final bool isSelected;
+  final VoidCallback onPressed;
+
+  const _SuBastaYaAbilityPickTile({
+    required this.ability,
+    required this.isSelected,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = ability.accent;
+
+    return SizedBox(
+      width: 94,
+      height: 96,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: EndpointPalette.blend(
+                EndpointPalette.panelBackgroundMuted,
+                accent,
+                isSelected ? 0.24 : 0.06,
+              ),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: accent.withAlpha(isSelected ? 210 : 82),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(6, 7, 6, 5),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   EndpointAbilityOrb(
                     ability: ability,
-                    size: 58,
+                    size: 54,
                     enableTooltipLongPress: false,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   EndpointText(
                     ability.displayName,
                     textAlign: TextAlign.center,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textSmallBold.copyWith(
-                      color: ability.accent,
+                      color: EndpointPalette.soften(accent),
                       fontSize: 9,
-                      letterSpacing: 0.6,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

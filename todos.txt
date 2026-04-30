@@ -124,6 +124,7 @@ ARREGLAR:
 -Nerf:
 --Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
 
+
 ////
 PROBAR:
 

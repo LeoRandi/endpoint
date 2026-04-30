@@ -13,6 +13,7 @@ const _battleFloatingNumberDuration = Duration(milliseconds: 520);
 const _battleStatusEffectBurstDuration = Duration(milliseconds: 500);
 const _battleSwordAssetPath = 'assets/images/icons/icon_sword.png';
 const _battleShieldAssetPath = 'assets/images/icons/icon_shield.png';
+const _battleFistAssetPath = 'assets/images/icons/icon_unarmed.png';
 const _battleSwordAnimationSize = 46.0;
 
 class _BattleCombatIconMotion {
@@ -478,9 +479,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         ? _battleAttackFlightDuration +
             _battleAttackFollowUpStagger * (effectCount - 1)
         : _battleAttackFlightDuration;
-    final assetPath = cue.hook == BattleCombatAnimationHook.blockMotion
-        ? _battleShieldAssetPath
-        : _battleSwordAssetPath;
+    final assetPath = _assetPathForMotionCue(cue);
     _attackFlightController.duration = totalDuration;
     setState(() {
       _isPlayingBattleAnimation = true;
@@ -513,6 +512,21 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _activeCombatIconMotion = null;
       _isPlayingBattleAnimation = false;
     });
+  }
+
+  String _assetPathForMotionCue(BattleCombatAnimationCue cue) {
+    if (cue.hook == BattleCombatAnimationHook.blockMotion) {
+      return _battleShieldAssetPath;
+    }
+
+    switch (cue.motionAsset) {
+      case BattleCombatMotionAsset.fist:
+        return _battleFistAssetPath;
+      case BattleCombatMotionAsset.shield:
+        return _battleShieldAssetPath;
+      case BattleCombatMotionAsset.sword:
+        return _battleSwordAssetPath;
+    }
   }
 
   Future<void> _playStatusEffectCue(BattleCombatAnimationCue cue) async {

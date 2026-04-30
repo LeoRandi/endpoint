@@ -33,6 +33,7 @@ class RunSessionController extends ChangeNotifier {
 
   RunSessionController.resume({
     required EndpointCurrentRunSnapshot snapshot,
+    bool persistRun = true,
   }) : this._(
           player: snapshot.player,
           battleEnemyTurnDelay: snapshot.battleEnemyTurnDelay,
@@ -54,6 +55,7 @@ class RunSessionController extends ChangeNotifier {
           ),
           initialIsResolvingNode: snapshot.isResolvingNode,
           initialActiveNode: snapshot.activeNode,
+          persistRun: persistRun,
         );
 
   RunSessionController._({
@@ -157,9 +159,7 @@ class RunSessionController extends ChangeNotifier {
     _state = nextState;
     notifyListeners();
     if (resolvedCompletionType != null) {
-      if (_persistRun) {
-        unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
-      }
+      unawaited(clearPersistedRunSnapshot());
       return;
     }
     unawaited(_persistCurrentRun(trigger: 'playerUpdated'));
@@ -257,13 +257,25 @@ class RunSessionController extends ChangeNotifier {
       _isResolvingNode = false;
       _activeNode = null;
       notifyListeners();
-      if (_persistRun) {
-        unawaited(EndpointPreferencesService.clearCurrentRunSnapshot());
-      }
+      unawaited(clearPersistedRunSnapshot());
       return;
     }
 
     final nextStageIndex = _state.stageIndex + 1;
+    if (nextStageIndex > PathNodeService.sunriseStageIndex) {
+      _state = _state.copyWith(
+        player: updatedPlayer,
+        stageIndex: nextStageIndex,
+        isRunComplete: true,
+        completionType: RunCompletionType.victory,
+      );
+      _isResolvingNode = false;
+      _activeNode = null;
+      notifyListeners();
+      unawaited(clearPersistedRunSnapshot());
+      return;
+    }
+
     var nextPlayer = _progressPathSelectionAbilityCooldowns(updatedPlayer);
     var nextHour = _pathNodeService.buildHourSnapshot(
       stageIndex: nextStageIndex,
@@ -352,15 +364,15 @@ class RunSessionController extends ChangeNotifier {
     }
   }
 
-  /// Decide si el estado actual del jugador ya implica victoria o derrota de la run.
+  /// Decide si el estado actual del jugador ya implica una derrota inmediata.
+  ///
+  /// La victoria se concede al avanzar mas alla de SUNRISE, no por estar
+  /// esperando a seleccionar o resolver el nodo final.
   RunCompletionType? _resolveCompletionType({
     required Battler updatedPlayer,
   }) {
     if (updatedPlayer.isDefeated) {
       return RunCompletionType.defeat;
-    }
-    if (_state.stageIndex >= PathNodeService.sunriseStageIndex) {
-      return RunCompletionType.victory;
     }
 
     return null;
@@ -530,6 +542,12 @@ class RunSessionController extends ChangeNotifier {
       trigger: trigger,
       activeNode: activeNodeOverride ?? _activeNode,
     );
+  }
+
+  Future<void> clearPersistedRunSnapshot() {
+    if (!_persistRun) return Future<void>.value();
+
+    return EndpointPreferencesService.clearCurrentRunSnapshot();
   }
 
   List<PathNode>? _scriptedNodesForStage(int stageIndex) {

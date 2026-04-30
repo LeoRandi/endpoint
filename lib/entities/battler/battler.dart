@@ -143,6 +143,8 @@ enum BattlerCombatFlag {
   opresionTacticaTriggeredThisTurn,
   copiaSeguridadUsed,
   sobrecargaReguladaPendingCooldownPenalty,
+  mandatoColiseoOpeningGranted,
+  mandatoColiseoCounterPreventedThisTurn,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
@@ -165,6 +167,9 @@ enum ItemCombatFlagKind {
   nucleoPiezoelectricoTriggeredThisTurn,
   aislanteArmonicoLostHealthThisTurn,
   aislanteArmonicoTurnStartHealth,
+  guanteRetoTriggered,
+  ultimaPalabraTriggeredThisTurn,
+  aceleradorRetoTriggered,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.

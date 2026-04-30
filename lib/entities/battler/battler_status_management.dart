@@ -70,6 +70,25 @@ extension BattlerStatusManagement on Battler {
     return removeStatus(ResonanciaStatus.statusId);
   }
 
+  /// Devuelve el Desafio acumulado durante el combate.
+  int get desafioValue {
+    final status = statusById(DesafioStatus.statusId);
+    if (status is! DesafioStatus) return 0;
+
+    return max(0, status.resolved(this).value);
+  }
+
+  /// Acumula Desafio como buff temporal de combate.
+  Battler gainDesafio(int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || isDefeated) return this;
+
+    return applyStatus(
+      DesafioStatus(value: safeAmount),
+      applyEquipmentModifiers: false,
+    );
+  }
+
   /// Limpia solo las instancias de estado ya caducadas y deja el resto intacto.
   Battler pruneExpiredStatuses() {
     return _removeExpiredStatuses();

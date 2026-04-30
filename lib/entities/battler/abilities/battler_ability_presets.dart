@@ -482,6 +482,57 @@ const puntoCiegoAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Manual imparable que prepara un Desafio directo.
+const provocacionFrontalAbility = BattlerAbility(
+  id: BattlerAbilityId.provocacionFrontal,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _desafioAtaqueAbilityTags,
+  name: 'Provocacion Frontal',
+  description: 'Activacion manual en combate. Ganas Desafio.',
+  icon: Icons.sports_mma_rounded,
+  cooldownTurns: 2,
+  value: 3,
+  upgradeValue: 1,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: ProvocacionFrontalAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Manual imparable que desafia y ataca de inmediato.
+const cargaTemerariaAbility = BattlerAbility(
+  id: BattlerAbilityId.cargaTemeraria,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _desafioAtaqueAbilityTags,
+  name: 'Carga Temeraria',
+  description:
+      'Activacion manual en combate. Ganas Desafio y haces un ataque inmediato. Si el enemigo sobrevive, el contraataque de Desafio hace dano adicional.',
+  icon: Icons.flash_on_rounded,
+  cooldownTurns: 3,
+  value: 5,
+  upgradeValue: 2,
+  manualActivationContext: BattlerAbilityActivationContext.battle,
+  effect: CargaTemerariaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva imparable que abre combate con Desafio y controla su riesgo.
+const mandatoColiseoAbility = BattlerAbility(
+  id: BattlerAbilityId.mandatoColiseo,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _desafioAtaqueAbilityTags,
+  name: 'Mandato de Coliseo',
+  description:
+      'Pasiva. La primera vez por turno que un Desafio se consume, no provoca contraataque. Ganas Desafio al principio del combate.',
+  icon: Icons.stadium_rounded,
+  value: 2,
+  upgradeValue: 2,
+  effect: MandatoColiseoAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Preset pasivo amarillo que convierte debuffs enemigos en curacion.
 const hemostasiaAgresivaAbility = BattlerAbility(
   id: BattlerAbilityId.hemostasiaAgresiva,
@@ -799,6 +850,9 @@ const abilityPresets = <BattlerAbility>[
   sobrecargaReguladaAbility,
   copiaDeSeguridadAbility,
   puntoCiegoAbility,
+  provocacionFrontalAbility,
+  cargaTemerariaAbility,
+  mandatoColiseoAbility,
   hemostasiaAgresivaAbility,
   mallaReboteAbility,
   inyeccionCorrosivaAbility,

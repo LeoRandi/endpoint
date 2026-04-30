@@ -1546,24 +1546,13 @@ class MarcaDeCazaAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbilityActivationContext screenContext,
   }) {
     final amount = max(1, ability.currentValue);
-    final hadDebuffs = _hasAnyDebuff(opponent);
     final fragilityResolution = _applyAbilityStatusToOpponentFromOwner(
       owner: owner,
       opponent: opponent,
       status: FragilidadStatus(remainingTurns: amount),
     );
-    var updatedOwner = fragilityResolution.owner;
-    var updatedOpponent = fragilityResolution.opponent;
-
-    if (!hadDebuffs) {
-      final attackResolution = _resolveFixedDamageAttack(
-        owner: updatedOwner,
-        target: updatedOpponent,
-        damage: amount,
-      );
-      updatedOwner = attackResolution.owner;
-      updatedOpponent = attackResolution.target;
-    }
+    final updatedOwner = fragilityResolution.owner;
+    final updatedOpponent = fragilityResolution.opponent;
 
     final resolvedAbility = updatedOwner.abilityById(ability.id) ?? ability;
     return BattlerAbilityEffectResolution(
@@ -1742,14 +1731,85 @@ class PuntoCiegoAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-class _FixedDamageAttackResolution {
-  final Battler owner;
-  final Battler target;
+/// Manual que acumula Desafio para el siguiente ataque.
+class ProvocacionFrontalAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Provocacion Frontal.
+  const ProvocacionFrontalAbilityEffect();
 
-  const _FixedDamageAttackResolution({
-    required this.owner,
-    required this.target,
-  });
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    return BattlerAbilityEffectResolution(
+      owner: owner.gainDesafio(max(1, ability.currentValue)).updateAbility(
+            ability.startCooldown(),
+          ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Manual que prepara Desafio y deja al controlador resolver el ataque inmediato.
+class CargaTemerariaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Carga Temeraria.
+  const CargaTemerariaAbilityEffect();
+
+  @override
+  BattlerAbilityEffectResolution onManualActivation({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlerAbilityActivationContext screenContext,
+  }) {
+    return BattlerAbilityEffectResolution(
+      owner: owner.gainDesafio(max(1, ability.currentValue)).updateAbility(
+            ability.startCooldown(),
+          ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Pasiva que abre combate con Desafio y evita el primer contraataque por turno.
+class MandatoColiseoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Mandato de Coliseo.
+  const MandatoColiseoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.turnStart,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn ||
+        owner.hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.mandatoColiseoOpeningGranted,
+          ),
+        )) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner
+          .addCombatFlag(
+            const CombatRuntimeFlag.battler(
+              BattlerCombatFlag.mandatoColiseoOpeningGranted,
+            ),
+          )
+          .gainDesafio(max(1, ability.currentValue)),
+      opponent: opponent,
+    );
+  }
 }
 
 class _DebuffBudgetReduction {
@@ -1760,97 +1820,6 @@ class _DebuffBudgetReduction {
     required this.owner,
     required this.spentBudget,
   });
-}
-
-_FixedDamageAttackResolution _resolveFixedDamageAttack({
-  required Battler owner,
-  required Battler target,
-  required int damage,
-}) {
-  final baseDamage = max(0, damage);
-  final outgoingStatusModifiedDamage = owner.applyOutgoingDamageModifiers(
-    target: target,
-    damage: baseDamage,
-  );
-  final outgoingAbilityModifiedDamage =
-      owner.applyAbilityOutgoingDamageModifiers(
-    target: target,
-    damage: outgoingStatusModifiedDamage,
-  );
-  final outgoingModifiedDamage = owner.applyEquippedItemOutgoingDamageModifiers(
-    target: target,
-    damage: outgoingAbilityModifiedDamage,
-  );
-  final incomingStatusModifiedDamage = target.applyIncomingDamageModifiers(
-    source: owner,
-    damage: outgoingModifiedDamage,
-  );
-  final incomingAbilityModifiedDamage =
-      target.applyAbilityIncomingDamageModifiers(
-    source: owner,
-    damage: incomingStatusModifiedDamage,
-  );
-  final damageDealt = target.applyEquippedItemIncomingDamageModifiers(
-    source: owner,
-    damage: incomingAbilityModifiedDamage,
-  );
-  final targetAfterDamage = target.receiveDirectDamage(
-    damageDealt,
-    source: owner,
-  );
-  final barrierWasBrokenByAttack = target.currentBarrier > 0 &&
-      targetAfterDamage.currentBarrier <= 0 &&
-      damageDealt > 0;
-
-  var updatedOwner = owner.applyAttackResolvedEffects(
-    target: targetAfterDamage,
-    damageDealt: damageDealt,
-  );
-  var updatedTarget = targetAfterDamage;
-  final attackAbilityResolution =
-      updatedOwner.applyAbilityAttackResolvedEffects(
-    target: updatedTarget,
-    damageDealt: damageDealt,
-  );
-  updatedOwner = attackAbilityResolution.owner;
-  updatedTarget = attackAbilityResolution.opponent;
-
-  final attackItemResolution =
-      updatedOwner.applyEquippedItemAttackResolvedEffects(
-    target: updatedTarget,
-    damageDealt: damageDealt,
-  );
-  updatedOwner = attackItemResolution.owner;
-  updatedTarget = attackItemResolution.opponent;
-  if (barrierWasBrokenByAttack) {
-    updatedTarget = updatedTarget.addCombatFlag(
-      Battler.barrierBrokenThisHitFlag,
-    );
-  }
-
-  updatedTarget = updatedTarget.applyReceiveDamageResolvedEffects(
-    source: updatedOwner,
-    damageTaken: damageDealt,
-  );
-  final receiveAbilityResolution =
-      updatedTarget.applyAbilityReceiveDamageResolvedEffects(
-    source: updatedOwner,
-    damageTaken: damageDealt,
-  );
-  updatedTarget = receiveAbilityResolution.owner;
-  updatedOwner = receiveAbilityResolution.opponent;
-  final receiveItemResolution =
-      updatedTarget.applyEquippedItemReceiveDamageResolvedEffects(
-    source: updatedOwner,
-    damageTaken: damageDealt,
-  );
-  updatedTarget = receiveItemResolution.owner;
-  updatedOwner = receiveItemResolution.opponent;
-
-  return _FixedDamageAttackResolution(
-    owner: updatedOwner,
-    target: updatedTarget,
-  );
 }
 
 _DebuffBudgetReduction _reducePurgeableDebuffsWithHealingBudget({
@@ -1897,12 +1866,6 @@ List<BattlerStatus> _purgeableDebuffs(Battler battler) {
             status.type == BattlerStatusType.debuff && status.isPurgeable,
       )
       .toList(growable: false);
-}
-
-bool _hasAnyDebuff(Battler battler) {
-  return battler.statuses.any(
-    (status) => status.type == BattlerStatusType.debuff,
-  );
 }
 
 bool _hasOnlyMercanteOrGeneralOwnedItems(Battler owner) {

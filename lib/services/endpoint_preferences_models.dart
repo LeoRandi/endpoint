@@ -144,5 +144,6 @@ class EndpointCurrentRunSnapshot {
 
   int get nodeCount => max(1, visibleNodes.length);
 
-  bool get canContinue => !isRunComplete;
+  bool get canContinue =>
+      !isRunComplete && completionType == null && visibleNodes.isNotEmpty;
 }

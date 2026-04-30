@@ -17,6 +17,13 @@ class PitonisaQuitapenasEventPage extends StatefulWidget {
       _PitonisaQuitapenasEventPageState();
 }
 
+enum _PitonisaEventStage {
+  options,
+  purge,
+  offering,
+  presage,
+}
+
 class _PitonisaQuitapenasEventPageState
     extends State<PitonisaQuitapenasEventPage> {
   late final List<BattlerStatus> _debuffs;
@@ -24,6 +31,7 @@ class _PitonisaQuitapenasEventPageState
   late final List<BattlerAbility> _cooldownAbilities;
   Item? _selectedItem;
   BattlerAbility? _selectedAbility;
+  _PitonisaEventStage _stage = _PitonisaEventStage.options;
   int _flavorPageIndex = 0;
   bool _isResolving = false;
 
@@ -49,12 +57,8 @@ class _PitonisaQuitapenasEventPageState
   }
 
   String? get _cooldownActionBlockReason {
-    if (_cooldownAbilities.isEmpty) {
-      return 'No tienes habilidades manuales con cooldown.';
-    }
-    if (_selectedAbility == null) {
-      return null;
-    }
+    final selectedAbility = _selectedAbility;
+    if (selectedAbility == null) return null;
 
     final missingCredits = _cooldownReductionCost - widget.player.money;
     if (missingCredits > 0) {
@@ -80,37 +84,25 @@ class _PitonisaQuitapenasEventPageState
     });
   }
 
-  Future<void> _selectItem() async {
-    if (_items.isEmpty) return;
+  void _chooseStage(_PitonisaEventStage stage) {
+    setState(() {
+      _stage = stage;
+    });
+  }
 
-    final item = await showEndpointOverlay<Item>(
-      context: context,
-      barrierLabel: 'Seleccionar ofrenda',
-      barrierColor: EndpointPalette.overlayScrim,
-      builder: (_) => _PitonisaItemSelectionOverlay(
-        items: _items,
-        accent: widget.node.accent,
-      ),
-    );
-    if (!mounted || item == null) return;
+  void _backToOptions() {
+    setState(() {
+      _stage = _PitonisaEventStage.options;
+    });
+  }
+
+  void _selectItem(Item item) {
     setState(() {
       _selectedItem = item;
     });
   }
 
-  Future<void> _selectAbility() async {
-    if (_cooldownAbilities.isEmpty) return;
-
-    final ability = await showEndpointOverlay<BattlerAbility>(
-      context: context,
-      barrierLabel: 'Seleccionar habilidad',
-      barrierColor: EndpointPalette.overlayScrim,
-      builder: (_) => _PitonisaAbilitySelectionOverlay(
-        abilities: _cooldownAbilities,
-        accent: widget.node.accent,
-      ),
-    );
-    if (!mounted || ability == null) return;
+  void _selectAbility(BattlerAbility ability) {
     setState(() {
       _selectedAbility = ability;
     });
@@ -174,214 +166,557 @@ class _PitonisaQuitapenasEventPageState
       closeTooltip: EndpointStrings.backToRoute,
       accent: widget.node.accent,
       emoji: widget.node.iconEmoji,
+      emojiSize: 108,
       title: widget.node.eventTitle,
-      content: _buildContent(),
+      content: _buildContent(context),
     );
   }
 
-  Widget _buildContent() {
-    final selectedItem = _selectedItem;
-    final selectedAbility = _selectedAbility;
-    final cooldownCost = _cooldownReductionCost;
-    final cooldownBlockReason = _cooldownActionBlockReason;
+  Widget _buildContent(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final maxPanelHeight = min(430.0, max(300.0, screenHeight - 270.0));
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 660),
+      constraints: BoxConstraints(
+        maxWidth: 700,
+        maxHeight: maxPanelHeight,
+      ),
       child: EndpointPanel(
         accent: widget.node.accent,
         backgroundColor: EndpointPalette.panelBackgroundSoft,
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                EndpointText(
-                  'CREDITOS',
-                  style: textSmallBold.copyWith(
-                    color: widget.node.accent,
-                    letterSpacing: 1.4,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  EndpointText(
+                    'CREDITOS',
+                    style: textSmallBold.copyWith(
+                      color: widget.node.accent,
+                      letterSpacing: 1.4,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                EndpointCurrencyInline(
-                  value: widget.player.money,
-                  iconColor: EndpointPalette.warningAccent,
-                  textColor: EndpointPalette.softForeground,
-                  iconSize: 15,
-                  spacing: 4,
-                  textStyle: textMediumNumericBold.copyWith(
-                    fontSize: 14,
-                    letterSpacing: 1.2,
+                  const Spacer(),
+                  EndpointCurrencyInline(
+                    value: widget.player.money,
+                    iconColor: EndpointPalette.warningAccent,
+                    textColor: EndpointPalette.softForeground,
+                    iconSize: 15,
+                    spacing: 4,
+                    textStyle: textMediumNumericBold.copyWith(
+                      fontSize: 14,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            EndpointText(
-              widget.node.description,
-              textAlign: TextAlign.center,
-              maxLines: null,
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withAlpha(214),
-                letterSpacing: 0.6,
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.center,
-              children: [
-                _PitonisaDealCard(
-                  title: 'PURGAR',
-                  icon: Icons.cleaning_services_rounded,
-                  accent: EndpointPalette.dangerAccent,
-                  body: _debuffs.isEmpty
-                      ? 'No tienes debuffs purgables.'
-                      : 'Elimina ${_debuffs.length} debuffs activos.',
-                  actionLabel: 'Quitar penas',
-                  actionIcon: Icons.backspace_rounded,
-                  onPressed:
-                      _isResolving || _debuffs.isEmpty ? null : _purgeDebuffs,
+              const SizedBox(height: 8),
+              EndpointText(
+                widget.node.description,
+                textAlign: TextAlign.center,
+                maxLines: null,
+                style: textSmallBold.copyWith(
+                  color: EndpointPalette.softForeground.withAlpha(214),
+                  letterSpacing: 0.6,
                 ),
-                _PitonisaDealCard(
-                  title: 'OFRENDA',
-                  icon: Icons.inventory_2_rounded,
-                  accent: selectedItem?.rarity.accent ?? widget.node.accent,
-                  body: selectedItem == null
-                      ? 'Entrega un objeto y recupera toda tu vida.'
-                      : '${selectedItem.displayName}: curar al maximo',
-                  actionLabel:
-                      selectedItem == null ? 'Elegir objeto' : 'Entregar',
-                  actionIcon: selectedItem == null
-                      ? Icons.inventory_rounded
-                      : Icons.favorite_rounded,
-                  onPressed: _isResolving
-                      ? null
-                      : selectedItem == null
-                          ? _selectItem
-                          : _offerItem,
-                ),
-                _PitonisaDealCard(
-                  title: 'PRESAGIO',
-                  icon: Icons.av_timer_rounded,
-                  accent: selectedAbility?.accent ?? widget.node.accent,
-                  body: selectedAbility == null
-                      ? _cooldownAbilities.isEmpty
-                          ? 'No tienes habilidades manuales con cooldown.'
-                          : 'Paga ${cooldownCost}C para reducir en 1 el cooldown permanente de una habilidad manual.'
-                      : cooldownBlockReason ??
-                          '${selectedAbility.displayName}: ${selectedAbility.cooldownTurns} -> ${max(0, selectedAbility.cooldownTurns - 1)} turnos por ${cooldownCost}C',
-                  actionLabel: selectedAbility == null
-                      ? 'Elegir habilidad'
-                      : 'Reducir cooldown',
-                  actionIcon: selectedAbility == null
-                      ? Icons.bubble_chart_rounded
-                      : Icons.update_rounded,
-                  tooltip: cooldownBlockReason ?? 'Reducir cooldown permanente',
-                  onPressed: _isResolving || cooldownBlockReason != null
-                      ? null
-                      : selectedAbility == null
-                          ? _selectAbility
-                          : _reduceCooldown,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            EndpointActionButton(
-              label: 'Marcharse',
-              icon: Icons.close_rounded,
-              onPressed: _isResolving ? null : _close,
-              tooltip: 'Salir del evento sin cambios',
-              accent: EndpointPalette.softForeground.withAlpha(190),
-              backgroundColor: EndpointPalette.panelBackgroundMuted,
-              foregroundColor: EndpointPalette.softForeground,
-              expands: true,
-              useMarquee: false,
-            ),
-          ],
+              ),
+              const SizedBox(height: 12),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                reverseDuration: const Duration(milliseconds: 140),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  final offset = Tween<Offset>(
+                    begin: const Offset(1.12, 0),
+                    end: Offset.zero,
+                  ).animate(animation);
+
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: offset,
+                      child: child,
+                    ),
+                  );
+                },
+                child: _buildStageContent(),
+              ),
+              const SizedBox(height: 12),
+              EndpointActionButton(
+                label: 'Marcharse',
+                icon: Icons.close_rounded,
+                onPressed: _isResolving ? null : _close,
+                tooltip: 'Salir del evento sin cambios',
+                accent: EndpointPalette.softForeground.withAlpha(190),
+                backgroundColor: EndpointPalette.panelBackgroundMuted,
+                foregroundColor: EndpointPalette.softForeground,
+                expands: true,
+                useMarquee: false,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildStageContent() {
+    switch (_stage) {
+      case _PitonisaEventStage.options:
+        return _buildOptionsStage();
+      case _PitonisaEventStage.purge:
+        return _buildPurgeStage();
+      case _PitonisaEventStage.offering:
+        return _buildOfferingStage();
+      case _PitonisaEventStage.presage:
+        return _buildPresageStage();
+    }
+  }
+
+  Widget _buildOptionsStage() {
+    final hasDebuffs = _debuffs.isNotEmpty;
+    final hasItems = _items.isNotEmpty;
+    final hasCooldownAbilities = _cooldownAbilities.isNotEmpty;
+    final missingCredits = _cooldownReductionCost - widget.player.money;
+
+    return Column(
+      key: const ValueKey<String>('pitonisa-options'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _PitonisaOptionCard(
+          title: 'PURGAR',
+          icon: Icons.cleaning_services_rounded,
+          accent: EndpointPalette.dangerAccent,
+          body: hasDebuffs
+              ? 'Elimina ${_debuffs.length} debuffs activos.'
+              : 'No tienes debuffs purgables.',
+          onPressed: _isResolving || !hasDebuffs
+              ? null
+              : () => _chooseStage(_PitonisaEventStage.purge),
+        ),
+        const SizedBox(height: 8),
+        _PitonisaOptionCard(
+          title: 'OFRENDA',
+          icon: Icons.inventory_2_rounded,
+          accent: widget.node.accent,
+          body: hasItems
+              ? 'Entrega un objeto y recupera toda tu vida.'
+              : 'No tienes objetos disponibles como ofrenda.',
+          onPressed: _isResolving || !hasItems
+              ? null
+              : () => _chooseStage(_PitonisaEventStage.offering),
+        ),
+        const SizedBox(height: 8),
+        _PitonisaOptionCard(
+          title: 'PRESAGIO',
+          icon: Icons.av_timer_rounded,
+          accent: widget.node.accent,
+          body: !hasCooldownAbilities
+              ? 'No tienes habilidades manuales con cooldown.'
+              : missingCredits > 0
+                  ? 'Te faltan $missingCredits creditos para reducir un cooldown.'
+                  : 'Paga ${_cooldownReductionCost}C para reducir un cooldown permanente.',
+          onPressed: _isResolving || !hasCooldownAbilities
+              ? null
+              : () => _chooseStage(_PitonisaEventStage.presage),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPurgeStage() {
+    return Column(
+      key: const ValueKey<String>('pitonisa-purge'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _PitonisaStageHeader(
+          title: 'PURGAR',
+          icon: Icons.cleaning_services_rounded,
+          accent: EndpointPalette.dangerAccent,
+          onBack: _backToOptions,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final debuff in _debuffs)
+              _PitonisaStatusChip(status: debuff, player: widget.player),
+          ],
+        ),
+        const SizedBox(height: 10),
+        EndpointActionButton(
+          label: 'Quitar penas',
+          icon: Icons.backspace_rounded,
+          onPressed: _isResolving || _debuffs.isEmpty ? null : _purgeDebuffs,
+          tooltip: 'Eliminar debuffs activos',
+          accent: EndpointPalette.dangerAccent,
+          backgroundColor: EndpointPalette.panelBackgroundMuted,
+          foregroundColor: EndpointPalette.soften(EndpointPalette.dangerAccent),
+          expands: true,
+          useMarquee: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOfferingStage() {
+    final selectedItem = _selectedItem;
+
+    return Column(
+      key: const ValueKey<String>('pitonisa-offering'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _PitonisaStageHeader(
+          title: 'OFRENDA',
+          icon: Icons.inventory_2_rounded,
+          accent: selectedItem?.rarity.accent ?? widget.node.accent,
+          onBack: _backToOptions,
+        ),
+        const SizedBox(height: 10),
+        _buildItemPicker(),
+        if (selectedItem != null) ...[
+          const SizedBox(height: 8),
+          EndpointText(
+            '${selectedItem.displayName}: curar al maximo',
+            textAlign: TextAlign.center,
+            maxLines: null,
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.softForeground.withAlpha(214),
+              fontSize: 11,
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        EndpointActionButton(
+          label: selectedItem == null ? 'Elige un objeto' : 'Entregar',
+          icon: Icons.favorite_rounded,
+          onPressed: _isResolving || selectedItem == null ? null : _offerItem,
+          tooltip: 'Entregar ofrenda',
+          accent: selectedItem?.rarity.accent ?? widget.node.accent,
+          backgroundColor: EndpointPalette.panelBackgroundMuted,
+          foregroundColor: EndpointPalette.soften(
+            selectedItem?.rarity.accent ?? widget.node.accent,
+          ),
+          expands: true,
+          useMarquee: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPresageStage() {
+    final selectedAbility = _selectedAbility;
+    final cooldownBlockReason = _cooldownActionBlockReason;
+
+    return Column(
+      key: const ValueKey<String>('pitonisa-presage'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _PitonisaStageHeader(
+          title: 'PRESAGIO',
+          icon: Icons.av_timer_rounded,
+          accent: selectedAbility?.accent ?? widget.node.accent,
+          onBack: _backToOptions,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final ability in _cooldownAbilities)
+              _PitonisaAbilityPickTile(
+                ability: ability,
+                isSelected: selectedAbility?.id == ability.id,
+                onPressed: () => _selectAbility(ability),
+              ),
+          ],
+        ),
+        if (selectedAbility != null) ...[
+          const SizedBox(height: 8),
+          EndpointText(
+            cooldownBlockReason ??
+                '${selectedAbility.displayName}: ${selectedAbility.cooldownTurns} -> ${max(0, selectedAbility.cooldownTurns - 1)} turnos por ${_cooldownReductionCost}C',
+            textAlign: TextAlign.center,
+            maxLines: null,
+            style: textSmallBold.copyWith(
+              color: cooldownBlockReason == null
+                  ? EndpointPalette.softForeground.withAlpha(214)
+                  : EndpointPalette.dangerAccent,
+              fontSize: 11,
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        EndpointActionButton(
+          label: selectedAbility == null
+              ? 'Elige una habilidad'
+              : 'Reducir cooldown',
+          icon: Icons.update_rounded,
+          onPressed: _isResolving ||
+                  selectedAbility == null ||
+                  cooldownBlockReason != null
+              ? null
+              : _reduceCooldown,
+          tooltip: cooldownBlockReason ?? 'Reducir cooldown permanente',
+          accent: selectedAbility?.accent ?? widget.node.accent,
+          backgroundColor: EndpointPalette.panelBackgroundMuted,
+          foregroundColor: EndpointPalette.soften(
+            selectedAbility?.accent ?? widget.node.accent,
+          ),
+          expands: true,
+          useMarquee: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemPicker() {
+    final selectedItem = _selectedItem;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.center,
+      children: [
+        for (final item in _items)
+          SizedBox(
+            width: 82,
+            height: 92,
+            child: EndpointInventoryItemTile(
+              item: item,
+              onPressed: () => _selectItem(item),
+              backgroundColor: EndpointPalette.blend(
+                EndpointPalette.panelBackgroundMuted,
+                item.rarity.accent,
+                selectedItem == item ? 0.22 : 0.04,
+              ),
+              borderRadius: 12,
+              glowOpacity: selectedItem == item ? 0.18 : 0.08,
+            ),
+          ),
+      ],
+    );
+  }
 }
 
-class _PitonisaDealCard extends StatelessWidget {
+class _PitonisaOptionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color accent;
   final String body;
-  final String actionLabel;
-  final IconData actionIcon;
-  final String? tooltip;
   final VoidCallback? onPressed;
 
-  const _PitonisaDealCard({
+  const _PitonisaOptionCard({
     required this.title,
     required this.icon,
     required this.accent,
     required this.body,
-    required this.actionLabel,
-    required this.actionIcon,
-    this.tooltip,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 202,
-      child: EndpointPanel(
-        accent: accent,
-        backgroundColor: EndpointPalette.blend(
-          EndpointPalette.panelBackgroundGold,
-          accent,
-          0.1,
+    final isEnabled = onPressed != null;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: EndpointPalette.blend(
+              EndpointPalette.panelBackgroundGold,
+              accent,
+              isEnabled ? 0.12 : 0.04,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: accent.withAlpha(isEnabled ? 156 : 64),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 9, 8, 9),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 42,
+                  height: 42,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: EndpointPalette.panelBackgroundBattleOpaque,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: accent.withAlpha(128)),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: isEnabled
+                          ? EndpointPalette.soften(accent)
+                          : EndpointPalette.softForeground.withAlpha(112),
+                      size: 22,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      EndpointText(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: isEnabled
+                              ? accent
+                              : EndpointPalette.softForeground.withAlpha(120),
+                          fontSize: 11,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      EndpointText(
+                        body,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: EndpointPalette.softForeground.withAlpha(
+                            isEnabled ? 210 : 128,
+                          ),
+                          fontSize: 10,
+                          letterSpacing: 0.45,
+                          height: 1.15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: isEnabled
+                      ? EndpointPalette.soften(accent)
+                      : EndpointPalette.softForeground.withAlpha(96),
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
         ),
-        borderRadius: 12,
-        glowOpacity: 0.08,
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: EndpointPalette.soften(accent), size: 24),
-            const SizedBox(height: 6),
-            EndpointText(
-              title,
-              textAlign: TextAlign.center,
-              style: textSmallBold.copyWith(
-                color: accent,
-                fontSize: 10,
-                letterSpacing: 1.4,
+      ),
+    );
+  }
+}
+
+class _PitonisaStageHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color accent;
+  final VoidCallback onBack;
+
+  const _PitonisaStageHeader({
+    required this.title,
+    required this.icon,
+    required this.accent,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        HoldTooltip(
+          message: 'Elegir otro trato',
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onBack,
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: EndpointPalette.panelBackgroundMuted,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: accent),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                    color: EndpointPalette.soften(accent),
+                    size: 20,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Icon(icon, color: EndpointPalette.soften(accent), size: 24),
+        const SizedBox(width: 8),
+        Expanded(
+          child: EndpointText(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textMediumBold.copyWith(
+              color: accent,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PitonisaStatusChip extends StatelessWidget {
+  final BattlerStatus status;
+  final Battler player;
+
+  const _PitonisaStatusChip({
+    required this.status,
+    required this.player,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedStatus = status.resolved(player);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundBattleOpaque,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: resolvedStatus.type.accent.withAlpha(156),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              resolvedStatus.icon,
+              color: resolvedStatus.type.accent,
+              size: 16,
+            ),
+            const SizedBox(width: 4),
             EndpointText(
-              body,
-              textAlign: TextAlign.center,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
+              resolvedStatus.badgeLabelFor(player),
               style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withAlpha(210),
-                fontSize: 10,
+                color: EndpointPalette.softForeground,
+                fontSize: 11,
                 letterSpacing: 0.6,
               ),
             ),
-            const SizedBox(height: 10),
-            EndpointActionButton(
-              label: actionLabel,
-              icon: actionIcon,
-              onPressed: onPressed,
-              tooltip: tooltip ?? actionLabel,
-              accent: accent,
-              backgroundColor: EndpointPalette.panelBackgroundMuted,
-              foregroundColor: EndpointPalette.soften(accent),
-              expands: true,
-              useMarquee: false,
-              textStyle: textSmallBold,
-              iconSize: 18,
-            ),
           ],
         ),
       ),
@@ -389,104 +724,61 @@ class _PitonisaDealCard extends StatelessWidget {
   }
 }
 
-class _PitonisaItemSelectionOverlay extends StatelessWidget {
-  final List<Item> items;
-  final Color accent;
+class _PitonisaAbilityPickTile extends StatelessWidget {
+  final BattlerAbility ability;
+  final bool isSelected;
+  final VoidCallback onPressed;
 
-  const _PitonisaItemSelectionOverlay({
-    required this.items,
-    required this.accent,
+  const _PitonisaAbilityPickTile({
+    required this.ability,
+    required this.isSelected,
+    required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return EndpointOverlayScaffold(
-      title: 'Pitonisa Quitapenas',
-      subtitle: 'Selecciona una ofrenda',
-      sectionLabel: 'OBJETOS',
-      sectionValue: '${items.length}',
-      closeTooltip: 'Cerrar seleccion',
-      accent: accent,
-      bottomInset: 108,
-      maxWidth: 460,
-      maxHeight: 420,
-      child: SingleChildScrollView(
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final item in items)
-              SizedBox(
-                width: 86,
-                height: 96,
-                child: EndpointInventoryItemTile(
-                  item: item,
-                  onPressed: () => Navigator.of(context).pop(item),
-                  backgroundColor: EndpointPalette.panelBackgroundMuted,
-                  borderRadius: 12,
-                  glowOpacity: 0.08,
-                ),
+    final accent = ability.accent;
+
+    return SizedBox(
+      width: 94,
+      height: 104,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: EndpointPalette.blend(
+                EndpointPalette.panelBackgroundMuted,
+                accent,
+                isSelected ? 0.24 : 0.06,
               ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PitonisaAbilitySelectionOverlay extends StatelessWidget {
-  final List<BattlerAbility> abilities;
-  final Color accent;
-
-  const _PitonisaAbilitySelectionOverlay({
-    required this.abilities,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return EndpointOverlayScaffold(
-      title: 'Pitonisa Quitapenas',
-      subtitle: 'Selecciona una habilidad manual',
-      sectionLabel: 'HABILIDADES',
-      sectionValue: '${abilities.length}',
-      closeTooltip: 'Cerrar seleccion',
-      accent: accent,
-      bottomInset: 104,
-      maxWidth: 420,
-      maxHeight: 360,
-      child: GridView.builder(
-        itemCount: abilities.length,
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 104,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          mainAxisExtent: 102,
-        ),
-        itemBuilder: (context, index) {
-          final ability = abilities[index];
-          return Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => Navigator.of(context).pop(ability),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: accent.withAlpha(isSelected ? 210 : 82),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(6, 7, 6, 5),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   EndpointAbilityOrb(
                     ability: ability,
-                    size: 58,
+                    size: 54,
                     enableTooltipLongPress: false,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   EndpointText(
                     ability.displayName,
                     textAlign: TextAlign.center,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textSmallBold.copyWith(
-                      color: ability.accent,
+                      color: EndpointPalette.soften(accent),
                       fontSize: 9,
-                      letterSpacing: 0.6,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -502,8 +794,8 @@ class _PitonisaAbilitySelectionOverlay extends StatelessWidget {
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

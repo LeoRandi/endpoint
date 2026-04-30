@@ -113,6 +113,11 @@ const _ataqueBarreraBuffTags = <EntityTag>[
   EntityTag.barrera,
   EntityTag.buff,
 ];
+const _desafioAtaqueBuffTags = <EntityTag>[
+  EntityTag.desafio,
+  EntityTag.ataque,
+  EntityTag.buff,
+];
 const _economiaBarreraDebuffTags = <EntityTag>[
   EntityTag.economia,
   EntityTag.barrera,
@@ -386,6 +391,84 @@ const impactGlovesItem = Item(
     BattlerStat.attack: 1,
   },
   effect: ImpactGlovesItemEffect(),
+);
+
+/// Arma gris que abre el primer intercambio con Desafio.
+const guanteRetoItem = Item(
+  id: ItemId.guanteReto,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Guante de Reto',
+  description: 'La primera vez por combate que atacas, ganas Desafio.',
+  iconEmoji: '\u{1F94A}',
+  rarity: RarityTier.gray,
+  baseCost: 2,
+  value: 4,
+  upgradeValue: 2,
+  effect: GuanteRetoItemEffect(),
+);
+
+/// Accesorio verde que hace que Desafio atraviese barrera parcial.
+const visorAperturaItem = Item(
+  id: ItemId.visorApertura,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Visor de Apertura',
+  description: 'Los golpes directos de Desafio ignoran Barrera enemiga.',
+  iconEmoji: '\u{1F576}',
+  rarity: RarityTier.green,
+  baseCost: 4,
+  value: 3,
+  upgradeValue: 1,
+  effect: VisorAperturaItemEffect(),
+);
+
+/// Accesorio azul que convierte el riesgo de Desafio en escalado posterior.
+const seguroRotoItem = Item(
+  id: ItemId.seguroRoto,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Seguro Roto',
+  description:
+      'Cuando un Desafio provoca contraataque, mejora tus siguientes Desafios.',
+  iconEmoji: '\u{1F4A5}',
+  rarity: RarityTier.blue,
+  baseCost: 6,
+  value: 1,
+  upgradeValue: 1,
+  effect: SeguroRotoItemEffect(),
+);
+
+/// Accesorio morado que cambia sobrevivir contraataques por recarga.
+const aceleradorRetoItem = Item(
+  id: ItemId.aceleradorReto,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Acelerador de Reto',
+  description:
+      'Sobrevivir contraataques provocados por Desafio reduce cooldowns.',
+  iconEmoji: '\u{1F3CE}',
+  rarity: RarityTier.purple,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 2,
+  effect: AceleradorRetoItemEffect(),
+);
+
+/// Arma amarilla que remata tras recibir el castigo de Desafio.
+const ultimaPalabraItem = Item(
+  id: ItemId.ultimaPalabra,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Ultima Palabra',
+  description:
+      'Una vez por turno, tras recibir un contraataque de Desafio, atacas.',
+  iconEmoji: '\u{1F5E1}',
+  rarity: RarityTier.yellow,
+  baseCost: 10,
+  value: 4,
+  upgradeValue: 0,
+  effect: UltimaPalabraItemEffect(),
 );
 
 /// Accesorio verde ofensivo que aplica Intoxicacion al atacar.
@@ -1655,6 +1738,11 @@ const itemPresets = <Item>[
   faroNoctivagoItem,
   prismaCircadianoItem,
   impactGlovesItem,
+  guanteRetoItem,
+  visorAperturaItem,
+  seguroRotoItem,
+  aceleradorRetoItem,
+  ultimaPalabraItem,
   toxicCatalystItem,
   emberCharmItem,
   chemicalFilterItem,

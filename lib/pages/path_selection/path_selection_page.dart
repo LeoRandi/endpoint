@@ -305,12 +305,16 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
     final completionType = _sessionController.completionType;
     if (completionType == null) return;
+
+    _isPresentingRunOutcome = true;
+    await _sessionController.clearPersistedRunSnapshot();
+    if (!mounted) return;
+
     if (completionType == RunCompletionType.retreated) {
       Navigator.of(context).popUntil((route) => route.isFirst);
       return;
     }
 
-    _isPresentingRunOutcome = true;
     await Navigator.of(context).push<void>(
       buildEndpointSceneRoute<void>(
         RunOutcomePage(

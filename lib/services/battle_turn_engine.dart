@@ -43,6 +43,11 @@ class BattleTurnEngine {
                 BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
               ),
             )
+            .removeCombatFlag(
+              const CombatRuntimeFlag.battler(
+                BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
+              ),
+            )
         : player;
     var updatedEnemy = isPlayerTurn
         ? enemy
@@ -53,6 +58,13 @@ class BattleTurnEngine {
                 BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
               ),
             );
+    if (!isPlayerTurn) {
+      updatedEnemy = updatedEnemy.removeCombatFlag(
+        const CombatRuntimeFlag.battler(
+          BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
+        ),
+      );
+    }
 
     updatedPlayer = updatedPlayer.progressAbilityCooldownsOnTurnStart(
       isOwnerTurn: isPlayerTurn,

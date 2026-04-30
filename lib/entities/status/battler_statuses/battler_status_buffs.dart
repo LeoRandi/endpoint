@@ -262,6 +262,159 @@ class PuntoCiegoStatus extends BattlerStatus {
   }
 }
 
+/// Buff ofensivo que guarda un golpe extra para antes del siguiente ataque.
+class DesafioStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.desafio;
+
+  /// Crea una reserva de Desafio acumulable hasta que el portador ataque.
+  const DesafioStatus({
+    int value = 1,
+  }) : super(
+          id: statusId,
+          name: 'Desafio',
+          type: BattlerStatusType.buff,
+          tags: _buffDesafioStatusTags,
+          hooks: const {
+            BattlerStatusHook.statusApplied,
+            BattlerStatusHook.combatEnd,
+          },
+          icon: Icons.sports_mma_rounded,
+          description:
+              'Antes del siguiente ataque, se consume e inflige un golpe directo igual a su value. Si permanece hasta el final del combate, cura el doble de su value.',
+          remainingTurns: 1,
+          value: value,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  String descriptionFor(Battler owner) {
+    final amount = resolved(owner).value;
+    return '$description Desafio actual: $amount. Cura al final: ${amount * 2}.';
+  }
+
+  @override
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    if (appliedStatus.id != id) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    return BattlerStatusApplicationResolution(
+      owner: owner.removeStatusInstance(this),
+      appliedStatus: copyWith(value: value + appliedStatus.value),
+    );
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    final ownerWithoutStatus = owner.removeStatusInstance(this);
+    if (owner.isDefeated || value <= 0) return ownerWithoutStatus;
+
+    return ownerWithoutStatus.heal(value * 2);
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return DesafioStatus(
+      value: value ?? this.value,
+    );
+  }
+}
+
+/// Buff temporal que aumenta los Desafios ganados durante este combate.
+class DesafioExcitanteStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.desafioExcitante;
+
+  /// Crea una mejora acumulada para los siguientes Desafios del combate.
+  const DesafioExcitanteStatus({
+    int value = 1,
+  }) : super(
+          id: statusId,
+          name: 'Desafio Excitante',
+          type: BattlerStatusType.buff,
+          tags: _buffDesafioStatusTags,
+          hooks: const {
+            BattlerStatusHook.statusApplied,
+            BattlerStatusHook.combatEnd,
+          },
+          icon: Icons.local_activity_rounded,
+          description:
+              'Durante este combate, cada nuevo Desafio gana value adicional.',
+          remainingTurns: 1,
+          value: value,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Bonus actual: +${resolved(owner).value}.';
+  }
+
+  @override
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    if (appliedStatus.id == id) {
+      return BattlerStatusApplicationResolution(
+        owner: owner.removeStatusInstance(this),
+        appliedStatus: copyWith(value: value + appliedStatus.value),
+      );
+    }
+
+    if (appliedStatus.id != DesafioStatus.statusId) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    return BattlerStatusApplicationResolution(
+      owner: owner,
+      appliedStatus: appliedStatus.copyWith(
+        value: appliedStatus.value + value,
+      ),
+    );
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    return owner.removeStatusInstance(this);
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return DesafioExcitanteStatus(
+      value: value ?? this.value,
+    );
+  }
+}
+
 /// Buff generador que crea reservas de ATK o de Barrera si no se usaron habilidades manuales.
 class InerciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.inercia;

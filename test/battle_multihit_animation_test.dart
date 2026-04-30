@@ -80,4 +80,53 @@ void main() {
 
     controller.dispose();
   });
+
+  test('enemy intent shows damage per hit for multi-hit attacks', () {
+    final controller = BattleController(
+      player: const Battler(
+        name: 'PLAYER',
+        health: 20,
+        money: 0,
+        income: 0,
+        baseStats: <BattlerStat, int>{
+          BattlerStat.health: 20,
+          BattlerStat.attack: 1,
+          BattlerStat.barrier: 0,
+          BattlerStat.thorns: 0,
+          BattlerStat.damageReduction: 0,
+          BattlerStat.vampirism: 0,
+        },
+      ),
+      enemy: const Battler(
+        name: 'ENEMY',
+        health: 20,
+        money: 0,
+        income: 0,
+        baseStats: <BattlerStat, int>{
+          BattlerStat.health: 20,
+          BattlerStat.attack: 8,
+          BattlerStat.barrier: 0,
+          BattlerStat.thorns: 0,
+          BattlerStat.damageReduction: 0,
+          BattlerStat.vampirism: 0,
+        },
+        equippedItems: <Item>[sunglassesItem],
+      ),
+      phase: RunHourPhase.day,
+      enemyTier: 1,
+      enemyTurnDelay: const Duration(days: 1),
+      combatEndDelay: const Duration(days: 1),
+      randomizer: RunRandomizer(seed: 1),
+    );
+
+    final intent = controller.enemyTurnIntentPreview;
+
+    expect(intent.action, EnemyTurnAction.attack);
+    expect(intent.damage, 8);
+    expect(intent.attackHitDamage, 4);
+    expect(intent.attackHitCount, 2);
+    expect(intent.damageLabel, '4x2');
+
+    controller.dispose();
+  });
 }

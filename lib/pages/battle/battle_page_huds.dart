@@ -314,7 +314,7 @@ class _EnemyIntentCard extends StatelessWidget {
                     intent.action == EnemyTurnAction.attack)
                   _EnemyIntentChip(
                     icon: Icons.flash_on_rounded,
-                    valueLabel: '${intent.damage}',
+                    valueLabel: intent.damageLabel,
                     accent: EndpointPalette.dangerAccent,
                   ),
                 if (intent.barrierGain > 0)

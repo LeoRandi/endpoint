@@ -77,6 +77,11 @@ enum ItemId {
   torreRetorno,
   aislanteArmonico,
   canonContrapresion,
+  guanteReto,
+  visorApertura,
+  seguroRoto,
+  aceleradorReto,
+  ultimaPalabra,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -144,6 +149,8 @@ const _weaponTaggedItemIds = <ItemId>{
   ItemId.interferenceCannon,
   ItemId.magnetiCHammer,
   ItemId.sunExecutionBlade,
+  ItemId.guanteReto,
+  ItemId.ultimaPalabra,
 };
 
 const _accessoryTaggedItemIds = <ItemId>{
@@ -187,6 +194,9 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.torreRetorno,
   ItemId.aislanteArmonico,
   ItemId.canonContrapresion,
+  ItemId.visorApertura,
+  ItemId.seguroRoto,
+  ItemId.aceleradorReto,
 };
 
 const _drawingBonusEligibleHooks = <ItemEffectHook>{

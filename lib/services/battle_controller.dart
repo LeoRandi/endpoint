@@ -34,6 +34,12 @@ enum BattleCombatAnimationHook {
   barrierLoss,
 }
 
+enum BattleCombatMotionAsset {
+  sword,
+  shield,
+  fist,
+}
+
 enum BattleCombatFloatingNumberTone {
   healthDamage,
   barrierDamage,
@@ -62,6 +68,7 @@ class BattleCombatAnimationCue {
   final Battler playerAfter;
   final Battler enemyAfter;
   final int effectCount;
+  final BattleCombatMotionAsset motionAsset;
   final List<BattleCombatFloatingNumberCue> floatingNumbers;
 
   const BattleCombatAnimationCue({
@@ -73,6 +80,7 @@ class BattleCombatAnimationCue {
     required this.playerAfter,
     required this.enemyAfter,
     this.effectCount = 1,
+    this.motionAsset = BattleCombatMotionAsset.sword,
     this.floatingNumbers = const <BattleCombatFloatingNumberCue>[],
   });
 }
@@ -184,6 +192,16 @@ class BattleController extends ChangeNotifier {
 
     final playerBefore = _player;
     final enemyBefore = _enemy;
+    final selectedAbility = playerBefore.abilityById(ability.id);
+    final shouldResolveCargaTemerariaAttack = selectedAbility?.id ==
+            BattlerAbilityId.cargaTemeraria &&
+        selectedAbility!.canActivateOn(BattlerAbilityActivationContext.battle);
+    final shouldResolveMarcaDeCazaAttack =
+        selectedAbility?.id == BattlerAbilityId.marcaDeCaza &&
+            selectedAbility!.canActivateOn(
+              BattlerAbilityActivationContext.battle,
+            ) &&
+            !_hasAnyDebuff(enemyBefore);
     final resolution = _effectPipeline.toggleAbilityActivation(
       owner: _player,
       abilityId: ability.id,
@@ -199,10 +217,87 @@ class BattleController extends ChangeNotifier {
     if (_isDisposed || !canUseActions) return;
     _player = resolution.owner;
     _enemy = resolution.opponent;
-    if (_finishImmediatelyIfPlayerIsDown()) {
+
+    final abilityFinish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (abilityFinish != null) {
+      _finishCombat(
+        resultType: abilityFinish.resultType,
+        resultText: abilityFinish.resultText,
+      );
       return;
     }
+
+    if (shouldResolveMarcaDeCazaAttack) {
+      final attackerBefore = _player;
+      final defenderBefore = _enemy;
+      final attackResolution = _resolveAttackAction(
+        attacker: _player,
+        defender: _enemy,
+      );
+      await _playAttackActionAnimations(
+        attackerSide: BattleCombatantSide.player,
+        attackerBefore: attackerBefore,
+        defenderBefore: defenderBefore,
+        resolution: attackResolution,
+      );
+      if (_isDisposed || !canUseActions) return;
+
+      _player = attackResolution.attacker;
+      _enemy = attackResolution.defender;
+      final attackFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (attackFinish != null) {
+        _finishCombat(
+          resultType: attackFinish.resultType,
+          resultText: attackFinish.resultText,
+        );
+        return;
+      }
+    }
+
+    if (shouldResolveCargaTemerariaAttack) {
+      final attackerBefore = _player;
+      final defenderBefore = _enemy;
+      final attackResolution = _resolveAttackAction(
+        attacker: _player,
+        defender: _enemy,
+        challengeCounterattackBonus: 3,
+      );
+      await _playAttackActionAnimations(
+        attackerSide: BattleCombatantSide.player,
+        attackerBefore: attackerBefore,
+        defenderBefore: defenderBefore,
+        resolution: attackResolution,
+      );
+      if (_isDisposed || !canUseActions) return;
+
+      _player = attackResolution.attacker;
+      _enemy = attackResolution.defender;
+      final attackFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (attackFinish != null) {
+        _finishCombat(
+          resultType: attackFinish.resultType,
+          resultText: attackFinish.resultText,
+        );
+        return;
+      }
+    }
+
     notifyListeners();
+  }
+
+  bool _hasAnyDebuff(Battler battler) {
+    return battler.statuses.any(
+      (status) => status.type == BattlerStatusType.debuff,
+    );
   }
 
   Future<void> handleAttack({
@@ -496,6 +591,7 @@ class BattleController extends ChangeNotifier {
 
     var predictedEnemy = preAttackResolution.enemy;
     var predictedPlayer = preAttackResolution.player;
+    _EnemyIntentAttackBreakdown? attackBreakdown;
 
     final shouldResolveAttack = _turnEngine.finishFor(
           player: predictedPlayer,
@@ -503,13 +599,23 @@ class BattleController extends ChangeNotifier {
         ) ==
         null;
     if (shouldResolveAttack) {
-      final actionResolution = _resolveEnemyAction(
-        enemy: predictedEnemy,
-        player: predictedPlayer,
-        action: plannedAction,
-      );
-      predictedEnemy = actionResolution.enemy;
-      predictedPlayer = actionResolution.player;
+      if (plannedAction == EnemyTurnAction.attack) {
+        final attackResolution = _resolveAttackAction(
+          attacker: predictedEnemy,
+          defender: predictedPlayer,
+        );
+        attackBreakdown = _buildEnemyIntentAttackBreakdown(attackResolution);
+        predictedEnemy = attackResolution.attacker;
+        predictedPlayer = attackResolution.defender;
+      } else {
+        final actionResolution = _resolveEnemyAction(
+          enemy: predictedEnemy,
+          player: predictedPlayer,
+          action: plannedAction,
+        );
+        predictedEnemy = actionResolution.enemy;
+        predictedPlayer = actionResolution.player;
+      }
     }
 
     final damage = max(
@@ -523,6 +629,8 @@ class BattleController extends ChangeNotifier {
       action: plannedAction,
       activatedBattleAbility: preAttackResolution.activatedBattleAbility,
       damage: damage,
+      attackHitDamage: attackBreakdown?.damagePerHit ?? damage,
+      attackHitCount: attackBreakdown?.hitCount ?? 1,
       barrierGain: barrierGain,
       appliedDebuffs: _buildAppliedDebuffIntents(
         before: initialPlayer,
@@ -567,6 +675,39 @@ class BattleController extends ChangeNotifier {
     }
 
     return List<EnemyTurnDebuffIntent>.unmodifiable(intents);
+  }
+
+  _EnemyIntentAttackBreakdown _buildEnemyIntentAttackBreakdown(
+    _BattleAttackActionResolution resolution,
+  ) {
+    final attackHits = resolution.hits
+        .where(
+          (hit) =>
+              hit.primaryCombatant == _BattleAttackHitCombatant.attacker &&
+              hit.motionAsset == BattleCombatMotionAsset.sword,
+        )
+        .toList(growable: false);
+    if (attackHits.isEmpty) {
+      return _EnemyIntentAttackBreakdown(
+        damagePerHit: resolution.damageDealt,
+        hitCount: 1,
+      );
+    }
+
+    final firstDamage = attackHits.first.damageDealt;
+    final hasUniformDamage = attackHits.every(
+      (hit) => hit.damageDealt == firstDamage,
+    );
+
+    return _EnemyIntentAttackBreakdown(
+      damagePerHit: hasUniformDamage
+          ? firstDamage
+          : attackHits.fold<int>(
+              0,
+              (total, hit) => total + hit.damageDealt,
+            ),
+      hitCount: hasUniformDamage ? attackHits.length : 1,
+    );
   }
 
   String _statusIntentKey(BattlerStatus status) {
@@ -663,6 +804,7 @@ class BattleController extends ChangeNotifier {
     required Battler attacker,
     required Battler defender,
     int flatAttackBonus = 0,
+    int challengeCounterattackBonus = 0,
   }) {
     var updatedAttacker = attacker.removeCombatFlag(
       Battler.pendingBasicAttackFollowUpFlag,
@@ -673,6 +815,44 @@ class BattleController extends ChangeNotifier {
     final hits = <_BattleAttackHitResolution>[];
 
     for (var attackIndex = 0; attackIndex < attackCount; attackIndex++) {
+      if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
+        break;
+      }
+
+      updatedAttacker = _applyPreAttackDesafioGains(updatedAttacker);
+
+      final challengeBeforeAttacker = updatedAttacker;
+      final challengeBeforeDefender = updatedDefender;
+      final challengeConsumption = _consumeDesafioIfPresent(updatedAttacker);
+      final consumedDesafioValue = challengeConsumption.value;
+      var desafioCounterPrevented = challengeConsumption.preventsCounterattack;
+      updatedAttacker = challengeConsumption.owner;
+
+      if (consumedDesafioValue > 0) {
+        final challengeResolution = _resolveDirectDamageOnly(
+          source: updatedAttacker,
+          target: updatedDefender,
+          damage: consumedDesafioValue,
+          barrierIgnore: _desafioBarrierIgnoreFor(updatedAttacker),
+        );
+        updatedAttacker = challengeResolution.source;
+        updatedDefender = challengeResolution.target;
+        totalDamageDealt += challengeResolution.damageDealt;
+        hits.add(
+          _BattleAttackHitResolution(
+            primaryCombatant: _BattleAttackHitCombatant.attacker,
+            motionAsset: BattleCombatMotionAsset.fist,
+            attackerBefore: challengeBeforeAttacker.removeCombatFlag(
+              Battler.pendingBasicAttackFollowUpFlag,
+            ),
+            defenderBefore: challengeBeforeDefender,
+            attackerAfter: updatedAttacker,
+            defenderAfter: updatedDefender,
+            damageDealt: challengeResolution.damageDealt,
+          ),
+        );
+      }
+
       if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
         break;
       }
@@ -700,6 +880,8 @@ class BattleController extends ChangeNotifier {
       totalDamageDealt += resolution.damageDealt;
       hits.add(
         _BattleAttackHitResolution(
+          primaryCombatant: _BattleAttackHitCombatant.attacker,
+          motionAsset: BattleCombatMotionAsset.sword,
           attackerBefore: attackerBeforeHit.removeCombatFlag(
             Battler.pendingBasicAttackFollowUpFlag,
           ),
@@ -709,6 +891,56 @@ class BattleController extends ChangeNotifier {
           damageDealt: resolution.damageDealt,
         ),
       );
+
+      if (consumedDesafioValue <= 0 ||
+          desafioCounterPrevented ||
+          updatedAttacker.isDefeated ||
+          updatedDefender.isDefeated) {
+        continue;
+      }
+
+      final counterBeforeAttacker = updatedAttacker;
+      final counterBeforeDefender = updatedDefender;
+      final counterDamage = (max(1, (consumedDesafioValue + 1) ~/ 2) +
+              max(0, challengeCounterattackBonus))
+          .toInt();
+      final counterResolution = _resolveDirectDamageOnly(
+        source: updatedDefender,
+        target: updatedAttacker,
+        damage: counterDamage,
+      );
+      updatedDefender = counterResolution.source;
+      updatedAttacker = counterResolution.target;
+      hits.add(
+        _BattleAttackHitResolution(
+          primaryCombatant: _BattleAttackHitCombatant.defender,
+          motionAsset: BattleCombatMotionAsset.fist,
+          attackerBefore: counterBeforeAttacker,
+          defenderBefore: counterBeforeDefender,
+          attackerAfter: updatedAttacker,
+          defenderAfter: updatedDefender,
+          damageDealt: counterResolution.damageDealt,
+        ),
+      );
+
+      if (!updatedAttacker.isDefeated) {
+        updatedAttacker = _applySeguroRotoAfterDesafioCounter(updatedAttacker);
+        updatedAttacker =
+            _applyAceleradorRetoAfterSurvivingCounter(updatedAttacker);
+      }
+
+      if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
+        continue;
+      }
+
+      final ultimaPalabraResolution = _resolveUltimaPalabraAfterCounter(
+        owner: updatedAttacker,
+        target: updatedDefender,
+      );
+      updatedAttacker = ultimaPalabraResolution.owner;
+      updatedDefender = ultimaPalabraResolution.target;
+      totalDamageDealt += ultimaPalabraResolution.damageDealt;
+      hits.addAll(ultimaPalabraResolution.hits);
     }
 
     return _BattleAttackActionResolution(
@@ -721,6 +953,334 @@ class BattleController extends ChangeNotifier {
     );
   }
 
+  Battler _applyPreAttackDesafioGains(Battler owner) {
+    var updatedOwner = owner;
+    for (final item in owner.equippedItems) {
+      if (item.id != ItemId.guanteReto) continue;
+      if (updatedOwner.itemCombatFlagUseCount(
+            item: item,
+            kind: ItemCombatFlagKind.guanteRetoTriggered,
+          ) >=
+          1) {
+        continue;
+      }
+
+      updatedOwner = updatedOwner
+          .addItemCombatFlagUse(
+            item: item,
+            kind: ItemCombatFlagKind.guanteRetoTriggered,
+          )
+          .gainDesafio(max(1, item.value));
+    }
+
+    return updatedOwner;
+  }
+
+  _DesafioConsumption _consumeDesafioIfPresent(Battler owner) {
+    final status = owner.statusById(DesafioStatus.statusId);
+    if (status is! DesafioStatus || status.value <= 0) {
+      return _DesafioConsumption(
+        owner: owner,
+        value: 0,
+        preventsCounterattack: false,
+      );
+    }
+
+    var updatedOwner = owner.removeStatusInstance(status);
+    var preventsCounterattack = false;
+    final mandato = updatedOwner.abilityById(BattlerAbilityId.mandatoColiseo);
+    if (mandato != null &&
+        !updatedOwner.hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
+          ),
+        )) {
+      preventsCounterattack = true;
+      updatedOwner = updatedOwner.addCombatFlag(
+        const CombatRuntimeFlag.battler(
+          BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
+        ),
+      );
+    }
+
+    return _DesafioConsumption(
+      owner: updatedOwner,
+      value: max(0, status.resolved(owner).value),
+      preventsCounterattack: preventsCounterattack,
+    );
+  }
+
+  int _desafioBarrierIgnoreFor(Battler owner) {
+    var barrierIgnore = 0;
+    for (final item in owner.equippedItems) {
+      if (item.id != ItemId.visorApertura) continue;
+      barrierIgnore = max(barrierIgnore, max(1, item.value));
+    }
+
+    return barrierIgnore;
+  }
+
+  Battler _applySeguroRotoAfterDesafioCounter(Battler owner) {
+    var updatedOwner = owner;
+    for (final item in owner.equippedItems) {
+      if (item.id != ItemId.seguroRoto) continue;
+      updatedOwner = updatedOwner.applyStatus(
+        DesafioExcitanteStatus(value: max(1, item.value)),
+        applyEquipmentModifiers: false,
+      );
+    }
+
+    return updatedOwner;
+  }
+
+  Battler _applyAceleradorRetoAfterSurvivingCounter(Battler owner) {
+    var updatedOwner = owner;
+    for (final item in owner.equippedItems) {
+      if (item.id != ItemId.aceleradorReto) continue;
+      if (updatedOwner.itemCombatFlagUseCount(
+            item: item,
+            kind: ItemCombatFlagKind.aceleradorRetoTriggered,
+          ) >=
+          max(1, item.value)) {
+        continue;
+      }
+
+      final candidates = updatedOwner.abilities
+          .where(
+            (ability) =>
+                ability.manualActivationContext != null &&
+                ability.remainingCooldownTurns > 0,
+          )
+          .toList(growable: false);
+      if (candidates.isEmpty) continue;
+
+      final selectedAbility = candidates[_randomizer.nextInt(
+        candidates.length,
+      )];
+      updatedOwner = updatedOwner
+          .updateAbility(selectedAbility.reduceCooldown(1))
+          .addItemCombatFlagUse(
+            item: item,
+            kind: ItemCombatFlagKind.aceleradorRetoTriggered,
+          );
+    }
+
+    return updatedOwner;
+  }
+
+  _UltimaPalabraResolution _resolveUltimaPalabraAfterCounter({
+    required Battler owner,
+    required Battler target,
+  }) {
+    var updatedOwner = owner;
+    var updatedTarget = target;
+    var totalDamageDealt = 0;
+    final hits = <_BattleAttackHitResolution>[];
+
+    for (final item in owner.equippedItems) {
+      if (item.id != ItemId.ultimaPalabra) continue;
+      final alreadyTriggered = updatedOwner.itemCombatFlagValue(
+            item: item,
+            kind: ItemCombatFlagKind.ultimaPalabraTriggeredThisTurn,
+          ) ==
+          updatedOwner.combatRound;
+      if (alreadyTriggered) continue;
+
+      final ownerBefore = updatedOwner;
+      final targetBefore = updatedTarget;
+      final resolution = _resolver.resolveAttack(
+        attacker: updatedOwner,
+        defender: updatedTarget,
+        flatAttackBonus: max(0, item.value),
+      );
+      updatedOwner = resolution.attacker.addCombatFlag(
+        CombatRuntimeFlag.item(
+          itemFlag: ItemCombatFlagKind.ultimaPalabraTriggeredThisTurn,
+          itemId: item.id,
+          itemInstanceId: item.instanceId,
+          value: updatedOwner.combatRound,
+        ),
+      );
+      updatedTarget = resolution.defender;
+      totalDamageDealt += resolution.damageDealt;
+      hits.add(
+        _BattleAttackHitResolution(
+          primaryCombatant: _BattleAttackHitCombatant.attacker,
+          motionAsset: BattleCombatMotionAsset.sword,
+          attackerBefore: ownerBefore,
+          defenderBefore: targetBefore,
+          attackerAfter: updatedOwner,
+          defenderAfter: updatedTarget,
+          damageDealt: resolution.damageDealt,
+        ),
+      );
+
+      if (updatedOwner.isDefeated || updatedTarget.isDefeated) break;
+    }
+
+    return _UltimaPalabraResolution(
+      owner: updatedOwner,
+      target: updatedTarget,
+      damageDealt: totalDamageDealt,
+      hits: List<_BattleAttackHitResolution>.unmodifiable(hits),
+    );
+  }
+
+  _DirectDamageResolution _resolveDirectDamageOnly({
+    required Battler source,
+    required Battler target,
+    required int damage,
+    int barrierIgnore = 0,
+  }) {
+    final safeDamage = max(0, damage);
+    if (safeDamage <= 0) {
+      return _DirectDamageResolution(
+        source: source,
+        target: target,
+        damageDealt: 0,
+      );
+    }
+
+    final incomingStatusModifiedDamage =
+        _effectPipeline.applyIncomingDamageModifiers(
+      owner: target,
+      source: source,
+      damage: safeDamage,
+    );
+    final incomingAbilityModifiedDamage =
+        _effectPipeline.applyAbilityIncomingDamageModifiers(
+      owner: target,
+      source: source,
+      damage: incomingStatusModifiedDamage,
+    );
+    final incomingItemModifiedDamage =
+        _effectPipeline.applyEquippedItemIncomingDamageModifiers(
+      owner: target,
+      source: source,
+      damage: incomingAbilityModifiedDamage,
+    );
+    final incomingEffectResolution = _effectPipeline.applyIncomingDamageEffects(
+      owner: target,
+      source: source,
+      damage: incomingItemModifiedDamage,
+      kind: DamageKind.direct,
+    );
+    final damageDealt = incomingEffectResolution.damage;
+    var updatedTarget = _receiveDamageWithBarrierIgnore(
+      owner: incomingEffectResolution.owner,
+      damage: damageDealt,
+      barrierIgnore: barrierIgnore,
+    );
+    if (updatedTarget.isDefeated && damageDealt > 0) {
+      updatedTarget = _effectPipeline.applyAbilityFatalDamageEffects(
+        owner: updatedTarget,
+        incomingDamage: damageDealt,
+      );
+    }
+    var updatedSource = source;
+
+    updatedTarget = _effectPipeline.applyReceiveDamageResolvedEffects(
+      owner: updatedTarget,
+      source: updatedSource,
+      damageTaken: damageDealt,
+    );
+    final receiveAbilityResolution =
+        _effectPipeline.applyAbilityReceiveDamageResolvedEffects(
+      owner: updatedTarget,
+      source: updatedSource,
+      damageTaken: damageDealt,
+    );
+    updatedTarget = receiveAbilityResolution.owner;
+    updatedSource = receiveAbilityResolution.opponent;
+    final receiveItemResolution =
+        _effectPipeline.applyEquippedItemReceiveDamageResolvedEffects(
+      owner: updatedTarget,
+      source: updatedSource,
+      damageTaken: damageDealt,
+    );
+    updatedTarget = receiveItemResolution.owner;
+    updatedSource = receiveItemResolution.opponent;
+
+    final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
+      ownerBefore: source,
+      ownerAfter: updatedSource,
+      opponentBefore: target,
+      opponentAfter: updatedTarget,
+    );
+
+    return _DirectDamageResolution(
+      source: statusLossResolution.owner,
+      target: statusLossResolution.opponent,
+      damageDealt: damageDealt,
+    );
+  }
+
+  Battler _receiveDamageWithBarrierIgnore({
+    required Battler owner,
+    required int damage,
+    int barrierIgnore = 0,
+  }) {
+    final safeDamage = max(0, damage);
+    if (safeDamage <= 0) return owner;
+
+    final ownerBeforeDamage = owner
+        .removeCombatFlagsFor(BattlerCombatFlag.barrierBrokenThisHit)
+        .removeCombatFlagsFor(BattlerCombatFlag.barrierLostThisHit)
+        .removeCombatFlagsFor(BattlerCombatFlag.healthLostThisHit);
+    final bypassDamage = min(
+      safeDamage,
+      min(max(0, barrierIgnore), ownerBeforeDamage.currentBarrier),
+    ).toInt();
+    final blockableDamage = max(0, safeDamage - bypassDamage).toInt();
+    final absorbedByBarrier = min(
+      ownerBeforeDamage.currentBarrier,
+      blockableDamage,
+    ).toInt();
+    final healthDamage =
+        (bypassDamage + max(0, blockableDamage - absorbedByBarrier)).toInt();
+
+    var updatedOwner = ownerBeforeDamage;
+    if (absorbedByBarrier > 0) {
+      updatedOwner = updatedOwner
+          .copyWith(
+            currentBarrier: max(
+              0,
+              updatedOwner.currentBarrier - absorbedByBarrier,
+            ),
+          )
+          .addCombatFlag(
+            CombatRuntimeFlag.battler(
+              BattlerCombatFlag.barrierLostThisHit,
+              secondaryValue: absorbedByBarrier,
+            ),
+          );
+      if (ownerBeforeDamage.currentBarrier > 0 &&
+          updatedOwner.currentBarrier <= 0) {
+        updatedOwner = updatedOwner.addCombatFlag(
+          Battler.barrierBrokenThisHitFlag,
+        );
+      }
+    }
+
+    if (healthDamage <= 0) return updatedOwner;
+
+    final damagedOwner = updatedOwner
+        .copyWith(
+          health: max(0, updatedOwner.health - healthDamage).toInt(),
+        )
+        .addCombatFlag(
+          CombatRuntimeFlag.battler(
+            BattlerCombatFlag.healthLostThisHit,
+            secondaryValue: healthDamage,
+          ),
+        );
+    if (damagedOwner.health > 0) return damagedOwner;
+
+    return damagedOwner.applyEquippedItemFatalDamageEffects(
+      incomingDamage: healthDamage,
+    );
+  }
+
   Future<void> _playAttackActionAnimations({
     required BattleCombatantSide attackerSide,
     required Battler attackerBefore,
@@ -730,49 +1290,107 @@ class BattleController extends ChangeNotifier {
     final defenderSide = attackerSide == BattleCombatantSide.player
         ? BattleCombatantSide.enemy
         : BattleCombatantSide.player;
-    final playerBefore = attackerSide == BattleCombatantSide.player
-        ? attackerBefore
-        : defenderBefore;
-    final enemyBefore = attackerSide == BattleCombatantSide.enemy
-        ? attackerBefore
-        : defenderBefore;
+    if (resolution.hits.isEmpty) {
+      final playerBefore = attackerSide == BattleCombatantSide.player
+          ? attackerBefore
+          : defenderBefore;
+      final enemyBefore = attackerSide == BattleCombatantSide.enemy
+          ? attackerBefore
+          : defenderBefore;
+      await _playCombatAnimation(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.attackMotion,
+          primarySide: attackerSide,
+          secondarySide: defenderSide,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerBefore,
+          enemyAfter: enemyBefore,
+        ),
+      );
+      return;
+    }
 
-    await _playCombatAnimation(
-      BattleCombatAnimationCue(
-        hook: BattleCombatAnimationHook.attackMotion,
-        primarySide: attackerSide,
-        secondarySide: defenderSide,
-        playerBefore: playerBefore,
-        enemyBefore: enemyBefore,
-        playerAfter: playerBefore,
-        enemyAfter: enemyBefore,
-        effectCount: max(1, resolution.hits.length),
-      ),
-    );
-    if (_isDisposed) return;
+    var hitIndex = 0;
+    while (hitIndex < resolution.hits.length) {
+      final firstHit = resolution.hits[hitIndex];
+      var groupEnd = hitIndex + 1;
+      while (groupEnd < resolution.hits.length &&
+          resolution.hits[groupEnd].primaryCombatant ==
+              firstHit.primaryCombatant &&
+          resolution.hits[groupEnd].motionAsset == firstHit.motionAsset) {
+        groupEnd++;
+      }
 
-    for (final hit in resolution.hits) {
-      final hitPlayerBefore = attackerSide == BattleCombatantSide.player
-          ? hit.attackerBefore
-          : hit.defenderBefore;
-      final hitEnemyBefore = attackerSide == BattleCombatantSide.enemy
-          ? hit.attackerBefore
-          : hit.defenderBefore;
-      final hitPlayerAfter = attackerSide == BattleCombatantSide.player
-          ? hit.attackerAfter
-          : hit.defenderAfter;
-      final hitEnemyAfter = attackerSide == BattleCombatantSide.enemy
-          ? hit.attackerAfter
-          : hit.defenderAfter;
-
-      await _playCombatStateTransitionAnimations(
-        playerBefore: hitPlayerBefore,
-        enemyBefore: hitEnemyBefore,
-        playerAfter: hitPlayerAfter,
-        enemyAfter: hitEnemyAfter,
+      final visualState = _visualStateForAttackHit(
+        hit: firstHit,
+        attackerSide: attackerSide,
+      );
+      final primarySide = _primarySideForAttackHit(
+        hit: firstHit,
+        attackerSide: attackerSide,
+      );
+      final secondarySide = primarySide == BattleCombatantSide.player
+          ? BattleCombatantSide.enemy
+          : BattleCombatantSide.player;
+      await _playCombatAnimation(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.attackMotion,
+          primarySide: primarySide,
+          secondarySide: secondarySide,
+          playerBefore: visualState.playerBefore,
+          enemyBefore: visualState.enemyBefore,
+          playerAfter: visualState.playerBefore,
+          enemyAfter: visualState.enemyBefore,
+          effectCount: groupEnd - hitIndex,
+          motionAsset: firstHit.motionAsset,
+        ),
       );
       if (_isDisposed) return;
+
+      for (var index = hitIndex; index < groupEnd; index++) {
+        final hit = resolution.hits[index];
+        final hitVisualState = _visualStateForAttackHit(
+          hit: hit,
+          attackerSide: attackerSide,
+        );
+        await _playCombatStateTransitionAnimations(
+          playerBefore: hitVisualState.playerBefore,
+          enemyBefore: hitVisualState.enemyBefore,
+          playerAfter: hitVisualState.playerAfter,
+          enemyAfter: hitVisualState.enemyAfter,
+        );
+        if (_isDisposed) return;
+      }
+
+      hitIndex = groupEnd;
     }
+  }
+
+  BattleCombatantSide _primarySideForAttackHit({
+    required _BattleAttackHitResolution hit,
+    required BattleCombatantSide attackerSide,
+  }) {
+    if (hit.primaryCombatant == _BattleAttackHitCombatant.attacker) {
+      return attackerSide;
+    }
+
+    return attackerSide == BattleCombatantSide.player
+        ? BattleCombatantSide.enemy
+        : BattleCombatantSide.player;
+  }
+
+  _BattleAttackHitVisualState _visualStateForAttackHit({
+    required _BattleAttackHitResolution hit,
+    required BattleCombatantSide attackerSide,
+  }) {
+    final attackerIsPlayer = attackerSide == BattleCombatantSide.player;
+    return _BattleAttackHitVisualState(
+      playerBefore: attackerIsPlayer ? hit.attackerBefore : hit.defenderBefore,
+      enemyBefore: attackerIsPlayer ? hit.defenderBefore : hit.attackerBefore,
+      playerAfter: attackerIsPlayer ? hit.attackerAfter : hit.defenderAfter,
+      enemyAfter: attackerIsPlayer ? hit.defenderAfter : hit.attackerAfter,
+    );
   }
 
   Future<void> _playBlockResolutionAnimation({
@@ -1792,6 +2410,8 @@ class _DrawingBuffTransferResolution {
 }
 
 class _BattleAttackHitResolution {
+  final _BattleAttackHitCombatant primaryCombatant;
+  final BattleCombatMotionAsset motionAsset;
   final Battler attackerBefore;
   final Battler defenderBefore;
   final Battler attackerAfter;
@@ -1799,11 +2419,70 @@ class _BattleAttackHitResolution {
   final int damageDealt;
 
   const _BattleAttackHitResolution({
+    required this.primaryCombatant,
+    required this.motionAsset,
     required this.attackerBefore,
     required this.defenderBefore,
     required this.attackerAfter,
     required this.defenderAfter,
     required this.damageDealt,
+  });
+}
+
+enum _BattleAttackHitCombatant {
+  attacker,
+  defender,
+}
+
+class _DirectDamageResolution {
+  final Battler source;
+  final Battler target;
+  final int damageDealt;
+
+  const _DirectDamageResolution({
+    required this.source,
+    required this.target,
+    required this.damageDealt,
+  });
+}
+
+class _DesafioConsumption {
+  final Battler owner;
+  final int value;
+  final bool preventsCounterattack;
+
+  const _DesafioConsumption({
+    required this.owner,
+    required this.value,
+    required this.preventsCounterattack,
+  });
+}
+
+class _UltimaPalabraResolution {
+  final Battler owner;
+  final Battler target;
+  final int damageDealt;
+  final List<_BattleAttackHitResolution> hits;
+
+  const _UltimaPalabraResolution({
+    required this.owner,
+    required this.target,
+    required this.damageDealt,
+    required this.hits,
+  });
+}
+
+class _BattleAttackHitVisualState {
+  final Battler playerBefore;
+  final Battler enemyBefore;
+  final Battler playerAfter;
+  final Battler enemyAfter;
+
+  const _BattleAttackHitVisualState({
+    required this.playerBefore,
+    required this.enemyBefore,
+    required this.playerAfter,
+    required this.enemyAfter,
   });
 }
 
@@ -1845,6 +2524,8 @@ class EnemyTurnIntentPreview {
   final EnemyTurnAction action;
   final BattlerAbility? activatedBattleAbility;
   final int damage;
+  final int attackHitDamage;
+  final int attackHitCount;
   final int barrierGain;
   final List<EnemyTurnDebuffIntent> appliedDebuffs;
 
@@ -1852,9 +2533,20 @@ class EnemyTurnIntentPreview {
     this.action = EnemyTurnAction.attack,
     this.activatedBattleAbility,
     this.damage = 0,
+    this.attackHitDamage = 0,
+    this.attackHitCount = 1,
     this.barrierGain = 0,
     this.appliedDebuffs = const <EnemyTurnDebuffIntent>[],
   });
+
+  String get damageLabel {
+    final resolvedDamage =
+        max(0, attackHitDamage > 0 ? attackHitDamage : damage);
+    final resolvedHitCount = max(1, attackHitCount);
+    if (resolvedHitCount <= 1) return '$resolvedDamage';
+
+    return '${resolvedDamage}x$resolvedHitCount';
+  }
 
   bool get hasAnyEffect {
     return activatedBattleAbility != null ||
@@ -1862,6 +2554,16 @@ class EnemyTurnIntentPreview {
         barrierGain > 0 ||
         appliedDebuffs.isNotEmpty;
   }
+}
+
+class _EnemyIntentAttackBreakdown {
+  final int damagePerHit;
+  final int hitCount;
+
+  const _EnemyIntentAttackBreakdown({
+    required this.damagePerHit,
+    required this.hitCount,
+  });
 }
 
 class _EnemyPreAttackResolution {

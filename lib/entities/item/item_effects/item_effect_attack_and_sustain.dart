@@ -39,6 +39,81 @@ class SunglassesItemEffect extends ItemEffect {
   }
 }
 
+/// Marca el objeto que concede Desafio antes del primer ataque del combate.
+class GuanteRetoItemEffect extends ItemEffect {
+  /// Crea el efecto descriptivo de Guante de Reto.
+  const GuanteRetoItemEffect()
+      : super(
+          description:
+              'La primera vez por combate que atacas, ganas Desafio antes del ataque.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'La primera vez por combate que atacas, ganas ${max(1, item.value)} Desafio antes del ataque.';
+  }
+}
+
+/// Marca el objeto que permite a Desafio atravesar parte de la Barrera.
+class VisorAperturaItemEffect extends ItemEffect {
+  /// Crea el efecto descriptivo de Visor de Apertura.
+  const VisorAperturaItemEffect()
+      : super(
+          description:
+              'Los golpes directos de Desafio ignoran parte de la Barrera enemiga.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Los golpes directos de Desafio ignoran hasta ${max(1, item.value)} de Barrera enemiga.';
+  }
+}
+
+/// Marca el objeto que mejora futuros Desafios cuando provocan contraataque.
+class SeguroRotoItemEffect extends ItemEffect {
+  /// Crea el efecto descriptivo de Seguro Roto.
+  const SeguroRotoItemEffect()
+      : super(
+          description:
+              'Cuando un Desafio provoca un contraataque enemigo, tus siguientes Desafios mejoran durante este combate.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Cuando un Desafio provoca un contraataque enemigo, ganas Desafio Excitante (+${max(1, item.value)} a tus siguientes Desafios en este combate).';
+  }
+}
+
+/// Marca el objeto que convierte sobrevivir contraataques en recarga.
+class AceleradorRetoItemEffect extends ItemEffect {
+  /// Crea el efecto descriptivo de Acelerador de Reto.
+  const AceleradorRetoItemEffect()
+      : super(
+          description:
+              'Al sobrevivir a contraataques provocados por Desafio, reduce cooldowns manuales.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'La primera ${max(1, item.value)} vez por combate que sobrevives a un contraataque provocado por Desafio, reduces 1 el cooldown de una habilidad manual aleatoria.';
+  }
+}
+
+/// Marca el objeto que responde con un ataque tras un contraataque de Desafio.
+class UltimaPalabraItemEffect extends ItemEffect {
+  /// Crea el efecto descriptivo de Ultima Palabra.
+  const UltimaPalabraItemEffect()
+      : super(
+          description:
+              'Una vez por turno, despues de recibir un contraataque provocado por Desafio, atacas inmediatamente.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Una vez por turno, despues de recibir un contraataque provocado por Desafio, atacas inmediatamente al enemigo con +${max(0, item.value)} al ataque.';
+  }
+}
+
 /// Aplica Intoxicacion al objetivo o refuerza la que ya tenga.
 class IntoxicarOnAttackItemEffect extends ItemEffect {
   final int amount;
