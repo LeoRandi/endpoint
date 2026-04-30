@@ -7,6 +7,7 @@ import 'endpoint_json_utils.dart';
 import 'endpoint_preferences_models.dart';
 import 'path_node_service.dart';
 import 'run_completion_type.dart';
+import 'run_day_summary.dart';
 import 'run_hour_snapshot.dart';
 import 'run_randomizer.dart';
 import 'run_state.dart';
@@ -19,16 +20,17 @@ abstract final class EndpointCurrentRunSnapshotCodec {
     required RunRandomizer randomizer,
     required bool isResolvingNode,
     required String trigger,
+    int? nodeCount,
     PathNode? activeNode,
   }) {
     final payload = <String, Object?>{
-      'schemaVersion': 3,
+      'schemaVersion': 4,
       'savedAt': DateTime.now().toUtc().toIso8601String(),
       'trigger': trigger,
       'run': <String, Object?>{
         'stageIndex': state.stageIndex,
         'completedNodes': max(0, state.stageIndex),
-        'nodeCount': max(1, state.visibleNodes.length),
+        'nodeCount': max(1, nodeCount ?? state.visibleNodes.length),
         'isResolvingNode': isResolvingNode,
         'isRunComplete': state.isRunComplete,
         'completionType': state.completionType?.name,
@@ -36,6 +38,8 @@ abstract final class EndpointCurrentRunSnapshotCodec {
         'randomState': randomizer.state,
         'battleEnemyTurnDelayMs': state.battleEnemyTurnDelay.inMilliseconds,
         'battleCombatEndDelayMs': state.battleCombatEndDelay.inMilliseconds,
+        'currentDaySummary': state.currentDaySummary.toJson(),
+        'pendingDaySummary': state.pendingDaySummary?.toJson(),
         'currentHour': <String, Object?>{
           'stageIndex': state.currentHour.stageIndex,
           'phase': state.currentHour.phase.name,
@@ -81,7 +85,10 @@ abstract final class EndpointCurrentRunSnapshotCodec {
       runJson['isRunComplete'],
       fallback: false,
     );
-    if (visibleNodes.isEmpty && !isRunComplete) {
+    final pendingDaySummary = RunDaySummary.fromJson(
+      runJson['pendingDaySummary'],
+    );
+    if (visibleNodes.isEmpty && !isRunComplete && pendingDaySummary == null) {
       return null;
     }
 
@@ -137,6 +144,10 @@ abstract final class EndpointCurrentRunSnapshotCodec {
       isResolvingNode: isResolvingNode && activeNode != null,
       isRunComplete: isRunComplete,
       completionType: _parseRunCompletionType(runJson['completionType']),
+      savedNodeCount: EndpointJsonUtils.readInt(
+        runJson['nodeCount'],
+        fallback: visibleNodes.length,
+      ),
       randomSeed: EndpointJsonUtils.readInt(
         runJson['randomSeed'],
         fallback: RunRandomizer().seed,
@@ -160,6 +171,13 @@ abstract final class EndpointCurrentRunSnapshotCodec {
           fallback: 2000,
         ),
       ),
+      currentDaySummary: RunDaySummary.fromJson(
+            runJson['currentDaySummary'],
+          ) ??
+          RunDaySummary.empty(
+            dayNumber: PathNodeService.dayNumberForStageIndex(stageIndex),
+          ),
+      pendingDaySummary: pendingDaySummary,
       activeNode: activeNode,
     );
   }

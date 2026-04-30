@@ -8,7 +8,7 @@ abstract final class EndpointStrings {
   static const noItems = 'No tienes ningun objeto';
   static const noSkills = 'No tienes ninguna habilidad';
   static const routeTimelineDescription =
-      'Ruta de 12 horas: dia, anochecer, noche y sunrise.';
+      'Ruta de 5 dias: dia, anochecer, noche y boss diario.';
   static const codexUnavailable = 'Apartado no disponible';
   static const settingsUnavailable = 'Configuracion no disponible';
 }

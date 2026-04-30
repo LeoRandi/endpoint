@@ -48,6 +48,7 @@ class WeaponShopPage extends StatefulWidget {
   final ShopPathNode shop;
   final RunRandomizer randomizer;
   final RunHourPhase phase;
+  final int dayNumber;
   final List<Item> stockPool;
 
   const WeaponShopPage({
@@ -56,6 +57,7 @@ class WeaponShopPage extends StatefulWidget {
     required this.shop,
     required this.randomizer,
     required this.phase,
+    this.dayNumber = 1,
     this.stockPool = itemPresets,
   });
 
@@ -74,6 +76,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
       stockCriterion: widget.shop.stockCriterion,
       phase: widget.phase,
       randomizer: widget.randomizer,
+      dayNumber: widget.dayNumber,
       stockPool: widget.stockPool,
       priceMultiplier: widget.shop.priceMultiplier,
     );
@@ -214,7 +217,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
+      onPopInvoked: (didPop) {
         if (didPop) return;
         _closeShop();
       },

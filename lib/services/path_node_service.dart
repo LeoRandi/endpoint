@@ -2,71 +2,37 @@ import '_imports.dart';
 
 class PathNodeService {
   static const startStageIndex = 0;
-  static const duskStageIndex = 6;
-  static const sunriseStageIndex = 12;
+  static const firstPlayableStageIndex = 1;
+  static const stagesPerDay = 12;
+  static const maxDayNumber = 5;
+  static const dayStageCount = 5;
+  static const duskStageOffset = 5;
+  static const nightFirstStageOffset = 6;
+  static const dailyBossStageOffset = stagesPerDay - 1;
+  static const duskStageIndex = firstPlayableStageIndex + duskStageOffset;
+  static const firstDayBossStageIndex =
+      firstPlayableStageIndex + dailyBossStageOffset;
+  static const sunriseStageIndex = firstPlayableStageIndex +
+      ((maxDayNumber - 1) * stagesPerDay) +
+      dailyBossStageOffset;
   static const _openingArchetypeCount = 3;
   static const _centerShopPremiumChance = 0.78;
   static const _centerShopPremiumMultiplier = 1.2;
-  static const _dayEventRelativeWeight = 0.9;
+  static const _dayEventRelativeWeight = 0.82;
+  static const _nightEventRelativeWeight = 0.5;
+  static const _dayCombatRelativeWeight = 0.72;
+  static const _nightCombatRelativeWeight = 1.45;
 
   final RunRandomizer _randomizer;
   final PathEventService _pathEventService;
-  late final List<_RunStageDefinition> _stageDefinitions = [
-    _RunStageDefinition(
-      matches: (stageIndex) => stageIndex == startStageIndex,
-      phase: RunHourPhase.day,
-      titleBuilder: (_) => 'HORA 1',
-      subtitle: 'Elige el arquetipo con el que abrira la run.',
-      buildNodes: (_, __) => _buildOpeningArchetypeNodes(),
-    ),
-    _RunStageDefinition(
-      matches: (stageIndex) =>
-          stageIndex > startStageIndex && stageIndex < duskStageIndex,
-      phase: RunHourPhase.day,
-      titleBuilder: (stageIndex) => 'HORA ${stageIndex + 1}',
-      subtitle: 'Mercados y favores tensos antes del anochecer.',
-      buildNodes: _buildDayNodes,
-    ),
-    _RunStageDefinition(
-      matches: (stageIndex) => stageIndex == duskStageIndex,
-      phase: RunHourPhase.dusk,
-      titleBuilder: (_) => 'ANOCHECER',
-      subtitle:
-          'La ciudad se cierra. Tres enfrentamientos marcan la entrada en la noche.',
-      buildNodes: (_, __) => duskCombatNodes,
-    ),
-    _RunStageDefinition(
-      matches: (stageIndex) => stageIndex < sunriseStageIndex,
-      phase: RunHourPhase.night,
-      titleBuilder: (stageIndex) => 'NOCHE ${stageIndex - duskStageIndex}',
-      subtitle: 'Mas violencia, peores tratos y menos margen de error.',
-      buildNodes: _buildNightNodes,
-    ),
-    _RunStageDefinition(
-      matches: (_) => true,
-      phase: RunHourPhase.sunrise,
-      titleBuilder: (_) => 'SUNRISE',
-      subtitle: 'Solo queda un combate. El peor de toda la run.',
-      buildNodes: (_, __) => sunriseCombatNodes.take(1).toList(growable: false),
-    ),
-  ];
-  late final List<_WeightedPathNode> _dayShopCandidates =
-      _buildWeightedNodes(dayShopNodes);
-  late final List<_WeightedPathNode> _nightShopCandidates =
-      _buildWeightedNodes(nightShopNodes);
   late final List<ShopPathNode> _allShopNodes = _deduplicateShopNodes([
     ...dayShopNodes,
     ...nightShopNodes,
   ]);
-  late final List<_WeightedPathNode> _nightCombatCandidates =
-      List<_WeightedPathNode>.unmodifiable(
-    nightCombatNodes.map(
-      (node) => _WeightedPathNode(
-        node: node,
-        weight: node.rollWeight * 1.35,
-      ),
-    ),
-  );
+  late final Set<String> _dayShopNodeIds =
+      dayShopNodes.map((node) => node.nodeId).toSet();
+  late final Set<String> _nightShopNodeIds =
+      nightShopNodes.map((node) => node.nodeId).toSet();
   late final _WeightedPathNode _restZoneCandidate = _WeightedPathNode(
     node: restZoneCampNode,
     weight: restZoneCampNode.rollWeight,
@@ -84,27 +50,76 @@ class PathNodeService {
 
   RunRandomizer get randomizer => _randomizer;
 
+  static int dayNumberForStageIndex(int stageIndex) {
+    if (stageIndex <= startStageIndex) return 1;
+
+    return (((stageIndex - firstPlayableStageIndex) ~/ stagesPerDay) + 1)
+        .clamp(1, maxDayNumber)
+        .toInt();
+  }
+
+  static int stageOffsetInDayForStageIndex(int stageIndex) {
+    if (stageIndex <= startStageIndex) return -1;
+
+    return (stageIndex - firstPlayableStageIndex) % stagesPerDay;
+  }
+
+  static int firstStageIndexForDay(int dayNumber) {
+    final clampedDay = dayNumber.clamp(1, maxDayNumber).toInt();
+    return firstPlayableStageIndex + ((clampedDay - 1) * stagesPerDay);
+  }
+
+  static int bossStageIndexForDay(int dayNumber) {
+    return firstStageIndexForDay(dayNumber) + dailyBossStageOffset;
+  }
+
+  static bool isDuskStage(int stageIndex) {
+    return stageOffsetInDayForStageIndex(stageIndex) == duskStageOffset;
+  }
+
+  static bool isDailyBossStage(int stageIndex) {
+    return stageOffsetInDayForStageIndex(stageIndex) == dailyBossStageOffset;
+  }
+
+  static bool isFinalBossStage(int stageIndex) {
+    return stageIndex == sunriseStageIndex;
+  }
+
+  static bool isFinalRunStage(int stageIndex) {
+    return isFinalBossStage(stageIndex);
+  }
+
+  static double progressWithinDayForStageIndex(int stageIndex) {
+    if (stageIndex <= startStageIndex) return 0;
+
+    return (stageOffsetInDayForStageIndex(stageIndex) / dailyBossStageOffset)
+        .clamp(0.0, 1.0)
+        .toDouble();
+  }
+
   RunHourSnapshot buildHourSnapshot({
     required int stageIndex,
     Battler? player,
     List<PathNode>? availableNodes,
     int nodeCount = 3,
   }) {
-    final clampedStageIndex = stageIndex.clamp(
-      startStageIndex,
-      sunriseStageIndex,
-    );
+    final clampedStageIndex = stageIndex
+        .clamp(
+          startStageIndex,
+          sunriseStageIndex,
+        )
+        .toInt();
     final resolvedNodeCount = max(1, nodeCount);
-    final definition = _definitionFor(clampedStageIndex);
+    final definition = _definitionFor(clampedStageIndex, player);
 
     return RunHourSnapshot(
       stageIndex: clampedStageIndex,
       phase: definition.phase,
-      title: definition.titleBuilder(clampedStageIndex),
+      title: definition.title,
       subtitle: definition.subtitle,
       nodes: List<PathNode>.unmodifiable(
         _resolveNodes(
-          fallbackNodes: definition.buildNodes(clampedStageIndex, player),
+          fallbackNodes: definition.nodes,
           availableNodes: availableNodes,
           nodeCount: resolvedNodeCount,
           player: player,
@@ -118,11 +133,13 @@ class PathNodeService {
     Battler? player,
     int nodeCount = 3,
   }) {
-    final clampedStageIndex = stageIndex.clamp(
-      startStageIndex,
-      sunriseStageIndex,
-    );
-    final definition = _definitionFor(clampedStageIndex);
+    final clampedStageIndex = stageIndex
+        .clamp(
+          startStageIndex,
+          sunriseStageIndex,
+        )
+        .toInt();
+    final definition = _definitionFor(clampedStageIndex, player);
     final nodes = _buildSuddenConventionShopNodes(player)
         .take(max(1, nodeCount))
         .toList(growable: false);
@@ -130,15 +147,61 @@ class PathNodeService {
     return RunHourSnapshot(
       stageIndex: clampedStageIndex,
       phase: definition.phase,
-      title: definition.titleBuilder(clampedStageIndex),
+      title: definition.title,
       subtitle: definition.subtitle,
       nodes: List<PathNode>.unmodifiable(nodes),
     );
   }
 
-  _RunStageDefinition _definitionFor(int stageIndex) {
-    return _stageDefinitions.firstWhere(
-      (definition) => definition.matches(stageIndex),
+  _RunStageDefinition _definitionFor(int stageIndex, Battler? player) {
+    if (stageIndex == startStageIndex) {
+      return _RunStageDefinition(
+        phase: RunHourPhase.day,
+        title: 'DIA 1 - ARQUETIPO',
+        subtitle: 'Elige el arquetipo con el que abrira la run.',
+        nodes: _buildOpeningArchetypeNodes(),
+      );
+    }
+
+    final dayNumber = dayNumberForStageIndex(stageIndex);
+    final stageOffset = stageOffsetInDayForStageIndex(stageIndex);
+    if (stageOffset < duskStageOffset) {
+      return _RunStageDefinition(
+        phase: RunHourPhase.day,
+        title: 'DIA $dayNumber - HORA ${stageOffset + 1}',
+        subtitle: 'Mercados, eventos y amenazas antes del anochecer.',
+        nodes: _buildDayNodes(dayNumber, player),
+      );
+    }
+
+    if (stageOffset == duskStageOffset) {
+      return _RunStageDefinition(
+        phase: RunHourPhase.dusk,
+        title: 'DIA $dayNumber - ANOCHECER',
+        subtitle:
+            'La ciudad se cierra. Tres enfrentamientos marcan la entrada en la noche.',
+        nodes: _buildDuskCombatNodes(dayNumber),
+      );
+    }
+
+    if (stageOffset < dailyBossStageOffset) {
+      return _RunStageDefinition(
+        phase: RunHourPhase.night,
+        title: 'DIA $dayNumber - NOCHE ${stageOffset - duskStageOffset}',
+        subtitle: 'Mas violencia, peores tratos y menos margen de error.',
+        nodes: _buildNightNodes(dayNumber, player),
+      );
+    }
+
+    return _RunStageDefinition(
+      phase: RunHourPhase.sunrise,
+      title: dayNumber == maxDayNumber
+          ? 'DIA $dayNumber - BOSS FINAL'
+          : 'DIA $dayNumber - BOSS',
+      subtitle: dayNumber == maxDayNumber
+          ? 'El combate amarillo decide si la run termina en victoria.'
+          : 'Derrota al boss del dia para llegar al siguiente amanecer.',
+      nodes: _buildDailyBossNodes(dayNumber),
     );
   }
 
@@ -149,32 +212,84 @@ class PathNodeService {
     );
   }
 
-  List<PathNode> _buildDayNodes(int stageIndex, Battler? player) {
+  List<PathNode> _buildDayNodes(int dayNumber, Battler? player) {
     final shopCandidates = _weightedShopCandidatesFor(
-      dayShopNodes,
+      dayNumber: dayNumber,
+      phase: RunHourPhase.day,
       player: player,
     );
 
     return _buildUniqueHourNodes(
-      sideCandidates: _buildDaySideCandidates(player, shopCandidates),
+      sideCandidates: _buildSideCandidates(
+        dayNumber: dayNumber,
+        phase: RunHourPhase.day,
+        player: player,
+        shopCandidates: shopCandidates,
+      ),
       shopCandidates: shopCandidates,
     );
   }
 
-  List<PathNode> _buildNightNodes(int stageIndex, Battler? player) {
-    if (stageIndex == sunriseStageIndex - 1) {
-      return _buildFinalNightNodes(player);
-    }
-
+  List<PathNode> _buildNightNodes(int dayNumber, Battler? player) {
     final shopCandidates = _weightedShopCandidatesFor(
-      nightShopNodes,
+      dayNumber: dayNumber,
+      phase: RunHourPhase.night,
       player: player,
     );
 
     return _buildUniqueHourNodes(
-      sideCandidates: _buildNightSideCandidates(player, shopCandidates),
+      sideCandidates: _buildSideCandidates(
+        dayNumber: dayNumber,
+        phase: RunHourPhase.night,
+        player: player,
+        shopCandidates: shopCandidates,
+      ),
       shopCandidates: shopCandidates,
     );
+  }
+
+  List<PathNode> _buildDuskCombatNodes(int dayNumber) {
+    final tiers = switch (dayNumber) {
+      1 => const [
+          CombatNodeTier.gray,
+          CombatNodeTier.gray,
+          CombatNodeTier.green,
+        ],
+      2 => const [
+          CombatNodeTier.gray,
+          CombatNodeTier.green,
+          CombatNodeTier.blue,
+        ],
+      3 => const [
+          CombatNodeTier.green,
+          CombatNodeTier.blue,
+          CombatNodeTier.purple,
+        ],
+      4 => const [
+          CombatNodeTier.blue,
+          CombatNodeTier.blue,
+          CombatNodeTier.purple,
+        ],
+      _ => const [
+          CombatNodeTier.purple,
+          CombatNodeTier.purple,
+          CombatNodeTier.purple,
+        ],
+    };
+
+    return _pickCombatNodesForTiers(tiers);
+  }
+
+  List<PathNode> _buildDailyBossNodes(int dayNumber) {
+    final tier = switch (dayNumber) {
+      1 || 2 => CombatNodeTier.blue,
+      3 || 4 => CombatNodeTier.purple,
+      _ => CombatNodeTier.yellow,
+    };
+
+    return [
+      _pickCombatNodeFromTier(tier),
+    ];
   }
 
   List<PathNode> _resolveNodes({
@@ -195,43 +310,42 @@ class PathNodeService {
         );
   }
 
-  List<_WeightedPathNode> _buildDaySideCandidates(
-    Battler? player,
-    List<_WeightedPathNode> shopCandidates,
-  ) {
+  List<_WeightedPathNode> _buildSideCandidates({
+    required int dayNumber,
+    required RunHourPhase phase,
+    required Battler? player,
+    required List<_WeightedPathNode> shopCandidates,
+  }) {
     final shopTotalWeight = _totalWeight(shopCandidates);
+    final eventRelativeWeight = phase == RunHourPhase.day
+        ? _dayEventRelativeWeight
+        : _nightEventRelativeWeight;
+    final combatRelativeWeight = phase == RunHourPhase.day
+        ? _dayCombatRelativeWeight
+        : _nightCombatRelativeWeight;
+    final eventPool =
+        phase == RunHourPhase.day ? dayEventNodes : nightEventNodes;
     final eventCandidates = _scaleWeightedNodes(
-      _buildWeightedNodes(_filterEventNodes(dayEventNodes, player)),
-      targetTotalWeight: shopTotalWeight * _dayEventRelativeWeight,
-    );
-    final rareDayCombatCandidates = _scaleWeightedNodes(
-      _buildWeightedNodes(
-        rareDayCombatNodes.where(_isAllowedDayCombatNode),
+      _weightedEventCandidatesFor(
+        dayNumber: dayNumber,
+        nodes: _filterEventNodes(eventPool, player),
       ),
-      targetTotalWeight: shopTotalWeight,
+      targetTotalWeight: shopTotalWeight * eventRelativeWeight,
+    );
+    final combatCandidates = _scaleWeightedNodes(
+      _buildCombatCandidates(
+        phase == RunHourPhase.day
+            ? _dayCombatTierWeights(dayNumber)
+            : _nightCombatTierWeights(dayNumber),
+      ),
+      targetTotalWeight: shopTotalWeight * combatRelativeWeight,
     );
 
     return [
+      ...combatCandidates,
       ...shopCandidates,
       ...eventCandidates,
-      _restZoneCandidate,
-      _severeMedicationCandidate,
-      ...rareDayCombatCandidates,
-    ];
-  }
-
-  List<_WeightedPathNode> _buildNightSideCandidates(
-    Battler? player,
-    List<_WeightedPathNode> shopCandidates,
-  ) {
-    return [
-      ..._nightCombatCandidates,
-      ...shopCandidates,
-      ..._filterEventNodes(nightEventNodes, player).map(
-        (node) => _WeightedPathNode(node: node, weight: node.rollWeight),
-      ),
-      _restZoneCandidate,
-      _severeMedicationCandidate,
+      ..._campCandidatesForDay(dayNumber),
     ];
   }
 
@@ -257,21 +371,6 @@ class PathNodeService {
       node: node,
       player: player,
     );
-  }
-
-  List<PathNode> _buildFinalNightNodes(Battler? player) {
-    final centerNode = _buildCenterShopNode(
-      _weightedShopCandidatesFor(
-        nightShopNodes,
-        player: player,
-      ),
-    );
-
-    return [
-      restZoneCampNode,
-      centerNode,
-      severeMedicationCampNode,
-    ];
   }
 
   List<ShopPathNode> _buildSuddenConventionShopNodes(Battler? player) {
@@ -325,6 +424,13 @@ class PathNodeService {
     required List<_WeightedPathNode> sideCandidates,
     required List<_WeightedPathNode> shopCandidates,
   }) {
+    if (shopCandidates.isEmpty) {
+      return _pickDistinctWeightedNodes(
+        sideCandidates,
+        count: 3,
+      );
+    }
+
     final centerNode = _buildCenterShopNode(shopCandidates);
     final sideNodes = _pickDistinctWeightedNodes(
       sideCandidates,
@@ -357,39 +463,224 @@ class PathNodeService {
     return baseNode.withPriceMultiplier(_centerShopPremiumMultiplier);
   }
 
-  bool _isAllowedDayCombatNode(CombatPathNode node) {
-    return node.tier.index <= CombatNodeTier.green.index;
-  }
-
-  List<_WeightedPathNode> _buildWeightedNodes(Iterable<PathNode> nodes) {
-    return nodes
+  List<_WeightedPathNode> _weightedShopCandidatesFor({
+    required int dayNumber,
+    required RunHourPhase phase,
+    Battler? player,
+  }) {
+    return _allShopNodes
+        .where((node) => node.canAppearForArchetype(player?.archetypeId))
         .map(
           (node) => _WeightedPathNode(
             node: node,
-            weight: node.rollWeight,
+            weight: node.rollWeight *
+                _rarityProgressionWeight(dayNumber, node.rarity) *
+                _shopPhaseAffinity(node, phase),
           ),
         )
         .toList(growable: false);
   }
 
-  List<_WeightedPathNode> _weightedShopCandidatesFor(
-    List<ShopPathNode> shopPool, {
-    Battler? player,
-  }) {
-    List<_WeightedPathNode> candidates;
-    if (identical(shopPool, dayShopNodes)) {
-      candidates = _dayShopCandidates;
-    } else if (identical(shopPool, nightShopNodes)) {
-      candidates = _nightShopCandidates;
-    } else {
-      candidates = _buildWeightedNodes(shopPool);
+  double _shopPhaseAffinity(ShopPathNode node, RunHourPhase phase) {
+    final isDayShop = _dayShopNodeIds.contains(node.nodeId);
+    final isNightShop = _nightShopNodeIds.contains(node.nodeId);
+    if (phase == RunHourPhase.day) {
+      return isDayShop ? 1.2 : 0.52;
     }
 
-    return candidates.where((candidate) {
-      final node = candidate.node;
-      return node is ShopPathNode &&
-          node.canAppearForArchetype(player?.archetypeId);
-    }).toList(growable: false);
+    return isNightShop ? 1.2 : 0.52;
+  }
+
+  List<_WeightedPathNode> _weightedEventCandidatesFor({
+    required int dayNumber,
+    required Iterable<EventPathNode> nodes,
+  }) {
+    return nodes
+        .map(
+          (node) => _WeightedPathNode(
+            node: node,
+            weight: node.rollWeight *
+                _rarityProgressionWeight(dayNumber, node.rarity),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  List<_WeightedPathNode> _buildCombatCandidates(
+    Map<CombatNodeTier, double> tierWeights,
+  ) {
+    final candidates = <_WeightedPathNode>[];
+    for (final entry in tierWeights.entries) {
+      if (entry.value <= 0) continue;
+
+      final pool = _combatPoolForTier(entry.key);
+      if (pool.isEmpty) continue;
+
+      final nodeWeight = entry.value / pool.length;
+      candidates.addAll(
+        pool.map(
+          (node) => _WeightedPathNode(
+            node: node,
+            weight: nodeWeight,
+          ),
+        ),
+      );
+    }
+
+    return candidates;
+  }
+
+  List<_WeightedPathNode> _campCandidatesForDay(int dayNumber) {
+    final recoveryPressure = 1 + ((dayNumber - 1) * 0.08);
+    final severePressure = 0.66 + ((dayNumber - 1) * 0.16);
+
+    return [
+      _WeightedPathNode(
+        node: _restZoneCandidate.node,
+        weight: _restZoneCandidate.weight * recoveryPressure,
+      ),
+      _WeightedPathNode(
+        node: _severeMedicationCandidate.node,
+        weight: _severeMedicationCandidate.weight * severePressure,
+      ),
+    ];
+  }
+
+  Map<CombatNodeTier, double> _dayCombatTierWeights(int dayNumber) {
+    return switch (dayNumber) {
+      1 => const {
+          CombatNodeTier.gray: 1,
+        },
+      2 => const {
+          CombatNodeTier.gray: 0.67,
+          CombatNodeTier.green: 0.33,
+        },
+      3 => const {
+          CombatNodeTier.gray: 0.10,
+          CombatNodeTier.green: 0.60,
+          CombatNodeTier.blue: 0.30,
+        },
+      4 => const {
+          CombatNodeTier.green: 0.20,
+          CombatNodeTier.blue: 0.80,
+        },
+      _ => const {
+          CombatNodeTier.blue: 0.67,
+          CombatNodeTier.purple: 0.33,
+        },
+    };
+  }
+
+  Map<CombatNodeTier, double> _nightCombatTierWeights(int dayNumber) {
+    return switch (dayNumber) {
+      1 => const {
+          CombatNodeTier.gray: 0.80,
+          CombatNodeTier.green: 0.20,
+        },
+      2 => const {
+          CombatNodeTier.gray: 0.25,
+          CombatNodeTier.green: 0.50,
+          CombatNodeTier.blue: 0.25,
+        },
+      3 => const {
+          CombatNodeTier.green: 0.67,
+          CombatNodeTier.blue: 0.33,
+        },
+      4 => const {
+          CombatNodeTier.green: 0.10,
+          CombatNodeTier.blue: 0.60,
+          CombatNodeTier.purple: 0.30,
+        },
+      _ => const {
+          CombatNodeTier.purple: 1,
+        },
+    };
+  }
+
+  double _rarityProgressionWeight(int dayNumber, RarityTier rarity) {
+    final weights = switch (dayNumber) {
+      1 => const {
+          RarityTier.gray: 1.35,
+          RarityTier.green: 0.58,
+          RarityTier.blue: 0.16,
+          RarityTier.purple: 0.04,
+          RarityTier.yellow: 0.01,
+        },
+      2 => const {
+          RarityTier.gray: 0.85,
+          RarityTier.green: 1.05,
+          RarityTier.blue: 0.36,
+          RarityTier.purple: 0.08,
+          RarityTier.yellow: 0.02,
+        },
+      3 => const {
+          RarityTier.gray: 0.26,
+          RarityTier.green: 0.95,
+          RarityTier.blue: 0.78,
+          RarityTier.purple: 0.26,
+          RarityTier.yellow: 0.05,
+        },
+      4 => const {
+          RarityTier.gray: 0.08,
+          RarityTier.green: 0.42,
+          RarityTier.blue: 1.05,
+          RarityTier.purple: 0.62,
+          RarityTier.yellow: 0.12,
+        },
+      _ => const {
+          RarityTier.gray: 0.02,
+          RarityTier.green: 0.12,
+          RarityTier.blue: 0.72,
+          RarityTier.purple: 1.05,
+          RarityTier.yellow: 0.28,
+        },
+    };
+
+    return weights[rarity] ?? 0;
+  }
+
+  List<CombatPathNode> _combatPoolForTier(CombatNodeTier tier) {
+    return switch (tier) {
+      CombatNodeTier.gray => grayCombatNodes,
+      CombatNodeTier.green => greenCombatNodes,
+      CombatNodeTier.blue => blueCombatNodes,
+      CombatNodeTier.purple => purpleCombatNodes,
+      CombatNodeTier.yellow => sunriseCombatNodes,
+    };
+  }
+
+  List<PathNode> _pickCombatNodesForTiers(List<CombatNodeTier> tiers) {
+    final selectedNodes = <CombatPathNode>[];
+    final selectedNodeIds = <String>{};
+
+    for (final tier in tiers) {
+      final selected = _pickCombatNodeFromTier(
+        tier,
+        excludedNodeIds: selectedNodeIds,
+      );
+      selectedNodes.add(selected);
+      selectedNodeIds.add(selected.nodeId);
+    }
+
+    return List<PathNode>.unmodifiable(selectedNodes);
+  }
+
+  CombatPathNode _pickCombatNodeFromTier(
+    CombatNodeTier tier, {
+    Set<String> excludedNodeIds = const {},
+  }) {
+    var candidates = _combatPoolForTier(tier)
+        .where((node) => !excludedNodeIds.contains(node.nodeId))
+        .toList(growable: false);
+    if (candidates.isEmpty) {
+      candidates = _combatPoolForTier(tier);
+    }
+
+    if (candidates.isEmpty) {
+      throw StateError('No combat nodes available for tier ${tier.name}.');
+    }
+
+    return candidates[_randomizer.nextInt(candidates.length)];
   }
 
   List<_WeightedPathNode> _scaleWeightedNodes(
@@ -490,18 +781,16 @@ class PathNodeService {
 }
 
 class _RunStageDefinition {
-  final bool Function(int stageIndex) matches;
   final RunHourPhase phase;
-  final String Function(int stageIndex) titleBuilder;
+  final String title;
   final String subtitle;
-  final List<PathNode> Function(int stageIndex, Battler? player) buildNodes;
+  final List<PathNode> nodes;
 
   const _RunStageDefinition({
-    required this.matches,
     required this.phase,
-    required this.titleBuilder,
+    required this.title,
     required this.subtitle,
-    required this.buildNodes,
+    required this.nodes,
   });
 }
 

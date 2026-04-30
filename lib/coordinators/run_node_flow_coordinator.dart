@@ -81,6 +81,9 @@ class RunNodeFlowCoordinator {
             shop: shopNode,
             randomizer: session.randomizer,
             phase: session.currentHour.phase,
+            dayNumber: PathNodeService.dayNumberForStageIndex(
+              session.currentHour.stageIndex,
+            ),
             stockPool: itemPoolForArchetype(session.player.archetypeId),
           ),
           onCompleted: session.completeWeaponShopVisit,

@@ -10,6 +10,7 @@ class WeaponShopController extends ChangeNotifier {
     required ShopInventoryCriterion stockCriterion,
     required RunHourPhase phase,
     required RunRandomizer randomizer,
+    int dayNumber = 1,
     List<Item> stockPool = itemPresets,
     this.priceMultiplier = 1,
     WeaponShopStockService stockService = const WeaponShopStockService(),
@@ -19,6 +20,7 @@ class WeaponShopController extends ChangeNotifier {
             criterion: stockCriterion,
             phase: phase,
             randomizer: randomizer,
+            dayNumber: dayNumber,
             pool: stockPool,
           ),
         );

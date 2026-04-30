@@ -21,8 +21,8 @@ abstract final class TutorialRunDefinition {
     9: List<PathNode>.unmodifiable([chemicalExchangeNode]),
     10: List<PathNode>.unmodifiable([purpleCombatNode]),
     11: List<PathNode>.unmodifiable([severeMedicationCampNode]),
-    PathNodeService.sunriseStageIndex: List<PathNode>.unmodifiable([
-      yellowCombatNode,
+    PathNodeService.firstDayBossStageIndex: List<PathNode>.unmodifiable([
+      blueCombatNode,
     ]),
   });
 }

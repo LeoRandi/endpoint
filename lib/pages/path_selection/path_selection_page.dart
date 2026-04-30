@@ -68,6 +68,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   late final _PathTutorialShowcaseKeys _tutorialKeys;
   ShowcaseView? _tutorialShowcase;
   bool _isPresentingRunOutcome = false;
+  bool _isPresentingDaySummary = false;
   bool _didResumeSavedNode = false;
   bool _didStartOpeningTutorial = false;
 
@@ -131,6 +132,9 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         unawaited(_resumeSavedNodeIfNeeded());
       });
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_maybePresentDaySummary());
+    });
   }
 
   @override
@@ -164,7 +168,10 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   }
 
   Future<void> _handleOpenAbilities() async {
-    if (_sessionController.isRunComplete) return;
+    if (_sessionController.isRunComplete ||
+        _sessionController.hasPendingDaySummary) {
+      return;
+    }
 
     await showEndpointOverlay<void>(
       context: context,
@@ -179,6 +186,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
     if (!mounted) return;
 
+    await _maybePresentDaySummary();
     await _maybePresentRunOutcome();
   }
 
@@ -194,7 +202,10 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   }
 
   Future<void> _handleOpenOperatives() async {
-    if (_sessionController.isRunComplete) return;
+    if (_sessionController.isRunComplete ||
+        _sessionController.hasPendingDaySummary) {
+      return;
+    }
 
     await showEndpointOverlay<void>(
       context: context,
@@ -206,10 +217,12 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
     if (!mounted) return;
 
+    await _maybePresentDaySummary();
     await _maybePresentRunOutcome();
   }
 
   Future<void> _handleNodePressed(PathNode node) async {
+    if (_sessionController.hasPendingDaySummary) return;
     if (!_sessionController.beginNodeResolution(node: node)) return;
     await _openNode(node);
   }
@@ -265,10 +278,12 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       await _maybePresentRunOutcome();
       return;
     }
+    await _maybePresentDaySummary();
   }
 
   Future<void> _handleOpenLevelUp() async {
     if (_sessionController.isRunComplete ||
+        _sessionController.hasPendingDaySummary ||
         !_sessionController.player.canLevelUp) {
       return;
     }
@@ -293,6 +308,35 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     _sessionController.updatePlayer(
       player.applyLevelReward(reward),
     );
+    await _maybePresentDaySummary();
+  }
+
+  Future<void> _maybePresentDaySummary() async {
+    if (!mounted ||
+        _isPresentingDaySummary ||
+        _sessionController.isRunComplete ||
+        !_sessionController.hasPendingDaySummary) {
+      return;
+    }
+
+    final summary = _sessionController.pendingDaySummary;
+    if (summary == null) return;
+
+    _isPresentingDaySummary = true;
+    final shouldContinue = await Navigator.of(context).push<bool>(
+      buildEndpointSceneRoute<bool>(
+        RunDaySummaryPage(
+          summary: summary,
+          player: _sessionController.player,
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    if (shouldContinue == true && _sessionController.hasPendingDaySummary) {
+      _sessionController.continueToNextDay();
+    }
+    _isPresentingDaySummary = false;
   }
 
   /// Presenta la pantalla final cuando la run ya se ha cerrado por victoria, derrota o retirada.
@@ -342,8 +386,12 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             final currentHour = _sessionController.currentHour;
             final isOpeningNode = _sessionController.isResolvingNode;
             final hasEndedRun = _sessionController.isRunComplete;
-            final canOpenLevelUp =
-                player.canLevelUp && !isOpeningNode && !hasEndedRun;
+            final hasPendingDaySummary =
+                _sessionController.hasPendingDaySummary;
+            final canOpenLevelUp = player.canLevelUp &&
+                !isOpeningNode &&
+                !hasEndedRun &&
+                !hasPendingDaySummary;
             final tutorialKeys = widget.isTutorialRun ? _tutorialKeys : null;
             Widget pathHeader = _PathHeader(currentHour: currentHour);
             if (tutorialKeys != null) {
@@ -351,7 +399,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                 showcaseKey: tutorialKeys.timeline,
                 title: 'Horas',
                 description:
-                    'Esta barra muestra el avance de las horas. La run termina al llegar al amanecer.',
+                    'Esta barra muestra el avance del dia actual. La run termina tras completar el dia 5.',
                 child: pathHeader,
               );
             }
@@ -374,6 +422,20 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                 builder: (context, constraints) {
                                   const spacing = 14.0;
                                   final encounterCount = nodes.length;
+                                  if (encounterCount == 0) {
+                                    return Center(
+                                      child: EndpointText(
+                                        hasPendingDaySummary
+                                            ? 'Resumen del dia pendiente'
+                                            : 'No hay nodos disponibles',
+                                        textAlign: TextAlign.center,
+                                        style: textMediumBold.copyWith(
+                                          color: EndpointPalette.softForeground
+                                              .withAlpha(205),
+                                        ),
+                                      ),
+                                    );
+                                  }
                                   final availableWidth = constraints.maxWidth -
                                       (spacing * (encounterCount - 1));
                                   final nodeWidth = min(
@@ -400,12 +462,13 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                             isTutorialTarget:
                                                 tutorialKeys != null &&
                                                     index == 0,
-                                            onPressed:
-                                                isOpeningNode || hasEndedRun
-                                                    ? null
-                                                    : () => _handleNodePressed(
-                                                          nodes[index],
-                                                        ),
+                                            onPressed: isOpeningNode ||
+                                                    hasEndedRun ||
+                                                    hasPendingDaySummary
+                                                ? null
+                                                : () => _handleNodePressed(
+                                                      nodes[index],
+                                                    ),
                                           ),
                                         ),
                                       ],
@@ -417,7 +480,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                       showcaseKey: tutorialKeys.nodes,
                                       title: 'Nodos',
                                       description:
-                                          'En Death at Sunrise, deberás sobrevivir para acercarte un poco más al amanecer. Cada hora, deberás elegir un nodo para avanzar, siendo el primero siempre tu Arquetipo.',
+                                          'En Death at Sunrise, deberas sobrevivir cinco dias. Cada etapa te pide elegir un nodo para avanzar; el arquetipo solo aparece al empezar.',
                                       targetPadding: const EdgeInsets.symmetric(
                                         horizontal: 8,
                                         vertical: 8,
@@ -539,7 +602,38 @@ class _PathHeader extends StatelessWidget {
       backgroundColor: EndpointPalette.panelBackgroundSoft,
       borderRadius: 18,
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-      child: _RunTimelineMeter(currentHour: currentHour),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: EndpointText(
+                  currentHour.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textSmallBold.copyWith(
+                    color: EndpointPalette.softForeground,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              EndpointText(
+                'DIA ${PathNodeService.dayNumberForStageIndex(currentHour.stageIndex)}/${PathNodeService.maxDayNumber}',
+                style: textSmallNumericBold.copyWith(
+                  color: EndpointPalette.rewardAccent,
+                  fontSize: 11,
+                  letterSpacing: 1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _RunTimelineMeter(currentHour: currentHour),
+        ],
+      ),
     );
   }
 }
@@ -899,10 +993,8 @@ class _RunTimelineMeter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress =
-        (currentHour.stageIndex / PathNodeService.sunriseStageIndex).clamp(
-      0.0,
-      1.0,
+    final progress = PathNodeService.progressWithinDayForStageIndex(
+      currentHour.stageIndex,
     );
 
     return SizedBox(
@@ -962,7 +1054,9 @@ class _RunTimelineMeter extends StatelessWidget {
       ),
       _buildMarker(
         alignmentX: _alignmentForProgress(
-            PathNodeService.duskStageIndex / PathNodeService.sunriseStageIndex),
+          PathNodeService.duskStageOffset /
+              PathNodeService.dailyBossStageOffset,
+        ),
         icon: Icons.dark_mode_outlined,
         color: EndpointPalette.infoAccent,
       ),

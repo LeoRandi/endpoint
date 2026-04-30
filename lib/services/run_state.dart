@@ -1,6 +1,9 @@
 import '../entities/_exports.dart';
 import 'run_completion_type.dart';
+import 'run_day_summary.dart';
 import 'run_hour_snapshot.dart';
+
+const _copySentinel = Object();
 
 class RunState {
   final Battler player;
@@ -9,6 +12,8 @@ class RunState {
   final int stageIndex;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
+  final RunDaySummary currentDaySummary;
+  final RunDaySummary? pendingDaySummary;
   final bool isRunComplete;
   final RunCompletionType? completionType;
 
@@ -19,6 +24,8 @@ class RunState {
     required this.stageIndex,
     required this.battleEnemyTurnDelay,
     required this.battleCombatEndDelay,
+    this.currentDaySummary = const RunDaySummary.empty(),
+    this.pendingDaySummary,
     this.isRunComplete = false,
     this.completionType,
   });
@@ -30,8 +37,11 @@ class RunState {
     int? stageIndex,
     Duration? battleEnemyTurnDelay,
     Duration? battleCombatEndDelay,
+    RunDaySummary? currentDaySummary,
+    Object? pendingDaySummary = _copySentinel,
     bool? isRunComplete,
     RunCompletionType? completionType,
+    bool clearCompletionType = false,
   }) {
     return RunState(
       player: player ?? this.player,
@@ -40,8 +50,13 @@ class RunState {
       stageIndex: stageIndex ?? this.stageIndex,
       battleEnemyTurnDelay: battleEnemyTurnDelay ?? this.battleEnemyTurnDelay,
       battleCombatEndDelay: battleCombatEndDelay ?? this.battleCombatEndDelay,
+      currentDaySummary: currentDaySummary ?? this.currentDaySummary,
+      pendingDaySummary: identical(pendingDaySummary, _copySentinel)
+          ? this.pendingDaySummary
+          : pendingDaySummary as RunDaySummary?,
       isRunComplete: isRunComplete ?? this.isRunComplete,
-      completionType: completionType ?? this.completionType,
+      completionType:
+          clearCompletionType ? null : completionType ?? this.completionType,
     );
   }
 }

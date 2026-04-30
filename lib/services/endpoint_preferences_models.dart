@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../entities/_exports.dart';
 import 'run_completion_type.dart';
+import 'run_day_summary.dart';
 import 'run_hour_snapshot.dart';
 
 enum EndpointGameMode {
@@ -121,10 +122,13 @@ class EndpointCurrentRunSnapshot {
   final bool isResolvingNode;
   final bool isRunComplete;
   final RunCompletionType? completionType;
+  final int savedNodeCount;
   final int randomSeed;
   final int randomState;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
+  final RunDaySummary currentDaySummary;
+  final RunDaySummary? pendingDaySummary;
   final PathNode? activeNode;
 
   const EndpointCurrentRunSnapshot({
@@ -135,15 +139,23 @@ class EndpointCurrentRunSnapshot {
     required this.isResolvingNode,
     required this.isRunComplete,
     required this.completionType,
+    this.savedNodeCount = 0,
     required this.randomSeed,
     required this.randomState,
     required this.battleEnemyTurnDelay,
     required this.battleCombatEndDelay,
+    this.currentDaySummary = const RunDaySummary.empty(),
+    this.pendingDaySummary,
     this.activeNode,
   });
 
-  int get nodeCount => max(1, visibleNodes.length);
+  int get nodeCount => max(
+        1,
+        savedNodeCount > 0 ? savedNodeCount : visibleNodes.length,
+      );
 
   bool get canContinue =>
-      !isRunComplete && completionType == null && visibleNodes.isNotEmpty;
+      !isRunComplete &&
+      completionType == null &&
+      (visibleNodes.isNotEmpty || pendingDaySummary != null);
 }

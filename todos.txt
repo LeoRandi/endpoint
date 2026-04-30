@@ -124,7 +124,6 @@ ARREGLAR:
 -Nerf:
 --Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
 
-
 ////
 PROBAR:
 
@@ -137,4 +136,5 @@ IDEAS:
 
 ////////////////////////////////
 
+Vamos a cambiar la xp necesaria para subir de nivel. Vamos a dejarla en 4 para todos los niveles. Adicionalmente, vamos a hacer que el boss final de cada día de siempre uno más de exp. Vamos a meterle una animación al nodo del boss final, en la pantalla de selección de nodo, vamos a ponerle un aura de color rojo(simplemente al rededor de la card del nodo, animada para que parezca fuego) y un poco de shakescreen cada 4 segundos. El aura aumenta con la tier del enemigo, haciendo el área más grande conforme el enemigo es mas fuerte
 

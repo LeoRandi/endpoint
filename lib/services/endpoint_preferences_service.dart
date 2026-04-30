@@ -16,6 +16,7 @@ abstract final class EndpointPreferencesService {
     required RunRandomizer randomizer,
     required bool isResolvingNode,
     required String trigger,
+    int? nodeCount,
     PathNode? activeNode,
   }) {
     return EndpointPreferencesStore.writeString(
@@ -25,6 +26,7 @@ abstract final class EndpointPreferencesService {
         randomizer: randomizer,
         isResolvingNode: isResolvingNode,
         trigger: trigger,
+        nodeCount: nodeCount,
         activeNode: activeNode,
       ),
     );

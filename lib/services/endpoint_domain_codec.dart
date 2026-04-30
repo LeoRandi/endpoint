@@ -2,6 +2,22 @@ import '../entities/_exports.dart';
 import 'endpoint_json_utils.dart';
 
 abstract final class EndpointDomainCodec {
+  static BattlerAbility? deserializeAbility(Map<String, dynamic> json) {
+    return _deserializeAbility(json);
+  }
+
+  static Map<String, Object?> serializeAbility(BattlerAbility ability) {
+    return _serializeAbility(ability);
+  }
+
+  static Item? deserializeItem(Map<String, dynamic> json) {
+    return _deserializeItem(json);
+  }
+
+  static Map<String, Object?> serializeItem(Item item) {
+    return _serializeItem(item);
+  }
+
   static Battler deserializeBattler(Map<String, dynamic> json) {
     final abilities = EndpointJsonUtils.readJsonMapList(json['abilities'])
         .map<BattlerAbility?>(_deserializeAbility)

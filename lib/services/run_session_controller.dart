@@ -50,6 +50,8 @@ class RunSessionController extends ChangeNotifier {
             stageIndex: snapshot.stageIndex,
             battleEnemyTurnDelay: snapshot.battleEnemyTurnDelay,
             battleCombatEndDelay: snapshot.battleCombatEndDelay,
+            currentDaySummary: snapshot.currentDaySummary,
+            pendingDaySummary: snapshot.pendingDaySummary,
             isRunComplete: snapshot.isRunComplete,
             completionType: snapshot.completionType,
           ),
@@ -99,6 +101,7 @@ class RunSessionController extends ChangeNotifier {
               stageIndex: PathNodeService.startStageIndex,
               battleEnemyTurnDelay: battleEnemyTurnDelay,
               battleCombatEndDelay: battleCombatEndDelay,
+              currentDaySummary: const RunDaySummary.empty(dayNumber: 1),
             ) {
     _isResolvingNode = initialIsResolvingNode;
     _activeNode = initialActiveNode;
@@ -116,9 +119,19 @@ class RunSessionController extends ChangeNotifier {
   bool get isResolvingNode => _isResolvingNode;
   bool get isRunComplete => _state.isRunComplete;
   RunCompletionType? get completionType => _state.completionType;
+  RunDaySummary get currentDaySummary => _state.currentDaySummary;
+  RunDaySummary? get pendingDaySummary => _state.pendingDaySummary;
+  bool get hasPendingDaySummary => _state.pendingDaySummary != null;
 
   /// Actualiza el jugador fuera de una escena y corta la run al instante si ya no sigue vivo.
   void updatePlayer(Battler player) {
+    if (_state.pendingDaySummary != null) {
+      _state = _state.copyWith(player: player);
+      notifyListeners();
+      unawaited(_persistCurrentRun(trigger: 'playerUpdatedDuringSummary'));
+      return;
+    }
+
     final shouldRerollVisibleNodes = _didTriggerTimelineRefactor(
       previousPlayer: _state.player,
       updatedPlayer: player,
@@ -168,6 +181,7 @@ class RunSessionController extends ChangeNotifier {
   bool beginNodeResolution({
     required PathNode node,
   }) {
+    if (_state.pendingDaySummary != null) return false;
     if (_isResolvingNode) return false;
     _activeNode = node;
     _isResolvingNode = true;
@@ -187,6 +201,15 @@ class RunSessionController extends ChangeNotifier {
   void refreshNodes({
     String? saveTrigger,
   }) {
+    if (_state.pendingDaySummary != null) {
+      _state = _state.copyWith(visibleNodes: const <PathNode>[]);
+      notifyListeners();
+      if (saveTrigger != null) {
+        unawaited(_persistCurrentRun(trigger: saveTrigger));
+      }
+      return;
+    }
+
     final currentHour = _pathNodeService.buildHourSnapshot(
       stageIndex: _state.stageIndex,
       player: _state.player,
@@ -205,6 +228,62 @@ class RunSessionController extends ChangeNotifier {
     }
   }
 
+  bool continueToNextDay() {
+    final completedSummary = _state.pendingDaySummary;
+    if (completedSummary == null || _state.isRunComplete) return false;
+
+    final nextStageIndex = _state.stageIndex + 1;
+    if (nextStageIndex > PathNodeService.sunriseStageIndex) {
+      _state = _state.copyWith(
+        isRunComplete: true,
+        completionType: RunCompletionType.victory,
+        pendingDaySummary: null,
+      );
+      notifyListeners();
+      unawaited(clearPersistedRunSnapshot());
+      return true;
+    }
+
+    final preparedPlayer = _preparePlayerForNextDay(_state.player);
+    final nextRunStep = _buildRunStep(
+      stageIndex: nextStageIndex,
+      player: preparedPlayer,
+    );
+    final nextDayNumber = PathNodeService.dayNumberForStageIndex(
+      nextStageIndex,
+    );
+    final nextDaySummary = _recordTransitionGains(
+      summary: RunDaySummary.empty(dayNumber: nextDayNumber),
+      before: preparedPlayer,
+      after: nextRunStep.player,
+    );
+
+    _state = _state.copyWith(
+      player: nextRunStep.player,
+      stageIndex: nextStageIndex,
+      currentHour: nextRunStep.hour,
+      visibleNodes: List<PathNode>.unmodifiable(nextRunStep.hour.nodes),
+      currentDaySummary: nextDaySummary,
+      pendingDaySummary: null,
+    );
+    _isResolvingNode = false;
+    _activeNode = null;
+    notifyListeners();
+    unawaited(_persistCurrentRun(trigger: 'nextDayStarted'));
+    return true;
+  }
+
+  Battler _preparePlayerForNextDay(Battler player) {
+    final withoutDebuffs = player.copyWith(
+      statuses: List<BattlerStatus>.unmodifiable(
+        player.statuses
+            .where((status) => status.type != BattlerStatusType.debuff),
+      ),
+    );
+
+    return withoutDebuffs.copyWith(health: withoutDebuffs.maxHealth);
+  }
+
   void completeEncounter({
     required BattleFlowResult result,
     required CombatPathNode node,
@@ -218,6 +297,10 @@ class RunSessionController extends ChangeNotifier {
     _completeScene(
       updatedPlayer: updatedPlayer,
       forcedCompletionType: _completionTypeForBattleResult(result.type),
+      defeatedEnemy: result.type == BattleFlowResultType.victory,
+      defeatedEnemyBattler:
+          result.type == BattleFlowResultType.victory ? node.enemy : null,
+      defeatedEnemyRarity: node.tier.rarity,
     );
   }
 
@@ -233,7 +316,10 @@ class RunSessionController extends ChangeNotifier {
   }
 
   void completeArchetypeSelection(Battler player) {
-    _completeScene(updatedPlayer: player);
+    _completeScene(
+      updatedPlayer: player,
+      includeSceneRewardsInDaySummary: false,
+    );
   }
 
   void completeWeaponShopVisit(WeaponShopVisitResult result) {
@@ -244,6 +330,10 @@ class RunSessionController extends ChangeNotifier {
     required Battler updatedPlayer,
     RunCompletionType? forcedCompletionType,
     PathNode? guaranteedNextNode,
+    bool defeatedEnemy = false,
+    Battler? defeatedEnemyBattler,
+    RarityTier? defeatedEnemyRarity,
+    bool includeSceneRewardsInDaySummary = true,
   }) {
     final resolvedCompletionType = forcedCompletionType ??
         _resolveCompletionType(updatedPlayer: updatedPlayer);
@@ -253,6 +343,7 @@ class RunSessionController extends ChangeNotifier {
         player: updatedPlayer,
         isRunComplete: true,
         completionType: resolvedCompletionType,
+        pendingDaySummary: null,
       );
       _isResolvingNode = false;
       _activeNode = null;
@@ -261,11 +352,24 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
+    final updatedDaySummary =
+        _shouldRecordCurrentStageInDaySummary(includeSceneRewardsInDaySummary)
+            ? _state.currentDaySummary.recordScene(
+                before: _state.player,
+                after: updatedPlayer,
+                defeatedEnemy: defeatedEnemy,
+                defeatedEnemyBattler: defeatedEnemyBattler,
+                defeatedEnemyRarity: defeatedEnemyRarity,
+                includeRewards: includeSceneRewardsInDaySummary,
+              )
+            : _state.currentDaySummary;
     final nextStageIndex = _state.stageIndex + 1;
     if (nextStageIndex > PathNodeService.sunriseStageIndex) {
       _state = _state.copyWith(
         player: updatedPlayer,
         stageIndex: nextStageIndex,
+        currentDaySummary: updatedDaySummary,
+        pendingDaySummary: null,
         isRunComplete: true,
         completionType: RunCompletionType.victory,
       );
@@ -276,21 +380,83 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
-    var nextPlayer = _progressPathSelectionAbilityCooldowns(updatedPlayer);
-    var nextHour = _pathNodeService.buildHourSnapshot(
+    if (PathNodeService.isDailyBossStage(_state.stageIndex)) {
+      _state = _state.copyWith(
+        player: updatedPlayer,
+        currentDaySummary: updatedDaySummary,
+        pendingDaySummary: updatedDaySummary,
+        visibleNodes: const <PathNode>[],
+      );
+      _isResolvingNode = false;
+      _activeNode = null;
+      notifyListeners();
+      unawaited(_persistCurrentRun(trigger: 'dayCompleted'));
+      return;
+    }
+
+    final nextRunStep = _buildRunStep(
       stageIndex: nextStageIndex,
+      player: updatedPlayer,
+      guaranteedNextNode: guaranteedNextNode,
+    );
+    final nextDaySummary = _recordTransitionGains(
+      summary: updatedDaySummary,
+      before: updatedPlayer,
+      after: nextRunStep.player,
+    );
+
+    _state = _state.copyWith(
+      player: nextRunStep.player,
+      stageIndex: nextStageIndex,
+      currentHour: nextRunStep.hour,
+      visibleNodes: List<PathNode>.unmodifiable(nextRunStep.hour.nodes),
+      currentDaySummary: nextDaySummary,
+    );
+    _isResolvingNode = false;
+    _activeNode = null;
+    notifyListeners();
+    unawaited(_persistCurrentRun(trigger: 'exitNode'));
+  }
+
+  bool _shouldRecordCurrentStageInDaySummary(bool includeSceneRewards) {
+    return includeSceneRewards &&
+        _state.stageIndex >= PathNodeService.firstPlayableStageIndex;
+  }
+
+  RunDaySummary _recordTransitionGains({
+    required RunDaySummary summary,
+    required Battler before,
+    required Battler after,
+  }) {
+    if (after.money <= before.money) return summary;
+
+    return summary.recordScene(
+      before: before,
+      after: after,
+      includeRewards: false,
+    );
+  }
+
+  _RunStep _buildRunStep({
+    required int stageIndex,
+    required Battler player,
+    PathNode? guaranteedNextNode,
+  }) {
+    var nextPlayer = _progressPathSelectionAbilityCooldowns(player);
+    var nextHour = _pathNodeService.buildHourSnapshot(
+      stageIndex: stageIndex,
       player: nextPlayer,
       availableNodes:
-          _scriptedNodesForStage(nextStageIndex) ?? _availableNodesOverride,
+          _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
       nodeCount: _nodeCount,
     );
     if (_shouldApplyHourStartEffects(nextHour)) {
       nextPlayer = nextPlayer.applyAbilityHourStartEffects();
       nextHour = _pathNodeService.buildHourSnapshot(
-        stageIndex: nextStageIndex,
+        stageIndex: stageIndex,
         player: nextPlayer,
         availableNodes:
-            _scriptedNodesForStage(nextStageIndex) ?? _availableNodesOverride,
+            _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
         nodeCount: _nodeCount,
       );
     }
@@ -299,16 +465,10 @@ class RunSessionController extends ChangeNotifier {
       guaranteedNextNode: guaranteedNextNode,
     );
 
-    _state = _state.copyWith(
+    return _RunStep(
       player: nextPlayer,
-      stageIndex: nextStageIndex,
-      currentHour: nextHour,
-      visibleNodes: List<PathNode>.unmodifiable(nextHour.nodes),
+      hour: nextHour,
     );
-    _isResolvingNode = false;
-    _activeNode = null;
-    notifyListeners();
-    unawaited(_persistCurrentRun(trigger: 'exitNode'));
   }
 
   RunHourSnapshot _injectGuaranteedNextNode({
@@ -317,6 +477,9 @@ class RunSessionController extends ChangeNotifier {
   }) {
     final guaranteedNode = guaranteedNextNode;
     if (guaranteedNode == null || hour.nodes.isEmpty) {
+      return hour;
+    }
+    if (hour.phase == RunHourPhase.dusk || hour.phase == RunHourPhase.sunrise) {
       return hour;
     }
     if (hour.nodes.any((node) => node.nodeId == guaranteedNode.nodeId)) {
@@ -366,8 +529,8 @@ class RunSessionController extends ChangeNotifier {
 
   /// Decide si el estado actual del jugador ya implica una derrota inmediata.
   ///
-  /// La victoria se concede al avanzar mas alla de SUNRISE, no por estar
-  /// esperando a seleccionar o resolver el nodo final.
+  /// La victoria se concede al avanzar mas alla del boss del quinto dia, no
+  /// por estar esperando a seleccionar o resolver ese nodo.
   RunCompletionType? _resolveCompletionType({
     required Battler updatedPlayer,
   }) {
@@ -540,6 +703,7 @@ class RunSessionController extends ChangeNotifier {
       randomizer: _randomizer,
       isResolvingNode: _isResolvingNode,
       trigger: trigger,
+      nodeCount: _nodeCount,
       activeNode: activeNodeOverride ?? _activeNode,
     );
   }
@@ -556,4 +720,14 @@ class RunSessionController extends ChangeNotifier {
 
     return scriptedNodes;
   }
+}
+
+class _RunStep {
+  final Battler player;
+  final RunHourSnapshot hour;
+
+  const _RunStep({
+    required this.player,
+    required this.hour,
+  });
 }

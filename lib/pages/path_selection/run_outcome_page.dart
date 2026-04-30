@@ -40,9 +40,9 @@ class RunOutcomePage extends StatelessWidget {
   String get description {
     switch (completionType) {
       case RunCompletionType.victory:
-        return 'Has sobrevivido hasta el sunrise y cerrado la run con vida.';
+        return 'Has completado el quinto dia y cerrado la run con vida.';
       case RunCompletionType.defeat:
-        return 'La unidad ha quedado fuera de servicio antes de llegar al sunrise.';
+        return 'La unidad ha quedado fuera de servicio antes de completar la run.';
       case RunCompletionType.retreated:
         return 'La retirada ha cerrado la operacion antes del final de la run.';
     }
