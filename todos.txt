@@ -40,11 +40,6 @@
 [--Aplicar el efecto día/noche a diferentes objetos y habilidades][Tag CICLO]
 --Efecto de animación para bosses
 
--Sistema de acompañantes
---Implementar
---Añadir al loot posibilidad de conseguir al acompañante
---Manejar su inventario
-
 -Combate
 [--Que intoxicación pase a través de la barrera]
 [--Aumentar el tamaño del intent a algo legible]
@@ -79,7 +74,7 @@
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 30 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 23, Imparable: 22, Mercante: 16]
+--Meter al menos 60 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 23, Imparable: 22, Mercante: 16]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
@@ -122,11 +117,7 @@
 ARREGLAR:
 -El botón de equipar/desequipar en al tienda a veces desaparece al equipar/desequipar/vender en una tienda?
 -En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña(pequeño cambio visual)
--No se debe poder ver un objeto que ya tengas en amarillo en la tienda. O no aparece o se consigue una segunda copia, pero no debe mejorarse mas. 
--no me ha reconocido la habilidad aprendida por nivel 2 al final del dia en el resumen
 -añadir objetos de resonancia para inamovible que usen resonancia(no hay ninguno que lo use para el daño)
--numero de equipamiento y max debe estar a la altura de Equipo Activo
--abrir la info de una habilidad en combate la activa
 -dibujo guardado para quick save no se guarda entre sesiones de la app
 
 -Nerf:
@@ -146,6 +137,4 @@ IDEAS:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
 
 ////////////////////////////////
-
-Vamos a cambiar la xp necesaria para subir de nivel. Vamos a dejarla en 4 para todos los niveles. Adicionalmente, vamos a hacer que el boss final de cada día de siempre uno más de exp. Vamos a meterle una animación al nodo del boss final, en la pantalla de selección de nodo, vamos a ponerle un aura de color rojo(simplemente al rededor de la card del nodo, animada para que parezca fuego) y un poco de shakescreen cada 4 segundos. El aura aumenta con la tier del enemigo, haciendo el área más grande conforme el enemigo es mas fuerte
 

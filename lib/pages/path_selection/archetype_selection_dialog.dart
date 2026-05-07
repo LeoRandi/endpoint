@@ -384,7 +384,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
     );
   }
 
-  // La preview muestra solo cambios base; los items dinamicos se resuelven al aceptar.
+  // Mercante mantiene placeholders aqui; su stock real se resuelve al aceptar.
   List<_ArchetypeImpactEntry> _buildImpactEntries() {
     final player = widget.player;
     final projectedPlayer = widget.projectedPlayer;

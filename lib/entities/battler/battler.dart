@@ -421,8 +421,8 @@ class Battler {
   /// Limita la progresion total para evitar escalado indefinido mientras no exista postgame.
   static const maximumLevel = 10;
 
-  /// Define el coste en XP de la primera subida de nivel antes de aplicar crecimiento.
-  static const initialLevelUpExperienceCost = 2;
+  /// Define el coste fijo en XP para cualquier subida de nivel.
+  static const initialLevelUpExperienceCost = 4;
   static const combatActiveFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.combatActive,
   );
@@ -696,16 +696,9 @@ class Battler {
     return max(0, baseIncome + equipmentBonus);
   }
 
-  /// Calcula el coste de XP del siguiente nivel aplicando crecimiento del 50% y redondeo hacia arriba.
+  /// Calcula el coste de XP del siguiente nivel sin escalado entre niveles.
   static int _experienceCostForLevel(int level) {
-    var cost = initialLevelUpExperienceCost;
-    for (var currentLevel = initialLevel;
-        currentLevel < level;
-        currentLevel++) {
-      cost = (cost * 1.5).ceil();
-    }
-
-    return max(initialLevelUpExperienceCost, cost);
+    return initialLevelUpExperienceCost;
   }
 
   static Battler _buildResolved({

@@ -1,13 +1,24 @@
 import '../_imports.dart';
 import '../../services/run_randomizer.dart';
 
+const _scrapShopAccent = Color(0xFFB8C0CC);
+const _greenItemShopAccent = Color(0xFF3FE88F);
+const _luxuryShopAccent = Color(0xFFFFD56B);
+const _emberShopAccent = Color(0xFFFF6A2A);
+const _toxinShopAccent = Color(0xFFB9F25C);
+const _afterHoursArsenalAccent = Color(0xFFFF4D6D);
+const _velvetArmoryAccent = Color(0xFFA95CFF);
+const _chemicalExchangeAccent = Color(0xFF4DE7D2);
+const _debuffBrokerAccent = Color(0xFFFF5A5F);
+const _buffParlorAccent = Color(0xFFFF8BE8);
+
 /// Arquetipo agil orientado a ataque ligero y economia temprana.
 final velozArchetypeNode = ArchetypePathNode(
   archetypeId: ArchetypeId.veloz,
   nodeId: 'archetype_veloz',
   label: 'Veloz',
   tooltip:
-      'Cyber Latigos + Gafas de Sol. Perfil agil de doble golpe que envenena con cada impacto. Empieza con 8C y 4 income.',
+      '1 item Veloz verde + 1 item general gris. Perfil agil de doble golpe que envenena con cada impacto. Empieza con 8C y 4 income.',
   iconEmoji: cyberWhipsItem.iconEmoji,
   playerIconEmoji: cyberWhipsItem.iconEmoji,
   accent: const Color(0xFF59B7FF),
@@ -17,10 +28,7 @@ final velozArchetypeNode = ArchetypePathNode(
   },
   moneyModifier: 8,
   incomeModifier: 4,
-  startingItems: const [
-    cyberWhipsItem,
-    sunglassesItem,
-  ],
+  startingItems: const [],
   startingAbilities: const [
     criticalScannerAbility,
   ],
@@ -32,7 +40,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
-      'Escudo + Amuleto de Bastion. Perfil resistente con regeneracion pasiva, mas barrera y Reinicio en seco. Empieza con 12C y 3 income.',
+      '1 item Inamovible verde + 1 item general gris. Perfil resistente con regeneracion pasiva, mas barrera y Reinicio en seco. Empieza con 12C y 3 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
   accent: const Color(0xFF5AF78E),
@@ -43,10 +51,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   },
   moneyModifier: 12,
   incomeModifier: 3,
-  startingItems: const [
-    shieldItem,
-    bulwarkAmuletItem,
-  ],
+  startingItems: const [],
   startingAbilities: const [
     hardResetAbility,
   ],
@@ -58,7 +63,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
-      'Espada de Hierro + Amuleto de Ascuas. Perfil ofensivo con mas pegada base y Sobrecarga venosa de salida. Empieza con 8C y 3 income.',
+      '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y Sobrecarga venosa de salida. Empieza con 8C y 3 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
   accent: const Color(0xFFF3D35C),
@@ -68,10 +73,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   },
   moneyModifier: 8,
   incomeModifier: 3,
-  startingItems: const [
-    ironSwordItem,
-    emberCharmItem,
-  ],
+  startingItems: const [],
   startingAbilities: const [
     venousOverloadAbility,
   ],
@@ -152,8 +154,8 @@ final grayShopCriterion = ShopInventoryCriterion(
   exactRarity: RarityTier.gray,
 );
 
-/// Criterio verde general para la tienda antes dedicada a blindajes de offhand.
-final armorShopCriterion = ShopInventoryCriterion(
+/// Criterio verde general para tiendas de objetos de rareza verde.
+final greenItemShopCriterion = ShopInventoryCriterion(
   label: 'TIER VERDE',
   description: 'Solo aparecen objetos de rareza verde.',
   exactRarity: RarityTier.green,
@@ -238,7 +240,7 @@ final scrapArsenalNode = ShopPathNode(
   tooltip: 'Armas funcionales antes del anochecer',
   iconEmoji: '\u2694',
   rarity: RarityTier.gray,
-  accent: RarityTier.gray.accent,
+  accent: _scrapShopAccent,
   badgeLabel: 'ARMAS',
   showTitle: 'Arsenal de Chatarra',
   shopTitle: 'ARSENAL DE CHATARRA',
@@ -247,19 +249,19 @@ final scrapArsenalNode = ShopPathNode(
   stockCriterion: grayShopCriterion,
 );
 
-/// Tienda verde de piezas defensivas para estabilizar la run.
-final bulwarkWorkshopNode = ShopPathNode(
+/// Tienda verde generalista de objetos de rareza verde.
+final greenItemVendorNode = ShopPathNode(
   nodeId: 'shop_bulwark_workshop',
-  label: 'Taller Blindado',
-  tooltip: 'Protecciones para aguantar hasta la noche',
-  iconEmoji: '\u{1F6E1}',
+  label: 'Vendedor Verde',
+  tooltip: 'Objetos de rareza verde sin especialidad fija',
+  iconEmoji: '\u{1F4E6}',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
-  badgeLabel: 'ARMADURA',
-  showTitle: 'Taller Blindado',
-  shopTitle: 'TALLER BLINDADO',
-  shopSubtitle: 'Piezas defensivas montadas en el acto.',
-  stockCriterion: armorShopCriterion,
+  accent: _greenItemShopAccent,
+  badgeLabel: 'VERDE',
+  showTitle: 'Vendedor Verde',
+  shopTitle: 'VENDEDOR VERDE',
+  shopSubtitle: 'Un puesto directo: todo el stock es de rareza verde.',
+  stockCriterion: greenItemShopCriterion,
 );
 
 /// Tienda amarilla de reliquias caras y poderosas.
@@ -269,7 +271,7 @@ final luxuryRelicsNode = ShopPathNode(
   tooltip: 'Objetos de gran calidad y procedencia dudosa',
   iconEmoji: '\u{1F48E}',
   rarity: RarityTier.yellow,
-  accent: RarityTier.yellow.accent,
+  accent: _luxuryShopAccent,
   badgeLabel: 'LUJO',
   showTitle: 'Reliquias de Lujo',
   shopTitle: 'RELIQUIAS DE LUJO',
@@ -285,7 +287,7 @@ final emberFoundryNode = ShopPathNode(
   tooltip: 'Todo el catalogo gira alrededor de la Quemadura',
   iconEmoji: '\u{1F525}',
   rarity: RarityTier.yellow,
-  accent: EntityTag.quemadura.accent,
+  accent: _emberShopAccent,
   badgeLabel: 'QUEMA',
   showTitle: 'Forja de Ascuas',
   shopTitle: 'FORJA DE ASCUAS',
@@ -303,7 +305,7 @@ final toxinLabNode = ShopPathNode(
   tooltip: 'Catalogo dedicado a la Intoxicacion y sus derivados',
   iconEmoji: '\u2623',
   rarity: RarityTier.yellow,
-  accent: EntityTag.intoxicacion.accent,
+  accent: _toxinShopAccent,
   badgeLabel: 'TOXICO',
   showTitle: 'Laboratorio Toxico',
   shopTitle: 'LABORATORIO TOXICO',
@@ -448,7 +450,7 @@ final afterHoursArsenalNode = ShopPathNode(
   tooltip: 'El mercado nocturno mueve armas mas agresivas',
   iconEmoji: '\u{1F52A}',
   rarity: RarityTier.purple,
-  accent: RarityTier.purple.accent,
+  accent: _afterHoursArsenalAccent,
   badgeLabel: 'NOCHE',
   showTitle: 'Arsenal After Hours',
   shopTitle: 'ARSENAL AFTER HOURS',
@@ -463,7 +465,7 @@ final velvetArmoryNode = ShopPathNode(
   tooltip: 'Protecciones discretas para aguantar la noche',
   iconEmoji: '\u{1F9E5}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
+  accent: _velvetArmoryAccent,
   badgeLabel: 'ACERO',
   showTitle: 'Velvet Armory',
   shopTitle: 'VELVET ARMORY',
@@ -481,7 +483,7 @@ final chemicalExchangeNode = ShopPathNode(
   tooltip: 'Quemadura e Intoxicacion de alta gama, sin pasar de azul',
   iconEmoji: '\u{1F9EA}',
   rarity: RarityTier.purple,
-  accent: RarityTier.purple.accent,
+  accent: _chemicalExchangeAccent,
   badgeLabel: 'QUIMICA',
   showTitle: 'Mercado Quimico',
   shopTitle: 'MERCADO QUIMICO',
@@ -496,7 +498,7 @@ final debuffBrokerNode = ShopPathNode(
   tooltip: 'Mercancia especializada en desventajas persistentes',
   iconEmoji: '\u26A0',
   rarity: RarityTier.blue,
-  accent: EntityTag.debuff.accent,
+  accent: _debuffBrokerAccent,
   badgeLabel: 'DEBUFF',
   showTitle: 'Broker de Debuffs',
   shopTitle: 'BROKER DE DEBUFFS',
@@ -512,7 +514,7 @@ final buffParlorNode = ShopPathNode(
   tooltip: 'Accesorios para explotar buffs o la ausencia de ellos',
   iconEmoji: '\u2728',
   rarity: RarityTier.blue,
-  accent: EntityTag.buff.accent,
+  accent: _buffParlorAccent,
   badgeLabel: 'BUFF',
   showTitle: 'Salon de Buffs',
   shopTitle: 'SALON DE BUFFS',
@@ -599,7 +601,7 @@ final severeMedicationCampNode = CampSitePathNode(
 /// Tiendas posibles durante el tramo diurno de la run.
 final List<ShopPathNode> dayShopNodes = List.unmodifiable([
   scrapArsenalNode,
-  bulwarkWorkshopNode,
+  greenItemVendorNode,
   emberFoundryNode,
   toxinLabNode,
 ]);

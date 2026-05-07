@@ -230,11 +230,13 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   Widget _buildPathNodeCard({
     required PathNode node,
     required bool isTutorialTarget,
+    required bool isDailyBossStage,
     VoidCallback? onPressed,
   }) {
     final card = PathNodeCard(
       node: node,
       onPressed: onPressed,
+      highlightAsDailyBoss: isDailyBossStage,
     );
     if (!isTutorialTarget) return card;
 
@@ -388,6 +390,9 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             final hasEndedRun = _sessionController.isRunComplete;
             final hasPendingDaySummary =
                 _sessionController.hasPendingDaySummary;
+            final isDailyBossStage = PathNodeService.isDailyBossStage(
+              currentHour.stageIndex,
+            );
             final canOpenLevelUp = player.canLevelUp &&
                 !isOpeningNode &&
                 !hasEndedRun &&
@@ -404,114 +409,122 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
               );
             }
 
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                _PathBackdrop(nodeCount: nodes.length),
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                    child: Column(
-                      children: [
-                        pathHeader,
-                        Expanded(
-                          child: Column(
-                            children: [
-                              const Spacer(),
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  const spacing = 14.0;
-                                  final encounterCount = nodes.length;
-                                  if (encounterCount == 0) {
-                                    return Center(
-                                      child: EndpointText(
-                                        hasPendingDaySummary
-                                            ? 'Resumen del dia pendiente'
-                                            : 'No hay nodos disponibles',
-                                        textAlign: TextAlign.center,
-                                        style: textMediumBold.copyWith(
-                                          color: EndpointPalette.softForeground
-                                              .withAlpha(205),
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  final availableWidth = constraints.maxWidth -
-                                      (spacing * (encounterCount - 1));
-                                  final nodeWidth = min(
-                                    112.0,
-                                    availableWidth / encounterCount,
-                                  );
-
-                                  Widget nodesRow = Row(
-                                    mainAxisAlignment: encounterCount == 1
-                                        ? MainAxisAlignment.center
-                                        : MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      for (int index = 0;
-                                          index < encounterCount;
-                                          index++) ...[
-                                        if (index > 0)
-                                          const SizedBox(width: spacing),
-                                        SizedBox(
-                                          width: nodeWidth,
-                                          child: _buildPathNodeCard(
-                                            node: nodes[index],
-                                            isTutorialTarget:
-                                                tutorialKeys != null &&
-                                                    index == 0,
-                                            onPressed: isOpeningNode ||
-                                                    hasEndedRun ||
-                                                    hasPendingDaySummary
-                                                ? null
-                                                : () => _handleNodePressed(
-                                                      nodes[index],
-                                                    ),
+            return _DailyBossScreenShake(
+              enabled: isDailyBossStage,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _PathBackdrop(nodeCount: nodes.length),
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                      child: Column(
+                        children: [
+                          pathHeader,
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Spacer(),
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    const spacing = 14.0;
+                                    final encounterCount = nodes.length;
+                                    if (encounterCount == 0) {
+                                      return Center(
+                                        child: EndpointText(
+                                          hasPendingDaySummary
+                                              ? 'Resumen del dia pendiente'
+                                              : 'No hay nodos disponibles',
+                                          textAlign: TextAlign.center,
+                                          style: textMediumBold.copyWith(
+                                            color: EndpointPalette
+                                                .softForeground
+                                                .withAlpha(205),
                                           ),
                                         ),
-                                      ],
-                                    ],
-                                  );
-
-                                  if (tutorialKeys != null) {
-                                    nodesRow = _PathShowcaseStep(
-                                      showcaseKey: tutorialKeys.nodes,
-                                      title: 'Nodos',
-                                      description:
-                                          'En Death at Sunrise, deberas sobrevivir cinco dias. Cada etapa te pide elegir un nodo para avanzar; el arquetipo solo aparece al empezar.',
-                                      targetPadding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 8,
-                                      ),
-                                      child: nodesRow,
+                                      );
+                                    }
+                                    final availableWidth =
+                                        constraints.maxWidth -
+                                            (spacing * (encounterCount - 1));
+                                    final nodeWidth = min(
+                                      112.0,
+                                      availableWidth / encounterCount,
                                     );
-                                  }
 
-                                  return nodesRow;
-                                },
-                              ),
-                              const Spacer(),
-                              SizedBox(
-                                width: double.infinity,
-                                child: _PathBottomHud(
-                                  player: player,
-                                  onOpenOperatives: _handleOpenOperatives,
-                                  onOpenAbilities: _handleOpenAbilities,
-                                  onOpenLevelUp: _handleOpenLevelUp,
-                                  canOpenLevelUp: canOpenLevelUp,
-                                  tutorialKeys: tutorialKeys,
+                                    Widget nodesRow = Row(
+                                      mainAxisAlignment: encounterCount == 1
+                                          ? MainAxisAlignment.center
+                                          : MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        for (int index = 0;
+                                            index < encounterCount;
+                                            index++) ...[
+                                          if (index > 0)
+                                            const SizedBox(width: spacing),
+                                          SizedBox(
+                                            width: nodeWidth,
+                                            child: _buildPathNodeCard(
+                                              node: nodes[index],
+                                              isTutorialTarget:
+                                                  tutorialKeys != null &&
+                                                      index == 0,
+                                              isDailyBossStage:
+                                                  isDailyBossStage,
+                                              onPressed: isOpeningNode ||
+                                                      hasEndedRun ||
+                                                      hasPendingDaySummary
+                                                  ? null
+                                                  : () => _handleNodePressed(
+                                                        nodes[index],
+                                                      ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    );
+
+                                    if (tutorialKeys != null) {
+                                      nodesRow = _PathShowcaseStep(
+                                        showcaseKey: tutorialKeys.nodes,
+                                        title: 'Nodos',
+                                        description:
+                                            'En Death at Sunrise, deberas sobrevivir cinco dias. Cada etapa te pide elegir un nodo para avanzar; el arquetipo solo aparece al empezar.',
+                                        targetPadding:
+                                            const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 8,
+                                        ),
+                                        child: nodesRow,
+                                      );
+                                    }
+
+                                    return nodesRow;
+                                  },
                                 ),
-                              ),
-                            ],
+                                const Spacer(),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: _PathBottomHud(
+                                    player: player,
+                                    onOpenOperatives: _handleOpenOperatives,
+                                    onOpenAbilities: _handleOpenAbilities,
+                                    onOpenLevelUp: _handleOpenLevelUp,
+                                    canOpenLevelUp: canOpenLevelUp,
+                                    tutorialKeys: tutorialKeys,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
@@ -528,6 +541,95 @@ class _PathTutorialShowcaseKeys {
   final GlobalKey abilities = GlobalKey();
   final GlobalKey timeline = GlobalKey();
   final GlobalKey archetypeNode = GlobalKey();
+}
+
+class _DailyBossScreenShake extends StatefulWidget {
+  final bool enabled;
+  final Widget child;
+
+  const _DailyBossScreenShake({
+    required this.enabled,
+    required this.child,
+  });
+
+  @override
+  State<_DailyBossScreenShake> createState() => _DailyBossScreenShakeState();
+}
+
+class _DailyBossScreenShakeState extends State<_DailyBossScreenShake>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  Timer? _shakeTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 440),
+    );
+    _syncShakeTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DailyBossScreenShake oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.enabled != widget.enabled) {
+      _syncShakeTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _shakeTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _syncShakeTimer() {
+    _shakeTimer?.cancel();
+    _shakeTimer = null;
+    if (!widget.enabled) {
+      _controller
+        ..stop()
+        ..value = 0;
+      return;
+    }
+
+    _triggerShake();
+    _shakeTimer = Timer.periodic(
+      const Duration(seconds: 4),
+      (_) => _triggerShake(),
+    );
+  }
+
+  void _triggerShake() {
+    if (!mounted || !widget.enabled || _controller.isAnimating) return;
+    _controller.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        final progress = _controller.value;
+        if (!widget.enabled || progress <= 0) {
+          return child!;
+        }
+
+        final falloff = 1 - Curves.easeOutCubic.transform(progress);
+        final dx = sin(progress * pi * 13) * 3.4 * falloff;
+        final dy = cos(progress * pi * 17) * 1.4 * falloff;
+
+        return Transform.translate(
+          offset: Offset(dx, dy),
+          child: child,
+        );
+      },
+    );
+  }
 }
 
 class _PathShowcaseStep extends StatelessWidget {

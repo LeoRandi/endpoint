@@ -3,6 +3,7 @@ import '../_imports.dart';
 class EndpointEmojiSprite extends StatelessWidget {
   final String emoji;
   final Color accent;
+  final Color? borderAccent;
   final double size;
   final bool mirror;
 
@@ -10,12 +11,14 @@ class EndpointEmojiSprite extends StatelessWidget {
     super.key,
     required this.emoji,
     required this.accent,
+    this.borderAccent,
     this.size = 128,
     this.mirror = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final resolvedBorderAccent = borderAccent ?? accent;
     final sprite = Container(
       width: size,
       height: size,
@@ -30,7 +33,10 @@ class EndpointEmojiSprite extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(size * 0.22),
-        border: Border.all(color: accent.withOpacity(0.82), width: 2),
+        border: Border.all(
+          color: resolvedBorderAccent.withOpacity(0.82),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: accent.withOpacity(0.16),
@@ -48,7 +54,9 @@ class EndpointEmojiSprite extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.18),
                 borderRadius: BorderRadius.circular(size * 0.16),
-                border: Border.all(color: accent.withOpacity(0.24)),
+                border: Border.all(
+                  color: resolvedBorderAccent.withOpacity(0.24),
+                ),
               ),
             ),
           ),

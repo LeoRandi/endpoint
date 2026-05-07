@@ -156,6 +156,15 @@ abstract final class EndpointDomainCodec {
       }
     }
 
+    if (node is ArchetypePathNode && node.startingItemsBuilder == null) {
+      final startingItems = EndpointJsonUtils.readJsonMapList(
+        json['startingItems'],
+      ).map<Item?>(_deserializeItem).whereType<Item>().toList(growable: false);
+      if (startingItems.isNotEmpty) {
+        return node.withStartingItems(startingItems);
+      }
+    }
+
     return node;
   }
 
@@ -173,6 +182,11 @@ abstract final class EndpointDomainCodec {
 
     if (node is ShopPathNode) {
       payload['priceMultiplier'] = node.priceMultiplier;
+    }
+    if (node is ArchetypePathNode && node.startingItemsBuilder == null) {
+      payload['startingItems'] = node.startingItems
+          .map<Map<String, Object?>>(_serializeItem)
+          .toList(growable: false);
     }
 
     return payload;
@@ -266,6 +280,7 @@ Item? _deserializeItem(Map<String, dynamic> json) {
   if (itemId == null) return null;
 
   final preset = Item.presetForId(itemId);
+  final instanceId = EndpointJsonUtils.readNullableString(json['instanceId']);
   var item = preset.copyWith(
     archetypeAffinities: _deserializeItemArchetypeAffinities(
       json['archetypeAffinities'],
@@ -321,14 +336,16 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['upgradeStatModifiers'],
       fallback: preset.upgradeStatModifiers,
     ),
-    instanceId: EndpointJsonUtils.readNullableString(json['instanceId']),
+    instanceId: instanceId,
     bonusShapeOverride: EndpointJsonUtils.parseEnumByName(
       ItemBonusShape.values,
       json['bonusShape'],
     ),
   );
 
-  if (!item.isInstanced) {
+  if (item.isInstanced) {
+    Item.syncInstanceSequenceFromExistingIds([item.instanceId]);
+  } else {
     item = item.toOwnedInstance();
   }
 

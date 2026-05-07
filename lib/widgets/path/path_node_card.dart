@@ -3,16 +3,19 @@ import '../_imports.dart';
 class PathNodeCard extends StatelessWidget {
   final PathNode node;
   final VoidCallback? onPressed;
+  final bool highlightAsDailyBoss;
 
   const PathNodeCard({
     super.key,
     required this.node,
     this.onPressed,
+    this.highlightAsDailyBoss = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final accent = node.accent;
+    final tierAccent = node.rarity.accent;
     final hasSignatureBorder = node.hasSignatureBorder;
     final topRightBadge = _topRightBadgeForNode(node.type);
     final topColor =
@@ -20,7 +23,7 @@ class PathNodeCard extends StatelessWidget {
     final bottomColor =
         EndpointPalette.blend(EndpointPalette.scaffoldBackground, accent, 0.08);
 
-    return HoldTooltip(
+    final card = HoldTooltip(
       message: node.tooltip,
       child: Material(
         color: Colors.transparent,
@@ -41,7 +44,7 @@ class PathNodeCard extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: accent.withValues(
+                  color: tierAccent.withValues(
                     alpha: hasSignatureBorder ? 0.92 : 0.7,
                   ),
                   width: hasSignatureBorder ? 1.5 : 1,
@@ -60,7 +63,8 @@ class PathNodeCard extends StatelessWidget {
                 clipBehavior: Clip.none,
                 fit: StackFit.expand,
                 children: [
-                  if (hasSignatureBorder) _SignatureNodeFrame(accent: accent),
+                  if (hasSignatureBorder)
+                    _SignatureNodeFrame(accent: tierAccent),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
                     child: Column(
@@ -73,6 +77,7 @@ class PathNodeCard extends StatelessWidget {
                               child: EndpointEmojiSprite(
                                 emoji: node.iconEmoji,
                                 accent: accent,
+                                borderAccent: tierAccent,
                                 size: 68,
                               ),
                             ),
@@ -103,7 +108,191 @@ class PathNodeCard extends StatelessWidget {
         ),
       ),
     );
+
+    final currentNode = node;
+    if (!highlightAsDailyBoss || currentNode is! CombatPathNode) {
+      return card;
+    }
+
+    return _DailyBossNodeAura(
+      tier: currentNode.tier,
+      child: card,
+    );
   }
+}
+
+class _DailyBossNodeAura extends StatefulWidget {
+  final CombatNodeTier tier;
+  final Widget child;
+
+  const _DailyBossNodeAura({
+    required this.tier,
+    required this.child,
+  });
+
+  @override
+  State<_DailyBossNodeAura> createState() => _DailyBossNodeAuraState();
+}
+
+class _DailyBossNodeAuraState extends State<_DailyBossNodeAura>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strength = _bossAuraStrengthForTier(widget.tier);
+    final auraOutset = 10 + strength * 18;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        return Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Positioned.fill(
+              left: -auraOutset,
+              top: -auraOutset,
+              right: -auraOutset,
+              bottom: -auraOutset,
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _DailyBossNodeAuraPainter(
+                    progress: _controller.value,
+                    strength: strength,
+                    auraOutset: auraOutset,
+                  ),
+                ),
+              ),
+            ),
+            child!,
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _DailyBossNodeAuraPainter extends CustomPainter {
+  final double progress;
+  final double strength;
+  final double auraOutset;
+
+  const _DailyBossNodeAuraPainter({
+    required this.progress,
+    required this.strength,
+    required this.auraOutset,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cardRect = Rect.fromLTWH(
+      auraOutset,
+      auraOutset,
+      max(0.0, size.width - auraOutset * 2),
+      max(0.0, size.height - auraOutset * 2),
+    );
+    if (cardRect.isEmpty) return;
+
+    final cycle = progress * pi * 2;
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    for (var layer = 0; layer < 4; layer++) {
+      final wave = (sin(cycle * (1.0 + layer * 0.18) + layer * 1.4) + 1) / 2;
+      final inflate = 2.5 +
+          strength * 7 +
+          layer * (3.8 + strength) +
+          wave * (4 + strength * 4);
+      final opacity = (0.24 - layer * 0.035) * (0.68 + wave * 0.32);
+      final color =
+          layer.isEven ? const Color(0xFFFF2B2B) : const Color(0xFFFF8A1F);
+
+      glowPaint
+        ..color = color.withValues(alpha: opacity)
+        ..strokeWidth = 2 + strength * 1.4 + layer * 1.2
+        ..maskFilter = MaskFilter.blur(
+          BlurStyle.normal,
+          5 + layer * 3.4 + strength * 4,
+        );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          cardRect.inflate(inflate),
+          Radius.circular(18 + inflate),
+        ),
+        glowPaint,
+      );
+    }
+
+    glowPaint.maskFilter = null;
+    final flameCount = 16;
+    for (var index = 0; index < flameCount; index++) {
+      final fraction = (index + 0.5) / flameCount;
+      final phase = cycle * 1.55 + index * 0.84;
+      final wave = (sin(phase) + 1) / 2;
+      final x = cardRect.left + cardRect.width * fraction;
+      final height = (5 + strength * 13) * (0.38 + wave * 0.62);
+      final drift = cos(phase * 0.7) * (2 + strength * 3);
+      final start = Offset(x, cardRect.top - 1);
+      final tip = Offset(x + drift, cardRect.top - height);
+      final path = Path()
+        ..moveTo(start.dx, start.dy)
+        ..quadraticBezierTo(
+          x - drift * 0.7,
+          cardRect.top - height * 0.48,
+          tip.dx,
+          tip.dy,
+        );
+
+      glowPaint
+        ..color = Color.lerp(
+          const Color(0xFFFF2B2B),
+          const Color(0xFFFFC247),
+          wave,
+        )!
+            .withValues(alpha: 0.24 + strength * 0.16)
+        ..strokeWidth = 1.3 + strength * 1.2
+        ..maskFilter = MaskFilter.blur(
+          BlurStyle.normal,
+          1.8 + strength * 1.4,
+        );
+      canvas.drawPath(path, glowPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DailyBossNodeAuraPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.strength != strength ||
+        oldDelegate.auraOutset != auraOutset;
+  }
+}
+
+double _bossAuraStrengthForTier(CombatNodeTier tier) {
+  return switch (tier) {
+    CombatNodeTier.gray => 0.35,
+    CombatNodeTier.green => 0.5,
+    CombatNodeTier.blue => 0.72,
+    CombatNodeTier.purple => 0.92,
+    CombatNodeTier.yellow => 1.12,
+  };
 }
 
 Widget? _topRightBadgeForNode(PathNodeType type) {

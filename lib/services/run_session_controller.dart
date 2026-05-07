@@ -318,6 +318,7 @@ class RunSessionController extends ChangeNotifier {
         ? _applyEncounterExperience(
             player: result.player,
             node: node,
+            isDailyBoss: PathNodeService.isDailyBossStage(_state.stageIndex),
           )
         : result.player;
     _completeScene(
@@ -525,16 +526,18 @@ class RunSessionController extends ChangeNotifier {
     );
   }
 
-  /// Entrega la XP del encuentro segun su rareza y deja fuera al boss amarillo final.
+  /// Entrega la XP del encuentro segun su rareza y suma bonus en bosses diarios.
   Battler _applyEncounterExperience({
     required Battler player,
     required CombatPathNode node,
+    required bool isDailyBoss,
   }) {
-    final awardedExperience = switch (node.tier) {
+    final baseExperience = switch (node.tier) {
       CombatNodeTier.purple => 2,
       CombatNodeTier.yellow => 0,
       CombatNodeTier.gray || CombatNodeTier.green || CombatNodeTier.blue => 1,
     };
+    final awardedExperience = baseExperience + (isDailyBoss ? 1 : 0);
 
     return player.gainExperience(awardedExperience);
   }

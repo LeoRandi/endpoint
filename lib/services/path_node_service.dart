@@ -112,18 +112,22 @@ class PathNodeService {
     final resolvedNodeCount = max(1, nodeCount);
     final definition = _definitionFor(clampedStageIndex, player);
 
+    final resolvedNodes = _resolveNodes(
+      fallbackNodes: definition.nodes,
+      availableNodes: availableNodes,
+      nodeCount: resolvedNodeCount,
+      player: player,
+    );
+
     return RunHourSnapshot(
       stageIndex: clampedStageIndex,
       phase: definition.phase,
       title: definition.title,
       subtitle: definition.subtitle,
       nodes: List<PathNode>.unmodifiable(
-        _resolveNodes(
-          fallbackNodes: definition.nodes,
-          availableNodes: availableNodes,
-          nodeCount: resolvedNodeCount,
-          player: player,
-        ),
+        clampedStageIndex == startStageIndex
+            ? _materializeOpeningArchetypeNodes(resolvedNodes)
+            : resolvedNodes,
       ),
     );
   }
@@ -210,6 +214,16 @@ class PathNodeService {
       openingArchetypeNodes,
       _openingArchetypeCount,
     );
+  }
+
+  List<PathNode> _materializeOpeningArchetypeNodes(List<PathNode> nodes) {
+    return nodes
+        .map(
+          (node) => node is ArchetypePathNode
+              ? node.materializeRunStartingItems(_randomizer)
+              : node,
+        )
+        .toList(growable: false);
   }
 
   List<PathNode> _buildDayNodes(int dayNumber, Battler? player) {

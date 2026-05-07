@@ -43,6 +43,54 @@ class ArchetypePathNode extends PathNode {
           hasSignatureBorder: true,
         );
 
+  /// Clona el arquetipo con un loadout inicial ya materializado.
+  ArchetypePathNode withStartingItems(List<Item> items) {
+    return ArchetypePathNode(
+      archetypeId: archetypeId,
+      nodeId: nodeId,
+      label: label,
+      tooltip: tooltip,
+      iconEmoji: iconEmoji,
+      accent: accent,
+      rarity: rarity,
+      playerIconEmoji: playerIconEmoji,
+      startingItems: List<Item>.unmodifiable(items),
+      startingItemsBuilder: startingItemsBuilder,
+      startingAbilities: startingAbilities,
+      baseStatModifiers: baseStatModifiers,
+      moneyModifier: moneyModifier,
+      incomeModifier: incomeModifier,
+    );
+  }
+
+  /// Genera el item verde propio y el item gris general para arquetipos sin builder propio.
+  ArchetypePathNode materializeRunStartingItems(RunRandomizer randomizer) {
+    if (startingItemsBuilder != null || startingItems.isNotEmpty) return this;
+
+    final archetypeItem = _pickRandomStartingItem(
+      _startingItemCandidatesForAffinity(
+        archetypeId.itemAffinity,
+        exactRarity: RarityTier.green,
+      ),
+      randomizer,
+    );
+    final generalItem = _pickRandomStartingItem(
+      _startingItemCandidatesForAffinity(
+        ItemArchetypeAffinity.general,
+        exactRarity: RarityTier.gray,
+        excludedItemIds: {
+          if (archetypeItem != null) archetypeItem.id,
+        },
+      ),
+      randomizer,
+    );
+
+    return withStartingItems([
+      if (archetypeItem != null) archetypeItem.toOwnedInstance(),
+      if (generalItem != null) generalItem.toOwnedInstance(),
+    ]);
+  }
+
   /// Aplica el arquetipo al jugador manteniendo su estado previo y sumando el loadout inicial.
   Battler applyTo(
     Battler player, {
@@ -87,5 +135,29 @@ class ArchetypePathNode extends PathNode {
     }
 
     return updatedPlayer.copyWith(health: updatedPlayer.maxHealth);
+  }
+
+  static List<Item> _startingItemCandidatesForAffinity(
+    ItemArchetypeAffinity affinity, {
+    required RarityTier exactRarity,
+    Set<ItemId> excludedItemIds = const {},
+  }) {
+    return itemPresets
+        .where(
+          (item) =>
+              item.hasArchetypeAffinity(affinity) &&
+              item.rarity == exactRarity &&
+              !excludedItemIds.contains(item.id),
+        )
+        .toList(growable: false);
+  }
+
+  static Item? _pickRandomStartingItem(
+    List<Item> candidates,
+    RunRandomizer randomizer,
+  ) {
+    if (candidates.isEmpty) return null;
+
+    return candidates[randomizer.nextInt(candidates.length)];
   }
 }
