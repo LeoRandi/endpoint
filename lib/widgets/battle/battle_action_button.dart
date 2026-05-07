@@ -6,6 +6,7 @@ class BattleActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String tooltip;
   final double dimension;
+  final EdgeInsetsGeometry padding;
 
   const BattleActionButton({
     super.key,
@@ -14,6 +15,7 @@ class BattleActionButton extends StatelessWidget {
     this.onPressed,
     this.tooltip = '',
     this.dimension = 84,
+    this.padding = const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
   });
 
   @override
@@ -36,7 +38,7 @@ class BattleActionButton extends StatelessWidget {
       iconSpacing: 6,
       borderRadius: 12,
       borderWidth: 1.5,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      padding: padding,
       textStyle: textSmallBold.copyWith(
         color: foreground,
         fontSize: 12,

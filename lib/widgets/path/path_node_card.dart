@@ -143,7 +143,7 @@ class _DailyBossNodeAuraState extends State<_DailyBossNodeAura>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(seconds: 4),
     )..repeat();
   }
 
@@ -242,21 +242,52 @@ class _DailyBossNodeAuraPainter extends CustomPainter {
     }
 
     glowPaint.maskFilter = null;
-    final flameCount = 16;
+    final flamePath = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          cardRect.inflate(2 + strength * 3),
+          Radius.circular(20 + strength * 5),
+        ),
+      );
+    final metrics = flamePath.computeMetrics().toList(growable: false);
+    final perimeter = metrics.fold<double>(
+      0,
+      (total, metric) => total + metric.length,
+    );
+    if (perimeter <= 0) return;
+
+    final flameCount = max(28, (perimeter / (14 - strength * 2)).round());
+    final driftDistance = perimeter * 0.18 * progress;
     for (var index = 0; index < flameCount; index++) {
-      final fraction = (index + 0.5) / flameCount;
+      final distance =
+          ((index + 0.5) / flameCount * perimeter + driftDistance) % perimeter;
+      final sample = _sampleBorderPath(
+        metrics: metrics,
+        distance: distance,
+        totalLength: perimeter,
+      );
+      if (sample == null) continue;
+
+      final normal = _outwardNormalFrom(
+        sample.position,
+        cardRect.center,
+      );
+      if (normal == Offset.zero) continue;
+
       final phase = cycle * 1.55 + index * 0.84;
       final wave = (sin(phase) + 1) / 2;
-      final x = cardRect.left + cardRect.width * fraction;
       final height = (5 + strength * 13) * (0.38 + wave * 0.62);
-      final drift = cos(phase * 0.7) * (2 + strength * 3);
-      final start = Offset(x, cardRect.top - 1);
-      final tip = Offset(x + drift, cardRect.top - height);
+      final drift = cos(phase * 0.7) * (1.6 + strength * 3.2);
+      final start = sample.position + normal * (1 + strength * 2);
+      final tip = sample.position + normal * height + sample.tangent * drift;
+      final control = sample.position +
+          normal * (height * 0.48) -
+          sample.tangent * (drift * 0.58);
       final path = Path()
         ..moveTo(start.dx, start.dy)
         ..quadraticBezierTo(
-          x - drift * 0.7,
-          cardRect.top - height * 0.48,
+          control.dx,
+          control.dy,
           tip.dx,
           tip.dy,
         );
@@ -283,6 +314,57 @@ class _DailyBossNodeAuraPainter extends CustomPainter {
         oldDelegate.strength != strength ||
         oldDelegate.auraOutset != auraOutset;
   }
+}
+
+class _DailyBossAuraPathSample {
+  final Offset position;
+  final Offset tangent;
+
+  const _DailyBossAuraPathSample({
+    required this.position,
+    required this.tangent,
+  });
+}
+
+_DailyBossAuraPathSample? _sampleBorderPath({
+  required List<PathMetric> metrics,
+  required double distance,
+  required double totalLength,
+}) {
+  if (metrics.isEmpty || totalLength <= 0) return null;
+
+  var remaining = distance % totalLength;
+  for (final metric in metrics) {
+    if (remaining > metric.length) {
+      remaining -= metric.length;
+      continue;
+    }
+
+    final tangent = metric.getTangentForOffset(
+      remaining.clamp(0.0, metric.length).toDouble(),
+    );
+    if (tangent == null) return null;
+    return _DailyBossAuraPathSample(
+      position: tangent.position,
+      tangent: tangent.vector,
+    );
+  }
+
+  final lastMetric = metrics.last;
+  final tangent = lastMetric.getTangentForOffset(lastMetric.length);
+  if (tangent == null) return null;
+  return _DailyBossAuraPathSample(
+    position: tangent.position,
+    tangent: tangent.vector,
+  );
+}
+
+Offset _outwardNormalFrom(Offset point, Offset center) {
+  final delta = point - center;
+  final distance = delta.distance;
+  if (distance <= 0.001) return Offset.zero;
+
+  return Offset(delta.dx / distance, delta.dy / distance);
 }
 
 double _bossAuraStrengthForTier(CombatNodeTier tier) {

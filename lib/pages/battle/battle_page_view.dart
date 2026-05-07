@@ -216,8 +216,8 @@ class _BattleSceneView extends StatelessWidget {
                                   isDrawingMode: isDrawingMode,
                                   onAttack: onAttack,
                                   onBlock: onBlock,
-                                  blockBarrierGain:
-                                      sceneController.playerBlockBarrierGain,
+                                  actionPreview:
+                                      sceneController.playerActionIntentPreview,
                                   onOpenEquippedItemDetails:
                                       onOpenPlayerItemDetails,
                                   onOpenAbilityDetails:

@@ -158,6 +158,8 @@ class BattleController extends ChangeNotifier {
   int get playerInitialBarrier => _playerInitialBlockBarrier;
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
       _buildEnemyTurnIntentPreview();
+  PlayerActionIntentPreview get playerActionIntentPreview =>
+      _buildPlayerActionIntentPreview();
 
   String get turnTitle {
     switch (_turn) {
@@ -639,8 +641,184 @@ class BattleController extends ChangeNotifier {
     );
   }
 
+  PlayerActionIntentPreview _buildPlayerActionIntentPreview() {
+    if (_turn == BattleTurnState.finished ||
+        _enemy.isDefeated ||
+        _player.isDefeated) {
+      return const PlayerActionIntentPreview();
+    }
+
+    final attackResolution = _resolveAttackAction(
+      attacker: _player,
+      defender: _enemy,
+    );
+    final attackBreakdown = _buildAttackIntentBreakdown(attackResolution);
+    final attackDamage = max(
+      0,
+      _combatDurabilityOf(_enemy) -
+          _combatDurabilityOf(attackResolution.defender),
+    );
+
+    final defendResolution = _resolveDefendAction(
+      defender: _player,
+      opponent: _enemy,
+      barrierGain: _playerCurrentBlockBarrierGain(),
+    );
+    final blockBarrierGain = max(
+      0,
+      defendResolution.defender.currentBarrier - _player.currentBarrier,
+    );
+
+    return PlayerActionIntentPreview(
+      attackDamage: attackDamage,
+      attackHitDamage: attackBreakdown.damagePerHit,
+      attackHitCount: attackBreakdown.hitCount,
+      blockBarrierGain: blockBarrierGain,
+      attackEffects: _buildPlayerActionEffectIntents(
+        ownerBefore: _player,
+        ownerAfter: attackResolution.attacker,
+        opponentBefore: _enemy,
+        opponentAfter: attackResolution.defender,
+        includeAttackResolvedAbilities: true,
+      ),
+      blockEffects: _buildPlayerActionEffectIntents(
+        ownerBefore: _player,
+        ownerAfter: defendResolution.defender,
+        opponentBefore: _enemy,
+        opponentAfter: defendResolution.opponent,
+        includeAttackResolvedAbilities: false,
+      ),
+    );
+  }
+
   int _combatDurabilityOf(Battler battler) {
     return max(0, battler.health) + max(0, battler.currentBarrier);
+  }
+
+  List<PlayerActionEffectIntent> _buildPlayerActionEffectIntents({
+    required Battler ownerBefore,
+    required Battler ownerAfter,
+    required Battler opponentBefore,
+    required Battler opponentAfter,
+    required bool includeAttackResolvedAbilities,
+  }) {
+    final intents = <PlayerActionEffectIntent>[];
+    final ownerHealthGain = max(0, ownerAfter.health - ownerBefore.health);
+    if (ownerHealthGain > 0) {
+      intents.add(PlayerActionEffectIntent.heal(ownerHealthGain));
+    }
+
+    intents.addAll(
+      _buildStatusDeltaIntents(
+        before: ownerBefore,
+        after: ownerAfter,
+      ),
+    );
+    intents.addAll(
+      _buildStatusDeltaIntents(
+        before: opponentBefore,
+        after: opponentAfter,
+      ),
+    );
+
+    final abilityIntents = _buildAbilityEffectIntents(
+      before: ownerBefore,
+      after: ownerAfter,
+      includeAttackResolvedAbilities: includeAttackResolvedAbilities,
+      hasVisibleActionDelta: intents.isNotEmpty,
+    );
+    intents.addAll(abilityIntents);
+
+    return List<PlayerActionEffectIntent>.unmodifiable(intents);
+  }
+
+  List<PlayerActionEffectIntent> _buildStatusDeltaIntents({
+    required Battler before,
+    required Battler after,
+  }) {
+    final beforeById = _statusIntentAmountsById(before);
+    final afterById = _statusIntentAmountsById(after);
+    final intents = <PlayerActionEffectIntent>[];
+
+    for (final entry in afterById.entries) {
+      final beforeAmount = beforeById[entry.key] ?? 0;
+      final delta = entry.value - beforeAmount;
+      if (delta <= 0) continue;
+
+      final status = after.statusById(entry.key)?.resolved(after);
+      if (status == null) continue;
+      intents.add(PlayerActionEffectIntent.status(status, amount: delta));
+    }
+
+    return List<PlayerActionEffectIntent>.unmodifiable(intents);
+  }
+
+  Map<BattlerStatusId, int> _statusIntentAmountsById(Battler battler) {
+    final amounts = <BattlerStatusId, int>{};
+    for (final status in battler.statuses) {
+      final resolvedStatus = status.resolved(battler);
+      amounts.update(
+        resolvedStatus.id,
+        (value) => value + _statusIntentAmount(resolvedStatus),
+        ifAbsent: () => _statusIntentAmount(resolvedStatus),
+      );
+    }
+    return amounts;
+  }
+
+  int _statusIntentAmount(BattlerStatus status) {
+    if (status.value > 0) return status.value;
+    if (!status.isIndefinite && status.remainingTurns > 0) {
+      return status.remainingTurns;
+    }
+    return 1;
+  }
+
+  List<PlayerActionEffectIntent> _buildAbilityEffectIntents({
+    required Battler before,
+    required Battler after,
+    required bool includeAttackResolvedAbilities,
+    required bool hasVisibleActionDelta,
+  }) {
+    final intents = <PlayerActionEffectIntent>[];
+    final addedAbilityIds = <BattlerAbilityId>{};
+
+    for (final ability in before.abilities) {
+      final updatedAbility = after.abilityById(ability.id);
+      if (updatedAbility == null) continue;
+      if (!_didAbilityRuntimeChange(ability, updatedAbility)) continue;
+
+      intents.add(PlayerActionEffectIntent.ability(ability));
+      addedAbilityIds.add(ability.id);
+    }
+
+    if (!includeAttackResolvedAbilities || !hasVisibleActionDelta) {
+      return List<PlayerActionEffectIntent>.unmodifiable(intents);
+    }
+
+    for (final abilityId in before.abilityIdsForHook(
+      BattlerAbilityHook.attackResolved,
+    )) {
+      if (addedAbilityIds.contains(abilityId)) continue;
+      final ability = before.abilityById(abilityId);
+      if (ability == null || !ability.isPassive || !ability.isImplemented) {
+        continue;
+      }
+
+      intents.add(PlayerActionEffectIntent.ability(ability));
+      addedAbilityIds.add(ability.id);
+    }
+
+    return List<PlayerActionEffectIntent>.unmodifiable(intents);
+  }
+
+  bool _didAbilityRuntimeChange(
+    BattlerAbility before,
+    BattlerAbility after,
+  ) {
+    return before.isActive != after.isActive ||
+        before.remainingCooldownTurns != after.remainingCooldownTurns ||
+        before.runtimeValueBonus != after.runtimeValueBonus;
   }
 
   List<EnemyTurnDebuffIntent> _buildAppliedDebuffIntents({
@@ -678,6 +856,11 @@ class BattleController extends ChangeNotifier {
   }
 
   _EnemyIntentAttackBreakdown _buildEnemyIntentAttackBreakdown(
+    _BattleAttackActionResolution resolution,
+  ) =>
+      _buildAttackIntentBreakdown(resolution);
+
+  _EnemyIntentAttackBreakdown _buildAttackIntentBreakdown(
     _BattleAttackActionResolution resolution,
   ) {
     final attackHits = resolution.hits
@@ -2518,6 +2701,81 @@ class EnemyTurnDebuffIntent {
     required this.status,
     required this.amountLabel,
   });
+}
+
+enum PlayerActionEffectIntentKind {
+  heal,
+  buff,
+  debuff,
+  ability,
+}
+
+class PlayerActionEffectIntent {
+  final PlayerActionEffectIntentKind kind;
+  final BattlerStatus? status;
+  final BattlerAbility? ability;
+  final int amount;
+
+  const PlayerActionEffectIntent._({
+    required this.kind,
+    this.status,
+    this.ability,
+    this.amount = 0,
+  });
+
+  factory PlayerActionEffectIntent.heal(int amount) {
+    return PlayerActionEffectIntent._(
+      kind: PlayerActionEffectIntentKind.heal,
+      amount: max(0, amount),
+    );
+  }
+
+  factory PlayerActionEffectIntent.status(
+    BattlerStatus status, {
+    required int amount,
+  }) {
+    return PlayerActionEffectIntent._(
+      kind: status.type == BattlerStatusType.buff
+          ? PlayerActionEffectIntentKind.buff
+          : PlayerActionEffectIntentKind.debuff,
+      status: status,
+      amount: max(0, amount),
+    );
+  }
+
+  factory PlayerActionEffectIntent.ability(BattlerAbility ability) {
+    return PlayerActionEffectIntent._(
+      kind: PlayerActionEffectIntentKind.ability,
+      ability: ability,
+    );
+  }
+}
+
+class PlayerActionIntentPreview {
+  final int attackDamage;
+  final int attackHitDamage;
+  final int attackHitCount;
+  final int blockBarrierGain;
+  final List<PlayerActionEffectIntent> attackEffects;
+  final List<PlayerActionEffectIntent> blockEffects;
+
+  const PlayerActionIntentPreview({
+    this.attackDamage = 0,
+    this.attackHitDamage = 0,
+    this.attackHitCount = 1,
+    this.blockBarrierGain = 0,
+    this.attackEffects = const <PlayerActionEffectIntent>[],
+    this.blockEffects = const <PlayerActionEffectIntent>[],
+  });
+
+  String get attackDamageLabel {
+    final resolvedHitCount = max(1, attackHitCount);
+    if (resolvedHitCount > 1 && attackHitDamage > 0) {
+      return '${max(0, attackHitDamage)}x$resolvedHitCount';
+    }
+
+    return '${max(0, attackDamage)}';
+  }
 }
 
 class EnemyTurnIntentPreview {

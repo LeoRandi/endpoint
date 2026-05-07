@@ -5,14 +5,14 @@ class _ActionPanel extends StatelessWidget {
   final bool isDrawingMode;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
-  final int blockBarrierGain;
+  final PlayerActionIntentPreview actionPreview;
 
   const _ActionPanel({
     required this.isEnabled,
     required this.isDrawingMode,
     required this.onAttack,
     required this.onBlock,
-    required this.blockBarrierGain,
+    required this.actionPreview,
   });
 
   @override
@@ -20,19 +20,19 @@ class _ActionPanel extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        BattleActionButton(
-          label: 'Atacar',
-          icon: Icons.flash_on_rounded,
-          onPressed: isEnabled ? onAttack : null,
-          tooltip:
-              isDrawingMode ? 'Abrir ataque dibujado' : 'Atacar al enemigo',
+        _AttackActionButton(
+          isEnabled: isEnabled,
+          isDrawingMode: isDrawingMode,
+          onAttack: onAttack,
+          preview: actionPreview,
         ),
         const SizedBox(width: 8),
         _BlockActionButton(
           isEnabled: isEnabled,
           isDrawingMode: isDrawingMode,
           onBlock: onBlock,
-          blockBarrierGain: blockBarrierGain,
+          blockBarrierGain: actionPreview.blockBarrierGain,
+          effects: actionPreview.blockEffects,
         ),
       ],
     );
@@ -46,7 +46,7 @@ class _PlayerBattleHud extends StatelessWidget {
   final bool isDrawingMode;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
-  final int blockBarrierGain;
+  final PlayerActionIntentPreview actionPreview;
   final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
   final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
   final Key? statusBarKey;
@@ -61,7 +61,7 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.isDrawingMode,
     required this.onAttack,
     required this.onBlock,
-    required this.blockBarrierGain,
+    required this.actionPreview,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
     required this.statusBarKey,
@@ -105,7 +105,7 @@ class _PlayerBattleHud extends StatelessWidget {
               isDrawingMode: isDrawingMode,
               onAttack: onAttack,
               onBlock: onBlock,
-              blockBarrierGain: blockBarrierGain,
+              actionPreview: actionPreview,
             ),
             const Spacer(),
             _BattleSpriteDock(
@@ -121,26 +121,88 @@ class _PlayerBattleHud extends StatelessWidget {
   }
 }
 
-class _BlockActionButton extends StatelessWidget {
-  static const _buttonDimension = 84.0;
+class _AttackActionButton extends StatelessWidget {
+  final bool isEnabled;
+  final bool isDrawingMode;
+  final VoidCallback onAttack;
+  final PlayerActionIntentPreview preview;
 
+  const _AttackActionButton({
+    required this.isEnabled,
+    required this.isDrawingMode,
+    required this.onAttack,
+    required this.preview,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _IntentActionButton(
+      label: 'Atacar',
+      icon: Icons.flash_on_rounded,
+      tooltip: isDrawingMode ? 'Abrir ataque dibujado' : 'Atacar al enemigo',
+      onPressed: isEnabled ? onAttack : null,
+      valueLabel: preview.attackDamageLabel,
+      valueAccent: EndpointPalette.dangerAccent,
+      effects: preview.attackEffects,
+    );
+  }
+}
+
+class _BlockActionButton extends StatelessWidget {
   final bool isEnabled;
   final bool isDrawingMode;
   final VoidCallback onBlock;
   final int blockBarrierGain;
+  final List<PlayerActionEffectIntent> effects;
 
   const _BlockActionButton({
     required this.isEnabled,
     required this.isDrawingMode,
     required this.onBlock,
     required this.blockBarrierGain,
+    required this.effects,
   });
 
   @override
   Widget build(BuildContext context) {
-    final barrierLabelColor = isEnabled
-        ? BattlerStat.barrier.accent
-        : BattlerStat.barrier.accent.withAlpha(107);
+    return _IntentActionButton(
+      label: 'Bloquear',
+      icon: Icons.shield_rounded,
+      tooltip: isDrawingMode
+          ? 'Dibuja formas para activar bonus y neutralizar malus'
+          : 'Ganar barrera y terminar turno',
+      onPressed: isEnabled ? onBlock : null,
+      valueLabel: '$blockBarrierGain',
+      valueAccent: BattlerStat.barrier.accent,
+      effects: effects,
+    );
+  }
+}
+
+class _IntentActionButton extends StatelessWidget {
+  static const _buttonDimension = 84.0;
+
+  final String label;
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final String valueLabel;
+  final Color valueAccent;
+  final List<PlayerActionEffectIntent> effects;
+
+  const _IntentActionButton({
+    required this.label,
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    required this.valueLabel,
+    required this.valueAccent,
+    required this.effects,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnabled = onPressed != null;
 
     return SizedBox(
       width: _buttonDimension,
@@ -150,35 +212,355 @@ class _BlockActionButton extends StatelessWidget {
         children: [
           Positioned.fill(
             child: BattleActionButton(
-              label: 'Bloquear',
-              icon: Icons.shield_rounded,
+              label: label,
+              icon: icon,
               dimension: _buttonDimension,
-              onPressed: isEnabled ? onBlock : null,
-              tooltip: isDrawingMode
-                  ? 'Dibuja formas para activar bonus y neutralizar malus'
-                  : 'Ganar barrera y terminar turno',
+              onPressed: onPressed,
+              tooltip: tooltip,
+              padding: const EdgeInsets.fromLTRB(6, 5, 6, 20),
             ),
           ),
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 6,
+            left: 4,
+            right: 4,
+            bottom: 5,
             child: IgnorePointer(
-              child: Center(
-                child: EndpointText(
-                  '[ $blockBarrierGain ]',
-                  style: textSmallNumericBold.copyWith(
-                    color: barrierLabelColor,
-                    fontSize: 11,
-                    letterSpacing: 0.7,
-                  ),
-                ),
+              child: _ActionIntentMarker(
+                valueLabel: valueLabel,
+                valueAccent:
+                    isEnabled ? valueAccent : valueAccent.withAlpha(107),
+                effects: effects,
+                isEnabled: isEnabled,
               ),
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _ActionIntentMarker extends StatelessWidget {
+  final String valueLabel;
+  final Color valueAccent;
+  final List<PlayerActionEffectIntent> effects;
+  final bool isEnabled;
+
+  const _ActionIntentMarker({
+    required this.valueLabel,
+    required this.valueAccent,
+    required this.effects,
+    required this.isEnabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[
+      _ActionIntentValueChip(
+        label: '($valueLabel)',
+        accent: valueAccent,
+      ),
+      for (final effect in effects) _ActionIntentEffectChip(effect: effect),
+    ];
+
+    return _ActionIntentMarquee(
+      height: 19,
+      gap: 22,
+      children: children
+          .map(
+            (child) => Opacity(
+              opacity: isEnabled ? 1.0 : 0.48,
+              child: child,
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+}
+
+class _ActionIntentValueChip extends StatelessWidget {
+  final String label;
+  final Color accent;
+
+  const _ActionIntentValueChip({
+    required this.label,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return EndpointText(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.visible,
+      style: textSmallNumericBold.copyWith(
+        color: accent,
+        fontSize: 11,
+        letterSpacing: 0.3,
+        height: 1,
+      ),
+    );
+  }
+}
+
+class _ActionIntentEffectChip extends StatelessWidget {
+  final PlayerActionEffectIntent effect;
+
+  const _ActionIntentEffectChip({
+    required this.effect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    switch (effect.kind) {
+      case PlayerActionEffectIntentKind.heal:
+        return _ActionIntentIconChip(
+          icon: Icons.favorite_rounded,
+          accent: BattlerStatusType.buff.accent,
+          valueLabel: '${max(0, effect.amount)}',
+        );
+      case PlayerActionEffectIntentKind.buff:
+      case PlayerActionEffectIntentKind.debuff:
+        final status = effect.status;
+        if (status == null) return const SizedBox.shrink();
+        return _ActionIntentIconChip(
+          icon: status.icon,
+          accent: status.type.accent,
+          valueLabel: _statusAmountLabel(status, effect.amount),
+        );
+      case PlayerActionEffectIntentKind.ability:
+        final ability = effect.ability;
+        if (ability == null) return const SizedBox.shrink();
+        return _ActionIntentAbilityChip(ability: ability);
+    }
+  }
+
+  String? _statusAmountLabel(BattlerStatus status, int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0) return null;
+    if (status.type == BattlerStatusType.buff) return 'x$safeAmount';
+    return '$safeAmount';
+  }
+}
+
+class _ActionIntentIconChip extends StatelessWidget {
+  final IconData icon;
+  final Color accent;
+  final String? valueLabel;
+
+  const _ActionIntentIconChip({
+    required this.icon,
+    required this.accent,
+    this.valueLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundBattleOpaque,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: accent.withAlpha(145),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 12,
+              color: accent,
+            ),
+            if (valueLabel != null) ...[
+              const SizedBox(width: 2),
+              EndpointText(
+                valueLabel!,
+                maxLines: 1,
+                overflow: TextOverflow.visible,
+                style: textSmallNumericBold.copyWith(
+                  color: accent,
+                  fontSize: 10,
+                  letterSpacing: 0.2,
+                  height: 1,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionIntentAbilityChip extends StatelessWidget {
+  final BattlerAbility ability;
+
+  const _ActionIntentAbilityChip({
+    required this.ability,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = ability.accent;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: EndpointPalette.panelBackgroundBattleOpaque,
+        border: Border.all(
+          color: accent.withAlpha(174),
+          width: 1,
+        ),
+      ),
+      child: SizedBox(
+        width: 17,
+        height: 17,
+        child: Icon(
+          ability.icon,
+          size: 10,
+          color: accent,
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionIntentMarquee extends StatefulWidget {
+  final List<Widget> children;
+  final double height;
+  final double gap;
+
+  const _ActionIntentMarquee({
+    required this.children,
+    required this.height,
+    required this.gap,
+  });
+
+  @override
+  State<_ActionIntentMarquee> createState() => _ActionIntentMarqueeState();
+}
+
+class _ActionIntentMarqueeState extends State<_ActionIntentMarquee>
+    with SingleTickerProviderStateMixin {
+  final GlobalKey _contentKey = GlobalKey();
+  late final AnimationController _controller = AnimationController(vsync: this);
+  double _contentWidth = 0;
+  double _viewportWidth = 0;
+  double _cycleDistance = 0;
+  Duration? _activeDuration;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _viewportWidth = constraints.maxWidth.isFinite
+            ? max(0.0, constraints.maxWidth)
+            : _viewportWidth;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _syncMeasuredWidth();
+        });
+
+        final shouldScroll =
+            _contentWidth > 0 && _contentWidth > _viewportWidth + 0.5;
+        if (!shouldScroll) {
+          _stopMarquee();
+          return ClipRect(
+            child: SizedBox(
+              height: widget.height,
+              child: Center(
+                child: _buildContent(key: _contentKey),
+              ),
+            ),
+          );
+        }
+
+        final cycleDistance = _contentWidth + widget.gap;
+        _ensureMarquee(cycleDistance);
+        return ClipRect(
+          child: SizedBox(
+            height: widget.height,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                final dx = _controller.value * cycleDistance;
+                return Stack(
+                  clipBehavior: Clip.hardEdge,
+                  children: [
+                    Transform.translate(
+                      offset: Offset(-dx, 0),
+                      child: _buildContent(key: _contentKey),
+                    ),
+                    Transform.translate(
+                      offset: Offset(cycleDistance - dx, 0),
+                      child: _buildContent(),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent({Key? key}) {
+    return Row(
+      key: key,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var index = 0; index < widget.children.length; index++) ...[
+          if (index > 0) const SizedBox(width: 4),
+          widget.children[index],
+        ],
+      ],
+    );
+  }
+
+  void _syncMeasuredWidth() {
+    if (!mounted) return;
+    final context = _contentKey.currentContext;
+    final measuredWidth = context?.size?.width ?? 0;
+    if ((measuredWidth - _contentWidth).abs() <= 0.5) return;
+    setState(() {
+      _contentWidth = measuredWidth;
+    });
+  }
+
+  void _ensureMarquee(double cycleDistance) {
+    final duration = Duration(
+      milliseconds: max(4200, (cycleDistance * 72).round()),
+    );
+    if (_cycleDistance == cycleDistance &&
+        _activeDuration == duration &&
+        _controller.isAnimating) {
+      return;
+    }
+
+    _cycleDistance = cycleDistance;
+    _activeDuration = duration;
+    _controller
+      ..duration = duration
+      ..repeat();
+  }
+
+  void _stopMarquee() {
+    _cycleDistance = 0;
+    _activeDuration = null;
+    if (_controller.isAnimating) {
+      _controller.stop();
+      _controller.value = 0;
+    }
   }
 }
 

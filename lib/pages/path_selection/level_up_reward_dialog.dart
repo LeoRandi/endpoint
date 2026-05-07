@@ -142,6 +142,64 @@ class _LevelUpRewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = _accent;
+    final willUpgradeItem = _willUpgradeItem;
+    final cardContent = Row(
+      children: [
+        _LevelUpChoiceLead(
+          choice: choice,
+          accent: accent,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EndpointText(
+                _title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textMediumBold.copyWith(
+                  color: EndpointPalette.softForeground,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 3),
+              _LevelUpDescriptionText(
+                choice: choice,
+                description: _description,
+              ),
+              const SizedBox(height: 5),
+              EndpointText(
+                _meta,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textSmallBold.copyWith(
+                  color: accent,
+                  fontSize: 10,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    final panelChild = willUpgradeItem
+        ? EndpointUpgradeBackdrop(
+            color: endpointUpgradeIndicatorNeonYellow,
+            iconSize: 19,
+            spacing: 4,
+            horizontalInset: 8,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              child: cardContent,
+            ),
+          )
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            child: cardContent,
+          );
 
     return Material(
       color: Colors.transparent,
@@ -153,51 +211,16 @@ class _LevelUpRewardCard extends StatelessWidget {
           backgroundColor: EndpointPalette.panelBackgroundSoft,
           borderRadius: 16,
           glowOpacity: 0.05,
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-          child: Row(
-            children: [
-              _LevelUpChoiceLead(
-                choice: choice,
-                accent: accent,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    EndpointText(
-                      _title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textMediumBold.copyWith(
-                        color: EndpointPalette.softForeground,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    _LevelUpDescriptionText(
-                      choice: choice,
-                      description: _description,
-                    ),
-                    const SizedBox(height: 5),
-                    EndpointText(
-                      _meta,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textSmallBold.copyWith(
-                        color: accent,
-                        fontSize: 10,
-                        letterSpacing: 1.1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          padding: EdgeInsets.zero,
+          child: panelChild,
         ),
       ),
     );
+  }
+
+  bool get _willUpgradeItem {
+    final item = choice.item;
+    return item != null && player.wouldUpgradeItem(item);
   }
 
   Color get _accent {

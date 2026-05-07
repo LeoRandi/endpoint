@@ -110,6 +110,8 @@ class BattleSceneController extends ChangeNotifier {
   int get playerInitialBarrier => _battleController.playerInitialBarrier;
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
       _battleController.enemyTurnIntentPreview;
+  PlayerActionIntentPreview get playerActionIntentPreview =>
+      _battleController.playerActionIntentPreview;
 
   /// Indica si la escena tiene una salida en victoria pendiente de pasar por el overlay de botin.
   bool get hasPendingVictoryRewards => _pendingRewardExitRequest != null;
