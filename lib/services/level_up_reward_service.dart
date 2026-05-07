@@ -89,17 +89,15 @@ class LevelUpRewardService {
     required RunRandomizer randomizer,
     required int count,
   }) {
-    final ownedAbilityIds =
-        player.abilities.map((ability) => ability.id).toSet();
     final scopedCandidates = _abilityCandidatesForRarity(
       abilityPoolForArchetype(player.archetypeId),
+      player: player,
       targetRarity: targetRarity,
-      excludedAbilityIds: ownedAbilityIds,
     );
     final fallbackCandidates = _abilityCandidatesForRarity(
       abilityPresets,
+      player: player,
       targetRarity: targetRarity,
-      excludedAbilityIds: ownedAbilityIds,
     );
     final pickedAbilities = _pickPreferredThenFallback<BattlerAbility>(
       preferred: scopedCandidates,
@@ -120,19 +118,13 @@ class LevelUpRewardService {
     required RunRandomizer randomizer,
     required int count,
   }) {
-    final ownedItemIds = [
-      ...player.inventoryItems,
-      ...player.equippedItems,
-    ].map((item) => item.id).toSet();
     final scopedCandidates = _itemCandidatesForRarity(
       itemPoolForArchetype(player.archetypeId),
       targetRarity: targetRarity,
-      excludedItemIds: ownedItemIds,
     );
     final fallbackCandidates = _itemCandidatesForRarity(
       itemPresets,
       targetRarity: targetRarity,
-      excludedItemIds: ownedItemIds,
     );
     final pickedItems = _pickPreferredThenFallback<Item>(
       preferred: scopedCandidates,
@@ -149,13 +141,24 @@ class LevelUpRewardService {
 
   List<BattlerAbility> _abilityCandidatesForRarity(
     Iterable<BattlerAbility> pool, {
+    required Battler player,
     required RarityTier targetRarity,
-    required Set<BattlerAbilityId> excludedAbilityIds,
   }) {
     final candidatesById = <BattlerAbilityId, BattlerAbility>{};
 
     for (final ability in pool) {
-      if (excludedAbilityIds.contains(ability.id)) continue;
+      final ownedAbility = player.abilityById(ability.id);
+      if (ownedAbility != null) {
+        if (ownedAbility.rarity != targetRarity || !ownedAbility.canUpgrade) {
+          continue;
+        }
+        candidatesById.putIfAbsent(
+          ability.id,
+          () => ownedAbility.resetState(),
+        );
+        continue;
+      }
+
       final promotedAbility = _promoteAbilityToExactRarity(
         ability,
         targetRarity,
@@ -170,12 +173,10 @@ class LevelUpRewardService {
   List<Item> _itemCandidatesForRarity(
     Iterable<Item> pool, {
     required RarityTier targetRarity,
-    required Set<ItemId> excludedItemIds,
   }) {
     final candidatesById = <ItemId, Item>{};
 
     for (final item in pool) {
-      if (excludedItemIds.contains(item.id)) continue;
       final promotedItem = _promoteItemToExactRarity(item, targetRarity);
       if (promotedItem == null) continue;
       candidatesById.putIfAbsent(item.id, () => promotedItem);

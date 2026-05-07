@@ -120,8 +120,14 @@
 
 ////
 ARREGLAR:
--El botón de equipar/desequipar en al tienda a veces desaparece al desequipar/vender en una tienda?
+-El botón de equipar/desequipar en al tienda a veces desaparece al equipar/desequipar/vender en una tienda?
 -En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña(pequeño cambio visual)
+-No se debe poder ver un objeto que ya tengas en amarillo en la tienda. O no aparece o se consigue una segunda copia, pero no debe mejorarse mas. 
+-no me ha reconocido la habilidad aprendida por nivel 2 al final del dia en el resumen
+-añadir objetos de resonancia para inamovible que usen resonancia(no hay ninguno que lo use para el daño)
+-numero de equipamiento y max debe estar a la altura de Equipo Activo
+-abrir la info de una habilidad en combate la activa
+-dibujo guardado para quick save no se guarda entre sesiones de la app
 
 -Nerf:
 --Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
@@ -132,6 +138,9 @@ PROBAR:
 ///
 IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
+-dibujo rollo patrón del movil?
+-mostrar si es habilidad o item en la recompensa(dejar como el resumen?)
+-Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.

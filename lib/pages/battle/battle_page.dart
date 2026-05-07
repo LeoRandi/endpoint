@@ -277,10 +277,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   bool get _isDrawingMode =>
       _settingsSnapshot?.gameMode == EndpointGameMode.drawing;
-  Battler get _displayPlayer =>
-      _displayPlayerOverride ?? _sceneController.player;
-  Battler get _displayEnemy => _displayEnemyOverride ?? _sceneController.enemy;
-
   void _handlePlayerAttack() {
     unawaited(_handlePlayerAttackFlow());
   }
@@ -994,8 +990,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     return _BattleSceneView(
       showTitle: widget.showTitle,
       sceneController: _sceneController,
-      displayPlayer: _displayPlayer,
-      displayEnemy: _displayEnemy,
+      displayPlayerOverride: _displayPlayerOverride,
+      displayEnemyOverride: _displayEnemyOverride,
       isDrawingMode: _isDrawingMode,
       isPresentingDrawAttack: _isPresentingDrawAttack,
       isPresentingDrawDefense: _isPresentingDrawDefense,

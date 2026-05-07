@@ -26,6 +26,7 @@ class BattleRewardService {
   }) {
     final lootReward = _selectVictoryLoot(
       enemy: enemy,
+      player: player,
       randomizer: randomizer,
     );
 
@@ -55,6 +56,7 @@ class BattleRewardService {
 
   BattleRewardBundle _selectVictoryLoot({
     required Battler enemy,
+    required Battler player,
     required RunRandomizer randomizer,
   }) {
     final lootItems = <ItemId, Item>{
@@ -65,7 +67,9 @@ class BattleRewardService {
         item.id: item,
     }.values.toList(growable: false);
     final lootAbilities = <BattlerAbilityId, BattlerAbility>{
-      for (final ability in enemy.abilities) ability.id: ability.resetState(),
+      for (final ability in enemy.abilities)
+        if (_canOfferAbilityLoot(player: player, ability: ability))
+          ability.id: ability.resetState(),
     }.values.toList(growable: false);
     final totalLootCount = lootItems.length + lootAbilities.length;
     if (totalLootCount <= 0) {
@@ -80,5 +84,15 @@ class BattleRewardService {
     return BattleRewardBundle(
       lootAbility: lootAbilities[selectedIndex - lootItems.length],
     );
+  }
+
+  bool _canOfferAbilityLoot({
+    required Battler player,
+    required BattlerAbility ability,
+  }) {
+    final ownedAbility = player.abilityById(ability.id);
+    if (ownedAbility == null) return true;
+
+    return ownedAbility.rarity == ability.rarity && ownedAbility.canUpgrade;
   }
 }

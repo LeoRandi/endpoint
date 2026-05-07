@@ -194,7 +194,7 @@ class _EndpointAbilityOrbState extends State<EndpointAbilityOrb>
   Widget build(BuildContext context) {
     final currentAbility = widget.ability;
     final resolvedAccent = currentAbility?.accent ?? widget.accent;
-    final isActive = currentAbility?.isActive ?? false;
+    final isActive = currentAbility?.isManualActivationActive ?? false;
     final isOnCooldown = currentAbility?.isOnCooldown ?? false;
     final tooltip = currentAbility?.displayDescription ?? widget.emptyTooltip;
     final borderColor = currentAbility == null

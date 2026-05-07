@@ -18,6 +18,7 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
   final Color borderColor;
   final Color backgroundColor;
   final Color textColor;
+  final bool showBudgetBadge;
 
   const EndpointEquipmentSlotsStrip({
     super.key,
@@ -31,6 +32,7 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
     this.borderColor = EndpointPalette.accentBorderSoft,
     this.backgroundColor = EndpointPalette.controlBackground,
     this.textColor = EndpointPalette.softForeground,
+    this.showBudgetBadge = true,
   });
 
   @override
@@ -40,15 +42,18 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        equippedItems.isEmpty ? _buildEmptyState() : _buildItemsRow(equippedItems),
-        Positioned(
-          top: -8,
-          right: 0,
-          child: _EndpointEquipmentBudgetBadge(
-            usedCost: battler.equippedItemCost,
-            maxCost: battler.equipmentCapacity,
+        equippedItems.isEmpty
+            ? _buildEmptyState()
+            : _buildItemsRow(equippedItems),
+        if (showBudgetBadge)
+          Positioned(
+            top: -8,
+            right: 0,
+            child: EndpointEquipmentBudgetBadge(
+              usedCost: battler.equippedItemCost,
+              maxCost: battler.equipmentCapacity,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -86,7 +91,8 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
         borderColor: borderColor,
         backgroundColor: backgroundColor,
         textColor: textColor,
-        onPressed: onItemPressed == null ? null : () => onItemPressed!.call(item),
+        onPressed:
+            onItemPressed == null ? null : () => onItemPressed!.call(item),
       ),
     );
   }
@@ -118,11 +124,12 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
 }
 
 /// Muestra el presupuesto de equipo consumido frente al maximo actual del battler.
-class _EndpointEquipmentBudgetBadge extends StatelessWidget {
+class EndpointEquipmentBudgetBadge extends StatelessWidget {
   final int usedCost;
   final int maxCost;
 
-  const _EndpointEquipmentBudgetBadge({
+  const EndpointEquipmentBudgetBadge({
+    super.key,
     required this.usedCost,
     required this.maxCost,
   });

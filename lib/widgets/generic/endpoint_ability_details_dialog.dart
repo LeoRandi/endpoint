@@ -27,6 +27,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = EndpointPalette.soften(accent);
+    final isManualActivationActive = ability.isManualActivationActive;
     final descriptionSurface = EndpointPalette.blend(
       EndpointPalette.panelBackground,
       accent,
@@ -37,7 +38,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
       accent,
       0.16,
     );
-    final actionSurface = ability.isActive
+    final actionSurface = isManualActivationActive
         ? EndpointPalette.blend(
             EndpointPalette.panelBackgroundGold,
             accent,
@@ -191,7 +192,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: EndpointActionButton(
                 label: actionLabel!,
-                icon: ability.isActive
+                icon: isManualActivationActive
                     ? Icons.pause_circle_outline_rounded
                     : Icons.power_settings_new_rounded,
                 onPressed: isActionEnabled ? onPrimaryAction : null,
@@ -201,7 +202,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
                 accent: accent,
                 backgroundColor: actionSurface,
                 foregroundColor: foreground,
-                borderWidth: ability.isActive ? 1.6 : 1.3,
+                borderWidth: isManualActivationActive ? 1.6 : 1.3,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 textStyle: textMediumBold.copyWith(letterSpacing: 1.2),
               ),
@@ -226,7 +227,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
     if (ability.runtimeValueBonus > 0) {
       parts.add('BONO +${ability.runtimeValueBonus}');
     }
-    if (ability.isActive) {
+    if (ability.isManualActivationActive) {
       parts.add('ESTADO: Activa');
     }
 

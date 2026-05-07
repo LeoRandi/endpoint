@@ -131,15 +131,6 @@ class BattleSceneController extends ChangeNotifier {
         .toList(growable: false);
   }
 
-  /// Indica si una habilidad puede activarse de forma rapida mediante pulsacion mantenida.
-  bool canQuickActivateAbility(BattlerAbility ability) {
-    return !ability.isActive &&
-        isAbilityActionEnabled(
-          ability,
-          canControlOwner: true,
-        );
-  }
-
   /// Ejecuta el ataque basico del jugador cuando la escena lo solicita.
   Future<void> handlePlayerAttack({
     BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
@@ -169,13 +160,6 @@ class BattleSceneController extends ChangeNotifier {
     return _battleController.togglePlayerAbility(ability);
   }
 
-  /// Activa una habilidad manual de combate sin abrir primero el dialogo de detalle.
-  Future<void> quickActivateAbility(BattlerAbility ability) {
-    if (!canQuickActivateAbility(ability)) return Future<void>.value();
-
-    return _battleController.togglePlayerAbility(ability);
-  }
-
   /// Indica si la escena puede abrir el overlay de inventario de combate.
   bool canOpenItemsOverlay() {
     return canUseActions && !hasPendingVictoryRewards;
@@ -197,11 +181,13 @@ class BattleSceneController extends ChangeNotifier {
     BattlerAbility ability, {
     required bool canControlOwner,
   }) {
-    final stateText = ability.isActive
-        ? 'Estado actual: activa.'
-        : ability.isOnCooldown
-            ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
-            : 'Estado actual: lista.';
+    final stateText = ability.isPassive
+        ? 'Estado actual: pasiva.'
+        : ability.isActive
+            ? 'Estado actual: activa.'
+            : ability.isOnCooldown
+                ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
+                : 'Estado actual: lista.';
     final ownershipText =
         canControlOwner ? 'Pertenece al jugador.' : 'Pertenece al enemigo.';
     final activationText = ability.manualActivationContext == null

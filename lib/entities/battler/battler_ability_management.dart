@@ -25,7 +25,9 @@ extension BattlerAbilityManagement on Battler {
   /// Indica si recibir esta habilidad acabaria mejorando una copia ya poseida.
   bool wouldUpgradeAbility(BattlerAbility ability) {
     final existingAbility = abilityById(ability.id);
-    return existingAbility != null && existingAbility.canUpgrade;
+    return existingAbility != null &&
+        existingAbility.rarity == ability.rarity &&
+        existingAbility.canUpgrade;
   }
 
   /// Devuelve los ids de habilidad que registraron un hook concreto para el pipeline.
@@ -62,8 +64,13 @@ extension BattlerAbilityManagement on Battler {
     }
 
     final updatedAbilities = List<BattlerAbility>.from(abilities);
-    updatedAbilities[existingIndex] =
-        updatedAbilities[existingIndex].upgraded();
+    final existingAbility = updatedAbilities[existingIndex];
+    if (existingAbility.rarity != ability.rarity ||
+        !existingAbility.canUpgrade) {
+      return this;
+    }
+
+    updatedAbilities[existingIndex] = existingAbility.upgraded();
 
     return copyWith(
       abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),

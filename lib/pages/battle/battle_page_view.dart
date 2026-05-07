@@ -29,8 +29,8 @@ EndpointSectionPreset _buildBattlePanelPreset(
 class _BattleSceneView extends StatelessWidget {
   final String showTitle;
   final BattleSceneController sceneController;
-  final Battler displayPlayer;
-  final Battler displayEnemy;
+  final Battler? displayPlayerOverride;
+  final Battler? displayEnemyOverride;
   final bool isDrawingMode;
   final bool isPresentingDrawAttack;
   final bool isPresentingDrawDefense;
@@ -59,8 +59,8 @@ class _BattleSceneView extends StatelessWidget {
   const _BattleSceneView({
     required this.showTitle,
     required this.sceneController,
-    required this.displayPlayer,
-    required this.displayEnemy,
+    required this.displayPlayerOverride,
+    required this.displayEnemyOverride,
     required this.isDrawingMode,
     required this.isPresentingDrawAttack,
     required this.isPresentingDrawDefense,
@@ -152,6 +152,10 @@ class _BattleSceneView extends StatelessWidget {
                       animatedBarrierSides.contains(BattleCombatantSide.enemy)
                           ? _battleImpactBarDuration
                           : Duration.zero;
+                  final displayPlayer =
+                      displayPlayerOverride ?? sceneController.player;
+                  final displayEnemy =
+                      displayEnemyOverride ?? sceneController.enemy;
 
                   return Stack(
                     key: battleAnimationRootKey,
@@ -214,10 +218,6 @@ class _BattleSceneView extends StatelessWidget {
                                   onBlock: onBlock,
                                   blockBarrierGain:
                                       sceneController.playerBlockBarrierGain,
-                                  onQuickActivateAbility:
-                                      sceneController.quickActivateAbility,
-                                  canQuickActivateAbility:
-                                      sceneController.canQuickActivateAbility,
                                   onOpenEquippedItemDetails:
                                       onOpenPlayerItemDetails,
                                   onOpenAbilityDetails:

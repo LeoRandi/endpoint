@@ -9,48 +9,51 @@ class WeaponShopStockService {
     required ShopInventoryCriterion criterion,
     required RunHourPhase phase,
     required RunRandomizer randomizer,
+    Battler? player,
     int dayNumber = 1,
     List<Item> pool = itemPresets,
     int stockSize = defaultStockSize,
   }) {
-    final allMatchingItems = _deduplicateByItemType(
-      pool.where(
-        criterion.matches,
-      ),
-    );
-    final matchingItems = _filteredByDayRarity(
-      items: allMatchingItems,
-      phase: phase,
-      dayNumber: dayNumber,
-    );
-    final stockCandidates =
-        matchingItems.isEmpty ? allMatchingItems : matchingItems;
+    if (stockSize <= 0) return const <Item>[];
 
-    if (stockCandidates.length <= stockSize) {
-      return List<Item>.unmodifiable(stockCandidates);
-    }
-
-    return _pickDistinctWeightedByRarity(
-      items: stockCandidates,
-      randomizer: randomizer,
-      count: stockSize,
-      dayNumber: dayNumber,
-    );
-  }
-
-  List<Item> _filteredByDayRarity({
-    required List<Item> items,
-    required RunHourPhase phase,
-    required int dayNumber,
-  }) {
+    final itemPool = _deduplicateByItemType(pool);
     final maximumRarity = _maximumItemRarityFor(
       phase: phase,
       dayNumber: dayNumber,
     );
+    final pickedItems = <Item>[];
+    final pickedItemIds = <ItemId>{};
 
-    return items
-        .where((item) => item.rarity.index <= maximumRarity.index)
-        .toList(growable: false);
+    while (pickedItems.length < stockSize) {
+      final availableRarities = _availableStockRarities(
+        items: itemPool,
+        criterion: criterion,
+        player: player,
+        maximumRarity: maximumRarity,
+        excludedItemIds: pickedItemIds,
+      );
+      if (availableRarities.isEmpty) break;
+
+      final targetRarity = _pickWeightedRarity(
+        rarities: availableRarities,
+        randomizer: randomizer,
+        dayNumber: dayNumber,
+      );
+      final candidates = _stockCandidatesForExactRarity(
+        items: itemPool,
+        criterion: criterion,
+        player: player,
+        targetRarity: targetRarity,
+        excludedItemIds: pickedItemIds,
+      );
+      if (candidates.isEmpty) break;
+
+      final pickedItem = candidates[randomizer.nextInt(candidates.length)];
+      pickedItems.add(pickedItem);
+      pickedItemIds.add(pickedItem.id);
+    }
+
+    return List<Item>.unmodifiable(pickedItems);
   }
 
   RarityTier _maximumItemRarityFor({
@@ -82,43 +85,110 @@ class WeaponShopStockService {
     return List<Item>.unmodifiable(uniqueItems);
   }
 
-  List<Item> _pickDistinctWeightedByRarity({
+  List<RarityTier> _availableStockRarities({
     required List<Item> items,
-    required RunRandomizer randomizer,
-    required int count,
-    required int dayNumber,
+    required ShopInventoryCriterion criterion,
+    required Battler? player,
+    required RarityTier maximumRarity,
+    required Set<ItemId> excludedItemIds,
   }) {
-    final remainingItems = List<Item>.from(items);
-    final pickedItems = <Item>[];
+    final availableRarities = <RarityTier>[];
 
-    while (pickedItems.length < count && remainingItems.isNotEmpty) {
-      final totalWeight = remainingItems.fold<double>(
-        0,
-        (sum, item) => sum + _rarityWeight(item.rarity, dayNumber),
+    for (final rarity in RarityTier.values) {
+      if (rarity.index > maximumRarity.index) continue;
+
+      final candidates = _stockCandidatesForExactRarity(
+        items: items,
+        criterion: criterion,
+        player: player,
+        targetRarity: rarity,
+        excludedItemIds: excludedItemIds,
       );
+      if (candidates.isNotEmpty) {
+        availableRarities.add(rarity);
+      }
+    }
 
-      if (totalWeight <= 0) {
-        pickedItems.add(
-          remainingItems.removeAt(randomizer.nextInt(remainingItems.length)),
-        );
+    return List<RarityTier>.unmodifiable(availableRarities);
+  }
+
+  List<Item> _stockCandidatesForExactRarity({
+    required List<Item> items,
+    required ShopInventoryCriterion criterion,
+    required Battler? player,
+    required RarityTier targetRarity,
+    required Set<ItemId> excludedItemIds,
+  }) {
+    final candidatesById = <ItemId, Item>{};
+
+    for (final item in items) {
+      if (excludedItemIds.contains(item.id)) continue;
+
+      final promotedItem = _promoteItemToExactRarity(item, targetRarity);
+      if (promotedItem == null) continue;
+      if (!criterion.matches(promotedItem)) continue;
+      if (!_canOfferItemForPlayer(player: player, item: promotedItem)) {
         continue;
       }
 
-      var roll = randomizer.nextDouble() * totalWeight;
-      var pickedIndex = remainingItems.length - 1;
-
-      for (var index = 0; index < remainingItems.length; index++) {
-        roll -= _rarityWeight(remainingItems[index].rarity, dayNumber);
-        if (roll > 0) continue;
-
-        pickedIndex = index;
-        break;
-      }
-
-      pickedItems.add(remainingItems.removeAt(pickedIndex));
+      candidatesById.putIfAbsent(promotedItem.id, () => promotedItem);
     }
 
-    return List<Item>.unmodifiable(pickedItems);
+    return List<Item>.unmodifiable(candidatesById.values);
+  }
+
+  Item? _promoteItemToExactRarity(Item item, RarityTier targetRarity) {
+    if (item.rarity.index > targetRarity.index) return null;
+
+    var promotedItem = item;
+    while (promotedItem.rarity.index < targetRarity.index &&
+        promotedItem.canUpgrade) {
+      promotedItem = promotedItem.upgraded();
+    }
+
+    if (promotedItem.rarity != targetRarity) return null;
+
+    return promotedItem;
+  }
+
+  bool _canOfferItemForPlayer({
+    required Battler? player,
+    required Item item,
+  }) {
+    if (player == null) return true;
+
+    final ownedItems = [
+      ...player.equippedItems,
+      ...player.inventoryItems,
+    ].where((ownedItem) => ownedItem.id == item.id);
+    if (ownedItems.isEmpty) return true;
+
+    return ownedItems.any(
+      (ownedItem) => ownedItem.rarity == item.rarity && ownedItem.canUpgrade,
+    );
+  }
+
+  RarityTier _pickWeightedRarity({
+    required List<RarityTier> rarities,
+    required RunRandomizer randomizer,
+    required int dayNumber,
+  }) {
+    final totalWeight = rarities.fold<double>(
+      0,
+      (sum, rarity) => sum + _rarityWeight(rarity, dayNumber),
+    );
+
+    if (totalWeight <= 0) {
+      return rarities[randomizer.nextInt(rarities.length)];
+    }
+
+    var roll = randomizer.nextDouble() * totalWeight;
+    for (final rarity in rarities) {
+      roll -= _rarityWeight(rarity, dayNumber);
+      if (roll <= 0) return rarity;
+    }
+
+    return rarities.last;
   }
 
   double _rarityWeight(RarityTier rarity, int dayNumber) {

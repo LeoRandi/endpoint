@@ -125,6 +125,23 @@ class RunSessionController extends ChangeNotifier {
 
   /// Actualiza el jugador fuera de una escena y corta la run al instante si ya no sigue vivo.
   void updatePlayer(Battler player) {
+    _updatePlayer(player);
+  }
+
+  /// Actualiza el jugador y registra en el resumen los premios obtenidos fuera de una escena.
+  void updatePlayerWithRewards(Battler player) {
+    _updatePlayer(
+      player,
+      recordRewardsInDaySummary: true,
+      persistTrigger: 'playerRewardsUpdated',
+    );
+  }
+
+  void _updatePlayer(
+    Battler player, {
+    bool recordRewardsInDaySummary = false,
+    String persistTrigger = 'playerUpdated',
+  }) {
     if (_state.pendingDaySummary != null) {
       _state = _state.copyWith(player: player);
       notifyListeners();
@@ -143,8 +160,17 @@ class RunSessionController extends ChangeNotifier {
     final resolvedCompletionType = _resolveCompletionType(
       updatedPlayer: player,
     );
+    final updatedDaySummary = _shouldRecordCurrentStageInDaySummary(
+      recordRewardsInDaySummary,
+    )
+        ? _state.currentDaySummary.recordScene(
+            before: _state.player,
+            after: player,
+          )
+        : _state.currentDaySummary;
     var nextState = _state.copyWith(
       player: player,
+      currentDaySummary: updatedDaySummary,
       isRunComplete: resolvedCompletionType != null,
       completionType: resolvedCompletionType,
     );
@@ -175,7 +201,7 @@ class RunSessionController extends ChangeNotifier {
       unawaited(clearPersistedRunSnapshot());
       return;
     }
-    unawaited(_persistCurrentRun(trigger: 'playerUpdated'));
+    unawaited(_persistCurrentRun(trigger: persistTrigger));
   }
 
   bool beginNodeResolution({

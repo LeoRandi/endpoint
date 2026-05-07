@@ -36,11 +36,13 @@ class AbilitiesOverlayController extends ChangeNotifier {
 
   /// Construye el texto de estado que se muestra en el dialogo de detalle de habilidad.
   String statusTextFor(BattlerAbility ability) {
-    final status = ability.isActive
-        ? 'Estado actual: activa.'
-        : ability.isOnCooldown
-            ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
-            : 'Estado actual: lista.';
+    final status = ability.isPassive
+        ? 'Estado actual: pasiva.'
+        : ability.isActive
+            ? 'Estado actual: activa.'
+            : ability.isOnCooldown
+                ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
+                : 'Estado actual: lista.';
     final activation = ability.manualActivationContext == null
         ? 'Se aplica sin activacion manual.'
         : 'Se puede activar manualmente en ${ability.manualActivationContext!.label}.';

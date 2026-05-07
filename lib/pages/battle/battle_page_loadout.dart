@@ -7,8 +7,6 @@ class _BattleLoadoutStrip extends StatelessWidget {
   final bool mirrorHorizontally;
   final ValueChanged<Item>? onItemPressed;
   final ValueChanged<BattlerAbility>? onAbilityPressed;
-  final ValueChanged<BattlerAbility>? onAbilityHoldCompleted;
-  final bool Function(BattlerAbility ability)? canHoldActivateAbility;
   final bool enableAbilityTooltipLongPress;
 
   const _BattleLoadoutStrip({
@@ -18,8 +16,6 @@ class _BattleLoadoutStrip extends StatelessWidget {
     required this.mirrorHorizontally,
     this.onItemPressed,
     this.onAbilityPressed,
-    this.onAbilityHoldCompleted,
-    this.canHoldActivateAbility,
     this.enableAbilityTooltipLongPress = true,
   });
 
@@ -60,8 +56,6 @@ class _BattleLoadoutStrip extends StatelessWidget {
                   abilities: abilities,
                   accent: accent,
                   onAbilityPressed: onAbilityPressed,
-                  onAbilityHoldCompleted: onAbilityHoldCompleted,
-                  canHoldActivateAbility: canHoldActivateAbility,
                   holdDuration: const Duration(milliseconds: 500),
                   enableTooltipLongPress: enableAbilityTooltipLongPress,
                 ),

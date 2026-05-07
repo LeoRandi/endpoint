@@ -20,6 +20,7 @@ class WeaponShopController extends ChangeNotifier {
             criterion: stockCriterion,
             phase: phase,
             randomizer: randomizer,
+            player: player,
             dayNumber: dayNumber,
             pool: stockPool,
           ),

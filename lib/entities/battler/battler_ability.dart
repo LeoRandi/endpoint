@@ -529,6 +529,9 @@ class BattlerAbility {
   /// Indica si la habilidad sigue esperando a que termine su cooldown.
   bool get isOnCooldown => remainingCooldownTurns > 0;
 
+  /// Indica si el estado activo debe comunicarse como activacion manual visible.
+  bool get isManualActivationActive => canManuallyActivate && isActive;
+
   /// Devuelve el value base mas los bonus temporales ganados en combate.
   int get currentValue => value + runtimeValueBonus;
 

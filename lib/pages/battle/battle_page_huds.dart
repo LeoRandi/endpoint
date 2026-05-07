@@ -47,8 +47,6 @@ class _PlayerBattleHud extends StatelessWidget {
   final VoidCallback onAttack;
   final VoidCallback onBlock;
   final int blockBarrierGain;
-  final ValueChanged<BattlerAbility> onQuickActivateAbility;
-  final bool Function(BattlerAbility ability) canQuickActivateAbility;
   final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
   final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
   final Key? statusBarKey;
@@ -64,8 +62,6 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.onAttack,
     required this.onBlock,
     required this.blockBarrierGain,
-    required this.onQuickActivateAbility,
-    required this.canQuickActivateAbility,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
     required this.statusBarKey,
@@ -87,8 +83,6 @@ class _PlayerBattleHud extends StatelessWidget {
           mirrorHorizontally: false,
           onItemPressed: onOpenEquippedItemDetails,
           onAbilityPressed: onOpenAbilityDetails,
-          onAbilityHoldCompleted: onQuickActivateAbility,
-          canHoldActivateAbility: canQuickActivateAbility,
           enableAbilityTooltipLongPress: false,
         ),
         const SizedBox(height: 8),

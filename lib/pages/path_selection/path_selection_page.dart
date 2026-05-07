@@ -305,7 +305,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
     if (!mounted || reward == null) return;
 
-    _sessionController.updatePlayer(
+    _sessionController.updatePlayerWithRewards(
       player.applyLevelReward(reward),
     );
     await _maybePresentDaySummary();

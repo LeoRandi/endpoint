@@ -14,11 +14,8 @@ extension BattlerItemManagement on Battler {
 
   /// Indica si recibir este item acabaria mejorando una copia ya poseida.
   bool wouldUpgradeItem(Item item) {
-    final upgradeTemplate = item.canUpgrade ? item : Item.presetForId(item.id);
-    if (!upgradeTemplate.canUpgrade) return false;
-
-    return equippedItemOfType(item.id) != null ||
-        inventoryItemOfType(item.id) != null;
+    return _upgradeableEquippedItemFor(item) != null ||
+        _upgradeableInventoryItemFor(item) != null;
   }
 
   /// Indica si hay algun item equipado con hooks de efecto.
@@ -50,9 +47,8 @@ extension BattlerItemManagement on Battler {
 
   /// Anade un item nuevo o mejora la copia ya poseida si admite upgrades.
   Battler addItem(Item item) {
-    final upgradeTemplate = item.canUpgrade ? item : Item.presetForId(item.id);
-    final ownedEquippedItem = equippedItemOfType(item.id);
-    if (ownedEquippedItem != null && upgradeTemplate.canUpgrade) {
+    final ownedEquippedItem = _upgradeableEquippedItemFor(item);
+    if (ownedEquippedItem != null) {
       final updatedEquippedItems = List<Item>.from(equippedItems);
       final existingIndex = updatedEquippedItems.indexOf(ownedEquippedItem);
       updatedEquippedItems[existingIndex] = ownedEquippedItem.upgraded();
@@ -61,8 +57,8 @@ extension BattlerItemManagement on Battler {
       );
     }
 
-    final ownedInventoryItem = inventoryItemOfType(item.id);
-    if (ownedInventoryItem != null && upgradeTemplate.canUpgrade) {
+    final ownedInventoryItem = _upgradeableInventoryItemFor(item);
+    if (ownedInventoryItem != null) {
       final updatedInventoryItems = List<Item>.from(inventoryItems);
       final existingIndex = updatedInventoryItems.indexOf(ownedInventoryItem);
       updatedInventoryItems[existingIndex] = ownedInventoryItem.upgraded();
@@ -77,6 +73,41 @@ extension BattlerItemManagement on Battler {
         item.toOwnedInstance(),
       ]),
     );
+  }
+
+  Item? _upgradeableEquippedItemFor(Item receivedItem) {
+    for (final ownedItem in equippedItems) {
+      if (_canUpgradeOwnedItemWith(
+        ownedItem: ownedItem,
+        receivedItem: receivedItem,
+      )) {
+        return ownedItem;
+      }
+    }
+
+    return null;
+  }
+
+  Item? _upgradeableInventoryItemFor(Item receivedItem) {
+    for (final ownedItem in inventoryItems) {
+      if (_canUpgradeOwnedItemWith(
+        ownedItem: ownedItem,
+        receivedItem: receivedItem,
+      )) {
+        return ownedItem;
+      }
+    }
+
+    return null;
+  }
+
+  bool _canUpgradeOwnedItemWith({
+    required Item ownedItem,
+    required Item receivedItem,
+  }) {
+    return ownedItem.id == receivedItem.id &&
+        ownedItem.rarity == receivedItem.rarity &&
+        ownedItem.canUpgrade;
   }
 
   /// Elimina un item del battler, desequipandolo antes si hace falta.

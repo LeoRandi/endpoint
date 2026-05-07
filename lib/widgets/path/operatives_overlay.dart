@@ -403,13 +403,24 @@ class _EquipmentRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EndpointText(
-            isPlayer ? 'EQUIPO ACTIVO' : 'EQUIPO DEL OPERATIVO',
-            style: textSmallBold.copyWith(
-              color: EndpointPalette.primaryAccent,
-              fontSize: 15,
-              letterSpacing: 1.2,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: EndpointText(
+                  isPlayer ? 'EQUIPO ACTIVO' : 'EQUIPO DEL OPERATIVO',
+                  style: textSmallBold.copyWith(
+                    color: EndpointPalette.primaryAccent,
+                    fontSize: 15,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              EndpointEquipmentBudgetBadge(
+                usedCost: battler.equippedItemCost,
+                maxCost: battler.equipmentCapacity,
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           SizedBox(
@@ -419,6 +430,7 @@ class _EquipmentRow extends StatelessWidget {
               child: EndpointEquipmentSlotsStrip(
                 battler: battler,
                 layout: EndpointEquipmentLayout.standard,
+                showBudgetBadge: false,
                 onItemPressed: onItemPressed,
               ),
             ),
