@@ -1,3 +1,5 @@
+import 'dart:ui' show PathMetric;
+
 import '../_imports.dart';
 
 class PathNodeCard extends StatelessWidget {
