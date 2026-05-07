@@ -119,6 +119,7 @@ ARREGLAR:
 -En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña(pequeño cambio visual)
 -añadir objetos de resonancia para inamovible que usen resonancia(no hay ninguno que lo use para el daño)
 -dibujo guardado para quick save no se guarda entre sesiones de la app
+-Los marcadores de daño y bloqueo del jugador en combate tienen que tener un scroll horizontal automático, o detectar que tiene que hacer scroll antes si ya lo tienen.
 
 -Nerf:
 --Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
