@@ -1,9 +1,11 @@
 import '../_imports.dart';
+import '../../services/operative_pattern_bonus_service.dart';
 
 const _battlePatternMatchDuration = Duration(seconds: 15);
 const _battlePatternEnemyTravel = 42.0;
 const _battlePatternEnemySize = 112.0;
-const _battlePatternBlockTravelDuration = Duration(milliseconds: 760);
+const _battlePatternBlockStartDelay = Duration(milliseconds: 500);
+const _battlePatternBlockTravelDuration = Duration(milliseconds: 1100);
 const _battlePatternBlockMarkSize = 50.0;
 
 class BattlePatternMatchResult {
@@ -45,6 +47,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   late final Map<String, OperativePatternBonus> _bonusesByPointKey;
   late final OperativePatternPoint _blockedPoint;
   Timer? _countdownTimer;
+  Timer? _blockStartTimer;
   Animation<Offset>? _blockMarkMotion;
   List<OperativePatternPoint> _patternPoints = const <OperativePatternPoint>[];
   int _secondsRemaining = _battlePatternMatchDuration.inSeconds;
@@ -75,6 +78,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _blockStartTimer?.cancel();
     _blockMotionController.dispose();
     _enemyMotionController.dispose();
     super.dispose();
@@ -109,7 +113,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     setState(() {
       _blockAnimationStarted = true;
     });
-    _blockMotionController.forward();
+    _blockStartTimer?.cancel();
+    _blockStartTimer = Timer(_battlePatternBlockStartDelay, () {
+      if (!mounted || _blockAnimationCompleted) return;
+      _blockMotionController.forward();
+    });
   }
 
   Offset? _localCenterFor(GlobalKey key) {
@@ -198,7 +206,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       if (!seenPointKeys.add(point.key)) continue;
       if (point.key == _blockedPoint.key) continue;
 
-      final bonus = _bonusesByPointKey[point.key];
+      final item = widget.equippedItemsByPointKey[point.key];
+      final bonus = item?.patternBonus ?? _bonusesByPointKey[point.key];
       if (bonus == null) continue;
       switch (bonus.kind) {
         case OperativePatternBonusKind.attack:
@@ -231,7 +240,10 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   Map<String, OperativePatternPointContent> _buildContentsByPointKey() {
     return <String, OperativePatternPointContent>{
       for (final entry in widget.equippedItemsByPointKey.entries)
-        entry.key: OperativePatternPointContent(item: entry.value),
+        entry.key: OperativePatternPointContent(
+          item: entry.value,
+          bonus: entry.value.patternBonus,
+        ),
       for (final entry in _bonusesByPointKey.entries)
         entry.key: OperativePatternPointContent(bonus: entry.value),
     };
@@ -244,6 +256,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     final blockedPointKeys = _blockAnimationCompleted
         ? <String>{_blockedPoint.key}
         : const <String>{};
+    final isBoardDimmed = !_blockAnimationCompleted;
+    final isEnemyDimmed = _blockAnimationCompleted;
 
     return SafeArea(
       child: Center(
@@ -267,38 +281,55 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                   Column(
                     children: [
                       Expanded(
-                        child: _BattlePatternEnemyStage(
-                          enemy: widget.enemy,
-                          animation: _enemyMotionController,
-                          enemySpriteKey: _enemySpriteKey,
-                          secondsRemaining: _secondsRemaining,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            _BattlePatternEnemyStage(
+                              enemy: widget.enemy,
+                              animation: _enemyMotionController,
+                              enemySpriteKey: _enemySpriteKey,
+                              secondsRemaining: _secondsRemaining,
+                            ),
+                            _BattlePatternFocusDimmer(
+                              isVisible: isEnemyDimmed,
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 8),
                       Expanded(
-                        child: Center(
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: FractionallySizedBox(
-                              widthFactor: 0.76,
-                              heightFactor: 0.76,
-                              child: IgnorePointer(
-                                ignoring: !_blockAnimationCompleted,
-                                child: Transform.rotate(
-                                  angle: pi / 4,
-                                  child: OperativePatternBoard(
-                                    key: _patternBoardKey,
-                                    contentsByPointKey:
-                                        _buildContentsByPointKey(),
-                                    blockedPointKeys: blockedPointKeys,
-                                    keepLineAfterPointerUp: true,
-                                    accent: EndpointPalette.neutralAccent,
-                                    onPatternChanged: _handlePatternChanged,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Center(
+                              child: AspectRatio(
+                                aspectRatio: 1,
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.76,
+                                  heightFactor: 0.76,
+                                  child: IgnorePointer(
+                                    ignoring: !_blockAnimationCompleted,
+                                    child: Transform.rotate(
+                                      angle: pi / 4,
+                                      child: OperativePatternBoard(
+                                        key: _patternBoardKey,
+                                        contentsByPointKey:
+                                            _buildContentsByPointKey(),
+                                        blockedPointKeys: blockedPointKeys,
+                                        keepLineAfterPointerUp: true,
+                                        accent: EndpointPalette.neutralAccent,
+                                        onPatternChanged: _handlePatternChanged,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                            _BattlePatternFocusDimmer(
+                              isVisible: isBoardDimmed,
+                              opacity: 0.58,
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -373,6 +404,32 @@ class _BattlePatternEnemyStage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BattlePatternFocusDimmer extends StatelessWidget {
+  final bool isVisible;
+  final double opacity;
+
+  const _BattlePatternFocusDimmer({
+    required this.isVisible,
+    this.opacity = 0.46,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
+        opacity: isVisible ? 1 : 0,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: opacity),
+          ),
+        ),
+      ),
     );
   }
 }

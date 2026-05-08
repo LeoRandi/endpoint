@@ -140,8 +140,15 @@ class OperativesOverlayController extends ChangeNotifier {
     return true;
   }
 
+  /// Sustituye el jugador cuando un modo secundario necesita persistir estado propio.
+  void replacePlayer(Battler updatedPlayer) {
+    _replacePlayer(updatedPlayer);
+  }
+
   /// Sustituye el jugador interno, conserva la seleccion valida y notifica el cambio una sola vez.
   void _replacePlayer(Battler updatedPlayer) {
+    if (identical(_player, updatedPlayer)) return;
+
     _player = updatedPlayer;
     final lastIndex = operatives.length - 1;
     if (_selectedIndex > lastIndex) {

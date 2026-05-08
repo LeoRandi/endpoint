@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/operative_pattern_bonus_service.dart';
 
 const _operativePatternBoardRadius = 18.0;
 const _operativePatternAspectRatio = 1.0;
@@ -10,32 +11,8 @@ const _operativePatternEmptyBonusDialogSize = 132.0;
 const _operativePatternCoordinateHoldDuration = Duration(seconds: 1);
 const _operativePatternCoordinateHoldMoveTolerance = 12.0;
 const _operativePatternHitRadiusFactor = 0.72;
-const operativePatternPoints = <OperativePatternPoint>[
-  OperativePatternPoint(x: -1, y: 1),
-  OperativePatternPoint(x: 0, y: 1),
-  OperativePatternPoint(x: 1, y: 1),
-  OperativePatternPoint(x: -1, y: 0),
-  OperativePatternPoint(x: 0, y: 0),
-  OperativePatternPoint(x: 1, y: 0),
-  OperativePatternPoint(x: -1, y: -1),
-  OperativePatternPoint(x: 0, y: -1),
-  OperativePatternPoint(x: 1, y: -1),
-];
 
-enum OperativePatternBonusKind {
-  attack,
-  barrier,
-}
-
-class OperativePatternBonus {
-  final OperativePatternBonusKind kind;
-  final int amount;
-
-  const OperativePatternBonus({
-    required this.kind,
-    required this.amount,
-  });
-
+extension _OperativePatternBonusVisualTokens on OperativePatternBonus {
   Color get accent {
     return switch (kind) {
       OperativePatternBonusKind.attack => EndpointPalette.dangerAccent,
@@ -62,95 +39,6 @@ class OperativePatternPointContent {
   }) : assert(item != null || bonus != null);
 }
 
-abstract final class OperativePatternLayoutStore {
-  static final Map<String, String> _pointKeyByItemKey = <String, String>{};
-
-  static Map<String, Item> buildItemsByPointKey({
-    required List<Item> equippedItems,
-    Random? random,
-  }) {
-    final equippedItemKeys = equippedItems.map(_itemKey).toSet();
-    _pointKeyByItemKey.removeWhere(
-      (itemKey, _) => !equippedItemKeys.contains(itemKey),
-    );
-
-    final randomizer = random ?? Random();
-    final usedPointKeys = <String>{};
-    for (final item in equippedItems) {
-      final itemKey = _itemKey(item);
-      final assignedPointKey = _pointKeyByItemKey[itemKey];
-      if (assignedPointKey == null ||
-          !operativePatternPoints
-              .any((point) => point.key == assignedPointKey) ||
-          usedPointKeys.contains(assignedPointKey)) {
-        _pointKeyByItemKey.remove(itemKey);
-        continue;
-      }
-      usedPointKeys.add(assignedPointKey);
-    }
-
-    final availablePointKeys = operativePatternPoints
-        .map((point) => point.key)
-        .where((pointKey) => !usedPointKeys.contains(pointKey))
-        .toList(growable: false)
-      ..shuffle(randomizer);
-
-    var nextPointIndex = 0;
-    for (final item in equippedItems) {
-      final itemKey = _itemKey(item);
-      if (_pointKeyByItemKey.containsKey(itemKey)) continue;
-      if (nextPointIndex >= availablePointKeys.length) break;
-
-      _pointKeyByItemKey[itemKey] = availablePointKeys[nextPointIndex++];
-    }
-
-    final itemsByPointKey = <String, Item>{};
-    for (final item in equippedItems) {
-      final pointKey = _pointKeyByItemKey[_itemKey(item)];
-      if (pointKey == null) continue;
-      itemsByPointKey[pointKey] = item;
-    }
-
-    return Map<String, Item>.unmodifiable(itemsByPointKey);
-  }
-
-  static void rememberItemPoint({
-    required Item item,
-    required String pointKey,
-  }) {
-    _pointKeyByItemKey[_itemKey(item)] = pointKey;
-  }
-
-  static void forgetItem(Item item) {
-    _pointKeyByItemKey.remove(_itemKey(item));
-  }
-
-  static String _itemKey(Item item) {
-    return item.instanceId ?? '${item.id.name}:${identityHashCode(item)}';
-  }
-}
-
-Map<String, OperativePatternBonus> buildOperativePatternBonusesByPointKey({
-  required int playerLevel,
-  required Iterable<String> occupiedPointKeys,
-  Random? random,
-}) {
-  final randomizer = random ?? Random();
-  final occupied = occupiedPointKeys.toSet();
-  final maxAmount = max(Battler.initialLevel, playerLevel);
-
-  return <String, OperativePatternBonus>{
-    for (final point in operativePatternPoints)
-      if (!occupied.contains(point.key))
-        point.key: OperativePatternBonus(
-          kind: randomizer.nextBool()
-              ? OperativePatternBonusKind.attack
-              : OperativePatternBonusKind.barrier,
-          amount: 1 + randomizer.nextInt(maxAmount),
-        ),
-  };
-}
-
 class OperativePatternOverlay extends StatefulWidget {
   final Map<String, Item> equippedItemsByPointKey;
   final int playerLevel;
@@ -161,7 +49,7 @@ class OperativePatternOverlay extends StatefulWidget {
     this.playerLevel = Battler.initialLevel,
   });
 
-  static String pointKey(int x, int y) => '$x,$y';
+  static String pointKey(int x, int y) => operativePatternPointKey(x, y);
 
   @override
   State<OperativePatternOverlay> createState() =>
@@ -282,28 +170,6 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
         entry.key: OperativePatternPointContent(bonus: entry.value),
     };
   }
-}
-
-class OperativePatternPoint {
-  final int x;
-  final int y;
-
-  const OperativePatternPoint({
-    required this.x,
-    required this.y,
-  });
-
-  String get label => '[$x, $y]';
-  String get key => OperativePatternOverlay.pointKey(x, y);
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        other is OperativePatternPoint && other.x == x && other.y == y;
-  }
-
-  @override
-  int get hashCode => Object.hash(x, y);
 }
 
 Offset operativePatternBoardLocalCenterFor({
@@ -796,6 +662,9 @@ class _OperativePatternDotVisual extends StatelessWidget {
     final activeAccent = currentItem?.rarity.accent ?? bonus?.accent ?? accent;
 
     if (currentItem != null) {
+      final itemFontSize = bonus == null
+          ? (size * 0.78).clamp(22.0, 34.0).toDouble()
+          : (size * 0.48).clamp(16.0, 23.0).toDouble();
       return SizedBox.square(
         dimension: size,
         child: Stack(
@@ -804,24 +673,37 @@ class _OperativePatternDotVisual extends StatelessWidget {
             Center(
               child: Transform.rotate(
                 angle: _operativePatternContentCounterRotation,
-                child: EndpointText(
-                  currentItem.iconEmoji,
-                  style: TextStyle(
-                    fontSize: (size * 0.78).clamp(22.0, 34.0).toDouble(),
-                    height: 1,
-                    shadows: [
-                      if (isActive)
-                        Shadow(
-                          color: activeAccent.withValues(alpha: 0.84),
-                          blurRadius: 18,
-                        ),
-                      if (isActive)
-                        Shadow(
-                          color: activeAccent.withValues(alpha: 0.54),
-                          blurRadius: 28,
-                        ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    EndpointText(
+                      currentItem.iconEmoji,
+                      style: TextStyle(
+                        fontSize: itemFontSize,
+                        height: 1,
+                        shadows: [
+                          if (isActive)
+                            Shadow(
+                              color: activeAccent.withValues(alpha: 0.84),
+                              blurRadius: 18,
+                            ),
+                          if (isActive)
+                            Shadow(
+                              color: activeAccent.withValues(alpha: 0.54),
+                              blurRadius: 28,
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (bonus != null) ...[
+                      SizedBox(height: max(1, size * 0.03)),
+                      _OperativePatternBonusVisual(
+                        bonus: bonus,
+                        size: size * 0.82,
+                        isActive: isActive,
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ),

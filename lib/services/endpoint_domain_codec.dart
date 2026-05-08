@@ -33,6 +33,9 @@ abstract final class EndpointDomainCodec {
     final equippedItems = EndpointJsonUtils.readJsonMapList(
       json['equippedItems'],
     ).map<Item?>(_deserializeItem).whereType<Item>().toList(growable: false);
+    final patternItemPointKeys = EndpointJsonUtils.readStringMap(
+      json['patternItemPointKeys'],
+    );
     final combatFlags = EndpointJsonUtils.readJsonMapList(json['combatFlags'])
         .map<CombatRuntimeFlag?>(_deserializeCombatFlag)
         .whereType<CombatRuntimeFlag>()
@@ -94,6 +97,7 @@ abstract final class EndpointDomainCodec {
       statuses: List<BattlerStatus>.unmodifiable(statuses),
       inventoryItems: List<Item>.unmodifiable(inventoryItems),
       equippedItems: List<Item>.unmodifiable(equippedItems),
+      patternItemPointKeys: patternItemPointKeys,
       combatFlags: Set<CombatRuntimeFlag>.unmodifiable(combatFlags),
     );
   }
@@ -131,6 +135,7 @@ abstract final class EndpointDomainCodec {
       'inventoryItems': battler.inventoryItems
           .map<Map<String, Object?>>(_serializeItem)
           .toList(growable: false),
+      'patternItemPointKeys': battler.patternItemPointKeys,
       'combatFlags': battler.combatFlags
           .map<Map<String, Object?>>(_serializeCombatFlag)
           .toList(growable: false),
@@ -341,6 +346,13 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       ItemBonusShape.values,
       json['bonusShape'],
     ),
+    patternBonusKindOverride: EndpointJsonUtils.parseEnumByName(
+      OperativePatternBonusKind.values,
+      json['patternBonusKind'],
+    ),
+    patternBonusAmountOverride: EndpointJsonUtils.readNullableInt(
+      json['patternBonusAmount'],
+    ),
   );
 
   if (item.isInstanced) {
@@ -441,6 +453,8 @@ Map<String, Object?> _serializeItem(Item item) {
     'bonusShape': item.bonusShape.name,
     'specialBonusKind': item.specialBonus.kind.name,
     'specialBonusAmount': item.specialBonus.amount,
+    'patternBonusKind': item.patternBonusKind.name,
+    'patternBonusAmount': item.patternBonusAmount,
   };
 }
 

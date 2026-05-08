@@ -1,5 +1,6 @@
 import '../_imports.dart';
 import '../../services/endpoint_preferences_models.dart';
+import '../../services/operative_pattern_layout_service.dart';
 import 'package:flutter/foundation.dart';
 
 const _operativeTileExtent = 70.0;
@@ -9,17 +10,6 @@ const _operativesPatternBoardScale = 0.78;
 const _operativesPatternDiamondRotation = pi / 4;
 const _operativesPatternPointVisualSize = 34.0;
 const _operativesPatternPointHitSize = 58.0;
-const _operativesPatternPoints = <_OperativesPatternPoint>[
-  _OperativesPatternPoint(x: -1, y: 1),
-  _OperativesPatternPoint(x: 0, y: 1),
-  _OperativesPatternPoint(x: 1, y: 1),
-  _OperativesPatternPoint(x: -1, y: 0),
-  _OperativesPatternPoint(x: 0, y: 0),
-  _OperativesPatternPoint(x: 1, y: 0),
-  _OperativesPatternPoint(x: -1, y: -1),
-  _OperativesPatternPoint(x: 0, y: -1),
-  _OperativesPatternPoint(x: 1, y: -1),
-];
 
 class OperativesOverlay extends StatefulWidget {
   final Battler player;
@@ -41,8 +31,9 @@ class OperativesOverlay extends StatefulWidget {
 
 class _OperativesOverlayState extends State<OperativesOverlay> {
   late OperativesOverlayController _controller;
-  final Map<Item, _OperativesPatternPoint> _patternAssignments =
-      <Item, _OperativesPatternPoint>{};
+  final Map<Item, OperativePatternPoint> _patternAssignments =
+      <Item, OperativePatternPoint>{};
+  Map<String, String>? _scheduledPatternItemPointKeys;
 
   @override
   void initState() {
@@ -165,24 +156,62 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     );
   }
 
-  void _syncPatternAssignments(Battler player) {
-    final equippedItems = player.equippedItems;
-    final itemsByPointKey = OperativePatternLayoutStore.buildItemsByPointKey(
-      equippedItems: equippedItems,
+  void _syncPatternAssignments(
+    Battler player, {
+    bool persistPlayer = false,
+  }) {
+    final layout = OperativePatternLayoutService.resolveForPlayer(
+      player: player,
     );
-    final pointsByKey = <String, _OperativesPatternPoint>{
-      for (final point in _operativesPatternPoints) point.key: point,
+    final pointsByKey = <String, OperativePatternPoint>{
+      for (final point in operativePatternPoints) point.key: point,
     };
 
     _patternAssignments.clear();
-    for (final entry in itemsByPointKey.entries) {
+    for (final entry in layout.itemsByPointKey.entries) {
       final point = pointsByKey[entry.key];
       if (point == null) continue;
       _patternAssignments[entry.value] = point;
     }
+
+    if (identical(layout.player, player)) return;
+    if (persistPlayer) {
+      _controller.replacePlayer(layout.player);
+      return;
+    }
+
+    _queuePatternLayoutPersistence(layout.player.patternItemPointKeys);
   }
 
-  bool _canPlaceItemOnPatternPoint(Item item, _OperativesPatternPoint point) {
+  void _queuePatternLayoutPersistence(
+      Map<String, String> patternItemPointKeys) {
+    if (mapEquals(_scheduledPatternItemPointKeys, patternItemPointKeys)) {
+      return;
+    }
+
+    _scheduledPatternItemPointKeys = Map<String, String>.unmodifiable(
+      patternItemPointKeys,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final scheduledPatternItemPointKeys = _scheduledPatternItemPointKeys;
+      _scheduledPatternItemPointKeys = null;
+      if (!mounted || scheduledPatternItemPointKeys == null) return;
+      if (mapEquals(
+        _controller.player.patternItemPointKeys,
+        scheduledPatternItemPointKeys,
+      )) {
+        return;
+      }
+
+      _controller.replacePlayer(
+        _controller.player.copyWith(
+          patternItemPointKeys: scheduledPatternItemPointKeys,
+        ),
+      );
+    });
+  }
+
+  bool _canPlaceItemOnPatternPoint(Item item, OperativePatternPoint point) {
     if (widget.gameMode != EndpointGameMode.pattern) return false;
     if (!_controller.isPlayerSelected) return false;
     if (!item.isEquippable) return false;
@@ -194,23 +223,26 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     return _controller.isActionEnabled(item);
   }
 
-  Item? _itemAssignedToPatternPoint(_OperativesPatternPoint point) {
+  Item? _itemAssignedToPatternPoint(OperativePatternPoint point) {
     for (final entry in _patternAssignments.entries) {
       if (entry.value == point) return entry.key;
     }
     return null;
   }
 
-  void _placePatternItemOnPoint(Item item, _OperativesPatternPoint point) {
+  void _placePatternItemOnPoint(Item item, OperativePatternPoint point) {
     if (!_canPlaceItemOnPatternPoint(item, point)) return;
 
     if (_controller.player.equippedItems.contains(item)) {
       setState(() {
         _patternAssignments[item] = point;
       });
-      OperativePatternLayoutStore.rememberItemPoint(
-        item: item,
-        pointKey: point.key,
+      _controller.replacePlayer(
+        OperativePatternLayoutService.rememberItemPoint(
+          player: _controller.player,
+          item: item,
+          pointKey: point.key,
+        ),
       );
       return;
     }
@@ -218,13 +250,15 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     final wasEquipped = _controller.equipInventoryItem(item);
     if (!wasEquipped) return;
 
-    setState(() {
-      _patternAssignments[item] = point;
-    });
-    OperativePatternLayoutStore.rememberItemPoint(
+    final updatedPlayer = OperativePatternLayoutService.rememberItemPoint(
+      player: _controller.player,
       item: item,
       pointKey: point.key,
     );
+    setState(() {
+      _patternAssignments[item] = point;
+    });
+    _controller.replacePlayer(updatedPlayer);
   }
 
   bool _canUnequipPatternItem(Item item) {
@@ -239,10 +273,14 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     final wasUnequipped = _controller.unequipEquippedItem(item);
     if (!wasUnequipped) return;
 
+    final updatedPlayer = OperativePatternLayoutService.forgetItem(
+      player: _controller.player,
+      item: item,
+    );
     setState(() {
       _patternAssignments.remove(item);
     });
-    OperativePatternLayoutStore.forgetItem(item);
+    _controller.replacePlayer(updatedPlayer);
   }
 
   Widget _buildInventoryItemTile(Item item) {
@@ -503,11 +541,10 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
   }
 
   Future<void> _openPatternBoard() async {
-    _syncPatternAssignments(_controller.player);
+    _syncPatternAssignments(_controller.player, persistPlayer: true);
     final equippedItemsByPointKey = <String, Item>{
       for (final entry in _patternAssignments.entries)
-        OperativePatternOverlay.pointKey(entry.value.x, entry.value.y):
-            entry.key,
+        entry.value.key: entry.key,
     };
 
     await showEndpointOverlay<void>(
@@ -522,32 +559,11 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
   }
 }
 
-class _OperativesPatternPoint {
-  final int x;
-  final int y;
-
-  const _OperativesPatternPoint({
-    required this.x,
-    required this.y,
-  });
-
-  String get key => OperativePatternOverlay.pointKey(x, y);
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        other is _OperativesPatternPoint && other.x == x && other.y == y;
-  }
-
-  @override
-  int get hashCode => Object.hash(x, y);
-}
-
 class _PatternEquipmentPanel extends StatelessWidget {
   final Battler battler;
-  final Map<Item, _OperativesPatternPoint> assignments;
-  final bool Function(Item item, _OperativesPatternPoint point) canAcceptItem;
-  final void Function(Item item, _OperativesPatternPoint point) onAcceptItem;
+  final Map<Item, OperativePatternPoint> assignments;
+  final bool Function(Item item, OperativePatternPoint point) canAcceptItem;
+  final void Function(Item item, OperativePatternPoint point) onAcceptItem;
   final ValueChanged<Item>? onItemPressed;
 
   const _PatternEquipmentPanel({
@@ -606,9 +622,9 @@ class _PatternEquipmentPanel extends StatelessWidget {
 }
 
 class _PatternEquipmentBoard extends StatelessWidget {
-  final Map<Item, _OperativesPatternPoint> assignments;
-  final bool Function(Item item, _OperativesPatternPoint point) canAcceptItem;
-  final void Function(Item item, _OperativesPatternPoint point) onAcceptItem;
+  final Map<Item, OperativePatternPoint> assignments;
+  final bool Function(Item item, OperativePatternPoint point) canAcceptItem;
+  final void Function(Item item, OperativePatternPoint point) onAcceptItem;
   final ValueChanged<Item>? onItemPressed;
 
   const _PatternEquipmentBoard({
@@ -620,7 +636,7 @@ class _PatternEquipmentBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final itemsByPoint = <_OperativesPatternPoint, Item>{
+    final itemsByPoint = <OperativePatternPoint, Item>{
       for (final entry in assignments.entries) entry.value: entry.key,
     };
 
@@ -637,7 +653,7 @@ class _PatternEquipmentBoard extends StatelessWidget {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  for (final point in _operativesPatternPoints)
+                  for (final point in operativePatternPoints)
                     _PatternEquipmentPointTarget(
                       point: point,
                       item: itemsByPoint[point],
@@ -655,7 +671,7 @@ class _PatternEquipmentBoard extends StatelessWidget {
     );
   }
 
-  Offset _patternPointCenter(_OperativesPatternPoint point, double boardSide) {
+  Offset _patternPointCenter(OperativePatternPoint point, double boardSide) {
     final cellSize = boardSide / 3;
     final column = point.x + 1;
     final row = 1 - point.y;
@@ -668,11 +684,11 @@ class _PatternEquipmentBoard extends StatelessWidget {
 }
 
 class _PatternEquipmentPointTarget extends StatelessWidget {
-  final _OperativesPatternPoint point;
+  final OperativePatternPoint point;
   final Item? item;
   final Offset center;
-  final bool Function(Item item, _OperativesPatternPoint point) canAcceptItem;
-  final void Function(Item item, _OperativesPatternPoint point) onAcceptItem;
+  final bool Function(Item item, OperativePatternPoint point) canAcceptItem;
+  final void Function(Item item, OperativePatternPoint point) onAcceptItem;
   final ValueChanged<Item>? onItemPressed;
 
   const _PatternEquipmentPointTarget({

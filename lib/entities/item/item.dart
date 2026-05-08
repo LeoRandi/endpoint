@@ -233,6 +233,8 @@ class Item {
   final ItemEffect? effect;
   final String? instanceId;
   final ItemBonusShape? bonusShapeOverride;
+  final OperativePatternBonusKind? patternBonusKindOverride;
+  final int? patternBonusAmountOverride;
 
   /// Crea un item inmutable que puede actuar como preset compartido o copia poseida.
   const Item({
@@ -255,6 +257,8 @@ class Item {
     this.effect,
     this.instanceId,
     this.bonusShapeOverride,
+    this.patternBonusKindOverride,
+    this.patternBonusAmountOverride,
   }) : _declaredTags = tags;
 
   /// Indica si el objeto puede equiparse.
@@ -292,6 +296,20 @@ class Item {
 
   /// Describe el bonus especial ligado a la forma actual del objeto.
   ItemSpecialBonus get specialBonus => ItemSpecialBonus.forShape(bonusShape);
+
+  /// Describe el bonus que aporta este objeto cuando se cruza en Patron.
+  OperativePatternBonus get patternBonus => OperativePatternBonus(
+        kind: patternBonusKind,
+        amount: patternBonusAmount,
+      );
+
+  /// Devuelve si el bonus interno del Patron empuja ataque o bloqueo.
+  OperativePatternBonusKind get patternBonusKind =>
+      patternBonusKindOverride ?? _defaultPatternBonusKind;
+
+  /// Devuelve la magnitud interna del bonus de Patron.
+  int get patternBonusAmount =>
+      max(1, patternBonusAmountOverride ?? rarity.factor);
 
   /// Devuelve el bonus especial de dibujo si este item participa en dicho sistema.
   ItemSpecialBonus? get drawingSpecialBonus {
@@ -473,6 +491,12 @@ class Item {
       statModifiers: updatedStatModifiers,
       upgradeStatModifiers: upgradeTemplate.upgradeStatModifiers,
       effect: upgradeTemplate.effect,
+      patternBonusKindOverride: upgradeTemplate.patternBonusKindOverride,
+      clearPatternBonusKindOverride:
+          upgradeTemplate.patternBonusKindOverride == null,
+      patternBonusAmountOverride: upgradeTemplate.patternBonusAmountOverride,
+      clearPatternBonusAmountOverride:
+          upgradeTemplate.patternBonusAmountOverride == null,
     );
   }
 
@@ -498,6 +522,10 @@ class Item {
     String? instanceId,
     ItemBonusShape? bonusShapeOverride,
     bool clearBonusShapeOverride = false,
+    OperativePatternBonusKind? patternBonusKindOverride,
+    bool clearPatternBonusKindOverride = false,
+    int? patternBonusAmountOverride,
+    bool clearPatternBonusAmountOverride = false,
   }) {
     return Item(
       id: id,
@@ -522,6 +550,12 @@ class Item {
       bonusShapeOverride: clearBonusShapeOverride
           ? null
           : bonusShapeOverride ?? this.bonusShapeOverride,
+      patternBonusKindOverride: clearPatternBonusKindOverride
+          ? null
+          : patternBonusKindOverride ?? this.patternBonusKindOverride,
+      patternBonusAmountOverride: clearPatternBonusAmountOverride
+          ? null
+          : patternBonusAmountOverride ?? this.patternBonusAmountOverride,
     );
   }
 
@@ -549,6 +583,8 @@ class Item {
       effect: effect,
       instanceId: 'item_${_nextInstanceSequence++}',
       bonusShapeOverride: bonusShapeOverride,
+      patternBonusKindOverride: patternBonusKindOverride,
+      patternBonusAmountOverride: patternBonusAmountOverride,
     );
   }
 
@@ -606,6 +642,18 @@ class Item {
       case BattlerStat.vampirism:
         return 'VAMPIRISMO';
     }
+  }
+
+  OperativePatternBonusKind get _defaultPatternBonusKind {
+    final attackScore = max(0, modifier(BattlerStat.attack)) +
+        (hasTag(EntityTag.ataque) ? 1 : 0) +
+        (isWeaponLike ? 1 : 0);
+    final barrierScore = max(0, modifier(BattlerStat.barrier)) +
+        (hasTag(EntityTag.barrera) ? 1 : 0);
+
+    return attackScore > barrierScore
+        ? OperativePatternBonusKind.attack
+        : OperativePatternBonusKind.barrier;
   }
 
   /// Compara objetos poseidos usando su id de instancia para no mezclar copias distintas.

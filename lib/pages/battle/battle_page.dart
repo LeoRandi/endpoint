@@ -329,7 +329,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       if (!mounted || drawResult == null) return;
 
       await _sceneController.handlePlayerAttack(
-        drawingBonus: drawResult.resolution.bonus,
+        actionBonus: drawResult.resolution.bonus,
         drawingPenalty: drawResult.resolution.penalty,
       );
       _syncQuickDrawState(drawResult);
@@ -350,10 +350,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     });
 
     try {
-      final equippedItemsByPointKey =
-          OperativePatternLayoutStore.buildItemsByPointKey(
-        equippedItems: _sceneController.player.equippedItems,
+      final patternLayout = OperativePatternLayoutService.resolveForPlayer(
+        player: _sceneController.player,
       );
+      if (!identical(patternLayout.player, _sceneController.player)) {
+        _sceneController.replacePlayer(patternLayout.player);
+      }
       final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
         context: context,
         barrierDismissible: false,
@@ -361,13 +363,13 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         builder: (_) => BattlePatternMatchOverlay(
           player: _sceneController.player,
           enemy: _sceneController.enemy,
-          equippedItemsByPointKey: equippedItemsByPointKey,
+          equippedItemsByPointKey: patternLayout.itemsByPointKey,
         ),
       );
       if (!mounted || matchResult == null) return;
 
       await _sceneController.handlePlayerAttack(
-        drawingBonus: BattleAttackDrawingBonus(
+        actionBonus: BattleActionBonus(
           attackBonus: matchResult.attackBonus,
           endTurnBarrierAmount: matchResult.barrierBonus,
         ),
@@ -418,7 +420,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       if (!mounted || drawResult == null) return;
 
       await _sceneController.handlePlayerBlock(
-        drawingBonus: drawResult.resolution.bonus,
+        actionBonus: drawResult.resolution.bonus,
         drawingPenalty: drawResult.resolution.penalty,
       );
       _syncQuickDrawState(drawResult);

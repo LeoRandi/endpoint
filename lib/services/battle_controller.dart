@@ -161,6 +161,13 @@ class BattleController extends ChangeNotifier {
   PlayerActionIntentPreview get playerActionIntentPreview =>
       _buildPlayerActionIntentPreview();
 
+  void replacePlayer(Battler player) {
+    if (identical(_player, player)) return;
+
+    _player = player;
+    notifyListeners();
+  }
+
   String get turnTitle {
     switch (_turn) {
       case BattleTurnState.player:
@@ -303,11 +310,13 @@ class BattleController extends ChangeNotifier {
   }
 
   Future<void> handleAttack({
-    BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+    BattleActionBonus actionBonus = BattleActionBonus.empty,
+    BattleActionBonus? drawingBonus,
     BattleAttackDrawingPenalty drawingPenalty =
         BattleAttackDrawingPenalty.empty,
   }) async {
     if (!canUseActions) return;
+    final resolvedActionBonus = drawingBonus ?? actionBonus;
 
     if (drawingPenalty.hasAnyPenalty) {
       await _applyDrawingPenalty(drawingPenalty);
@@ -316,8 +325,8 @@ class BattleController extends ChangeNotifier {
       }
     }
 
-    if (drawingBonus.healAmount > 0) {
-      await _applyPlayerHealing(drawingBonus.healAmount);
+    if (resolvedActionBonus.healAmount > 0) {
+      await _applyPlayerHealing(resolvedActionBonus.healAmount);
     }
 
     final attackerBefore = _player;
@@ -325,7 +334,7 @@ class BattleController extends ChangeNotifier {
     final resolution = _resolveAttackAction(
       attacker: _player,
       defender: _enemy,
-      flatAttackBonus: drawingBonus.attackBonus,
+      flatAttackBonus: resolvedActionBonus.attackBonus,
     );
 
     await _playAttackActionAnimations(
@@ -346,9 +355,9 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    if (drawingBonus.endTurnBarrierAmount > 0) {
-      await _applyDrawingEndTurnBarrierToPlayer(
-        drawingBonus.endTurnBarrierAmount,
+    if (resolvedActionBonus.endTurnBarrierAmount > 0) {
+      await _applyActionEndTurnBarrierToPlayer(
+        resolvedActionBonus.endTurnBarrierAmount,
       );
     }
 
@@ -359,11 +368,13 @@ class BattleController extends ChangeNotifier {
   }
 
   Future<void> handleBlock({
-    BattleAttackDrawingBonus drawingBonus = BattleAttackDrawingBonus.empty,
+    BattleActionBonus actionBonus = BattleActionBonus.empty,
+    BattleActionBonus? drawingBonus,
     BattleAttackDrawingPenalty drawingPenalty =
         BattleAttackDrawingPenalty.empty,
   }) async {
     if (!canUseActions) return;
+    final resolvedActionBonus = drawingBonus ?? actionBonus;
 
     if (drawingPenalty.hasAnyPenalty) {
       await _applyDrawingPenalty(drawingPenalty);
@@ -372,13 +383,13 @@ class BattleController extends ChangeNotifier {
       }
     }
 
-    if (drawingBonus.healAmount > 0) {
-      await _applyPlayerHealing(drawingBonus.healAmount);
+    if (resolvedActionBonus.healAmount > 0) {
+      await _applyPlayerHealing(resolvedActionBonus.healAmount);
     }
 
-    if (drawingBonus.attackBonus > 0) {
+    if (resolvedActionBonus.attackBonus > 0) {
       _player = _player.applyStatus(
-        PotenciaStatus(value: drawingBonus.attackBonus),
+        PotenciaStatus(value: resolvedActionBonus.attackBonus),
         applyEquipmentModifiers: false,
       );
     }
@@ -412,9 +423,9 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    if (drawingBonus.endTurnBarrierAmount > 0) {
-      await _applyDrawingEndTurnBarrierToPlayer(
-        drawingBonus.endTurnBarrierAmount,
+    if (resolvedActionBonus.endTurnBarrierAmount > 0) {
+      await _applyActionEndTurnBarrierToPlayer(
+        resolvedActionBonus.endTurnBarrierAmount,
       );
     }
 
@@ -2387,10 +2398,10 @@ class BattleController extends ChangeNotifier {
     return (round - 9) * 10;
   }
 
-  Future<void> _applyDrawingEndTurnBarrierToPlayer(int amount) async {
+  Future<void> _applyActionEndTurnBarrierToPlayer(int amount) async {
     final playerBefore = _player;
     final enemyBefore = _enemy;
-    final playerAfter = _applyDrawingEndTurnBarrier(_player, amount);
+    final playerAfter = _applyActionEndTurnBarrier(_player, amount);
     await _playCombatStateTransitionAnimations(
       playerBefore: playerBefore,
       enemyBefore: enemyBefore,
@@ -2415,8 +2426,8 @@ class BattleController extends ChangeNotifier {
     _player = playerAfter;
   }
 
-  Battler _applyDrawingEndTurnBarrier(Battler battler, int amount) {
-    // El bonus de dibujo representa una barrera temporal y no debe anularse
+  Battler _applyActionEndTurnBarrier(Battler battler, int amount) {
+    // Los bonus de accion representan barrera temporal y no deben anularse
     // solo porque el tope base del battler sea cero.
     return battler.gainCombatBarrier(amount);
   }

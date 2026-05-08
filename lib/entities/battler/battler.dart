@@ -459,6 +459,7 @@ class Battler {
   final List<BattlerStatus> statuses;
   final List<Item> inventoryItems;
   final List<Item> equippedItems;
+  final Map<String, String> patternItemPointKeys;
   final Set<CombatRuntimeFlag> combatFlags;
 
   // Los presets de juego dependen de constructores const, asi que la cache de
@@ -491,6 +492,7 @@ class Battler {
     this.statuses = const [],
     this.inventoryItems = const [],
     this.equippedItems = const [],
+    this.patternItemPointKeys = const <String, String>{},
     this.combatFlags = const <CombatRuntimeFlag>{},
   })  : baseIncome = income,
         assert(health >= 0),
@@ -603,6 +605,7 @@ class Battler {
     List<BattlerStatus>? statuses,
     List<Item>? inventoryItems,
     List<Item>? equippedItems,
+    Map<String, String>? patternItemPointKeys,
     Set<CombatRuntimeFlag>? combatFlags,
   }) {
     final resolvedBaseStats = baseStats ?? this.baseStats;
@@ -617,6 +620,9 @@ class Battler {
     );
     final resolvedEquippedItems = List<Item>.unmodifiable(
       equippedItems ?? this.equippedItems,
+    );
+    final resolvedPatternItemPointKeys = Map<String, String>.unmodifiable(
+      patternItemPointKeys ?? this.patternItemPointKeys,
     );
     final resolvedCombatFlags = Set<CombatRuntimeFlag>.unmodifiable(
       combatFlags ?? this.combatFlags,
@@ -640,6 +646,7 @@ class Battler {
       statuses: resolvedStatuses,
       inventoryItems: resolvedInventoryItems,
       equippedItems: resolvedEquippedItems,
+      patternItemPointKeys: resolvedPatternItemPointKeys,
       combatFlags: resolvedCombatFlags,
     );
   }
@@ -720,6 +727,7 @@ class Battler {
     required List<BattlerStatus> statuses,
     required List<Item> inventoryItems,
     required List<Item> equippedItems,
+    required Map<String, String> patternItemPointKeys,
     required Set<CombatRuntimeFlag> combatFlags,
   }) {
     final seedBarrier = max(
@@ -744,6 +752,7 @@ class Battler {
       statuses: statuses,
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,
+      patternItemPointKeys: patternItemPointKeys,
       combatFlags: combatFlags,
     );
     final clampedHealth = min(candidate.health, candidate.maxHealth);
@@ -779,6 +788,7 @@ class Battler {
       statuses: statuses,
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,
+      patternItemPointKeys: patternItemPointKeys,
       combatFlags: combatFlags,
     );
   }

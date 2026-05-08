@@ -17,6 +17,16 @@ abstract final class EndpointJsonUtils {
         .toList(growable: false);
   }
 
+  static Map<String, String> readStringMap(Object? rawValue) {
+    final jsonMap = asJsonMap(rawValue);
+    if (jsonMap == null) return const <String, String>{};
+
+    return Map<String, String>.unmodifiable({
+      for (final entry in jsonMap.entries)
+        if (entry.value is String) entry.key: entry.value as String,
+    });
+  }
+
   static bool readBool(
     Object? rawValue, {
     required bool fallback,

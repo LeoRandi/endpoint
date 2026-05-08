@@ -385,25 +385,18 @@ class BattleDrawingEnemyNuisanceResolution {
   }
 }
 
-class BattleAttackDrawingBonus {
-  final int attackBonus;
-  final int healAmount;
-  final int endTurnBarrierAmount;
-
+class BattleAttackDrawingBonus extends BattleActionBonus {
   const BattleAttackDrawingBonus({
-    this.attackBonus = 0,
-    this.healAmount = 0,
-    this.endTurnBarrierAmount = 0,
+    super.attackBonus,
+    super.healAmount,
+    super.endTurnBarrierAmount,
   });
 
   static const BattleAttackDrawingBonus empty = BattleAttackDrawingBonus();
-
-  bool get hasAnyBonus =>
-      attackBonus > 0 || healAmount > 0 || endTurnBarrierAmount > 0;
 }
 
 class BattleDrawingBonusResolution {
-  final BattleAttackDrawingBonus bonus;
+  final BattleActionBonus bonus;
   final BattleAttackDrawingPenalty penalty;
   final List<Item> activatedItems;
   final Map<ItemBonusShape, int> recognizedCounts;
@@ -412,7 +405,7 @@ class BattleDrawingBonusResolution {
   final BattleDrawingEnemyNuisanceResolution enemyNuisanceResolution;
 
   const BattleDrawingBonusResolution({
-    this.bonus = BattleAttackDrawingBonus.empty,
+    this.bonus = BattleActionBonus.empty,
     this.penalty = BattleAttackDrawingPenalty.empty,
     this.activatedItems = const <Item>[],
     this.recognizedCounts = const <ItemBonusShape, int>{},
@@ -502,7 +495,7 @@ class BattleDrawingBonusResolver {
     }
 
     return BattleDrawingBonusResolution(
-      bonus: BattleAttackDrawingBonus(
+      bonus: BattleActionBonus(
         attackBonus: attackBonus,
         healAmount: healAmount,
         endTurnBarrierAmount: endTurnBarrierAmount,

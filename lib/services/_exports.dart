@@ -1,5 +1,6 @@
 export 'battler_effect_pipeline.dart';
 export 'battler_runtime_service.dart';
+export 'battle_action_bonus.dart';
 export 'battle_controller.dart';
 export 'battle_drawing_bonus_resolver.dart';
 export 'battle_flow_result.dart';
@@ -10,6 +11,8 @@ export 'camp_site_service.dart';
 export 'endpoint_preferences_models.dart';
 export 'endpoint_preferences_service.dart';
 export 'level_up_reward_service.dart';
+export 'operative_pattern_bonus_service.dart';
+export 'operative_pattern_layout_service.dart';
 export 'path_node_service.dart';
 export 'path_event_service.dart';
 export 'path_event_visit_result.dart';
