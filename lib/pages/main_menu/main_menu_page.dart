@@ -115,7 +115,9 @@ class _MainMenuPageState extends State<MainMenuPage>
   Future<void> _openNewRun() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const PathSelectionPage(),
+        builder: (_) => PathSelectionPage(
+          initialSettings: _settings,
+        ),
       ),
     );
     if (!mounted) return;
@@ -126,7 +128,9 @@ class _MainMenuPageState extends State<MainMenuPage>
   Future<void> _openTutorialRun() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PathSelectionPage.tutorial(),
+        builder: (_) => PathSelectionPage.tutorial(
+          initialSettings: _settings,
+        ),
       ),
     );
     if (!mounted) return;
@@ -160,6 +164,7 @@ class _MainMenuPageState extends State<MainMenuPage>
       MaterialPageRoute(
         builder: (_) => PathSelectionPage.continueRun(
           restoredRun: currentRunSnapshot,
+          initialSettings: _settings,
         ),
       ),
     );

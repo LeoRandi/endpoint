@@ -4,3 +4,4 @@ export "battle_draw_defense_overlay.dart";
 export "battle_draw_overlay_result.dart";
 export "battle_items_dialog.dart";
 export "battle_loot_overlay.dart";
+export "battle_pattern_match_overlay.dart";

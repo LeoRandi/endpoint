@@ -290,6 +290,18 @@ class _SettingsPageState extends State<SettingsPage> {
                                 );
                               },
                             ),
+                            _SettingsChoiceButton(
+                              label: 'Patrón',
+                              selected: _settings.gameMode ==
+                                  EndpointGameMode.pattern,
+                              onPressed: () {
+                                _applySettings(
+                                  _settings.copyWith(
+                                    gameMode: EndpointGameMode.pattern,
+                                  ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),

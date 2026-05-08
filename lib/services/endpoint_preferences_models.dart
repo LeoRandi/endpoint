@@ -8,6 +8,7 @@ import 'run_hour_snapshot.dart';
 enum EndpointGameMode {
   classic,
   drawing,
+  pattern,
 }
 
 class EndpointSettingsSnapshot {
@@ -33,7 +34,7 @@ class EndpointSettingsSnapshot {
         animationSpeed = 2,
         customAvatarEnabled = false,
         customAvatarSelectionEnabled = false,
-        gameMode = EndpointGameMode.drawing;
+        gameMode = EndpointGameMode.pattern;
 
   EndpointSettingsSnapshot copyWith({
     bool? soundEnabled,

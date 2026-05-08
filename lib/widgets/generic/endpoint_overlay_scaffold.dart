@@ -61,7 +61,7 @@ class EndpointOverlayScaffold extends StatelessWidget {
               glowOpacity: 0.12,
               blurRadius: 22,
               spreadRadius: 2,
-              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+              padding: const EdgeInsets.all(6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

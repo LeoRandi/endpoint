@@ -15,6 +15,7 @@ class PathSelectionPage extends StatefulWidget {
   final EndpointCurrentRunSnapshot? restoredRun;
   final bool isTutorialRun;
   final bool persistRun;
+  final EndpointSettingsSnapshot initialSettings;
 
   const PathSelectionPage({
     super.key,
@@ -27,12 +28,14 @@ class PathSelectionPage extends StatefulWidget {
     this.battleCombatEndDelay = const Duration(seconds: 2),
     this.isTutorialRun = false,
     this.persistRun = true,
+    this.initialSettings = const EndpointSettingsSnapshot.defaults(),
   }) : restoredRun = null;
 
   PathSelectionPage.tutorial({
     super.key,
     this.battleEnemyTurnDelay = const Duration(milliseconds: 900),
     this.battleCombatEndDelay = const Duration(seconds: 2),
+    this.initialSettings = const EndpointSettingsSnapshot.defaults(),
   })  : player = defaultPlayerBattler,
         availableNodes = null,
         scriptedNodesByStage = TutorialRunDefinition.scriptedNodesByStage,
@@ -45,6 +48,7 @@ class PathSelectionPage extends StatefulWidget {
   const PathSelectionPage.continueRun({
     super.key,
     required this.restoredRun,
+    this.initialSettings = const EndpointSettingsSnapshot.defaults(),
   })  : player = defaultPlayerBattler,
         availableNodes = null,
         scriptedNodesByStage = null,
@@ -212,6 +216,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       barrierColor: EndpointPalette.overlayScrimStrong,
       builder: (_) => OperativesOverlay(
         player: _sessionController.player,
+        gameMode: widget.initialSettings.gameMode,
         onPlayerChanged: _sessionController.updatePlayer,
       ),
     );

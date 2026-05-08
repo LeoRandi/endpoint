@@ -4,6 +4,7 @@ abstract final class EndpointPalette {
   static const primaryAccent = Color(0xFF5AF78E);
   static const dangerAccent = Color(0xFFFF6B6B);
   static const warningAccent = Color(0xFFF3D35C);
+  static const patternAccent = Color(0xFFFF8A1F);
   static const infoAccent = Color(0xFF59B7FF);
   static const shopAccent = Color(0xFFDBB95A);
   static const rewardAccent = Color(0xFFEBCB5A);

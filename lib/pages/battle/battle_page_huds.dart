@@ -3,6 +3,7 @@ part of 'battle_page.dart';
 class _ActionPanel extends StatelessWidget {
   final bool isEnabled;
   final bool isDrawingMode;
+  final bool isPatternMode;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
   final PlayerActionIntentPreview actionPreview;
@@ -10,6 +11,7 @@ class _ActionPanel extends StatelessWidget {
   const _ActionPanel({
     required this.isEnabled,
     required this.isDrawingMode,
+    required this.isPatternMode,
     required this.onAttack,
     required this.onBlock,
     required this.actionPreview,
@@ -17,6 +19,13 @@ class _ActionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isPatternMode) {
+      return _MatchActionButton(
+        isEnabled: isEnabled,
+        onMatch: onAttack,
+      );
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -44,6 +53,7 @@ class _PlayerBattleHud extends StatelessWidget {
   final List<BattlerAbility> visibleAbilities;
   final bool isEnabled;
   final bool isDrawingMode;
+  final bool isPatternMode;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
   final PlayerActionIntentPreview actionPreview;
@@ -59,6 +69,7 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.visibleAbilities,
     required this.isEnabled,
     required this.isDrawingMode,
+    required this.isPatternMode,
     required this.onAttack,
     required this.onBlock,
     required this.actionPreview,
@@ -103,6 +114,7 @@ class _PlayerBattleHud extends StatelessWidget {
             _ActionPanel(
               isEnabled: isEnabled,
               isDrawingMode: isDrawingMode,
+              isPatternMode: isPatternMode,
               onAttack: onAttack,
               onBlock: onBlock,
               actionPreview: actionPreview,
@@ -117,6 +129,28 @@ class _PlayerBattleHud extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _MatchActionButton extends StatelessWidget {
+  final bool isEnabled;
+  final VoidCallback onMatch;
+
+  const _MatchActionButton({
+    required this.isEnabled,
+    required this.onMatch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BattleActionButton(
+      label: 'MATCH',
+      icon: Icons.join_inner_rounded,
+      dimension: 92,
+      onPressed: isEnabled ? onMatch : null,
+      tooltip: 'Abrir patron de combate',
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
     );
   }
 }

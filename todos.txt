@@ -1,4 +1,7 @@
 ﻿TODOs:
+-Patrón
+--El equipamiento también va en 9 huecos como el patrón, dibujar encima hace que se active el objeto
+
 [-Level up]
 [--Cambiar recompensas de level up: 1º stats, luego habilidad, luego item, etc]
 
@@ -91,11 +94,11 @@
 [--Texto de flavor a cada tienda]
 
 -Eventos
---Crear más eventos, al menos 15[8/15]
+--Crear más eventos, al menos 20[8/20]
 [--Texto de flavor a cada evento]
 
 -Enemigos
---Crear Presets(al menos 60 distintos)[33/60]
+--Crear Presets(al menos 100 distintos)[33/100]
 --Equipar adecuadamente
 
 -Codex
@@ -120,9 +123,11 @@ ARREGLAR:
 -añadir objetos de resonancia para inamovible que usen resonancia(no hay ninguno que lo use para el daño)
 -dibujo guardado para quick save no se guarda entre sesiones de la app
 -Los marcadores de daño y bloqueo del jugador en combate tienen que tener un scroll horizontal automático, o detectar que tiene que hacer scroll antes si ya lo tienen.
+-Modificar items y habilidades de Calentando para que en general se activen al comienzo del combate, con mucho burst
 
 -Nerf:
 --Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
+--Turbina Térmica: 10 de calentando al comienzo del combate
 
 ////
 PROBAR:
@@ -130,7 +135,6 @@ PROBAR:
 ///
 IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
--dibujo rollo patrón del movil?
 -mostrar si es habilidad o item en la recompensa(dejar como el resumen?)
 -Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
 

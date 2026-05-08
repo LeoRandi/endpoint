@@ -147,6 +147,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   bool _releaseDisplayOverrideOnNextSceneChange = false;
   bool _isPresentingDrawAttack = false;
   bool _isPresentingDrawDefense = false;
+  bool _isPresentingPatternMatch = false;
   bool _isQuickDrawAvailable = true;
   int _quickDrawUseCount = 0;
   int _quickDrawPerfectsRemaining = 0;
@@ -277,6 +278,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   bool get _isDrawingMode =>
       _settingsSnapshot?.gameMode == EndpointGameMode.drawing;
+  bool get _isPatternMode =>
+      _settingsSnapshot?.gameMode == EndpointGameMode.pattern;
   void _handlePlayerAttack() {
     unawaited(_handlePlayerAttackFlow());
   }
@@ -295,6 +298,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final settings = await _ensureSettingsSnapshot();
     if (!mounted) return;
     if (settings.gameMode != EndpointGameMode.drawing) {
+      if (settings.gameMode == EndpointGameMode.pattern) {
+        await _handlePlayerPatternMatchFlow();
+        return;
+      }
       await _sceneController.handlePlayerAttack();
       return;
     }
@@ -330,6 +337,45 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       if (mounted) {
         setState(() {
           _isPresentingDrawAttack = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handlePlayerPatternMatchFlow() async {
+    if (_isPresentingPatternMatch) return;
+
+    setState(() {
+      _isPresentingPatternMatch = true;
+    });
+
+    try {
+      final equippedItemsByPointKey =
+          OperativePatternLayoutStore.buildItemsByPointKey(
+        equippedItems: _sceneController.player.equippedItems,
+      );
+      final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: EndpointPalette.overlayScrimStrong,
+        builder: (_) => BattlePatternMatchOverlay(
+          player: _sceneController.player,
+          enemy: _sceneController.enemy,
+          equippedItemsByPointKey: equippedItemsByPointKey,
+        ),
+      );
+      if (!mounted || matchResult == null) return;
+
+      await _sceneController.handlePlayerAttack(
+        drawingBonus: BattleAttackDrawingBonus(
+          attackBonus: matchResult.attackBonus,
+          endTurnBarrierAmount: matchResult.barrierBonus,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPresentingPatternMatch = false;
         });
       }
     }
@@ -568,7 +614,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   ) {
     final sideRect = _rectForSide(cue.primarySide);
     final isBurn = cue.hook == BattleCombatAnimationHook.burnDamage;
-    final poisonStatus = const IntoxicacionStatus();
+    const poisonStatus = IntoxicacionStatus();
     final count = max(1, cue.effectCount);
     final particles = List<_BattleStatusEffectParticle>.generate(
       count,
@@ -993,8 +1039,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       displayPlayerOverride: _displayPlayerOverride,
       displayEnemyOverride: _displayEnemyOverride,
       isDrawingMode: _isDrawingMode,
+      isPatternMode: _isPatternMode,
       isPresentingDrawAttack: _isPresentingDrawAttack,
       isPresentingDrawDefense: _isPresentingDrawDefense,
+      isPresentingPatternMatch: _isPresentingPatternMatch,
       isPlayingBattleAnimation: _isPlayingBattleAnimation,
       battleAnimationRootKey: _battleAnimationRootKey,
       playerSideKey: _playerSideKey,

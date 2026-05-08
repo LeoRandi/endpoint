@@ -84,7 +84,8 @@ class OperativesOverlayController extends ChangeNotifier {
 
   /// Explica por que un item del jugador no admite accion primaria.
   String disabledActionTooltipFor(Item item) {
-    return _player.equipItemBlockReason(item) ?? 'El objeto ya no esta disponible';
+    return _player.equipItemBlockReason(item) ??
+        'El objeto ya no esta disponible';
   }
 
   /// Devuelve la etiqueta del boton de quitar cuando el item equipado puede volver al inventario.
@@ -118,11 +119,25 @@ class OperativesOverlayController extends ChangeNotifier {
     _replacePlayer(updatedPlayer);
   }
 
+  /// Equipa un item desde inventario y confirma si el estado ha cambiado.
+  bool equipInventoryItem(Item item) {
+    if (!_player.canEquipItem(item)) return false;
+
+    _replacePlayer(_player.equipItem(item));
+    return true;
+  }
+
   /// Quita un item del jugador solo si sigue equipado en el estado actual.
   void handleUnequipItem(Item item) {
-    if (!_player.equippedItems.contains(item)) return;
+    unequipEquippedItem(item);
+  }
+
+  /// Devuelve un item equipado al inventario y confirma si el estado ha cambiado.
+  bool unequipEquippedItem(Item item) {
+    if (!_player.equippedItems.contains(item)) return false;
 
     _replacePlayer(_player.unequipItem(item));
+    return true;
   }
 
   /// Sustituye el jugador interno, conserva la seleccion valida y notifica el cambio una sola vez.
