@@ -1,5 +1,6 @@
 import '../_imports.dart';
 import '../../services/operative_pattern_bonus_service.dart';
+import '../../services/operative_pattern_combat_rules.dart';
 
 const _battlePatternMatchDuration = Duration(seconds: 15);
 const _battlePatternEnemyTravel = 42.0;
@@ -45,6 +46,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   late final AnimationController _enemyMotionController;
   late final AnimationController _blockMotionController;
   late final Map<String, OperativePatternBonus> _bonusesByPointKey;
+  late final int _maxPatternPoints;
   late final OperativePatternPoint _blockedPoint;
   Timer? _countdownTimer;
   Timer? _blockStartTimer;
@@ -71,6 +73,9 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     _bonusesByPointKey = buildOperativePatternBonusesByPointKey(
       playerLevel: widget.player.level,
       occupiedPointKeys: widget.equippedItemsByPointKey.keys,
+    );
+    _maxPatternPoints = OperativePatternCombatRules.maxPatternPointsFor(
+      widget.player,
     );
     _scheduleBlockAnimationConfiguration();
   }
@@ -190,8 +195,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   }
 
   bool get _isClosedPattern {
-    return _patternPoints.length >= 4 &&
-        _patternPoints.first == _patternPoints.last;
+    return OperativePatternRequirement.isClosedPattern(_patternPoints);
+  }
+
+  int get _drawnPointCount {
+    return OperativePatternRequirement.distinctPointCount(_patternPoints);
   }
 
   BattlePatternMatchResult get _currentResult {
@@ -207,7 +215,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       if (point.key == _blockedPoint.key) continue;
 
       final item = widget.equippedItemsByPointKey[point.key];
-      final bonus = item?.patternBonus ?? _bonusesByPointKey[point.key];
+      final bonus = item == null
+          ? _bonusesByPointKey[point.key]
+          : _doesPatternActivateItemAtPoint(item: item, point: point)
+              ? item.patternBonus
+              : null;
       if (bonus == null) continue;
       switch (bonus.kind) {
         case OperativePatternBonusKind.attack:
@@ -231,6 +243,34 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     });
   }
 
+  bool _doesPatternActivateItemAtPoint({
+    required Item item,
+    required OperativePatternPoint point,
+  }) {
+    return _isClosedPattern &&
+        item.patternRequirement.isSatisfiedBy(
+          patternPoints: _patternPoints,
+          itemPoint: point,
+        );
+  }
+
+  bool _doesPatternActivateItemAtPointKey({
+    required Item item,
+    required String pointKey,
+  }) {
+    final point = _patternPointForKey(pointKey);
+    if (point == null) return false;
+
+    return _doesPatternActivateItemAtPoint(item: item, point: point);
+  }
+
+  OperativePatternPoint? _patternPointForKey(String pointKey) {
+    for (final point in operativePatternPoints) {
+      if (point.key == pointKey) return point;
+    }
+    return null;
+  }
+
   void _submit() {
     if (_hasSubmitted || !_blockAnimationCompleted) return;
     _hasSubmitted = true;
@@ -243,6 +283,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
         entry.key: OperativePatternPointContent(
           item: entry.value,
           bonus: entry.value.patternBonus,
+          requirement: entry.value.patternRequirement,
+          isBonusEnabled: _doesPatternActivateItemAtPointKey(
+            item: entry.value,
+            pointKey: entry.key,
+          ),
         ),
       for (final entry in _bonusesByPointKey.entries)
         entry.key: OperativePatternPointContent(bonus: entry.value),
@@ -317,6 +362,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                                             _buildContentsByPointKey(),
                                         blockedPointKeys: blockedPointKeys,
                                         keepLineAfterPointerUp: true,
+                                        maxPatternPoints: _maxPatternPoints,
                                         accent: EndpointPalette.neutralAccent,
                                         onPatternChanged: _handlePatternChanged,
                                       ),
@@ -337,6 +383,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                         isClosed: isClosed,
                         attackBonus: result.attackBonus,
                         barrierBonus: result.barrierBonus,
+                        pointCount: _drawnPointCount,
+                        maxPointCount: _maxPatternPoints,
                         onPressed: _blockAnimationCompleted ? _submit : null,
                       ),
                     ],
@@ -438,12 +486,16 @@ class _BattlePatternMatchFooter extends StatelessWidget {
   final bool isClosed;
   final int attackBonus;
   final int barrierBonus;
+  final int pointCount;
+  final int maxPointCount;
   final VoidCallback? onPressed;
 
   const _BattlePatternMatchFooter({
     required this.isClosed,
     required this.attackBonus,
     required this.barrierBonus,
+    required this.pointCount,
+    required this.maxPointCount,
     required this.onPressed,
   });
 
@@ -467,6 +519,11 @@ class _BattlePatternMatchFooter extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
+        _BattlePatternPointLimitPill(
+          pointCount: pointCount,
+          maxPointCount: maxPointCount,
+        ),
+        const SizedBox(width: 8),
         EndpointActionButton(
           label: isClosed ? 'MATCHED' : 'MATCH',
           icon: Icons.join_inner_rounded,
@@ -483,6 +540,45 @@ class _BattlePatternMatchFooter extends StatelessWidget {
           textStyle: textSmallBold.copyWith(letterSpacing: 1),
         ),
       ],
+    );
+  }
+}
+
+class _BattlePatternPointLimitPill extends StatelessWidget {
+  final int pointCount;
+  final int maxPointCount;
+
+  const _BattlePatternPointLimitPill({
+    required this.pointCount,
+    required this.maxPointCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isFull = pointCount >= maxPointCount;
+    final accent =
+        isFull ? EndpointPalette.warningAccent : EndpointPalette.neutralAccent;
+
+    return Tooltip(
+      message: 'Vertices de patron disponibles',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.controlBackground,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: accent.withValues(alpha: 0.52)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(9, 6, 9, 6),
+          child: EndpointText(
+            '$pointCount/$maxPointCount',
+            style: textSmallNumericBold.copyWith(
+              color: accent,
+              fontSize: 13,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

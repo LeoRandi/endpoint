@@ -88,6 +88,7 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
     );
     final shouldShowBonusSketch =
         _gameMode == EndpointGameMode.drawing && widget.item.hasDrawingBonus;
+    final shouldShowPatternBonus = _gameMode == EndpointGameMode.pattern;
 
     return EndpointDetailsDialogScaffold(
       accent: widget.accent,
@@ -200,6 +201,10 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
               letterSpacing: 1,
             ),
           ),
+          if (shouldShowPatternBonus) ...[
+            const SizedBox(height: 12),
+            _ItemPatternBonusSection(item: widget.item),
+          ],
           if (shouldShowBonusSketch) ...[
             const SizedBox(height: 12),
             _ItemBonusSketchSection(
@@ -302,6 +307,134 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
     }
 
     return stat.shortLabel;
+  }
+}
+
+class _ItemPatternBonusSection extends StatelessWidget {
+  final Item item;
+
+  const _ItemPatternBonusSection({
+    required this.item,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bonus = item.patternBonus;
+    final requirement = item.patternRequirement;
+    final accent = _bonusAccent(bonus.kind);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.blend(
+          EndpointPalette.panelBackgroundGold,
+          accent,
+          0.08,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.42),
+          width: 1.2,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                EndpointText(
+                  'PATRON BONUS',
+                  style: textSmallBold.copyWith(
+                    color: accent,
+                    fontSize: 10,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                const Spacer(),
+                Image.asset(
+                  _bonusIconAssetPath(bonus.kind),
+                  width: 15,
+                  height: 15,
+                  filterQuality: FilterQuality.none,
+                  color: accent,
+                ),
+                const SizedBox(width: 4),
+                EndpointText(
+                  '+${bonus.amount}',
+                  style: textSmallNumericBold.copyWith(
+                    color: accent,
+                    fontSize: 12,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: EndpointPalette.panelBackgroundOpaque.withValues(
+                      alpha: 0.7,
+                    ),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: EndpointPalette.softForeground.withValues(
+                        alpha: 0.36,
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
+                    child: EndpointText(
+                      requirement.shortLabel,
+                      style: textSmallBold.copyWith(
+                        color: EndpointPalette.softForeground,
+                        fontSize: 9,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: EndpointText(
+                    '${requirement.label}: ${requirement.description}',
+                    maxLines: null,
+                    style: textSmall.copyWith(
+                      color: EndpointPalette.softForeground.withValues(
+                        alpha: 0.78,
+                      ),
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _bonusAccent(OperativePatternBonusKind kind) {
+    return switch (kind) {
+      OperativePatternBonusKind.attack => EndpointPalette.dangerAccent,
+      OperativePatternBonusKind.barrier => BattlerStat.barrier.accent,
+    };
+  }
+
+  String _bonusIconAssetPath(OperativePatternBonusKind kind) {
+    return switch (kind) {
+      OperativePatternBonusKind.attack => 'assets/images/icons/icon_sword.png',
+      OperativePatternBonusKind.barrier =>
+        'assets/images/icons/icon_shield.png',
+    };
   }
 }
 

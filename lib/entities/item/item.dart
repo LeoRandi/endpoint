@@ -199,6 +199,120 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.aceleradorReto,
 };
 
+const _patternSquareRequirement = OperativePatternRequirement.exactShape(
+  labelOverride: 'Cuadrado',
+  shapePoints: <OperativePatternPoint>[
+    OperativePatternPoint(x: -1, y: 1),
+    OperativePatternPoint(x: 1, y: 1),
+    OperativePatternPoint(x: 1, y: -1),
+    OperativePatternPoint(x: -1, y: -1),
+  ],
+);
+
+const _patternDiamondRequirement = OperativePatternRequirement.exactShape(
+  labelOverride: 'Diamante',
+  shapePoints: <OperativePatternPoint>[
+    OperativePatternPoint(x: 0, y: 1),
+    OperativePatternPoint(x: 1, y: 0),
+    OperativePatternPoint(x: 0, y: -1),
+    OperativePatternPoint(x: -1, y: 0),
+  ],
+);
+
+const _patternHourglassRequirement = OperativePatternRequirement.exactShape(
+  labelOverride: 'Reloj arena',
+  shapePoints: <OperativePatternPoint>[
+    OperativePatternPoint(x: -1, y: 1),
+    OperativePatternPoint(x: 1, y: 1),
+    OperativePatternPoint(x: -1, y: -1),
+    OperativePatternPoint(x: 1, y: -1),
+  ],
+);
+
+const _patternZigzagRequirement = OperativePatternRequirement.exactShape(
+  labelOverride: 'Zigzag',
+  shapePoints: <OperativePatternPoint>[
+    OperativePatternPoint(x: -1, y: 1),
+    OperativePatternPoint(x: 0, y: 0),
+    OperativePatternPoint(x: 1, y: 1),
+    OperativePatternPoint(x: 0, y: -1),
+    OperativePatternPoint(x: -1, y: -1),
+  ],
+);
+
+const _exactPatternRequirementsByItemId = <ItemId, OperativePatternRequirement>{
+  ItemId.bateriaCrepuscular: _patternHourglassRequirement,
+  ItemId.relojDeTurno: _patternSquareRequirement,
+  ItemId.faroNoctivago: _patternZigzagRequirement,
+  ItemId.prismaCircadiano: _patternDiamondRequirement,
+  ItemId.muestrarioContrabando: _patternZigzagRequirement,
+  ItemId.vectorBulwark: _patternSquareRequirement,
+  ItemId.contingencySeal: _patternDiamondRequirement,
+  ItemId.operativeBlackBox: _patternSquareRequirement,
+  ItemId.responseFrame: _patternSquareRequirement,
+  ItemId.overloadAnchor: _patternZigzagRequirement,
+  ItemId.inertiaCrown: _patternDiamondRequirement,
+  ItemId.capaDelContrabandista: _patternHourglassRequirement,
+  ItemId.sunExecutionBlade: _patternHourglassRequirement,
+};
+
+const _firstPointPatternItemIds = <ItemId>{
+  ItemId.woodenStick,
+  ItemId.cyberWhips,
+  ItemId.crackedBattery,
+  ItemId.gafasFotocromaticas,
+  ItemId.impactGloves,
+  ItemId.guanteReto,
+  ItemId.visorApertura,
+  ItemId.ironSword,
+  ItemId.stunBaton,
+  ItemId.kunaiAncho,
+  ItemId.pulseCarbine,
+  ItemId.impulseSpear,
+  ItemId.sunsteelBlade,
+  ItemId.magnetiCHammer,
+};
+
+const _lastPointPatternItemIds = <ItemId>{
+  ItemId.seguroRoto,
+  ItemId.aceleradorReto,
+  ItemId.ultimaPalabra,
+  ItemId.clavoReactor,
+  ItemId.ultimaMarcha,
+  ItemId.serratedEdge,
+  ItemId.overloadInjector,
+  ItemId.rescueBlade,
+  ItemId.toxicScalpel,
+  ItemId.interferenceCannon,
+  ItemId.succionaCreditos,
+  ItemId.voidInjector,
+};
+
+const _rightAnglePatternItemIds = <ItemId>{
+  ItemId.shield,
+  ItemId.bulwarkAmulet,
+  ItemId.mamparaPortatil,
+  ItemId.ceramicaPurgadora,
+  ItemId.placaBisagra,
+  ItemId.silbatoMudo,
+  ItemId.botiquinCompacto,
+  ItemId.fundaAislante,
+  ItemId.guardShield,
+  ItemId.reactiveCasing,
+  ItemId.emergencyPlating,
+  ItemId.pocketJammer,
+  ItemId.containmentCoil,
+  ItemId.phaseVeil,
+  ItemId.reboundHarness,
+  ItemId.platedJacket,
+  ItemId.nucleoPiezoelectrico,
+  ItemId.placasCompresion,
+  ItemId.torreRetorno,
+  ItemId.aislanteArmonico,
+  ItemId.canonContrapresion,
+  ItemId.deflectiveCapacitor,
+};
+
 const _drawingBonusEligibleHooks = <ItemEffectHook>{
   ItemEffectHook.attackResolved,
   ItemEffectHook.defendResolved,
@@ -235,6 +349,7 @@ class Item {
   final ItemBonusShape? bonusShapeOverride;
   final OperativePatternBonusKind? patternBonusKindOverride;
   final int? patternBonusAmountOverride;
+  final OperativePatternRequirement? patternRequirementOverride;
 
   /// Crea un item inmutable que puede actuar como preset compartido o copia poseida.
   const Item({
@@ -259,6 +374,7 @@ class Item {
     this.bonusShapeOverride,
     this.patternBonusKindOverride,
     this.patternBonusAmountOverride,
+    this.patternRequirementOverride,
   }) : _declaredTags = tags;
 
   /// Indica si el objeto puede equiparse.
@@ -310,6 +426,10 @@ class Item {
   /// Devuelve la magnitud interna del bonus de Patron.
   int get patternBonusAmount =>
       max(1, patternBonusAmountOverride ?? rarity.factor);
+
+  /// Devuelve la condicion que debe cumplir el trazo para activar su bonus de Patron.
+  OperativePatternRequirement get patternRequirement =>
+      patternRequirementOverride ?? _defaultPatternRequirement;
 
   /// Devuelve el bonus especial de dibujo si este item participa en dicho sistema.
   ItemSpecialBonus? get drawingSpecialBonus {
@@ -497,6 +617,9 @@ class Item {
       patternBonusAmountOverride: upgradeTemplate.patternBonusAmountOverride,
       clearPatternBonusAmountOverride:
           upgradeTemplate.patternBonusAmountOverride == null,
+      patternRequirementOverride: upgradeTemplate.patternRequirementOverride,
+      clearPatternRequirementOverride:
+          upgradeTemplate.patternRequirementOverride == null,
     );
   }
 
@@ -526,6 +649,8 @@ class Item {
     bool clearPatternBonusKindOverride = false,
     int? patternBonusAmountOverride,
     bool clearPatternBonusAmountOverride = false,
+    OperativePatternRequirement? patternRequirementOverride,
+    bool clearPatternRequirementOverride = false,
   }) {
     return Item(
       id: id,
@@ -556,6 +681,9 @@ class Item {
       patternBonusAmountOverride: clearPatternBonusAmountOverride
           ? null
           : patternBonusAmountOverride ?? this.patternBonusAmountOverride,
+      patternRequirementOverride: clearPatternRequirementOverride
+          ? null
+          : patternRequirementOverride ?? this.patternRequirementOverride,
     );
   }
 
@@ -585,6 +713,7 @@ class Item {
       bonusShapeOverride: bonusShapeOverride,
       patternBonusKindOverride: patternBonusKindOverride,
       patternBonusAmountOverride: patternBonusAmountOverride,
+      patternRequirementOverride: patternRequirementOverride,
     );
   }
 
@@ -654,6 +783,31 @@ class Item {
     return attackScore > barrierScore
         ? OperativePatternBonusKind.attack
         : OperativePatternBonusKind.barrier;
+  }
+
+  OperativePatternRequirement get _defaultPatternRequirement {
+    final exactRequirement = _exactPatternRequirementsByItemId[id];
+    if (exactRequirement != null) return exactRequirement;
+
+    if (_rightAnglePatternItemIds.contains(id)) {
+      return const OperativePatternRequirement.rightAngle();
+    }
+    if (_lastPointPatternItemIds.contains(id)) {
+      return const OperativePatternRequirement.last();
+    }
+    if (_firstPointPatternItemIds.contains(id)) {
+      return const OperativePatternRequirement.first();
+    }
+    if (hasTag(EntityTag.barrera)) {
+      return const OperativePatternRequirement.rightAngle();
+    }
+    if (isWeaponLike) {
+      return rarity.index >= RarityTier.blue.index
+          ? const OperativePatternRequirement.last()
+          : const OperativePatternRequirement.first();
+    }
+
+    return const OperativePatternRequirement.middle();
   }
 
   /// Compara objetos poseidos usando su id de instancia para no mezclar copias distintas.

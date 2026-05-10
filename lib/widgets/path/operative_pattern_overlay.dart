@@ -32,10 +32,14 @@ extension _OperativePatternBonusVisualTokens on OperativePatternBonus {
 class OperativePatternPointContent {
   final Item? item;
   final OperativePatternBonus? bonus;
+  final OperativePatternRequirement? requirement;
+  final bool isBonusEnabled;
 
   const OperativePatternPointContent({
     this.item,
     this.bonus,
+    this.requirement,
+    this.isBonusEnabled = true,
   }) : assert(item != null || bonus != null);
 }
 
@@ -165,7 +169,11 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
   Map<String, OperativePatternPointContent> _buildContentsByPointKey() {
     return <String, OperativePatternPointContent>{
       for (final entry in widget.equippedItemsByPointKey.entries)
-        entry.key: OperativePatternPointContent(item: entry.value),
+        entry.key: OperativePatternPointContent(
+          item: entry.value,
+          bonus: entry.value.patternBonus,
+          requirement: entry.value.patternRequirement,
+        ),
       for (final entry in _emptyBonusesByPointKey.entries)
         entry.key: OperativePatternPointContent(bonus: entry.value),
     };
@@ -185,6 +193,7 @@ class OperativePatternBoard extends StatefulWidget {
   final Map<String, OperativePatternPointContent> contentsByPointKey;
   final Set<String> blockedPointKeys;
   final bool keepLineAfterPointerUp;
+  final int? maxPatternPoints;
   final Color accent;
 
   const OperativePatternBoard({
@@ -194,6 +203,7 @@ class OperativePatternBoard extends StatefulWidget {
     required this.contentsByPointKey,
     this.blockedPointKeys = const <String>{},
     this.keepLineAfterPointerUp = false,
+    this.maxPatternPoints,
     this.accent = EndpointPalette.patternAccent,
   });
 
@@ -258,6 +268,9 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     if (_activePointer != event.pointer || _activePatternPoints.isEmpty) {
       return;
     }
+    if (OperativePatternRequirement.isClosedPattern(_activePatternPoints)) {
+      return;
+    }
 
     final holdOrigin = _coordinateHoldOrigin;
     if (holdOrigin != null &&
@@ -268,13 +281,15 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     }
 
     final previousFinger = _lastFinger ?? event.localPosition;
-    final crossedPoints = layout.pointsCrossedBySegment(
-      from: previousFinger,
-      to: event.localPosition,
-      excludedPoints: <OperativePatternPoint>{
-        ..._recentPatternPointsBlockedForReuse(),
-        ..._blockedPoints,
-      },
+    final crossedPoints = _acceptedCrossedPoints(
+      layout.pointsCrossedBySegment(
+        from: previousFinger,
+        to: event.localPosition,
+        excludedPoints: <OperativePatternPoint>{
+          ..._recentPatternPointsBlockedForReuse(),
+          ..._blockedPoints,
+        },
+      ),
     );
 
     setState(() {
@@ -362,6 +377,46 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     return _completedPatternPoints;
   }
 
+  bool get _isDisplayedPatternClosed {
+    return OperativePatternRequirement.isClosedPattern(
+      _displayedPatternPoints,
+    );
+  }
+
+  List<OperativePatternPoint> _acceptedCrossedPoints(
+    List<OperativePatternPoint> crossedPoints,
+  ) {
+    final maxPatternPoints = widget.maxPatternPoints;
+    if (maxPatternPoints == null || maxPatternPoints <= 0) {
+      return crossedPoints;
+    }
+    if (_activePatternPoints.isEmpty ||
+        OperativePatternRequirement.isClosedPattern(_activePatternPoints)) {
+      return const <OperativePatternPoint>[];
+    }
+
+    final acceptedPoints = <OperativePatternPoint>[];
+    final firstPoint = _activePatternPoints.first;
+    var distinctPointCount =
+        OperativePatternRequirement.distinctPointCount(_activePatternPoints);
+
+    for (final point in crossedPoints) {
+      final closesPattern = point == firstPoint &&
+          (_activePatternPoints.length + acceptedPoints.length) >= 3;
+      if (closesPattern) {
+        acceptedPoints.add(point);
+        break;
+      }
+
+      if (distinctPointCount >= maxPatternPoints) continue;
+
+      acceptedPoints.add(point);
+      distinctPointCount++;
+    }
+
+    return List<OperativePatternPoint>.unmodifiable(acceptedPoints);
+  }
+
   void _notifyPatternChanged(List<OperativePatternPoint> points) {
     widget.onPatternChanged?.call(
       List<OperativePatternPoint>.unmodifiable(points),
@@ -376,6 +431,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
           Size(constraints.maxWidth, constraints.maxHeight),
         );
         final displayedPatternPoints = _displayedPatternPoints;
+        final isClosedPattern = _isDisplayedPatternClosed;
         final lineCenters = _linePointCenters(layout);
         final lineFinger = _activeFinger;
 
@@ -438,6 +494,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
                               points: lineCenters,
                               finger: lineFinger,
                               accent: widget.accent,
+                              isClosed: isClosedPattern,
                             ),
                           ),
                         ),
@@ -522,16 +579,21 @@ class _OperativePatternDot extends StatelessWidget {
       top: center.dy - (size / 2),
       width: size,
       height: size,
-      child: Semantics(
-        label: isBlocked
-            ? 'Punto ${point.label}, bloqueado'
-            : 'Punto ${point.label}',
-        child: _OperativePatternDotVisual(
-          size: size,
-          isActive: isActive,
-          isBlocked: isBlocked,
-          content: content,
-          accent: accent,
+      child: AnimatedScale(
+        scale: isActive ? 1.1 : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutBack,
+        child: Semantics(
+          label: isBlocked
+              ? 'Punto ${point.label}, bloqueado'
+              : 'Punto ${point.label}',
+          child: _OperativePatternDotVisual(
+            size: size,
+            isActive: isActive,
+            isBlocked: isBlocked,
+            content: content,
+            accent: accent,
+          ),
         ),
       ),
     );
@@ -659,6 +721,8 @@ class _OperativePatternDotVisual extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentItem = content?.item;
     final bonus = content?.bonus;
+    final requirement = content?.requirement;
+    final isBonusEnabled = content?.isBonusEnabled ?? true;
     final activeAccent = currentItem?.rarity.accent ?? bonus?.accent ?? accent;
 
     if (currentItem != null) {
@@ -670,6 +734,37 @@ class _OperativePatternDotVisual extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
+            Positioned.fill(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                margin: EdgeInsets.all(size * 0.06),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: EndpointPalette.blend(
+                    EndpointPalette.panelBackground,
+                    activeAccent,
+                    isActive ? 0.26 : 0.13,
+                  ),
+                  border: Border.all(
+                    color: activeAccent.withValues(
+                      alpha: isBonusEnabled
+                          ? (isActive ? 0.94 : 0.48)
+                          : (isActive ? 0.58 : 0.28),
+                    ),
+                    width: isActive ? 2.2 : 1.4,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: activeAccent.withValues(
+                        alpha: isActive ? 0.42 : 0.16,
+                      ),
+                      blurRadius: isActive ? 18 : 10,
+                      spreadRadius: isActive ? 2 : 0,
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Center(
               child: Transform.rotate(
                 angle: _operativePatternContentCounterRotation,
@@ -701,12 +796,26 @@ class _OperativePatternDotVisual extends StatelessWidget {
                         bonus: bonus,
                         size: size * 0.82,
                         isActive: isActive,
+                        isEnabled: isBonusEnabled,
                       ),
                     ],
                   ],
                 ),
               ),
             ),
+            if (requirement != null)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Transform.rotate(
+                  angle: _operativePatternContentCounterRotation,
+                  child: _OperativePatternRequirementBadge(
+                    requirement: requirement,
+                    size: size,
+                    isEnabled: isBonusEnabled,
+                  ),
+                ),
+              ),
             if (isBlocked)
               OperativePatternBlockedMark(
                 size: size,
@@ -754,6 +863,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
                       ),
                   size: size,
                   isActive: isActive,
+                  isEnabled: true,
                 ),
               ),
             ),
@@ -810,16 +920,19 @@ class _OperativePatternBonusVisual extends StatelessWidget {
   final OperativePatternBonus bonus;
   final double size;
   final bool isActive;
+  final bool isEnabled;
 
   const _OperativePatternBonusVisual({
     required this.bonus,
     required this.size,
     required this.isActive,
+    required this.isEnabled,
   });
 
   @override
   Widget build(BuildContext context) {
     final accent = bonus.accent;
+    final enabledOpacity = isEnabled ? 1.0 : 0.36;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -830,24 +943,76 @@ class _OperativePatternBonusVisual extends StatelessWidget {
           width: (size * 0.34).clamp(10.0, 15.0).toDouble(),
           height: (size * 0.34).clamp(10.0, 15.0).toDouble(),
           filterQuality: FilterQuality.none,
-          color: accent.withValues(alpha: isActive ? 1 : 0.9),
+          color: accent.withValues(
+            alpha: (isActive ? 1 : 0.9) * enabledOpacity,
+          ),
         ),
         SizedBox(width: max(1, size * 0.04)),
         EndpointText(
           '+${bonus.amount}',
           style: textSmallNumericBold.copyWith(
-            color: accent.withValues(alpha: isActive ? 1.0 : 0.92),
+            color: accent.withValues(
+              alpha: (isActive ? 1.0 : 0.92) * enabledOpacity,
+            ),
             fontSize: (size * 0.42).clamp(13.0, 18.0).toDouble(),
             letterSpacing: 0.1,
             shadows: [
               Shadow(
-                color: accent.withValues(alpha: 0.38),
+                color: accent.withValues(alpha: isEnabled ? 0.38 : 0.1),
                 blurRadius: isActive ? 12 : 7,
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OperativePatternRequirementBadge extends StatelessWidget {
+  final OperativePatternRequirement requirement;
+  final double size;
+  final bool isEnabled;
+
+  const _OperativePatternRequirementBadge({
+    required this.requirement,
+    required this.size,
+    required this.isEnabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final badgeSize = (size * 0.34).clamp(13.0, 18.0).toDouble();
+    final foreground = isEnabled
+        ? EndpointPalette.softForeground
+        : EndpointPalette.softForeground.withValues(alpha: 0.48);
+
+    return SizedBox(
+      width: badgeSize,
+      height: badgeSize,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: EndpointPalette.panelBackgroundOpaque.withValues(
+            alpha: isEnabled ? 0.82 : 0.58,
+          ),
+          border: Border.all(
+            color: foreground.withValues(alpha: isEnabled ? 0.72 : 0.28),
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: EndpointText(
+            requirement.shortLabel,
+            maxLines: 1,
+            style: textSmallBold.copyWith(
+              color: foreground,
+              fontSize: (badgeSize * 0.42).clamp(6.0, 8.0).toDouble(),
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -935,16 +1100,38 @@ class _OperativePatternDragLinePainter extends CustomPainter {
   final List<Offset> points;
   final Offset? finger;
   final Color accent;
+  final bool isClosed;
 
   const _OperativePatternDragLinePainter({
     required this.points,
     required this.finger,
     required this.accent,
+    required this.isClosed,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (points.isEmpty) return;
+
+    if (isClosed && points.length >= 4) {
+      final sealPath = Path()..moveTo(points.first.dx, points.first.dy);
+      for (final point in points.skip(1)) {
+        sealPath.lineTo(point.dx, point.dy);
+      }
+      sealPath.close();
+
+      final sealFillPaint = Paint()
+        ..color = accent.withValues(alpha: 0.11)
+        ..style = PaintingStyle.fill;
+      final sealStrokePaint = Paint()
+        ..color = accent.withValues(alpha: 0.34)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeJoin = StrokeJoin.round;
+
+      canvas.drawPath(sealPath, sealFillPaint);
+      canvas.drawPath(sealPath, sealStrokePaint);
+    }
 
     final glowPaint = Paint()
       ..color = accent.withValues(alpha: 0.24)
@@ -976,6 +1163,7 @@ class _OperativePatternDragLinePainter extends CustomPainter {
   bool shouldRepaint(covariant _OperativePatternDragLinePainter oldDelegate) {
     return oldDelegate.points != points ||
         oldDelegate.finger != finger ||
-        oldDelegate.accent != accent;
+        oldDelegate.accent != accent ||
+        oldDelegate.isClosed != isClosed;
   }
 }

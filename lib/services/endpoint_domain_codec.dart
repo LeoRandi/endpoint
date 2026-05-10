@@ -353,6 +353,7 @@ Item? _deserializeItem(Map<String, dynamic> json) {
     patternBonusAmountOverride: EndpointJsonUtils.readNullableInt(
       json['patternBonusAmount'],
     ),
+    patternRequirementOverride: _deserializePatternRequirement(json),
   );
 
   if (item.isInstanced) {
@@ -455,7 +456,68 @@ Map<String, Object?> _serializeItem(Item item) {
     'specialBonusAmount': item.specialBonus.amount,
     'patternBonusKind': item.patternBonusKind.name,
     'patternBonusAmount': item.patternBonusAmount,
+    'patternRequirementKind': item.patternRequirement.kind.name,
+    'patternRequirementLabel': item.patternRequirement.label,
+    'patternRequirementShortLabel': item.patternRequirement.shortLabel,
+    'patternRequirementDescription': item.patternRequirement.description,
+    'patternRequirementShape': item.patternRequirement.shapePoints
+        .map((point) => point.key)
+        .toList(growable: false),
   };
+}
+
+OperativePatternRequirement? _deserializePatternRequirement(
+  Map<String, dynamic> json,
+) {
+  final kind = EndpointJsonUtils.parseEnumByName(
+    OperativePatternRequirementKind.values,
+    json['patternRequirementKind'],
+  );
+  if (kind == null) return null;
+
+  switch (kind) {
+    case OperativePatternRequirementKind.firstPoint:
+      return const OperativePatternRequirement.first();
+    case OperativePatternRequirementKind.middlePoint:
+      return const OperativePatternRequirement.middle();
+    case OperativePatternRequirementKind.lastPoint:
+      return const OperativePatternRequirement.last();
+    case OperativePatternRequirementKind.rightAngle:
+      return const OperativePatternRequirement.rightAngle();
+    case OperativePatternRequirementKind.exactShape:
+      final shapePoints = _deserializePatternPointList(
+        json['patternRequirementShape'],
+      );
+      if (shapePoints.length < 3 ||
+          shapePoints.length >
+              OperativePatternRequirement.maxExactShapePoints) {
+        return null;
+      }
+
+      return OperativePatternRequirement.exactShape(
+        shapePoints: shapePoints,
+        labelOverride: EndpointJsonUtils.readNullableString(
+          json['patternRequirementLabel'],
+        ),
+      );
+  }
+}
+
+List<OperativePatternPoint> _deserializePatternPointList(Object? rawValue) {
+  if (rawValue is! List) return const <OperativePatternPoint>[];
+
+  final pointsByKey = <String, OperativePatternPoint>{
+    for (final point in operativePatternPoints) point.key: point,
+  };
+  final points = <OperativePatternPoint>[];
+  for (final entry in rawValue) {
+    if (entry is! String) continue;
+    final point = pointsByKey[entry];
+    if (point == null) continue;
+    points.add(point);
+  }
+
+  return List<OperativePatternPoint>.unmodifiable(points);
 }
 
 List<ItemArchetypeAffinity> _deserializeItemArchetypeAffinities(

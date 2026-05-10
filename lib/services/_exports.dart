@@ -12,6 +12,7 @@ export 'endpoint_preferences_models.dart';
 export 'endpoint_preferences_service.dart';
 export 'level_up_reward_service.dart';
 export 'operative_pattern_bonus_service.dart';
+export 'operative_pattern_combat_rules.dart';
 export 'operative_pattern_layout_service.dart';
 export 'path_node_service.dart';
 export 'path_event_service.dart';
