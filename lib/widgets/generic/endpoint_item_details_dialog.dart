@@ -493,12 +493,12 @@ class _PatternAdjacencyBonusChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              EndpointText(
-                adjacencyBonus.direction.shortLabel,
-                style: textSmallBold.copyWith(
+              Transform.rotate(
+                angle: _arrowRotationFor(adjacencyBonus.direction),
+                child: Icon(
+                  Icons.arrow_upward_rounded,
+                  size: 13,
                   color: adjacencyBonus.requiredTag.accent,
-                  fontSize: 9,
-                  letterSpacing: 0.4,
                 ),
               ),
               const SizedBox(width: 4),
@@ -532,6 +532,15 @@ class _PatternAdjacencyBonusChip extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _arrowRotationFor(OperativePatternAdjacencyDirection direction) {
+    return switch (direction) {
+      OperativePatternAdjacencyDirection.north => pi / 4,
+      OperativePatternAdjacencyDirection.east => 3 * pi / 4,
+      OperativePatternAdjacencyDirection.south => 5 * pi / 4,
+      OperativePatternAdjacencyDirection.west => -pi / 4,
+    };
   }
 }
 

@@ -644,6 +644,10 @@ class _PatternEquipmentBoard extends StatelessWidget {
       builder: (context, constraints) {
         final outerSide = min(constraints.maxWidth, constraints.maxHeight);
         final boardSide = outerSide * _operativesPatternBoardScale;
+        final adjacencyGuideSegments = _adjacencyGuideSegments(
+          itemsByPoint: itemsByPoint,
+          boardSide: boardSide,
+        );
 
         return Center(
           child: Transform.rotate(
@@ -653,6 +657,18 @@ class _PatternEquipmentBoard extends StatelessWidget {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
+                  if (adjacencyGuideSegments.isNotEmpty)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          painter: OperativePatternAdjacencyGuidePainter(
+                            segments: adjacencyGuideSegments,
+                            endpointInset:
+                                _operativesPatternPointVisualSize * 0.62,
+                          ),
+                        ),
+                      ),
+                    ),
                   for (final point in operativePatternPoints)
                     _PatternEquipmentPointTarget(
                       point: point,
@@ -680,6 +696,46 @@ class _PatternEquipmentBoard extends StatelessWidget {
       (column + 0.5) * cellSize,
       (row + 0.5) * cellSize,
     );
+  }
+
+  List<OperativePatternAdjacencyGuideSegment> _adjacencyGuideSegments({
+    required Map<OperativePatternPoint, Item> itemsByPoint,
+    required double boardSide,
+  }) {
+    final segments = <OperativePatternAdjacencyGuideSegment>[];
+    for (final entry in itemsByPoint.entries) {
+      final point = entry.key;
+      final item = entry.value;
+      for (final adjacencyBonus in item.patternAdjacencyBonuses) {
+        final targetPoint = _patternPointAt(
+          x: point.x + adjacencyBonus.direction.dx,
+          y: point.y + adjacencyBonus.direction.dy,
+        );
+        if (targetPoint == null) continue;
+
+        final targetItem = itemsByPoint[targetPoint];
+        segments.add(
+          OperativePatternAdjacencyGuideSegment(
+            start: _patternPointCenter(point, boardSide),
+            end: _patternPointCenter(targetPoint, boardSide),
+            accent: adjacencyBonus.requiredTag.accent,
+            isMatched: targetItem?.hasTag(adjacencyBonus.requiredTag) ?? false,
+          ),
+        );
+      }
+    }
+
+    return List<OperativePatternAdjacencyGuideSegment>.unmodifiable(segments);
+  }
+
+  OperativePatternPoint? _patternPointAt({
+    required int x,
+    required int y,
+  }) {
+    for (final point in operativePatternPoints) {
+      if (point.x == x && point.y == y) return point;
+    }
+    return null;
   }
 }
 

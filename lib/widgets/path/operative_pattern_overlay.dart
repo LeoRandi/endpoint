@@ -49,6 +49,73 @@ class OperativePatternPointContent {
   }) : assert(item != null || bonus != null);
 }
 
+class OperativePatternAdjacencyGuideSegment {
+  final Offset start;
+  final Offset end;
+  final Color accent;
+  final bool isMatched;
+
+  const OperativePatternAdjacencyGuideSegment({
+    required this.start,
+    required this.end,
+    required this.accent,
+    required this.isMatched,
+  });
+}
+
+class OperativePatternAdjacencyGuidePainter extends CustomPainter {
+  final List<OperativePatternAdjacencyGuideSegment> segments;
+  final double endpointInset;
+
+  const OperativePatternAdjacencyGuidePainter({
+    required this.segments,
+    this.endpointInset = 14,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final segment in segments) {
+      final delta = segment.end - segment.start;
+      final distance = delta.distance;
+      if (distance == 0) continue;
+
+      final direction = delta / distance;
+      final inset = min(endpointInset, distance * 0.32);
+      final start = segment.start + (direction * inset);
+      final end = segment.end - (direction * inset);
+      final path = Path()
+        ..moveTo(start.dx, start.dy)
+        ..lineTo(end.dx, end.dy);
+      if (segment.isMatched) {
+        final glowPaint = Paint()
+          ..color = segment.accent.withValues(alpha: 0.46)
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 8
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+        canvas.drawPath(path, glowPaint);
+      }
+
+      final corePaint = Paint()
+        ..color = segment.accent.withValues(
+          alpha: segment.isMatched ? 0.92 : 0.34,
+        )
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = segment.isMatched ? 3.1 : 2.1;
+      canvas.drawPath(path, corePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(
+    covariant OperativePatternAdjacencyGuidePainter oldDelegate,
+  ) {
+    return oldDelegate.segments != segments ||
+        oldDelegate.endpointInset != endpointInset;
+  }
+}
+
 class OperativePatternOverlay extends StatefulWidget {
   final Map<String, Item> equippedItemsByPointKey;
   final int playerLevel;
@@ -361,6 +428,37 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
         .toList(growable: false);
   }
 
+  List<OperativePatternAdjacencyGuideSegment> _adjacencyGuideSegments(
+    _OperativePatternGridLayout layout,
+  ) {
+    final segments = <OperativePatternAdjacencyGuideSegment>[];
+    for (final point in operativePatternPoints) {
+      final content = widget.contentsByPointKey[point.key];
+      final item = content?.item;
+      if (item == null || content!.adjacencyBonuses.isEmpty) continue;
+
+      for (final adjacencyBonus in content.adjacencyBonuses) {
+        final targetPoint = _patternPointAt(
+          x: point.x + adjacencyBonus.direction.dx,
+          y: point.y + adjacencyBonus.direction.dy,
+        );
+        if (targetPoint == null) continue;
+
+        final targetItem = widget.contentsByPointKey[targetPoint.key]?.item;
+        segments.add(
+          OperativePatternAdjacencyGuideSegment(
+            start: layout.centerFor(point),
+            end: layout.centerFor(targetPoint),
+            accent: adjacencyBonus.requiredTag.accent,
+            isMatched: targetItem?.hasTag(adjacencyBonus.requiredTag) ?? false,
+          ),
+        );
+      }
+    }
+
+    return List<OperativePatternAdjacencyGuideSegment>.unmodifiable(segments);
+  }
+
   Set<OperativePatternPoint> _recentPatternPointsBlockedForReuse() {
     if (_activePatternPoints.length <= 2) {
       return _activePatternPoints.toSet();
@@ -430,6 +528,16 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     );
   }
 
+  OperativePatternPoint? _patternPointAt({
+    required int x,
+    required int y,
+  }) {
+    for (final point in operativePatternPoints) {
+      if (point.x == x && point.y == y) return point;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -440,6 +548,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
         final displayedPatternPoints = _displayedPatternPoints;
         final isClosedPattern = _isDisplayedPatternClosed;
         final lineCenters = _linePointCenters(layout);
+        final adjacencyGuideSegments = _adjacencyGuideSegments(layout);
         final lineFinger = _activeFinger;
 
         return Listener(
@@ -493,6 +602,17 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
                         ),
                       ),
                     ),
+                    if (adjacencyGuideSegments.isNotEmpty)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: CustomPaint(
+                            painter: OperativePatternAdjacencyGuidePainter(
+                              segments: adjacencyGuideSegments,
+                              endpointInset: layout.dotSize * 0.58,
+                            ),
+                          ),
+                        ),
+                      ),
                     if (lineCenters.isNotEmpty)
                       Positioned.fill(
                         child: IgnorePointer(
