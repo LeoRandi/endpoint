@@ -14,6 +14,7 @@ export 'level_up_reward_service.dart';
 export 'operative_pattern_bonus_service.dart';
 export 'operative_pattern_combat_rules.dart';
 export 'operative_pattern_layout_service.dart';
+export 'operative_pattern_resolution_service.dart';
 export 'path_node_service.dart';
 export 'path_event_service.dart';
 export 'path_event_visit_result.dart';

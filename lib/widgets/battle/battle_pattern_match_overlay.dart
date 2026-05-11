@@ -1,6 +1,7 @@
 import '../_imports.dart';
 import '../../services/operative_pattern_bonus_service.dart';
 import '../../services/operative_pattern_combat_rules.dart';
+import '../../services/operative_pattern_resolution_service.dart';
 
 const _battlePatternMatchDuration = Duration(seconds: 15);
 const _battlePatternEnemyTravel = 42.0;
@@ -18,6 +19,15 @@ class BattlePatternMatchResult {
     required this.barrierBonus,
   });
 
+  factory BattlePatternMatchResult.fromResolution(
+    OperativePatternResolution resolution,
+  ) {
+    return BattlePatternMatchResult(
+      attackBonus: resolution.attackBonus,
+      barrierBonus: resolution.barrierBonus,
+    );
+  }
+
   bool get hasBonus => attackBonus > 0 || barrierBonus > 0;
 }
 
@@ -25,12 +35,14 @@ class BattlePatternMatchOverlay extends StatefulWidget {
   final Battler player;
   final Battler enemy;
   final Map<String, Item> equippedItemsByPointKey;
+  final int Function(int max)? randomNextInt;
 
   const BattlePatternMatchOverlay({
     super.key,
     required this.player,
     required this.enemy,
     required this.equippedItemsByPointKey,
+    this.randomNextInt,
   });
 
   @override
@@ -68,11 +80,13 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       vsync: this,
       duration: _battlePatternBlockTravelDuration,
     )..addStatusListener(_handleBlockMotionStatus);
+    final randomNextInt = widget.randomNextInt ?? Random().nextInt;
     _blockedPoint =
-        operativePatternPoints[Random().nextInt(operativePatternPoints.length)];
+        operativePatternPoints[randomNextInt(operativePatternPoints.length)];
     _bonusesByPointKey = buildOperativePatternBonusesByPointKey(
       playerLevel: widget.player.level,
       occupiedPointKeys: widget.equippedItemsByPointKey.keys,
+      nextInt: randomNextInt,
     );
     _maxPatternPoints = OperativePatternCombatRules.maxPatternPointsFor(
       widget.player,
@@ -194,81 +208,24 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     });
   }
 
-  bool get _isClosedPattern {
-    return OperativePatternRequirement.isClosedPattern(_patternPoints);
-  }
-
-  int get _drawnPointCount {
-    return OperativePatternRequirement.distinctPointCount(_patternPoints);
-  }
-
-  BattlePatternMatchResult get _currentResult {
-    if (!_isClosedPattern) {
-      return const BattlePatternMatchResult(attackBonus: 0, barrierBonus: 0);
-    }
-
-    final seenPointKeys = <String>{};
-    var attackBonus = 0;
-    var barrierBonus = 0;
-    for (final point in _patternPoints) {
-      if (!seenPointKeys.add(point.key)) continue;
-      if (point.key == _blockedPoint.key) continue;
-
-      final item = widget.equippedItemsByPointKey[point.key];
-      final bonus = item == null
-          ? _bonusesByPointKey[point.key]
-          : _doesPatternActivateItemAtPoint(item: item, point: point)
-              ? item.patternBonus
-              : null;
-      if (bonus == null) continue;
-      switch (bonus.kind) {
-        case OperativePatternBonusKind.attack:
-          attackBonus += bonus.amount;
-          break;
-        case OperativePatternBonusKind.barrier:
-          barrierBonus += bonus.amount;
-          break;
-      }
-    }
-
-    return BattlePatternMatchResult(
-      attackBonus: attackBonus,
-      barrierBonus: barrierBonus,
+  OperativePatternResolution get _currentResolution {
+    return OperativePatternResolutionService.resolve(
+      patternPoints: _patternPoints,
+      equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      bonusesByPointKey: _bonusesByPointKey,
+      blockedPointKeys: _blockAnimationCompleted
+          ? <String>{_blockedPoint.key}
+          : const <String>{},
     );
   }
+
+  BattlePatternMatchResult get _currentResult =>
+      BattlePatternMatchResult.fromResolution(_currentResolution);
 
   void _handlePatternChanged(List<OperativePatternPoint> points) {
     setState(() {
       _patternPoints = points;
     });
-  }
-
-  bool _doesPatternActivateItemAtPoint({
-    required Item item,
-    required OperativePatternPoint point,
-  }) {
-    return _isClosedPattern &&
-        item.patternRequirement.isSatisfiedBy(
-          patternPoints: _patternPoints,
-          itemPoint: point,
-        );
-  }
-
-  bool _doesPatternActivateItemAtPointKey({
-    required Item item,
-    required String pointKey,
-  }) {
-    final point = _patternPointForKey(pointKey);
-    if (point == null) return false;
-
-    return _doesPatternActivateItemAtPoint(item: item, point: point);
-  }
-
-  OperativePatternPoint? _patternPointForKey(String pointKey) {
-    for (final point in operativePatternPoints) {
-      if (point.key == pointKey) return point;
-    }
-    return null;
   }
 
   void _submit() {
@@ -277,17 +234,20 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     Navigator.of(context).pop(_currentResult);
   }
 
-  Map<String, OperativePatternPointContent> _buildContentsByPointKey() {
+  Map<String, OperativePatternPointContent> _buildContentsByPointKey(
+    OperativePatternResolution resolution,
+  ) {
     return <String, OperativePatternPointContent>{
       for (final entry in widget.equippedItemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
           bonus: entry.value.patternBonus,
           requirement: entry.value.patternRequirement,
-          isBonusEnabled: _doesPatternActivateItemAtPointKey(
-            item: entry.value,
-            pointKey: entry.key,
-          ),
+          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
+          activatedAdjacencyBonuses:
+              resolution.activatedAdjacencyBonusesAt(entry.key),
+          isBonusEnabled: resolution.isItemBonusEnabledAt(entry.key),
+          isPatternBonusActivated: resolution.isItemBonusEnabledAt(entry.key),
         ),
       for (final entry in _bonusesByPointKey.entries)
         entry.key: OperativePatternPointContent(bonus: entry.value),
@@ -296,8 +256,9 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final result = _currentResult;
-    final isClosed = _isClosedPattern;
+    final resolution = _currentResolution;
+    final result = BattlePatternMatchResult.fromResolution(resolution);
+    final isClosed = resolution.isClosed;
     final blockedPointKeys = _blockAnimationCompleted
         ? <String>{_blockedPoint.key}
         : const <String>{};
@@ -359,7 +320,9 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                                       child: OperativePatternBoard(
                                         key: _patternBoardKey,
                                         contentsByPointKey:
-                                            _buildContentsByPointKey(),
+                                            _buildContentsByPointKey(
+                                          resolution,
+                                        ),
                                         blockedPointKeys: blockedPointKeys,
                                         keepLineAfterPointerUp: true,
                                         maxPatternPoints: _maxPatternPoints,
@@ -383,7 +346,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                         isClosed: isClosed,
                         attackBonus: result.attackBonus,
                         barrierBonus: result.barrierBonus,
-                        pointCount: _drawnPointCount,
+                        pointCount: resolution.distinctPointCount,
                         maxPointCount: _maxPatternPoints,
                         onPressed: _blockAnimationCompleted ? _submit : null,
                       ),

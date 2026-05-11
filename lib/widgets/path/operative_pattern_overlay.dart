@@ -33,13 +33,19 @@ class OperativePatternPointContent {
   final Item? item;
   final OperativePatternBonus? bonus;
   final OperativePatternRequirement? requirement;
+  final List<OperativePatternAdjacencyBonus> adjacencyBonuses;
+  final List<OperativePatternAdjacencyBonus> activatedAdjacencyBonuses;
   final bool isBonusEnabled;
+  final bool isPatternBonusActivated;
 
   const OperativePatternPointContent({
     this.item,
     this.bonus,
     this.requirement,
+    this.adjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
+    this.activatedAdjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
     this.isBonusEnabled = true,
+    this.isPatternBonusActivated = false,
   }) : assert(item != null || bonus != null);
 }
 
@@ -173,6 +179,7 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
           item: entry.value,
           bonus: entry.value.patternBonus,
           requirement: entry.value.patternRequirement,
+          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
         ),
       for (final entry in _emptyBonusesByPointKey.entries)
         entry.key: OperativePatternPointContent(bonus: entry.value),
@@ -723,6 +730,13 @@ class _OperativePatternDotVisual extends StatelessWidget {
     final bonus = content?.bonus;
     final requirement = content?.requirement;
     final isBonusEnabled = content?.isBonusEnabled ?? true;
+    final isPatternBonusActivated = content?.isPatternBonusActivated ?? false;
+    final activatedAdjacencyBonuses = content?.activatedAdjacencyBonuses ??
+        const <OperativePatternAdjacencyBonus>[];
+    final hasPatternActivation =
+        currentItem != null && isActive && isPatternBonusActivated;
+    final hasAdjacencyActivation =
+        isActive && activatedAdjacencyBonuses.isNotEmpty;
     final activeAccent = currentItem?.rarity.accent ?? bonus?.accent ?? accent;
 
     if (currentItem != null) {
@@ -821,6 +835,12 @@ class _OperativePatternDotVisual extends StatelessWidget {
                 size: size,
                 counterRotate: true,
               ),
+            _OperativePatternActivationBurst(
+              size: size,
+              accent: activeAccent,
+              hasPatternActivation: hasPatternActivation,
+              hasAdjacencyActivation: hasAdjacencyActivation,
+            ),
           ],
         ),
       );
@@ -873,7 +893,90 @@ class _OperativePatternDotVisual extends StatelessWidget {
               size: size,
               counterRotate: true,
             ),
+          _OperativePatternActivationBurst(
+            size: size,
+            accent: activeAccent,
+            hasPatternActivation: false,
+            hasAdjacencyActivation: false,
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _OperativePatternActivationBurst extends StatelessWidget {
+  final double size;
+  final Color accent;
+  final bool hasPatternActivation;
+  final bool hasAdjacencyActivation;
+
+  const _OperativePatternActivationBurst({
+    required this.size,
+    required this.accent,
+    required this.hasPatternActivation,
+    required this.hasAdjacencyActivation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasPatternActivation && !hasAdjacencyActivation) {
+      return const SizedBox.shrink();
+    }
+
+    final hasFullActivation = hasPatternActivation && hasAdjacencyActivation;
+    final icon = hasFullActivation
+        ? Icons.local_fire_department_rounded
+        : hasAdjacencyActivation
+            ? Icons.hub_rounded
+            : Icons.auto_awesome_rounded;
+    final effectAccent =
+        hasFullActivation ? EndpointPalette.warningAccent : accent;
+    final burstSize = (size * 0.54).clamp(18.0, 26.0).toDouble();
+
+    return Positioned(
+      left: size * 0.05,
+      bottom: size * 0.02,
+      child: Transform.rotate(
+        angle: _operativePatternContentCounterRotation,
+        child: TweenAnimationBuilder<double>(
+          key: ValueKey('$hasPatternActivation-$hasAdjacencyActivation'),
+          tween: Tween<double>(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutBack,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: 0.7 + (value * 0.3),
+              child: Opacity(
+                opacity: value.clamp(0.0, 1.0).toDouble(),
+                child: child,
+              ),
+            );
+          },
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: EndpointPalette.panelBackgroundOpaque.withValues(
+                alpha: 0.82,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: effectAccent.withValues(alpha: 0.48),
+                  blurRadius: hasFullActivation ? 20 : 12,
+                  spreadRadius: hasFullActivation ? 3 : 1,
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(max(2, size * 0.05)),
+              child: Icon(
+                icon,
+                size: burstSize,
+                color: effectAccent,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

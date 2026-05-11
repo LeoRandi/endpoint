@@ -49,7 +49,7 @@ class LevelUpRewardDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   EndpointText(
-                    'La mejora base siempre aplica +1 CAPACIDAD, +1 ATK y +10 VIDA.',
+                    'La mejora base siempre aplica +1 CAPACIDAD, +1 ATK, +10 VIDA y +1 vertice de Patron. La capacidad de equipo libre por encima de la inicial suma vertices extra.',
                     maxLines: null,
                     style: textMedium.copyWith(
                       color: EndpointPalette.softForeground.withValues(
@@ -123,6 +123,10 @@ class _LevelUpStatPreviewRow extends StatelessWidget {
         _LevelUpDeltaChip(
           label: '+10 VIDA',
           accent: EndpointPalette.primaryAccent,
+        ),
+        _LevelUpDeltaChip(
+          label: '+1 PATRON',
+          accent: EndpointPalette.patternAccent,
         ),
       ],
     );

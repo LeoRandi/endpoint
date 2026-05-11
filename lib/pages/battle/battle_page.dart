@@ -364,6 +364,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           player: _sceneController.player,
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          randomNextInt: _sceneController.randomizer.nextInt,
         ),
       );
       if (!mounted || matchResult == null) return;

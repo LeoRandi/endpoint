@@ -130,10 +130,30 @@ class OperativePatternRequirement {
   bool _matchesExactShape(List<OperativePatternPoint> sequence) {
     if (sequence.length != shapePoints.length) return false;
 
-    for (var index = 0; index < shapePoints.length; index++) {
-      if (sequence[index] != shapePoints[index]) return false;
+    return _matchesCyclicShape(sequence, shapePoints) ||
+        _matchesCyclicShape(
+          sequence,
+          shapePoints.reversed.toList(growable: false),
+        );
+  }
+
+  bool _matchesCyclicShape(
+    List<OperativePatternPoint> sequence,
+    List<OperativePatternPoint> candidateShape,
+  ) {
+    for (var startIndex = 0; startIndex < candidateShape.length; startIndex++) {
+      var didMatch = true;
+      for (var index = 0; index < sequence.length; index++) {
+        final candidateIndex = (startIndex + index) % candidateShape.length;
+        if (sequence[index] != candidateShape[candidateIndex]) {
+          didMatch = false;
+          break;
+        }
+      }
+      if (didMatch) return true;
     }
-    return true;
+
+    return false;
   }
 
   bool _isMiddlePoint(

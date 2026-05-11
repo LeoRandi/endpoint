@@ -321,6 +321,7 @@ class _ItemPatternBonusSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final bonus = item.patternBonus;
     final requirement = item.patternRequirement;
+    final adjacencyBonuses = item.patternAdjacencyBonuses;
     final accent = _bonusAccent(bonus.kind);
 
     return DecoratedBox(
@@ -416,6 +417,31 @@ class _ItemPatternBonusSection extends StatelessWidget {
                 ),
               ],
             ),
+            if (adjacencyBonuses.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              EndpointText(
+                'ADYACENCIA',
+                style: textSmallBold.copyWith(
+                  color: EndpointPalette.patternAccent,
+                  fontSize: 9,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: [
+                  for (final adjacencyBonus in adjacencyBonuses)
+                    _PatternAdjacencyBonusChip(
+                      adjacencyBonus: adjacencyBonus,
+                      accent: _bonusAccent(adjacencyBonus.bonus.kind),
+                      iconAssetPath:
+                          _bonusIconAssetPath(adjacencyBonus.bonus.kind),
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -435,6 +461,77 @@ class _ItemPatternBonusSection extends StatelessWidget {
       OperativePatternBonusKind.barrier =>
         'assets/images/icons/icon_shield.png',
     };
+  }
+}
+
+class _PatternAdjacencyBonusChip extends StatelessWidget {
+  final OperativePatternAdjacencyBonus adjacencyBonus;
+  final Color accent;
+  final String iconAssetPath;
+
+  const _PatternAdjacencyBonusChip({
+    required this.adjacencyBonus,
+    required this.accent,
+    required this.iconAssetPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message:
+          '${adjacencyBonus.direction.label}: requiere ${adjacencyBonus.requiredTag.label}',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.66),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.38),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              EndpointText(
+                adjacencyBonus.direction.shortLabel,
+                style: textSmallBold.copyWith(
+                  color: adjacencyBonus.requiredTag.accent,
+                  fontSize: 9,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(width: 4),
+              EndpointText(
+                adjacencyBonus.requiredTag.label.toUpperCase(),
+                style: textSmallBold.copyWith(
+                  color: adjacencyBonus.requiredTag.accent,
+                  fontSize: 8,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Image.asset(
+                iconAssetPath,
+                width: 11,
+                height: 11,
+                filterQuality: FilterQuality.none,
+                color: accent,
+              ),
+              const SizedBox(width: 2),
+              EndpointText(
+                '+${adjacencyBonus.bonus.amount}',
+                style: textSmallNumericBold.copyWith(
+                  color: accent,
+                  fontSize: 9,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
