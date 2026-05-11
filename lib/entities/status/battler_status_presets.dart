@@ -21,7 +21,7 @@ const desafioExcitanteStatus = DesafioExcitanteStatus();
 /// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
 const catalisisCruelStatus = CatalisisCruelStatus();
 
-/// Preset rapido de Fragilidad con su daño extra inicial.
+/// Preset rapido de Fragilidad con su acumulacion inicial.
 const fragilidadStatus = FragilidadStatus();
 
 /// Preset rapido de Interferencia con su bloqueo corto por defecto.

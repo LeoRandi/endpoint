@@ -761,7 +761,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.cambioDeGuardia:
       return 'Activacion manual en combate. De dia ganas ${positiveAmount * 2} de Barrera; de noche ganas $positiveAmount de Potencia.';
     case BattlerAbilityId.toqueDeQueda:
-      return 'Activacion manual en combate. De dia aplica Interferencia durante $positiveAmount turnos; de noche aplica Fragilidad durante $positiveAmount turnos.';
+      return 'Activacion manual en combate. De dia aplica Interferencia durante $positiveAmount turnos; de noche aplica $positiveAmount de Fragilidad.';
     case BattlerAbilityId.turnoDeNoche:
       return 'Pasiva. De dia reduces el daño recibido en $positiveAmount. De noche infliges +$positiveAmount daño.';
     case BattlerAbilityId.amanecerSintetico:
@@ -778,7 +778,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.hardReset:
       return 'Activacion manual en ruta. Elimina hasta $amount debuffs propios y luego te inflige ${max(0, amount * 10)}% de tu vida maxima como daño.';
     case BattlerAbilityId.cashflow:
-      return 'Pasiva. Al comienzo de cada hora, ganas creditos iguales a tu income actual.';
+      return 'Pasiva. Al comienzo de cada hora, ganas $amount creditos.';
     case BattlerAbilityId.pulsoRepL:
       return 'Pasiva. Al final de tu turno, ganas $amount de Barrera.';
     case BattlerAbilityId.sustraccion:
@@ -788,7 +788,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.cortafuegosPortatil:
       return 'Pasiva. La primera $positiveAmount vez por combate que fueras a recibir un debuff, lo ignoras y ganas 2 de Barrera.';
     case BattlerAbilityId.marcaDeCaza:
-      return 'Activacion manual en combate. Aplica $positiveAmount de Fragilidad al enemigo. Si el enemigo no tenia debuffs, haces un ataque con $positiveAmount de dano inmediatamente despues.';
+      return 'Activacion manual en combate. Acumula $positiveAmount de Fragilidad en el enemigo. Si el enemigo no tenia debuffs, haces un ataque con $positiveAmount de dano inmediatamente despues.';
     case BattlerAbilityId.cadenciaRapida:
       return 'Pasiva. El maximo cooldown que pueden tener tus habilidades manuales es $positiveAmount.';
     case BattlerAbilityId.extrabloqueo:

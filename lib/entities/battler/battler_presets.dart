@@ -257,11 +257,11 @@ const _greenToxicSetAbilities = <BattlerAbility>[
   inyeccionCorrosivaAbility,
 ];
 
-const _greenSpringSetItems = <Item>[
+const _bastionSpringSetItems = <Item>[
   containmentCoilItem,
   deflectiveCapacitorItem,
 ];
-const _greenSpringSetAbilities = <BattlerAbility>[
+const _bastionSpringSetAbilities = <BattlerAbility>[
   ghostMeshAbility,
   pulsoRepLAbility,
 ];
@@ -298,7 +298,7 @@ const toxicLacerEnemyBattler = Battler(
   equippedItems: _greenToxicSetItems,
 );
 
-/// Variante verde de aguante progresivo con doble motor de barrera.
+/// Variante morada de aguante progresivo con doble motor de barrera.
 const bastionSpringEnemyBattler = Battler(
   name: 'BASTION SPRING',
   health: 66,
@@ -312,8 +312,8 @@ const bastionSpringEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: _greenSpringSetAbilities,
-  equippedItems: _greenSpringSetItems,
+  abilities: _bastionSpringSetAbilities,
+  equippedItems: _bastionSpringSetItems,
 );
 
 /// Variante verde de presion ofensiva que escala por calor.

@@ -310,9 +310,6 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['baseCost'],
       fallback: preset.baseCost,
     ),
-    // El coste de equipo ya no se deriva de la rareza guardada.
-    // Si no existe un coste explicito en el preset, se usara el default global.
-    equipCost: preset.equipCost,
     sellValueBonus: EndpointJsonUtils.readInt(
       json['sellValueBonus'],
       fallback: preset.sellValueBonus,
@@ -354,6 +351,10 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['patternBonusAmount'],
     ),
     patternRequirementOverride: _deserializePatternRequirement(json),
+    patternAdjacencyBonuses: _deserializePatternAdjacencyBonuses(
+      json['patternAdjacencyBonuses'],
+      fallback: preset.patternAdjacencyBonuses,
+    ),
   );
 
   if (item.isInstanced) {
@@ -438,9 +439,7 @@ Map<String, Object?> _serializeItem(Item item) {
     'iconEmoji': item.iconEmoji,
     'rarity': item.rarity.name,
     'baseCost': item.baseCost,
-    'equipCost': item.equipCost,
     'sellValueBonus': item.sellValueBonus,
-    'equipmentCost': item.equipmentCost,
     'value': item.value,
     'upgradeValue': item.upgradeValue,
     'upgradeCount': item.upgradeCount,
@@ -463,6 +462,20 @@ Map<String, Object?> _serializeItem(Item item) {
     'patternRequirementShape': item.patternRequirement.shapePoints
         .map((point) => point.key)
         .toList(growable: false),
+    'patternAdjacencyBonuses': item.patternAdjacencyBonuses
+        .map<Map<String, Object?>>(_serializePatternAdjacencyBonus)
+        .toList(growable: false),
+  };
+}
+
+Map<String, Object?> _serializePatternAdjacencyBonus(
+  OperativePatternAdjacencyBonus adjacencyBonus,
+) {
+  return {
+    'direction': adjacencyBonus.direction.name,
+    'requiredTag': adjacencyBonus.requiredTag.name,
+    'bonusKind': adjacencyBonus.bonus.kind.name,
+    'amount': adjacencyBonus.bonus.amount,
   };
 }
 
@@ -518,6 +531,49 @@ List<OperativePatternPoint> _deserializePatternPointList(Object? rawValue) {
   }
 
   return List<OperativePatternPoint>.unmodifiable(points);
+}
+
+List<OperativePatternAdjacencyBonus> _deserializePatternAdjacencyBonuses(
+  Object? rawValue, {
+  required List<OperativePatternAdjacencyBonus> fallback,
+}) {
+  if (rawValue is! List) return fallback;
+
+  final bonuses = <OperativePatternAdjacencyBonus>[];
+  for (final entry in rawValue) {
+    if (entry is! Map) continue;
+    final json = Map<String, dynamic>.from(entry);
+    final direction = EndpointJsonUtils.parseEnumByName(
+      OperativePatternAdjacencyDirection.values,
+      json['direction'],
+    );
+    final requiredTag = EndpointJsonUtils.parseEnumByName(
+      EntityTag.values,
+      json['requiredTag'],
+    );
+    final bonusKind = EndpointJsonUtils.parseEnumByName(
+      OperativePatternBonusKind.values,
+      json['bonusKind'],
+    );
+    final amount = EndpointJsonUtils.readInt(
+      json['amount'],
+      fallback: 1,
+    );
+    if (direction == null || requiredTag == null || bonusKind == null) {
+      continue;
+    }
+
+    bonuses.add(
+      OperativePatternAdjacencyBonus.match(
+        direction,
+        requiredTag,
+        bonusKind,
+        amount < 1 ? 1 : amount,
+      ),
+    );
+  }
+
+  return List<OperativePatternAdjacencyBonus>.unmodifiable(bonuses);
 }
 
 List<ItemArchetypeAffinity> _deserializeItemArchetypeAffinities(

@@ -321,19 +321,8 @@ const _drawingBonusEligibleHooks = <ItemEffectHook>{
   ItemEffectHook.turnEnd,
 };
 
-class _PatternAdjacencyBonusRecipe {
-  final EntityTag requiredTag;
-  final OperativePatternBonusKind kind;
-
-  const _PatternAdjacencyBonusRecipe({
-    required this.requiredTag,
-    required this.kind,
-  });
-}
-
 /// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
 class Item {
-  static const int defaultEquipmentCost = 1;
   static const int _costPerRarityFactor = 2;
   static int _nextInstanceSequence = 0;
   static final RegExp _ownedInstancePattern = RegExp(r'^item_(\d+)$');
@@ -346,7 +335,6 @@ class Item {
   final String iconEmoji;
   final RarityTier rarity;
   final int baseCost;
-  final int? equipCost;
   final int sellValueBonus;
   final int value;
   final int upgradeValue;
@@ -360,6 +348,7 @@ class Item {
   final OperativePatternBonusKind? patternBonusKindOverride;
   final int? patternBonusAmountOverride;
   final OperativePatternRequirement? patternRequirementOverride;
+  final List<OperativePatternAdjacencyBonus> patternAdjacencyBonuses;
 
   /// Crea un item inmutable que puede actuar como preset compartido o copia poseida.
   const Item({
@@ -371,7 +360,6 @@ class Item {
     this.iconEmoji = '\u{1F9F0}',
     this.rarity = RarityTier.gray,
     required this.baseCost,
-    this.equipCost,
     this.sellValueBonus = 0,
     this.value = 0,
     this.upgradeValue = 0,
@@ -385,6 +373,7 @@ class Item {
     this.patternBonusKindOverride,
     this.patternBonusAmountOverride,
     this.patternRequirementOverride,
+    this.patternAdjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
   }) : _declaredTags = tags;
 
   /// Indica si el objeto puede equiparse.
@@ -428,10 +417,6 @@ class Item {
         kind: patternBonusKind,
         amount: patternBonusAmount,
       );
-
-  /// Describe los bonus por adyacencia que este objeto puede activar en Patron.
-  List<OperativePatternAdjacencyBonus> get patternAdjacencyBonuses =>
-      _defaultPatternAdjacencyBonuses;
 
   /// Devuelve si el bonus interno del Patron empuja ataque o bloqueo.
   OperativePatternBonusKind get patternBonusKind =>
@@ -515,9 +500,6 @@ class Item {
 
   /// Devuelve el valor actual de venta, incluyendo bonuses acumulados del propio item.
   int get sellValue => max(1, (cost / 2).ceil()) + max(0, sellValueBonus);
-
-  /// Devuelve el coste de equipo efectivo, usando 1 salvo que el item lo fuerce.
-  int get equipmentCost => max(0, equipCost ?? defaultEquipmentCost);
 
   /// Calcula el income que aporta el objeto a partir de su valor actual.
   int get incomeModifier => value * incomePerValueUnit;
@@ -634,6 +616,7 @@ class Item {
       patternRequirementOverride: upgradeTemplate.patternRequirementOverride,
       clearPatternRequirementOverride:
           upgradeTemplate.patternRequirementOverride == null,
+      patternAdjacencyBonuses: upgradeTemplate.patternAdjacencyBonuses,
     );
   }
 
@@ -646,7 +629,6 @@ class Item {
     String? iconEmoji,
     RarityTier? rarity,
     int? baseCost,
-    int? equipCost,
     int? sellValueBonus,
     int? value,
     int? upgradeValue,
@@ -665,6 +647,7 @@ class Item {
     bool clearPatternBonusAmountOverride = false,
     OperativePatternRequirement? patternRequirementOverride,
     bool clearPatternRequirementOverride = false,
+    List<OperativePatternAdjacencyBonus>? patternAdjacencyBonuses,
   }) {
     return Item(
       id: id,
@@ -675,7 +658,6 @@ class Item {
       iconEmoji: iconEmoji ?? this.iconEmoji,
       rarity: rarity ?? this.rarity,
       baseCost: baseCost ?? this.baseCost,
-      equipCost: equipCost ?? this.equipCost,
       sellValueBonus: sellValueBonus ?? this.sellValueBonus,
       value: value ?? this.value,
       upgradeValue: upgradeValue ?? this.upgradeValue,
@@ -698,6 +680,8 @@ class Item {
       patternRequirementOverride: clearPatternRequirementOverride
           ? null
           : patternRequirementOverride ?? this.patternRequirementOverride,
+      patternAdjacencyBonuses:
+          patternAdjacencyBonuses ?? this.patternAdjacencyBonuses,
     );
   }
 
@@ -714,7 +698,6 @@ class Item {
       iconEmoji: iconEmoji,
       rarity: rarity,
       baseCost: baseCost,
-      equipCost: equipCost,
       sellValueBonus: sellValueBonus,
       value: value,
       upgradeValue: upgradeValue,
@@ -728,6 +711,7 @@ class Item {
       patternBonusKindOverride: patternBonusKindOverride,
       patternBonusAmountOverride: patternBonusAmountOverride,
       patternRequirementOverride: patternRequirementOverride,
+      patternAdjacencyBonuses: patternAdjacencyBonuses,
     );
   }
 
@@ -785,142 +769,6 @@ class Item {
       case BattlerStat.vampirism:
         return 'VAMPIRISMO';
     }
-  }
-
-  List<OperativePatternAdjacencyBonus> get _defaultPatternAdjacencyBonuses {
-    final count = _defaultPatternAdjacencyBonusCount;
-    if (count <= 0) return const <OperativePatternAdjacencyBonus>[];
-
-    final recipes = _patternAdjacencyBonusRecipes();
-    final directions = OperativePatternAdjacencyDirection.values;
-    final bonuses = <OperativePatternAdjacencyBonus>[];
-    for (var index = 0; index < count; index++) {
-      final recipe = recipes[index % recipes.length];
-      final direction = directions[(id.index + index) % directions.length];
-      bonuses.add(
-        OperativePatternAdjacencyBonus(
-          direction: direction,
-          requiredTag: recipe.requiredTag,
-          bonus: OperativePatternBonus(
-            kind: recipe.kind,
-            amount: _defaultPatternAdjacencyBonusAmount,
-          ),
-        ),
-      );
-    }
-
-    return List<OperativePatternAdjacencyBonus>.unmodifiable(bonuses);
-  }
-
-  int get _defaultPatternAdjacencyBonusCount {
-    return switch (rarity) {
-      RarityTier.gray => 1,
-      RarityTier.green => 2,
-      RarityTier.blue => 3,
-      RarityTier.purple => 4,
-      RarityTier.yellow => 4,
-    };
-  }
-
-  int get _defaultPatternAdjacencyBonusAmount {
-    return max(1, rarity.factor ~/ 2);
-  }
-
-  List<_PatternAdjacencyBonusRecipe> _patternAdjacencyBonusRecipes() {
-    final recipes = <_PatternAdjacencyBonusRecipe>[];
-
-    void addRecipe({
-      required bool when,
-      required EntityTag requiredTag,
-      required OperativePatternBonusKind kind,
-    }) {
-      if (!when) return;
-      recipes.add(
-        _PatternAdjacencyBonusRecipe(
-          requiredTag: requiredTag,
-          kind: kind,
-        ),
-      );
-    }
-
-    addRecipe(
-      when: isWeaponLike,
-      requiredTag: EntityTag.arma,
-      kind: OperativePatternBonusKind.attack,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.ataque),
-      requiredTag: EntityTag.ataque,
-      kind: OperativePatternBonusKind.attack,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.barrera),
-      requiredTag: EntityTag.barrera,
-      kind: OperativePatternBonusKind.barrier,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.vida),
-      requiredTag: EntityTag.vida,
-      kind: OperativePatternBonusKind.barrier,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.debuff),
-      requiredTag: EntityTag.debuff,
-      kind: OperativePatternBonusKind.attack,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.quemadura),
-      requiredTag: EntityTag.quemadura,
-      kind: OperativePatternBonusKind.attack,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.intoxicacion),
-      requiredTag: EntityTag.intoxicacion,
-      kind: OperativePatternBonusKind.attack,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.desafio),
-      requiredTag: EntityTag.desafio,
-      kind: OperativePatternBonusKind.attack,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.resonancia),
-      requiredTag: EntityTag.resonancia,
-      kind: OperativePatternBonusKind.barrier,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.economia),
-      requiredTag: EntityTag.economia,
-      kind: OperativePatternBonusKind.barrier,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.buff),
-      requiredTag: EntityTag.buff,
-      kind: patternBonusKind,
-    );
-    addRecipe(
-      when: hasTag(EntityTag.ciclo),
-      requiredTag: EntityTag.ciclo,
-      kind: patternBonusKind,
-    );
-    addRecipe(
-      when: isAccessoryLike,
-      requiredTag: EntityTag.accesorio,
-      kind: OperativePatternBonusKind.barrier,
-    );
-
-    if (recipes.isNotEmpty) {
-      return List<_PatternAdjacencyBonusRecipe>.unmodifiable(recipes);
-    }
-
-    return List<_PatternAdjacencyBonusRecipe>.unmodifiable([
-      _PatternAdjacencyBonusRecipe(
-        requiredTag: patternBonusKind == OperativePatternBonusKind.attack
-            ? EntityTag.ataque
-            : EntityTag.barrera,
-        kind: patternBonusKind,
-      ),
-    ]);
   }
 
   OperativePatternBonusKind get _defaultPatternBonusKind {

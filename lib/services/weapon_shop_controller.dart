@@ -69,7 +69,7 @@ class WeaponShopController extends ChangeNotifier {
       return 'El objeto ya no esta en tu inventario.';
     }
 
-    return 'Venta: ${sellPriceFor(item)}C. Coste de equipo: ${item.equipmentCost}.';
+    return 'Venta: ${sellPriceFor(item)}C.';
   }
 
   String inventoryActionLabelFor(Item item) {
@@ -122,7 +122,7 @@ class WeaponShopController extends ChangeNotifier {
       return blockReason;
     }
 
-    final nextCost = _player.equippedItemCost + item.equipmentCost;
+    final nextCost = _player.equippedItemCost + 1;
     return 'Equipar objeto al operativo ($nextCost/${_player.equipmentCapacity})';
   }
 

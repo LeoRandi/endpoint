@@ -80,11 +80,11 @@ final toxicLacerCombatNode = CombatPathNode(
   label: toxicLacerEnemyBattler.name,
 );
 
-/// Nodo verde de aguante progresivo con doble motor de barrera.
+/// Nodo morado de aguante progresivo con doble motor de barrera.
 final bastionSpringCombatNode = CombatPathNode(
   nodeId: 'combat_bastion_spring',
   enemy: bastionSpringEnemyBattler,
-  tier: CombatNodeTier.green,
+  tier: CombatNodeTier.purple,
   label: bastionSpringEnemyBattler.name,
 );
 
@@ -283,7 +283,6 @@ final List<CombatPathNode> greenCombatNodes = List.unmodifiable([
   patchBulwarkCombatNode,
   cinderClawCombatNode,
   toxicLacerCombatNode,
-  bastionSpringCombatNode,
   furnaceFangCombatNode,
   shieldmendBruteCombatNode,
 ]);
@@ -310,6 +309,7 @@ final List<CombatPathNode> purpleCombatNodes = List.unmodifiable([
   ovenHarrowerCombatNode,
   voidLeecherCombatNode,
   gloomSmugglerCombatNode,
+  bastionSpringCombatNode,
 ]);
 
 /// Lista de ejemplo con todos los nodos de combate disponibles.

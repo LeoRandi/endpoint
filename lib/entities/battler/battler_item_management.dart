@@ -29,7 +29,7 @@ extension BattlerItemManagement on Battler {
       return 'El objeto ya no esta en tu inventario';
     }
 
-    final nextCost = equippedItemCost + item.equipmentCost;
+    final nextCost = equippedItemCost + 1;
     if (nextCost > equipmentCapacity) {
       return 'Capacidad insuficiente: $nextCost/$equipmentCapacity';
     }
@@ -150,9 +150,9 @@ extension BattlerItemManagement on Battler {
     );
   }
 
-  /// Equipa un item del inventario si su coste cabe dentro de la capacidad disponible.
+  /// Equipa un item del inventario si cabe dentro de la capacidad disponible.
   Battler equipItem(Item item) {
-    if (!this.canEquipItem(item)) return this;
+    if (!canEquipItem(item)) return this;
 
     final updatedInventoryItems = List<Item>.from(inventoryItems)..remove(item);
     final updatedEquippedItems = List<Item>.from(equippedItems);

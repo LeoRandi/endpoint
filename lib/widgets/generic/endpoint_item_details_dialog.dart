@@ -124,23 +124,6 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
                         letterSpacing: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        EndpointText(
-                          '${widget.item.rarity.label}  |  TAMAÑO ${widget.item.equipmentCost}',
-                          maxLines: null,
-                          style: textSmallBold.copyWith(
-                            fontSize: 10,
-                            color: widget.accent,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -192,14 +175,23 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
             ),
           ),
           const SizedBox(height: 12),
-          EndpointText(
-            _buildModifiersText(widget.item),
-            maxLines: null,
-            style: textSmallNumericBold.copyWith(
-              fontSize: 10,
-              color: widget.accent,
-              letterSpacing: 1,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: EndpointText(
+                  _buildModifiersText(widget.item),
+                  maxLines: null,
+                  style: textSmallNumericBold.copyWith(
+                    fontSize: 10,
+                    color: widget.accent,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _ItemArchetypeBadge(item: widget.item),
+            ],
           ),
           if (shouldShowPatternBonus) ...[
             const SizedBox(height: 12),
@@ -307,6 +299,101 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
     }
 
     return stat.shortLabel;
+  }
+}
+
+class _ItemArchetypeBadge extends StatelessWidget {
+  final Item item;
+
+  const _ItemArchetypeBadge({
+    required this.item,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final affinities = _displayAffinities(item);
+    final accent = _accentForAffinity(affinities.first);
+    final label = affinities.map(_labelForAffinity).join(', ');
+    final emoji = affinities.map(_emojiForAffinity).join('');
+
+    return Tooltip(
+      message:
+          'Arquetipo del objeto: $label.\nLos arquetipos agrupan objetos y habilidades para orientar una build.\n${_archetypeLegend()}',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.blend(
+            EndpointPalette.panelBackgroundOpaque,
+            accent,
+            0.18,
+          ),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.62),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          child: EndpointText(
+            emoji,
+            maxLines: 1,
+            style: const TextStyle(
+              fontSize: 12,
+              height: 1,
+              decoration: TextDecoration.none,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<ItemArchetypeAffinity> _displayAffinities(Item item) {
+    final specificAffinities = item.archetypeAffinities
+        .where((affinity) => affinity.isSpecific)
+        .toList(growable: false);
+    if (specificAffinities.isNotEmpty) return specificAffinities;
+
+    return const [ItemArchetypeAffinity.general];
+  }
+
+  String _archetypeLegend() {
+    return [
+      '${_emojiForAffinity(ItemArchetypeAffinity.general)} General',
+      '${_emojiForAffinity(ItemArchetypeAffinity.veloz)} Veloz',
+      '${_emojiForAffinity(ItemArchetypeAffinity.inamovible)} Inamovible',
+      '${_emojiForAffinity(ItemArchetypeAffinity.imparable)} Imparable',
+      '${_emojiForAffinity(ItemArchetypeAffinity.mercante)} Mercante',
+    ].join(' | ');
+  }
+
+  String _labelForAffinity(ItemArchetypeAffinity affinity) {
+    return switch (affinity) {
+      ItemArchetypeAffinity.general => 'General',
+      ItemArchetypeAffinity.veloz => ArchetypeId.veloz.label,
+      ItemArchetypeAffinity.inamovible => ArchetypeId.inamovible.label,
+      ItemArchetypeAffinity.imparable => ArchetypeId.imparable.label,
+      ItemArchetypeAffinity.mercante => ArchetypeId.mercante.label,
+    };
+  }
+
+  String _emojiForAffinity(ItemArchetypeAffinity affinity) {
+    return switch (affinity) {
+      ItemArchetypeAffinity.general => '\u{1FAB5}',
+      ItemArchetypeAffinity.veloz => '\u{26D3}',
+      ItemArchetypeAffinity.inamovible => '\u{1F6E1}',
+      ItemArchetypeAffinity.imparable => '\u2694',
+      ItemArchetypeAffinity.mercante => '\u{1F4B0}',
+    };
+  }
+
+  Color _accentForAffinity(ItemArchetypeAffinity affinity) {
+    return switch (affinity) {
+      ItemArchetypeAffinity.general => EndpointPalette.softForeground,
+      ItemArchetypeAffinity.veloz => const Color(0xFF59B7FF),
+      ItemArchetypeAffinity.inamovible => const Color(0xFF5AF78E),
+      ItemArchetypeAffinity.imparable => const Color(0xFFF3D35C),
+      ItemArchetypeAffinity.mercante => const Color(0xFFEBCB5A),
+    };
   }
 }
 

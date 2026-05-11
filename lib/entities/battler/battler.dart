@@ -170,6 +170,7 @@ enum ItemCombatFlagKind {
   guanteRetoTriggered,
   ultimaPalabraTriggeredThisTurn,
   aceleradorRetoTriggered,
+  thermalTurbineCombatStartTriggered,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.
@@ -308,7 +309,7 @@ class _BattlerDerivedState {
 
     for (final item in owner.equippedItems) {
       equippedItemsByType.putIfAbsent(item.id, () => item);
-      equippedItemCost += item.equipmentCost;
+      equippedItemCost++;
 
       final effect = item.effect;
       if (effect == null) continue;

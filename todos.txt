@@ -102,6 +102,7 @@
 -Enemigos
 --Crear Presets(al menos 100 distintos)[33/100]
 --Equipar adecuadamente
+--Modificar IA en torno al modo Patrón
 
 -Codex
 --Códice con todos los items, enemigos, habilidades y eventos descubiertos por el jugador
@@ -126,10 +127,13 @@ ARREGLAR:
 -dibujo guardado para quick save no se guarda entre sesiones de la app
 -Los marcadores de daño y bloqueo del jugador en combate tienen que tener un scroll horizontal automático, o detectar que tiene que hacer scroll antes si ya lo tienen.
 -Modificar items y habilidades de Calentando para que en general se activen al comienzo del combate, con mucho burst
+-meter barra de tiempo en modo patrón
 
 -Nerf:
 --Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
 --Turbina Térmica: 10 de calentando al comienzo del combate
+--martillo fragilidad: no veo que meta el debuffo, lo está metiendo antes?
+--habilidad starter de Mercante
 
 ////
 PROBAR:
@@ -139,6 +143,7 @@ IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
 -mostrar si es habilidad o item en la recompensa(dejar como el resumen?)
 -Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
+-Resumen en la pantalla de you Lose/you win
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.

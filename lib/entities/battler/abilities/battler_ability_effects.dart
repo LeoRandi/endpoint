@@ -203,7 +203,7 @@ class ToqueDeQuedaAbilityEffect extends BattlerAbilityEffect {
       final resolution = _applyAbilityStatusToOpponentFromOwner(
         owner: updatedOwner,
         opponent: updatedOpponent,
-        status: FragilidadStatus(remainingTurns: amount),
+        status: FragilidadStatus(value: amount),
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
@@ -501,7 +501,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
 
 /// Convierte cada nueva hora de la run en una entrada directa de capital.
 class CashflowAbilityEffect extends BattlerAbilityEffect {
-  /// Crea el efecto pasivo del Mercante para monetizar el income actual.
+  /// Crea el efecto pasivo del Mercante para entregar creditos fijos.
   const CashflowAbilityEffect()
       : super(
           hooks: const {
@@ -514,7 +514,7 @@ class CashflowAbilityEffect extends BattlerAbilityEffect {
     required Battler owner,
     required BattlerAbility ability,
   }) {
-    final payout = max(0, owner.income);
+    final payout = max(0, ability.currentValue);
     if (payout <= 0) return owner;
 
     return owner.earnMoney(payout);
@@ -1533,7 +1533,7 @@ class CortafuegosPortatilAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Aplica Fragilidad y castiga objetivos limpios con un ataque inmediato.
+/// Acumula Fragilidad y castiga objetivos limpios con un ataque inmediato.
 class MarcaDeCazaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Marca de Caza.
   const MarcaDeCazaAbilityEffect();
@@ -1549,7 +1549,7 @@ class MarcaDeCazaAbilityEffect extends BattlerAbilityEffect {
     final fragilityResolution = _applyAbilityStatusToOpponentFromOwner(
       owner: owner,
       opponent: opponent,
-      status: FragilidadStatus(remainingTurns: amount),
+      status: FragilidadStatus(value: amount),
     );
     final updatedOwner = fragilityResolution.owner;
     final updatedOpponent = fragilityResolution.opponent;

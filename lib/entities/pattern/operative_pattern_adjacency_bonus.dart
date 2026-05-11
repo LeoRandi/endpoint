@@ -23,11 +23,25 @@ enum OperativePatternAdjacencyDirection {
 class OperativePatternAdjacencyBonus {
   final OperativePatternAdjacencyDirection direction;
   final EntityTag requiredTag;
-  final OperativePatternBonus bonus;
+  final OperativePatternBonusKind kind;
+  final int amount;
 
   const OperativePatternAdjacencyBonus({
     required this.direction,
     required this.requiredTag,
-    required this.bonus,
+    required this.kind,
+    required this.amount,
   });
+
+  const OperativePatternAdjacencyBonus.match(
+    this.direction,
+    this.requiredTag,
+    this.kind,
+    this.amount,
+  );
+
+  OperativePatternBonus get bonus => OperativePatternBonus(
+        kind: kind,
+        amount: amount,
+      );
 }

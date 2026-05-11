@@ -44,7 +44,74 @@ class InertiaCrownItemEffect extends ItemEffect {
   }
 }
 
-/// Consume Quemadura para convertirla en daño directo inmediato.
+/// Entrega Calentando una sola vez al comenzar el primer turno propio del combate.
+class ThermalTurbineItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Turbina Termica.
+  const ThermalTurbineItemEffect()
+      : super(
+          description:
+              'Al inicio del combate, ganas una reserva fuerte de Calentando.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio del combate, ganas ${max(1, item.value)} Calentando. Solo ocurre una vez por combate.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggeredFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.thermalTurbineCombatStartTriggered,
+    );
+    if (owner.hasCombatFlag(triggeredFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, item.value);
+    final currentStatus = owner.statusById(CalentandoStatus.statusId);
+    final ownerWithFlag = owner.addCombatFlag(triggeredFlag);
+    if (currentStatus is CalentandoStatus) {
+      final resolvedStatus = currentStatus.resolved(ownerWithFlag);
+      return ItemEffectResolution(
+        owner: ownerWithFlag.applyStatus(
+          resolvedStatus.copyWith(
+            remainingTurns: max(
+              resolvedStatus.remainingTurns,
+              CalentandoStatus.defaultDuration,
+            ),
+            value: resolvedStatus.value + amount,
+          ),
+          applyEquipmentModifiers: false,
+        ),
+        opponent: opponent,
+      );
+    }
+
+    return ItemEffectResolution(
+      owner: ownerWithFlag.applyStatusFromSource(
+        CalentandoStatus(value: amount),
+        source: ownerWithFlag,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Consume Quemadura para convertirla en dano directo inmediato.
 class SunExecutionBladeItemEffect extends ItemEffect {
   /// Crea el efecto propio de la Hoja de Ejecucion Solar.
   const SunExecutionBladeItemEffect()
@@ -912,7 +979,7 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectKind.conmocion:
         return ConmocionStatus(value: resolvedValue);
       case ItemStatusEffectKind.fragilidad:
-        return FragilidadStatus(remainingTurns: resolvedValue);
+        return FragilidadStatus(value: resolvedValue);
       case ItemStatusEffectKind.inercia:
         return InerciaStatus(value: resolvedValue);
       case ItemStatusEffectKind.inerciaAtaque:
@@ -933,7 +1000,7 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectKind.conmocion:
         return 'Conmocion (-$resolvedValue daño en el siguiente ataque)';
       case ItemStatusEffectKind.fragilidad:
-        return 'Fragilidad (+$resolvedValue daño recibido en el siguiente ataque)';
+        return 'Fragilidad ($resolvedValue acumulacion)';
       case ItemStatusEffectKind.inercia:
         return 'Inercia (+$resolvedValue por acumulacion)';
       case ItemStatusEffectKind.inerciaAtaque:

@@ -14,7 +14,7 @@ final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
 );
 final RegExp _highlightedTermPattern = RegExp(
-  r'\b(?:desafio|desafío|resonancia|intoxicacion|intoxicación|quemadura|debuffs?|buffs?|curar|curas?|curacion|curación|recuperas?|recupera|vida|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|dano|ataques?|atacar|atacas|atk)\b',
+  r'\b(?:desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|inercia|ciclo|fragilidad|interferencia|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
   caseSensitive: false,
 );
 
@@ -76,8 +76,8 @@ class EndpointHighlightedValueText extends StatelessWidget {
     );
   }
 
-  List<TextSpan> _buildSpans(TextStyle baseStyle) {
-    final spans = <TextSpan>[];
+  List<InlineSpan> _buildSpans(TextStyle baseStyle) {
+    final spans = <InlineSpan>[];
     final tokens = <_HighlightedToken>[
       for (final match in _highlightedValuePattern.allMatches(data))
         _HighlightedToken(
@@ -86,10 +86,10 @@ class EndpointHighlightedValueText extends StatelessWidget {
           accent: _accentForValue(match.start, match.end),
         ),
       for (final match in _highlightedTermPattern.allMatches(data))
-        _HighlightedToken(
+        _HighlightedToken.term(
           start: match.start,
           end: match.end,
-          accent: _accentForTerm(match.group(0) ?? ''),
+          term: _metadataForTerm(match.group(0) ?? ''),
         ),
     ]..sort((left, right) {
         final startComparison = left.start.compareTo(right.start);
@@ -107,21 +107,37 @@ class EndpointHighlightedValueText extends StatelessWidget {
 
       final token = data.substring(tokenMatch.start, tokenMatch.end);
       final accent = tokenMatch.accent;
-      spans.add(
-        TextSpan(
-          text: token,
-          style: baseStyle.copyWith(
-            color: accent,
-            fontWeight: FontWeight.w800,
-            shadows: [
-              Shadow(
-                color: accent.withValues(alpha: 0.34),
-                blurRadius: 8,
-              ),
-            ],
+      final highlightedStyle = baseStyle.copyWith(
+        color: accent,
+        fontWeight: FontWeight.w800,
+        shadows: [
+          Shadow(
+            color: accent.withValues(alpha: 0.34),
+            blurRadius: 8,
           ),
-        ),
+        ],
       );
+      final term = tokenMatch.term;
+      if (term == null) {
+        spans.add(
+          TextSpan(
+            text: token,
+            style: highlightedStyle,
+          ),
+        );
+      } else {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: _HighlightedTermToken(
+              token: token,
+              style: highlightedStyle,
+              accent: accent,
+              metadata: term,
+            ),
+          ),
+        );
+      }
       cursor = tokenMatch.end;
     }
 
@@ -178,6 +194,161 @@ class EndpointHighlightedValueText extends StatelessWidget {
     return EndpointPalette.rewardAccent;
   }
 
+  _HighlightTermMetadata _metadataForTerm(String token) {
+    final normalizedToken = token.normalizedHighlightText;
+
+    if (normalizedToken.contains('resonancia')) {
+      return const _HighlightTermMetadata(
+        accent: _effectResonanceAccent,
+        icon: _HighlightIconSpec.material(Icons.graphic_eq_rounded),
+        tooltip:
+            'Resonancia: buff de carga defensiva acumulada. Algunos efectos la usan para infligir daño directo.',
+      );
+    }
+    if (normalizedToken.contains('desafio')) {
+      return const _HighlightTermMetadata(
+        accent: _effectChallengeAccent,
+        icon: _HighlightIconSpec.material(Icons.sports_mma_rounded),
+        tooltip:
+            'Desafio: buff que guarda un golpe directo antes del siguiente ataque. Si llega al final del combate, cura.',
+      );
+    }
+    if (normalizedToken.contains('intoxicacion')) {
+      return const _HighlightTermMetadata(
+        accent: _effectPoisonAccent,
+        icon: _HighlightIconSpec.material(Icons.science_rounded),
+        tooltip:
+            'Intoxicacion: debuff. Hace daño al final del turno segun su valor, no baja por si solo, atraviesa Barrera y se limpia al terminar el combate.',
+      );
+    }
+    if (normalizedToken.contains('quemadura')) {
+      return const _HighlightTermMetadata(
+        accent: _effectBurnAccent,
+        icon: _HighlightIconSpec.material(Icons.whatshot_rounded),
+        tooltip:
+            'Quemadura: debuff. Hace daño al final del turno segun su duracion restante, baja con los turnos y su daño pasa primero por Barrera.',
+      );
+    }
+    if (normalizedToken.contains('fragilidad')) {
+      return const _HighlightTermMetadata(
+        accent: _effectDebuffAccent,
+        icon: _HighlightIconSpec.material(Icons.flash_on_outlined),
+        tooltip:
+            'Fragilidad: debuff. Se acumula hasta 10. Si el objetivo recibe un ataque con 10, se limpia e inflige 10 daño directo que ignora Barrera.',
+      );
+    }
+    if (normalizedToken.contains('interferencia')) {
+      return const _HighlightTermMetadata(
+        accent: _effectDebuffAccent,
+        icon: _HighlightIconSpec.material(Icons.portable_wifi_off_rounded),
+        tooltip:
+            'Interferencia: debuff. Impide activar habilidades manuales mientras siga activo.',
+      );
+    }
+    if (normalizedToken.contains('conmocion')) {
+      return const _HighlightTermMetadata(
+        accent: _effectDebuffAccent,
+        icon: _HighlightIconSpec.material(Icons.flash_off_rounded),
+        tooltip:
+            'Conmocion: debuff. Reduce el daño del siguiente ataque del portador y luego desaparece.',
+      );
+    }
+    if (normalizedToken.startsWith('debuff')) {
+      return const _HighlightTermMetadata(
+        accent: _effectDebuffAccent,
+        icon: _HighlightIconSpec.material(Icons.warning_amber_rounded),
+        tooltip:
+            'Debuff: estado perjudicial. Puede reducir recursos, bloquear acciones o aplicar daño.',
+      );
+    }
+    if (normalizedToken.contains('potencia')) {
+      return const _HighlightTermMetadata(
+        accent: _effectBuffAccent,
+        icon: _HighlightIconSpec.material(Icons.bolt_rounded),
+        tooltip:
+            'Potencia: buff. Aumenta el daño del siguiente golpe en su valor y luego se consume.',
+      );
+    }
+    if (normalizedToken.contains('calentando')) {
+      return const _HighlightTermMetadata(
+        accent: _effectBuffAccent,
+        icon: _HighlightIconSpec.material(Icons.local_fire_department_rounded),
+        tooltip:
+            'Calentando: buff. Suma su valor al daño al atacar y aumenta al final de tu turno.',
+      );
+    }
+    if (normalizedToken.contains('inercia')) {
+      return const _HighlightTermMetadata(
+        accent: _effectBuffAccent,
+        icon: _HighlightIconSpec.material(Icons.motion_photos_on_rounded),
+        tooltip:
+            'Inercia: buff. Si no activas habilidades manuales en tu turno, genera una reserva temporal de ATK o Barrera.',
+      );
+    }
+    if (normalizedToken.startsWith('buff')) {
+      return const _HighlightTermMetadata(
+        accent: _effectBuffAccent,
+        icon: _HighlightIconSpec.material(Icons.auto_awesome_rounded),
+        tooltip:
+            'Buff: estado beneficioso. Mejora stats, guarda recursos o habilita efectos positivos.',
+      );
+    }
+    if (normalizedToken.contains('ciclo')) {
+      return const _HighlightTermMetadata(
+        accent: _effectBuffAccent,
+        icon: _HighlightIconSpec.material(Icons.brightness_medium_rounded),
+        tooltip:
+            'Ciclo: palabra clave de efectos que cambian entre dia y noche.',
+      );
+    }
+    if (normalizedToken.contains('economia') ||
+        normalizedToken == 'income' ||
+        normalizedToken.startsWith('credito')) {
+      return const _HighlightTermMetadata(
+        accent: EndpointPalette.warningAccent,
+        icon: _HighlightIconSpec.material(Icons.account_balance_wallet_rounded),
+        tooltip:
+            'Economia: recursos de creditos e income. Los creditos compran objetos y el income aumenta lo ganado.',
+      );
+    }
+    if (normalizedToken.startsWith('cur') ||
+        normalizedToken == 'vida' ||
+        normalizedToken == 'hp' ||
+        normalizedToken.startsWith('recupera')) {
+      return const _HighlightTermMetadata(
+        accent: _effectHealingAccent,
+        icon: _HighlightIconSpec.asset('assets/images/icons/icon_health.png'),
+        tooltip:
+            'Vida: salud del combatiente. Si llega a 0, el combatiente cae derrotado.',
+      );
+    }
+    if (normalizedToken.contains('barrera') ||
+        normalizedToken.startsWith('bloque')) {
+      return const _HighlightTermMetadata(
+        accent: _effectBarrierAccent,
+        icon: _HighlightIconSpec.asset('assets/images/icons/icon_shield.png'),
+        tooltip:
+            'Barrera: escudo que protege de la mayoria del daño. Se consume antes de la vida.',
+      );
+    }
+    if (normalizedToken == 'atk' ||
+        normalizedToken == 'dano' ||
+        normalizedToken.startsWith('atac')) {
+      return const _HighlightTermMetadata(
+        accent: _effectAttackAccent,
+        icon: _HighlightIconSpec.asset('assets/images/icons/icon_sword.png'),
+        tooltip:
+            'Ataque/daño: cantidad ofensiva que intenta quitar Barrera o vida al objetivo.',
+      );
+    }
+
+    return _HighlightTermMetadata(
+      accent: _accentForTerm(token),
+      icon: const _HighlightIconSpec.material(Icons.info_outline_rounded),
+      tooltip: 'Palabra clave de combate.',
+    );
+  }
+
   Color _accentForValue(int start, int end) {
     final tagSet = tags.toSet();
     final contextualAccent = _nearestContextualAccent(start, end);
@@ -215,14 +386,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
   }
 
   Color? _nearestContextualAccent(int start, int end) {
-    final lowerData = data
-        .toLowerCase()
-        .replaceAll('ó', 'o')
-        .replaceAll('á', 'a')
-        .replaceAll('é', 'e')
-        .replaceAll('í', 'i')
-        .replaceAll('ú', 'u')
-        .replaceAll('ñ', 'n');
+    final lowerData = data.normalizedHighlightText;
     const maxDistance = 56.0;
     final midpoint = (start + end) / 2;
     final candidates = [
@@ -323,13 +487,120 @@ class EndpointHighlightedValueText extends StatelessWidget {
 class _HighlightedToken {
   final int start;
   final int end;
-  final Color accent;
+  final Color? _valueAccent;
+  final _HighlightTermMetadata? term;
 
   const _HighlightedToken({
     required this.start,
     required this.end,
+    required Color accent,
+  })  : _valueAccent = accent,
+        term = null;
+
+  const _HighlightedToken.term({
+    required this.start,
+    required this.end,
+    required this.term,
+  }) : _valueAccent = null;
+
+  Color get accent =>
+      term?.accent ?? _valueAccent ?? EndpointPalette.rewardAccent;
+}
+
+class _HighlightedTermToken extends StatelessWidget {
+  final String token;
+  final TextStyle style;
+  final Color accent;
+  final _HighlightTermMetadata metadata;
+
+  const _HighlightedTermToken({
+    required this.token,
+    required this.style,
     required this.accent,
+    required this.metadata,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconSize =
+        ((style.fontSize ?? 14) * 0.86).clamp(10.0, 15.0).toDouble();
+
+    return Tooltip(
+      message: metadata.tooltip,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 1),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _HighlightIcon(
+              spec: metadata.icon,
+              color: accent,
+              size: iconSize,
+            ),
+            const SizedBox(width: 2),
+            Text(
+              token,
+              style: style,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HighlightIcon extends StatelessWidget {
+  final _HighlightIconSpec spec;
+  final Color color;
+  final double size;
+
+  const _HighlightIcon({
+    required this.spec,
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final assetPath = spec.assetPath;
+    if (assetPath != null) {
+      return Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        color: color,
+        filterQuality: FilterQuality.none,
+      );
+    }
+
+    return Icon(
+      spec.icon!,
+      color: color,
+      size: size,
+    );
+  }
+}
+
+class _HighlightTermMetadata {
+  final Color accent;
+  final _HighlightIconSpec icon;
+  final String tooltip;
+
+  const _HighlightTermMetadata({
+    required this.accent,
+    required this.icon,
+    required this.tooltip,
+  });
+}
+
+class _HighlightIconSpec {
+  final IconData? icon;
+  final String? assetPath;
+
+  const _HighlightIconSpec.material(this.icon) : assetPath = null;
+
+  const _HighlightIconSpec.asset(this.assetPath) : icon = null;
 }
 
 class _ValueAccentCandidate {
@@ -340,4 +611,22 @@ class _ValueAccentCandidate {
     required this.color,
     required this.patterns,
   });
+}
+
+extension _HighlightTextNormalization on String {
+  String get normalizedHighlightText {
+    return toLowerCase()
+        .replaceAll('ó', 'o')
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n')
+        .replaceAll('Ã³', 'o')
+        .replaceAll('Ã¡', 'a')
+        .replaceAll('Ã©', 'e')
+        .replaceAll('Ã­', 'i')
+        .replaceAll('Ãº', 'u')
+        .replaceAll('Ã±', 'n');
+  }
 }

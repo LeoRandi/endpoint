@@ -78,7 +78,7 @@ class OperativesOverlayController extends ChangeNotifier {
     if (_player.equippedItems.contains(item)) {
       return 'Quitar objeto del equipo activo';
     }
-    final nextCost = _player.equippedItemCost + item.equipmentCost;
+    final nextCost = _player.equippedItemCost + 1;
     return 'Equipar objeto al jugador ($nextCost/${_player.equipmentCapacity})';
   }
 

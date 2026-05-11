@@ -50,8 +50,7 @@ class _EndpointTagPillMarqueeState extends State<EndpointTagPillMarquee>
       return const SizedBox.shrink();
     }
 
-    final resolvedStyle =
-        widget.style ??
+    final resolvedStyle = widget.style ??
         textSmallBold.copyWith(
           fontSize: 10,
           letterSpacing: 0.8,
@@ -198,6 +197,8 @@ class _EndpointTagPillMarqueeState extends State<EndpointTagPillMarquee>
         maxLines: 1,
       )..layout(minWidth: 0, maxWidth: double.infinity);
 
+      totalWidth +=
+          _EndpointTagPill.iconSizeFor(style) + _EndpointTagPill.iconGap;
       totalWidth += painter.width + padding.horizontal;
       maxHeight = max(maxHeight, painter.height + padding.vertical);
 
@@ -252,6 +253,8 @@ class _EndpointTagPillMarqueeState extends State<EndpointTagPillMarquee>
 }
 
 class _EndpointTagPill extends StatelessWidget {
+  static const double iconGap = 3;
+
   final EntityTag tag;
   final Color accent;
   final TextStyle style;
@@ -264,6 +267,10 @@ class _EndpointTagPill extends StatelessWidget {
     required this.padding,
   });
 
+  static double iconSizeFor(TextStyle style) {
+    return ((style.fontSize ?? 10) * 1.08).clamp(10.0, 14.0).toDouble();
+  }
+
   @override
   Widget build(BuildContext context) {
     final pillAccent = EndpointPalette.blend(tag.accent, accent, 0.22);
@@ -274,23 +281,86 @@ class _EndpointTagPill extends StatelessWidget {
     );
     final foregroundColor = EndpointPalette.soften(pillAccent, amount: 0.2);
 
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: pillAccent.withOpacity(0.72),
+    return Tooltip(
+      message: _tooltipForTag(tag),
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: pillAccent.withValues(alpha: 0.72),
+          ),
         ),
-      ),
-      child: EndpointText(
-        tag.label,
-        maxLines: 1,
-        style: style.copyWith(
-          color: foregroundColor,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _iconForTag(tag),
+              color: foregroundColor,
+              size: iconSizeFor(style),
+            ),
+            const SizedBox(width: iconGap),
+            EndpointText(
+              tag.label,
+              maxLines: 1,
+              style: style.copyWith(
+                color: foregroundColor,
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  IconData _iconForTag(EntityTag tag) {
+    return switch (tag) {
+      EntityTag.debuff => Icons.warning_amber_rounded,
+      EntityTag.buff => Icons.auto_awesome_rounded,
+      EntityTag.quemadura => Icons.whatshot_rounded,
+      EntityTag.intoxicacion => Icons.science_rounded,
+      EntityTag.ciclo => Icons.brightness_medium_rounded,
+      EntityTag.vida => Icons.favorite_rounded,
+      EntityTag.ataque => Icons.sports_mma_rounded,
+      EntityTag.barrera => Icons.shield_rounded,
+      EntityTag.resonancia => Icons.graphic_eq_rounded,
+      EntityTag.desafio => Icons.local_activity_rounded,
+      EntityTag.economia => Icons.account_balance_wallet_rounded,
+      EntityTag.arma => Icons.hardware_rounded,
+      EntityTag.accesorio => Icons.category_rounded,
+    };
+  }
+
+  String _tooltipForTag(EntityTag tag) {
+    return switch (tag) {
+      EntityTag.debuff =>
+        'Debuff: estado perjudicial que puede reducir recursos, bloquear acciones o aplicar daño.',
+      EntityTag.buff =>
+        'Buff: estado beneficioso que mejora stats, guarda recursos o habilita efectos positivos.',
+      EntityTag.quemadura =>
+        'Quemadura: debuff de daño al final del turno. Su valor baja con la duracion y primero pasa por Barrera.',
+      EntityTag.intoxicacion =>
+        'Intoxicacion: debuff de daño al final del turno. Atraviesa Barrera y no baja por si solo.',
+      EntityTag.ciclo =>
+        'Ciclo: efectos que cambian segun dia, noche o estados que alteren ese contexto.',
+      EntityTag.vida =>
+        'Vida: salud del combatiente. Si llega a 0, el combatiente cae derrotado.',
+      EntityTag.ataque =>
+        'Ataque: efecto ofensivo que intenta quitar Barrera o vida al objetivo.',
+      EntityTag.barrera =>
+        'Barrera: escudo que protege de la mayoria del daño y se consume antes de la vida.',
+      EntityTag.resonancia =>
+        'Resonancia: buff de carga defensiva que algunos efectos convierten en daño directo.',
+      EntityTag.desafio =>
+        'Desafio: buff que guarda un golpe directo antes del siguiente ataque y puede curar al final del combate.',
+      EntityTag.economia =>
+        'Economia: creditos e income usados para comprar, vender y sostener efectos.',
+      EntityTag.arma =>
+        'Arma: objeto ofensivo que normalmente se combina con Ataque o debuffs.',
+      EntityTag.accesorio =>
+        'Accesorio: objeto de soporte que suele aportar utilidad, economia o defensa.',
+    };
   }
 }
 

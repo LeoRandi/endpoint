@@ -554,15 +554,6 @@ class _ShopOfferCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      EndpointText(
-                        'TAM ${item.equipmentCost}',
-                        style: textSmallBold.copyWith(
-                          color: item.rarity.accent,
-                          fontSize: 9,
-                          letterSpacing: 0.9,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
                       EndpointHighlightedValueText(
                         item.tooltipDescription,
                         tags: item.tags,

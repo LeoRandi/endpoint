@@ -773,16 +773,6 @@ class _EnemyDetailsHero extends StatelessWidget {
                     letterSpacing: 1.4,
                   ),
                 ),
-                const SizedBox(height: 4),
-                EndpointText(
-                  enemy.rarity.label,
-                  maxLines: 1,
-                  style: textSmallBold.copyWith(
-                    color: accent,
-                    fontSize: 11,
-                    letterSpacing: 1.3,
-                  ),
-                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,

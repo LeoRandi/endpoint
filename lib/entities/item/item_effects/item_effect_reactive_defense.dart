@@ -535,7 +535,7 @@ class ReboundLensItemEffect extends ItemEffect {
   const ReboundLensItemEffect()
       : super(
           description:
-              'La primera vez que recibes daño cada turno, aplicas Fragilidad al agresor.',
+              'La primera vez que recibes daño cada turno, acumulas Fragilidad en el agresor.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.receiveDamageResolved,
@@ -544,7 +544,7 @@ class ReboundLensItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera vez que recibes daño cada turno, aplicas Fragilidad (+${max(1, item.value)} daño recibido en el siguiente ataque) al agresor.';
+    return 'La primera vez que recibes daño cada turno, acumulas ${max(1, item.value)} de Fragilidad en el agresor.';
   }
 
   @override
@@ -591,7 +591,7 @@ class ReboundLensItemEffect extends ItemEffect {
     return _applyStatusToOpponentFromOwner(
       owner: owner.addCombatFlag(triggeredFlag),
       opponent: source,
-      status: FragilidadStatus(remainingTurns: max(1, item.value)),
+      status: FragilidadStatus(value: max(1, item.value)),
     );
   }
 }

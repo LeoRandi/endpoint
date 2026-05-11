@@ -102,7 +102,7 @@ const toqueDeQuedaAbility = BattlerAbility(
   tags: _cicloAtaqueBarreraDebuffAbilityTags,
   name: 'Toque de Queda',
   description:
-      'Activacion manual en combate. De dia aplica Interferencia; de noche aplica Fragilidad.',
+      'Activacion manual en combate. De dia aplica Interferencia; de noche acumula Fragilidad.',
   icon: Icons.notifications_paused_rounded,
   cooldownTurns: 3,
   value: 2,
@@ -232,13 +232,12 @@ const hardResetAbility = BattlerAbility(
 const cashflowAbility = BattlerAbility(
   id: BattlerAbilityId.cashflow,
   archetypeAffinities: _mercanteAbilityAffinities,
-  rarity: RarityTier.green,
+  rarity: RarityTier.yellow,
   tags: _economiaAbilityTags,
   name: 'Flujo de Caja',
-  description:
-      'Pasiva. Al comienzo de cada hora, ganas creditos iguales a tu income actual.',
+  description: 'Pasiva. Al comienzo de cada hora, ganas 2 creditos.',
   icon: Icons.payments_rounded,
-  value: 1,
+  value: 2,
   effect: CashflowAbilityEffect(),
   isImplemented: true,
 );
@@ -363,7 +362,7 @@ const marcaDeCazaAbility = BattlerAbility(
   tags: _ataqueDebuffAbilityTags,
   name: 'Marca de Caza',
   description:
-      'Activacion manual en combate. Aplica Fragilidad. Si el enemigo no tenia debuffs, haces un ataque inmediato.',
+      'Activacion manual en combate. Acumula Fragilidad. Si el enemigo no tenia debuffs, haces un ataque inmediato.',
   icon: Icons.adjust_rounded,
   cooldownTurns: 2,
   value: 2,

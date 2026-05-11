@@ -272,72 +272,119 @@ class CatalisisCruelStatus extends BattlerStatus {
   }
 }
 
-/// Debuff que aumenta el daño del siguiente ataque recibido y luego se consume.
+/// Debuff acumulable que explota al recibir un golpe si llega a su maximo.
 class FragilidadStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.fragilidad;
   static const defaultDuration = 3;
+  static const defaultValue = 1;
+  static const maxValue = 10;
+  static const triggerDamage = 10;
 
-  /// Crea una instancia de Fragilidad con daño extra fijo hasta consumirse.
+  /// Crea una instancia de Fragilidad con acumulacion limitada.
   const FragilidadStatus({
     int remainingTurns = defaultDuration,
-    int? value,
+    int value = defaultValue,
   }) : super(
           id: statusId,
           name: 'Fragilidad',
           type: BattlerStatusType.debuff,
           tags: _debuffStatusTags,
           hooks: const {
-            BattlerStatusHook.incomingDamageModifier,
             BattlerStatusHook.receiveDamageResolved,
+            BattlerStatusHook.statusApplied,
           },
           icon: Icons.flash_on_outlined,
           description:
-              'Aumenta el daño del siguiente ataque recibido y luego se consume.',
+              'Se acumula hasta 10. Si recibe un ataque con 10 Fragilidad, se consume e inflige 10 daño directo que ignora Barrera.',
           remainingTurns: remainingTurns,
-          value: value ?? remainingTurns,
+          value: value,
         );
 
   @override
 
-  /// Anade a la descripcion el daño extra que recibira el portador.
+  /// Limita el valor efectivo al maximo de acumulacion.
+  int resolveValue(Battler owner) => min(maxValue, max(0, value));
+
+  @override
+
+  /// Muestra la acumulacion, no la duracion, porque es el dato tactico clave.
+  String badgeLabelFor(Battler owner) => '${resolved(owner).value}';
+
+  @override
+
+  /// Anade a la descripcion la acumulacion actual.
   String descriptionFor(Battler owner) {
-    return '$description Daño extra actual: +${resolved(owner).value}';
+    return '$description Acumulacion actual: ${resolved(owner).value}/$maxValue.';
   }
 
   @override
 
-  /// Aumenta el siguiente daño de ataque que reciba el portador.
-  int modifyIncomingDamage({
+  /// Fusiona nuevas aplicaciones de Fragilidad en una unica acumulacion.
+  BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
-    required Battler source,
-    required int damage,
+    required BattlerStatus appliedStatus,
   }) {
-    return damage + resolved(owner).value;
+    if (appliedStatus.id != id) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    final currentStatus = resolved(owner);
+    final incomingStatus = appliedStatus.resolved(owner);
+    final stackedValue = min(
+      maxValue,
+      max(0, currentStatus.value) + max(0, incomingStatus.value),
+    ).toInt();
+    final refreshedTurns = max(
+      currentStatus.remainingTurns,
+      incomingStatus.remainingTurns,
+    );
+
+    return BattlerStatusApplicationResolution(
+      owner: owner.removeStatus(statusId),
+      appliedStatus: copyWith(
+        remainingTurns: refreshedTurns,
+        value: stackedValue,
+      ),
+    );
   }
 
   @override
 
-  /// Consume la Fragilidad justo despues de resolver ese golpe.
+  /// Explota al recibir un golpe si la acumulacion ya esta al maximo.
   Battler onReceiveDamageResolved({
     required Battler owner,
     required Battler source,
     required int damageTaken,
   }) {
     if (damageTaken <= 0) return owner;
+    if (resolved(owner).value < maxValue) return owner;
 
-    return owner.removeStatusInstance(this);
+    final ownerWithoutFragility = owner.removeStatus(statusId);
+    final damagedOwner = ownerWithoutFragility.copyWith(
+      health: max(0, ownerWithoutFragility.health - triggerDamage),
+    );
+    if (damagedOwner.health > 0) {
+      return damagedOwner;
+    }
+
+    return damagedOwner.applyEquippedItemFatalDamageEffects(
+      incomingDamage: triggerDamage,
+    );
   }
 
   @override
 
-  /// Clona el estado manteniendo sincronizados value y remainingTurns.
+  /// Clona el estado manteniendo limitada su acumulacion.
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
   }) {
     return FragilidadStatus(
       remainingTurns: remainingTurns ?? this.remainingTurns,
-      value: value ?? this.value,
+      value: min(maxValue, max(0, value ?? this.value)),
     );
   }
 }

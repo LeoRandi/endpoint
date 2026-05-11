@@ -66,7 +66,7 @@ class _BlackTechnoMarketEventPageState
         return EndpointAbilityDetailsDialog(
           ability: ability,
           accent: ability.accent,
-          statusText: ability.rarity.label,
+          statusText: '',
           moneyCost: price,
           actionLabel: 'Seleccionar',
           onPrimaryAction: () {
