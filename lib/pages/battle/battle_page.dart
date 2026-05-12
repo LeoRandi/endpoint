@@ -151,6 +151,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   bool _isQuickDrawAvailable = true;
   int _quickDrawUseCount = 0;
   int _quickDrawPerfectsRemaining = 0;
+  Map<String, int> _patternItemPointUseCounts = const <String, int>{};
+  BattlePatternBlockMode? _previousYellowPatternBlockMode;
   int _statusEffectBurstSequence = 0;
   int _floatingNumberBurstSequence = 0;
 
@@ -364,15 +366,20 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           player: _sceneController.player,
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          enemyTier: widget.enemyTier,
+          combatRound: _sceneController.currentRound,
+          itemPointUseCounts: _patternItemPointUseCounts,
+          previousYellowBlockMode: _previousYellowPatternBlockMode,
           randomNextInt: _sceneController.randomizer.nextInt,
         ),
       );
       if (!mounted || matchResult == null) return;
 
+      _recordPatternMatchResult(matchResult);
       await _sceneController.handlePlayerAttack(
         actionBonus: BattleActionBonus(
           attackBonus: matchResult.attackBonus,
-          endTurnBarrierAmount: matchResult.barrierBonus,
+          immediateBarrierAmount: matchResult.barrierBonus,
         ),
       );
     } finally {
@@ -382,6 +389,19 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         });
       }
     }
+  }
+
+  void _recordPatternMatchResult(BattlePatternMatchResult result) {
+    _previousYellowPatternBlockMode = result.blockMode;
+    if (result.activatedItemPointKeys.isEmpty) return;
+
+    final updatedUseCounts = Map<String, int>.from(_patternItemPointUseCounts);
+    for (final pointKey in result.activatedItemPointKeys) {
+      updatedUseCounts[pointKey] = (updatedUseCounts[pointKey] ?? 0) + 1;
+    }
+    _patternItemPointUseCounts = Map<String, int>.unmodifiable(
+      updatedUseCounts,
+    );
   }
 
   Future<void> _handlePlayerBlockFlow() async {

@@ -1,6 +1,6 @@
 part of '../battler_status.dart';
 
-/// Debuff que hace daño al final de turno segun los turnos que le queden.
+/// Debuff que hace daño al inicio de turno segun los turnos que le queden.
 class QuemaduraStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.quemadura;
   static const defaultDuration = 3;
@@ -15,11 +15,11 @@ class QuemaduraStatus extends BattlerStatus {
           type: BattlerStatusType.debuff,
           tags: _debuffQuemaduraStatusTags,
           hooks: const {
-            BattlerStatusHook.turnEnd,
+            BattlerStatusHook.turnStart,
           },
           icon: Icons.whatshot_rounded,
           description:
-              'Al final del turno del objetivo, este estado inflige daño igual a su duracion restante.',
+              'Al inicio del turno del objetivo, este estado inflige daño igual a su duracion restante.',
           remainingTurns: remainingTurns,
           value: value ?? remainingTurns,
         );
@@ -72,8 +72,8 @@ class QuemaduraStatus extends BattlerStatus {
 
   @override
 
-  /// Al final del turno propio inflige daño de debuff igual a su valor actual.
-  Battler onTurnEnd({
+  /// Al inicio del turno propio inflige daño de debuff igual a su valor actual.
+  Battler onTurnStart({
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,

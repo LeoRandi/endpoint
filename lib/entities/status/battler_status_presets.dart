@@ -1,6 +1,6 @@
 import '../_imports.dart';
 
-/// Preset rapido del buff Calentando con sus valores por defecto.
+/// Preset rapido del buff Calentando con su bonus por defecto.
 const calentandoStatus = CalentandoStatus();
 
 /// Preset rapido del buff Potencia con su bonus inicial.

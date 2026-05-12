@@ -127,13 +127,6 @@ ARREGLAR:
 -dibujo guardado para quick save no se guarda entre sesiones de la app
 -Los marcadores de daño y bloqueo del jugador en combate tienen que tener un scroll horizontal automático, o detectar que tiene que hacer scroll antes si ya lo tienen.
 -Modificar items y habilidades de Calentando para que en general se activen al comienzo del combate, con mucho burst
--meter barra de tiempo en modo patrón
-
--Nerf:
---Bastion Spring: demasiados items/habilidades para un tier verde. Mover a morado o quitar items/habilidades
---Turbina Térmica: 10 de calentando al comienzo del combate
---martillo fragilidad: no veo que meta el debuffo, lo está metiendo antes?
---habilidad starter de Mercante
 
 ////
 PROBAR:

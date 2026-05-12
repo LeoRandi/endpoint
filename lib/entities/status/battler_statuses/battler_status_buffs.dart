@@ -1,12 +1,12 @@
 part of '../battler_status.dart';
 
-/// Buff ofensivo que aumenta su daño bonus al final de cada turno propio.
+/// Buff ofensivo que potencia el siguiente ataque y luego se consume.
 class CalentandoStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.calentando;
-  static const defaultDuration = 5;
+  static const defaultDuration = 1;
   static const defaultValue = 1;
 
-  /// Crea una instancia de Calentando con su duracion y bonus iniciales.
+  /// Crea una instancia de Calentando con su bonus inicial.
   const CalentandoStatus({
     int remainingTurns = defaultDuration,
     int value = defaultValue,
@@ -17,23 +17,39 @@ class CalentandoStatus extends BattlerStatus {
           tags: _buffAtaqueStatusTags,
           hooks: const {
             BattlerStatusHook.outgoingDamageModifier,
-            BattlerStatusHook.turnEnd,
+            BattlerStatusHook.attackResolved,
             BattlerStatusHook.combatEnd,
           },
           icon: Icons.local_fire_department_rounded,
-          description: 'El usuario suma su value al daño total al atacar.',
+          description:
+              'El usuario suma su value al daño del siguiente ataque y luego se consume.',
           remainingTurns: remainingTurns,
           value: value,
         );
+
+  @override
+
+  /// Calentando no expira por turnos, solo por ataque o fin de combate.
+  bool get isIndefinite => true;
+
+  @override
+
+  /// Calentando solo tiene sentido durante combate.
+  bool get persistsOutsideCombat => false;
 
   /// Devuelve el bonus de daño efectivo que tiene ahora mismo este estado.
   int currentDamageBonus(Battler owner) => resolved(owner).value;
 
   @override
 
+  /// Muestra el valor que se sumara al siguiente ataque.
+  String badgeLabelFor(Battler owner) => '${currentDamageBonus(owner)}';
+
+  @override
+
   /// Anade a la descripcion el bonus de daño actual ya resuelto.
   String descriptionFor(Battler owner) {
-    return '$description Daño actual: +${currentDamageBonus(owner)}';
+    return '$description Daño del siguiente ataque: +${currentDamageBonus(owner)}';
   }
 
   @override
@@ -62,20 +78,13 @@ class CalentandoStatus extends BattlerStatus {
 
   @override
 
-  /// Al final del turno propio aumenta en uno su value para el siguiente golpe.
-  Battler onTurnEnd({
+  /// Consume Calentando despues de resolver cualquier ataque del portador.
+  Battler onAttackResolved({
     required Battler owner,
-    required Battler opponent,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    required Battler target,
+    required int damageDealt,
   }) {
-    if (!isOwnerTurn) return owner;
-
-    final currentStatus = resolved(owner);
-    return owner.applyStatus(
-      currentStatus.copyWith(value: currentStatus.value + 1),
-      applyEquipmentModifiers: false,
-    );
+    return owner.removeStatusInstance(this);
   }
 
   @override

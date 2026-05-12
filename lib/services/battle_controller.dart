@@ -347,6 +347,13 @@ class BattleController extends ChangeNotifier {
 
     _player = resolution.attacker;
     _enemy = resolution.defender;
+    if (resolvedActionBonus.immediateBarrierAmount > 0) {
+      await _applyActionBarrierToPlayer(
+        resolvedActionBonus.immediateBarrierAmount,
+      );
+      if (_isDisposed) return;
+    }
+
     if (_finishImmediatelyIfPlayerIsDown()) {
       return;
     }
@@ -356,7 +363,7 @@ class BattleController extends ChangeNotifier {
     }
 
     if (resolvedActionBonus.endTurnBarrierAmount > 0) {
-      await _applyActionEndTurnBarrierToPlayer(
+      await _applyActionBarrierToPlayer(
         resolvedActionBonus.endTurnBarrierAmount,
       );
     }
@@ -424,7 +431,7 @@ class BattleController extends ChangeNotifier {
     }
 
     if (resolvedActionBonus.endTurnBarrierAmount > 0) {
-      await _applyActionEndTurnBarrierToPlayer(
+      await _applyActionBarrierToPlayer(
         resolvedActionBonus.endTurnBarrierAmount,
       );
     }
@@ -2031,13 +2038,28 @@ class BattleController extends ChangeNotifier {
 
     var nextPlayer = resolution.player;
     var nextEnemy = resolution.enemy;
+    final turnStartFloatingNumbers = _buildTurnStartDebuffFloatingNumbers(
+      activeTurn: nextTurn,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: nextPlayer,
+      enemyAfter: nextEnemy,
+    );
 
     if (resolution.finish != null) {
+      await _playTurnStartDebuffDamageAnimations(
+        activeTurn: nextTurn,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+      );
+      if (_isDisposed) return;
+
       await _playCombatStateTransitionAnimations(
         playerBefore: playerBefore,
         enemyBefore: enemyBefore,
         playerAfter: nextPlayer,
         enemyAfter: nextEnemy,
+        floatingNumbersBySide: turnStartFloatingNumbers,
       );
       if (_isDisposed) return;
       _player = nextPlayer;
@@ -2049,11 +2071,19 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
+    await _playTurnStartDebuffDamageAnimations(
+      activeTurn: nextTurn,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+    );
+    if (_isDisposed) return;
+
     await _playCombatStateTransitionAnimations(
       playerBefore: playerBefore,
       enemyBefore: enemyBefore,
       playerAfter: nextPlayer,
       enemyAfter: nextEnemy,
+      floatingNumbersBySide: turnStartFloatingNumbers,
     );
     if (_isDisposed) return;
     _player = nextPlayer;
@@ -2215,6 +2245,33 @@ class BattleController extends ChangeNotifier {
     return false;
   }
 
+  Future<void> _playTurnStartDebuffDamageAnimations({
+    required BattleTurnState activeTurn,
+    required Battler playerBefore,
+    required Battler enemyBefore,
+  }) async {
+    final affectedSide = activeTurn == BattleTurnState.player
+        ? BattleCombatantSide.player
+        : BattleCombatantSide.enemy;
+    final affectedBefore =
+        affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
+
+    final burnApplicationCount = _burnApplicationCountFor(affectedBefore);
+    if (burnApplicationCount <= 0) return;
+
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.burnDamage,
+        primarySide: affectedSide,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: playerBefore,
+        enemyAfter: enemyBefore,
+        effectCount: burnApplicationCount,
+      ),
+    );
+  }
+
   Future<void> _playTurnEndDebuffDamageAnimations({
     required BattleTurnState completedTurn,
     required Battler playerBefore,
@@ -2225,22 +2282,6 @@ class BattleController extends ChangeNotifier {
         : BattleCombatantSide.enemy;
     final affectedBefore =
         affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
-
-    final burnApplicationCount = _burnApplicationCountFor(affectedBefore);
-    if (burnApplicationCount > 0) {
-      await _playCombatAnimation(
-        BattleCombatAnimationCue(
-          hook: BattleCombatAnimationHook.burnDamage,
-          primarySide: affectedSide,
-          playerBefore: playerBefore,
-          enemyBefore: enemyBefore,
-          playerAfter: playerBefore,
-          enemyAfter: enemyBefore,
-          effectCount: burnApplicationCount,
-        ),
-      );
-      if (_isDisposed) return;
-    }
 
     final poisonStackCount = _poisonStackCountFor(affectedBefore);
     if (poisonStackCount > 0) {
@@ -2274,6 +2315,51 @@ class BattleController extends ChangeNotifier {
   }
 
   Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
+      _buildTurnStartDebuffFloatingNumbers({
+    required BattleTurnState activeTurn,
+    required Battler playerBefore,
+    required Battler enemyBefore,
+    required Battler playerAfter,
+    required Battler enemyAfter,
+  }) {
+    final affectedSide = activeTurn == BattleTurnState.player
+        ? BattleCombatantSide.player
+        : BattleCombatantSide.enemy;
+    final before =
+        affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
+    final after =
+        affectedSide == BattleCombatantSide.player ? playerAfter : enemyAfter;
+    if (_burnApplicationCountFor(before) <= 0) {
+      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
+    }
+
+    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
+    final healthLoss = max(0, before.health - after.health);
+    if (barrierLoss <= 0 && healthLoss <= 0) {
+      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
+    }
+
+    final floatingNumbers = <BattleCombatFloatingNumberCue>[
+      if (healthLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.burnDamage,
+          amount: healthLoss,
+        ),
+      if (barrierLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.barrierDamage,
+          amount: barrierLoss,
+        ),
+    ];
+
+    return <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{
+      affectedSide: List<BattleCombatFloatingNumberCue>.unmodifiable(
+        floatingNumbers,
+      ),
+    };
+  }
+
+  Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
       _buildTurnEndDebuffFloatingNumbers({
     required BattleTurnState completedTurn,
     required Battler playerBefore,
@@ -2288,9 +2374,8 @@ class BattleController extends ChangeNotifier {
         affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
     final after =
         affectedSide == BattleCombatantSide.player ? playerAfter : enemyAfter;
-    final hasBurn = _burnApplicationCountFor(before) > 0;
     final poisonDamage = _poisonStackCountFor(before);
-    if (!hasBurn && poisonDamage <= 0) {
+    if (poisonDamage <= 0) {
       return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
     }
 
@@ -2313,14 +2398,7 @@ class BattleController extends ChangeNotifier {
       );
       remainingHealthLoss -= poisonShown;
     }
-    if (hasBurn && remainingHealthLoss > 0) {
-      floatingNumbers.add(
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.burnDamage,
-          amount: remainingHealthLoss,
-        ),
-      );
-    } else if (remainingHealthLoss > 0) {
+    if (remainingHealthLoss > 0) {
       floatingNumbers.add(
         BattleCombatFloatingNumberCue(
           tone: BattleCombatFloatingNumberTone.healthDamage,
@@ -2398,10 +2476,10 @@ class BattleController extends ChangeNotifier {
     return (round - 9) * 10;
   }
 
-  Future<void> _applyActionEndTurnBarrierToPlayer(int amount) async {
+  Future<void> _applyActionBarrierToPlayer(int amount) async {
     final playerBefore = _player;
     final enemyBefore = _enemy;
-    final playerAfter = _applyActionEndTurnBarrier(_player, amount);
+    final playerAfter = _applyActionBarrier(_player, amount);
     await _playCombatStateTransitionAnimations(
       playerBefore: playerBefore,
       enemyBefore: enemyBefore,
@@ -2426,7 +2504,7 @@ class BattleController extends ChangeNotifier {
     _player = playerAfter;
   }
 
-  Battler _applyActionEndTurnBarrier(Battler battler, int amount) {
+  Battler _applyActionBarrier(Battler battler, int amount) {
     // Los bonus de accion representan barrera temporal y no deben anularse
     // solo porque el tope base del battler sea cero.
     return battler.gainCombatBarrier(amount);

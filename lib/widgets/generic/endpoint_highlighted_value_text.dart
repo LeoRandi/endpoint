@@ -226,7 +226,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
         accent: _effectBurnAccent,
         icon: _HighlightIconSpec.material(Icons.whatshot_rounded),
         tooltip:
-            'Quemadura: debuff. Hace daño al final del turno segun su duracion restante, baja con los turnos y su daño pasa primero por Barrera.',
+            'Quemadura: debuff. Hace daño al inicio del turno del portador segun su duracion restante, baja con los turnos y su daño pasa primero por Barrera.',
       );
     }
     if (normalizedToken.contains('fragilidad')) {
@@ -274,7 +274,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
         accent: _effectBuffAccent,
         icon: _HighlightIconSpec.material(Icons.local_fire_department_rounded),
         tooltip:
-            'Calentando: buff. Suma su valor al daño al atacar y aumenta al final de tu turno.',
+            'Calentando: buff. Suma su valor al daño del siguiente ataque y luego se consume. Se limpia al terminar el combate.',
       );
     }
     if (normalizedToken.contains('inercia')) {
