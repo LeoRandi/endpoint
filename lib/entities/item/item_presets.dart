@@ -188,9 +188,9 @@ const woodenStickItem = Item(
   rarity: RarityTier.gray,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.arma,
-      _adjAttack,
+      _adjE,
+      EntityTag.barrera,
+      _adjBarrier,
       1,
     ),
   ],
@@ -218,13 +218,13 @@ const cyberWhipsItem = Item(
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjE,
-      EntityTag.arma,
-      _adjAttack,
+      EntityTag.barrera,
+      _adjBarrier,
       1,
     ),
     OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.ataque,
+      _adjW,
+      EntityTag.intoxicacion,
       _adjAttack,
       1,
     ),
@@ -250,9 +250,15 @@ const sunglassesItem = Item(
   rarity: RarityTier.gray,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.ciclo,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
       _adjS,
-      EntityTag.ataque,
-      _adjAttack,
+      EntityTag.ciclo,
+      _adjBarrier,
       1,
     ),
   ],
@@ -280,14 +286,8 @@ const shieldItem = Item(
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjW,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.vida,
-      _adjBarrier,
+      EntityTag.arma,
+      _adjAttack,
       1,
     ),
   ],
@@ -314,14 +314,8 @@ const bulwarkAmuletItem = Item(
   rarity: RarityTier.green,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.vida,
+      _adjS,
+      EntityTag.accesorio,
       _adjBarrier,
       1,
     ),
@@ -349,9 +343,9 @@ const crackedBatteryItem = Item(
   rarity: RarityTier.gray,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.accesorio,
-      _adjBarrier,
+      _adjN,
+      EntityTag.arma,
+      _adjAttack,
       1,
     ),
   ],
@@ -372,8 +366,14 @@ const gafasFotocromaticasItem = Item(
   rarity: RarityTier.gray,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.ataque,
+      _adjE,
+      EntityTag.barrera,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjW,
+      EntityTag.arma,
       _adjAttack,
       1,
     ),
@@ -396,14 +396,14 @@ const bateriaCrepuscularItem = Item(
   rarity: RarityTier.green,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.buff,
-      _adjBarrier,
+      _adjE,
+      EntityTag.debuff,
+      _adjAttack,
       1,
     ),
     OperativePatternAdjacencyBonus.match(
       _adjN,
-      EntityTag.ciclo,
+      EntityTag.buff,
       _adjBarrier,
       1,
     ),
@@ -426,20 +426,14 @@ const relojDeTurnoItem = Item(
   rarity: RarityTier.blue,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.ciclo,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
       _adjE,
-      EntityTag.accesorio,
-      _adjBarrier,
+      EntityTag.vida,
+      _adjAttack,
       1,
     ),
     OperativePatternAdjacencyBonus.match(
       _adjS,
-      EntityTag.ciclo,
+      EntityTag.vida,
       _adjBarrier,
       1,
     ),
@@ -462,12 +456,6 @@ const faroNoctivagoItem = Item(
   rarity: RarityTier.blue,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
       _adjS,
       EntityTag.debuff,
       _adjAttack,
@@ -475,7 +463,7 @@ const faroNoctivagoItem = Item(
     ),
     OperativePatternAdjacencyBonus.match(
       _adjW,
-      EntityTag.ciclo,
+      EntityTag.debuff,
       _adjBarrier,
       1,
     ),
@@ -499,18 +487,18 @@ const prismaCircadianoItem = Item(
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
-      EntityTag.ataque,
+      EntityTag.arma,
       _adjAttack,
       2,
     ),
     OperativePatternAdjacencyBonus.match(
-      _adjW,
+      _adjN,
       EntityTag.barrera,
       _adjBarrier,
       2,
     ),
     OperativePatternAdjacencyBonus.match(
-      _adjN,
+      _adjW,
       EntityTag.buff,
       _adjBarrier,
       2,
@@ -518,7 +506,7 @@ const prismaCircadianoItem = Item(
     OperativePatternAdjacencyBonus.match(
       _adjE,
       EntityTag.ciclo,
-      _adjBarrier,
+      _adjAttack,
       2,
     ),
   ],
@@ -539,8 +527,8 @@ const impactGlovesItem = Item(
   rarity: RarityTier.gray,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.arma,
+      _adjN,
+      EntityTag.buff,
       _adjAttack,
       1,
     ),
@@ -569,7 +557,7 @@ const guanteRetoItem = Item(
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjW,
-      EntityTag.arma,
+      EntityTag.barrera,
       _adjAttack,
       1,
     ),
@@ -622,20 +610,14 @@ const seguroRotoItem = Item(
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjE,
-      EntityTag.ataque,
-      _adjAttack,
+      EntityTag.desafio,
+      _adjBarrier,
       1,
     ),
     OperativePatternAdjacencyBonus.match(
       _adjS,
-      EntityTag.desafio,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.buff,
-      _adjAttack,
+      EntityTag.barrera,
+      _adjBarrier,
       1,
     ),
   ],
