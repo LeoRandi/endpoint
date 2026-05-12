@@ -103,215 +103,267 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: EndpointSceneLayout(
-        preset: _settingsScenePreset,
-        onClose: _close,
-        closeTooltip: 'Cerrar configuracion',
-        backdrop: const _SettingsBackdrop(),
-        child: EndpointSectionPanel(
-          preset: _settingsRootSectionPreset,
-          mainAxisSize: MainAxisSize.max,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              EndpointSceneHeader(
-                title: 'SETTINGS',
-                description: 'Ajustes base del perfil operativo.',
-                foreground: _settingsForeground,
-                descriptionColor: _settingsForegroundMuted,
-                titleStyle: textExtraLargeBold.copyWith(
-                  fontSize: 34,
-                  letterSpacing: 2.6,
-                ),
-                descriptionStyle: textMedium.copyWith(fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _SettingsOptionCard(
-                        title: 'Sonido',
-                        child: EndpointSceneActionWrap(
-                          children: [
-                            _SettingsChoiceButton(
-                              label: 'Activado',
-                              selected: _settings.soundEnabled,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(soundEnabled: true),
-                                );
-                              },
-                            ),
-                            _SettingsChoiceButton(
-                              label: 'Desactivado',
-                              selected: !_settings.soundEnabled,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(soundEnabled: false),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+    return EndpointTextScope(
+      language: _settings.language,
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            body: EndpointSceneLayout(
+              preset: _settingsScenePreset,
+              onClose: _close,
+              closeTooltip: context.tr(EndpointTextKey.settingsCloseTooltip),
+              backdrop: const _SettingsBackdrop(),
+              child: EndpointSectionPanel(
+                preset: _settingsRootSectionPreset,
+                mainAxisSize: MainAxisSize.max,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EndpointSceneHeader(
+                      title: context.tr(EndpointTextKey.settingsHeaderTitle),
+                      description: context.tr(
+                        EndpointTextKey.settingsHeaderDescription,
                       ),
-                      const SizedBox(height: 12),
-                      _SettingsOptionCard(
-                        title: 'Vibracion',
-                        child: EndpointSceneActionWrap(
-                          children: [
-                            _SettingsChoiceButton(
-                              label: 'Activado',
-                              selected: _settings.vibrationEnabled,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(vibrationEnabled: true),
-                                );
-                              },
-                            ),
-                            _SettingsChoiceButton(
-                              label: 'Desactivado',
-                              selected: !_settings.vibrationEnabled,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(vibrationEnabled: false),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                      foreground: _settingsForeground,
+                      descriptionColor: _settingsForegroundMuted,
+                      titleStyle: textExtraLargeBold.copyWith(
+                        fontSize: 34,
+                        letterSpacing: 2.6,
                       ),
-                      const SizedBox(height: 12),
-                      _SettingsOptionCard(
-                        title: 'Velocidad de las animaciones',
-                        child: EndpointSceneActionWrap(
+                      descriptionStyle: textMedium.copyWith(fontSize: 13),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
                           children: [
-                            _SettingsChoiceButton(
-                              label: '1',
-                              selected: _settings.animationSpeed == 1,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(animationSpeed: 1),
-                                );
-                              },
+                            _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey.settingsLanguageTitle,
+                              ),
+                              caption: context.tr(
+                                EndpointTextKey.settingsLanguageCaption,
+                              ),
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  for (final language
+                                      in EndpointLanguage.values)
+                                    _SettingsChoiceButton(
+                                      label: context.tr(
+                                        EndpointStrings.languageKey(language),
+                                      ),
+                                      selected: _settings.language == language,
+                                      onPressed: () {
+                                        _applySettings(
+                                          _settings.copyWith(
+                                            language: language,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
                             ),
-                            _SettingsChoiceButton(
-                              label: '2',
-                              selected: _settings.animationSpeed == 2,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(animationSpeed: 2),
-                                );
-                              },
-                            ),
-                            _SettingsChoiceButton(
-                              label: '3',
-                              selected: _settings.animationSpeed == 3,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(animationSpeed: 3),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _SettingsOptionCard(
-                        title: 'Avatar personalizado',
-                        child: EndpointSceneActionWrap(
-                          children: [
-                            _SettingsChoiceButton(
-                              label: 'Activado',
-                              selected: _settings.customAvatarEnabled,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(
-                                    customAvatarEnabled: true,
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey.settingsSoundTitle,
+                              ),
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  _SettingsChoiceButton(
+                                    label: context.tr(
+                                      EndpointTextKey.settingsEnabled,
+                                    ),
+                                    selected: _settings.soundEnabled,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(soundEnabled: true),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
-                            _SettingsChoiceButton(
-                              label: 'Desactivado',
-                              selected: !_settings.customAvatarEnabled,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(
-                                    customAvatarEnabled: false,
+                                  _SettingsChoiceButton(
+                                    label: context.tr(
+                                      EndpointTextKey.settingsDisabled,
+                                    ),
+                                    selected: !_settings.soundEnabled,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(soundEnabled: false),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _SettingsOptionCard(
-                        title: 'Seleccionar avatar personalizado',
-                        caption: 'Visible, pero bloqueado por ahora.',
-                        enabled: _settings.customAvatarSelectionEnabled,
-                        child: EndpointSceneActionWrap(
-                          children: [
-                            _SettingsChoiceButton(
-                              label: 'Seleccionar',
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey.settingsVibrationTitle,
+                              ),
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  _SettingsChoiceButton(
+                                    label: context.tr(
+                                      EndpointTextKey.settingsEnabled,
+                                    ),
+                                    selected: _settings.vibrationEnabled,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(
+                                          vibrationEnabled: true,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _SettingsChoiceButton(
+                                    label: context.tr(
+                                      EndpointTextKey.settingsDisabled,
+                                    ),
+                                    selected: !_settings.vibrationEnabled,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(
+                                          vibrationEnabled: false,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey.settingsAnimationsTitle,
+                              ),
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  _SettingsChoiceButton(
+                                    label: '1',
+                                    selected: _settings.animationSpeed == 1,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(animationSpeed: 1),
+                                      );
+                                    },
+                                  ),
+                                  _SettingsChoiceButton(
+                                    label: '2',
+                                    selected: _settings.animationSpeed == 2,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(animationSpeed: 2),
+                                      );
+                                    },
+                                  ),
+                                  _SettingsChoiceButton(
+                                    label: '3',
+                                    selected: _settings.animationSpeed == 3,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(animationSpeed: 3),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey.settingsCustomAvatarTitle,
+                              ),
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  _SettingsChoiceButton(
+                                    label: context.tr(
+                                      EndpointTextKey.settingsEnabled,
+                                    ),
+                                    selected: _settings.customAvatarEnabled,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(
+                                          customAvatarEnabled: true,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _SettingsChoiceButton(
+                                    label: context.tr(
+                                      EndpointTextKey.settingsDisabled,
+                                    ),
+                                    selected: !_settings.customAvatarEnabled,
+                                    onPressed: () {
+                                      _applySettings(
+                                        _settings.copyWith(
+                                          customAvatarEnabled: false,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey
+                                    .settingsCustomAvatarSelectionTitle,
+                              ),
+                              caption: context.tr(
+                                EndpointTextKey
+                                    .settingsCustomAvatarSelectionCaption,
+                              ),
                               enabled: _settings.customAvatarSelectionEnabled,
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  _SettingsChoiceButton(
+                                    label: context.tr(
+                                      EndpointTextKey
+                                          .settingsCustomAvatarSelectionButton,
+                                    ),
+                                    enabled:
+                                        _settings.customAvatarSelectionEnabled,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey.settingsGameModeTitle,
+                              ),
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  for (final gameMode
+                                      in EndpointGameMode.values)
+                                    _SettingsChoiceButton(
+                                      label: context.tr(
+                                        EndpointStrings.gameModeKey(gameMode),
+                                      ),
+                                      selected: _settings.gameMode == gameMode,
+                                      onPressed: () {
+                                        _applySettings(
+                                          _settings.copyWith(
+                                            gameMode: gameMode,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _SettingsOptionCard(
-                        title: 'Modo de juego',
-                        child: EndpointSceneActionWrap(
-                          children: [
-                            _SettingsChoiceButton(
-                              label: 'Clasico',
-                              selected: _settings.gameMode ==
-                                  EndpointGameMode.classic,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(
-                                    gameMode: EndpointGameMode.classic,
-                                  ),
-                                );
-                              },
-                            ),
-                            _SettingsChoiceButton(
-                              label: 'Dibujo',
-                              selected: _settings.gameMode ==
-                                  EndpointGameMode.drawing,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(
-                                    gameMode: EndpointGameMode.drawing,
-                                  ),
-                                );
-                              },
-                            ),
-                            _SettingsChoiceButton(
-                              label: 'Patrón',
-                              selected: _settings.gameMode ==
-                                  EndpointGameMode.pattern,
-                              onPressed: () {
-                                _applySettings(
-                                  _settings.copyWith(
-                                    gameMode: EndpointGameMode.pattern,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -369,7 +421,8 @@ class _SettingsChoiceButton extends StatelessWidget {
       child: EndpointActionButton(
         label: label,
         onPressed: enabled ? onPressed : null,
-        tooltip: enabled ? '' : 'Opcion desactivada',
+        tooltip:
+            enabled ? '' : context.tr(EndpointTextKey.settingsDisabledTooltip),
         allowDisabledTooltip: true,
         useMarquee: false,
         height: 40,

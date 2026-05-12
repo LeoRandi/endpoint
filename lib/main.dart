@@ -47,22 +47,28 @@ class EndpointApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: EndpointStrings.appTitle,
-      theme: EndpointTheme.build(),
-      debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            child ?? const SizedBox.shrink(),
-            _EndpointAppVersionBadge(version: appVersion),
-          ],
-        );
-      },
-      home: MainMenuPage(
-        initialSettings: initialSettings,
-        initialRunSnapshot: initialRunSnapshot,
+    return EndpointTextScope(
+      language: initialSettings.language,
+      child: MaterialApp(
+        title: EndpointStrings.text(
+          EndpointTextKey.appTitle,
+          language: initialSettings.language,
+        ),
+        theme: EndpointTheme.build(),
+        debugShowCheckedModeBanner: false,
+        builder: (context, child) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              child ?? const SizedBox.shrink(),
+              _EndpointAppVersionBadge(version: appVersion),
+            ],
+          );
+        },
+        home: MainMenuPage(
+          initialSettings: initialSettings,
+          initialRunSnapshot: initialRunSnapshot,
+        ),
       ),
     );
   }
@@ -94,10 +100,11 @@ class _EndpointAppVersionBadge extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: EndpointPalette.panelBackgroundOpaque.withOpacity(0.9),
+                color: EndpointPalette.panelBackgroundOpaque
+                    .withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.14),
+                  color: Colors.white.withValues(alpha: 0.14),
                   width: 1,
                 ),
               ),

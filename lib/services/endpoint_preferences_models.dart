@@ -11,6 +11,25 @@ enum EndpointGameMode {
   pattern,
 }
 
+enum EndpointLanguage {
+  spanish('es'),
+  english('en');
+
+  final String code;
+
+  const EndpointLanguage(this.code);
+
+  static EndpointLanguage fromJsonValue(Object? value) {
+    const defaultLanguage = EndpointLanguage.spanish;
+    if (value is! String) return defaultLanguage;
+
+    return EndpointLanguage.values.firstWhere(
+      (language) => language.name == value || language.code == value,
+      orElse: () => defaultLanguage,
+    );
+  }
+}
+
 class EndpointSettingsSnapshot {
   final bool soundEnabled;
   final bool vibrationEnabled;
@@ -18,6 +37,7 @@ class EndpointSettingsSnapshot {
   final bool customAvatarEnabled;
   final bool customAvatarSelectionEnabled;
   final EndpointGameMode gameMode;
+  final EndpointLanguage language;
 
   const EndpointSettingsSnapshot({
     required this.soundEnabled,
@@ -26,6 +46,7 @@ class EndpointSettingsSnapshot {
     required this.customAvatarEnabled,
     required this.customAvatarSelectionEnabled,
     required this.gameMode,
+    required this.language,
   });
 
   const EndpointSettingsSnapshot.defaults()
@@ -34,7 +55,8 @@ class EndpointSettingsSnapshot {
         animationSpeed = 2,
         customAvatarEnabled = false,
         customAvatarSelectionEnabled = false,
-        gameMode = EndpointGameMode.pattern;
+        gameMode = EndpointGameMode.pattern,
+        language = EndpointLanguage.spanish;
 
   EndpointSettingsSnapshot copyWith({
     bool? soundEnabled,
@@ -43,6 +65,7 @@ class EndpointSettingsSnapshot {
     bool? customAvatarEnabled,
     bool? customAvatarSelectionEnabled,
     EndpointGameMode? gameMode,
+    EndpointLanguage? language,
   }) {
     return EndpointSettingsSnapshot(
       soundEnabled: soundEnabled ?? this.soundEnabled,
@@ -52,6 +75,7 @@ class EndpointSettingsSnapshot {
       customAvatarSelectionEnabled:
           customAvatarSelectionEnabled ?? this.customAvatarSelectionEnabled,
       gameMode: gameMode ?? this.gameMode,
+      language: language ?? this.language,
     );
   }
 
@@ -63,6 +87,7 @@ class EndpointSettingsSnapshot {
       'customAvatarEnabled': customAvatarEnabled,
       'customAvatarSelectionEnabled': customAvatarSelectionEnabled,
       'gameMode': gameMode.name,
+      'language': language.code,
     };
   }
 
@@ -90,6 +115,7 @@ class EndpointSettingsSnapshot {
             (mode) => mode?.name == json['gameMode'],
             orElse: () => defaultSettings.gameMode,
           )!,
+      language: EndpointLanguage.fromJsonValue(json['language']),
     );
   }
 
@@ -101,7 +127,8 @@ class EndpointSettingsSnapshot {
         other.animationSpeed == animationSpeed &&
         other.customAvatarEnabled == customAvatarEnabled &&
         other.customAvatarSelectionEnabled == customAvatarSelectionEnabled &&
-        other.gameMode == gameMode;
+        other.gameMode == gameMode &&
+        other.language == language;
   }
 
   @override
@@ -112,6 +139,7 @@ class EndpointSettingsSnapshot {
         customAvatarEnabled,
         customAvatarSelectionEnabled,
         gameMode,
+        language,
       );
 }
 

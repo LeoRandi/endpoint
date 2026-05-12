@@ -20,7 +20,7 @@ class _MainMenuPageState extends State<MainMenuPage>
   late final AnimationController _controller;
   late final Animation<double> _scale;
   late final Animation<double> _glow;
-  late final ShowcaseView _mainMenuShowcase;
+  late ShowcaseView _mainMenuShowcase;
   final GlobalKey _continueShowcaseKey = GlobalKey();
   final GlobalKey _startShowcaseKey = GlobalKey();
   final GlobalKey _codexShowcaseKey = GlobalKey();
@@ -33,7 +33,23 @@ class _MainMenuPageState extends State<MainMenuPage>
     super.initState();
     _settings = widget.initialSettings;
     _currentRunSnapshot = widget.initialRunSnapshot;
-    _mainMenuShowcase = ShowcaseView.register(
+    _mainMenuShowcase = _registerMainMenuShowcase();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _scale = Tween<double>(
+      begin: 0.96,
+      end: 1.04,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _glow = Tween<double>(
+      begin: 0.35,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  ShowcaseView _registerMainMenuShowcase() {
+    return ShowcaseView.register(
       disableBarrierInteraction: true,
       disableMovingAnimation: true,
       disableScaleAnimation: true,
@@ -46,7 +62,10 @@ class _MainMenuPageState extends State<MainMenuPage>
       globalTooltipActions: [
         TooltipActionButton(
           type: TooltipDefaultActionType.skip,
-          name: 'SALIR',
+          name: EndpointStrings.text(
+            EndpointTextKey.mainMenuShowcaseSkip,
+            language: _settings.language,
+          ),
           backgroundColor: EndpointPalette.closeButtonBackground,
           textStyle: textSmallBold.copyWith(
             color: EndpointPalette.softForeground,
@@ -55,7 +74,10 @@ class _MainMenuPageState extends State<MainMenuPage>
         ),
         TooltipActionButton(
           type: TooltipDefaultActionType.next,
-          name: 'SIGUIENTE',
+          name: EndpointStrings.text(
+            EndpointTextKey.mainMenuShowcaseNext,
+            language: _settings.language,
+          ),
           backgroundColor: EndpointPalette.blend(
             EndpointPalette.menuButtonBackground,
             EndpointPalette.infoAccent,
@@ -71,18 +93,6 @@ class _MainMenuPageState extends State<MainMenuPage>
         ),
       ],
     );
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
-    _scale = Tween<double>(
-      begin: 0.96,
-      end: 1.04,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-    _glow = Tween<double>(
-      begin: 0.35,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -141,11 +151,15 @@ class _MainMenuPageState extends State<MainMenuPage>
   Future<void> _handleTutorialPressed() async {
     final accepted = await showEndpointDialog<bool>(
       context: context,
-      barrierLabel: 'Confirmar tutorial',
+      barrierLabel: EndpointStrings.text(
+        EndpointTextKey.mainMenuTutorialBarrierLabel,
+        language: _settings.language,
+      ),
       barrierDismissible: false,
       barrierColor: EndpointPalette.overlayScrimStrong,
       builder: (context) {
         return _MainMenuTutorialPromptDialog(
+          language: _settings.language,
           onCancel: () => Navigator.of(context).pop(false),
           onConfirm: () => Navigator.of(context).pop(true),
         );
@@ -187,185 +201,231 @@ class _MainMenuPageState extends State<MainMenuPage>
   Widget build(BuildContext context) {
     const accent = EndpointPalette.primaryAccent;
     const surface = EndpointPalette.panelBackground;
+    final strings = EndpointTextBundle(_settings.language);
 
-    return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: EndpointGradients.menu),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const _MenuBackdrop(),
-            SafeArea(
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                  child: EndpointActionButton(
-                    label: '?',
-                    tooltip: 'Mostrar tutorial del menu',
-                    onPressed: _startMainMenuTutorial,
-                    useMarquee: false,
-                    width: 52,
-                    height: 52,
-                    borderRadius: 14,
-                    borderWidth: 2,
-                    accent: EndpointPalette.infoAccent,
-                    backgroundColor: EndpointPalette.blend(
-                      EndpointPalette.menuButtonBackground,
-                      EndpointPalette.infoAccent,
-                      0.1,
-                    ),
-                    textStyle: textLargeBold.copyWith(
-                      fontSize: 34,
-                      letterSpacing: 0,
-                      color: EndpointPalette.infoAccent,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: EndpointPanel(
-                      accent: accent,
-                      backgroundColor: surface.withValues(alpha: 0.72),
-                      borderRadius: 16,
-                      glowOpacity: 0.1,
-                      blurRadius: 30,
-                      spreadRadius: 4,
-                      padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AnimatedBuilder(
-                            animation: _controller,
-                            builder: (context, child) {
-                              return Transform.scale(
-                                scale: _scale.value,
-                                child: EndpointText(
-                                  'DEATH AT SUNRISE',
-                                  maxLines: 2,
-                                  textAlign: TextAlign.center,
-                                  style: textExtraLargeBold.copyWith(
-                                    fontSize: 42,
-                                    letterSpacing: 3.2,
-                                    color: Color.lerp(
-                                      EndpointPalette.soften(
-                                        accent,
-                                        amount: 0.12,
-                                      ),
-                                      accent,
-                                      _glow.value,
-                                    ),
-                                    shadows: [
-                                      Shadow(
-                                        color: accent.withValues(
-                                          alpha: 0.35 + (_glow.value * 0.25),
-                                        ),
-                                        blurRadius: 12 + (_glow.value * 18),
-                                      ),
-                                      Shadow(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.12 + (_glow.value * 0.16),
-                                        ),
-                                        blurRadius: 6,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SeparatorFiori.double(),
-                          Column(
-                            children: [
-                              _MainMenuShowcaseStep(
-                                showcaseKey: _continueShowcaseKey,
-                                title: 'Continue',
-                                description:
-                                    'Retoma la partida por donde lo dejaste.',
-                                child: EndpointMenuButton(
-                                  label: EndpointStrings.continueRun,
-                                  tooltip: _currentRunSnapshot == null
-                                      ? 'No hay ninguna run en curso'
-                                      : 'Continuar la run guardada',
-                                  onPressed: _currentRunSnapshot == null
-                                      ? null
-                                      : _openSavedRun,
-                                ),
-                              ),
-                              const SeparatorFiori.half(),
-                              _MainMenuShowcaseStep(
-                                showcaseKey: _startShowcaseKey,
-                                title: 'Start',
-                                description:
-                                    'Empezar la partida desde 0. Deberás sobrevivir hasta ver el amanecer.',
-                                child: EndpointMenuButton(
-                                  label: EndpointStrings.start,
-                                  tooltip: 'Iniciar partida',
-                                  onPressed: _openNewRun,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              _MainMenuTinyButton(
-                                label: 'Tutorial',
-                                tooltip: 'Iniciar tutorial guiado',
-                                onPressed: _handleTutorialPressed,
-                              ),
-                              const SeparatorFiori.half(),
-                              _MainMenuShowcaseStep(
-                                showcaseKey: _codexShowcaseKey,
-                                title: 'Codex',
-                                description:
-                                    'Registro de objetos, enemigos, habilidades y eventos descubiertos.',
-                                child: const EndpointMenuButton(
-                                  label: EndpointStrings.codex,
-                                  tooltip: EndpointStrings.codexUnavailable,
-                                ),
-                              ),
-                              const SeparatorFiori.half(),
-                              _MainMenuShowcaseStep(
-                                showcaseKey: _settingsShowcaseKey,
-                                title: 'Settings',
-                                description:
-                                    'Desde los Settings puedes configurar algunos efectos visuales o el modo de juego',
-                                child: EndpointMenuButton(
-                                  label: EndpointStrings.settings,
-                                  tooltip: 'Abrir configuracion',
-                                  onPressed: () async {
-                                    final updatedSettings =
-                                        await Navigator.of(context)
-                                            .push<EndpointSettingsSnapshot>(
-                                      buildEndpointSceneRoute(
-                                        SettingsPage(
-                                          initialSettings: _settings,
-                                        ),
-                                      ),
-                                    );
-                                    if (!mounted || updatedSettings == null) {
-                                      return;
-                                    }
-
-                                    setState(() {
-                                      _settings = updatedSettings;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+    return EndpointTextScope(
+      language: _settings.language,
+      child: Scaffold(
+        body: DecoratedBox(
+          decoration: const BoxDecoration(gradient: EndpointGradients.menu),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const _MenuBackdrop(),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: EndpointActionButton(
+                      label: '?',
+                      tooltip: strings(
+                        EndpointTextKey.mainMenuTutorialHelpTooltip,
+                      ),
+                      onPressed: _startMainMenuTutorial,
+                      useMarquee: false,
+                      width: 52,
+                      height: 52,
+                      borderRadius: 14,
+                      borderWidth: 2,
+                      accent: EndpointPalette.infoAccent,
+                      backgroundColor: EndpointPalette.blend(
+                        EndpointPalette.menuButtonBackground,
+                        EndpointPalette.infoAccent,
+                        0.1,
+                      ),
+                      textStyle: textLargeBold.copyWith(
+                        fontSize: 34,
+                        letterSpacing: 0,
+                        color: EndpointPalette.infoAccent,
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: EndpointPanel(
+                        accent: accent,
+                        backgroundColor: surface.withValues(alpha: 0.72),
+                        borderRadius: 16,
+                        glowOpacity: 0.1,
+                        blurRadius: 30,
+                        spreadRadius: 4,
+                        padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedBuilder(
+                              animation: _controller,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _scale.value,
+                                  child: EndpointText(
+                                    strings(EndpointTextKey.mainMenuTitle),
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                    style: textExtraLargeBold.copyWith(
+                                      fontSize: 42,
+                                      letterSpacing: 3.2,
+                                      color: Color.lerp(
+                                        EndpointPalette.soften(
+                                          accent,
+                                          amount: 0.12,
+                                        ),
+                                        accent,
+                                        _glow.value,
+                                      ),
+                                      shadows: [
+                                        Shadow(
+                                          color: accent.withValues(
+                                            alpha: 0.35 + (_glow.value * 0.25),
+                                          ),
+                                          blurRadius: 12 + (_glow.value * 18),
+                                        ),
+                                        Shadow(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.12 + (_glow.value * 0.16),
+                                          ),
+                                          blurRadius: 6,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SeparatorFiori.double(),
+                            Column(
+                              children: [
+                                _MainMenuShowcaseStep(
+                                  showcaseKey: _continueShowcaseKey,
+                                  title: strings(
+                                    EndpointTextKey.mainMenuContinueTitle,
+                                  ),
+                                  description: strings(
+                                    EndpointTextKey.mainMenuContinueDescription,
+                                  ),
+                                  child: EndpointMenuButton(
+                                    label: strings(EndpointTextKey.continueRun),
+                                    tooltip: _currentRunSnapshot == null
+                                        ? strings(
+                                            EndpointTextKey
+                                                .mainMenuNoRunTooltip,
+                                          )
+                                        : strings(
+                                            EndpointTextKey
+                                                .mainMenuContinueRunTooltip,
+                                          ),
+                                    onPressed: _currentRunSnapshot == null
+                                        ? null
+                                        : _openSavedRun,
+                                  ),
+                                ),
+                                const SeparatorFiori.half(),
+                                _MainMenuShowcaseStep(
+                                  showcaseKey: _startShowcaseKey,
+                                  title: strings(
+                                    EndpointTextKey.mainMenuStartTitle,
+                                  ),
+                                  description: strings(
+                                    EndpointTextKey.mainMenuStartDescription,
+                                  ),
+                                  child: EndpointMenuButton(
+                                    label: strings(EndpointTextKey.start),
+                                    tooltip: strings(
+                                      EndpointTextKey.mainMenuStartTooltip,
+                                    ),
+                                    onPressed: _openNewRun,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                _MainMenuTinyButton(
+                                  label: strings(
+                                    EndpointTextKey.mainMenuTutorialButton,
+                                  ),
+                                  tooltip: strings(
+                                    EndpointTextKey.mainMenuTutorialTooltip,
+                                  ),
+                                  onPressed: _handleTutorialPressed,
+                                ),
+                                const SeparatorFiori.half(),
+                                _MainMenuShowcaseStep(
+                                  showcaseKey: _codexShowcaseKey,
+                                  title: strings(
+                                    EndpointTextKey.mainMenuCodexTitle,
+                                  ),
+                                  description: strings(
+                                    EndpointTextKey.mainMenuCodexDescription,
+                                  ),
+                                  child: EndpointMenuButton(
+                                    label: strings(EndpointTextKey.codex),
+                                    tooltip: strings(
+                                      EndpointTextKey.codexUnavailable,
+                                    ),
+                                  ),
+                                ),
+                                const SeparatorFiori.half(),
+                                _MainMenuShowcaseStep(
+                                  showcaseKey: _settingsShowcaseKey,
+                                  title: strings(
+                                    EndpointTextKey.mainMenuSettingsTitle,
+                                  ),
+                                  description: strings(
+                                    EndpointTextKey.mainMenuSettingsDescription,
+                                  ),
+                                  child: EndpointMenuButton(
+                                    label: strings(EndpointTextKey.settings),
+                                    tooltip: strings(
+                                      EndpointTextKey.mainMenuSettingsTooltip,
+                                    ),
+                                    onPressed: () async {
+                                      final updatedSettings =
+                                          await Navigator.of(context)
+                                              .push<EndpointSettingsSnapshot>(
+                                        buildEndpointSceneRoute(
+                                          SettingsPage(
+                                            initialSettings: _settings,
+                                          ),
+                                        ),
+                                      );
+                                      if (!mounted || updatedSettings == null) {
+                                        return;
+                                      }
+
+                                      final languageChanged =
+                                          _settings.language !=
+                                              updatedSettings.language;
+                                      if (languageChanged) {
+                                        _mainMenuShowcase.unregister();
+                                      }
+
+                                      setState(() {
+                                        _settings = updatedSettings;
+                                      });
+
+                                      if (languageChanged) {
+                                        _mainMenuShowcase =
+                                            _registerMainMenuShowcase();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -459,16 +519,20 @@ class _MainMenuTinyButton extends StatelessWidget {
 }
 
 class _MainMenuTutorialPromptDialog extends StatelessWidget {
+  final EndpointLanguage language;
   final VoidCallback onCancel;
   final VoidCallback onConfirm;
 
   const _MainMenuTutorialPromptDialog({
+    required this.language,
     required this.onCancel,
     required this.onConfirm,
   });
 
   @override
   Widget build(BuildContext context) {
+    final strings = EndpointTextBundle(language);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -486,7 +550,7 @@ class _MainMenuTutorialPromptDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 EndpointText(
-                  'TUTORIAL',
+                  strings(EndpointTextKey.mainMenuTutorialPromptTitle),
                   style: textMediumBold.copyWith(
                     color: EndpointPalette.infoAccent,
                     letterSpacing: 1.4,
@@ -494,7 +558,7 @@ class _MainMenuTutorialPromptDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 EndpointText(
-                  '\u00BFQuieres realizar el tutorial?',
+                  strings(EndpointTextKey.mainMenuTutorialPromptQuestion),
                   maxLines: null,
                   style: textMedium.copyWith(
                     color: EndpointPalette.softForeground.withValues(
@@ -508,7 +572,9 @@ class _MainMenuTutorialPromptDialog extends StatelessWidget {
                   children: [
                     Expanded(
                       child: EndpointActionButton(
-                        label: 'No',
+                        label: strings(
+                          EndpointTextKey.mainMenuTutorialCancel,
+                        ),
                         onPressed: onCancel,
                         accent: EndpointPalette.primaryAccent,
                         backgroundColor: EndpointPalette.closeButtonBackground,
@@ -520,7 +586,9 @@ class _MainMenuTutorialPromptDialog extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: EndpointActionButton(
-                        label: 'Si',
+                        label: strings(
+                          EndpointTextKey.mainMenuTutorialConfirm,
+                        ),
                         onPressed: onConfirm,
                         accent: EndpointPalette.infoAccent,
                         backgroundColor: EndpointPalette.blend(
