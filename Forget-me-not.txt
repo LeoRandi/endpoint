@@ -1,0 +1,898 @@
+PARTE 1. Reporte
+
+La sala era pequeña, blanca y aburrida hasta doler. No había ventanas. Solo una mesa metálica atornillada al suelo, tres sillas y una luz demasiado fuerte colgando del techo. Yo estaba sentado en un lado de la mesa, con una mano apoyada sobre la superficie fría, la otra en un cabestrillo ligero que indicaba que en poco tiempo recuperaría el uso de mi mano derecha. Frente a mí, dos hombres con traje negro se preparaban para escucharme. No tomaban notas ni asentían. Solo miraban.
+
+—Voy a empezar por el principio —les dije—. Por la primera inmersión. Por el momento exacto en el que dejamos de estar solos ahí abajo.
+
+--
+
+El año era- bueno, es, 2056. Para este entonces, el colapso climático ya no es una teoría ni un titular alarmista. El deshielo ha abierto zonas del planeta que nunca antes expuestas. Bajo el Círculo Polar Ártico, el fondo marino se ha resquebrajado en fosas nuevas, profundas, sin mapa. Una de ellas es la Fosa Molniya.
+
+Tres días antes de mi intervención, el Aegir‑12 había desaparecido allí abajo.
+
+El Aegir‑12 no era un sumergible cualquiera. Era un laboratorio de aguas profundas con una tripulación de primer nivel. Científicos, ingenieros, un equipo de seguridad con más horas de inmersión que muchos veteranos de guerra. Su última transmisión fue breve, confusa, y terminó de forma abrupta. Después, silencio.
+
+Mi nombre en los informes es Ikr. Ex‑buzo militar de un país que no nombraré, ahora supongo que mercenario. He trabajado en cuevas colapsadas, estaciones en alta mar, rescates, extracciones, sabotaje, ya saben el resto. Aun así, para serles sincero, nada de eso me preparó del todo para Molniya.
+
+Yo estaba atado a mi arnés a bordo del A.N.S Odín, y un azul intenso titilaba fuera de la cabina de cristal presurizado. La luz de la superficie se desvanecía rápidamente. Habíamos pasado los dos mil metros cuando nos acercábamos a las coordenadas donde Aegir-12 transmitió por última vez. A más de doscientos metros, el océano deja de parecer agua. No sé si han estado, pero es solo presión y oscuridad. Imaginense como era a los dos mil metros. Mi piloto, el teniente Rowan, al cual a partir de ahora me referiré por su alias, Red , permanecía callado, con la mandíbula apretada y los nudillos blancos sobre los controles. No había, hay, ni habrá mejor piloto de sumergible que Rowan, pero poca gente sabe que le tenía un pánico horrible a susodicha oscuridad. Pero de algo hay que comer, supongo.
+
+—Deberíamos estar mandándoles alguna señal de sonar—murmuró—. Aunque se quedaran sin energía, obtendríamos alguna señal...
+
+Asentí en el silencio de la nave, solo interrumpido por algún pitido recurrente. Desde mi asiento de copiloto activé una rutina básica de conexión via radio, y el "ping" que decía mi amigo se adentró delante nuestro en la oscuridad. Debieron pasar apenas un par de segundos, y de repente, una alerta se encendió en una de las pantallas conectadas al visor de mi traje.
+
+Un eco, en forma de radio. No seguía el protocolo que seguiría la Aegir, así que supusimos que el terreno deformó la onda a la vuelta. Claro está que nos equivocamos en esto y que Maya debía habernos acompañado. Ella se hubiera dado cuenta antes.
+
+Entonces vino el silencio que esperábamos. Y justo después una baliza de socorro automática, que definitivamente yo no esperaba. Todo esto fue justo cuando nos situábamos encima del borde de la fosa.
+
+--
+
+-Creo que es ahora cuando tiene que...- dije, haciendo un gesto hacia el hombre de la izquierda. Las reacciones de ambos brillaban por su ausencia en lo que llevaba de narración. Pero claro, aún no habíamos llegado a lo interesante.
+
+El hombre sacó una grabadora de dentro de su traje, y la apagó.
+
+—Continúe —dijo.
+
+Miré a la cámara en la esquina de la habitación. Un modelo bien antiguo, en trípode, seguramente para evitar que tenga IA o acceso a internet. Se apagó en ese momento.
+
+--
+
+La señal de socorro parpadeaba en rojo sobre el mapa tridimensional del Odín, entre Red y yo. Débil, inestable, a cientos de metros de distancia en el vacío. Pero real.
+
+—Ahí están —dije—. O lo que queda de ellos.
+
+Red no respondió de inmediato. Ajustó el vector de descenso con una precisión impecable típica en él, manteniendo al Odín justo en el límite de la fosa. Desde la cabina, la Molniya no parecía un simple corte en el lecho marino. Era una como herida descomunal y abierta. Me pareció de verdad estar viendo una cicatriz del océano, con roca como carne y oscuridad como sangre.
+
+Activamos los focos principales, los delanteros. El haz de luz descendió cientos de metros sin tocar nada. Ni pared, ni fondo. Solo vacío.
+
+—No me gusta —murmuró Red.
+
+A mí tampoco. El sonar seguía comportándose de forma errática. Ecos que aparecían y desaparecían. Sombras en el radar que no correspondían con ninguna formación geológica con sentido. Demasiado grandes, pero sobre todo demasiado en medio, como si estuviesen justo encima de la Aegir. Recé porque no hubiera quedado completamente sepultada. Sabía que no era así, claro, porque si no, ¿cómo nos iban a llegar no una, si no dos señales de respuesta?
+
+Entonces volvió a suceder.
+
+Un retorno limpio, claro e imposible de ignorar.
+
+La señal atravesó el casco como una vibración grave, más sentida que oída. Durante un segundo, los sistemas dudaron. No fallaron, no. Dudaron. Como si algo externo hubiera interferido en la interpretación de los datos que la terminal nos mostraba en verde y rojo.
+
+—Eso no es el Aegir —dijo Red, sin apartar la vista—. Y no es terreno.
+
+No contesté. Estaba revisando el patrón. La frecuencia no coincidía con nada registrado. Ni maquinaria, ni ruido sísmico, ni mucho menos fauna conocida a esta profundida. Y sin embargo… yo mismo la había sentido atravesar la nave.
+
+La transmisión en sí, para que se entienda, no fue una nota, una vibración a cierta frecuencia lanzada por una radio en mal estado. Había fluctuación en el tono a lo largo de los tres segundos que duró, como una melodía extraña que no supimos entender.
+
+La baliza del Aegir‑12 volvió a emitir. Esta vez más cerca. Estaba encajada en uno de los laterales de la fosa, a varios cientos de metros por debajo de nuestra posición. El laboratorio debía haberse deslizado hasta quedar atrapado allí, como un insecto en ámbar.
+
+—Podemos intentar un acercamiento lento —dijo Rowan—. Sin maniobras bruscas.
+
+—Adelante, teniente —asentí—. Pero cuidado con la pared, que el coche no es nuestro.
+
+Hacer bromas siempre había sido nuestra manera de aliviar la tensión en el aire. Esto debía ser una misión de rescate rápida, apenas 2500 metros. Por la tensión que había dentro del Odín parecía como si supiéramos qué nos íbamos a encontrar. 
+
+En fin, descendimos.
+
+Las paredes de la fosa empezaron a revelarse poco a poco. A esa profundidad la roca y sedimento se veían oscuras y compactas por la presión enorme del agua, que comprimía todo contra los flancos del valle y presionaba la columna de agua a cientos de veces la presión superficial. Las paredes parecían rugosas y frías, con tonos oscuros y a veces cubiertas por finos sedimentos. Es común a esta profundidad ver cierta bioluminiscencia, pero hacía rato que no veía apenas vida.
+
+Y entonces lo vimos.
+
+El Aegir‑12 estaba allí, instalado a lo largo de 50 metros de la pared de la Molniya. Estaba ligeramente inclinado, con uno de sus brazos de maniobra externos arrancado. Un casi imperceptible halo de luz roja parecia salir de la ventana del hall principal del laboratorio, y supuse acertadamente que serían luces de emergencia. 
+
+El laboratorio era bastante más grande de lo que me esperaba, incluso tras haber leído el informe preliminar. Ocupaba al menos 50 o 60 metros a lo largo de la pared de la fosa, y otros 100 o 150 hacia dentro de la pared, según los datos que se me habían entregado. 
+
+Pero, como ya saben, no estábamos solos.
+
+Entre el Odín y el Aegir flotaba algo.
+
+Al principio pensé que era una sombra proyectada por las luces de emergencia. Luego entendí que la sombra era aquello que absorbía la luz, lo que no nos había dejado ver las luces del laboratorio desde lejos. Una masa colosal, alargada, a veces translúcida, o al menos no del todo corpórea, suspendida en el vacío de la fosa. No se movía. Simplemente estaba.
+
+Observando.
+
+No tenía forma definida. O quizá tenía muchas, demasiadas. Era como ver niebla bajo el agua, como si la propia Molniya de verdad sangrara oscuridad, como he dicho previamente. Red me miró un par de veces y de vuelta a la sombra, supongo que para intentar leer en mi cara si estábamos viendo lo mismo. Yo no supe quitar la mirada.
+
+No lo reconocimos de inmediato, como comprenderán. Durante unos segundos seguimos mirándolo como se mira un fallo del sistema, esperando que el radar o el sonar lo corrigieran, que aquella forma acabara resolviéndose en algo explicable. Pero no ocurrió.
+
+En vez de eso, se desexplicó un poco más: la masa se ajustó.
+
+No se desplazó, ni avanzó hacia nosotros, pero algo en su forma cambió. Una ondulación lenta recorrió su superficie, como el movimiento interno de un músculo que se tensa y se relaja. No era cosa de una corriente marina, fue como si viéramos una vaca hacer eso de mover un músculo bajo la piel, si la vaca fuera del tamaño de un edificio, y se ocultara en la oscuridad de una fosa marina.
+
+El sonar no parecía realmente detectarlo, como si nuestros ojos nos mintiesen, pero al volver a comprobar nuestros sensores, vi que los térmicos detectaban una subida de 1 grado en un contorno alargado, como si fuera una manta negra flotando sobre el laboratorio.
+
+A la distancia que estábamos del Aegir‑12, unos 600-700 metros por encima, calculé con ayuda de un ordenador de abordo que aquella masa debía medir algo más de 150 metros de lado a lado. La imposibilidad de su tamaño y forma dejaron al Odín en completo silencio. Incluso los pitidos parecían haber cesado.
+
+Red dejó escapar el aire muy despacio.
+
+—Eso… —empezó a decir, y se detuvo.
+
+Yo seguía mirando la sombra, pero ya no la podía ver como una mancha. Había algo en su forma de ocupar el espacio, en la manera en que parecía mantener una distancia, como si ese vacío concreto le perteneciera. No flotaba a la deriva: evitaba las corrientes que pudieran moverla, ni tampoco se pegaba a la pared de la fosa como apoyo, simplemente estaba localizada ahí.
+
+—No es un espejismo del terreno —dije al fin—. Creo que está... esperando ahí.
+
+Red asintió sin apartar los ojos del frente.
+
+—Entonces está vivo —concluyó.
+
+Se volvió a hacer el silencio por un par de segundos
+
+—Comandante... perdón, Ikr—dijo él, corrigiéndose antes de que yo mismo pudiera—, el animal está a unos...—pausó un momento, mirando el mismo sensor térmico que yo— 550 metros, nos corta el paso. El protocolo es esperar, y si eso no es posible, evitar al animal todo lo que se pueda, ¿no?
+
+Tardé unos segundos de más en responder.
+
+—Vamos a lanzar una baliza, Red, quizá lo distraiga un segundo—dije, volviendo en mí. Activé un lanzador en la parte inferior del sumergible, que previamente habíamos cargado con unas balizas marcadoras, para iluminar la zona en la que tuviéramos que maniobrar. 
+
+Apunté a la pared de Molniya, justo por encima del ser, que ahora parecía haber girado un poco, colocándose enfrente del laboratorio. Oí un ruido cuando el dispositivo salió disparado, y lo vimos formar un arco con su débil luz hasta unos 50 metros por encima del laboratorio, donde se enganchó correctamente. La baliza en sí estaba equipada además con un pequeño sensor y un comunicador, que nos avisaría de movimiento en su cercanía.
+
+El misterioso ser se movió. Bueno, más bien diría que cambió repentinamente de forma. La niebla oscura que veíamos se extendió como un tímido dedo hasta la baliza, y pude ver, solo durante un segundo, que su piel reflejaba la luz de forma metálica, pero parecía piel. Recuerdo que me fijé en como la luz no parecía tocar todo el tentáculo que usó para tocar el dispositivo, a veces lo atravesaba como si de un fantasma se tratase, lo que producía su apariencia de "niebla".
+
+Pasó un minuto y el tímido dedo se replegó de nuevo a la forma sin forma que acechaba al laboratorio. Quiero dejar claro que en ningún momento hizo movimiento alguno que indicase violencia o rechazo hacia nuestra presencia, pero tampoco se aventuró a acercarse más a nosotros.
+
+Porque sabía perfectamente que estábamos ahí. 
+
+Otro ruido ondulado llegó al Odín, esta vez más claro. A esta distancia supimos aventurar que aquella cosa era la que nos enviaba, de formas que aún no logro explicar, las señales de radio. Configuré rápidamente el detector de ondas de abordo para aumentar el espectro y así grabar todas las ondas que pudiéramos.
+
+—No reacciona a la baliza —susurró Red—. Ni al sonar, si no lo tuviera delante mío no lo podría detectar.
+
+Había cierto terror en su voz. Supongo que para él era literalmente como si la oscuridad tomara la forma de un monstruo gigante. Yo le miré, tratando de sonreír, aunque he de admitir que había algo de miedo en mis ojos también.
+
+—¿Tenemos escáner del laboratorio a esta distancia?—pregunté.
+
+Al fin y al cabo, por muy interesante que fuera la criatura, esta era una misión de rescate, y una urgente por lo que Red dijo a continuación.
+
+—Sí, pero no son buenas noticias—respondió Red, con un suspiro—. La densidad de oxígeno es baja, quizá tengan una hora, osea que no tienen ni siquiera el filtro de repuesto activo, y solo tengo una lectura de calor, cerca de la ventana principal.
+
+—Entonces tenemos todavía a alguien que salvar.
+
+--
+
+Tras unos segundos de silencio, un hombre trajeado me sacó de mis pensamientos.
+
+—Continúe, por favor.
+
+Levanté mi mano buena, desviando la mirada al suelo, esperando poder tener un par de segundos más antes de continuar. Como se notaba que ellos no habían estado allí.
+
+—Esta parte ya la saben, de boca de Briemman. ¿Qué hago yo aquí?—dije, cansado.
+
+Ambos hombres se miraron, respondió el tipo de la derecha, que estaba más reclinado en su silla, claramente desinteresado en mi reporte.
+
+—Usted y Briemman tienen recuerdos muy dispares sobre lo que ocurrió ahí abajo. Está aquí porque nos va a confirmar o desmentir lo que ya sabemos. Ahora, continúe.
+
+Apreté un poco los dientes, una mala costumbre. Suspiré y proseguí mi narración.
+
+--
+
+Esperamos un par de minutos, atentos a algún cambio por parte de aquella cosa, pero simplemente parecía estar esperando de vuelta.
+
+—Si no nos movemos ya, esa persona no sale viva —dije.
+
+Red me miró de reojo.
+
+—No tenemos protocolo para… eso.
+
+—Pocas veces podemos seguir un protocolo al pie de la letra.
+
+Me desabroché el arnés y me levanté. El Odín crujió levemente al redistribuir el peso en el oscilador. Me acerqué a la parte trasera, abrí el compartimento de trajes de hiperpresión y empecé a equiparme.
+
+—Voy a bajar yo —dije—. EVA directa hasta el Aegir. Llevaré oxígeno y evaluaré la situación.
+
+Noté la mirada de Red en la nuca. No quería admitir que no teníamos una mejor solución, pero tampoco creo que le gustase verme desaparecer en la oscuridad con esa cosa tan cerca.
+
+—Te cubro desde aquí. Ve con cuidado.
+
+Ajusté el casco y comprobé el sellado. El zumbido del sistema de soporte vital me devolvió una calma extraña. La de las decisiones ya tomadas.
+
+—Si esa cosa se acerca al Odín —continué—, te retiras. Sin heroísmos. Si no te respondo en 30 minutos, te retiras igual.
+
+Red apretó la mandíbula.
+
+—Comandante—dijo—, quizá podríamos—
+
+Lo miré, cortando lo último que quería oír en ese momento.
+
+—No soy tu comandante. Escucha, Rowan—recuerdo haberle llamado por su nombre, por un segundo me olvidé de que debíamos usar los alias, por lo de la caja negra. Me acerqué a él y puse una mano sobre el hombro de su asiento, mirándolo—, nos conocemos hace mucho. He estado en tu boda. Pero si hay algún problema y tienes la oportunidad de salvar tu vida, quiero que la cojas. ¿Me has entendido?
+
+A Red siempre me ha costado darle órdenes directas.
+
+No respondió. No hacía falta.
+
+Me acerqué a la cabina de descompresión, mientras al otro lado del cristal aquella cosa seguía allí, inmóvil, flotando en la tumba del Aegir‑12.
+
+Seguí el procedimiento habitual en la cabina, y dejé que el agua la llenase por completo, aumentando la presión en mi traje a unas 250 atmósferas. El traje en sí, de una aleación que ni sé pronunciar, me traducía esa presión a una leve molestia. Las maravillas de la era moderna. Aún así el traje era denso, grande. Ponértelo era cosa de 5 minutos si estabas entrenado, y de media hora si no. El visor del casco se iluminó con información de mi entorno y un pequeño mapa 3D que venía directamente del Odín, que momentáneamente se congelaba cada pocos segundos, como un móvil con poca cobertura. La esclusa trasera, del tamaño de una puerta, se abrió lentamente, y yo floté hacía el vacío.
+
+Las temperaturas, como se imaginarán, rondaban el grado. El frío se abrió paso por mi cuerpo hasta que activé unas placas térmicas en muñecas, rodillas y caderas. El aire de mi traje lo proporcionaban unos filtros que simulaban las branquias de los peces, con un contenedor de repuesto en la parte baja de mi espalda. Traía además detrás de mí un tubo de oxígeno, imantado a la espalda del traje, con suficiente aire para 30, quizá 45 minutos. Esperaba que fuera suficiente para la persona que me esperaba ahí abajo.
+
+Ahí abajo. "Ahí abajo hay algo más que una persona", pensé. Para impedir que ese miedo primigenio que antes sentí hiciera presencia en mi mente, intenté centrarme en mi misión como si de algo mundano se tratara. 
+
+Los propulsores de mi traje se activaron, siguiendo las indicaciones de mi lóbulo frontal como si formaran parte de mi propio cuerpo, gracias a un conector que hay en la parte trasera del casco. Para evitar a tan descomunal criatura, cuya longitud apenas pude medir y que cambiaba de forma a tal velocidad, me propuse dar un rodeo a través de la oscuridad de Molniya. Ya que este ser no quería moverse de la parte superior del laboratorio, yo intentaría ir por debajo.
+
+—Probando, probando—dije por el comunicador del traje—, ¿se me escucha?
+
+—Aquí Red, se te escucha—respondió el traje en mi oído—, te cubro.
+
+—Bajando entonces, nos vemos enseguida.
+
+—Más te vale—escuché con un crujido de estática.
+
+Me deslicé, cortando la fría oscuridad, descendiendo por la fosa. Mi rodeo me costó algo más de 10 minutos. "Demasiado tiempo" pensé, pero conseguí posicionarme por debajo del Aegir.
+
+—Ikr, ¿sigues ahí?—dijo Red, o eso creo que dijo, la estática hacía casi inaudible su voz.
+
+—Aquí Ikr, ¿me oyes bien? ¿Hay mucha interferencia, no?— respondí, pegado a la roca de la pared de la fosa
+
+Desde ahí, al mirar arriba podía ver a lo lejos una tímida luz blanca, los focos del Odín, y la enorme sombra, mimetizada con el resto del océano, que acechaba sobre el laboratorio. Me pegué a la pared y fui subiendo poco a poco, alzando la mirada cada pocos metros para comprobar que esa criatura seguía sin prestarme ningún interés. Cuando llegué al metal presurizado de la parte inferior, viré para posicionarme delante de la ventana principal del Aegir-12.
+
+Una sola luz de emergencia arrojaba tonos rojos dentro de la estancia. Decenas de mesas llenas de ordenadores y cajas de cristal ocupaban la principal habitación de trabajo del laboratorio, la mayoría volcadas o rotas. Chispas saltaban de lo que quedaba de las luces del techo, por lo que supuse que se había producido un cortocircuito en el sistema principal. Volví a alzar la mirada, y esta vez no pude ver los faros del Odín. Cuando me centré de nuevo en el Aegir, casi me dió un vuelco el corazón. Una persona estaba ahí, mirándome apoyada en el cristal. Una mujer con pinta de estar sufriendo una hipotermia aguda, los labios casi azules, y los ojos desorbitados golpeaba el cristal lentamente. Llevaba una bata de laboratorio sucia y arrugada, rasgada en ciertas partes. No pude leerle los labios, pero creí ver cierto alivio en sus ojos.
+
+La mujer golpeaba el cristal, señalando hacia arriba. Seguí con mi mirada su dedo, directo al Odín.
+
+—Sí, sí, hemos venido a salvarte—dije sonriendo ligeramente.
+
+Señalé el Odín yo también, al tiempo que la sombra marina ocultaba ligeramente sus focos
+
+—He venido de ahí, enseguida te subo—dije, e hice algunas señas de mirar al rededor—, solo estoy comprobando que está todo en orden.
+
+Subí mi pulgar con mi mano cerrada, señal universal de ok, y me alejé del cristal, dejando a la mujer que golpeara el cristal. A mí me sonó un poco a vítores.
+ 
+Una ventaja de leerse los informes preliminares es saber si el laboratorio marino de altas profundidades al que tienes que acceder tiene una compuerta para descompresión rápida, algo increíblemente útil si en vez de un ser humano pretendes meter al laboratorio un tubo de oxígeno antes de que quién lo tenga que recibir muera asfixiado. 
+
+Este laboratorio, por suerte, sí tenía esta compuerta. Me propulsé en paralelo a la pared del laboratorio, hasta quedar casi al final del mismo. Habían dos compuertas de dos tamaños. Pulsé un botón al lado de la puerta más pequeña, apenas tan grande como para que cupiera el tubo de oxígeno, y enseguida empezó a despresurizarse la diminuta estancia al otro lado. Al cabo de un minuto ya estaba completamente llena de agua, y la esclusa gris se abrió lentamente hacia afuera. Pude ver por una pequeña ventana al otro lado de este buzón submarino como la mujer de antes me miraba introducir el tubo. Al terminar, cerré de nuevo la puerta y di un par de golpes en la puerta, esperando que ella lo hubiera oído. 
+
+Volví a la ventana de la habitación principal, y al cabo de un minuto apareció la mujer, con el tubo conectado a una máscara en su cara. Le hice señas para que se acercara al cristal, y ella las siguió. Abrí la mano, intentando hacerle entender que debía esperar. El miedo era evidente en su mirada. ¿Quién querría quedarse solo en un momento así? Pero yo tenía un plan, y necesitaba volver al Odín.
+
+La vuelta al sumergible fue tan tensa, silenciosa y opresiva como lo fue la ida. Volví a dar un rodeo, bajando hacia el horrible vacío de la Molniya con tal de no acercarme a esa cosa. Llegué al Odín, pasé por la cabina de descompresión, y me quité el traje. Un suspiro de alivio escapó de mi boca. Incluso estando a miles de metros bajo la superficie, donde un pequeño error de cálculo puede acabar con tu vida y la de tus compañeros, incluso si esa terrorífica cosa seguía ahí fuera, sentir el espacio de la nave me reconfortó como si volviera de nuevo a casa tras un viaje especialmente largo. 
+
+—Ikr, ¿cómo lo ves? —repitió Red, sin apartar los ojos del panel frontal.
+
+Me pasé una mano por la cara, todavía con la marca del conector del casco en la nuca. Respiré hondo antes de responder.
+
+—Hay una mujer viva —dije—. Hipotermia, oxígeno crítico, pero consciente. Si no hacemos nada, no pasa de una hora.
+
+Red asintió despacio, pero no había alivio en su gesto, si no más bien cálculo. Fue una expresión que no he visto mucho en su cara, normalmente más tranquila y risueña. Esa masa de oscuridad ciertamente le ponía nervioso.
+
+—¿Conseguiste comunicarte con ella?¿Sabemos si está sola?
+
+Se reclinó apenas en el asiento, entrelazando los dedos. El nudillo del pulgar temblaba
+
+—Si hay otros compartimentos presurizados—dijo—, si alguien está inconsciente o si—
+
+—Si, si, si —lo interrumpí, sin alzar la voz—. Lo sé.
+
+Me apoyé en la consola lateral, con los brazos cruzandos e inclinado hacia él. Recuerdo que sentía la cabeza como si me fuera a estallar. Normalmente los EVAs a esa profundidad son estresantes, pero no era mi primer rescate. Suspiré hondo y hablé de nuevo.
+
+—Ahora mismo solo sabemos una cosa: hay alguien viva y la podemos sacar.
+
+Red giró la cabeza hacia mí al fin.
+
+—¿Y si esa… cosa… reacciona?—dijo.
+
+Los dos miramos, casi al mismo tiempo, al cristal frontal. Supongo que esperábamos que hubiera desaparecido, pero ahí seguía.
+
+Suspendida entre nosotros y el Aegir-12, deformando la luz como si el océano estuviera mal renderizado. Un pliegue lento recorrió su oscura superficie, casi imperceptible, como una manta al viento en cámara lenta.
+
+—¿Crees que es consciente, que nos está dejando actuar?—dije en voz baja— Si quisiera matarnos, ya lo habría hecho.
+
+—O quizá nos observa —respondió él—, y solo espera a que saquemos más comida del interior de esa lata.
+
+Se hizo el silencio durante al menos un minuto, luego el sonar emitió un pitido aislado, inseguro, como dudando de si romper el momento para devolvernos a la realidad.
+
+—No veo viable bajar con el Odín ahí abajo—continuó Red—. No sabemos si esa cosa se pondrá en medio, nos—
+
+—Por eso no vas a bajar con el Odín —le corté de nuevo.
+
+Red frunció el ceño.
+
+—¿Qué estás diciendo?
+
+Me giré hacia el compartimento de trajes.
+
+—Tenemos dos trajes operativos —expliqué—. El mío y el de reserva—levanté un dedo, anticipando su objeción—. No voy a dejarle el traje y rezar para que suba sola. Bajo yo, entro al Aegir, se lo pongo, y la traigo yo hasta aquí.
+
+Red se incorporó bruscamente en el asiento.
+
+—Para empezar, el protocolo es primero averiguar si tienen sus propios trajes para EVAs y si estan operativos. Es después de constatar que ninguna de esas cosas se cumple cuando les damos un traje de reserva—se empezó a elevar su voz, menos mal que andaba conmigo y no le hablaba así a otro superior—. Es una locura Ikr, y si esa cosa lo que está esperando es que saques a alguien más, vamos a perder al comandante de la misión y a la única superviviente confirmada.
+
+—Si no bajo —repliqué—, la perdemos seguro.
+
+Nos miramos durante un largo segundo.Finalmente Red desvió la vista primero. Se pasó una mano por la nuca.
+
+—Puede haber más gente, Ikr —dijo más bajo—. Un solo traje puede no bastar.
+
+—No —respondí—. Pero por lo menos basta para esa mujer. Debíste haber visto sus ojos a través del cristal, Red. Nunca había visto a alguien tan contento de verme.
+
+Otro pliegue recorrió a la criatura. Creí ver como un filamento se separaba y volvía a recogerse, lenta, deliberadamente.Ambos seguimos el pliegue con la mirada. Nadie habló.
+
+Red cerró los ojos un segundo. Cuando los abrió, había miedo en ellos. Pero también algo más profundo: disciplina.
+
+—De acuerdo comandante, sigamos la misión—dijo, un poco más calmado—. Yo mantengo posición con los motores encendidos. Si esa cosa se mueve hacia ti, te recojo y abortamos.
+
+—Si se mueve hacia ti —corregí—, te largas.
+
+Red apretó la mandíbula.
+
+—Es una orden —dije.
+
+Silencio. Luego, muy despacio, Red asintió.
+
+—45 minutos —dijo—. Si en 45 minutos no estás de vuelta con ella…—no terminó la frase.
+
+—Volveré mucho antes —respondí.
+
+Antes de girarme hacia el compartimento para buscar el salvavidas de esa mujer, paré mi mirada una vez más en la mancha que flotaba delante de nosotros, como si un imán me hiciera girar la cabeza cada vez. Las vistas, por si no he sido suficientemente claro, te dejaban sin aliento. Un escalofrío te recorría cada vez que lo veías y te dabas cuenta de que era real, y no un truco de tu memoria. En retrospectiva, creo que esa cosa... no sé, era como si te hipnotizara, como si fuera algún mecanismo de defensa que te atontarte para que no pudieras reaccionar.
+
+El descenso esta vez fue más rápido. Demasiado.
+
+No lo noté al principio. El traje respondía bien y el mapa 3D seguía proyectándose en el visor con apenas unos segundos de retraso. El Aegir-12 aparecía como una silueta rígida y familiar al fondo de la fosa, un ancla mental en medio de aquella oscuridad sin referencias.
+
+—Bajando —dije por el canal—. Trayectoria limpia.
+
+La estática respondió antes que Red.
+
+—Recibido —acabó llegando su voz, fragmentada—. Mantén vector. cuidado con—
+
+La frase se perdió.
+
+Yo ya no miraba el radar. Había cometido el error de dar demasiadas vueltas antes y no pensaba repetirlo: esta vez me guiaba por la vista, por el cuerpo, por la intuición que te da haber pasado media vida bajo toneladas de agua. La Molniya se abría a mi alrededor como una catedral negra. Sentí esa confianza peligrosa que aparece cuando llevas demasiado tiempo saliendo ileso.
+
+Avancé. Y entonces...
+
+--
+
+—¿Entonces qué?—preguntó el tipo de la izquierda, los codos apoyados en la reluciente mesa, tras los segundos que estuve en silencio.
+
+—Perdón, no sé aún como contar lo que pasó después— dije yo.
+
+—Simplemente cuenta tu experiencia, nosotros ya sacaremos conclusiones después— respondió el tipo de la derecha, que ahora parecía un poco más interesado en la narración, aunque hubiera cruzado los brazos, recostado en su silla.
+
+—De acuerdo, vale—dije, suspirando profundamente—. Es que en retrospectiva... bueno, ya llegaremos a eso.
+
+Aclaré mi garganta, me rasqué bajo el cabestrillo, y los tres volvimos a Molniya.
+
+--
+
+Fue una resistencia repentina. Como atravesar una corriente inesperada, como si el agua se hubiera espesado de repente solo en un punto concreto del espacio.
+
+Intenté corregir el rumbo, pero no llegué a hacerlo a tiempo.
+
+El impacto fue contundente. Una masa invisible me golpeó de lado, lanzándome en un giro brusco. El traje chilló en mi oído con advertencias superpuestas, y sentí cómo algo se desprendía de mi espalda con una sacudida seca y un tirón del imán del traje.
+
+El traje de repuesto.
+
+Lo vi alejarse girando lentamente, una forma blanca perdiéndose hacia abajo, tragada por la oscuridad de la fosa como una moneda arrojada a un pozo sin fondo.
+
+—¡Contacto! —grité, tras dudar un segundo—. ¡Red, contacto hostil!
+
+Mis propulsores intentaron compensar el golpe, pero dos de ellos no respondieron. El mundo giró un segundo de más. Algo enorme, imposible de definir, se desplegó frente a mí, absorbiendo la poca luz que emitía el traje, y tapando los focos del Odín y la luz de emergencia del Aegir. No había ojos, ni boca, ni extremidades. Solo una presencia, una extensión oscura plegándose sobre sí misma. Fue como si entrase en una habitación sin puertas ni ventanas, solo aquella... presión. Mis oídos empezaron a pitar mientras la estática subía.
+
+Saqué el vibro-cuchillo casi sin pensar. La herramienta, que normalmente usamos para sesgar partes metálicas en los rescates, zumbó al activarse, vibrando a una frecuencia que hizo temblar mis propios huesos. Lo hundí hacia aquella masa, esperando resistencia, carne, algo.
+
+No la hubo. Como si no estuviera.
+
+El cuchillo atravesó parte de aquella forma como si cortara humo. Donde la hoja rozó, la oscuridad se contrajo, plegándose hacia dentro con un movimiento lento, casi… cuidadoso. Como alguien bajándose una manga de un jersey, protegiendo una parte expuesta pero sin brusquedad.
+
+—Me ha atacado —dije, respirando rápido—. Repito: el contacto es hostil.
+
+No estaba seguro si Red me oía entre tanta interferencia.
+
+La criatura se replegó aún más, desdibujándose, dejando libre el espacio que yo ocupaba. La presión alrededor volvió a la normalidad. El “agua” volvió a ser agua.
+
+Yo no esperé a entenderlo.
+
+Giré con el cuerpo y huí hacia el Aegir-12, forzando los propulsores restantes hasta el límite. El laboratorio apareció ante mí demasiado rápido, y apenas tuve tiempo de poner mis brazos frente a mí para amortiguar el golpe.
+
+—Complicaciones —seguí diciendo, con la voz más firme de lo que me sentía—. ¿Red, me recibes? He perdido el traje de reserva. Repito, traje de reserva perdido.
+
+La estática creció.
+
+—¿Te persigue? —preguntó Red, apenas audible.
+
+Miré atrás solo un instante.
+
+Aquella cosa no se movía.
+
+Simplemente estaba ahí, más compacta ahora, ocupando un volumen imposible, suspendida como si aquel punto del océano le perteneciera desde siempre.
+
+—Negativo —respondí—. Pero no pienso comprobar si cambia de idea.
+
+Mis botas magnéticas fallaron al primer intento de sujetarme al casco del Aegir‑12, y tuve que golpear el metal para fijarme. La compuerta de acceso estaba a unos metros. Me arrastré hasta dentro de la compuerta, cerré con la adrenalina aún coreando en mis oídos, y pulsé un enorme botón para comenzar la descompresión.
+
+Dentro, la luz roja de emergencia me recibió como una herida abierta.
+
+La mujer estaba allí, junto a la ventana, sujetando la máscara de oxígeno con ambas manos. Me miraba con los ojos muy abiertos, pero no con alivio.
+
+Alzó el brazo, señalando hacia arriba. Hacia la oscuridad.
+
+Yo seguí su gesto solo un segundo, lo justo para ver la sombra deformar la luz al otro lado de un cristal.
+
+—Tranquila —le dije, recuperando el aliento, aunque sabía que no podía oírme—. Ya casi estás fuera.
+
+Aparté la vista de la oscuridad exterior cuando el agua empezó a desaparecer de la cabina y finalmente se abrió la puerta al interior del laboratorio. Hacía un frío aterrador cuando me aflojé el aro del casco y me lo quité. El aire era húmedo, denso, con olor a metal y sal. La piel se me heló al instante y la respiración me salió blanca.
+
+De la cabina de descompresión salía un pasillo corto hacia la izquierda, de techo bajo y paredes metálicas cubiertas de condensación. Había cables sueltos en las bandejas superiores y un panel abierto con los fusibles expuestos. El suelo de rejilla tenía charcos y pequeñas costras de hielo pegadas a los bordes. Una luz de emergencia parpadeaba al final. A los pocos metros, el pasillo desembocaba en la estancia principal.
+
+La mujer vino hacia mí a trompicones, casi arrastrando los pies, y empezó a hablarme con urgencia. Lo que decía sonaba a un idioma que no reconocí. Rápido, cortado, suplicante. Me quedé helado por una razón distinta al frío: yo hablaba ruso, inglés y un par de lenguas más por deformación profesional. En un laboratorio internacional como el Aegir-12 eso debería bastar. Pero no entendí ni una palabra.
+
+Le hice el gesto de calma con la mano, sin saber si me comprendía, y traté de intercambiar un par de palabras en varios idiomas, pero me di por vencido a mitad de la segunda frase y simplemente lo aparté de mi mente para centrarme en mi misión. Avancé por el pasillo, esquivándola y por fin tuve tiempo de mirar la sala. Era amplia y estaba llena de mesas de trabajo y módulos de instrumentación. Sobre las mesas había bandejas de muestras abiertas y cajas de herramientas volcadas. En el suelo había cristales, cables y una capa fina de agua que brillaba con los chispazos intermitentes de un aparato roto. La única iluminación constante provenía de dos luces de emergencia encendidas, ambas a cada extremo de la pared derecha. La gran cristalera que recorría toda la pared de mi izquierda daba a la profunda oscuridad de Molniya.
+
+Algo me pareció extraño, incluso antes de verlo. El Odín había desaparecido por completo, y ni siquiera se veían sus faros.
+
+—¿Red—pregunté, pegando la boca al casco—, me recibes? ¿Dónde te has...?
+
+Ahí fue cuando entendí: La criatura se había acercado al Aegir mientras yo entraba, tanto que estaba pegada a la cristalera por completo, tapándola y envolviendo el laboratorio por completo, como una manta sobre un mueble viejo del ático. Sabía que era ella porque, de vez en cuando, partes de su superficie se volvían translúcidas y dejaban ver que el Odín seguía allí arriba, suspendido en la fosa. También por los pliegues lentos que recorrían su piel negra, como si el mar tuviera músculos. 
+
+Red no contestó, solo la estática. Supuse que esa bestia no solo interfería con la luz, si no también con los radares y las comunicaciones. Solo por eso no pude detectarla correctamente para evitar su golpe ahí fuera.
+
+La mujer siguió hablándome, señalándome la ventana cubierta, pero yo ya no podía apartar la vista de esa sombra pegada al cristal. Tan de cerca, y con la extraña seguridad del cristal reforzado entre nosotros, no pude evitar pensar que la bestia era, hasta cierto punto, hermosa. Pero eso ya son derivaciones mías. Lo primero y más importante para mi misión era que la ventana estaba bloqueada; Red no podría verme desde fuera.
+
+Mi mente, acelerada aún por la adrenalina del ataque violento de la criatura, buscó inmediatamente en la habitación, recorriendo con la mirada a toda velocidad las paredes y esquinas del laboratorio. La pared contraria a la cristalera estaba dividida en tres por un par de puertas selladoras gruesas. La de la izquierda estaba claramente atascada, desencajada ligeramente de su marco, y de vez en cuando algunas chispas salían de un panel de apertura al lado. Me acerqué a la otra puerta y consulté su panel. Estaba en inglés, pude entender perfectamente como abrir la puerta sin mucho problema. Oí un siseo al empezar a moverse, y vi como se deslizaba lateralmente a duras penas en el compartimento al que se retraía normalmente. Dentro encontré mi esperanza, y justo lo que más temía.
+
+Era una especie de compartimento pequeño, no muy profundo, con unas cuantas herramientas de limpieza básicas, pero lo más importante: Habían dos trajes para EVAs, seguramente para inspecciones rutinarias del estado del exterior del Aegir‑12. Lo que hizo que se me estrujase un poco el corazón fue ver como el techo había cedido, dejando caer una viga, envuelta en cables y placas afiladas de metal, que había destruido por completo uno de los trajes, y roto a la altura del hombro izquierdo el otro. Apreté los dientes, por pura frustración, y cogí lo que quedaba del traje en mejor estado, incluyendo la parte del brazo, doblada irregularmente en el suelo.
+
+Salí del compartimento, traje en ristre, y lo dejé junto con el brazo huérfano encima de una mesa cercana. 
+
+—¡Eh—grité a la mujer—, ven, te tienes que poner mi traje!
+
+No me di cuenta en su momento, pero ella debía llevar al menos unos minutos llorando en un lado de la habitación. Había dejado el tubo de oxígeno y la máscara en el suelo cubierto de condensación, y miraba de reojo, de vez en cuando, a la cristalera y la bestia en cuestión.
+
+Me quité el traje de hiperpresión en poco tiempo, debí marcar algún récord. El frío ahora había entrado en mi cuerpo por completo, llegando al hueso y subiendo por mi columna cada pocos segundos en forma de escalofrío. Debajo llevaba mi traje de neopreno, no como la mujer que apenas llevaba un par de capas de ropa. Entendí que yo no lo podía estar pasando peor, reuní fuerzas y me acerqué a ella, decidido.
+
+—Vamos, arriba—le dije, agarrándola del brazo y levantándola sin mucho esfuerzo. Se notaba su desnutrición—. ¿Quieres salir de aquí o no?
+
+Ella murmuró algo en su idioma, que sonaba parecido al griego o al latín, pero seguí sin comprender. Tampoco lo intenté demasiado, supongo. La puse frente al traje mientras ella señalaba la puerta rota, queriendo explicarme algo, y le hice repetir los pasos para ponerse mi traje. Poco a poco, se le secaron las lágrimas sobre la cara, sucia de polvo, y siguió mis instrucciones. La bestia vió a través del cristal como conseguí que terminasemos todo el proceso en algo menos de 15 minutos. Todavía tenía 20 minutos hasta que Red se retirase, así que pensé que podríamos salir a tiempo. 
+
+El brazo de mi traje en mal estado lo pegué con PetaPoco, y...
+
+--
+
+—¿PetaPoco?—se rió el hombre de la izquierda— ¿Llevaste PetaPoco a un rescate sub-2000?
+
+Su compañero le dio un golpe de codo, quitándole la sonrisa de la boca.
+
+—Eh... sí—respondí—. Es un pegamento de esos magnéticos, me ha servido de bastante en otras ocasiones.
+
+—Ya pero...ejem, bueno, es una herramienta que podrías comprar en...—me seguía dando una media sonrisa— en una esquina cualquiera, ¿no te ofrecieron equipamiento especializado, o fondos para el rescate?
+
+Dudé un segundo al contestar. Primero porque sí ofrecieron el equipamiento. Segundo porque en mi ego de buzo veterano, contesté con un "No hace falta".
+
+—No... no demasiados fondos, no—terminé por mentirles—, pero en teoría no íbamos a necesitar más que el Odín y los trajes.
+
+Los hombres se miraron en silencio, y luego volvieron sus miradas a mí, pensativos.
+
+—Puede continuar—dijo el hombre de la derecha.
+
+--
+
+El traje no duraría mucho con el PetaPoco a esta profundidad, pero otras veces ha servido para tapar agujeros en un traje, al menos por unos minutos. Esperaba no tener que usarlo más tiempo que eso. Unos minutos.
+
+La mujer debió entender que el siguiente paso era salir cuando me vió ir de vuelta en dirección a la cabina. Me agarró del brazo y soltó algunas palabras en su boca, alzando dos dedos de su mano libre.
+
+—Sí, tranquila, esta vez nos vamos los dos—dije yo, sonriéndole, supongo que tratando de tranquilizarla.
+
+Ella me señaló de vuelta la puerta, y alzó de nuevo dos dedos. Miré la puerta mientras chocaba conmigo el martillo del entendimiento, que había conseguido por fin romper la pared del lenguaje. Había dos personas más. 
+
+Se encontraron en mí la alegría y el estrés. Más supervivientes era la mejor noticia en un rescate. A menos, claro, que no tengas trajes para sacarles a todos.
+
+Mi mirada pasó de ella a la puerta y viceversa un par de veces, mientras pensaba qué debía hacer. Red hubiera seguido el protocolo, lo sé muy bien. Hubiera sacado a la mujer y luego vuelto a por los demás. Pero no había tiempo. 
+
+No tenía otra opción.
+
+Corrí hacia la puerta atascada, que abrí con ayuda de esta mujer. Empujamos con todas nuestras fuerzas la media tonelada de puerta, hasta que conseguimos que entrase a duras penas en el compartimento lateral.
+
+Delante mío fue como si hubiera vuelto la vista a la cristalera: pura oscuridad. Activé la linterna de mi traje, que actualmente llevaba la mujer, y vi como se iluminaba un pasillo ligeramente inclinado hacia abajo. Las paredes grises y vacías del laboratorio continuaban unos cuantos metros hasta que la inclinación volvía a la normalidad, y el resto del pasillo continuaba. Bajamos por el pasillo, la mujer y su linterna a mi lado, y llegamos a una zona encharcada. El olor era fuerte, y el aire parecía sobrecargado. 
+
+El primer rasgo distintivo de esta mujer se manifestó nada más llegar a la parte inferior del pasillo: una incesante e implacable fuerza le movía hacia delante, guiándome por los pasillos y salas internas del laboratorio. A mis ojos, se volvió una heroína, que a pesar del cansancio y el hambre, incluso ante la clara oportunidad de la salvase, se adentró en la oscuridad bajo la oscuridad para salvar a otros. Su fuerza limpió todas mis dudas como si me hubieran dado un sopapo. 
+
+Avanzamos sin pausa por varios pasillos, girando en un par de sitios, pero siempre bajando. Al bajar, el agua empezó a subir levemente, y pasó de ser un charco a llegarnos a las rodillas en solo unos minutos. Vi un par de cuerpos, flotando en el agua de alguna habitación, pero ni rastro de movimiento. El sonido de un motor, seguramente el que proporcionaba el poco aire que quedaba ahí abajo, era el único acompañante de nuestros sonoros intentos de abrirnos paso a través de los pasillos inundados. 
+
+Finalmente, llegamos al final del laboratorio. Mi compañera me miró, dudando un segundo, antes de acercarse al panel de acceso de la puerta del final del pasillo. Vi como la mujer fallaba algún tipo de contraseña dos veces, por sendos pitido y un par de flashes de luz roja, que hicieron retroceder la oscuridad a mi alrededor brevemente.
+
+Me pregunté como es que esta puerta, a diferencia de las que habíamos pasado desde la primera estancia del Aegir, aún tenía una fuente de energía. Mis pensamientos fueron cortados por los golpes de mi compañera en la puerta. Gritó algunas palabras en su idioma y esperó muy quieta. Iba a acercarme e intentar abrir la puerta a la fuerza, cuando oí un siseo. La puerta se deslizó sin problema a la derecha, dejando entrar agua al interior de la habitación. 
+
+Habían un montón de literas. Todas metidas en las paredes, como un búnker. Había una sola luz en mitad del techo de la estancia, que era circular. Al fondo de la habitación había un hombre de pie, al lado de un panel sobre el que tenía la mano. Era una figura alta, grande de hombros. Era completamente calvo, y al igual que a mi compañera, se le notaba en la cara el hambre y el frío. A su lado tenía otra mujer, bajita y tumbada por completo sobre una de las literas. No le pude ver bien la cara en ese momento.
+
+-- 
+
+—¿Qué había en la mesa?—interrumpió la narración el hombre de la derecha. 
+
+—Eh...¿qué?—tardé unos segundos en volver del laboratorio a la realidad.
+
+—Te pregunta por la mesa del centro de la habitación—continuó su compañero—, ¿qué había en la mesa?
+
+Dudé sobre decir la verdad. En parte quería hablar de eso con alguien. En lugar de eso les conté lo mismo que a Red.
+
+—Una caja. Como un maletín. Cerrada.
+
+Les mantuve la mirada unos segundos.
+
+—No es necesario que esconda nada, Ikr—respodió el hombre de la derecha—, los de arriba ya me han dicho que usted tendrá derecho absoluto sobre toda la información que tenemos sobre "la bestia" que usted dice. Briemman ha dicho...
+
+—Briemman está desequilibrado—espeté, cortando su frase a aquel hombre—, la caja estaba cerrada y no sé qué contenía. ¿Puedo terminar de una vez mi reporte?
+
+El hombre suspiró y se rascó la barbilla, pasando su mano por el mentón con barba de dos días.
+
+—Termine, sí. Termine de una vez.
+
+--
+
+El hombre y la mujer a mi lado intercambiaron unas palabras a través de la estancia, pero yo estaba recorriendo con la mirada las hileras de camas, algunas vacías, otras fríamente ocupadas. El señor se acercó a mí, con clara ilusión y alivio en la cara, y trató de hablar conmigo. Solo entendí su nombre, porque venía en el informe, bajo el título de jefe de laboratorio: Johannes Briemman. Sigo sin saber qué idioma hablaban, pero parecía que ni siquiera entre ellos lograban comunicarse bien, por la confusión en sus caras mientras conversaban en frases cortas, cada vez más alto.
+
+—¡Eh, eh!—grité para hacerme oír entre esos dos— Ya hablaréis de vuelta en casa, tú—señalé a Briemman—, ¿tu amiga puede andar?
+
+Ambos se callaron, mirándome. Hice un ademán con la cabeza en dirección a la chica tumbada. Briemman la miró un segundo y corrió hacia ella, despertándola. Era una señora un poco mayor, menuda, a la que parecía que el hambre y el frío habían golpeado con especial interés. Se pudo poner en pie, y al verme, preguntó algo a Briemman. Él se veía confuso de nuevo y yo me pregunté a mis adentros "¿Qué clase de equipo científico no comparte ni siquiera un idioma para comunicarse?".
+
+Les guié a todos fuera de la estancia. Briemman no se olvidó de coger la caja blanca del asa antes de salir, y me sostuvo la mirada un segundo al pasar a mi lado. Yo cerraba la fila de cuatro que habíamos formado en la oscuridad de los pasillos, con la mujer joven y su linterna delante.
+
+El camino de vuelta al laboratorio principal del Aegir fue tedioso y lúgubre, pero sepan que entre los cuatro presentes, la mujer con el traje era nuestra luz, literal y metafóricamente. Nos iluminó el camino y ayudó al resto a volver con prisa a la parte superior del complejo. No sé explicar como me sentí al ver a la civil llevar la delantera, pero alguien tenía que cerrar la fila, y prefería ser yo.
+
+En cualquier caso, volvimos a la estancia grande del principio. El primer cambio que me noté fue que esa cosa había desaparecido. La ventana al exterior, aunque igual de oscura, absorvente y aterradora, ya no estaba cubierta por la bestia que nos había acechado antes. Las luces del Odín brillaban como un faro desde arriba. 
+
+Me acerqué a la mujer joven, y con cuidado le quité el casco para intentar comunicarme con el sumergible.
+
+—Ikr al Odín, ¿me recibes, Red? Aquí Ikr con 3 supervivientes, ¿me recibes?
+
+Poco más que el silencio rebotó en las paredes del Aegir‑12, nosotros cuatro aguantando la respiración.
+
+—...Ikr...—A través de una estática repentina que me reventó el oído derecho, me llegó un extracto de la voz de Red, diciendo mi nombre. 
+
+Incluso sin esa bestia presente, las intereferencias seguían siendo demasiado, y no tenía mucho tiempo. Yo mismo llevaba unos minutos notando una falta de oxígeno en el aire, y no quería ni pensar como estarían los supervivientes. Me volteé hacía ellos y los miré. La mujer joven se había quitado el traje completamente, y pretendía ayudar a la señora a ponérselo. Briemman estaba con ellas, con la mirada perdida en el traje y las mujeres, los brazos cruzados y un tic nervioso en la pierna. Todos parecían a punto de perder el conocimiento de cansancio, hambre, frío, o todo a la vez.
+
+Enseguida se me ocurrió qué podía hacer. Les señalé que esperasen ahí y salí corriendo a la habitación de mantenimiento cuyo techo había cedido. Me quité todo lo rápido que pude el traje de hiperpresión, y escalé al compartimento superior. El falso techo era un laberinto de cables, tuberías y vigas, estrecho como para permitir el paso solo a una persona, y una menuda. Mis hombros quedaron casi encajados en varias partes del compartimento, pero avancé hasta estar seguro de que me encontraba lo suficientemente lejos de la estancia principal. Saqué mi vibro-cuchillo al volverme para quedarme boca-arriba y lo encendí. Un siseo momentáneo fue el preludio de la vibración que sacudió mi brazo, que pudo aguantar solo gracas a mi experiencia con esa clase de herramientas. El calor que emanaba tras empezar a vibrar podía fundir casi de todo, y lo hacía cortar vigas de acero como mantequilla. Lo clavé sin dudar en el casco exterior del Aegir-12, el trozo de techo que había justo encima de mí. El techo en sí era ancho, incluso siendo tan compacto, y me llevó más tiempo del que me gustaría admitir abrir el primer agujero. 
+
+Cuando conseguí atravesar del todo el casco, un torrente de agua a presiones inhumanas casi me desarma, golpeando mi hombro derecho. El dolor inundó mi cuerpo y casi perdí la conciencia mientras se rompía algún hueso que no ha curado todavía. Poco a poco, y a través de mis gritos y dolor, conseguí grabar un bonito tatuaje en el casco del Aegir‑12: un tres. No era perfecto, claro, perdí muchas veces el control del cuchillo, pero conseguí la forma de un tosco tres, que brillaría en rojo incandescente para Rowan. Con suerte, entendería que me refería a tres supervivientes, y que debía traer él mismo al Odín.
+
+Mientras el compartimento se llenaba de agua, derrumbándose a trozos encima de otras habitaciones del complejo, me arrastré a toda prisa con mi brazo bueno hasta la habitación de mantenimiento por la que había entrado. Abrí la compuerta, aún sin ponerme mi traje, queriendo correr a la ventana de delante y ver si Red reaccionaba a mi desesperado intento de comunicación. 
+
+Pero claro, ya saben qué me encontré. 
+
+La habitación estaba empezando a inundarse, agua subiendo del pasillo que llevaba al interior del laboratorio, y las luces de emergencia se habían apagado por completo. La única luz eran los distantes focos del Odín, que lanzaban un haz reflejado en el suelo encharcado y a través de la pared de cristal. Tardé un segundo en comprender la escena, porque no vi a nadie en un principio y no sabía si se debía a la falta de aire. Luego mis ojos comprendieron que algunas sombras del agua eran en realidad sangre, que flotaba empujada por la corriente que inundaba la estancia. El sonido del latido de mi corazón se superpuso al del agua correr a toda velocidad.
+
+Después vi a la señora mayor, que flotaba boca arriba entre las mesas de trabajo que ocupaban el centro del laboratorio principal. Su cabeza estaba abierta, como una nuez. Un pico de mesa ensangrentado cerca de ella me quitó de los pensamientos la pregunta del cómo, pero no la del por qué. Me acerqué sin habla un par de pasos. Paré de golpe al ver a la joven mujer, derrumbada boca abajo sobre una de las mesas, con un cristal clavado en la nuca. La herida era tan grave que por poco no se había cercenado del todo el cuello, como si se hubieran ensañado con el cristal. Finalmente unos ojos azules, avergonzados y asustados, como de animal acorralado, me miraron entre la oscuridad. Vi, gracias a la luz que se colaba detrás de él, la figura de Johannes Briemman, normalmente alta y ancha, pero que ahora parecía encorvada, casi fetal. Se encontraba metiendo penosamente sus piernas en el traje, con su estúpida caja apoyada en una mesa cerca, y le sostuve la mirada unos segundos. Abrió la boca, llorando, pero ningún sonido salió de ella. 
+
+--
+
+De nuevo, me quedé callado un segundo de más.
+
+—Ikr, continúe por favor, esta es la parte más importante—dijo el hombre de la izquierda.
+
+Su compañero asintió, ahora apoyando los codos en la mesa, toda su atención puesta en mí.
+
+Yo apoyé mi cabestrillo sobre la mesa, aún notando el agua atravesar parte de mi piel.
+
+—Sé muy bien, de primera mano, en lo que el hambre y el miedo convierten a las personas—dije, en voz baja—, pero si solo... si solo hubiera esperado unos minutos...
+
+Rompí a llorar, no sé ni por qué. La vergüenza, el asco y la frustración que sentí entonces en el Aegir me hicieron perder la compostura, y de nuevo frente a estos hombres esos sentimientos me cortaban como un cristal aún clavado en mi hombro.
+
+Tardé un minuto en calmarme, los hombres no dijeron nada en ese tiempo y como ya habían hecho antes, me miraron en silencio y me oyeron terminar mi historia.
+
+--
+
+En fin, no supe muy bien como reaccionar. Le aguanté la mirada un segundo más, con rabia tras mis ojos, pero me sacó de mi trance un sonido familiar, casi divino en la situación en la que estábamos.
+
+—...Ikr, me recibes? Repito, voy a- -l Odín- -quí Red, es- -n camino.
+
+Briemman me miró, esperanzado, pero la sangre que cubría su cara me arrebató la felicidad que me trajo oír a Red. La luz de la habitación giró cuando el Odín comenzó su descenso. Corrimos al cristal a verlo, cuando una sombra cruzó el espacio negro entre el complejo y el sumergible. Briemman soltó sin querer un aterrado quejido, y yo solo supe mirar como aquella bestia intentaba envolver al Odín. El sumergible viró como tratando de posicionarse para acoplarse al Odín, pero Rowan debió darse cuenta de lo que sucedía, ya que volvió a ascender, girando rápidamente.
+
+No me quedé quieto: comencé a ponerme el traje medio reparado a toda prisa. Briemman se percató de mi reacción e hizo lo mismo con el suyo. Mientras nos poníamos a toda velocidad nuestros salvavidas, fui alzando la mirada, cada pocos segundos, viendo como el Odín giraba en la fosa, tratando de zafarse del abrazo tenebroso de la bestia. Sé que nunca Rowan había tenido que hacer tantos movimientos evasivos, y me compadecí de él por tener que vivir todo eso en solitario. Aún así he de admitir que me alegro profundamente de que ignorase por completo mi orden. 
+
+Tardamos unos minutos en ponernos los trajes, se notaba que no era la primera vez de Briemman. Cuando todo estaba bien con mi traje, comprobé el suyo. Finalmente le miré a través de los cristales de nuestros cascos. Su mirada estaba más calmada, pero evitaba a toda costa mirar el destrozo que dejaba tras de sí. A su espalda, el cuerpo de la mujer joven ya había caído al agua, que había subido y nos empezaba a llegar a la mitad del muslo. 
+
+Briemman agarró del asa la caja y corrimos desesperados a la cabina de descompresión, con el techo del pasillo casi completamente derrumbado por mi anterior expedición a los compartimentos del falso techo. Entramos a toda prisa en la cabina y cerré con fuerza la puerta pesada tras nosotros. A través del cristal vi como saltaban algunas chispas dentro del laboratorio, el agua cada vez más y más alta. Sin que yo hiciera nada, Briemman ya había presionado el botón rojo a un lado de la cabina, y el agua comenzó a inundar la habitación. Solo pudimos observar mientras Rowan luchaba por su vida. 
+
+Los movimientos de la bestia eran lentos, casi hipnóticos. Más que moverse parecía que ya estuviera en el sitio en el que quería estar, y simplemente se hacía visible, como si la niebla espesa y oscura decidiera cuando hacerse materia. Tan embobados estábamos mirando aquel juego de luces y sombras, a más de 2500 metros de profundidad, que casi ni nos dimos cuenta cuando una luz de emergencia se iluminó en la puerta, avisándonos de que se podía abrir. Briemman fue de nuevo el primero en salir, esta vez al vacío total.
+
+Justo en ese momento, vi, aunque solo de refilón gracias a la luz de emergencia, como un tentáculo perfectamente camuflado en la oscuridad trataba de envolver la pierna de Briemman. Entonces, un flash recorrió la fosa cuando una baliza salió despedida del Odín, yendo a caer justamente sobre la cabina de descompresión. La luz repentina me dejó ver, solo durante un instante, la forma al completo de aquella bestia. Vi una especie de núcleo ovalado, del tamaño de un camión, del que un tejido oscuro, a trozos semitransparente, salía del ser en todas direcciones, terminando su forma en cientos de tentáculos finos y afilados. La escala del ser era casi imposible, pues ni siquiera podía abarcar con mi mirada toda su envergadura: más tentáculos y materia casi etérea se perdían en todas direcciones en la fosa. 
+
+La baliza brilló brevemente, sí, pero les aseguró que en aquella profundidad, pareció un sol en miniatura. Tanto es así que la luz hizo dudar al monstruo, aunque fuera solo un segundo, y yo aproveché esa duda. Me impulsé dentro de la cabina y empujé a Briemman justo antes de que uno de esos tentáculos pudiera atraparlo, mientras las luces del Odín se hacían más y más fuertes. La nave apareció frente a nosotros, con su propia compuerta de descompresión abierta y lista, y sin dudarlo entramos en ella. Cerramos la puerta entre los dos, mientras Red hacía todo lo posible por acelerar el sumergible hacia arriba. 
+
+Vi gracias a un mapa holográfico en la pared del interior de esa cabina que subíamos cerca del costado de la fosa. La velocidad nos hizo agarrarnos a lo primero que pudimos, y vi que Briemman sujetaba la caja como si de su propio hijo se tratase. 
+
+Finalmente, abandonamos Molniya.
+
+El agua desapareció de la cabina cuando aún me latía el corazón en los oídos. Me quité el casco y el resto del traje al entrar en la cabina principal del Odín. Red me recibió con un abrazo, algo muy propio de él, y yo caí agotado sobre un asiento en la parte posterior del sumergible, junto al compartimento de los trajes. 
+
+—¿Ikr, estás bien?—le oí decir— Venga tío, ya estamos volviendo.
+
+—¿Y el bicho?¿Dónde está?—dije yo, recuperando un poco el sentido.
+
+—Cuando superamos los 2000 y salimos de la fosa, la criatura se paró y dió media vuelta, no creo que nos vaya a seguir más. ¿Cómo estás?
+
+—Bien, bien—dije, justo cuando la adrenalina empezaba a desaparecer de mi hombro derecho, destrozado por el agua—, aunque no le diría que no a un calmante bien cargadito ahora mismo.
+
+Rowan me sonrió, y yo a él. Gracias a Dios que no perdí todo mi sentido del humor ahí abajo.
+
+Su mirada se tornó entonces a la cabina de descompresión, que quedaba fuera de mi punto de vista. Yo me medio incorporé para ver lo mismo que él, y encontré la imagen de Briemman, temblando abrazado a su estúpida caja, sentado en el suelo.
+
+--
+
+—Después de eso tocamos superficie en unos minutos—dije, con voz cansada—, contactamos con el AMC para la extracción y me aseguré de poder contar en persona a un superior sobre lo ocurrido, para que no corriera mucho la voz. Dos semanas después, ya casi tengo el brazo curado—levanté el cabestrillo—, a Briemman lo tratan como un puto héroe y yo no sé nada de nada. Eso es todo.
+
+Se hizo el silencio en la habitación. Esperaba algún tipo de condolencias, algo que humanizase a los cuerpos en traje negro que tenía delante, pero no. Me hicieron salir de la sala, y quedó cerrado mi informe.
+
+FIN DE LA PARTE 1
+
+------------------
+
+INTERLUDIO 1. Nomeolvides.
+
+Hacía mucho frío en ese pasillo. El suelo estba hecho de enormes baldosas blancas, limpias como la patena, con las que contrastaba el banco negro sobre el que me sentaba. A pesar de la tecnología, el avance humanitario, y los descubrimientos en todos los aspectos científicos, nada jamás nos evitaría totalmente la maldita burocracia. "Burrocracia" lo llamaba mi padre. Llevaba tres cuartos de hora sentado, observando la típica máquina de agua enfrente mío. Una burbuja subió por la botella puesta boca-abajo. Recordé a la bestia por un segundo, y al informe presencial de hace un par de semanas. Me llevé la mano al hombro sin pensarlo.
+
+Una mujer de mediana edad salió de un pasillo secundario y la seguí con la mirada. Para ser un complejo super secreto, el AMC tenía todo lo que cualquier oficina de mediados de este siglo tenía: máquinas de café, tablets personales, sesiones de cigarrillo después de una reunión dura y gente con traje que te haría perder el tiempo. "Maldita burrocracia" pensé, usando la voz de mi padre en mi cabeza.
+
+Volví a encender mi neuropad, y revisé mis mensajes. En mi retina aparecieron una lista de mis últimos contactos, que eran dos concretamente. Me hicieron instalar el maldito cacharro en la parte posterior de mi cabeza hará ya una semana y media, poco después de mi informe. Por lo visto era necesario asegurarse de que se captaba una grabación de absoultamente todo lo que pasase en mi siguiente misión. Ese dato llevó mi mente de nuevo a Molniya, y al último mensaje en mi datapad.
+
+Un tal "AMCUser0004323" me informó de una reunión en la sala 21 del ala Norte, y ya habían pasado 30 minutos de la hora estipulada. 
+
+La mujer de mediana edad pasó delante de mí, abrió con una tarjeta la puerta 21 y entró. Me levanté apresuradamente y entré a la oscura habitación. La mujer encendió las luces y pude ver una mesa de madera oscura, rodeada de sillas de oficina. 
+
+La mujer, que era bajita y de pelo corto y oscuro, encendió un holograma en el centro de la mesa sin siquiera mirarme, y cogió su tablet de oficina, fina,  elástica y semitransparente, como una funda de plástico. Comenzó a hablar inmediatamente, mientras unas imágenes cobraban textura en el holograma.
+
+—Estos son los datos que tenemos sobre Leviatán-0, o L0—dijo ella, que soltó sus palabras con medida rapidez, parando lo justo para que pudiera entenderla.
+
+Miré su presentación, que ella mandó directamente a mi neuropad mientras hablaba. Cuando habló de toda la información que tenían no esperaba que fuera tan poca. Se conocían su envergadura y algunas de sus cualidades físicas, como los tentáculos o su extraña capacidad de volverse casi transparente, pero había poca información sobre como pudo interferir en nuestras radios. Sí que se incluía info muy interesante sobre sus capacidades de comunicación, que demostró múltiples veces lanzando ondas de radio contra el Odín. Habían analizado las muestras de audio, y parecían ser un montón de sonidos y crujidos superpuestos y mexclados de forma suave, de manera que a oídos humanos sonaba casi como un crepitar de fuego pero algo más musical.
+
+Yo solo recuerdo el pavor de estar atrapado, completamente rodeado de oscuridad, y saber que un ser te tenía justamente donde quería.
+
+Cuando terminó con la pequeña explicación del L0, continuó con la verdadera razón de la reunión.
+
+—Hemos seguido intentando captar imágenes y escáneres del animal, pero es especialmente esquivo y domina el terreno de Molniya mucho mejor que nosotros. El último escáner—dijo, mirándome por primera vez—, muestra como el L0 encogió su envergadura para profundizar en la fosa. Queremos mandar a un equipo a investigar, pero nadie quiere bajar de los 2500 metros. Ahí, Ikr—me señaló con su puntero laser al pecho—, es donde entras tú. Necesitamos que lleves a una de nuestros investigadores, la doctora Saida Quamac, al fondo de esa fosa en busca del L0 y su "nido" o lo que sea que tenga ahí abajo. Ella te informará de qué muestras se han de tomar.
+
+Asentí durante toda la explicación, lentamente. Si bien era cierto que el miedo, el dolor y la sensación opresiva en mi cuerpo no habían desaparecido, alguna parte de mí más recóndita y curiosa no se lo quiso pensar dos veces.
+
+¿Por qué? ¿Por qué sentía esa necesidad de volver, de enfrentarme a algo que el resto no quería? ¿De verdad no hay otra persona capaz? ¿Por qué siento que he de hacer esto?
+
+Tardé un par de segundos más en responder, perdiendo mi mirada en el boli con el que jugueteaba. Siempre había necesitado tener algo en las manos. Apreté la mandíbula inconscientemente.
+
+—Sé que no puedo negarme a esta misión, pero se hará bajo mis condiciones—dije, lenta y deliberadamente—. Si voy a ser el comandante de otra inmersión, quiero ser yo quién elija el equipo que me acompañe. Y seré yo quién decida cuándo nos retiramos.
+
+Le sostuve la mirada a la mujer. Ella parecía simplemente una mensajera, un engranaje más en la máquina burocrática del Artic Mannuevers Center, por eso no esperaba que me respondiera directamente.
+
+—De acuerdo—dijo—, pero consta de solo un par de semanas para encontrar y formar a su equipo. En quince días será el descenso, no los desaproveche.
+
+Recogió sus cosas, sin soltar mi mirada un segundo, midiendo si el hombre traumado que tenía delante era realmente a quién el AMC necesitaba enviar. Salió de la habitación con paso decidido, lista para su siguiente presentación. Me pregunté qué otras cosas tendría ella en la cabeza, si el encontrar una bestia alienígena de este tamaño en nuestros propios océanos no le hacía pestañear. 
+
+En cuanto me quedé a solas en esa sosa sala de reuniones, abrí la interfaz mi neuropad, que una vez más expuso una cruda lista de opciones sobre mi retina. Abrí mis mensajes y accedí al otro contacto en la lista. 
+
+Pensé en qué palabras quería enviar, una a una. Debido a que yo y la máquina en mi cráneo no habíamos tenido aún mucho roce, el control del neuropad era lento y pesado, incluso frustrante. Si un solo pensamiento cruzaba mi cabeza mientras intentase mandar un mensaje a alguien, el cacharro se volvía loco y empezaba a escribir incoherencias a medio camino entre las dos cosas. Me concentré para terminar la frase sin más rodeos.
+
+[AMCUser.ikr — Red, aquí Ikr. Trabajo nuevo, escolta sub 2000. Estoy montando equipo y necesito al mejor piloto]
+
+Miré mis últimos 6 mensajes a Red, todos sin respuesta. Rowan había estado distante estas semanas, y ni le había visto en el AMC. Al contrario que yo, él no se alojaba en el ala residencial del complejo. Su casa a las afueras de Tromsø, Noruega, quedaba a unas horas en avión, lo justo para aparecerse el día que se le necesite, suficientemente lejos como para olvidarse del trabajo.
+
+Añadí una frase más.
+
+[AMCUser.ikr — Trae MnMs]
+
+Añadí el alias de Maya, una prima suya y antigua compañera mía, experta en comunicaciones y equipos de radio. Durante la narración del informe caí en cuenta que ella seguramente hubiera sido capaz de darse cuenta de más cosas sobre el L0 si hubiera estado allí abajo, descifrando lo que la criatura quería comunicar. Pensé en contactarla esta última semana, pero ni tenía su contacto ni creo que me respondiese. No es que nos llevásemos muy bien. 
+
+Maya era de los pocos familiares que le quedaban a Rowan, y desde hacía tiempo trataba que su primo dejara este trabajo, que le hacía rodearse de sus miedos más profundos, una y otra vez. Ella no podía comprender que yo necesitaba al mejor piloto posible igual que Rowan necesitaba enfrentarse a esos miedos. Sin su experiencia yo hubiera muerto en esa fatídica última inmersión, y si no le hubiera trído conmigo en todos nuestros otros encargos él no tendría dicha experiencia. Además, yo también le salvé la vida en una ocasión.
+
+Aparté de mi mente esa corriente de pensamiento con un meneo de cabeza. Apreté el puente de mi nariz, cerrando los ojos para ver el juego de luces dentro de mis párpados. Los mantuve cerrados menos de un minuto, pero era quizá mi récord desde Molniya. El sueño es el primer enemigo del traumado, el camino a una realidad donde ni de ti mismo puedes fiarte. Mi cabeza parecía saberlo, porque lo había esquivado como Rowan al L0.
+
+Salí de la sala de juntas, sintiendo que tenía aún algo de trabajo que hacer hoy, y cerré tras de mí. Oí un clic electrónico cuando la sala quedó vacía y cerrada, y caminé a paso rápido pasillo abajo. Un hombre igual de roto que yo me miró pasar desde su respectivo banco, y no me hacía buena cara.
+
+--
+
+La respuesta de Rowan llegó tres horas después. Solo dos palabras:
+
+[RedRaptorsFan — De acuerdo]
+
+Nada más. Ni preguntas sobre la misión, ni comentarios sobre las últimas semanas de silencio. Solo aceptación.
+
+Me pregunté si eso era lealtad o algo más parecido a la resignación.
+
+Lo leí mientras bajaba unas escaleras del ala hospitalaria. Era cuestión de tiempo que usar el neuropad mientras tenía que moverme fuera una necesidad, así que practiqué de camino a mi primera visita a la doctora Qamac.
+
+El ala H del AMC quedaba en el subsuelo de un edificio anexo, dos plantas por debajo del nivel de acceso principal. Para llegar tuve que pasar tres controles de seguridad y firmar dos formularios de confidencialidad que ni siquiera me dejaron leer completos. Al terminar de bajar las escaleras, la enfermera de recepción apenas me miró cuando le di el nombre de la doctora.
+
+—Sala común —dijo, señalando un pasillo—. Tercera puerta a la izquierda.
+
+El pasillo olía a desinfectante y a algo más: ese olor particular de los espacios sin ventanas, donde el aire se recicla una y otra vez hasta volverse casi masticable. Las luces eran blancas, clínicas, sin sombras. Todo diseñado para que no pudieras esconderte de nada, ni siquiera de ti mismo. Apreté la mandíbula y el paso.
+
+La doctora, según mi corta investigación previa a visitarla, no existía, al menos fuera de la red del AMC. De los pocos datos que quedaban sobre ella, el más repetido y quizá más importante para mi misión era que su estancia en el ala hospitalaria era, concretamente, en el pasillo de psiquiatría. Como paciente. Esto se debía, según los informes, a una "repentina obsesión" y a "varios intentos de inmersión en solitario". 
+
+La encontré en una habitación quirúrgicamente diseñada para aburrir, con un televisor de principios de siglo sin señal y un sofá que podría haber vivido la invención de las pantallas táctiles. Ella se encontraba junto a una ventana que daba a un patio interior de cemento. No había nada que ver allí fuera, solo paredes grises, un pequeño cuadrado de hierba artifical, y una rejilla de drenaje en el suelo. Aun así, la doctora Saida Quamac miraba a través del cristal como si hubiera algo fascinante al otro lado. 
+
+Era más joven de lo que esperaba. Delgada, con el pelo oscuro recogido sin cuidado, llevaba ropa de civil —pantalones grises, sudadera azul marino— en lugar de bata de hospital. Cuando me oyó entrar, se volvió despacio. Sus ojos me estudiaron con una intensidad que me hizo sentir como una muestra bajo un microscopio.
+
+—Usted es Ikr —dijo. No era una pregunta.
+
+—Doctora Quamac.
+
+—Saida —corrigió, y algo en su tono me hizo pensar que odiaba las formalidades tanto como yo—. ¿Qué quiere?
+
+—¿Sabe quién soy pero no la propuesta que voy a hacerle?
+
+Caminé por la pequeña habitación, mirando el sofá como si fuera lo más interesante del mundo. Evitando su mirada. Cambié de tema.
+
+—Me han dicho que ha intentado bajar varias veces a la fosa Molniya.
+
+—Cinco veces —sonrió sin humor—. La sexta ni siquiera llegué al sumergible. Alguien avisó antes de que pudiera salir del ala.
+
+No dije nada. Esperé, con una medio sonrisa.
+
+—¿Sabe lo que es tener una pregunta que no puede, pero debe responder? —continuó ella, volviendo la vista a la ventana vacía—. Una pregunta que le quita el sueño, que ocupa cada pensamiento, que convierte todo lo demás en ruido de fondo.
+
+No respondí inmediatamente.
+
+—Sí —dije al final.
+
+Saida me miró de nuevo, esta vez con algo parecido al reconocimiento.
+
+—Entonces entenderá por qué he aceptado su propuesta antes de que me la hiciera. —Cruzó los brazos, aún mirando al patio interior—. ¿Cuándo bajamos?
+
+—Dos semanas. Pero hay condiciones.
+
+—Vaya, no me lo puedo creer—soltó con sarcasmo.
+
+—Cuando yo diga que subimos, subimos. Sin discusión.
+
+Esperaba resistencia, argumentos, el tipo de negociación que suele venir con los científicos obsesionados. En cambio, Saida asintió una sola vez.
+
+—De acuerdo. Pero a cambio, necesito que me diga algo con sinceridad.
+
+—¿Qué?
+
+—En su informe extraoficial, usted dijo que el L0 lo atacó. Que tuvo que defenderse de un "ataque violento".
+
+El aire en la habitación pareció enfriarse varios grados.
+
+—Así fue. ¿Cómo tiene acceso a eso?
+
+—¿De verdad? —dijo, obviando convenientemente mi pregunta, sus ojos fijos en la ventana—. ¿Sabía que me encargaron a mí, aún estando encerrada en mi habitación del ala psiquiátrica, revisar todos los datos vitales recogidos por el Odín y su traje? ¿Sabía también que su pico de estrés empieza dos segundos antes del golpe?
+
+La pregunta flotó en el aire unos segundos, mientras yo decidía cómo responder.
+
+—La velocidad a la que se desplazaba—se adelantó ella—, demasiado rápido, y con tan poca visibilidad... —Hizo una pausa—. Podría parecer un accidente.
+
+Me miró directamente con sus ojos como microscopios. No respondí. El silencio se extendió entre nosotros como agua llenando un espacio cerrado.
+
+—¿Por qué mentiría sobre eso? —preguntó finalmente, casi para sí misma.
+
+—No mentí, me atacó.
+
+—Ah, claro, claro—Su tono no era acusatorio, sino pensativo.
+
+Le sostuve la mirada un momento más, luego me giré hacia la puerta.
+
+—Dos semanas —repetí—. Mañana empezará un entrenamiento conmigo. Prepárese.
+
+—Ikr —me llamó cuando ya estaba en el pasillo—. Una cosa más.
+
+Me detuve sin volverme.
+
+—La caja que Briemman sacó del Aegir. ¿Llegó a ver qué había dentro?
+
+—No—dije, dejando que una pequeña y foránea ira envolviera mi voz.
+
+—¿Está seguro?
+
+—Estaba cerrada —dije, y esta vez sí me giré para mirarla—. ¿Por?
+
+Saida vaciló. Por primera vez desde que entré, pareció insegura.
+
+—Porque según los registros del laboratorio, esa caja no estaba en el inventario original del Aegir-12. —Sus palabras cayeron despacio, deliberadas—. Lo que significa que alguien la trajo allí después. O que... creció allí abajo, durante la inmersión.
+
+Salí de la estancia antes incluso de oir su voz a mi espalda:
+
+—El reporte dice que no sabe qué contenía. Pero usted sí que lo sabe, ¿verdad? Ikr, ¿verdad?
+
+El corredor nunca se había sentido tan largo.
+
+--
+
+Ptivya no aparecía en la mayoría de los mapas. Era el tipo de pueblo que existe porque alguien decidió quedarse cuando todos los demás se fueron, y luego otros hicieron lo mismo por pura inercia. Veintisiete habitantes, según el último censo. Veintiocho si contabas al bebé que nació el año pasado. Todos ellos del tipo de persona que no hace muchas preguntas sobre el gigantesco complejo a un tiro de piedra de la única iglesia a cientos de kilómetros a la redonda. 
+
+No costaba mucho llegar a pie desde el AMC, que se levantaba imponente en mitad de la estepa, a un kilómetro del pueblo. La caminata en sí solo se hacía cuesta arriba por tener que soportar el frío, la nieve, y el brillo intenso del sol, tristemente inútil a la hora de calentar el suelo.
+
+Aún así preferí caminar. 
+
+Seis guardas te hacían pasar por tres controles distintos al salir, nada que ver en comparación a los cinco que hacen falta para entrar. Crucé el kilómetro de tundra una vez me libré de ellos, a paso lento. 
+
+El cementerio quedaba en una loma al norte de Ptivya, donde el viento constante mantenía la nieve a raya. Las lápidas eran simples, sin adornos: nombres y fechas tallados en piedra gris local. Algunas tan viejas que las letras se habían borrado hasta volverse ilegibles.
+
+Dos tumbas nuevas destacaban por su pulcritud. Piedra limpia, letras recién grabadas, sin el musgo ni la erosión de las demás. Completamente vacías.
+
+[Ekaterina Volkov]
+[2009 - 2056]
+
+[Sofia Petrov]
+[2026 - 2056]
+
+Nombres falsos, por supuesto. Alguien en una oficina los había elegido sin molestarse en crear historias completas. Sin familia que las llorara, nadie preguntaría demasiado. Ni siquiera yo que las había conocido me había dignado en venir aún.
+
+Me quedé de pie entre ambas tumbas durante largo tiempo. El viento me cortaba la cara, pero no me moví. El frío era extrañamente muy distinto del que pasé allí abajo. Del que pasamos. Pensé en la mujer joven, en cómo me había guiado por los pasillos oscuros del Aegir sin dudar. En su determinación pura. Y en la mujer mayor, quien apenas había tenido fuerzas para levantarse de la litera. Quien apenas había tenido oportunidad de sobrevivir.
+
+No pensé en cómo habían muerto. Eso lo había pensado suficiente.
+
+Fue al girarme para irme cuando la vi: una pequeña flor azul creciendo en un minúsculo parche de hierba entre ambas tumbas. Delicada, imposible, con cinco pétalos perfectos del color del cielo antes del anochecer.
+
+Una nomeolvides.
+
+¿Cómo diablos crecía algo así aquí? El suelo era tierra helada y roca. Estábamos a cientos de kilómetros de donde estas flores deberían existir. Y aun así, ahí estaba, aferrándose a la vida en un sitio donde irónicamente nunca podría estar.
+
+—Hermosa, ¿verdad?
+
+La voz me hizo girar tan rápido que casi perdí el equilibrio sobre la resbaladiza nieve. Johannes Briemman estaba a unos metros detrás de mí, había aparecido de entre las puertas del cementerio con las manos en los bolsillos de un abrigo caro que parecía recién comprado. Se le veía mejor que la última vez: más peso, color en las mejillas. La mirada de animal atrapado había sido reemplazada por la de un animal domesticado, más alegre pero melancólica.
+
+—Briemman —dije, poniéndome de pie.
+
+—Johannes —respondió con una sonrisa tensa—. Ya no estamos de misión.
+
+Hablaba ruso perfecto. Sin acento ni vacilación. Lo que me confirmaba que en el Aegir...
+
+Él debió ver algo en mi expresión, porque alzó una mano en gesto apaciguador.
+
+—Sé lo que estás pensando. Y tienes razón en pensarlo. —Se acercó despacio, temeroso, deteniéndose frente a las tumbas—. Pero la explicación... la explicación es complicada. Abajo todo fue complicado, ¿no?.
+
+—No todo —dije. Mi voz sonó más fría de lo que pretendía.
+
+Johannes se encogió ligeramente, un movimiento casi imperceptible. Cuando se ajustó el cuello del abrigo, vi un destello de color sobre su piel. Morados. Viejos, pero todavía visibles.
+
+—¿Has venido a presentar tus respetos? —preguntó, cambiando de tema.
+
+—¿Y tú?—no supe hacer otra cosa que sostener mi mirada en la sombra de hombre que tenía ante mí. Él miraba las tumbas.
+
+—Vengo cada dos días. —Se arrodilló, tocando con cuidado los pétalos de la nomeolvides—. No sé quién la plantó. Estaba aquí la primera vez que vine, hace una semana, cuando mandé hacer las tumbas. Pensé que moriría con la primera helada, pero ahí la tienes. Y sigue creciendo.
+
+Nos quedamos en silencio un momento. El viento silbaba entre las lápidas, y desde lejos, el monstruoso complejo reflejaba con timidez los rayos de luz. Sentí como si nos observara.
+
+—¿Cómo llevas el hombro? —preguntó finalmente.
+
+—Mejorando.
+
+—Bien. Eso es...—carraspeó— Bien.
+
+Otro silencio. Más largo.
+
+—He recibido una invitación a una conferencia, en Estocolmo. Hablan de que cuente mi experiencia. —Su voz era plana, como si hablara del clima—. Dicen que puede ayudar con la financiación del próximo laboratorio.
+
+No respondí.
+
+—Por supuesto, no soy quién decide estas cosas, otras personas quieren sacar cacho del evento del Aegir‑12. Instituciones, periodistas... —Se pasó una mano por la nuca—. Uno no controla realmente qué se hace con su voz una vez que habla, ¿verdad?
+
+Giré y bajé la mirada para mirarlo. Sus ojos no encontraban los míos.
+
+—¿Eso es lo que crees?
+
+—¿Qué?
+
+—Que no tienes control.
+
+Una pausa. Casi un segundo demasiado largo.
+
+—La mente bajo estrés... —empezó.
+
+—¿Cómo se siente? —interrumpí, y mi voz sonaba completamente diferente—. Que te recompensen por lo que hiciste allá abajo. Que te den fondos, conferencias, una segunda oportunidad. 
+
+Se congeló, como no quiso hacer la nomeolvides.
+
+—Tengo que irme —dijo rápidamente, levantándose, sacudiendo su chaqueta nueva y dándose la vuelta—. Se está haciendo tarde.
+
+—Johannes.
+
+No se detuvo.
+
+—Johannes.
+
+Siguió caminando entre las tumbas, más rápido ahora. No huía exactamente. Era más como si simplemente necesitara estar en movimiento.
+
+Lo observé alejarse, y cuando estuvo a suficiente distancia, se permitió lo que no se había permitido cerca de mí: los hombros se le desplomaron. Un gesto tan pequeño que casi no lo vi.
+
+Johannes y yo cargábamos con la misma cosa, solo que él tenía la lujo de la negación. Un médico que le diagnosticase su crónica disociación. Un sistema que le celebraba.
+
+Yo solo tenía el conocimiento de lo que había visto. De lo que ambos habíamos hecho.
+
+Tras unos segundos volviendo a la soledad contemplativa que solo te puede dar un cementerio, saqué mi neuropad y abrí los mensajes. Red todavía no había respondido con detalles. Solo ese escueto "De acuerdo" que podía significar cualquier cosa.
+
+Escribí un mensaje nuevo, pero me detuve antes de enviarlo. Las palabras no eran las correctas. Nada era correcto.
+
+Borré el texto y cerré la interfaz.
+
+La nomeolvides se meció con el viento, sus pétalos azules brillando como pequeños fragmentos de cielo caído. Pensé en arrancarla, en llevarla conmigo como... ¿qué? ¿Prueba? ¿Recuerdo?
+
+En cambio, la dejé donde estaba. Imposible. Frágil. Aferrándose a una tierra donde no debería vivir.
+
+Como nosotros.
+
+FIN DEL INTERLUDIO 1
+
+------------------
+
+PARTE 2. La Tumba más Profunda.
+

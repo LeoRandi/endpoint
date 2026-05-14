@@ -1,6 +1,6 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, unnecessary_this, curly_braces_in_flow_control_structures
 
-import '../../_imports.dart';
+import '../_imports.dart';
 
 enum _SeparatorType {
   quarter,

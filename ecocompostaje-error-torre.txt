@@ -1,0 +1,323 @@
+﻿La Torre de la Cima
+
+====================
+Introducción de la Mazmorra
+====================
+
+Lee esto cuando una nueva alma entre en la Torre:
+
+"Despiertas con barro en la piel y piedra fría a la espalda. Un fino rayo de luz blanca se
+cuela por una abertura estrecha, muy arriba en la pared, y dota al polvo a la deriva de forma.
+La habitación huele a óxido, mortero húmedo y podredumbre antigua. Una puerta
+de madera espera en la pared opuesta: no está cerrada con llave, solo encajada en su marco.
+Dos tuberías agrietadas sobresalen de la piedra y escupen lodo oscuro en pulsos lentos.
+No recuerdas casi nada, ni a nadie. Pero recuerdas algo: has sido raptado."
+
+A partir de ese momento, deja el nuevo alma se presente:
+- Elige raza.
+- Elige arquetipo.
+- Elige trasfondo.
+
+
+====================
+Primer Piso: Celdas al Viento
+====================
+
+El primer piso está diseñado para orientar y presentar el personaje de la Torre. Enseña 
+verdades físicas directas: los personajes están atrapados en un mundo vertical, cualquier 
+fallo puede ser mortal y no toda amenaza debe enfrentarse de frente.
+
+La sala inicial es una celda de piedra sencilla, con una ventana alta a la que no se puede
+llegar sin improvisar. A través de ella se ven montañas lejanas y líneas de árboles,
+enmarcadas por mampostería rugosa. La puerta es casi insultantemente simple: sin cerrojo,
+sin trampa, con una corriente fina que se cuela por debajo. Dentro de una tubería
+obstruida por barro descansa una bufanda verde oscura, tan sucia que al principio parece
+un simple trapo.
+
+Más allá de la puerta se extiende un pasillo con celdas iguales: algunas abiertas, otras
+cerradas, todas vacías de suministros útiles. Un extremo desemboca en una enorme ventana
+sin marco, donde el viento de las nubes atraviesa el pasillo con ráfagas constantes y
+agresivas. Mirar hacia abajo desde allí debería replantear toda la campaña: la Torre cae
+entre nubes y bruma, y cada piso visible inferior muestra geometría, materiales y colorido
+diferentes.
+
+El extremo opuesto conduce a una gran cámara circular La sala está rodeada por ventanas 
+abiertas, y el viento cruzado hace que incluso respirar suene demasiado fuerte. Un mosaico
+antiguo narra una saga desconocida, casi borrada por el desgaste, interrumpida por sangre 
+vieja y restos de carne podridos incrustados en juntas y grietas. Cerca del lado derecho se 
+alza un pilar de piedra amarillenta que parece inerte hasta que detecta a alguien. Al fondo
+de la habitación hay una ligera subida en forma de escalón que desemboca en una escalera
+descendente en espiral.
+
+Al activarse, el pilar gira, revela un rostro tallado deformado por pánico y furia, y
+comienza a deslizarse por el suelo a velocidad creciente. Intenta terminar el encuentro de 
+inmediato, aplastando presas contra los muros o empujándolas al vacío. Es el primer filtro
+de la torre: el que no reaccione, muere.
+
+Si los jugadores observan bien la sala, pueden deducir que el borde del escalón hacia la
+escalera forma un canto duro que el pilar no puede absorber en plena carga. Si atraen un
+ataque desde el lado opuesto y esquivan en el umbral, el pilar colisiona, se fractura y
+derrama un núcleo de piedra pálida y cascotes hechos de carne y piedra.
+
+Bloque de Estadísticas de Enemigo: El Pilar de Derechas
+- PV: 24
+- Armadura/Defensa/AC: 15
+- Velocidad: 40 pies deslizándose, +10 pies por ronda (máximo 70)
+- Ataque: Impacto Aplastante (+5, 2d8 contundente, empuja 10 pies)
+- Especial: Lanzamiento por Ventana (con tirada de Fuerza fallida, CD 14, es empujado
+  hacia la abertura más cercana)
+- Resistencias: Perforante, veneno, miedo
+- Debilidad: Colisión con el borde del escalón durante una carga
+- Recompensa al derrotarlo: 5 puntos de evolución
+
+Pruebas Importantes y CDs Sugeridas (Primer Piso)
+- Detectar la bufanda dentro de la tubería con lodo: CD 12 Percepción
+- Comprender que olor/ruido activan al pilar pese al viento: CD 11 Supervivencia
+- Leer el movimiento del pilar y predecir su línea de carga: CD 14 Investigación
+- Esquivar en el último segundo junto al escalón: CD 14 Acrobacias
+
+
+====================
+Segundo Piso: Raíz y Hambre
+====================
+
+El segundo piso reemplaza la piedra tallada por tierra compacta, raíces, crecimiento
+fúngico y aire húmedo. Donde el primero enseñaba espacio y peligro, este enseña que la
+información es un recurso, y que toda relación es transaccional, incluso la cortés.
+
+La cámara de llegada es redonda y silenciosa. En su centro está Gastre, el Último Árbol de
+la Torre, un alma ancestral enraizada que eligió la quietud por encima del descenso. De
+sus ramas cuelgan manzanas, y una extremidad curvada sostiene un libro abierto. Estanterías
+de barro llenas de volúmenes dañados rodean las paredes. No hay ventanas aquí, y apenas
+sonidos naturales más allá del roce de hojas y agua lejana.
+
+Gastre recibe a los recién llegados como si los atendiera en una biblioteca antigua, no en
+una torre de matanza. 
+      Explica la evolución como mecánica y como deuda moral: el poder
+ ???? llega por adaptación, la adaptación nace del riesgo, y el riesgo suele cobrar sangre. El
+ ???? procedimiento es simple y brutal: un jugador describe el cambio que desea, gasta entre 1 y
+ ???? 5 puntos de evolución, y tira 1d10 más los puntos invertidos. Los totales altos generan
+ ???? crecimiento controlado o rasgos excepcionales; los bajos abren la puerta a resultados
+      malformados y efectos cercanos a una maldición.
+
+También ofrece contexto histórico. La Torre procesa almas desde hace eras. La mayoría
+muere, unas pocas descienden, y aún menos conservan su identidad. Rowan el Viajero fue una 
+figura legendaria que se recuerda porque avanzó mucho sin evolucionar, intentó unir almas hostiles
+pero que tristemente desapareció en niveles inferiores hace ya mucho tiempo.
+
+Gastre pide un favor que parece menor y no lo es: tomar una manzana, comerla en pisos más
+bajos y esparcir sus semillas donde todavía llegue luz. Acepta la negativa, pero recuerda
+el tono. Si el grupo elige la violencia, ejecútalo como un encuentro defensivo de alto
+nivel: su muerte otorga 12 puntos de evolución y la Última Semilla de Gastre, que puede
+invocar una versión suya sin recuerdos, pero leal al invocador.
+
+Tras su cámara, el piso se estrecha en una cueva fúngica azulada donde comienza el primer
+combate sostenido. El Ratfrog es un carroñero de emboscada, del tamaño de un perro, con
+dentición podrida y una mordida que infecta tejido. Es lento y directo, pero peligroso
+para personajes poco equipados. Se encuentran tantos como jugadores hayan en el grupo.
+El área de combate es esta primera sala tras la habitación de Gastre, una mal iluminada
+cueva ovalada, con el techo bajo lleno de moho y hongos que emiten un leve brillo azul
+
+Bloque de Estadísticas de Enemigo: Ratfrog
+- PV: 14
+- Armadura/Defensa/AC: 12
+- Velocidad: 20 pies
+- Ataque: Mordida Putrefacta (+4, 1d8+2 perforante, salvación de Constitución CD 12 o
+  sufre Herida Pútrida)
+- Rasgo: Piel Gruesa (el primer impacto de arma de cada ronda inflige -2 de daño)
+- Recompensa: 1 punto de evolución, Colmillo de Ratfrog (si se extrae intacto, se puede 
+  usar para crear una daga o espada corta)
+
+Desde esta sala, el túnel izquierdo lleva a un nido. Las crías se dispersan y observan,
+pero no combaten. En su guarida hay inmundicia, huesos y una mitad de un espejo roto. El
+paso derecho abre a una cámara alargada donde la tierra se transforma gradualmente en
+piedra trabajada, reaparecen antorchas y una Ratfrog reina custodia la otra mitad.
+
+La Reina Ratfrog debe sentirse como el primer jefe. Es territorial,
+agresiva y físicamente torpe, pero controla el ritmo del combate con saliva corrosiva a
+distancia y puntos de vida temporales usando a sus crías como escudo cuando su vida baja.
+
+Bloque de Estadísticas de Enemigo: Reina Ratfrog
+- PV: 38
+- Armadura/Defensa: 13
+- Velocidad: 15 pies
+- Ataque 1: Mandíbula Aplastante (+5, 2d6+3 perforante)
+- Ataque 2: Escupitajo Corrosivo (alcance 30 pies, +4, 1d8 ácido, corrosión de objeto con
+  salvación de Destreza fallida, CD 13)
+- Especial: Llamada de Crías (al 30% de PV, invoca 1d4 crías como cobertura móvil durante
+  2 rondas)
+- Recompensa: 2 puntos de evolución, segunda mitad del espejo
+
+Cuando ambas mitades se unen, se reforman como un Espejo Onírico, una reliquia de
+comunicación que solo funciona si otro portador también posee uno. Gastre tiene uno y
+asegura que lleva años en silencio.
+
+Pruebas Importantes y CDs Sugeridas (Segundo Piso)
+- Leer el estado de ánimo de Gastre y sus límites implícitos: CD 12 Perspicacia
+- Obtener más trasfondo mediante diálogo respetuoso: CD 13 Persuasión
+- Identificar una ruta segura en la cueva con poca luz: CD 12 Percepción
+- Extraer un Colmillo de Ratfrog intacto tras el combate: CD 13 Medicina o Supervivencia
+- Detectar la preparación de la reina antes del escupitajo: CD 13 Percepción
+- Estabilizar las mitades del espejo durante la fusión: CD 12 Arcanos
+
+
+====================
+Tercer Piso: La Galería Anegada
+====================
+
+El tercer piso es un laberinto hidráulico: canales tallados, arterias de drenaje colapsadas,
+sistemas de control oxidados y cámaras que reaccionan al estado del agua. Aquí la Torre
+deja de preguntar si los jugadores pueden pelear, y empieza a preguntar si pueden
+interpretar, secuenciar y asumir consecuencias.
+
+La entrada comienza en un vestíbulo de compuertas con agua a media pierna y piedras de
+puente fracturadas. Un slime de canal patrulla el acceso, y dos puertas laterales selladas
+funcionan como pistas falsas. El camino se ensancha hasta una unión circular de canales,
+donde otros dos slimes se ocultan bajo la película superficial del agua. Un mural roto en
+esta zona aporta la primera pista del rompecabezas de la compuerta.
+
+Desde la unión, la ruta derecha conduce a la Cuenca de Podredumbre, una cámara de combate
+con agua estancada, escombros flotantes y una válvula oxidada. Un slime grande, junto con
+dos pequeños, embosca a los intrusos. Limpiar esta sala permite operar con seguridad la
+válvula que controla el nivel del agua en la cámara del rompecabezas.
+
+La ruta izquierda lleva al Pozo Sagrado, un santuario anómalamente limpio tallado en piedra
+pálida que no coincide con la ingeniería circundante. Mientras se respete su neutralidad,
+no aparecen hostiles de forma ambiental. Dos almas residentes permanecen allí: ni
+amigables ni abiertamente violentas, ambas profundamente alteradas por evoluciones fallidas
+o costosas.
+
+La ruta central desde la unión lleva a la Puerta de Descenso, una cámara alta con tres
+pilares de símbolos, un foso en el suelo y una escotilla sellada. No hay ruta alternativa
+al siguiente piso. El rompecabezas debe resolverse.
+
+Bloque de Estadísticas de Enemigo: Slime de Canal (Pequeño)
+- Rol: Controlador de emboscadas
+- PV: 16
+- Armadura/Defensa: 11
+- Velocidad: 25 pies en agua, 10 pies sobre piedra seca
+- Ataque 1: Látigo Adhesivo (+4, 1d6+2 contundente, reduce 10 pies de velocidad)
+- Ataque 2: Gota Ácida (alcance 20 pies, +4, 1d6 ácido)
+- Especial: Camuflaje Acuático (CD 13 Percepción para detectarlo antes de que se mueva)
+- Recompensa: 1 punto de evolución, fragmento inestable de Núcleo Slime
+
+Bloque de Estadísticas de Enemigo: Slime de la Cuenca (Grande)
+- Rol: Bruto de mitad de piso
+- PV: 34
+- Armadura/Defensa: 12
+- Velocidad: 20 pies en agua
+- Ataque 1: Golpe de Núcleo (+5, 2d6+2 contundente)
+- Ataque 2: Colapso Corporal (salto de 15 pies, afecta área de 10 pies, salvación de
+  Destreza CD 14 o queda restringido)
+- Especial: Estallido de Salpicadura (al quedar por primera vez por debajo del 50% de PV,
+  rocía ácido en 10 pies, Destreza CD 13)
+- Recompensa: 2 puntos de evolución, Núcleo Slime intacto
+
+
+--------------------
+Los Tres Juramentos del Agua (Rompecabezas Obligatorio)
+--------------------
+
+El rompecabezas es difícil, pero justo. Todos los pasos necesarios están anticipados en el
+nivel y pueden reconstruirse sin adivinanzas si el grupo observa con cuidado.
+
+Intervienen tres tabletas: Mano Izquierda, Ojo y Mano Derecha. Tres pilares las esperan:
+oeste, centro y este. La lógica tallada es anatómica y simbólica a la vez: el Ojo debe
+quedar entre sus manos.
+
+Cómo los jugadores pueden deducir el orden correcto:
+- En el mural de la unión de canales, un ojo abierto aparece enmarcado por dos manos
+  reflejadas.
+- Los pulgares están tallados con orientación correcta, distinguiendo izquierda y derecha.
+- En la válvula de la Cuenca se lee: "Primero ahoga la mentira, luego revela la mirada".
+- Cerca del pilar central, una inscripción dice: "Cuando el agua se arrodilla, el vigilante
+  despierta".
+- Las bases de los pilares confirman el mapeo: oeste para Mano Izquierda, este para Mano
+  Derecha y centro para Ojo.
+
+Procedimiento correcto en el mundo:
+1) Colocar Mano Izquierda en oeste, Ojo en centro y Mano Derecha en este.
+2) Inundar por completo la cámara hasta oír el clic de la placa sumergida.
+3) Drenar hasta estado superficial (el agua "se arrodilla").
+4) Tocar una vez el pilar del Ojo en estado superficial.
+5) Drenar por completo.
+6) Tocar los pilares en orden de juramento: Mano Izquierda, Ojo, Mano Derecha.
+
+Si se ejecuta correctamente, el sello de la escotilla se libera con una caída de presión y
+un retroceso de piedra. Si se hace mal, la cámara castiga la precipitación.
+
+Resultados de fallo:
+- Colocación incorrecta de tabletas: libera 1-2 slimes pequeños por las rejillas laterales.
+- Orden incorrecto de niveles de agua: reinicio total de símbolos.
+- Tocar pilares laterales antes de despertar el Ojo: niebla corrosiva desde el techo.
+- Golpear cualquier pilar: reinicio inmediato y aparición de un slime adicional.
+
+Pruebas Importantes y CDs Sugeridas (Tercer Piso + Rompecabezas)
+- Detectar slimes ocultos antes de que se muevan: CD 13 Percepción
+- Interpretar correctamente el mural dañado: CD 12 Investigación
+- Descifrar la inscripción corroída de la válvula: CD 13 Investigación
+- Operar la válvula atascada bajo presión: CD 14 Atletismo
+- Oír el clic de la placa bajo el ruido del agua: CD 12 Percepción
+- Recordar el orden de toque bajo tensión: CD 12 prueba de Inteligencia
+
+
+--------------------
+Pozo Sagrado y Almas Neutrales
+--------------------
+
+La cámara del pozo no es sagrada porque sea pura. Es sagrada porque gente desesperada
+sigue aceptando no matarse entre sí dentro de ella.
+
+Mael, llamado el Barquero Silencioso, es un alma de hombros anchos que se mueve como
+alguien habituado a bracear contra corriente durante años. Lleva una máscara de cuero
+cosido sin expresión. Bajo ella, su maldición evolutiva deformó su cráneo en una estructura
+ictioide, con ojos sin párpados y hendiduras branquiales en la mandíbula. Buscó mejor
+orientación y resistencia bajo el agua; obtuvo ambas cosas, pero pagó con deformidad,
+fotosensibilidad y una mandíbula frágil. Su motivo no es místico: espera a su hermano menor,
+Teren. Prometieron reunirse en la primera "agua segura" de la Torre. Mael se niega a subir
+o bajar hasta saber qué fue de él.
+
+Iria de la Caña Hueca registra nombres en tablillas de barro húmedo e interroga a todo el
+que pasa. Crecimientos óseos huecos, como cañas, recorren su cuello y su espalda, y silban
+suavemente cuando respira. Su mano izquierda se fusionó en una forma rígida, casi de garfio,
+tras una evolución fallida de control. Quiso una voz más firme para contener conflictos;
+ganó proyección y memoria, pero ahora vive con dolor crónico de garganta y picos de ansiedad.
+Su razón para quedarse es simple y humana: vio morir a dos compañeros en pisos vecinos en
+una misma semana, y ya no confía en ninguna escalera. El pozo es el único lugar donde logra
+dormir.
+
+No son profetas ni guardianes. Son supervivientes detenidos en el tiempo, cooperando porque
+cada uno compensa lo que el otro perdió.
+
+Pruebas Importantes y CDs Sugeridas (Pozo Sagrado)
+- Convencer a Mael de que no estás explotando su condición: CD 14 Persuasión
+- Ganar la confianza de Iria para obtener rumores de rutas: CD 15 Persuasión o CD 13 con
+  pruebas útiles
+- Detectar cuándo alguno está cerca del pánico o la violencia: CD 12 Perspicacia
+- Negociar sin insultar las normas de neutralidad: CD 13 Perspicacia o habilidad de
+  Etiqueta/Conocimiento
+
+
+--------------------
+Misión Secreta: La Bufanda Verde Oscura
+--------------------
+
+Si el grupo conservó la bufanda verde oscura del primer piso y la lava en el Pozo Sagrado,
+el agua se ennegrece en segundos hasta convertirse en una película aceitosa. El efecto se
+extiende por toda la cámara y persiste durante meses, eliminando la única fuente fiable de
+agua limpia en el piso. Mael e Iria no atacan de inmediato, pero la confianza se desploma y
+la noticia corre con rapidez.
+
+Al mismo tiempo, la tela se transforma. La bufanda se despliega, se estira y se asienta
+como un manto reflectante de superficie mercurial oscura, capaz de cambiar de forma según
+la intención del portador. Puede convertirse en poncho, capa, abrigo de viaje, cobertura de
+tormenta o drapeado de ocultación en cuestión de instantes.
+
+La reliquia se identifica por su comportamiento y su respuesta: se trata del Poncho Viajero
+de Rowan el Viajero, ahora vinculado al pensamiento y a la voluntad del jugador.
+
+Pruebas Importantes y CDs Sugeridas (Consecuencias de la Misión)
+- Comprender con seguridad la primera transformación del poncho: CD 13 Arcanos
+- Ocultar a corto plazo la responsabilidad de contaminar el pozo: CD 15 Engaño
+- Calmar a las almas neutrales tras la profanación (resultado no hostil): CD 16 Persuasión
+- Encontrar una fuente alternativa de agua potable en este piso: CD 14 Supervivencia

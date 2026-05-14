@@ -1,0 +1,573 @@
+﻿Sesión 1: Sombras en el Remanso
+Revisión completa
+
+Premisa de la sesión
+Lumi y Mosto llegan por primera vez a Riscalobre por rutas distintas, justo al anochecer. En superficie, el pueblo parece normal: comercio abierto, voces en las casas, taberna viva, rutina intacta. El ataque de las sombras se ejecuta, irónicamente, desde las sombras: rápido, selectivo y difícil de demostrar. Esa normalidad se rompe cuando una sombra con forma de látigo atrapa a un niño en plena plaza. Tras una noche inquietantemente tranquila, ambos investigan la desaparición de la alguacil Irina Tal, descubren la implicación del alcalde Edren Tal y terminan descendiendo bajo el molino a un complejo oculto donde la Cofradía del Farol utiliza a Sielu como núcleo de un arma de sombras.
+
+Objetivos de mesa
+1. Forzar alianza Lumi-Mosto en la primera escena.
+2. Dar investigación urbana con libertad de exploración.
+3. Conducir al molino por pistas concretas, no por intuición.
+4. Cerrar con combate + rescate + traición de Edren.
+5. Dejar dos ganchos fuertes para sesión 2.
+
+
+Apertura dual de personaje
+==========================
+
+Llegada de Mosto (camino al pueblo)
+-----------------------------------
+Texto para leer:
+"El sendero baja en curvas desde la ladera, primero entre pinos y piedra húmeda, luego entre huertos pequeños cercados con estacas torcidas. A medida que desciendes, el terreno deja de oler a resina y empieza a oler a barro, carbón y sopa de olla. El camino se ensancha en una calzada de cantos lisos: señal de que estás entrando en un pueblo que vive del río. Al fondo, entre tejados inclinados, ves la plaza principal con su poste de anuncios y una campana de alarma colgada bajo un arco de madera."
+
+Detalles útiles:
+- El camino principal entra por el noroeste de Riscalobre.
+- Hay marcas de rueda recientes y huellas de bota en grupos de 4-5 personas.
+- La gente cierra postigos antes de que caiga del todo el sol.
+
+
+Llegada de Lumi (bordes del río)
+--------------------------------
+Texto para leer:
+"El río aquí no corre: respira. Hay zonas de agua quieta como vidrio roto y otras donde la corriente empuja en silencio. En la ribera, raíces de sauce asoman como dedos, y el barro tiene surcos de arrastre reciente. Pasas junto a un molino de piedra, de esos que llevan décadas viendo inviernos: la rueda gira lenta y desacompasada, sin llamar la atención. Más adelante, el cauce se abre y aparecen las primeras casas de Riscalobre, elevadas sobre pilotes cortos para que el agua no les coma los cimientos."
+
+Detalles útiles:
+- El molino se ve de pasada, sin énfasis especial.
+- Hay una compuerta lateral en el molino con herrajes demasiado nuevos.
+- El embarcadero del pueblo queda a menos de diez minutos río abajo.
+
+
+Llegada de Lumi (embarcadero)
+------------------------------
+Texto para leer:
+"El embarcadero de Riscalobre es una pasarela de madera oscura, de unos veinte pasos de largo, con barcas amarradas por cuerdas húmedas y piedras de lastre. Faroles bajos, vidrio sucio, luz irregular. Un cobertizo de redes, un puesto cerrado de salazón, y al fondo una escalinata que sube a la plaza."
+
+Detalles útiles:
+- Dos guardacabos parecen recién cambiados.
+- Una de las barcas tiene restos de polvo blanquecino (harina de molino).
+- La escalinata conecta directamente con la plaza y la taberna.
+
+
+Acto I: Primer incidente y vínculo
+==================================
+
+Escena 1: Plaza principal al anochecer
+--------------------------------------
+Momento de activación:
+Cuando el sol desaparece por completo y ambos personajes están en el entorno de la plaza.
+
+Texto para leer:
+"La última franja naranja del cielo se apaga detrás de los tejados. La plaza queda en luz de farol. Un niño corre junto a la fuente central y su sombra se estira más de lo que debería. En un latido, esa sombra se afila como un látigo y le enrosca la pierna, arrastrándolo hacia la base del arco de campana."
+
+Qué exige la escena:
+- Acción inmediata de ambos PJ.
+- Cooperación explícita: uno contiene/protege, otro corta/distrae.
+
+Resultado esperado:
+- El niño sobrevive si reaccionan con rapidez.
+- Varios vecinos ven el fenómeno y entran en pánico breve.
+- Queda una marca negra en la piedra, como quemadura fría en forma de latigazo.
+
+Pista temprana:
+- La marca tiene sal seca y hollín en el borde.
+
+
+Escena 2: Taberna en la plaza
+-----------------------------
+Lugar:
+Taberna El Remanso de Sal (en el mismo perímetro de la plaza).
+
+Texto para leer:
+"La taberna está llena y viva: risas sueltas, dados rodando sobre una mesa del fondo, olor a guiso, pan tostado y cerveza joven. Dos músicos locales se turnan con una flauta y una cuerda corta. A simple vista, todo parece normal. Solo al fijarte notas tres cosas raras: un parroquiano que se sobresalta cada vez que tiembla la luz, una pareja que baja la voz al pasar junto a las ventanas, y un chico que evita sentarse donde su sombra toca la pared."
+
+Disparador:
+Si Lumi o Mosto mencionan la sombra-látigo, aunque sea en voz baja y en otra mesa, Sabina se acerca de inmediato y los interrumpe.
+
+Posadera (Sabina Riel), línea sugerida:
+"No repitan eso en alto. Aquí no, no ahora. Vayan a ver a la alguacil Irina Tal, Calle de la Noria, casa de piedra con contraventanas azules. Esta mañana salió de aquí muy preocupada, y no volvió. Si algo raro está pasando, ella ya iba por delante."
+
+Cómo lo hace Sabina:
+- Les deja una jarra para disimular y aparentar servicio normal.
+- Habla sin mirarlos directamente, como si siguiera tomando pedidos.
+- Les pide que no monten ruido ni acusen a nadie de momento.
+
+Propósito:
+Dar dirección clara sin quitar libertad de movimiento.
+
+
+Transición nocturna
+-------------------
+Después de la escena de la plaza, la noche pasa "demasiado tranquila": no hay nuevos ataques, no hay gritos, no hay patrullas. Ese silencio debe sentirse antinatural.
+
+Texto breve para transición:
+"La noche no trae más incidentes. Y eso, aquí, ya parece una amenaza."
+
+
+Acto II: Mañana de investigación
+================================
+
+Escena 3: Casa de la alguacil Irina Tal
+--------------------------------------
+Inicio:
+A la mañana siguiente, los PJ van a la casa de Irina (o llegan tras explorar el pueblo).
+
+Descripción de llegada:
+"La puerta principal está entornada, apenas dos dedos abierta. Nadie responde al llamar. Dentro, el aire huele a hierro y aceite."
+
+Interior:
+- Recibidor con salpicaduras de sangre en pared y suelo.
+- Muebles volcados con golpes desde dentro hacia fuera.
+- Rastro de arrastre que llega hasta el despacho y se pierde.
+- No hay cuerpo de Irina.
+
+Justo entonces aparece Edren Tal
+--------------------------------
+Entrada de Edren:
+Hombre de mediana edad, abrigo gris de buena tela, manos limpias pese al barro de la calle, gesto de autoridad cansada.
+
+Primer tono (sospecha):
+"¿Qué hacen ustedes aquí dentro? Esto es una escena abierta, no una posada."
+
+Cambio de tono (petición):
+Al ver que no hay cadáver ni señales de robo común, baja la voz.
+
+Línea sugerida:
+"Les pido discreción. Si esto se sabe sin pruebas, el pueblo estalla. Encuentren a mi hermana. No me creerán ustedes, pero creo que las sombras de este pueblo ya no obedecen a la luz."
+
+Rol oculto:
+Edren parece colaborador. En realidad ya sabe lo ocurrido y quiere controlar la investigación.
+
+
+Pueblo abierto para exploración (sitios y descripciones)
+--------------------------------------------------------
+
+Descripción general de Riscalobre
+-----------------------------------
+Riscalobre tiene unas cuarenta y tantas casas, casi todas de piedra baja y madera oscura, construidas alrededor de una plaza central cuatro calles, dos que bajan por la ribera(el camino por el que vino Mosto, y el que va al molino) y otros que suben por el pueblo. Los tejados son de pizarra pesada para soportar tormentas. El pueblo parece perfectamente funcional: mercado corto, oficios abiertos, vecinos barriendo portales, chicos corriendo entre carros.
+
+Lugares recomendados de exploración
+-----------------------------------
+
+1) Plaza de la Campana
+- Centro cívico con fuente baja, poste de bandos y arco de alarma.
+- Marcas negras del ataque de la noche anterior siguen visibles.
+- Vecinos evitan pasar por la zona de sombra del arco.
+
+2) Taberna El Remanso de Sal
+- Dos plantas, sala común de 8x10 metros, balcón interior.
+- Punto ideal para recoger rumores y ver quién vigila a quién.
+- Sabina recuerda caras y horarios con precisión.
+
+3) Calle de la Noria
+- Fachadas más cuidadas, viviendas de oficio.
+- Drenaje central de piedra; cualquier rastro de sangre dura poco aquí.
+- La casa de Irina está en el número 7, con persianas azules.
+
+4) Armería Yunque de Ribera
+- Local estrecho con banco de trabajo, yunque de viaje y pared de armas de uso real (no decorativas).
+- El herrero Rada Mirk comenta haber visto gente con capas grisáceas transportando cajas al amanecer.
+
+5) Tienda de surtidos El Cesto de Marea
+- Frascos rotulados por color, vendas, tónicos, aceite de lámpara, antisépticos.
+- Maira Fen vendió sedantes en cantidad a "mozos del ayuntamiento" con brazalete gris.
+
+6) Capilla de la Costura Reparadora
+- Pequeña, austera, con bancos de roble y altar de piedra lisa.
+- En la caja de limosnas aparece un papel con un símbolo de farol estilizado y una frase:
+  "La sombra ordena donde la ley fracasa."
+
+7) Almacén municipal
+- Edificio de grano, sal y herramientas de obra.
+- Inventario alterado: faltan aceite de lámpara, cuerdas, grilletes y lona negra.
+- Firmas de salida con iniciales "E.T." y "L.C.".
+
+8) Ribera de carga
+- Zona de carros y cajas junto al agua.
+- Huellas de botas iguales, barro con polvo de yeso y fibras de tela gris.
+
+
+Minijuego de pistas por checks (resumen rápido)
+-----------------------------------------------
+Objetivo:
+Resolver la investigación en pocas tiradas, sin narrar cada rincón, pero manteniendo progresión y premio por tiradas altas.
+
+Cómo funciona:
+1. La investigación tiene 3 niveles encadenados: Casa de Irina -> Pueblo -> Molino.
+2. En cada nivel, Lumi y Mosto hacen 1 check cada uno (habilidad libre, si la justifican bien).
+3. Evalúa cada tirada por tramos:
+   - Baja: 1-9
+   - Aceptable: 10-13
+   - Buena: 14-17
+   - Muy buena: 18-21
+   - Excelente: 22+
+4. Resultado del nivel:
+   - Si no hay al menos una tirada Aceptable, obtienen solo una pista difusa y pierden tiempo.
+   - Con al menos una Buena, obtienen la pista principal del nivel.
+   - Si además la otra tirada es Muy buena o mejor, obtienen una pista extra de calidad.
+   - Con una Excelente, además añades una ventaja táctica para la siguiente escena.
+
+Ejemplo rápido (el que pediste):
+- Casa de Irina: Lumi saca Buena y Mosto Muy buena.
+- Descubren marcas de arrastre + nota sobre Edren y el molino.
+- Por la Muy buena, además encuentran restos de tela gris en una astilla de madera rota.
+
+Nivel 1: Casa de Irina (escena del crimen)
+-----------------------------------------
+Pista principal (Buena):
+- Rastro de arrastre hacia despacho y nota incompleta:
+  "Si Edren vuelve a insistir con el molino..."
+
+Pistas extra (Muy buena/Excelente):
+- Tela gris enganchada en una astilla (agresor o cómplice con vestimenta grisácea).
+- Mapa local con marcas en plaza, Calle de la Noria y molino.
+- Harina fina y grasa de lámpara en zonas sin sentido doméstico.
+
+Coste por fallo global (sin Aceptables):
+- Ruido, contaminación de escena o discusión con vecinos.
+- Avanza el reloj narrativo y aumenta vigilancia enemiga en el molino.
+
+Nivel 2: Pulsar el pueblo (resumen social)
+------------------------------------------
+Pista principal (Buena):
+- Coincidencia de testimonios: personas de gris moviendo bidones/paquetes hacia zona del molino.
+
+Pistas extra (Muy buena/Excelente):
+- Armería: Rada vio carga nocturna en carros municipales.
+- Surtidos: Maira vendió sedantes y aceite a emisarios con brazalete gris.
+- Almacén municipal: faltan cuerda, grilletes y lona negra con salida firmada por iniciales.
+- Capilla: panfleto "La sombra ordena donde la ley fracasa."
+
+Ventaja por Excelente:
+- Obtienen hora aproximada de relevo o ruta secundaria hacia el molino.
+
+Nivel 3: Confirmación y acceso al molino
+----------------------------------------
+Pista principal (Buena):
+- Identifican entrada útil (puerta lateral o trampilla interior) y concluyen que el molino está activo pese a su fachada.
+
+Pistas extra (Muy buena/Excelente):
+- Detectan patrón de limpieza artificial en interior (base operativa, no ruina real).
+- Encuentran mecanismo de trampilla sin activar alarma.
+- Localizan marcas de botas y arrastre hacia el descenso subterráneo.
+
+Ventaja por Excelente:
+- Entran sin alertar a la primera guardia o empiezan con mejor posición táctica.
+
+Ritmo recomendado:
+- 1 minuto para explicar cada nivel.
+- 2 tiradas por nivel.
+- Narras resultado en bloque y pasas al siguiente punto.
+
+Nota de dirección:
+Hasta que descubran la Sala [4] del archivo, no nombres a la Cofradía en boca de PNJ. Usa siempre "grupo de capas grises", "los del brazalete gris" o "la gente del farol".
+
+
+Acto III: Molino y descenso
+===========================
+
+Escena 4: Molino del Meandro
+----------------------------
+Exterior:
+"Desde fuera parece abandonado: tejas partidas, musgo, una rueda vieja que gira a tirones. Pero al acercarte ves lo que no encaja: marcos de ventana limpios, bisagras engrasadas, suelo barrido delante de la puerta lateral."
+
+Interior de planta principal:
+- Sacos vacíos colocados en filas exactas.
+- Herramientas ordenadas por tamaño.
+- Ni polvo acumulado en mesas, pese al aspecto ruinoso.
+- Marcas de arrastre recientes hacia una trampilla.
+
+Trampilla:
+Está oculta bajo una tarima móvil detrás de tres sacos.
+Mecanismo de apertura con pasador interior y contrapeso.
+
+Texto para descenso:
+"Al levantar la trampilla sube un aliento de aire frío con olor a humedad, aceite y metal. Una escalera de piedra desciende en espiral corta hacia un pasadizo subterráneo."
+
+
+Mazmorra subterránea: Layout y salas
+====================================
+
+Mapa de referencia (esquema)
+----------------------------
+Entrada (E)
+  |
+  v
+[1] Pasadizo de Drenaje ---- [2] Cuarto de Filtros----------+
+                              |                             |
+                              |                  [3] Barracón Gris------------+
+                              |                             |                 |
+                              +---- [4] Archivo del Farol---+                 |
+                                           |                                  |
+                                           +---- [5] Laboratorio de Ceniza    |
+                                                        |                     |
+                                                        +---- [6] Galería de Celdas-------+
+                                                        |                                 |
+                                                        +----------------- [7] Cámara de Proyección (encuentro final)
+
+
+Sala [1]: Pasadizo de Drenaje
+-----------------------------
+Descripción:
+Corredor de piedra húmeda de 11 metros de largo por 2 de ancho. Techo bajo en arco, con salitre blanco en las juntas y agua filtrando por varias grietas. El suelo está inclinado hacia una canaleta central de hierro oxidado que lleva agua negra en hilo constante. La luz llega pobre desde una única lámpara de mantenimiento al fondo, por lo que la visibilidad es irregular.
+
+Elementos concretos:
+- Dos nichos en pared (derecha) donde caben herramientas o alguien agachado.
+- Canaleta abierta en medio: terreno resbaladizo si corren.
+- Escalón final roto: fácil tropezar en persecución.
+
+Encuentro:
+- Trampa sonora: una cadena con campanilla conectada a un clavo en pared.
+- Si la detectan, pueden neutralizarla sin alertar a guardias.
+
+
+Sala [2]: Cuarto de Filtros
+---------------------------
+Descripción:
+Sala rectangular (6x4 metros) con tres tanques de decantación, tubos de cobre que cruzan techo y pared, y válvulas etiquetadas a mano: "entrada", "limpia", "residuo". El aire huele a metal caliente, cal húmeda y aceite rancio. Las paredes tienen marcas de limpieza reciente en franjas, señal de uso continuo.
+
+Elementos concretos:
+- Válvula principal: puede abrirse para soltar vapor corto y cubrir movimiento.
+- Caja de herramientas con llaves de tuerca, tornillos y un cortatubos.
+
+Encuentro:
+- Dos acólitos de gris revisando válvulas.
+- Uno lleva brazalete con símbolo de farol dentro de un círculo.
+
+Botín/pista:
+- Plano interno que confirma rutas a laboratorio y sala final.
+
+
+Sala [3]: Barracón Gris
+-----------------------
+Descripción:
+Dormitorio alargado (8x5 metros) con seis camas de madera clavadas a pared, mantas grises desdobladas y baúles de tapa plana sin marcas personales. Hay clavos en vigas con capas húmedas colgadas para secar, y en la pared del fondo se repite el símbolo del farol pintado con brea.
+
+Elementos concretos:
+- Mesa de rancho con migas recientes y cuencos aún tibios.
+- Arcón de disciplina con porras cortas, esposas y tiras de cuero.
+- Rincón de oración laica: juramento del grupo escrito en tablilla.
+
+Encuentro:
+- 1-2 acólitos descansando/curando heridas.
+
+Sala [4]: Archivo del Farol (sala de contexto)
+----------------------------------------------
+Descripción:
+Sala seca y sorprendentemente ordenada (7x6 metros), con estanterías bajas de madera encerada, cajas de actas por fecha y mapas enrollados en tubos de lona. Una mesa central de roble sostiene un farol apagado, un sello de cera negra y un libro de juramento con firmas.
+
+Elementos concretos:
+- Estante "Doctrina": panfletos ideológicos y manual de reclutamiento.
+- Estante "Operaciones": registros de vigilancia por calles y perfiles de vecinos.
+- Estante "Pagos": sobres de cobro, recibos y cuentas.
+- Mapa mural con rutas a Muelles Altos y puntos de contacto.
+
+Aquí se explica qué es la Cofradía:
+- No se presentan como culto religioso, sino como "orden correctiva".
+- Doctrina: "La luz revela el caos; la sombra lo disciplina."
+- Método: infundir miedo selectivo, debilitar autoridades legítimas y sustituirlas.
+- Objetivo local: controlar Riscalobre como nodo de paso hacia Muelles Altos.
+
+Pista mayor:
+- Documento que vincula pagos de Edren a la Cofradía.
+- Acta interna: "Iria Tal, objetivo de neutralización prioritaria".
+
+
+Sala [5]: Laboratorio de Ceniza
+-------------------------------
+Descripción:
+Laboratorio estrecho (5x5 metros), abarrotado de matraces, frascos y embudos sobre dos mesas metálicas, completamente a oscuras. Hay una campana de extracción rudimentaria que no absorbe bien los vapores. El suelo está manchado por derrames de reactivos y sangre, y el aire pica en garganta y ojos. Un enorme tubo oscuro al fondo contiene lo que parecen ser sombras en suspensión líquida, en una especie de brea muy densa.
+
+Elementos concretos:
+- Estantería de sedantes por dosis (baja/media/alta).
+- Caja de jeringas de vidrio envueltas en paños.
+- Cuaderno de formulación con tiempos de efecto y contraindicaciones.
+- Quemador de alcohol con llama azul muy inestable.
+
+Encuentro:
+- Posible aparición del alquimista si no ha huido aún.
+- Riesgo ambiental: Si mucha luz cae sobre el tubo enorme, las sombras intentarán salir, atacando al grupo.
+
+Pista:
+- Dosis registradas a nombre de "Sielu Suuri".
+- Receta de "aceite de proyección" para intensificar contraste sombra-luz.
+
+
+Sala [6]: Galería de Celdas
+---------------------------
+Descripción:
+Pasillo longitudinal de 12 metros, con ocho celdas ensangrentadas, de barrotes de hierro remachado, cerraduras dobles y mirillas a la altura del pecho. La ventilación es mínima; huele a humedad, sangre vieja y desinfectante barato. Goteras finas caen de la bóveda y marcan charcos oscuros junto a los barrotes.
+
+Distribución:
+- Celda 6 (Cuerpo de Irina): sangre, medalla de alguacil, ropa rota.
+- Celda 1 a la 5 (lucha): sangre en pared y suelo, pero sin nada más.
+
+Encuentro:
+- Ejecutor embobado en una lámpara, entre dos celdas vacías.
+
+Pistas:
+- Insignia de alguacil de Irina cubierta de sangre seca.
+
+
+Sala [7]: Cámara de Proyección (final)
+--------------------------------------
+Descripción:
+Sala circular de 14 metros de diámetro y casi 6 de altura, con suelo de losas negras pulidas y una pared frontal de piedra lisa ennegrecida por uso ritual. En el centro hay una plataforma ligeramente elevada (30 cm) con anillas de sujeción; Sielu está atado a una silla de hierro con correas en muñecas, torso y tobillos.
+
+Detrás de Sielu, una figura encapuchada controla un farol de lente gruesa montado sobre un brazo giratorio. El haz es duro y blanco, y al chocar con Sielu proyecta en la pared una sombra compacta que cambia de forma: látigo, garra y lanza a la vez. La sombra no se desplaza libremente; depende del ángulo del farol y de la postura del objetivo.
+
+Elementos tácticos:
+- Brazo del farol: puede bloquearse con fuerza o herramienta.
+- Pilares: pueden bloquear el haz, y sirven para perder line de vision.
+
+Riesgos ambientales:
+- Si el farol cae, provoca destello cegador breve y fuego localizado.
+
+
+Acto IV: Encuentro final (boss + salvación)
+===========================================
+
+Configuración inicial
+---------------------
+- Sielu está atado y debilitado por sedación.
+- Comandante de la Cofradía detrás de Sielu, girando en círculo para reorientar la sombra hacia los PJ.
+- Alquimista presente al inicio.
+- Ejecutor entra desde la galería lateral en los primeros compases.
+
+Objetivo táctico principal
+--------------------------
+No basta con derrotar enemigos. Deben impedir que la luz del farol impacte directamente a Sielu mientras lo liberan.
+
+Regla narrativa sugerida:
+- Cada ronda en la que el haz de luz toca de lleno a Sielu, aumenta su colapso.
+- Si controlan la luz durante varias rondas, pueden liberarlo con menos coste.
+
+Acciones útiles de PJ:
+- Bloquear línea de luz con telas, escudos, muebles o cuerpos en cobertura.
+- Mover/eliminar farol.
+- Cortar ataduras y sacar a Sielu del cono de proyección.
+
+Comportamiento enemigo
+----------------------
+Comandante del Farol:
+- Prioriza mantener el haz activo.
+- Da vueltas en torno a Sielu para orientar la sombra como látigo/garra.
+
+Alquimista (inicio cobarde):
+- En la primera fase huye del contacto directo.
+- Puede lanzar frascos desde cobertura o reentrar para estorbar.
+
+Ejecutor (muro de carne):
+- Entra para fijar a Mosto o Lumi.
+- Busca empujarlos a zonas de sombra más densa.
+
+Evento de ronda 3: Traición de Edren
+------------------------------------
+Entrada:
+Edren aparece por el acceso trasero gritando "¡Aguanten, voy con ustedes!"
+
+Traición:
+Cuando se acerca lo suficiente, sabotea a los PJ (rompe cobertura de luz, empuja, corta cuerda útil o libera una traba del mecanismo del farol).
+
+Rol en combate:
+- No es un gran combatiente.
+- Es disruptivo y peligroso por posición y timing.
+
+Liberación de Sielu
+-------------------
+Cuando logran mantenerlo fuera del haz y soltar ataduras:
+- Sielu se une al combate.
+- Puede desviar o amortiguar parte de las sombras proyectadas.
+- Aporta apoyo decisivo para cerrar el encuentro.
+
+
+Resolución y cierre de sesión
+=============================
+
+Después del combate
+-------------------
+- Comandante, ejecutor y acólitos pueden ser reducidos y encarcelados.
+- Edren queda expuesto públicamente por documentos, testigos y traición directa.
+- El pueblo recupera control mínimo de seguridad.
+
+Cierre narrativo 1 (Lumi)
+-------------------------
+Sielu, exhausto pero lúcido, confiesa a Lumi:
+"No era solo esto. Hay otro de los nuestros infiltrado en Muelles Altos... no entre ladrones, sino entre los de guante blanco. Alta sociedad."
+
+Cierre narrativo 2 (Mosto)
+--------------------------
+Antes de cerrar la jornada, Mosto recibe una carta sellada de alto rango de la Iglesia Reparadora:
+
+"Hermano Mosto:
+Se han confirmado indicios de vínculo entre la tribu de Lumi y corrientes de Caos y oscuridad inusitadas.
+No actúe aún, le pedimos que observe.
+Vigile a Lumi y a su linaje.
+Informe por escrito al apartado que ya conoce de nuestra Iglesia en Muelles Altos.
+Sagrada sea la luz que le guarde."
+
+Gancho a sesión 2
+-----------------
+1. Trama de infiltración en Muelles Altos (alta sociedad).
+2. Conflicto de confianza entre Mosto y Lumi por la orden de vigilancia.
+
+
+Nombres aleatorios para improvisar NPC (20)
+===========================================
+
+1. Dario (H)
+2. Elia (M)
+3. Narek (H)
+4. Sabela (M)
+5. Ivo (H)
+6. Mirel (M)
+7. Taro (H)
+8. Alenia (M)
+9. Bren (H)
+10. Calia (M)
+11. Oren (H)
+12. Vessa (M)
+13. Lior (H)
+14. Naeris (M)
+15. Marn (H)
+16. Isela (M)
+17. Farel (H)
+18. Tiria (M)
+19. Corin (H)
+20. Dalia (M)
+
+
+Qué ocurrió realmente en mesa
+============================
+
+Resumen real de la sesión
+-------------------------
+La sesión salió muy bien: Lumi y Mosto se aliaron de inmediato, y Lumi compartió con Mosto sus poderes de sombra para que ambos comprendieran con claridad qué estaban enfrentando.
+
+El minijuego de pistas se atascó un poco, pero se recondujo la investigación improvisando una transición efectiva: seguir a un sospechoso vestido de gris hasta el Molino.
+
+En la dungeon, los personajes derrotaron a todos los enemigos presentes, pero el alquimista consiguió huir por completo.
+
+Edren no entró en combate. En cuanto entendió que Lumi y Mosto estaban cerca de la verdad, escapó del pueblo llevándose todo el dinero que pudo robar.
+
+Consecuencias inmediatas
+------------------------
+Tras el incidente, Mosto envió una carta a la Iglesia Reparadora. Días después llegó un alto cargo mendicante, Catharsas, para investigar lo ocurrido con sus súbditos.
+
+Los mendicantes recuperaron de manos de Mosto la lámpara-artilugio que generaba aquellas sombras y regresaron con ella a Muelles Altos.
+
+Por su parte, Lumi y Sielu tuvieron una conversación importante: Sielu explicó que, tras la desaparición de Lumi, la tribu se dividió para buscarlo.
+
+- La hermana de Lumi partió directamente en su búsqueda.
+- El hermanastro mayor fue detrás de ella.
+- La jefa de la tribu tuvo que acudir de urgencia a otra tribu por un asunto secreto relacionado con Lumi (que Sielu tampoco conoce).
+- Sielu recibió el encargo de vigilar a ambos hermanos y asegurarse de que no tuvieran problemas.
+
+Sielu también contó que la hermana de Lumi, médica de la tribu, se encuentra en Muelles Altos, infiltrada entre la alta sociedad, intentando conseguir un mecenas para financiar la búsqueda.
+
+A la mañana siguiente, Sielu enfermó de forma muy grave y pidió a Lumi que encontrara a su hermana, porque sería la única capaz de curarlo.
+
+Encargo oficial a Mosto
+-----------------------
+Catharsas entregó personalmente a Mosto una carta sellada con la orden de vigilar de cerca a Lumi y a su tribu por su supuesta conexión con el fenómeno de las sombras.
+
+Mosto, por su buen corazón, interpretó esa orden como un deber de apoyo: proteger a Lumi y a su familia de quienes intenten controlar la sombra a través de ellos.

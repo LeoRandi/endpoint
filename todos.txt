@@ -1,0 +1,145 @@
+﻿TODOs:
+-Patrón
+--El equipamiento también va en 9 huecos como el patrón, dibujar encima hace que se active el objeto
+--Bonuses de adyacencia en 4 direcciones, dependiendo de la tag que tenga al lado activa efecto/da bonus
+[--Bonus de patrón por el uso dentro del patrón(al principio/final, en ángulo recto, forma específica)]
+
+[-Level up]
+[--Cambiar recompensas de level up: 1º stats, luego habilidad, luego item, etc]
+
+-Tutorial
+[--Tuto de menú principal]
+--Tuto de combate
+--Tuto de dibujo
+--Tuto de rutas
+--Tuto de tiendas
+[--Tuto de arquetipos]
+
+-Dibujo
+[--Crear dibujos básicos y aplicarlos al combate]
+--Crear dibujos avanzados para cada item
+[---Tijera]
+---Espiral
+---"F" inversa
+[--Añadir herramienta "mover", que coge todo el trazo unido al seleccionado y lo mueve a lo largo del canvas]
+--Cambiar diseño/UI del overlay del canvas, y hacer más grande dicho overlay
+--Sistema de guardar dibujo en favorito + quick draw
+[---Se puede pegar en combate para cubrir tus bonuses, pero los malus se siguen teniendo que dibujar]
+---Si no hay espacio para dibujar el favorito, no se añade y hay que hacerlo a mano
+[---Contador de tiempo para dibujar, desde 0, el dibujo favorito.]
+
+[-Economía]
+[--Bajar Income base a la mitad o algo]
+
+[-Diseño]
+[--Añadir color de tier para la card de cada item o habilidad]
+
+-Arquetipos
+--Añadir más arquetipos, unos 7 en total[4/7]
+[--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.]
+[--Los arquetipos empiezan con un item aleatorio de su propio arquetipo + un item general. Se enseñan antes de elegir el arquetipo, se deben generar al empezar la run y guardarse aunque salgas de la app o cambies de página de arquetipo o lo que sea, para que sean siempre el mismo con la misma seed y tal.]
+
+-Página de Selección de Camino
+[--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
+[--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
+[--Aplicar el efecto día/noche a diferentes objetos y habilidades][Tag CICLO]
+--Efecto de animación para bosses
+
+-Combate
+[--Que intoxicación pase a través de la barrera]
+[--Aumentar el tamaño del intent a algo legible]
+[--Permitir tener más barrera de la máxima]
+[--Quitar mitigación plana -> barrera = escudo extra todos los combates]
+[--Mejorar UI de dibujo en combate]
+[--Añadir estados alterados]
+[--Mejorar la IA enemiga]
+--Arreglar nombre de enemigo y datos visibles durante el combate
+---Arreglar que se muevan tanto las barras de vida y barrera durante el combate
+[--Separar el scroll de equipamiento y de habilidades]
+[--Mejorar nivel de las CPU(activar habilidades, distintos intents)]
+[--El enemigo te obliga a dibujar o sufrirás las consecuencias]
+--El enemigo puede bloquear parte del canvas, haciendo imposible dibujar en esas áreas.
+[--Los mismos dibujos(si tienen el mismo efecto) se juntan en una sola card con un multiplicador brillante como badge(arriba a la derecha)]
+[--Cada item decide si su dibujo es un efecto extra al atacar o al bloquear, de manera que su dibujo aparezca en una de las pantallas y no en la otra.]
+--Animaciones:
+---Dibujar una forma y conseguir el bonus hace que en la animación de combate salgan disparadas las formas en direccion al enemigo(o hacia el jugador, dependiendo si es ofensivo o defensivo)
+[---Mejorar animación de bloquear para que solo vaya hasta la mitad de la pantalla antes de volver]
+[---Añadir animaciones separadas para quemado e intoxicación, que ocurran antes de la de daño]
+
+[-Estados]
+[--Añadir Tags]
+[--Añadir más presets(entre buff y debuff podrían llegar a 10 fácil)][11/10]
+
+-Habilidades
+[--Añadir Tags]
+[--Meter en el loot]
+--Crear al menos 20 generales y 20 por arquetipo[general: 15, veloz: 11, inamovible: 8, imparable: 9, mercante: 6]
+
+-Items
+[--Añadir Tags]
+[--Añadir formas que de cada equipamiento]
+[--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
+--Meter al menos 60 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 23, Imparable: 22, Mercante: 16]
+--Repartirlos bien en eventos/enemigos/tiendas
+[--Venta de items del jugador en tiendas, o descarte en el inventario]
+[--Cambiar sistema de equipamiento]
+[---Slots por tamaño]
+[--Objetos duplicados=>Mejora]
+[--Añadir algún indicio de que se va a mejorar el item, no a añadir, o una animación de algún tipo]
+--Equipar/desequipar arrastrando
+[--Añadir color a cada buzzword, y que se coloreen automático en textos]
+
+-Tiendas
+[--Mejorar aspecto y diseño]
+[--Hacer más visible y llamativo el dinero que tienes/ el income]
+--Crear más tiendas diferenciadas(después de añadir los Items)
+[--Texto de flavor a cada tienda]
+
+-Eventos
+--Crear más eventos, al menos 20[8/20]
+[--Texto de flavor a cada evento]
+
+-Enemigos
+--Crear Presets(al menos 100 distintos)[33/100]
+--Equipar adecuadamente
+--Modificar IA en torno al modo Patrón
+
+-Codex
+--Códice con todos los items, enemigos, habilidades y eventos descubiertos por el jugador
+
+-General
+[--SEGUNDO DÍA]
+[--APLICAR NUEVAS FONTS(Ya están importadas en el yaml)]
+[--Sistema de guardado de partida]
+--Volver a la pantalla del menú principal
+[--Botón de Continuar]
+--Cambio de avatar
+--Fucking música por favor
+
+-Settings
+--Que funcionen las opciones please(sonido, vibración, cambiar avatar, etc)
+
+////
+ARREGLAR:
+-El botón de equipar/desequipar en al tienda a veces desaparece al equipar/desequipar/vender en una tienda?
+-En la pestaña de práctica de dibujo, el botón de cerrar está más alto que los botones de cambio de pestaña(pequeño cambio visual)
+-añadir objetos de resonancia para inamovible que usen resonancia(no hay ninguno que lo use para el daño)
+-dibujo guardado para quick save no se guarda entre sesiones de la app
+-Los marcadores de daño y bloqueo del jugador en combate tienen que tener un scroll horizontal automático, o detectar que tiene que hacer scroll antes si ya lo tienen.
+-Modificar items y habilidades de Calentando para que en general se activen al comienzo del combate, con mucho burst
+
+////
+PROBAR:
+
+///
+IDEAS:
+-Evento de minijuego, obligatorio para un roguelike
+-mostrar si es habilidad o item en la recompensa(dejar como el resumen?)
+-Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
+-Resumen en la pantalla de you Lose/you win
+
+-Eventos:
+--EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
+
+////////////////////////////////
+

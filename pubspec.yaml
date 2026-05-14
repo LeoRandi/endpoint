@@ -1,7 +1,7 @@
 name: endpoint
-description: "A new Flutter project."
+description: "Death at Sunrise"
 
-version: 1.0.0+1
+version: 0.32.2
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -9,9 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flame:  ^1.15.0
 
   cupertino_icons: ^1.0.2
+  shared_preferences: ^2.2.3
+  showcaseview: ^5.0.1
 
 dev_dependencies:
   flutter_test:
@@ -22,6 +23,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - pubspec.yaml
     - assets/images/
     - assets/images/icons/
     - assets/images/slots/
@@ -31,4 +33,10 @@ flutter:
     - family: Pixeboy
       fonts:
         - asset: fonts/Pixeboy-z8XGD.ttf
+    - family: Rajdhani
+      fonts:
+        - asset: fonts/Rajdhani-Regular.ttf
+    - family: Exo2
+      fonts:
+        - asset: fonts/Exo2-VariableFont_wght.ttf
 

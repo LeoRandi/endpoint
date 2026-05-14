@@ -24,6 +24,9 @@ migrate_working_dir/
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
+**/linux/**
+**/windows/**
+**/macos/**
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -41,3 +44,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/build/
+
+# FVM Version Cache
+.fvm/
+
+# Local editor overrides
+.vscode/settings.json
