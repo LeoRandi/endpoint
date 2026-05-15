@@ -3,12 +3,14 @@ import '../_imports.dart';
 class PathEventPage extends StatefulWidget {
   final Battler player;
   final EventPathNode node;
+  final RunRandomizer randomizer;
   final PathEventService eventService;
 
   const PathEventPage({
     super.key,
     required this.player,
     required this.node,
+    required this.randomizer,
     this.eventService = const PathEventService(),
   });
 
@@ -26,6 +28,7 @@ class _PathEventPageState extends State<PathEventPage> {
     _visitResult = widget.eventService.visit(
       node: widget.node,
       player: widget.player,
+      randomizer: widget.randomizer,
     );
   }
 

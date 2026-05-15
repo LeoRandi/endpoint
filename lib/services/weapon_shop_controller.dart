@@ -35,7 +35,7 @@ class WeaponShopController extends ChangeNotifier {
   int purchasePriceFor(Item item) =>
       max(1, (item.cost * priceMultiplier).ceil());
 
-  int sellPriceFor(Item item) => item.sellValue;
+  int sellPriceFor(Item item) => max(1, (purchasePriceFor(item) / 2).ceil());
 
   String stockStatusLabelFor(Item item) {
     if (!_stock.contains(item)) return 'Agotado';

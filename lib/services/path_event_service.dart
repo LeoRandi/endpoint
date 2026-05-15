@@ -10,6 +10,7 @@ typedef PathEventVisitResolver = PathEventVisitResult Function(
   PathEventService service, {
   required EventPathNode node,
   required Battler player,
+  required RunRandomizer randomizer,
 });
 
 class PathEventDefinition {
@@ -24,27 +25,35 @@ class PathEventDefinition {
 
 final pathEventDefinitionById =
     Map<PathEventId, PathEventDefinition>.unmodifiable({
-  PathEventId.debtCollection: PathEventDefinition(
+  PathEventId.strandedTrash: const PathEventDefinition(
+    canAppear: _canAppearForArchetypeItemReward,
+    visit: _visitArchetypeItemReward,
+  ),
+  PathEventId.lostCache: const PathEventDefinition(
+    canAppear: _canAppearForArchetypeItemReward,
+    visit: _visitArchetypeItemReward,
+  ),
+  PathEventId.debtCollection: const PathEventDefinition(
     canAppear: _canAppearForDebtCollection,
     visit: _visitDebtCollection,
   ),
-  PathEventId.shadyTechnosurgeon: PathEventDefinition(
+  PathEventId.shadyTechnosurgeon: const PathEventDefinition(
     canAppear: _canAppearForTechnosurgeon,
     visit: _visitDefaultPathEvent,
   ),
-  PathEventId.afterHoursTechnosurgeon: PathEventDefinition(
+  PathEventId.afterHoursTechnosurgeon: const PathEventDefinition(
     canAppear: _canAppearForTechnosurgeon,
     visit: _visitDefaultPathEvent,
   ),
-  PathEventId.blackTechnoMarket: PathEventDefinition(
+  PathEventId.blackTechnoMarket: const PathEventDefinition(
     canAppear: _canAppearForBlackTechnoMarket,
     visit: _visitDefaultPathEvent,
   ),
-  PathEventId.pasadizoSecreto: PathEventDefinition(
+  PathEventId.pasadizoSecreto: const PathEventDefinition(
     canAppear: _canAppearForPasadizoSecreto,
     visit: _visitDefaultPathEvent,
   ),
-  PathEventId.sobreKar: PathEventDefinition(
+  PathEventId.sobreKar: const PathEventDefinition(
     canAppear: _canAppearForSobreKar,
     visit: _visitDefaultPathEvent,
   ),
@@ -119,11 +128,61 @@ class PathEventService {
   PathEventVisitResult visit({
     required EventPathNode node,
     required Battler player,
+    required RunRandomizer randomizer,
   }) {
     return _definitionFor(node.id).visit(
       this,
       node: node,
       player: player,
+      randomizer: randomizer,
+    );
+  }
+
+  List<Item> buildArchetypeItemRewardPool({
+    required Battler player,
+    required RarityTier rarity,
+  }) {
+    final scopedPool = itemPoolForArchetype(player.archetypeId)
+        .where((item) => item.rarity == rarity)
+        .toList(growable: false);
+    if (scopedPool.isNotEmpty) {
+      return List<Item>.unmodifiable(scopedPool);
+    }
+
+    return List<Item>.unmodifiable(
+      itemPresets.where((item) => item.rarity == rarity),
+    );
+  }
+
+  PathEventVisitResult resolveArchetypeItemReward({
+    required EventPathNode node,
+    required Battler player,
+    required RunRandomizer randomizer,
+  }) {
+    final rewardPool = buildArchetypeItemRewardPool(
+      player: player,
+      rarity: node.rarity,
+    );
+    if (rewardPool.isEmpty) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'No quedaban objetos compatibles en el hallazgo.',
+      );
+    }
+
+    final rewardItem = rewardPool[randomizer.nextInt(rewardPool.length)];
+    final updatedPlayer = player.addItem(rewardItem);
+    final resolvedItem = updatedPlayer.inventoryItemOfType(rewardItem.id) ??
+        updatedPlayer.equippedItemOfType(rewardItem.id) ??
+        rewardItem;
+    final actionLabel =
+        player.wouldUpgradeItem(rewardItem) ? 'mejora' : 'recibes';
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Del hallazgo $actionLabel ${resolvedItem.displayName} (${resolvedItem.rarity.label}).',
+      gainedItem: resolvedItem,
     );
   }
 
@@ -860,6 +919,23 @@ bool _canAppearForTechnosurgeon(
   return player?.abilities.isNotEmpty ?? false;
 }
 
+bool _canAppearForArchetypeItemReward(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) {
+    return itemPresets.any((item) => item.rarity == node.rarity);
+  }
+
+  return service
+      .buildArchetypeItemRewardPool(
+        player: player,
+        rarity: node.rarity,
+      )
+      .isNotEmpty;
+}
+
 bool _canAppearForBlackTechnoMarket(
   PathEventService service, {
   required EventPathNode node,
@@ -927,14 +1003,29 @@ PathEventVisitResult _visitDebtCollection(
   PathEventService service, {
   required EventPathNode node,
   required Battler player,
+  required RunRandomizer randomizer,
 }) {
   return service._resolveDebtCollection(player);
+}
+
+PathEventVisitResult _visitArchetypeItemReward(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler player,
+  required RunRandomizer randomizer,
+}) {
+  return service.resolveArchetypeItemReward(
+    node: node,
+    player: player,
+    randomizer: randomizer,
+  );
 }
 
 PathEventVisitResult _visitDefaultPathEvent(
   PathEventService service, {
   required EventPathNode node,
   required Battler player,
+  required RunRandomizer randomizer,
 }) {
   return PathEventVisitResult(
     player: player,

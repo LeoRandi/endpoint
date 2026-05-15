@@ -32,6 +32,7 @@ enum BattleCombatAnimationHook {
   healthGain,
   barrierGain,
   barrierLoss,
+  fragilidadBurst,
 }
 
 enum BattleCombatMotionAsset {
@@ -47,6 +48,7 @@ enum BattleCombatFloatingNumberTone {
   poisonDamage,
   healing,
   barrierGain,
+  fragilidadDamage,
 }
 
 class BattleCombatFloatingNumberCue {
@@ -1427,7 +1429,8 @@ class BattleController extends ChangeNotifier {
     final ownerBeforeDamage = owner
         .removeCombatFlagsFor(BattlerCombatFlag.barrierBrokenThisHit)
         .removeCombatFlagsFor(BattlerCombatFlag.barrierLostThisHit)
-        .removeCombatFlagsFor(BattlerCombatFlag.healthLostThisHit);
+        .removeCombatFlagsFor(BattlerCombatFlag.healthLostThisHit)
+        .removeCombatFlagsFor(BattlerCombatFlag.fragilidadTriggeredThisHit);
     final bypassDamage = min(
       safeDamage,
       min(max(0, barrierIgnore), ownerBeforeDamage.currentBarrier),
@@ -1646,12 +1649,33 @@ class BattleController extends ChangeNotifier {
   }) async {
     var visualPlayer = playerBefore;
     var visualEnemy = enemyBefore;
+    final playerFragilidadDamage = playerBefore.health > playerAfter.health
+        ? playerAfter.fragilidadTriggeredThisHit
+        : 0;
+    final enemyFragilidadDamage = enemyBefore.health > enemyAfter.health
+        ? enemyAfter.fragilidadTriggeredThisHit
+        : 0;
+    final targetPlayerAfter = playerFragilidadDamage > 0
+        ? playerAfter.copyWith(
+            health: min(playerBefore.health,
+                playerAfter.health + playerFragilidadDamage),
+            statuses: playerBefore.statuses,
+          )
+        : playerAfter;
+    final targetEnemyAfter = enemyFragilidadDamage > 0
+        ? enemyAfter.copyWith(
+            health: min(
+                enemyBefore.health, enemyAfter.health + enemyFragilidadDamage),
+            statuses: enemyBefore.statuses,
+          )
+        : enemyAfter;
 
     for (final side in BattleCombatantSide.values) {
       final before =
           side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
-      final after =
-          side == BattleCombatantSide.player ? playerAfter : enemyAfter;
+      final after = side == BattleCombatantSide.player
+          ? targetPlayerAfter
+          : targetEnemyAfter;
       final barrierLoss = after.currentBarrier < before.currentBarrier;
       final healthLoss = after.health < before.health;
       if (!barrierLoss && !healthLoss) continue;
@@ -1693,8 +1717,9 @@ class BattleController extends ChangeNotifier {
     for (final side in BattleCombatantSide.values) {
       final before =
           side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
-      final after =
-          side == BattleCombatantSide.player ? playerAfter : enemyAfter;
+      final after = side == BattleCombatantSide.player
+          ? targetPlayerAfter
+          : targetEnemyAfter;
       if (after.currentBarrier <= before.currentBarrier) continue;
 
       final next = _buildVisualBattlerTransition(
@@ -1727,8 +1752,9 @@ class BattleController extends ChangeNotifier {
     for (final side in BattleCombatantSide.values) {
       final before =
           side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
-      final after =
-          side == BattleCombatantSide.player ? playerAfter : enemyAfter;
+      final after = side == BattleCombatantSide.player
+          ? targetPlayerAfter
+          : targetEnemyAfter;
       if (after.health <= before.health) continue;
 
       final next = _buildVisualBattlerTransition(
@@ -1755,6 +1781,37 @@ class BattleController extends ChangeNotifier {
         visualPlayer = next;
       } else {
         visualEnemy = next;
+      }
+    }
+
+    for (final side in BattleCombatantSide.values) {
+      final fragilidadDamage = side == BattleCombatantSide.player
+          ? playerFragilidadDamage
+          : enemyFragilidadDamage;
+      if (fragilidadDamage <= 0) continue;
+
+      await _playCombatAnimation(
+        _stateTransitionCue(
+          hook: BattleCombatAnimationHook.fragilidadBurst,
+          side: side,
+          playerBefore: visualPlayer,
+          enemyBefore: visualEnemy,
+          playerAfter:
+              side == BattleCombatantSide.player ? playerAfter : visualPlayer,
+          enemyAfter:
+              side == BattleCombatantSide.enemy ? enemyAfter : visualEnemy,
+          floatingNumbers: <BattleCombatFloatingNumberCue>[
+            BattleCombatFloatingNumberCue(
+              tone: BattleCombatFloatingNumberTone.fragilidadDamage,
+              amount: fragilidadDamage,
+            ),
+          ],
+        ),
+      );
+      if (side == BattleCombatantSide.player) {
+        visualPlayer = playerAfter;
+      } else {
+        visualEnemy = enemyAfter;
       }
     }
   }

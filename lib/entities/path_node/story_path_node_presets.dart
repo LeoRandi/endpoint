@@ -314,6 +314,48 @@ final toxinLabNode = ShopPathNode(
   ],
 );
 
+/// Hallazgo gris temprano que entrega equipo del arquetipo actual.
+final strandedTrashNode = EventPathNode(
+  id: PathEventId.strandedTrash,
+  nodeId: 'event_stranded_trash',
+  label: 'Basura Varada',
+  tooltip: 'Encuentra un objeto gris gratis del arquetipo actual',
+  iconEmoji: '\u{1F5D1}',
+  rarity: RarityTier.gray,
+  accent: RarityTier.gray.accent,
+  badgeLabel: 'HALLAZGO',
+  showTitle: 'Has encontrado basura varada',
+  eventTitle: 'BASURA VARADA',
+  description:
+      'Un monton de chatarra quedo atascado entre dos barreras de contencion. Algo util todavia parpadea debajo.',
+  outcomeText: 'Recibes un objeto gris del arquetipo actual.',
+  flavorTexts: [
+    'La ruta se estrecha junto a un canal seco. Entre plasticos, cables y etiquetas viejas, una pieza aun conserva carga.',
+    'No parece elegante, pero encaja con tus protocolos. A veces la calle tambien hace entregas.',
+  ],
+);
+
+/// Hallazgo verde temprano que entrega equipo del arquetipo actual.
+final lostCacheNode = EventPathNode(
+  id: PathEventId.lostCache,
+  nodeId: 'event_lost_cache',
+  label: 'Alijo Perdido',
+  tooltip: 'Encuentra un objeto verde gratis del arquetipo actual',
+  iconEmoji: '\u{1F4E6}',
+  rarity: RarityTier.green,
+  accent: RarityTier.green.accent,
+  badgeLabel: 'CACHE',
+  showTitle: 'Has encontrado un alijo perdido',
+  eventTitle: 'ALIJO PERDIDO',
+  description:
+      'Una caja de suministro aparece bajo un falso panel de mantenimiento. El sello esta roto, pero el contenido sigue intacto.',
+  outcomeText: 'Recibes un objeto verde del arquetipo actual.',
+  flavorTexts: [
+    'El contenedor no figura en ningun mapa operativo. Eso suele ser una mala senal, salvo cuando se abre sin explotar.',
+    'Dentro hay piezas limpias, ordenadas y demasiado compatibles con tu equipo como para ser casualidad.',
+  ],
+);
+
 /// Evento verde diurno preparado para futuras mejoras temporales.
 final shadyTechnosurgeonNode = EventPathNode(
   id: PathEventId.shadyTechnosurgeon,
@@ -614,6 +656,8 @@ final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
 
 /// Eventos candidatos para el tramo diurno.
 final List<EventPathNode> dayEventNodes = List.unmodifiable([
+  strandedTrashNode,
+  lostCacheNode,
   shadyTechnosurgeonNode,
   blackTechnoMarketNode,
   sobreKarNode,

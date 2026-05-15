@@ -323,7 +323,6 @@ const _drawingBonusEligibleHooks = <ItemEffectHook>{
 
 /// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
 class Item {
-  static const int _costPerRarityFactor = 2;
   static int _nextInstanceSequence = 0;
   static final RegExp _ownedInstancePattern = RegExp(r'^item_(\d+)$');
 
@@ -495,11 +494,11 @@ class Item {
   int get cost {
     if (baseCost <= 0) return 0;
 
-    return max(baseCost, rarity.factor * _costPerRarityFactor);
+    return 1 << rarity.factor;
   }
 
-  /// Devuelve el valor actual de venta, incluyendo bonuses acumulados del propio item.
-  int get sellValue => max(1, (cost / 2).ceil()) + max(0, sellValueBonus);
+  /// Devuelve el valor de venta rapida fuera de tienda.
+  int get sellValue => max(1, rarity.factor);
 
   /// Calcula el income que aporta el objeto a partir de su valor actual.
   int get incomeModifier => value * incomePerValueUnit;

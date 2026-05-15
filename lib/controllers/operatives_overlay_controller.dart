@@ -63,6 +63,15 @@ class OperativesOverlayController extends ChangeNotifier {
     return null;
   }
 
+  /// Devuelve la accion de venta rapida disponible durante la seleccion de nodo.
+  String? sellActionLabelFor(Item item) {
+    if (!_player.inventoryItems.contains(item)) return null;
+    return 'Sell (${quickSellValueFor(item)})';
+  }
+
+  /// Devuelve el pago reducido de venta rapida fuera de tienda.
+  int quickSellValueFor(Item item) => item.sellValue;
+
   /// Indica si la accion primaria del dialogo del jugador esta disponible.
   bool isActionEnabled(Item item) {
     if (_player.equippedItems.contains(item)) return true;
@@ -137,6 +146,16 @@ class OperativesOverlayController extends ChangeNotifier {
     if (!_player.equippedItems.contains(item)) return false;
 
     _replacePlayer(_player.unequipItem(item));
+    return true;
+  }
+
+  /// Vende permanentemente un item del inventario durante la seleccion de nodo.
+  bool sellInventoryItem(Item item) {
+    if (!_player.inventoryItems.contains(item)) return false;
+
+    _replacePlayer(
+      _player.removeItem(item).earnMoney(quickSellValueFor(item)),
+    );
     return true;
   }
 

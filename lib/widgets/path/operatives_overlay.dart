@@ -5,11 +5,11 @@ import 'package:flutter/foundation.dart';
 
 const _operativeTileExtent = 70.0;
 const _operativeTileHeight = 84.0;
-const _operativesPatternPanelHeight = 288.0;
-const _operativesPatternBoardScale = 0.78;
+const _operativesPatternPanelHeight = 340.0;
+const _operativesPatternBoardScale = 0.92;
 const _operativesPatternDiamondRotation = pi / 4;
-const _operativesPatternPointVisualSize = 34.0;
-const _operativesPatternPointHitSize = 58.0;
+const _operativesPatternPointVisualSize = 38.0;
+const _operativesPatternPointHitSize = 64.0;
 
 class OperativesOverlay extends StatefulWidget {
   final Battler player;
@@ -96,6 +96,18 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                           _controller.handlePrimaryAction(item);
                         }
                       : null,
+              secondaryActionLabel: _controller.sellActionLabelFor(item),
+              secondaryActionIcon: Icons.sell_rounded,
+              onSecondaryAction: () {
+                final wasSold = _controller.sellInventoryItem(item);
+                if (wasSold) Navigator.of(context).pop();
+              },
+              isSecondaryActionEnabled:
+                  _controller.sellActionLabelFor(item) != null,
+              enabledSecondaryActionTooltip:
+                  'Vender objeto fuera de tienda por ${_controller.quickSellValueFor(item)} creditos',
+              disabledSecondaryActionTooltip:
+                  'El objeto ya no esta en tu inventario',
               isActionEnabled:
                   !isPatternMode && _controller.isActionEnabled(item),
               enabledActionTooltip: _controller.enabledActionTooltipFor(item),
@@ -608,6 +620,7 @@ class _PatternEquipmentPanel extends StatelessWidget {
             const SizedBox(height: 6),
             Expanded(
               child: _PatternEquipmentBoard(
+                battler: battler,
                 assignments: assignments,
                 canAcceptItem: canAcceptItem,
                 onAcceptItem: onAcceptItem,
@@ -622,12 +635,14 @@ class _PatternEquipmentPanel extends StatelessWidget {
 }
 
 class _PatternEquipmentBoard extends StatelessWidget {
+  final Battler battler;
   final Map<Item, OperativePatternPoint> assignments;
   final bool Function(Item item, OperativePatternPoint point) canAcceptItem;
   final void Function(Item item, OperativePatternPoint point) onAcceptItem;
   final ValueChanged<Item>? onItemPressed;
 
   const _PatternEquipmentBoard({
+    required this.battler,
     required this.assignments,
     required this.canAcceptItem,
     required this.onAcceptItem,
@@ -648,40 +663,59 @@ class _PatternEquipmentBoard extends StatelessWidget {
           itemsByPoint: itemsByPoint,
           boardSide: boardSide,
         );
+        final adjacencyTotals = _adjacencyBonusTotals(
+          itemsByPoint: itemsByPoint,
+        );
 
-        return Center(
-          child: Transform.rotate(
-            angle: _operativesPatternDiamondRotation,
-            child: SizedBox.square(
-              dimension: boardSide,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  if (adjacencyGuideSegments.isNotEmpty)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: CustomPaint(
-                          painter: OperativePatternAdjacencyGuidePainter(
-                            segments: adjacencyGuideSegments,
-                            endpointInset:
-                                _operativesPatternPointVisualSize * 0.62,
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Center(
+              child: Transform.rotate(
+                angle: _operativesPatternDiamondRotation,
+                child: SizedBox.square(
+                  dimension: boardSide,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      if (adjacencyGuideSegments.isNotEmpty)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: OperativePatternAdjacencyGuidePainter(
+                                segments: adjacencyGuideSegments,
+                                endpointInset:
+                                    _operativesPatternPointVisualSize * 0.62,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  for (final point in operativePatternPoints)
-                    _PatternEquipmentPointTarget(
-                      point: point,
-                      item: itemsByPoint[point],
-                      center: _patternPointCenter(point, boardSide),
-                      canAcceptItem: canAcceptItem,
-                      onAcceptItem: onAcceptItem,
-                      onItemPressed: onItemPressed,
-                    ),
-                ],
+                      for (final point in operativePatternPoints)
+                        _PatternEquipmentPointTarget(
+                          point: point,
+                          item: itemsByPoint[point],
+                          center: _patternPointCenter(point, boardSide),
+                          canAcceptItem: canAcceptItem,
+                          onAcceptItem: onAcceptItem,
+                          onItemPressed: onItemPressed,
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _PatternEquipmentBoardPills(
+                baseAttack: battler.baseAttack,
+                baseBarrier: battler.baseBarrier,
+                adjacencyAttack: adjacencyTotals.attack,
+                adjacencyBarrier: adjacencyTotals.barrier,
+              ),
+            ),
+          ],
         );
       },
     );
@@ -728,6 +762,45 @@ class _PatternEquipmentBoard extends StatelessWidget {
     return List<OperativePatternAdjacencyGuideSegment>.unmodifiable(segments);
   }
 
+  _PatternAdjacencyBonusTotals _adjacencyBonusTotals({
+    required Map<OperativePatternPoint, Item> itemsByPoint,
+  }) {
+    var attack = 0;
+    var barrier = 0;
+
+    for (final entry in itemsByPoint.entries) {
+      final point = entry.key;
+      final item = entry.value;
+      for (final adjacencyBonus in item.patternAdjacencyBonuses) {
+        final targetPoint = _patternPointAt(
+          x: point.x + adjacencyBonus.direction.dx,
+          y: point.y + adjacencyBonus.direction.dy,
+        );
+        if (targetPoint == null) continue;
+
+        final targetItem = itemsByPoint[targetPoint];
+        if (targetItem == null ||
+            !targetItem.hasTag(adjacencyBonus.requiredTag)) {
+          continue;
+        }
+
+        switch (adjacencyBonus.kind) {
+          case OperativePatternBonusKind.attack:
+            attack += adjacencyBonus.amount;
+            break;
+          case OperativePatternBonusKind.barrier:
+            barrier += adjacencyBonus.amount;
+            break;
+        }
+      }
+    }
+
+    return _PatternAdjacencyBonusTotals(
+      attack: attack,
+      barrier: barrier,
+    );
+  }
+
   OperativePatternPoint? _patternPointAt({
     required int x,
     required int y,
@@ -736,6 +809,188 @@ class _PatternEquipmentBoard extends StatelessWidget {
       if (point.x == x && point.y == y) return point;
     }
     return null;
+  }
+}
+
+class _PatternAdjacencyBonusTotals {
+  final int attack;
+  final int barrier;
+
+  const _PatternAdjacencyBonusTotals({
+    required this.attack,
+    required this.barrier,
+  });
+}
+
+class _PatternEquipmentBoardPills extends StatefulWidget {
+  final int baseAttack;
+  final int baseBarrier;
+  final int adjacencyAttack;
+  final int adjacencyBarrier;
+
+  const _PatternEquipmentBoardPills({
+    required this.baseAttack,
+    required this.baseBarrier,
+    required this.adjacencyAttack,
+    required this.adjacencyBarrier,
+  });
+
+  @override
+  State<_PatternEquipmentBoardPills> createState() =>
+      _PatternEquipmentBoardPillsState();
+}
+
+class _PatternEquipmentBoardPillsState
+    extends State<_PatternEquipmentBoardPills> {
+  bool _showBaseFullText = false;
+  bool _showAdjacencyFullText = false;
+
+  void _toggleBaseText() {
+    setState(() {
+      _showBaseFullText = !_showBaseFullText;
+    });
+  }
+
+  void _toggleAdjacencyText() {
+    setState(() {
+      _showAdjacencyFullText = !_showAdjacencyFullText;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Flexible(
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: _PatternEquipmentBoardPillGroup(
+              onTap: _toggleBaseText,
+              children: [
+                _PatternEquipmentBoardPill(
+                  compactLabel: '${max(0, widget.baseAttack)} BA',
+                  fullLabel: '${max(0, widget.baseAttack)} BASE ATTACK',
+                  isFullText: _showBaseFullText,
+                  accent: EndpointPalette.dangerAccent,
+                ),
+                _PatternEquipmentBoardPill(
+                  compactLabel: '${max(0, widget.baseBarrier)} BB',
+                  fullLabel: '${max(0, widget.baseBarrier)} BASE BARRIER',
+                  isFullText: _showBaseFullText,
+                  accent: BattlerStat.barrier.accent,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: _PatternEquipmentBoardPillGroup(
+              onTap: _toggleAdjacencyText,
+              children: [
+                _PatternEquipmentBoardPill(
+                  compactLabel: 'AA ${max(0, widget.adjacencyAttack)}',
+                  fullLabel:
+                      'ADJACENCY ATTACK ${max(0, widget.adjacencyAttack)}',
+                  isFullText: _showAdjacencyFullText,
+                  accent: EndpointPalette.dangerAccent,
+                ),
+                _PatternEquipmentBoardPill(
+                  compactLabel: 'AB ${max(0, widget.adjacencyBarrier)}',
+                  fullLabel:
+                      'ADJACENCY BARRIER ${max(0, widget.adjacencyBarrier)}',
+                  isFullText: _showAdjacencyFullText,
+                  accent: BattlerStat.barrier.accent,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PatternEquipmentBoardPillGroup extends StatelessWidget {
+  final VoidCallback onTap;
+  final List<Widget> children;
+
+  const _PatternEquipmentBoardPillGroup({
+    required this.onTap,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var index = 0; index < children.length; index++) ...[
+            if (index > 0) const SizedBox(height: 4),
+            children[index],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PatternEquipmentBoardPill extends StatelessWidget {
+  final String compactLabel;
+  final String fullLabel;
+  final bool isFullText;
+  final Color accent;
+
+  const _PatternEquipmentBoardPill({
+    required this.compactLabel,
+    required this.fullLabel,
+    required this.isFullText,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = isFullText ? fullLabel : compactLabel;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundBattleOpaque.withValues(
+          alpha: 0.9,
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accent.withValues(alpha: 0.58)),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.12),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          isFullText ? 7 : 6,
+          4,
+          isFullText ? 7 : 6,
+          4,
+        ),
+        child: EndpointText(
+          label,
+          style: textSmallNumericBold.copyWith(
+            color: accent,
+            fontSize: isFullText ? 9.5 : 10,
+            letterSpacing: 0.2,
+            height: 1,
+          ),
+        ),
+      ),
+    );
   }
 }
 

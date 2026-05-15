@@ -363,9 +363,17 @@ class FragilidadStatus extends BattlerStatus {
     if (resolved(owner).value < maxValue) return owner;
 
     final ownerWithoutFragility = owner.removeStatus(statusId);
-    final damagedOwner = ownerWithoutFragility.copyWith(
-      health: max(0, ownerWithoutFragility.health - triggerDamage),
-    );
+    final visibleDamage = min(triggerDamage, ownerWithoutFragility.health);
+    final damagedOwner = ownerWithoutFragility
+        .copyWith(
+          health: max(0, ownerWithoutFragility.health - triggerDamage),
+        )
+        .addCombatFlag(
+          CombatRuntimeFlag.battler(
+            BattlerCombatFlag.fragilidadTriggeredThisHit,
+            secondaryValue: visibleDamage,
+          ),
+        );
     if (damagedOwner.health > 0) {
       return damagedOwner;
     }

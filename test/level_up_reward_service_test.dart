@@ -94,6 +94,10 @@ void main() {
       expect(abilityResult.maxHealth, abilityPlayer.maxHealth + 10);
       expect(
           abilityResult.equipmentCapacity, abilityPlayer.equipmentCapacity + 1);
+      expect(
+        OperativePatternCombatRules.maxPatternPointsFor(abilityResult),
+        OperativePatternCombatRules.maxPatternPointsFor(abilityPlayer) + 1,
+      );
       expect(abilityResult.hasAbility(abilityChoice.ability!), isTrue);
 
       final itemPlayer = _levelReadyPlayer(
@@ -111,8 +115,47 @@ void main() {
       expect(itemResult.level, 3);
       expect(itemResult.attack, itemPlayer.attack + 1);
       expect(itemResult.maxHealth, itemPlayer.maxHealth + 10);
+      expect(itemResult.equipmentCapacity, itemPlayer.equipmentCapacity);
+      expect(
+        OperativePatternCombatRules.maxPatternPointsFor(itemResult),
+        OperativePatternCombatRules.maxPatternPointsFor(itemPlayer),
+      );
       expect(ownedItem, isNotNull);
       expect(ownedItem!.rarity, RarityTier.blue);
+    });
+
+    test('equipment and combat pattern capacity increase only on even levels',
+        () {
+      var player = _levelReadyPlayer();
+
+      expect(player.level, 1);
+      expect(player.equipmentCapacity, Battler.defaultEquipmentCapacity);
+      expect(OperativePatternCombatRules.maxPatternPointsFor(player), 3);
+
+      player = player.applyLevelReward(
+        const BattlerLevelRewardChoice.stat(BattlerLevelReward.attack),
+      );
+      expect(player.level, 2);
+      expect(player.equipmentCapacity, Battler.defaultEquipmentCapacity + 1);
+      expect(OperativePatternCombatRules.maxPatternPointsFor(player), 4);
+
+      player = player
+          .copyWith(experience: player.experienceToNextLevel)
+          .applyLevelReward(
+            const BattlerLevelRewardChoice.stat(BattlerLevelReward.attack),
+          );
+      expect(player.level, 3);
+      expect(player.equipmentCapacity, Battler.defaultEquipmentCapacity + 1);
+      expect(OperativePatternCombatRules.maxPatternPointsFor(player), 4);
+
+      player = player
+          .copyWith(experience: player.experienceToNextLevel)
+          .applyLevelReward(
+            const BattlerLevelRewardChoice.stat(BattlerLevelReward.attack),
+          );
+      expect(player.level, 4);
+      expect(player.equipmentCapacity, Battler.defaultEquipmentCapacity + 2);
+      expect(OperativePatternCombatRules.maxPatternPointsFor(player), 5);
     });
   });
 

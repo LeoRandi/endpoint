@@ -25,6 +25,13 @@ extension BattlerCombatRuntime on Battler {
     return _secondaryValueForBattlerFlag(BattlerCombatFlag.healthLostThisHit);
   }
 
+  /// Devuelve el dano directo separado que ha causado Fragilidad en este golpe.
+  int get fragilidadTriggeredThisHit {
+    return _secondaryValueForBattlerFlag(
+      BattlerCombatFlag.fragilidadTriggeredThisHit,
+    );
+  }
+
   /// Bonus plano que las pasivas de Resonancia anaden a su dano propio.
   int get resonanceDamageBonus {
     final ability = abilityById(BattlerAbilityId.masaCritica);

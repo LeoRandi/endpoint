@@ -82,7 +82,8 @@ class OperativePatternAdjacencyGuidePainter extends CustomPainter {
       final direction = delta / distance;
       final inset = min(endpointInset, distance * 0.32);
       final start = segment.start + (direction * inset);
-      final end = segment.end - (direction * inset);
+      final midpoint = Offset.lerp(segment.start, segment.end, 0.5)!;
+      final end = midpoint - (direction * min(3.0, distance * 0.04));
       final path = Path()
         ..moveTo(start.dx, start.dy)
         ..lineTo(end.dx, end.dy);
@@ -104,7 +105,46 @@ class OperativePatternAdjacencyGuidePainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..strokeWidth = segment.isMatched ? 3.1 : 2.1;
       canvas.drawPath(path, corePaint);
+      _drawArrowHead(
+        canvas: canvas,
+        tip: end,
+        direction: direction,
+        color: corePaint.color,
+        strokeWidth: corePaint.strokeWidth,
+      );
     }
+  }
+
+  void _drawArrowHead({
+    required Canvas canvas,
+    required Offset tip,
+    required Offset direction,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final arrowLength = 8.0 + strokeWidth * 1.4;
+    const wingAngle = pi * 0.78;
+    final directionAngle = atan2(direction.dy, direction.dx);
+    final firstWing = Offset(
+      cos(directionAngle + wingAngle) * arrowLength,
+      sin(directionAngle + wingAngle) * arrowLength,
+    );
+    final secondWing = Offset(
+      cos(directionAngle - wingAngle) * arrowLength,
+      sin(directionAngle - wingAngle) * arrowLength,
+    );
+    final arrowPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..strokeWidth = strokeWidth;
+    final arrowPath = Path()
+      ..moveTo((tip + firstWing).dx, (tip + firstWing).dy)
+      ..lineTo(tip.dx, tip.dy)
+      ..lineTo((tip + secondWing).dx, (tip + secondWing).dy);
+
+    canvas.drawPath(arrowPath, arrowPaint);
   }
 
   @override
@@ -902,41 +942,44 @@ class _OperativePatternDotVisual extends StatelessWidget {
             Center(
               child: Transform.rotate(
                 angle: _operativePatternContentCounterRotation,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    EndpointText(
-                      currentItem.iconEmoji,
-                      style: TextStyle(
-                        fontSize: itemFontSize,
-                        height: 1,
-                        shadows: [
-                          if (isActive)
-                            Shadow(
-                              color: activeAccent.withValues(alpha: 0.84),
-                              blurRadius: 18,
-                            ),
-                          if (isActive)
-                            Shadow(
-                              color: activeAccent.withValues(alpha: 0.54),
-                              blurRadius: 28,
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (bonus != null) ...[
-                      SizedBox(height: max(1, size * 0.03)),
-                      _OperativePatternBonusVisual(
-                        bonus: bonus,
-                        size: size * 0.82,
-                        isActive: isActive,
-                        isEnabled: isBonusEnabled,
-                      ),
+                child: EndpointText(
+                  currentItem.iconEmoji,
+                  style: TextStyle(
+                    fontSize: itemFontSize,
+                    height: 1,
+                    shadows: [
+                      if (isActive)
+                        Shadow(
+                          color: activeAccent.withValues(alpha: 0.84),
+                          blurRadius: 18,
+                        ),
+                      if (isActive)
+                        Shadow(
+                          color: activeAccent.withValues(alpha: 0.54),
+                          blurRadius: 28,
+                        ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
+            if (bonus != null)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: size * 0.04,
+                child: Center(
+                  child: Transform.rotate(
+                    angle: _operativePatternContentCounterRotation,
+                    child: _OperativePatternBonusVisual(
+                      bonus: bonus,
+                      size: size * 0.56,
+                      isActive: isActive,
+                      isEnabled: isBonusEnabled,
+                    ),
+                  ),
+                ),
+              ),
             if (requirement != null)
               Positioned(
                 right: 0,

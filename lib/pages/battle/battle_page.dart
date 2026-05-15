@@ -11,6 +11,7 @@ const _battleAttackFastImpactDuration = Duration(milliseconds: 200);
 const _battleImpactBarDuration = Duration(milliseconds: 250);
 const _battleFloatingNumberDuration = Duration(milliseconds: 520);
 const _battleStatusEffectBurstDuration = Duration(milliseconds: 500);
+const _battleFragilidadBurstDuration = Duration(milliseconds: 620);
 const _battleSwordAssetPath = 'assets/images/icons/icon_sword.png';
 const _battleShieldAssetPath = 'assets/images/icons/icon_shield.png';
 const _battleFistAssetPath = 'assets/images/icons/icon_unarmed.png';
@@ -94,6 +95,16 @@ class _BattleFloatingNumberBurst {
   });
 }
 
+class _BattleFragilidadBurst {
+  final int id;
+  final Offset center;
+
+  const _BattleFragilidadBurst({
+    required this.id,
+    required this.center,
+  });
+}
+
 class BattlePage extends StatefulWidget {
   final Battler enemy;
   final Battler player;
@@ -137,6 +148,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   _BattleCombatIconMotion? _activeCombatIconMotion;
   _BattleStatusEffectBurst? _activeStatusEffectBurst;
   _BattleFloatingNumberBurst? _activeFloatingNumberBurst;
+  _BattleFragilidadBurst? _activeFragilidadBurst;
   Battler? _displayPlayerOverride;
   Battler? _displayEnemyOverride;
   int? _playerBarrierAnimationReference;
@@ -155,6 +167,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   BattlePatternBlockMode? _previousYellowPatternBlockMode;
   int _statusEffectBurstSequence = 0;
   int _floatingNumberBurstSequence = 0;
+  int _fragilidadBurstSequence = 0;
 
   @override
   void initState() {
@@ -200,6 +213,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         _displayEnemyOverride = null;
         _activeCombatIconMotion = null;
         _activeStatusEffectBurst = null;
+        _activeFragilidadBurst = null;
         _playerBarrierAnimationReference = null;
         _enemyBarrierAnimationReference = null;
         _animatedHealthSides = const {};
@@ -368,6 +382,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
           enemyTier: widget.enemyTier,
           combatRound: _sceneController.currentRound,
+          actionEffects:
+              _sceneController.playerActionIntentPreview.attackEffects,
           itemPointUseCounts: _patternItemPointUseCounts,
           previousYellowBlockMode: _previousYellowPatternBlockMode,
           randomNextInt: _sceneController.randomizer.nextInt,
@@ -488,6 +504,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       case BattleCombatAnimationHook.barrierLoss:
         await _playCombatStatCue(cue);
         break;
+      case BattleCombatAnimationHook.fragilidadBurst:
+        await _playFragilidadBurstCue(cue);
+        break;
     }
   }
 
@@ -555,6 +574,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeStatusEffectBurst = null;
       _activeFloatingNumberBurst = null;
+      _activeFragilidadBurst = null;
       _activeCombatIconMotion = _BattleCombatIconMotion(
         hook: cue.hook,
         start: start,
@@ -607,6 +627,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeCombatIconMotion = null;
       _activeFloatingNumberBurst = null;
+      _activeFragilidadBurst = null;
       _activeStatusEffectBurst = burst;
     });
 
@@ -712,6 +733,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeStatusEffectBurst = null;
       _activeCombatIconMotion = null;
+      _activeFragilidadBurst = null;
       _activeFloatingNumberBurst = floatingNumberBurst;
     });
     if (floatingNumberBurst != null) {
@@ -734,6 +756,57 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
     await Future<void>.delayed(_battleImpactBarDuration);
     if (!mounted) return;
+    _releaseDisplayOverrideOnNextSceneChange = true;
+  }
+
+  Future<void> _playFragilidadBurstCue(BattleCombatAnimationCue cue) async {
+    final floatingNumberBurst = _buildFloatingNumberBurst(cue);
+    final fragilidadBurst = _BattleFragilidadBurst(
+      id: ++_fragilidadBurstSequence,
+      center: _centerForSide(cue.primarySide),
+    );
+
+    setState(() {
+      _isPlayingBattleAnimation = true;
+      _releaseDisplayOverrideOnNextSceneChange = false;
+      _displayPlayerOverride = cue.playerBefore;
+      _displayEnemyOverride = cue.enemyBefore;
+      _playerBarrierAnimationReference = _barrierAnimationReferenceFor(
+        cue.playerBefore,
+        cue.playerAfter,
+      );
+      _enemyBarrierAnimationReference = _barrierAnimationReferenceFor(
+        cue.enemyBefore,
+        cue.enemyAfter,
+      );
+      _animatedHealthSides = const {};
+      _animatedBarrierSides = const {};
+      _activeStatusEffectBurst = null;
+      _activeCombatIconMotion = null;
+      _activeFloatingNumberBurst = floatingNumberBurst;
+      _activeFragilidadBurst = fragilidadBurst;
+    });
+    if (floatingNumberBurst != null) {
+      unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
+    }
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    setState(() {
+      _displayPlayerOverride = cue.playerAfter;
+      _displayEnemyOverride = cue.enemyAfter;
+      _animatedHealthSides = <BattleCombatantSide>{cue.primarySide};
+      _animatedBarrierSides = const <BattleCombatantSide>{};
+    });
+
+    await Future<void>.delayed(_battleFragilidadBurstDuration);
+    if (!mounted) return;
+    setState(() {
+      if (_activeFragilidadBurst?.id == fragilidadBurst.id) {
+        _activeFragilidadBurst = null;
+      }
+    });
     _releaseDisplayOverrideOnNextSceneChange = true;
   }
 
@@ -818,7 +891,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       BattleCombatFloatingNumberTone.healthDamage ||
       BattleCombatFloatingNumberTone.barrierDamage ||
       BattleCombatFloatingNumberTone.burnDamage ||
-      BattleCombatFloatingNumberTone.poisonDamage =>
+      BattleCombatFloatingNumberTone.poisonDamage ||
+      BattleCombatFloatingNumberTone.fragilidadDamage =>
         '',
     };
 
@@ -834,6 +908,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         BattlerStat.barrier.accent,
       BattleCombatFloatingNumberTone.burnDamage => const Color(0xFFFF9B3D),
       BattleCombatFloatingNumberTone.poisonDamage => const Color(0xFFC084FC),
+      BattleCombatFloatingNumberTone.fragilidadDamage =>
+        const FragilidadStatus().type.accent,
       BattleCombatFloatingNumberTone.healing => const Color(0xFF8DFFB2),
     };
   }
@@ -1076,6 +1152,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       activeCombatIconMotion: _activeCombatIconMotion,
       activeStatusEffectBurst: _activeStatusEffectBurst,
       activeFloatingNumberBurst: _activeFloatingNumberBurst,
+      activeFragilidadBurst: _activeFragilidadBurst,
       playerBarrierAnimationReference: _playerBarrierAnimationReference,
       enemyBarrierAnimationReference: _enemyBarrierAnimationReference,
       animatedHealthSides: _animatedHealthSides,

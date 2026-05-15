@@ -2,6 +2,8 @@ import '../_imports.dart';
 
 /// Identifica cada evento para que la logica pueda resolverlo sin depender del texto visible.
 enum PathEventId {
+  strandedTrash,
+  lostCache,
   shadyTechnosurgeon,
   afterHoursTechnosurgeon,
   blackTechnoMarket,

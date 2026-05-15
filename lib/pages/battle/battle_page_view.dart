@@ -46,6 +46,7 @@ class _BattleSceneView extends StatelessWidget {
   final _BattleCombatIconMotion? activeCombatIconMotion;
   final _BattleStatusEffectBurst? activeStatusEffectBurst;
   final _BattleFloatingNumberBurst? activeFloatingNumberBurst;
+  final _BattleFragilidadBurst? activeFragilidadBurst;
   final int? playerBarrierAnimationReference;
   final int? enemyBarrierAnimationReference;
   final Set<BattleCombatantSide> animatedHealthSides;
@@ -78,6 +79,7 @@ class _BattleSceneView extends StatelessWidget {
     required this.activeCombatIconMotion,
     required this.activeStatusEffectBurst,
     required this.activeFloatingNumberBurst,
+    required this.activeFragilidadBurst,
     required this.playerBarrierAnimationReference,
     required this.enemyBarrierAnimationReference,
     required this.animatedHealthSides,
@@ -275,6 +277,12 @@ class _BattleSceneView extends StatelessWidget {
                             burst: activeFloatingNumberBurst!,
                           ),
                         ),
+                      if (activeFragilidadBurst != null)
+                        Positioned.fill(
+                          child: _BattleFragilidadBurstAnimationLayer(
+                            burst: activeFragilidadBurst!,
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -377,6 +385,101 @@ class _BattleFloatingNumberAnimationLayer extends StatelessWidget {
                   particle: particle,
                   progress: progress,
                 ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BattleFragilidadBurstAnimationLayer extends StatelessWidget {
+  final _BattleFragilidadBurst burst;
+
+  const _BattleFragilidadBurstAnimationLayer({
+    required this.burst,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const status = FragilidadStatus();
+    final accent = status.type.accent;
+
+    return TweenAnimationBuilder<double>(
+      key: ValueKey<int>(burst.id),
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: _battleFragilidadBurstDuration,
+      curve: Curves.linear,
+      builder: (context, progress, _) {
+        final pop = Curves.easeOutBack.transform(
+          (progress / 0.42).clamp(0.0, 1.0).toDouble(),
+        );
+        final fade = progress > 0.68
+            ? ((1 - progress) / 0.32).clamp(0.0, 1.0).toDouble()
+            : 1.0;
+        final size = 76.0 + 24.0 * pop;
+        final ringSize = size * (1.05 + progress * 0.65);
+
+        return IgnorePointer(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: burst.center.dx - ringSize / 2,
+                top: burst.center.dy - ringSize / 2,
+                width: ringSize,
+                height: ringSize,
+                child: Opacity(
+                  opacity: (1 - progress).clamp(0.0, 1.0).toDouble() * 0.75,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: accent.withAlpha(184),
+                        width: 2.4,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withAlpha(122),
+                          blurRadius: 20,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: burst.center.dx - size / 2,
+                top: burst.center.dy - size / 2,
+                width: size,
+                height: size,
+                child: Opacity(
+                  opacity: fade,
+                  child: Transform.rotate(
+                    angle: sin(progress * pi * 5) * 0.1,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: EndpointPalette.panelBackgroundBattleOpaque
+                            .withAlpha(226),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withAlpha(170),
+                            blurRadius: 22,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        status.icon,
+                        color: accent,
+                        size: size * 0.58,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         );

@@ -1,5 +1,6 @@
 import '../_imports.dart';
 import '../../services/battler_effect_pipeline.dart';
+import '../../services/battle_controller.dart';
 import '../../services/operative_pattern_bonus_service.dart';
 import '../../services/operative_pattern_combat_rules.dart';
 import '../../services/operative_pattern_resolution_service.dart';
@@ -9,6 +10,7 @@ const _battlePatternEnemySize = 112.0;
 const _battlePatternBlockStartDelay = Duration(milliseconds: 500);
 const _battlePatternBlockTravelDuration = Duration(milliseconds: 1100);
 const _battlePatternBlockMarkSize = 50.0;
+const _battlePatternBoardScale = 0.66;
 
 enum BattlePatternBlockMode {
   randomOne,
@@ -329,6 +331,7 @@ class BattlePatternMatchOverlay extends StatefulWidget {
   final Map<String, Item> equippedItemsByPointKey;
   final int enemyTier;
   final int combatRound;
+  final List<PlayerActionEffectIntent> actionEffects;
   final Map<String, int> itemPointUseCounts;
   final BattlePatternBlockMode? previousYellowBlockMode;
   final int Function(int max)? randomNextInt;
@@ -340,6 +343,7 @@ class BattlePatternMatchOverlay extends StatefulWidget {
     required this.equippedItemsByPointKey,
     this.enemyTier = 1,
     this.combatRound = 1,
+    this.actionEffects = const <PlayerActionEffectIntent>[],
     this.itemPointUseCounts = const <String, int>{},
     this.previousYellowBlockMode,
     this.randomNextInt,
@@ -538,7 +542,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     Navigator.of(context).pop(_currentResult);
   }
 
-  int _estimatedTotalDamageFor(int attackBonus) {
+  int _estimatedHitDamageFor(int attackBonus) {
     if (widget.enemy.hasStatus(PuntoCiegoStatus.statusId)) return 0;
 
     const effectPipeline = BattlerEffectPipeline();
@@ -582,6 +586,14 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     );
   }
 
+  String _estimatedTotalDamageLabelFor(int attackBonus) {
+    final hitDamage = _estimatedHitDamageFor(attackBonus);
+    final hitCount = max(1, widget.player.basicAttackCount);
+    if (hitCount <= 1) return '$hitDamage';
+
+    return '${max(0, hitDamage)}x$hitCount';
+  }
+
   Map<String, OperativePatternPointContent> _buildContentsByPointKey(
     OperativePatternResolution resolution,
   ) {
@@ -609,7 +621,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       resolution,
       _blockPlan.mode,
     );
-    final totalDamage = _estimatedTotalDamageFor(result.attackBonus);
+    final baseHitDamage = _estimatedHitDamageFor(0);
+    final totalDamageLabel = _estimatedTotalDamageLabelFor(result.attackBonus);
     final isClosed = resolution.isClosed;
     final blockedPointKeys =
         _blockAnimationCompleted ? _blockPlan.pointKeys : const <String>{};
@@ -637,7 +650,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                 children: [
                   Column(
                     children: [
-                      Expanded(
+                      SizedBox(
+                        height: 118,
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -653,6 +667,15 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                         ),
                       ),
                       const SizedBox(height: 8),
+                      _BattlePatternLiveSummary(
+                        baseHitDamage: baseHitDamage,
+                        totalDamageLabel: totalDamageLabel,
+                        attackBonus: result.attackBonus,
+                        barrierBonus: result.barrierBonus,
+                        effects: widget.actionEffects,
+                        pointCount: resolution.distinctPointCount,
+                      ),
+                      const SizedBox(height: 8),
                       Expanded(
                         child: Stack(
                           fit: StackFit.expand,
@@ -661,8 +684,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                               child: AspectRatio(
                                 aspectRatio: 1,
                                 child: FractionallySizedBox(
-                                  widthFactor: 0.76,
-                                  heightFactor: 0.76,
+                                  widthFactor: _battlePatternBoardScale,
+                                  heightFactor: _battlePatternBoardScale,
                                   child: IgnorePointer(
                                     ignoring: !_blockAnimationCompleted,
                                     child: Transform.rotate(
@@ -694,26 +717,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                       const SizedBox(height: 8),
                       _BattlePatternMatchFooter(
                         isClosed: isClosed,
-                        attackBonus: result.attackBonus,
-                        barrierBonus: result.barrierBonus,
                         pointCount: resolution.distinctPointCount,
                         maxPointCount: _maxPatternPoints,
                         onPressed: _blockAnimationCompleted ? _submit : null,
                       ),
                     ],
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Center(
-                        child: _BattlePatternLiveSummary(
-                          totalDamage: totalDamage,
-                          attackBonus: result.attackBonus,
-                          barrierBonus: result.barrierBonus,
-                          pointCount: resolution.distinctPointCount,
-                          maxPointCount: _maxPatternPoints,
-                        ),
-                      ),
-                    ),
                   ),
                   if (!_blockAnimationCompleted)
                     for (final animation in _blockMarkMotions)
@@ -770,18 +778,20 @@ class _BattlePatternEnemyStage extends StatelessWidget {
 }
 
 class _BattlePatternLiveSummary extends StatelessWidget {
-  final int totalDamage;
+  final int baseHitDamage;
+  final String totalDamageLabel;
   final int attackBonus;
   final int barrierBonus;
+  final List<PlayerActionEffectIntent> effects;
   final int pointCount;
-  final int maxPointCount;
 
   const _BattlePatternLiveSummary({
-    required this.totalDamage,
+    required this.baseHitDamage,
+    required this.totalDamageLabel,
     required this.attackBonus,
     required this.barrierBonus,
+    required this.effects,
     required this.pointCount,
-    required this.maxPointCount,
   });
 
   @override
@@ -801,39 +811,212 @@ class _BattlePatternLiveSummary extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        child: Row(
+          children: [
+            Expanded(
+              child: _BattlePatternDamageFormula(
+                baseHitDamage: baseHitDamage,
+                attackBonus: attackBonus,
+                totalDamageLabel: totalDamageLabel,
+                pointCount: pointCount,
+              ),
+            ),
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 48,
+              child: _BattlePatternAnimatedMetric(
+                label: '+B',
+                iconAssetPath: 'assets/images/icons/icon_shield.png',
+                value: barrierBonus,
+                accent: BattlerStat.barrier.accent,
+                pulseKey: pointCount,
+              ),
+            ),
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 42,
+              child: _BattlePatternEffectsCard(effects: effects),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BattlePatternDamageFormula extends StatelessWidget {
+  final int baseHitDamage;
+  final int attackBonus;
+  final String totalDamageLabel;
+  final int pointCount;
+
+  const _BattlePatternDamageFormula({
+    required this.baseHitDamage,
+    required this.attackBonus,
+    required this.totalDamageLabel,
+    required this.pointCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _BattlePatternMetricShell(
+            label: 'BA',
+            iconAssetPath: 'assets/images/icons/icon_sword.png',
+            valueLabel: '$baseHitDamage',
+            accent: EndpointPalette.dangerAccent,
+          ),
+        ),
+        const _BattlePatternFormulaOperator('+'),
+        Expanded(
+          child: _BattlePatternAnimatedMetric(
+            label: '+A',
+            iconAssetPath: 'assets/images/icons/icon_sword.png',
+            value: attackBonus,
+            accent: EndpointPalette.warningAccent,
+            pulseKey: pointCount,
+          ),
+        ),
+        const _BattlePatternFormulaOperator('='),
+        Expanded(
+          child: _BattlePatternLabelMetric(
+            label: 'DMG',
+            iconAssetPath: 'assets/images/icons/icon_sword.png',
+            valueLabel: totalDamageLabel,
+            accent: EndpointPalette.dangerAccent,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BattlePatternFormulaOperator extends StatelessWidget {
+  final String label;
+
+  const _BattlePatternFormulaOperator(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: EndpointText(
+        label,
+        style: textMediumBold.copyWith(
+          color: EndpointPalette.dangerAccent,
+          fontSize: 17,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class _BattlePatternEffectsCard extends StatelessWidget {
+  final List<PlayerActionEffectIntent> effects;
+
+  const _BattlePatternEffectsCard({
+    required this.effects,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.controlBackground,
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(
+          color: EndpointPalette.neutralAccent.withValues(alpha: 0.46),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
+        child: Center(
+          child: effects.isEmpty
+              ? Icon(
+                  Icons.remove_rounded,
+                  size: 15,
+                  color: EndpointPalette.softForeground.withAlpha(150),
+                )
+              : Wrap(
+                  spacing: 3,
+                  runSpacing: 3,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (final effect in effects)
+                      _BattlePatternEffectChip(effect: effect),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BattlePatternEffectChip extends StatelessWidget {
+  final PlayerActionEffectIntent effect;
+
+  const _BattlePatternEffectChip({
+    required this.effect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (effect.kind) {
+      PlayerActionEffectIntentKind.heal => Icons.favorite_rounded,
+      PlayerActionEffectIntentKind.buff ||
+      PlayerActionEffectIntentKind.debuff =>
+        effect.status?.icon ?? Icons.auto_awesome_rounded,
+      PlayerActionEffectIntentKind.ability =>
+        effect.ability?.icon ?? Icons.auto_awesome_rounded,
+    };
+    final accent = switch (effect.kind) {
+      PlayerActionEffectIntentKind.heal => BattlerStatusType.buff.accent,
+      PlayerActionEffectIntentKind.buff ||
+      PlayerActionEffectIntentKind.debuff =>
+        effect.status?.type.accent ?? EndpointPalette.neutralAccent,
+      PlayerActionEffectIntentKind.ability =>
+        effect.ability?.accent ?? EndpointPalette.neutralAccent,
+    };
+    final valueLabel = switch (effect.kind) {
+      PlayerActionEffectIntentKind.heal => '${max(0, effect.amount)}',
+      PlayerActionEffectIntentKind.buff ||
+      PlayerActionEffectIntentKind.debuff =>
+        effect.amount > 0 ? '${max(0, effect.amount)}' : null,
+      PlayerActionEffectIntentKind.ability => null,
+    };
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundBattleOpaque,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accent.withAlpha(145)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _BattlePatternAnimatedMetric(
-              label: 'DMG',
-              iconAssetPath: 'assets/images/icons/icon_sword.png',
-              value: totalDamage,
-              accent: EndpointPalette.dangerAccent,
-              prefix: '',
-              pulseKey: pointCount,
+            Icon(
+              icon,
+              size: 12,
+              color: accent,
             ),
-            const SizedBox(width: 8),
-            _BattlePatternAnimatedMetric(
-              label: 'ATK',
-              iconAssetPath: 'assets/images/icons/icon_sword.png',
-              value: attackBonus,
-              accent: EndpointPalette.warningAccent,
-              pulseKey: pointCount,
-            ),
-            const SizedBox(width: 8),
-            _BattlePatternAnimatedMetric(
-              label: 'BAR',
-              iconAssetPath: 'assets/images/icons/icon_shield.png',
-              value: barrierBonus,
-              accent: BattlerStat.barrier.accent,
-              pulseKey: pointCount,
-            ),
-            const SizedBox(width: 8),
-            _BattlePatternPointMetric(
-              pointCount: pointCount,
-              maxPointCount: maxPointCount,
-            ),
+            if (valueLabel != null) ...[
+              const SizedBox(width: 2),
+              EndpointText(
+                valueLabel,
+                style: textSmallNumericBold.copyWith(
+                  color: accent,
+                  fontSize: 10,
+                  letterSpacing: 0.2,
+                  height: 1,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -846,7 +1029,6 @@ class _BattlePatternAnimatedMetric extends StatelessWidget {
   final String iconAssetPath;
   final int value;
   final Color accent;
-  final String prefix;
   final int pulseKey;
 
   const _BattlePatternAnimatedMetric({
@@ -854,7 +1036,6 @@ class _BattlePatternAnimatedMetric extends StatelessWidget {
     required this.iconAssetPath,
     required this.value,
     required this.accent,
-    this.prefix = '+',
     required this.pulseKey,
   });
 
@@ -877,7 +1058,7 @@ class _BattlePatternAnimatedMetric extends StatelessWidget {
           child: _BattlePatternMetricShell(
             label: label,
             iconAssetPath: iconAssetPath,
-            valueLabel: '$prefix${animatedValue.round()}',
+            valueLabel: '+${animatedValue.round()}',
             accent: accent,
           ),
         );
@@ -886,35 +1067,26 @@ class _BattlePatternAnimatedMetric extends StatelessWidget {
   }
 }
 
-class _BattlePatternPointMetric extends StatelessWidget {
-  final int pointCount;
-  final int maxPointCount;
+class _BattlePatternLabelMetric extends StatelessWidget {
+  final String label;
+  final String iconAssetPath;
+  final String valueLabel;
+  final Color accent;
 
-  const _BattlePatternPointMetric({
-    required this.pointCount,
-    required this.maxPointCount,
+  const _BattlePatternLabelMetric({
+    required this.label,
+    required this.iconAssetPath,
+    required this.valueLabel,
+    required this.accent,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      key: ValueKey('points:$pointCount/$maxPointCount'),
-      tween: Tween<double>(
-        begin: 0,
-        end: max(0, pointCount).toDouble(),
-      ),
-      duration: const Duration(milliseconds: 240),
-      curve: Curves.easeOutCubic,
-      builder: (context, animatedValue, child) {
-        return _BattlePatternMetricShell(
-          label: 'PTS',
-          icon: Icons.timeline_rounded,
-          valueLabel: '${animatedValue.round()}/$maxPointCount',
-          accent: pointCount >= maxPointCount
-              ? EndpointPalette.warningAccent
-              : EndpointPalette.patternAccent,
-        );
-      },
+    return _BattlePatternMetricShell(
+      label: label,
+      iconAssetPath: iconAssetPath,
+      valueLabel: valueLabel,
+      accent: accent,
     );
   }
 }
@@ -943,46 +1115,54 @@ class _BattlePatternMetricShell extends StatelessWidget {
         border: Border.all(color: accent.withValues(alpha: 0.46)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(7, 5, 7, 5),
+        padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
             if (iconAssetPath != null)
               Image.asset(
                 iconAssetPath!,
-                width: 15,
-                height: 15,
+                width: 13,
+                height: 13,
                 filterQuality: FilterQuality.none,
                 color: accent,
               )
             else
               Icon(
                 icon,
-                size: 15,
+                size: 13,
                 color: accent,
               ),
-            const SizedBox(width: 4),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                EndpointText(
-                  label,
-                  style: textSmallBold.copyWith(
-                    color: accent.withValues(alpha: 0.82),
-                    fontSize: 8,
-                    letterSpacing: 0.6,
+            const SizedBox(width: 3),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  EndpointText(
+                    label,
+                    overflow: TextOverflow.clip,
+                    softWrap: false,
+                    style: textSmallBold.copyWith(
+                      color: accent.withValues(alpha: 0.82),
+                      fontSize: 7,
+                      letterSpacing: 0.2,
+                      height: 1,
+                    ),
                   ),
-                ),
-                EndpointText(
-                  valueLabel,
-                  style: textSmallNumericBold.copyWith(
-                    color: accent,
-                    fontSize: 13,
-                    letterSpacing: 0.2,
+                  EndpointText(
+                    valueLabel,
+                    overflow: TextOverflow.clip,
+                    softWrap: false,
+                    style: textSmallNumericBold.copyWith(
+                      color: accent,
+                      fontSize: 12,
+                      letterSpacing: 0,
+                      height: 1.05,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -1019,16 +1199,12 @@ class _BattlePatternFocusDimmer extends StatelessWidget {
 
 class _BattlePatternMatchFooter extends StatelessWidget {
   final bool isClosed;
-  final int attackBonus;
-  final int barrierBonus;
   final int pointCount;
   final int maxPointCount;
   final VoidCallback? onPressed;
 
   const _BattlePatternMatchFooter({
     required this.isClosed,
-    required this.attackBonus,
-    required this.barrierBonus,
     required this.pointCount,
     required this.maxPointCount,
     required this.onPressed,
@@ -1038,41 +1214,26 @@ class _BattlePatternMatchFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
-          child: _BattlePatternResultPill(
-            iconAssetPath: 'assets/images/icons/icon_sword.png',
-            value: attackBonus,
-            accent: EndpointPalette.dangerAccent,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _BattlePatternResultPill(
-            iconAssetPath: 'assets/images/icons/icon_shield.png',
-            value: barrierBonus,
-            accent: BattlerStat.barrier.accent,
-          ),
-        ),
-        const SizedBox(width: 8),
         _BattlePatternPointLimitPill(
           pointCount: pointCount,
           maxPointCount: maxPointCount,
         ),
         const SizedBox(width: 8),
-        EndpointActionButton(
-          label: isClosed ? 'MATCHED' : 'MATCH',
-          icon: Icons.join_inner_rounded,
-          onPressed: onPressed,
-          tooltip: isClosed ? 'Resolver patron' : 'Cerrar sin patron cerrado',
-          width: 122,
-          height: 42,
-          useMarquee: false,
-          backgroundColor: EndpointPalette.controlBackground,
-          foregroundColor: EndpointPalette.softForeground,
-          accent: isClosed
-              ? EndpointPalette.patternAccent
-              : EndpointPalette.neutralAccent,
-          textStyle: textSmallBold.copyWith(letterSpacing: 1),
+        Expanded(
+          child: EndpointActionButton(
+            label: isClosed ? 'MATCHED' : 'MATCH',
+            icon: Icons.join_inner_rounded,
+            onPressed: onPressed,
+            tooltip: isClosed ? 'Resolver patron' : 'Cerrar sin patron cerrado',
+            height: 46,
+            useMarquee: false,
+            backgroundColor: EndpointPalette.controlBackground,
+            foregroundColor: EndpointPalette.softForeground,
+            accent: isClosed
+                ? EndpointPalette.patternAccent
+                : EndpointPalette.neutralAccent,
+            textStyle: textSmallBold.copyWith(letterSpacing: 1),
+          ),
         ),
       ],
     );
@@ -1142,53 +1303,6 @@ class _BattlePatternBlockMotion extends StatelessWidget {
           child: child!,
         );
       },
-    );
-  }
-}
-
-class _BattlePatternResultPill extends StatelessWidget {
-  final String iconAssetPath;
-  final int value;
-  final Color accent;
-
-  const _BattlePatternResultPill({
-    required this.iconAssetPath,
-    required this.value,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.controlBackground,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withValues(alpha: 0.5)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              iconAssetPath,
-              width: 16,
-              height: 16,
-              filterQuality: FilterQuality.none,
-              color: accent,
-            ),
-            const SizedBox(width: 5),
-            EndpointText(
-              '+$value',
-              style: textSmallNumericBold.copyWith(
-                color: accent,
-                fontSize: 13,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

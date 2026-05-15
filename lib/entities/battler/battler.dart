@@ -139,6 +139,7 @@ enum BattlerCombatFlag {
   barrierBrokenThisHit,
   barrierLostThisHit,
   healthLostThisHit,
+  fragilidadTriggeredThisHit,
   cortafuegosPortatilBlockedDebuff,
   opresionTacticaTriggeredThisTurn,
   copiaSeguridadUsed,
@@ -424,6 +425,13 @@ class Battler {
 
   /// Define el coste fijo en XP para cualquier subida de nivel.
   static const initialLevelUpExperienceCost = 4;
+
+  /// Devuelve las mejoras de capacidad/patron desbloqueadas por niveles pares.
+  static int evenLevelProgressionBonusFor(int level) {
+    final safeLevel = min(maximumLevel, max(initialLevel, level));
+    return safeLevel ~/ 2;
+  }
+
   static const combatActiveFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.combatActive,
   );

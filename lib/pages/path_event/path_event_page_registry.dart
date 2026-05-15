@@ -19,6 +19,8 @@ typedef PathEventPageBuilder = Widget Function({
 
 final pathEventPageBuilderById =
     Map<PathEventId, PathEventPageBuilder>.unmodifiable({
+  PathEventId.strandedTrash: _buildDefaultPathEventPage,
+  PathEventId.lostCache: _buildDefaultPathEventPage,
   PathEventId.shadyTechnosurgeon: _buildTechnosurgeonEventPage,
   PathEventId.afterHoursTechnosurgeon: _buildTechnosurgeonEventPage,
   PathEventId.blackTechnoMarket: _buildBlackTechnoMarketEventPage,
@@ -140,6 +142,7 @@ Widget _buildDefaultPathEventPage({
   return PathEventPage(
     player: player,
     node: node,
+    randomizer: randomizer,
     eventService: eventService,
   );
 }

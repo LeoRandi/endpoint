@@ -36,7 +36,8 @@ extension BattlerRuntimeService on Battler {
       BattlerCombatFlag.barrierBrokenThisHit,
     )
         .removeCombatFlagsFor(BattlerCombatFlag.barrierLostThisHit)
-        .removeCombatFlagsFor(BattlerCombatFlag.healthLostThisHit);
+        .removeCombatFlagsFor(BattlerCombatFlag.healthLostThisHit)
+        .removeCombatFlagsFor(BattlerCombatFlag.fragilidadTriggeredThisHit);
     final absorbedByBarrier = min(ownerBeforeDamage.currentBarrier, safeDamage);
     final ownerAfterBarrier = absorbedByBarrier <= 0
         ? ownerBeforeDamage

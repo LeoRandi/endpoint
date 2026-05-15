@@ -29,6 +29,9 @@ extension BattlerProgression on Battler {
 
     final requiredExperience = experienceToNextLevel;
     final nextLevel = min(Battler.maximumLevel, level + 1);
+    final equipmentCapacityGain =
+        Battler.evenLevelProgressionBonusFor(nextLevel) -
+            Battler.evenLevelProgressionBonusFor(level);
     final updatedBaseStats = Map<BattlerStat, int>.from(baseStats);
     var attackGain = 1;
     var healthGain = 10;
@@ -61,7 +64,7 @@ extension BattlerProgression on Battler {
     var updatedPlayer = copyWith(
       health: health + healthGain,
       income: baseIncome + incomeGain,
-      equipmentCapacity: equipmentCapacity + 1,
+      equipmentCapacity: equipmentCapacity + equipmentCapacityGain,
       level: nextLevel,
       experience: remainingExperience,
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),

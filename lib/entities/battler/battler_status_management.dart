@@ -102,7 +102,7 @@ extension BattlerStatusManagement on Battler {
     var updatedOwner = this;
     BattlerStatus? instancedStatus = status.copyWith();
 
-    if (instancedStatus == null || instancedStatus.isExpired) {
+    if (instancedStatus.isExpired) {
       return updatedOwner;
     }
 
