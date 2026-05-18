@@ -304,7 +304,7 @@ class _ItemArchetypeBadge extends StatelessWidget {
 
     return Tooltip(
       message:
-          'Arquetipo del objeto: $label.\nLos arquetipos agrupan objetos y habilidades para orientar una build.\n${_archetypeLegend()}',
+          'Arquetipo del objeto: $label.\nLos arquetipos agrupan objetos y AUMENTOS para orientar una build.\n${_archetypeLegend()}',
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: EndpointPalette.blend(
@@ -616,3 +616,4 @@ class _PatternAdjacencyBonusChip extends StatelessWidget {
     };
   }
 }
+

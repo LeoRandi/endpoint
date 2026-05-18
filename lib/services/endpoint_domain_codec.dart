@@ -205,7 +205,9 @@ BattlerAbility? _deserializeAbility(Map<String, dynamic> json) {
   );
   if (abilityId == null) return null;
 
-  final preset = BattlerAbility.presetForId(abilityId);
+  final preset = abilityPresetRegistry[abilityId];
+  if (preset == null) return null;
+
   return preset
       .copyWith(
         rarity: EndpointJsonUtils.parseEnumByName(

@@ -161,7 +161,7 @@ class FaroNoctivagoItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
-    return 'De dia, al defender: aplica Interferencia ($amount). De noche, al atacar: acumula Fragilidad ($amount).';
+    return 'De dia, al defender: aplica Conmocion ($amount). De noche, al atacar: acumula Fragilidad ($amount).';
   }
 
   @override
@@ -197,7 +197,7 @@ class FaroNoctivagoItemEffect extends ItemEffect {
     return _applyStatusToOpponentFromOwner(
       owner: owner,
       opponent: opponent,
-      status: InterferenciaStatus(remainingTurns: max(1, item.value)),
+      status: ConmocionStatus(value: max(1, item.value)),
     );
   }
 }

@@ -18,7 +18,7 @@ final velozArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_veloz',
   label: 'Veloz',
   tooltip:
-      '1 item Veloz verde + 1 item general gris. Perfil agil de doble golpe que envenena con cada impacto. Empieza con 8C y 4 income.',
+      '1 item Veloz verde + 1 item general gris. Perfil agil de doble golpe que castiga objetivos debilitados. Empieza con 8C y 4 income.',
   iconEmoji: cyberWhipsItem.iconEmoji,
   playerIconEmoji: cyberWhipsItem.iconEmoji,
   accent: const Color(0xFF59B7FF),
@@ -30,7 +30,7 @@ final velozArchetypeNode = ArchetypePathNode(
   incomeModifier: 4,
   startingItems: const [],
   startingAbilities: const [
-    criticalScannerAbility,
+    weaknessHunterAbility,
   ],
 );
 
@@ -40,7 +40,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
-      '1 item Inamovible verde + 1 item general gris. Perfil resistente con regeneracion pasiva, mas barrera y Reinicio en seco. Empieza con 12C y 3 income.',
+      '1 item Inamovible verde + 1 item general gris. Perfil resistente con regeneracion pasiva y barrera sostenida. Empieza con 12C y 3 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
   accent: const Color(0xFF5AF78E),
@@ -53,7 +53,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   incomeModifier: 3,
   startingItems: const [],
   startingAbilities: const [
-    hardResetAbility,
+    pulsoRepLAbility,
   ],
 );
 
@@ -63,7 +63,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
-      '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y Sobrecarga venosa de salida. Empieza con 8C y 3 income.',
+      '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y dano extra al pelear herido. Empieza con 8C y 3 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
   accent: const Color(0xFFF3D35C),
@@ -75,7 +75,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   incomeModifier: 3,
   startingItems: const [],
   startingAbilities: const [
-    venousOverloadAbility,
+    furiaHematicaAbility,
   ],
 );
 
@@ -369,28 +369,28 @@ final shadyTechnosurgeonNode = EventPathNode(
   showTitle: 'Shady Technosurgeon',
   eventTitle: 'SHADY TECHNOSURGEON',
   description:
-      'Un cirujano clandestino ofrece reciclar una habilidad en un protocolo de tier superior.',
-  outcomeText: 'Elige una habilidad para someterla a una mutacion controlada.',
+      'Un cirujano clandestino ofrece reciclar un aumento en un protocolo de tier superior.',
+  outcomeText: 'Elige un aumento para someterlo a una mutacion controlada.',
   flavorTexts: [
     'Te adentras en un callejón oscuro, esperando que te sirva de atajo. En su lugar, bajo un cartel de neón parpadeante, encuentras a un cirujano que ofrece "servicios", por un precio claro.',
     'El cirujano abre su maletín, despliega herramientas extravagantes sobre una mesa sin esterilizar, y pide que apoyes el brazo.',
   ],
 );
 
-/// Mercado clandestino de habilidades con precio segun tier ofertado.
+/// Mercado clandestino de aumentos con precio segun tier ofertado.
 final blackTechnoMarketNode = EventPathNode(
   id: PathEventId.blackTechnoMarket,
   nodeId: 'event_black_techno_market',
   label: 'Black techno-market',
-  tooltip: 'Tres habilidades pirateadas se venden por tier',
+  tooltip: 'Tres aumentos pirateados se venden por tier',
   iconEmoji: '\u{1F578}',
   rarity: RarityTier.purple,
   accent: RarityTier.purple.accent,
   badgeLabel: 'MERCADO',
   showTitle: 'Black techno-market',
   eventTitle: 'BLACK TECHNO-MARKET',
-  description: 'Tres orbes de habilidad aleatorios orbitan sobre la mesa.',
-  outcomeText: 'Elige una habilidad y paga su coste para integrarla.',
+  description: 'Tres orbes de aumento aleatorios orbitan sobre la mesa.',
+  outcomeText: 'Elige un aumento y paga su coste para integrarlo.',
   flavorTexts: [
     'Entras a un mercado en plena calle. Llama tu atención un mercader en concreto, que vigila sin mucho interés unos orbes sobre una mesa de mármol',
     'Los orbes giran en sus platos de control, de forma inestable. El mercader te mira enfurruñado, y te pide que no le hagas perder el tiempo.',
@@ -446,7 +446,7 @@ final suBastaYaNode = EventPathNode(
   id: PathEventId.suBastaYa,
   nodeId: 'event_su_basta_ya',
   label: 'SU-Basta-Ya',
-  tooltip: 'Subasta objetos, recicla stats o intercambia habilidades',
+  tooltip: 'Subasta objetos, recicla stats o intercambia aumentos',
   iconEmoji: '\u{1F4E2}',
   rarity: RarityTier.blue,
   accent: RarityTier.blue.accent,
@@ -454,7 +454,7 @@ final suBastaYaNode = EventPathNode(
   showTitle: 'Has encontrado una subasta de chatarra',
   eventTitle: 'SU-BASTA-YA',
   description:
-      'Un operador ha puesto precio a todo lo que llevas encima. Puedes subastar un objeto, reciclarlo por stats o cambiar una habilidad.',
+      'Un operador ha puesto precio a todo lo que llevas encima. Puedes subastar un objeto, reciclarlo por stats o cambiar un aumento.',
   outcomeText: 'Elige un trato o rechaza todas las ofertas.',
   flavorTexts: [
     'Varias pantallas se iluminan cuando cruzas el umbral. Tu inventario aparece listado antes de que lo autorices.',
@@ -576,8 +576,8 @@ final afterHoursTechnosurgeonNode = EventPathNode(
   showTitle: 'Technosurgeon Nocturno',
   eventTitle: 'TECHNOSURGEON NOCTURNO',
   description:
-      'Las luces de neón ocultan a un cirujano que cambia una habilidad por otra de tier superior.',
-  outcomeText: 'Elige una habilidad para someterla a una mutacion controlada.',
+      'Las luces de neón ocultan a un cirujano que cambia un aumento por otro de tier superior.',
+  outcomeText: 'Elige un aumento para someterlo a una mutacion controlada.',
   flavorTexts: [
     'El neón parpadea sobre acero quirúrgico. No hay preguntas, solo consentimiento implícito.',
     'El especialista te ofrece una mutacion más agresiva de lo normal. Si aceptas, no hay marcha atrás.',

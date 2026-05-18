@@ -1,7 +1,7 @@
 import '../_imports.dart';
 import '../../services/run_randomizer.dart';
 
-/// Describe un arquetipo inicial que altera stats, economia, items y habilidades del jugador.
+/// Describe un arquetipo inicial que altera stats, economia, items y AUMENTOS del jugador.
 class ArchetypePathNode extends PathNode {
   final ArchetypeId archetypeId;
   final String playerIconEmoji;
@@ -161,3 +161,4 @@ class ArchetypePathNode extends PathNode {
     return candidates[randomizer.nextInt(candidates.length)];
   }
 }
+

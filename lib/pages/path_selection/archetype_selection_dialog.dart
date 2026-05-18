@@ -212,14 +212,14 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
                               ),
                             const SizedBox(height: 14),
                             _ArchetypeSectionHeader(
-                              title: 'HABILIDADES',
+                              title: 'AUMENTOS',
                               caption: '${archetype.startingAbilities.length}',
                               accent: accent,
                             ),
                             const SizedBox(height: 6),
                             if (archetype.startingAbilities.isEmpty)
                               const _ArchetypeEmptyState(
-                                message: 'No entrega habilidades iniciales.',
+                                message: 'No entrega aumentos iniciales.',
                               )
                             else
                               Column(
@@ -302,7 +302,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
       scope: _tutorialShowcaseScope,
       title: 'Arquetipo',
       description:
-          'El arquetipo dicta gran parte de los objetos y habilidades con los que interactuaras durante una partida.',
+          'El arquetipo dicta gran parte de los objetos y aumentos con los que interactuaras durante una partida.',
       targetBorderRadius: BorderRadius.circular(20),
       targetPadding: const EdgeInsets.all(4),
       overlayColor: EndpointPalette.overlayScrimStrong,

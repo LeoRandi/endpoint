@@ -242,63 +242,6 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
   }
 }
 
-/// Reduce el cooldown de la primera habilidad manual resuelta en cada combate.
-class CrackedBatteryItemEffect extends ItemEffect {
-  /// Crea un efecto reutilizable para la Bateria Rajada.
-  const CrackedBatteryItemEffect()
-      : super(
-          description:
-              'La primera habilidad manual que se resuelve en combate reduce su cooldown restante.',
-          hooks: const {
-            ItemEffectHook.abilityResolved,
-          },
-        );
-
-  @override
-
-  /// Genera la descripcion final usando el value real del item equipado.
-  String descriptionFor(Item item) {
-    return 'La primera habilidad manual que se resuelve en combate reduce su cooldown en ${item.value}.';
-  }
-
-  @override
-
-  /// Detecta la primera entrada en cooldown y la acorta una sola vez por combate.
-  ItemEffectResolution onAbilityResolved({
-    required Battler owner,
-    required Battler opponent,
-    required Item item,
-    required BattlerAbility previousAbility,
-    required BattlerAbility resolvedAbility,
-    required ItemAbilityResolutionContext context,
-  }) {
-    if (!owner.hasCombatFlag(Battler.combatActiveFlag)) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-    if (resolvedAbility.manualActivationContext !=
-        BattlerAbilityActivationContext.battle) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-    if (!_enteredCooldown(previousAbility, resolvedAbility)) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final usedFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.crackedBatteryUsed,
-    );
-    if (owner.hasCombatFlag(usedFlag)) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final updatedAbility = resolvedAbility.reduceCooldown(item.value);
-    return ItemEffectResolution(
-      owner: owner.updateAbility(updatedAbility).addCombatFlag(usedFlag),
-      opponent: opponent,
-    );
-  }
-}
-
 /// Aumenta el daño si el objetivo no tiene ningun buff activo.
 class ImpactGlovesItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para los Guantes de Impacto.
@@ -614,54 +557,13 @@ class PortableOvenItemEffect extends ItemEffect {
   }
 }
 
-/// Cura al usuario cada vez que una habilidad suya entra en cooldown.
-class ParasiticCapacitorItemEffect extends ItemEffect {
-  /// Crea un efecto reutilizable para el Capacitador Parasitario.
-  const ParasiticCapacitorItemEffect()
-      : super(
-          description:
-              'Cuando una habilidad entra en cooldown, recuperas vida.',
-          hooks: const {
-            ItemEffectHook.abilityResolved,
-          },
-        );
-
-  @override
-
-  /// Genera la descripcion final usando el value real del item equipado.
-  String descriptionFor(Item item) {
-    return 'Cuando una habilidad entra en cooldown, te curas ${item.value} HP.';
-  }
-
-  @override
-
-  /// Detecta entradas en cooldown y cura al instante al portador.
-  ItemEffectResolution onAbilityResolved({
-    required Battler owner,
-    required Battler opponent,
-    required Item item,
-    required BattlerAbility previousAbility,
-    required BattlerAbility resolvedAbility,
-    required ItemAbilityResolutionContext context,
-  }) {
-    if (!_enteredCooldown(previousAbility, resolvedAbility)) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    return ItemEffectResolution(
-      owner: owner.heal(item.value),
-      opponent: opponent,
-    );
-  }
-}
-
-/// Evita una muerte por combate, deja 1 HP y refresca todas las habilidades.
+/// Evita una muerte por combate y deja al portador con vida.
 class OperativeBlackBoxItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para la Caja Negra del Operativo.
   const OperativeBlackBoxItemEffect()
       : super(
           description:
-              'Una vez por combate evita la muerte, deja 1 HP y refresca todas las habilidades.',
+              'Una vez por combate evita la muerte y deja al portador con vida.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.fatalDamage,
@@ -672,7 +574,7 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
 
   /// Genera la descripcion final usando la vida con la que deja al portador.
   String descriptionFor(Item item) {
-    return 'Una vez por combate evita la muerte, te deja en ${max(1, item.value)} HP y refresca todas las habilidades.';
+    return 'Una vez por combate evita la muerte y te deja en ${max(1, item.value)} HP.';
   }
 
   @override
@@ -703,7 +605,6 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
 
     return owner
         .copyWith(health: recoveredHealth)
-        .resetAllAbilities()
         .addCombatFlag(usedFlag)
         .addCombatFlag(protectionFlag);
   }
@@ -745,7 +646,6 @@ enum ItemStatusEffectKind {
   inercia,
   inerciaAtaque,
   inerciaBarrera,
-  interferencia,
 }
 
 /// Identifica en que momento del combate un objeto genera uno de esos estados.
@@ -986,8 +886,6 @@ class StatusItemEffect extends ItemEffect {
         return InerciaAtaqueStatus(value: resolvedValue);
       case ItemStatusEffectKind.inerciaBarrera:
         return InerciaBarreraStatus(value: resolvedValue);
-      case ItemStatusEffectKind.interferencia:
-        return InterferenciaStatus(remainingTurns: resolvedValue);
     }
   }
 
@@ -1007,8 +905,6 @@ class StatusItemEffect extends ItemEffect {
         return 'Reserva de Inercia: ATK (+$resolvedValue)';
       case ItemStatusEffectKind.inerciaBarrera:
         return 'Reserva de Inercia: Barrera (+$resolvedValue)';
-      case ItemStatusEffectKind.interferencia:
-        return 'Interferencia durante $resolvedValue turnos';
     }
   }
 }

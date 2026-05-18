@@ -148,20 +148,9 @@ const _vidaBarreraAbilityTags = <EntityTag>[
   EntityTag.vida,
   EntityTag.barrera,
 ];
-const _debuffAbilityTags = <EntityTag>[
-  EntityTag.debuff,
-];
 const _debuffBarreraAbilityTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.barrera,
-];
-const _buffAbilityTags = <EntityTag>[
-  EntityTag.buff,
-];
-const _ataqueQuemaduraAbilityTags = <EntityTag>[
-  EntityTag.ataque,
-  EntityTag.debuff,
-  EntityTag.quemadura,
 ];
 const _vidaDebuffAbilityTags = <EntityTag>[
   EntityTag.vida,
@@ -177,30 +166,13 @@ const _buffBarreraAbilityTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.barrera,
 ];
-const _economiaAtaqueBarreraAbilityTags = <EntityTag>[
-  EntityTag.economia,
-  EntityTag.ataque,
-  EntityTag.barrera,
-];
-const _ataqueBarreraAbilityTags = <EntityTag>[
-  EntityTag.ataque,
-  EntityTag.barrera,
-];
 const _vidaAtaqueAbilityTags = <EntityTag>[
   EntityTag.vida,
   EntityTag.ataque,
 ];
-const _intoxicacionDebuffAbilityTags = <EntityTag>[
-  EntityTag.intoxicacion,
-  EntityTag.debuff,
-];
 const _buffAtaqueAbilityTags = <EntityTag>[
   EntityTag.buff,
   EntityTag.ataque,
-];
-const _buffDebuffAbilityTags = <EntityTag>[
-  EntityTag.buff,
-  EntityTag.debuff,
 ];
 const _buffDebuffBarreraAbilityTags = <EntityTag>[
   EntityTag.buff,
@@ -210,10 +182,6 @@ const _buffDebuffBarreraAbilityTags = <EntityTag>[
 const _desafioAtaqueAbilityTags = <EntityTag>[
   EntityTag.desafio,
   EntityTag.ataque,
-  EntityTag.buff,
-];
-const _cicloBuffAbilityTags = <EntityTag>[
-  EntityTag.ciclo,
   EntityTag.buff,
 ];
 const _cicloVidaAtaqueBuffAbilityTags = <EntityTag>[
@@ -228,27 +196,10 @@ const _cicloAtaqueBarreraBuffAbilityTags = <EntityTag>[
   EntityTag.barrera,
   EntityTag.buff,
 ];
-const _cicloAtaqueBarreraDebuffAbilityTags = <EntityTag>[
-  EntityTag.ciclo,
-  EntityTag.ataque,
-  EntityTag.barrera,
-  EntityTag.debuff,
-];
-const _resonanciaBarreraAbilityTags = <EntityTag>[
-  EntityTag.resonancia,
-  EntityTag.barrera,
-  EntityTag.buff,
-];
 const _resonanciaAtaqueBarreraAbilityTags = <EntityTag>[
   EntityTag.resonancia,
   EntityTag.ataque,
   EntityTag.barrera,
-];
-const _resonanciaAtaqueBarreraDebuffAbilityTags = <EntityTag>[
-  EntityTag.resonancia,
-  EntityTag.ataque,
-  EntityTag.barrera,
-  EntityTag.debuff,
 ];
 
 /// Devuelve un indice pseudoaleatorio estable para efectos que piden elegir objetivos aleatorios.
@@ -761,7 +712,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.cambioDeGuardia:
       return 'Activacion manual en combate. De dia ganas ${positiveAmount * 2} de Barrera; de noche ganas $positiveAmount de Potencia.';
     case BattlerAbilityId.toqueDeQueda:
-      return 'Activacion manual en combate. De dia aplica Interferencia durante $positiveAmount turnos; de noche aplica $positiveAmount de Fragilidad.';
+      return 'Activacion manual en combate. De dia aplica Conmocion $positiveAmount; de noche aplica $positiveAmount de Fragilidad.';
     case BattlerAbilityId.turnoDeNoche:
       return 'Pasiva. De dia reduces el daño recibido en $positiveAmount. De noche infliges +$positiveAmount daño.';
     case BattlerAbilityId.amanecerSintetico:

@@ -24,9 +24,6 @@ const catalisisCruelStatus = CatalisisCruelStatus();
 /// Preset rapido de Fragilidad con su acumulacion inicial.
 const fragilidadStatus = FragilidadStatus();
 
-/// Preset rapido de Interferencia con su bloqueo corto por defecto.
-const interferenciaStatus = InterferenciaStatus();
-
 /// Preset rapido de Conmocion con su penalizacion inicial.
 const conmocionStatus = ConmocionStatus();
 
@@ -116,14 +113,6 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       FragilidadStatus(
-        remainingTurns: remainingTurns,
-        value: value,
-      ),
-  BattlerStatusId.interferencia: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      InterferenciaStatus(
         remainingTurns: remainingTurns,
         value: value,
       ),

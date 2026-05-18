@@ -424,7 +424,7 @@ class DesafioExcitanteStatus extends BattlerStatus {
   }
 }
 
-/// Buff generador que crea reservas de ATK o de Barrera si no se usaron habilidades manuales.
+/// Buff generador que crea reservas de ATK o de Barrera al final del turno.
 class InerciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.inercia;
   static const defaultValue = 1;
@@ -443,7 +443,7 @@ class InerciaStatus extends BattlerStatus {
           },
           icon: Icons.motion_photos_on_rounded,
           description:
-              'Si no activas habilidades manuales en tu turno, genera una reserva temporal aleatoria de ATK o de Barrera.',
+              'Al final de tu turno, genera una reserva temporal aleatoria de ATK o de Barrera.',
           remainingTurns: 1,
           value: value,
         );
@@ -462,15 +462,14 @@ class InerciaStatus extends BattlerStatus {
 
   @override
 
-  /// Al final del turno propio genera una reserva aleatoria si no hubo activacion manual.
+  /// Al final del turno propio genera una reserva aleatoria.
   Battler onTurnEnd({
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,
     RunRandomizer? randomizer,
   }) {
-    if (!isOwnerTurn ||
-        owner.hasCombatFlag(Battler.manualAbilityActivatedThisTurnFlag)) {
+    if (!isOwnerTurn) {
       return owner;
     }
 

@@ -25,7 +25,7 @@ class EndpointAbilitySlotsStrip extends StatelessWidget {
     this.reserveEmptySlots = true,
     this.orbSize = 46,
     this.spacing = 6,
-    this.emptyTooltip = 'Slot de habilidad',
+    this.emptyTooltip = 'Slot de AUMENTO',
     this.holdDuration = const Duration(seconds: 1),
     this.enableTooltipLongPress = true,
   });
@@ -90,7 +90,7 @@ class EndpointAbilityOrb extends StatefulWidget {
     required this.ability,
     this.accent = EndpointPalette.primaryAccent,
     this.size = 46,
-    this.emptyTooltip = 'Slot de habilidad',
+    this.emptyTooltip = 'Slot de AUMENTO',
     this.onPressed,
     this.onHoldComplete,
     this.canHoldActivate = false,
@@ -400,3 +400,4 @@ class _AbilityBadge extends StatelessWidget {
     );
   }
 }
+

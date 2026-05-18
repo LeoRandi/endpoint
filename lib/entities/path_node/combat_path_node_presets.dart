@@ -136,7 +136,7 @@ final blueCombatNode = CombatPathNode(
   label: blueEnemyBattler.name,
 );
 
-/// Nodo azul de control bilateral basado en Interferencia.
+/// Nodo azul de control bilateral basado en Conmocion.
 final jammerHowlerCombatNode = CombatPathNode(
   nodeId: 'combat_jammer_howler',
   enemy: jammerHowlerEnemyBattler,

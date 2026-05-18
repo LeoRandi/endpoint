@@ -9,7 +9,7 @@ enum EndpointTextKey {
   settings,
   backToRoute,
   noItems,
-  noSkills,
+  noAugments,
   routeTimelineDescription,
   codexUnavailable,
   settingsUnavailable,
@@ -69,7 +69,7 @@ abstract final class EndpointStrings {
   static const settings = 'Ajustes';
   static const backToRoute = 'Volver a la ruta';
   static const noItems = 'No tienes ningun objeto';
-  static const noSkills = 'No tienes ninguna habilidad';
+  static const noAugments = 'No tienes ningun aumento';
   static const routeTimelineDescription =
       'Ruta de 5 dias: dia, anochecer, noche y boss diario.';
   static const codexUnavailable = 'Apartado no disponible';
@@ -85,7 +85,7 @@ abstract final class EndpointStrings {
       EndpointTextKey.settings: 'Ajustes',
       EndpointTextKey.backToRoute: 'Volver a la ruta',
       EndpointTextKey.noItems: 'No tienes ningun objeto',
-      EndpointTextKey.noSkills: 'No tienes ninguna habilidad',
+      EndpointTextKey.noAugments: 'No tienes ningun aumento',
       EndpointTextKey.routeTimelineDescription:
           'Ruta de 5 dias: dia, anochecer, noche y boss diario.',
       EndpointTextKey.codexUnavailable: 'Apartado no disponible',
@@ -113,7 +113,7 @@ abstract final class EndpointStrings {
       EndpointTextKey.mainMenuTutorialConfirm: 'Si',
       EndpointTextKey.mainMenuCodexTitle: 'Codex',
       EndpointTextKey.mainMenuCodexDescription:
-          'Registro de objetos, enemigos, habilidades y eventos descubiertos.',
+          'Registro de objetos, enemigos, aumentos y eventos descubiertos.',
       EndpointTextKey.mainMenuSettingsTitle: 'Ajustes',
       EndpointTextKey.mainMenuSettingsDescription:
           'Desde los ajustes puedes configurar algunos efectos visuales o el modo de juego.',
@@ -151,7 +151,7 @@ abstract final class EndpointStrings {
       EndpointTextKey.settings: 'Settings',
       EndpointTextKey.backToRoute: 'Back to route',
       EndpointTextKey.noItems: 'You have no items',
-      EndpointTextKey.noSkills: 'You have no skills',
+      EndpointTextKey.noAugments: 'You have no augments',
       EndpointTextKey.routeTimelineDescription:
           '5-day route: day, dusk, night, and daily boss.',
       EndpointTextKey.codexUnavailable: 'Section unavailable',
@@ -179,7 +179,7 @@ abstract final class EndpointStrings {
       EndpointTextKey.mainMenuTutorialConfirm: 'Yes',
       EndpointTextKey.mainMenuCodexTitle: 'Codex',
       EndpointTextKey.mainMenuCodexDescription:
-          'Log of discovered items, enemies, skills, and events.',
+          'Log of discovered items, enemies, augments, and events.',
       EndpointTextKey.mainMenuSettingsTitle: 'Settings',
       EndpointTextKey.mainMenuSettingsDescription:
           'From Settings you can configure visual effects or the game mode.',

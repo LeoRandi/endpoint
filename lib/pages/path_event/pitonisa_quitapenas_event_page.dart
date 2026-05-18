@@ -315,7 +315,7 @@ class _PitonisaQuitapenasEventPageState
           icon: Icons.av_timer_rounded,
           accent: widget.node.accent,
           body: !hasCooldownAbilities
-              ? 'No tienes habilidades manuales con cooldown.'
+              ? 'No tienes aumentos con recarga.'
               : missingCredits > 0
                   ? 'Te faltan $missingCredits creditos para reducir un cooldown.'
                   : 'Paga ${_cooldownReductionCost}C para reducir un cooldown permanente.',
@@ -454,9 +454,8 @@ class _PitonisaQuitapenasEventPageState
         ],
         const SizedBox(height: 10),
         EndpointActionButton(
-          label: selectedAbility == null
-              ? 'Elige una habilidad'
-              : 'Reducir cooldown',
+          label:
+              selectedAbility == null ? 'Elige un aumento' : 'Reducir cooldown',
           icon: Icons.update_rounded,
           onPressed: _isResolving ||
                   selectedAbility == null ||

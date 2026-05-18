@@ -112,12 +112,12 @@ class _RunDaySummaryPageState extends State<RunDaySummaryPage>
                                 controller: _controller,
                                 index: 2,
                                 child: _SummaryRewardsBlock(
-                                  title: 'HABILIDADES APRENDIDAS',
+                                  title: 'AUMENTOS APRENDIDOS',
                                   caption: '${abilityRewards.length}',
                                   icon: Icons.auto_awesome_rounded,
                                   rewards: abilityRewards,
                                   dayNumber: widget.summary.dayNumber,
-                                  emptyText: 'No se han aprendido habilidades.',
+                                  emptyText: 'No se han aprendido aumentos.',
                                   accent: EndpointPalette.infoAccent,
                                 ),
                               ),
@@ -497,7 +497,7 @@ Future<void> _openAbilityDetails(
 }) async {
   await showEndpointDialog<void>(
     context: context,
-    barrierLabel: 'Detalle de habilidad',
+    barrierLabel: 'Detalle de aumento',
     barrierColor: EndpointPalette.overlayScrim,
     builder: (context) {
       return EndpointAbilityDetailsDialog(
@@ -916,12 +916,12 @@ class _EnemyAbilitiesPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _EnemyDetailsSection(
-      title: 'HABILIDADES',
+      title: 'AUMENTOS',
       icon: Icons.auto_awesome_rounded,
       accent: EndpointPalette.infoAccent,
       child: abilities.isEmpty
           ? _EnemyDetailsEmptyState(
-              message: '$enemyName no tenia habilidades.',
+              message: '$enemyName no tenia aumentos.',
             )
           : Wrap(
               spacing: 8,
@@ -935,7 +935,7 @@ class _EnemyAbilitiesPanel extends StatelessWidget {
                       _openAbilityDetails(
                         context,
                         ability,
-                        statusText: 'Habilidad de $enemyName.',
+                        statusText: 'Aumento de $enemyName.',
                       );
                     },
                     child: Icon(

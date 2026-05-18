@@ -123,7 +123,7 @@ class BattleSceneController extends ChangeNotifier {
   /// Indica si ya se esta presentando el overlay de recompensas para evitar aperturas dobles.
   bool get isPresentingRewards => _isPresentingRewards;
 
-  /// Devuelve solo las habilidades que deben verse en la interfaz del contexto de combate.
+  /// Devuelve solo las AUMENTOS que deben verse en la interfaz del contexto de combate.
   List<BattlerAbility> visibleAbilitiesFor(Battler battler) {
     return battler.abilities
         .where(
@@ -155,9 +155,9 @@ class BattleSceneController extends ChangeNotifier {
     );
   }
 
-  /// Alterna una habilidad manual del jugador dentro del combate.
+  /// Los aumentos son pasivos; no se alternan desde combate.
   Future<void> togglePlayerAbility(BattlerAbility ability) {
-    return _battleController.togglePlayerAbility(ability);
+    return Future<void>.value();
   }
 
   /// Indica si la escena puede abrir el overlay de inventario de combate.
@@ -176,81 +176,39 @@ class BattleSceneController extends ChangeNotifier {
     return 'Estado actual: no disponible';
   }
 
-  /// Construye el texto de estado de una habilidad para el dialogo contextual de combate.
+  /// Construye el texto de estado de una AUMENTO para el dialogo contextual de combate.
   String abilityStatusTextFor(
     BattlerAbility ability, {
     required bool canControlOwner,
   }) {
-    final stateText = ability.isPassive
-        ? 'Estado actual: pasiva.'
-        : ability.isActive
-            ? 'Estado actual: activa.'
-            : ability.isOnCooldown
-                ? 'Estado actual: en cooldown (${ability.remainingCooldownLabel}).'
-                : 'Estado actual: lista.';
     final ownershipText =
         canControlOwner ? 'Pertenece al jugador.' : 'Pertenece al enemigo.';
-    final activationText = ability.manualActivationContext == null
-        ? 'Se aplica sin activacion manual.'
-        : 'Se puede activar manualmente en ${ability.manualActivationContext!.label}.';
-
-    return '$stateText $ownershipText $activationText';
+    return 'Aumento pasivo. $ownershipText';
   }
 
-  /// Devuelve la etiqueta del boton principal del dialogo de habilidad si la accion existe.
+  /// Devuelve la etiqueta del boton principal del dialogo de AUMENTO si la accion existe.
   String? abilityActionLabelFor(
     BattlerAbility ability, {
     required bool canControlOwner,
   }) {
-    if (!canControlOwner ||
-        !ability.canToggleOn(BattlerAbilityActivationContext.battle)) {
-      return null;
-    }
-
-    return ability.isActive ? 'Desactivar' : 'Activar';
+    return null;
   }
 
-  /// Indica si la accion principal del dialogo de habilidad esta habilitada ahora mismo.
+  /// Indica si la accion principal del dialogo de AUMENTO esta habilitada ahora mismo.
   bool isAbilityActionEnabled(
     BattlerAbility ability, {
     required bool canControlOwner,
   }) {
-    if (!canControlOwner ||
-        !ability.canToggleOn(BattlerAbilityActivationContext.battle) ||
-        !_battleController.canUseActions) {
-      return false;
-    }
-    if (ability.isActive) return true;
-    if (!_battleController.player.canActivateManualAbilities(
-      BattlerAbilityActivationContext.battle,
-    )) {
-      return false;
-    }
-
-    return !ability.isOnCooldown && ability.isImplemented;
+    return false;
   }
 
-  /// Explica por que la accion principal del dialogo de habilidad esta bloqueada.
+  /// Explica por que la accion principal del dialogo de AUMENTO esta bloqueada.
   String disabledAbilityActionTooltipFor(
     BattlerAbility ability, {
     required bool canControlOwner,
   }) {
-    if (!canControlOwner) return 'Solo puedes gestionar habilidades propias';
-    if (!_battleController.canUseActions) {
-      return 'Solo puedes gestionar habilidades en tu turno';
-    }
-    final blockReason =
-        _battleController.player.manualAbilityActivationBlockReason(
-      BattlerAbilityActivationContext.battle,
-    );
-    if (blockReason != null && !ability.isActive) {
-      return blockReason;
-    }
-    if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
-    if (ability.isOnCooldown) {
-      return 'Recarga restante: ${ability.remainingCooldownLabel}';
-    }
-    return 'No se puede activar desde esta pantalla';
+    if (!ability.isImplemented) return 'El aumento aun no esta implementado';
+    return 'Los aumentos son pasivos';
   }
 
   /// Marca que el overlay de recompensas ya se esta presentando para evitar una segunda apertura.

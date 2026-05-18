@@ -243,12 +243,12 @@ const sunglassesItem = Item(
   effect: SunglassesItemEffect(),
 );
 
-/// Accesorio gris que acelera la primera habilidad manual de cada combate.
+/// Accesorio gris que carga potencia al atacar.
 const crackedBatteryItem = Item(
   id: ItemId.crackedBattery,
   archetypeAffinities: _generalAffinities,
   name: 'Bateria Rajada',
-  description: 'Accesorio inestable que exprime la primera habilidad manual.',
+  description: 'Al atacar: ganas Calentando.',
   iconEmoji: '\u{1F50B}',
   rarity: RarityTier.gray,
   patternAdjacencyBonuses: [
@@ -262,7 +262,10 @@ const crackedBatteryItem = Item(
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  effect: CrackedBatteryItemEffect(),
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.calentando,
+    trigger: ItemStatusEffectTrigger.attackOwnerReinforce,
+  ),
 );
 
 /// Accesorio gris de Ciclo que cambia entre barrera diurna y ataque nocturno.
@@ -487,7 +490,7 @@ const pocketJammerItem = Item(
   archetypeAffinities: _velozAffinities,
   tags: _barreraDebuffTags,
   name: 'Interferidor de Bolsillo',
-  description: 'Al recibir daño: aplica Interferencia al agresor.',
+  description: 'Al recibir daño: aplica Conmocion al agresor.',
   iconEmoji: '\u{1F4F6}',
   rarity: RarityTier.gray,
   patternAdjacencyBonuses: [
@@ -502,7 +505,7 @@ const pocketJammerItem = Item(
   value: 1,
   upgradeValue: 1,
   effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.interferencia,
+    kind: ItemStatusEffectKind.conmocion,
     trigger: ItemStatusEffectTrigger.receiveDamageSource,
   ),
 );
@@ -1277,7 +1280,7 @@ const faroNoctivagoItem = Item(
   tags: _cicloBarreraDebuffTags,
   name: 'Faro Noctivago',
   description:
-      'Ciclo. De dia, al defender: Interferencia. De noche, al atacar: Fragilidad.',
+      'Ciclo. De dia, al defender: Conmocion. De noche, al atacar: Fragilidad.',
   iconEmoji: '\u{1F6A8}',
   rarity: RarityTier.blue,
   patternAdjacencyBonuses: [
@@ -1411,13 +1414,13 @@ const magnetiCHammerItem = Item(
   effect: MagnetiCHammerItemEffect(),
 );
 
-/// Accesorio azul de control defensivo que interfiere al agresor.
+/// Accesorio azul de control defensivo que aturde al agresor.
 const silbatoMudoItem = Item(
   id: ItemId.silbatoMudo,
   archetypeAffinities: _generalAffinities,
   tags: _barreraDebuffTags,
   name: 'Silbato Mudo',
-  description: '+1 Barrera. Al recibir daño: aplica Interferencia al agresor.',
+  description: '+1 Barrera. Al recibir daño: aplica Conmocion al agresor.',
   iconEmoji: '\u{1F507}',
   rarity: RarityTier.blue,
   patternAdjacencyBonuses: [
@@ -1447,7 +1450,7 @@ const silbatoMudoItem = Item(
     BattlerStat.barrier: 1,
   },
   effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.interferencia,
+    kind: ItemStatusEffectKind.conmocion,
     trigger: ItemStatusEffectTrigger.receiveDamageSource,
   ),
 );
@@ -1562,13 +1565,13 @@ const kunaiAnchoItem = Item(
   effect: KunaiAnchoItemEffect(),
 );
 
-/// Arma azul que castiga el uso de habilidades del rival.
+/// Arma azul que castiga el siguiente ataque del rival.
 const pulseCarbineItem = Item(
   id: ItemId.pulseCarbine,
   archetypeAffinities: _velozImparableAffinities,
   tags: _ataqueDebuffTags,
   name: 'Carabina de Pulsos',
-  description: '+2 ATK. Al atacar: aplica Interferencia al enemigo.',
+  description: '+2 ATK. Al atacar: aplica Conmocion al enemigo.',
   iconEmoji: '\u{1F52B}',
   rarity: RarityTier.blue,
   patternAdjacencyBonuses: [
@@ -1601,7 +1604,7 @@ const pulseCarbineItem = Item(
     BattlerStat.attack: 1,
   },
   effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.interferencia,
+    kind: ItemStatusEffectKind.conmocion,
     trigger: ItemStatusEffectTrigger.attackTarget,
   ),
 );
@@ -1809,14 +1812,14 @@ const placasCompresionItem = Item(
   effect: PlacasCompresionItemEffect(),
 );
 
-/// Arma azul de control que castiga las barreras de objetivos ya interferidos.
+/// Arma azul de control que castiga las barreras de objetivos ya aturdidos.
 const interferenceCannonItem = Item(
   id: ItemId.interferenceCannon,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
-  name: 'Canon de Interferencia',
+  name: 'Canon de Conmocion',
   description:
-      '+2 ATK. Al atacar: aplica Interferencia. Si el objetivo ya la tenia, pierde 1 de Barrera.',
+      '+2 ATK. Al atacar: aplica Conmocion. Si el objetivo ya la tenia, pierde 1 de Barrera.',
   iconEmoji: '\u{1F4E1}',
   rarity: RarityTier.blue,
   patternAdjacencyBonuses: [
@@ -1958,14 +1961,14 @@ const prismaCircadianoItem = Item(
   effect: PrismaCircadianoItemEffect(),
 );
 
-/// Accesorio morado que cambia sobrevivir contraataques por recarga.
+/// Accesorio morado que cambia sobrevivir contraataques por mejores Desafios.
 const aceleradorRetoItem = Item(
   id: ItemId.aceleradorReto,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Acelerador de Reto',
   description:
-      'Sobrevivir contraataques provocados por Desafio reduce cooldowns.',
+      'Sobrevivir contraataques provocados por Desafio mejora tus siguientes Desafios.',
   iconEmoji: '\u{1F3CE}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -2193,14 +2196,13 @@ const portableOvenItem = Item(
   effect: PortableOvenItemEffect(),
 );
 
-/// Accesorio morado que cura al entrar habilidades en cooldown.
+/// Accesorio morado que convierte golpes recibidos en reserva defensiva.
 const parasiticCapacitorItem = Item(
   id: ItemId.parasiticCapacitor,
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _vidaTags,
   name: 'Capacitador Parasitario',
-  description:
-      '+5 HP y drenaje energetico cada vez que una habilidad entra en cooldown.',
+  description: '+5 HP. Al recibir dano: ganas Reserva de Inercia: Barrera.',
   iconEmoji: '\u{1FAAB}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -2216,7 +2218,10 @@ const parasiticCapacitorItem = Item(
   upgradeValue: 5,
   statModifiers: {BattlerStat.health: 5},
   upgradeStatModifiers: {BattlerStat.health: 5},
-  effect: ParasiticCapacitorItemEffect(),
+  effect: StatusItemEffect(
+    kind: ItemStatusEffectKind.inerciaBarrera,
+    trigger: ItemStatusEffectTrigger.receiveDamageOwner,
+  ),
 );
 
 /// Accesorio morado oportunista que roba liquidez y la convierte en aguante.
@@ -2536,7 +2541,7 @@ const dawnCharmItem = Item(
   upgradeStatModifiers: {BattlerStat.health: 16},
 );
 
-/// Soporte amarillo que potencia la primera activacion manual del combate.
+/// Soporte amarillo que alterna entre defensa diurna y ataque nocturno.
 const eclipseMantleItem = Item(
   id: ItemId.eclipseMantle,
   archetypeAffinities: _velozAffinities,
@@ -2562,7 +2567,7 @@ const eclipseMantleItem = Item(
   effect: EclipseMantleItemEffect(),
 );
 
-/// Accesorio amarillo que evita una muerte por combate y reinicia habilidades.
+/// Accesorio amarillo que evita una muerte por combate.
 const operativeBlackBoxItem = Item(
   id: ItemId.operativeBlackBox,
   archetypeAffinities: _generalAffinities,

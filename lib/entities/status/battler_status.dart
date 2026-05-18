@@ -26,7 +26,6 @@ enum BattlerStatusId {
   intoxicacion,
   catalisisCruel,
   fragilidad,
-  interferencia,
   conmocion,
   inercia,
   inerciaAtaque,
@@ -42,7 +41,6 @@ enum BattlerStatusId {
 enum BattlerStatusHook {
   incomeModifier,
   calculatedStatModifier,
-  manualAbilityActivationBlocker,
   turnStart,
   turnEnd,
   combatEnd,
@@ -208,14 +206,6 @@ abstract class BattlerStatus {
     required int value,
   }) {
     return value;
-  }
-
-  /// Permite bloquear activaciones manuales y explicar el motivo en pantalla.
-  String? manualAbilityActivationBlockReason({
-    required Battler owner,
-    required BattlerAbilityActivationContext screenContext,
-  }) {
-    return null;
   }
 
   /// Resuelve efectos que deben ocurrir al inicio de turno.

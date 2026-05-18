@@ -84,18 +84,18 @@ class SeguroRotoItemEffect extends ItemEffect {
   }
 }
 
-/// Marca el objeto que convierte sobrevivir contraataques en recarga.
+/// Marca el objeto que convierte sobrevivir contraataques en mejores Desafios.
 class AceleradorRetoItemEffect extends ItemEffect {
   /// Crea el efecto descriptivo de Acelerador de Reto.
   const AceleradorRetoItemEffect()
       : super(
           description:
-              'Al sobrevivir a contraataques provocados por Desafio, reduce cooldowns manuales.',
+              'Al sobrevivir a contraataques provocados por Desafio, mejora tus siguientes Desafios.',
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera ${max(1, item.value)} vez por combate que sobrevives a un contraataque provocado por Desafio, reduces 1 el cooldown de una habilidad manual aleatoria.';
+    return 'La primera ${max(1, item.value)} vez por combate que sobrevives a un contraataque provocado por Desafio, ganas Desafio Excitante (+${max(1, item.value)}).';
   }
 }
 

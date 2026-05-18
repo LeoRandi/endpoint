@@ -13,59 +13,12 @@ void main() {
     ).prepareForCombat();
 
     final resolvedPlayer = player.applyStatusFromSource(
-      const InterferenciaStatus(),
+      const ConmocionStatus(value: 2),
       source: enemy,
     );
 
-    expect(resolvedPlayer.hasStatus(InterferenciaStatus.statusId), isFalse);
+    expect(resolvedPlayer.hasStatus(ConmocionStatus.statusId), isFalse);
     expect(resolvedPlayer.currentBarrier, 2);
-  });
-
-  test(
-      'Punto Ciego prevents damage and target effects while attacker self effects resolve',
-      () {
-    final enemy = _battler(
-      name: 'ENEMY',
-      attack: 8,
-      equippedItems: const [
-        serratedEdgeItem,
-        thermalTurbineItem,
-      ],
-    ).prepareForCombat();
-    final player = _battler(
-      name: 'PLAYER',
-      abilities: const [puntoCiegoAbility],
-    ).prepareForCombat();
-    final activation = player.toggleAbilityActivation(
-      abilityId: BattlerAbilityId.puntoCiego,
-      screenContext: BattlerAbilityActivationContext.battle,
-      opponent: enemy,
-    );
-
-    final attack = resolver.resolveAttack(
-      attacker: activation.opponent,
-      defender: activation.owner,
-    );
-
-    expect(attack.damageDealt, 0);
-    expect(attack.defender.health, player.health);
-    expect(attack.defender.hasStatus(FragilidadStatus.statusId), isFalse);
-    expect(attack.attacker.hasStatus(CalentandoStatus.statusId), isTrue);
-  });
-
-  test('Cadencia Rapida caps manual ability cooldowns', () {
-    final player = _battler(
-      name: 'PLAYER',
-      abilities: const [
-        cadenciaRapidaAbility,
-        eclipseManualAbility,
-      ],
-    ).enforceAbilityCooldownCap();
-
-    final cappedAbility = player.abilityById(BattlerAbilityId.eclipseManual);
-
-    expect(cappedAbility, isNotNull);
-    expect(cappedAbility!.cooldownTurns, 3);
   });
 
   test('Opresion Tactica grants barrier when an enemy buff is consumed', () {
@@ -85,32 +38,6 @@ void main() {
 
     expect(attack.attacker.hasStatus(PotenciaStatus.statusId), isFalse);
     expect(attack.defender.currentBarrier, 4);
-  });
-
-  test('Sobrecarga Regulada adds cooldown to the next manual ability', () {
-    final enemy = _battler(name: 'ENEMY').prepareForCombat();
-    final player = _battler(
-      name: 'PLAYER',
-      abilities: const [
-        sobrecargaReguladaAbility,
-        marcaDeCazaAbility,
-      ],
-    ).prepareForCombat();
-    final overload = player.toggleAbilityActivation(
-      abilityId: BattlerAbilityId.sobrecargaRegulada,
-      screenContext: BattlerAbilityActivationContext.battle,
-      opponent: enemy,
-    );
-
-    final marked = overload.owner.toggleAbilityActivation(
-      abilityId: BattlerAbilityId.marcaDeCaza,
-      screenContext: BattlerAbilityActivationContext.battle,
-      opponent: overload.opponent,
-    );
-    final markAbility = marked.owner.abilityById(BattlerAbilityId.marcaDeCaza);
-
-    expect(markAbility, isNotNull);
-    expect(markAbility!.remainingCooldownTurns, 3);
   });
 
   test('Copia de Seguridad survives one lethal attack and gains barrier', () {

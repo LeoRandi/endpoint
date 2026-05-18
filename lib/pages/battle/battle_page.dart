@@ -963,7 +963,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
     await showEndpointDialog<void>(
       context: context,
-      barrierLabel: 'Detalle de habilidad',
+      barrierLabel: 'Detalle de aumento',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
         return AnimatedBuilder(
@@ -1001,8 +1001,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
                 canControlOwner: canControlOwner,
               ),
               enabledActionTooltip: currentAbility.isActive
-                  ? 'Desactivar habilidad manual'
-                  : 'Activar habilidad manual',
+                  ? 'Desactivar aumento manual'
+                  : 'Activar aumento manual',
               disabledActionTooltip:
                   _sceneController.disabledAbilityActionTooltipFor(
                 currentAbility,

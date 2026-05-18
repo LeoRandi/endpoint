@@ -273,14 +273,6 @@ abstract class ItemEffect {
   }
 }
 
-/// Comprueba si una habilidad ha pasado de estar lista a estar en cooldown.
-bool _enteredCooldown(
-  BattlerAbility previousAbility,
-  BattlerAbility resolvedAbility,
-) {
-  return !previousAbility.isOnCooldown && resolvedAbility.isOnCooldown;
-}
-
 /// Recupera barrera sin aplicar tope maximo.
 Battler _recoverBarrier({
   required Battler owner,

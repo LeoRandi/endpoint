@@ -194,7 +194,7 @@ class ToqueDeQuedaAbilityEffect extends BattlerAbilityEffect {
       final resolution = _applyAbilityStatusToOpponentFromOwner(
         owner: updatedOwner,
         opponent: updatedOpponent,
-        status: InterferenciaStatus(remainingTurns: amount),
+        status: ConmocionStatus(value: amount),
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;

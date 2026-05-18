@@ -93,17 +93,7 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     EndpointText(
-                      'ACTIVACION  ${ability.manualActivationContext?.label ?? 'Pasiva'}',
-                      maxLines: null,
-                      style: textSmallBold.copyWith(
-                        fontSize: 10,
-                        color: accent,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    EndpointText(
-                      'COOLDOWN  ${ability.cooldownLabel}',
+                      'AUMENTO PASIVO',
                       maxLines: null,
                       style: textMediumNumericBold.copyWith(
                         fontSize: 14,
@@ -217,7 +207,6 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
     final parts = <String>[
       'POTENCIA ${ability.currentValue}',
       'MEJORA +${ability.upgradeValue}',
-      'RECARGA ${ability.remainingCooldownLabel}',
     ];
 
     final preparts = parts.join('   ');
@@ -226,9 +215,6 @@ class EndpointAbilityDetailsDialog extends StatelessWidget {
 
     if (ability.runtimeValueBonus > 0) {
       parts.add('BONO +${ability.runtimeValueBonus}');
-    }
-    if (ability.isManualActivationActive) {
-      parts.add('ESTADO: Activa');
     }
 
     return parts.join('\n');

@@ -39,7 +39,7 @@ class _BlackTechnoMarketEventPageState
     Navigator.of(context).pop(
       PathEventVisitResult(
         player: widget.player,
-        outcomeText: 'No compras ninguna habilidad.',
+        outcomeText: 'No compras ningun aumento.',
       ),
     );
   }
@@ -60,7 +60,7 @@ class _BlackTechnoMarketEventPageState
     final price = widget.eventService.blackTechnoMarketPriceFor(ability);
     final selectedAbility = await showEndpointDialog<BattlerAbility>(
       context: context,
-      barrierLabel: 'Detalle de habilidad',
+      barrierLabel: 'Detalle de aumento',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
         return EndpointAbilityDetailsDialog(
@@ -73,7 +73,7 @@ class _BlackTechnoMarketEventPageState
             Navigator.of(context).pop(ability);
           },
           isActionEnabled: true,
-          enabledActionTooltip: 'Seleccionar esta habilidad para comprarla',
+          enabledActionTooltip: 'Seleccionar este aumento para comprarlo',
         );
       },
     );
@@ -108,7 +108,7 @@ class _BlackTechnoMarketEventPageState
     if (gainedAbility != null) {
       await showEndpointDialog<void>(
         context: context,
-        barrierLabel: 'Habilidad comprada',
+        barrierLabel: 'Aumento comprado',
         barrierDismissible: false,
         barrierColor: EndpointPalette.overlayScrim,
         builder: (context) {
@@ -134,11 +134,11 @@ class _BlackTechnoMarketEventPageState
 
   String? get _selectionBlockReason {
     final selectedAbility = _selectedAbility;
-    if (selectedAbility == null) return 'Elige una habilidad';
+    if (selectedAbility == null) return 'Elige un aumento';
 
     final ownedAbility = widget.player.abilityById(selectedAbility.id);
     if (ownedAbility != null && !ownedAbility.canUpgrade) {
-      return 'Esta habilidad no puede mejorar mas';
+      return 'Este aumento no puede mejorar mas';
     }
 
     final price = _selectedPrice ?? 0;
@@ -180,7 +180,7 @@ class _BlackTechnoMarketEventPageState
         widget.player.wouldUpgradeAbility(selectedAbility);
     final actionTooltip = blockReason ??
         (selectedAbility == null
-            ? 'Elige una habilidad'
+            ? 'Elige un aumento'
             : willUpgradeSelectedAbility
                 ? 'Mejorar ${selectedAbility.displayName}'
                 : 'Comprar ${selectedAbility.displayName}');
@@ -246,7 +246,7 @@ class _BlackTechnoMarketEventPageState
             ],
             EndpointActionButton(
               label: selectedAbility == null
-                  ? 'Elige una habilidad'
+                  ? 'Elige un aumento'
                   : willUpgradeSelectedAbility
                       ? 'Mejorar seleccion'
                       : 'Comprar seleccion',
@@ -278,7 +278,7 @@ class _BlackTechnoMarketEventPageState
   Widget _buildOffersStrip() {
     if (_offers.isEmpty) {
       return EndpointText(
-        'No hay habilidades disponibles.',
+        'No hay aumentos disponibles.',
         textAlign: TextAlign.center,
         style: textMediumBold.copyWith(
           color: EndpointPalette.softForeground.withAlpha(184),
@@ -500,7 +500,7 @@ class _BlackMarketPurchaseDialogState
                 ),
                 const SizedBox(height: 10),
                 EndpointText(
-                  'HABILIDAD COMPRADA',
+                  'AUMENTO COMPRADO',
                   textAlign: TextAlign.center,
                   style: textMediumBold.copyWith(
                     color: widget.accent,

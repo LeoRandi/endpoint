@@ -14,7 +14,7 @@ final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
 );
 final RegExp _highlightedTermPattern = RegExp(
-  r'\b(?:desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|inercia|ciclo|fragilidad|interferencia|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
+  r'\b(?:desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|inercia|ciclo|fragilidad|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
   caseSensitive: false,
 );
 
@@ -237,14 +237,6 @@ class EndpointHighlightedValueText extends StatelessWidget {
             'Fragilidad: debuff. Se acumula hasta 10. Si el objetivo recibe un ataque con 10, se limpia e inflige 10 daño directo que ignora Barrera.',
       );
     }
-    if (normalizedToken.contains('interferencia')) {
-      return const _HighlightTermMetadata(
-        accent: _effectDebuffAccent,
-        icon: _HighlightIconSpec.material(Icons.portable_wifi_off_rounded),
-        tooltip:
-            'Interferencia: debuff. Impide activar habilidades manuales mientras siga activo.',
-      );
-    }
     if (normalizedToken.contains('conmocion')) {
       return const _HighlightTermMetadata(
         accent: _effectDebuffAccent,
@@ -282,7 +274,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
         accent: _effectBuffAccent,
         icon: _HighlightIconSpec.material(Icons.motion_photos_on_rounded),
         tooltip:
-            'Inercia: buff. Si no activas habilidades manuales en tu turno, genera una reserva temporal de ATK o Barrera.',
+            'Inercia: buff. Al final de tu turno genera una reserva temporal de ATK o Barrera.',
       );
     }
     if (normalizedToken.startsWith('buff')) {
@@ -441,7 +433,6 @@ class EndpointHighlightedValueText extends StatelessWidget {
           'debuffs',
           'desventaja',
           'fragilidad',
-          'interferencia',
           'conmocion',
         ],
       ),

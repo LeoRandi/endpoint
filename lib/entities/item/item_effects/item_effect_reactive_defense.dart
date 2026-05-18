@@ -322,13 +322,13 @@ class CanonContrapresionItemEffect extends ItemEffect {
   }
 }
 
-/// Aplica interferencia y erosiona barrera si el objetivo ya estaba bloqueado.
+/// Aplica Conmocion y erosiona barrera si el objetivo ya estaba debilitado.
 class InterferenceCannonItemEffect extends ItemEffect {
-  /// Crea el efecto propio del Canon de Interferencia.
+  /// Crea el efecto propio del Canon de Conmocion.
   const InterferenceCannonItemEffect()
       : super(
           description:
-              'Al atacar aplica Interferencia y castiga barreras ya comprometidas.',
+              'Al atacar aplica Conmocion y castiga barreras ya comprometidas.',
           hooks: const {
             ItemEffectHook.attackResolved,
           },
@@ -336,7 +336,7 @@ class InterferenceCannonItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al atacar: aplica Interferencia durante ${max(1, item.value)} turnos. Si el objetivo ya la tenia, ademas pierde 1 de Barrera.';
+    return 'Al atacar: aplica Conmocion ${max(1, item.value)}. Si el objetivo ya la tenia, ademas pierde 1 de Barrera.';
   }
 
   @override
@@ -346,17 +346,17 @@ class InterferenceCannonItemEffect extends ItemEffect {
     required Item item,
     required int damageDealt,
   }) {
-    final resolvedDuration = max(1, item.value);
-    final hadInterference = target.hasStatus(InterferenciaStatus.statusId);
+    final resolvedValue = max(1, item.value);
+    final hadConcussion = target.hasStatus(ConmocionStatus.statusId);
     var resolution = _applyStatusToOpponentFromOwner(
       owner: owner,
       opponent: target,
-      status: InterferenciaStatus(remainingTurns: resolvedDuration),
+      status: ConmocionStatus(value: resolvedValue),
     );
     var updatedOwner = resolution.owner;
     var updatedTarget = resolution.opponent;
 
-    if (hadInterference && updatedTarget.currentBarrier > 0) {
+    if (hadConcussion && updatedTarget.currentBarrier > 0) {
       updatedTarget = updatedTarget.copyWith(
         currentBarrier: max(0, updatedTarget.currentBarrier - 1),
       );

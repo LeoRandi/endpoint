@@ -795,10 +795,10 @@ class _PathBottomHud extends StatelessWidget {
               tooltip: 'Abrir ventana de operativos',
             );
             Widget abilitiesButton = PathActionButton(
-              label: 'Habilidades',
+              label: 'AUMENTOS',
               icon: Icons.auto_awesome_rounded,
               onPressed: onOpenAbilities,
-              tooltip: 'Abrir panel de habilidades',
+              tooltip: 'Abrir panel de AUMENTOS',
             );
             Widget moneyChip = EndpointValueChip(
               icon: Icons.monetization_on_rounded,
@@ -819,9 +819,9 @@ class _PathBottomHud extends StatelessWidget {
               );
               abilitiesButton = _PathShowcaseStep(
                 showcaseKey: keys.abilities,
-                title: 'Habilidades',
+                title: 'AUMENTOS',
                 description:
-                    'Este boton abre los protocolos y habilidades que puedes revisar o activar en ruta.',
+                    'Este boton abre los protocolos y aumentos pasivos que puedes revisar en ruta.',
                 child: abilitiesButton,
               );
               moneyChip = _PathShowcaseStep(

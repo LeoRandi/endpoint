@@ -287,8 +287,8 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
           icon: Icons.swap_horiz_rounded,
           accent: widget.node.accent,
           body: hasAbilities
-              ? 'Entrega una habilidad y recibe otra del mismo tier o superior.'
-              : 'No tienes habilidades disponibles para intercambiar.',
+              ? 'Entrega un aumento y recibe otro del mismo tier o superior.'
+              : 'No tienes aumentos disponibles para intercambiar.',
           onPressed: _isResolving || !hasAbilities
               ? null
               : () => _chooseStage(_SuBastaYaEventStage.ability),
@@ -414,11 +414,11 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
         ),
         const SizedBox(height: 10),
         EndpointActionButton(
-          label: swapAbility == null ? 'Elige una habilidad' : 'Cambiar',
+          label: swapAbility == null ? 'Elige un aumento' : 'Cambiar',
           icon: Icons.shuffle_rounded,
           onPressed:
               _isResolving || swapAbility == null ? null : _swapSelectedAbility,
-          tooltip: 'Intercambiar habilidad',
+          tooltip: 'Intercambiar aumento',
           accent: swapAbility?.accent ?? widget.node.accent,
           backgroundColor: EndpointPalette.panelBackgroundMuted,
           foregroundColor:

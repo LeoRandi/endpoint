@@ -1228,20 +1228,11 @@ class BattleController extends ChangeNotifier {
         continue;
       }
 
-      final candidates = updatedOwner.abilities
-          .where(
-            (ability) =>
-                ability.manualActivationContext != null &&
-                ability.remainingCooldownTurns > 0,
-          )
-          .toList(growable: false);
-      if (candidates.isEmpty) continue;
-
-      final selectedAbility = candidates[_randomizer.nextInt(
-        candidates.length,
-      )];
       updatedOwner = updatedOwner
-          .updateAbility(selectedAbility.reduceCooldown(1))
+          .applyStatus(
+            DesafioExcitanteStatus(value: max(1, item.value)),
+            applyEquipmentModifiers: false,
+          )
           .addItemCombatFlagUse(
             item: item,
             kind: ItemCombatFlagKind.aceleradorRetoTriggered,

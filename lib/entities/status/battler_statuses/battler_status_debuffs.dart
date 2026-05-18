@@ -397,60 +397,6 @@ class FragilidadStatus extends BattlerStatus {
   }
 }
 
-/// Debuff que bloquea el uso manual de habilidades mientras siga activo.
-class InterferenciaStatus extends BattlerStatus {
-  static const statusId = BattlerStatusId.interferencia;
-  static const defaultDuration = 1;
-
-  /// Crea una instancia de Interferencia cuya fuerza sigue la duracion restante.
-  const InterferenciaStatus({
-    int remainingTurns = defaultDuration,
-    int? value,
-  }) : super(
-          id: statusId,
-          name: 'Interferencia',
-          type: BattlerStatusType.debuff,
-          tags: _debuffStatusTags,
-          hooks: const {
-            BattlerStatusHook.manualAbilityActivationBlocker,
-          },
-          icon: Icons.portable_wifi_off_rounded,
-          description:
-              'Impide activar habilidades manuales mientras permanezca activo.',
-          remainingTurns: remainingTurns,
-          value: value ?? remainingTurns,
-        );
-
-  @override
-
-  /// Hace que el value real del bloqueo coincida con su duracion restante.
-  int resolveValue(Battler owner) => remainingTurns;
-
-  @override
-
-  /// Devuelve el motivo visible por el que la activacion manual queda bloqueada.
-  String? manualAbilityActivationBlockReason({
-    required Battler owner,
-    required BattlerAbilityActivationContext screenContext,
-  }) {
-    return 'Interferencia activa: no puedes usar habilidades manuales';
-  }
-
-  @override
-
-  /// Clona el estado manteniendo sincronizados value y remainingTurns.
-  BattlerStatus copyWith({
-    int? remainingTurns,
-    int? value,
-  }) {
-    final nextRemainingTurns = remainingTurns ?? this.remainingTurns;
-    return InterferenciaStatus(
-      remainingTurns: nextRemainingTurns,
-      value: value ?? nextRemainingTurns,
-    );
-  }
-}
-
 /// Debuff que debilita el siguiente ataque del portador y luego desaparece.
 class ConmocionStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.conmocion;

@@ -20,10 +20,10 @@ class EndpointAbilitiesOverlay extends StatefulWidget {
     required this.screenContext,
     this.onPlayerChanged,
     this.abilityActivationBlockReason,
-    this.title = 'Habilidades',
+    this.title = 'Aumentos',
     this.subtitle = 'Panel tactico',
-    this.emptyText = EndpointStrings.noSkills,
-    this.closeTooltip = 'Cerrar habilidades',
+    this.emptyText = EndpointStrings.noAugments,
+    this.closeTooltip = 'Cerrar aumentos',
     this.accent = EndpointPalette.primaryAccent,
     this.bottomInset = 112,
     this.maxWidth = 420,
@@ -79,7 +79,7 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
   Future<void> _openAbilityDetails(BattlerAbility ability) async {
     await showEndpointDialog<void>(
       context: context,
-      barrierLabel: 'Detalle de habilidad',
+      barrierLabel: 'Detalle de aumento',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
         return AnimatedBuilder(
@@ -99,8 +99,8 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
                   : null,
               isActionEnabled: _controller.isActionEnabled(currentAbility),
               enabledActionTooltip: currentAbility.isActive
-                  ? 'Desactivar habilidad manual'
-                  : 'Activar habilidad manual',
+                  ? 'Desactivar aumento manual'
+                  : 'Activar aumento manual',
               disabledActionTooltip:
                   _controller.disabledActionTooltipFor(currentAbility),
             );
@@ -120,7 +120,7 @@ class _EndpointAbilitiesOverlayState extends State<EndpointAbilitiesOverlay> {
         return EndpointOverlayScaffold(
           title: widget.title,
           subtitle: widget.subtitle,
-          sectionLabel: 'HABILIDADES',
+          sectionLabel: 'AUMENTOS',
           sectionValue: '${abilities.length}',
           closeTooltip: widget.closeTooltip,
           accent: widget.accent,

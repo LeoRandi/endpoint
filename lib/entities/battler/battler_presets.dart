@@ -254,7 +254,7 @@ const _greenToxicSetItems = <Item>[
 ];
 const _greenToxicSetAbilities = <BattlerAbility>[
   weaknessHunterAbility,
-  inyeccionCorrosivaAbility,
+  escanerRupturaAbility,
 ];
 
 const _bastionSpringSetItems = <Item>[
@@ -277,7 +277,7 @@ const _greenShieldmendSetItems = <Item>[
   placaBisagraItem,
 ];
 const _greenShieldmendSetAbilities = <BattlerAbility>[
-  limpiezaCacheAbility,
+  opresionTacticaAbility,
 ];
 
 /// Variante verde de debuffs en cadena con castigo incremental.
@@ -429,7 +429,7 @@ const cinderRamEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [venousOverloadAbility],
+  abilities: [furiaHematicaAbility],
   equippedItems: [
     ironSwordItem,
     emberCharmItem,
@@ -445,7 +445,7 @@ const _blueJammerSetItems = <Item>[
 ];
 const _blueJammerSetAbilities = <BattlerAbility>[
   weaknessHunterAbility,
-  jaulaSenalAbility,
+  escanerRupturaAbility,
 ];
 
 const _blueMagnetSetItems = <Item>[
@@ -453,9 +453,8 @@ const _blueMagnetSetItems = <Item>[
   platedJacketItem,
 ];
 const _blueMagnetSetAbilities = <BattlerAbility>[
-  criticalScannerAbility,
   escanerRupturaAbility,
-  sustraccionAbility,
+  masaCriticaAbility,
 ];
 
 const _blueVeninSetItems = <Item>[
@@ -464,7 +463,7 @@ const _blueVeninSetItems = <Item>[
 ];
 const _blueVeninSetAbilities = <BattlerAbility>[
   weaknessHunterAbility,
-  reenrutadoInversoAbility,
+  triageAutomaticoAbility,
 ];
 
 const _blueAshenSetItems = <Item>[
@@ -475,7 +474,7 @@ const _blueAshenSetAbilities = <BattlerAbility>[
   ghostMeshAbility,
 ];
 
-/// Variante azul de control bilateral basada en Interferencia.
+/// Variante azul de control bilateral basada en Conmocion.
 const jammerHowlerEnemyBattler = Battler(
   name: 'JAMMER HOWLER',
   health: 83,
@@ -607,7 +606,7 @@ const cinderExecutionerEnemyBattler = Battler(
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [venousOverloadAbility],
+  abilities: [furiaHematicaAbility],
   equippedItems: [
     portableOvenItem,
     emberCharmItem,
@@ -631,7 +630,7 @@ const phaseDredgerEnemyBattler = Battler(
   },
   abilities: [
     ghostMeshAbility,
-    criticalScannerAbility,
+    escanerRupturaAbility,
   ],
   equippedItems: [
     midnightCloakItem,
@@ -648,8 +647,8 @@ const _purpleHarpoonerSetItems = <Item>[
   reboundHarnessItem,
 ];
 const _purpleHarpoonerSetAbilities = <BattlerAbility>[
-  criticalScannerAbility,
   nucleoParasitarioAbility,
+  noHayRetiradaAbility,
 ];
 
 const _purpleOvenSetItems = <Item>[
@@ -658,9 +657,9 @@ const _purpleOvenSetItems = <Item>[
   ultimaMarchaItem,
 ];
 const _purpleOvenSetAbilities = <BattlerAbility>[
-  venousOverloadAbility,
+  furiaHematicaAbility,
   hemostasiaAgresivaAbility,
-  espejoDolorAbility,
+  mallaReboteAbility,
 ];
 
 const _purpleVoidSetItems = <Item>[
@@ -669,8 +668,8 @@ const _purpleVoidSetItems = <Item>[
   parasiticCapacitorItem,
 ];
 const _purpleVoidSetAbilities = <BattlerAbility>[
-  criticalScannerAbility,
-  protocoloUsurpacionAbility,
+  escanerRupturaAbility,
+  nucleoParasitarioAbility,
 ];
 
 const _purpleSmugglerSetItems = <Item>[

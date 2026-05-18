@@ -856,8 +856,8 @@ class PathEventService {
     switch (randomizer.nextInt(3)) {
       case 0:
         return const _SobreKarDebuffRoll(
-          status: InterferenciaStatus(remainingTurns: 10),
-          label: 'Interferencia (10 turnos)',
+          status: ConmocionStatus(value: 3),
+          label: 'Conmocion (-3 dano)',
         );
       case 1:
         return const _SobreKarDebuffRoll(

@@ -167,18 +167,6 @@ extension BattlerAbilityManagement on Battler {
   String? manualAbilityActivationBlockReason(
     BattlerAbilityActivationContext screenContext,
   ) {
-    for (final status
-        in statusesForHook(BattlerStatusHook.manualAbilityActivationBlocker)) {
-      final resolvedStatus = status.resolved(this);
-      final blockReason = resolvedStatus.manualAbilityActivationBlockReason(
-        owner: this,
-        screenContext: screenContext,
-      );
-      if (blockReason != null) {
-        return blockReason;
-      }
-    }
-
     return null;
   }
 

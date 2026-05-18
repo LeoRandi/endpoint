@@ -68,7 +68,7 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
 
     final selectedAbility = await showEndpointOverlay<BattlerAbility>(
       context: context,
-      barrierLabel: 'Seleccionar habilidad',
+      barrierLabel: 'Seleccionar aumento',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (_) => _TechnosurgeonAbilitySelectionOverlay(
         abilities: widget.player.abilities,
@@ -171,8 +171,8 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
       caption: selectedAbility == null
           ? hasAbilities
               ? 'Pulsa para elegir'
-              : 'Sin habilidades'
-          : 'Habilidad seleccionada',
+              : 'Sin aumentos'
+          : 'Aumento seleccionado',
       ability: selectedAbility,
       accent: selectedAbility?.accent ?? widget.node.accent,
       isSelectable: hasAbilities && !_hasResolvedTechnosurgeon,
@@ -240,8 +240,8 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
             tooltip: _hasResolvedTechnosurgeon
                 ? EndpointStrings.backToRoute
                 : canAssumeChange
-                    ? 'Reemplazar la habilidad seleccionada por una de tier superior'
-                    : 'Primero selecciona una habilidad',
+                    ? 'Reemplazar el aumento seleccionado por uno de tier superior'
+                    : 'Primero selecciona un aumento',
             accent: selectedAbility?.accent ?? widget.node.accent,
             backgroundColor: EndpointPalette.blend(
               EndpointPalette.panelBackgroundGold,
@@ -272,9 +272,9 @@ class _TechnosurgeonAbilitySelectionOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EndpointOverlayScaffold(
-      title: 'Habilidades',
+      title: 'Aumentos',
       subtitle: 'Elige el protocolo que vas a entregar',
-      sectionLabel: 'HABILIDADES',
+      sectionLabel: 'AUMENTOS',
       sectionValue: '${abilities.length}',
       closeTooltip: 'Cerrar seleccion',
       accent: accent,
@@ -284,7 +284,7 @@ class _TechnosurgeonAbilitySelectionOverlay extends StatelessWidget {
       child: abilities.isEmpty
           ? Center(
               child: EndpointText(
-                EndpointStrings.noSkills,
+                EndpointStrings.noAugments,
                 textAlign: TextAlign.center,
                 style: textSmallBold.copyWith(
                   color: EndpointPalette.softForeground.withAlpha(184),

@@ -92,7 +92,7 @@ class LevelUpRewardDialog extends StatelessWidget {
       case BattlerLevelRewardChoiceType.stat:
         return 'ELIGE UNA RECOMPENSA EXTRA';
       case BattlerLevelRewardChoiceType.ability:
-        return 'ELIGE UNA HABILIDAD ${offer.rarity?.label ?? ''}'.trim();
+        return 'ELIGE UNA AUMENTO ${offer.rarity?.label ?? ''}'.trim();
       case BattlerLevelRewardChoiceType.item:
         return 'ELIGE UN OBJETO ${offer.rarity?.label ?? ''}'.trim();
     }
@@ -460,3 +460,4 @@ class _LevelUpDeltaChip extends StatelessWidget {
     );
   }
 }
+
