@@ -140,28 +140,18 @@ class BattleSceneController extends ChangeNotifier {
   /// Ejecuta el ataque basico del jugador cuando la escena lo solicita.
   Future<void> handlePlayerAttack({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
-    BattleActionBonus? drawingBonus,
-    BattleAttackDrawingPenalty drawingPenalty =
-        BattleAttackDrawingPenalty.empty,
   }) {
     return _battleController.handleAttack(
       actionBonus: actionBonus,
-      drawingBonus: drawingBonus,
-      drawingPenalty: drawingPenalty,
     );
   }
 
   /// Ejecuta la accion de bloqueo del jugador y termina su turno.
   Future<void> handlePlayerBlock({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
-    BattleActionBonus? drawingBonus,
-    BattleAttackDrawingPenalty drawingPenalty =
-        BattleAttackDrawingPenalty.empty,
   }) {
     return _battleController.handleBlock(
       actionBonus: actionBonus,
-      drawingBonus: drawingBonus,
-      drawingPenalty: drawingPenalty,
     );
   }
 

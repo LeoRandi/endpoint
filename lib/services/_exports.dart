@@ -2,7 +2,6 @@ export 'battler_effect_pipeline.dart';
 export 'battler_runtime_service.dart';
 export 'battle_action_bonus.dart';
 export 'battle_controller.dart';
-export 'battle_drawing_bonus_resolver.dart';
 export 'battle_flow_result.dart';
 export 'battle_reward_service.dart';
 export 'battle_resolver.dart';

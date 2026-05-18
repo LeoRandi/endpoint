@@ -313,14 +313,6 @@ const _rightAnglePatternItemIds = <ItemId>{
   ItemId.deflectiveCapacitor,
 };
 
-const _drawingBonusEligibleHooks = <ItemEffectHook>{
-  ItemEffectHook.attackResolved,
-  ItemEffectHook.defendResolved,
-  ItemEffectHook.receiveDamageResolved,
-  ItemEffectHook.turnStart,
-  ItemEffectHook.turnEnd,
-};
-
 /// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
 class Item {
   static int _nextInstanceSequence = 0;
@@ -343,7 +335,6 @@ class Item {
   final Map<BattlerStat, int> upgradeStatModifiers;
   final ItemEffect? effect;
   final String? instanceId;
-  final ItemBonusShape? bonusShapeOverride;
   final OperativePatternBonusKind? patternBonusKindOverride;
   final int? patternBonusAmountOverride;
   final OperativePatternRequirement? patternRequirementOverride;
@@ -368,7 +359,6 @@ class Item {
     this.upgradeStatModifiers = const {},
     this.effect,
     this.instanceId,
-    this.bonusShapeOverride,
     this.patternBonusKindOverride,
     this.patternBonusAmountOverride,
     this.patternRequirementOverride,
@@ -383,33 +373,6 @@ class Item {
 
   /// Indica si el objeto tiene una logica activa mas alla de sus stats planos.
   bool get hasEffect => effect != null;
-
-  /// Indica si el objeto puede participar en el minijuego de dibujo de combate.
-  bool get hasDrawingBonus {
-    final hooks = effect?.hooks;
-    if (hooks == null || hooks.isEmpty) {
-      return false;
-    }
-
-    for (final hook in hooks) {
-      if (_drawingBonusEligibleHooks.contains(hook)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Devuelve la forma geometrica asociada al bonus especial del objeto.
-  ItemBonusShape get bonusShape => bonusShapeOverride ?? _defaultBonusShape;
-
-  /// Devuelve la forma de dibujo si el item participa en el sistema de trazos.
-  ItemBonusShape? get drawingBonusShape {
-    if (!hasDrawingBonus) return null;
-    return bonusShape;
-  }
-
-  /// Describe el bonus especial ligado a la forma actual del objeto.
-  ItemSpecialBonus get specialBonus => ItemSpecialBonus.forShape(bonusShape);
 
   /// Describe el bonus que aporta este objeto cuando se cruza en Patron.
   OperativePatternBonus get patternBonus => OperativePatternBonus(
@@ -428,13 +391,6 @@ class Item {
   /// Devuelve la condicion que debe cumplir el trazo para activar su bonus de Patron.
   OperativePatternRequirement get patternRequirement =>
       patternRequirementOverride ?? _defaultPatternRequirement;
-
-  /// Devuelve el bonus especial de dibujo si este item participa en dicho sistema.
-  ItemSpecialBonus? get drawingSpecialBonus {
-    final shape = drawingBonusShape;
-    if (shape == null) return null;
-    return ItemSpecialBonus.forShape(shape);
-  }
 
   /// Devuelve las tags declaradas mas las de categoria visible heredadas.
   List<EntityTag> get tags {
@@ -565,16 +521,6 @@ class Item {
     return entries;
   }
 
-  ItemBonusShape get _defaultBonusShape {
-    if (isWeaponLike) {
-      return ItemBonusShape.triangle;
-    }
-    if (hasTag(EntityTag.barrera)) {
-      return ItemBonusShape.square;
-    }
-    return ItemBonusShape.circle;
-  }
-
   /// Sube la rareza visual y el valor del objeto respetando el tope amarillo.
   Item upgraded() {
     final upgradeTemplate = canUpgrade ? this : presetForId(id);
@@ -638,8 +584,6 @@ class Item {
     ItemEffect? effect,
     bool clearEffect = false,
     String? instanceId,
-    ItemBonusShape? bonusShapeOverride,
-    bool clearBonusShapeOverride = false,
     OperativePatternBonusKind? patternBonusKindOverride,
     bool clearPatternBonusKindOverride = false,
     int? patternBonusAmountOverride,
@@ -667,9 +611,6 @@ class Item {
       upgradeStatModifiers: upgradeStatModifiers ?? this.upgradeStatModifiers,
       effect: clearEffect ? null : effect ?? this.effect,
       instanceId: instanceId ?? this.instanceId,
-      bonusShapeOverride: clearBonusShapeOverride
-          ? null
-          : bonusShapeOverride ?? this.bonusShapeOverride,
       patternBonusKindOverride: clearPatternBonusKindOverride
           ? null
           : patternBonusKindOverride ?? this.patternBonusKindOverride,
@@ -706,7 +647,6 @@ class Item {
       upgradeStatModifiers: upgradeStatModifiers,
       effect: effect,
       instanceId: 'item_${_nextInstanceSequence++}',
-      bonusShapeOverride: bonusShapeOverride,
       patternBonusKindOverride: patternBonusKindOverride,
       patternBonusAmountOverride: patternBonusAmountOverride,
       patternRequirementOverride: patternRequirementOverride,

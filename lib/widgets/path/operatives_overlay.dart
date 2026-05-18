@@ -526,7 +526,6 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                       bottom: 12,
                       child: _OperativesModeShortcuts(
                         gameMode: widget.gameMode,
-                        onOpenSketchPad: _openSketchPad,
                         onOpenPatternBoard: _openPatternBoard,
                       ),
                     ),
@@ -537,18 +536,6 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
           ),
         );
       },
-    );
-  }
-
-  /// Abre una ventana secundaria con un lienzo efimero para trazar desde el overlay de operativos.
-  Future<void> _openSketchPad() async {
-    await showEndpointOverlay<void>(
-      context: context,
-      barrierLabel: 'Abrir lienzo operativo',
-      barrierColor: EndpointPalette.overlayScrimStrong,
-      builder: (_) => OperativeSketchOverlay(
-        player: _controller.player,
-      ),
     );
   }
 
@@ -1183,12 +1170,10 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
 
 class _OperativesModeShortcuts extends StatelessWidget {
   final EndpointGameMode gameMode;
-  final Future<void> Function() onOpenSketchPad;
   final Future<void> Function() onOpenPatternBoard;
 
   const _OperativesModeShortcuts({
     required this.gameMode,
-    required this.onOpenSketchPad,
     required this.onOpenPatternBoard,
   });
 
@@ -1197,14 +1182,6 @@ class _OperativesModeShortcuts extends StatelessWidget {
     switch (gameMode) {
       case EndpointGameMode.classic:
         return const SizedBox.shrink();
-      case EndpointGameMode.drawing:
-        return _OperativesShortcutButton(
-          label: 'Dibujar',
-          icon: Icons.gesture_rounded,
-          tooltip: 'Abrir lienzo efimero',
-          accent: EndpointPalette.infoAccent,
-          onPressed: () => unawaited(onOpenSketchPad()),
-        );
       case EndpointGameMode.pattern:
         return _OperativesShortcutButton(
           label: 'Patrón',

@@ -157,12 +157,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   Set<BattleCombatantSide> _animatedBarrierSides = const {};
   bool _isPlayingBattleAnimation = false;
   bool _releaseDisplayOverrideOnNextSceneChange = false;
-  bool _isPresentingDrawAttack = false;
-  bool _isPresentingDrawDefense = false;
   bool _isPresentingPatternMatch = false;
-  bool _isQuickDrawAvailable = true;
-  int _quickDrawUseCount = 0;
-  int _quickDrawPerfectsRemaining = 0;
   Map<String, int> _patternItemPointUseCounts = const <String, int>{};
   BattlePatternBlockMode? _previousYellowPatternBlockMode;
   int _statusEffectBurstSequence = 0;
@@ -292,8 +287,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     return loadedSettings;
   }
 
-  bool get _isDrawingMode =>
-      _settingsSnapshot?.gameMode == EndpointGameMode.drawing;
   bool get _isPatternMode =>
       _settingsSnapshot?.gameMode == EndpointGameMode.pattern;
   void _handlePlayerAttack() {
@@ -313,49 +306,11 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
     final settings = await _ensureSettingsSnapshot();
     if (!mounted) return;
-    if (settings.gameMode != EndpointGameMode.drawing) {
-      if (settings.gameMode == EndpointGameMode.pattern) {
-        await _handlePlayerPatternMatchFlow();
-        return;
-      }
-      await _sceneController.handlePlayerAttack();
+    if (settings.gameMode == EndpointGameMode.pattern) {
+      await _handlePlayerPatternMatchFlow();
       return;
     }
-    if (_isPresentingDrawAttack) return;
-
-    setState(() {
-      _isPresentingDrawAttack = true;
-    });
-
-    try {
-      final drawResult = await showEndpointOverlay<BattleDrawOverlayResult>(
-        context: context,
-        barrierDismissible: false,
-        barrierColor: EndpointPalette.overlayScrimStrong,
-        builder: (_) => BattleDrawAttackOverlay(
-          attacker: _sceneController.player,
-          defender: _sceneController.enemy,
-          playerInitialBarrier: _sceneController.playerInitialBarrier,
-          randomizer: _sceneController.randomizer,
-          isQuickDrawAvailable: _isQuickDrawAvailable,
-          quickDrawPerfectsRemaining: _quickDrawPerfectsRemaining,
-          nextQuickDrawPerfectCost: _quickDrawUseCount + 1,
-        ),
-      );
-      if (!mounted || drawResult == null) return;
-
-      await _sceneController.handlePlayerAttack(
-        actionBonus: drawResult.resolution.bonus,
-        drawingPenalty: drawResult.resolution.penalty,
-      );
-      _syncQuickDrawState(drawResult);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isPresentingDrawAttack = false;
-        });
-      }
-    }
+    await _sceneController.handlePlayerAttack();
   }
 
   Future<void> _handlePlayerPatternMatchFlow() async {
@@ -427,47 +382,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       return;
     }
 
-    final settings = await _ensureSettingsSnapshot();
-    if (!mounted) return;
-    if (settings.gameMode != EndpointGameMode.drawing) {
-      await _sceneController.handlePlayerBlock();
-      return;
-    }
-    if (_isPresentingDrawDefense) return;
-
-    setState(() {
-      _isPresentingDrawDefense = true;
-    });
-
-    try {
-      final drawResult = await showEndpointOverlay<BattleDrawOverlayResult>(
-        context: context,
-        barrierDismissible: false,
-        barrierColor: EndpointPalette.overlayScrimStrong,
-        builder: (_) => BattleDrawDefenseOverlay(
-          defender: _sceneController.player,
-          attacker: _sceneController.enemy,
-          playerInitialBarrier: _sceneController.playerInitialBarrier,
-          randomizer: _sceneController.randomizer,
-          isQuickDrawAvailable: _isQuickDrawAvailable,
-          quickDrawPerfectsRemaining: _quickDrawPerfectsRemaining,
-          nextQuickDrawPerfectCost: _quickDrawUseCount + 1,
-        ),
-      );
-      if (!mounted || drawResult == null) return;
-
-      await _sceneController.handlePlayerBlock(
-        actionBonus: drawResult.resolution.bonus,
-        drawingPenalty: drawResult.resolution.penalty,
-      );
-      _syncQuickDrawState(drawResult);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isPresentingDrawDefense = false;
-        });
-      }
-    }
+    await _sceneController.handlePlayerBlock();
   }
 
   Future<void> _handleOpenPendingRewards() async {
@@ -1012,36 +927,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     return Rect.fromLTWH(0, top, size.width, halfHeight);
   }
 
-  void _syncQuickDrawState(BattleDrawOverlayResult drawResult) {
-    var nextAvailability = _isQuickDrawAvailable;
-    var nextUseCount = _quickDrawUseCount;
-    var nextPerfectsRemaining = _quickDrawPerfectsRemaining;
-
-    if (drawResult.consumedQuickDraw) {
-      nextUseCount += 1;
-      nextPerfectsRemaining = nextUseCount;
-      nextAvailability = false;
-    }
-
-    if (drawResult.achievedPerfect && !nextAvailability) {
-      nextPerfectsRemaining = max(0, nextPerfectsRemaining - 1);
-      nextAvailability = nextPerfectsRemaining <= 0;
-    }
-
-    if (!mounted ||
-        (nextAvailability == _isQuickDrawAvailable &&
-            nextUseCount == _quickDrawUseCount &&
-            nextPerfectsRemaining == _quickDrawPerfectsRemaining)) {
-      return;
-    }
-    setState(() {
-      _isQuickDrawAvailable = nextAvailability;
-      _quickDrawUseCount = nextUseCount;
-      _quickDrawPerfectsRemaining =
-          nextAvailability ? 0 : nextPerfectsRemaining;
-    });
-  }
-
   Future<void> _handleOpenEquippedItemDetails(
     Battler battler,
     Item item,
@@ -1137,10 +1022,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       sceneController: _sceneController,
       displayPlayerOverride: _displayPlayerOverride,
       displayEnemyOverride: _displayEnemyOverride,
-      isDrawingMode: _isDrawingMode,
       isPatternMode: _isPatternMode,
-      isPresentingDrawAttack: _isPresentingDrawAttack,
-      isPresentingDrawDefense: _isPresentingDrawDefense,
       isPresentingPatternMatch: _isPresentingPatternMatch,
       isPlayingBattleAnimation: _isPlayingBattleAnimation,
       battleAnimationRootKey: _battleAnimationRootKey,

@@ -622,7 +622,6 @@ const deflectiveCapacitorItem = Item(
     BattlerStat.barrier: 1,
   },
   effect: DeflectiveCapacitorItemEffect(),
-  bonusShapeOverride: ItemBonusShape.circle,
 );
 
 // Green
@@ -2245,7 +2244,6 @@ const succionaCreditosItem = Item(
   upgradeValue: 1,
   statModifiers: {BattlerStat.barrier: 1},
   effect: SuccionaCreditosItemEffect(),
-  bonusShapeOverride: ItemBonusShape.circle,
 );
 
 /// Accesorio morado mixto de ataque y vida maxima.
@@ -2323,7 +2321,6 @@ const overloadAnchorItem = Item(
   statModifiers: {BattlerStat.barrier: 1},
   upgradeStatModifiers: {BattlerStat.barrier: 1},
   effect: OverloadAnchorItemEffect(),
-  bonusShapeOverride: ItemBonusShape.circle,
 );
 
 /// Accesorio morado reactivo que solo devuelve una penalizacion por turno.
@@ -2352,7 +2349,6 @@ const reboundLensItem = Item(
   statModifiers: {BattlerStat.barrier: 1},
   upgradeStatModifiers: {BattlerStat.barrier: 1},
   effect: ReboundLensItemEffect(),
-  bonusShapeOverride: ItemBonusShape.circle,
 );
 
 // Yellow
@@ -2613,7 +2609,6 @@ const inertiaCrownItem = Item(
   value: 2,
   upgradeValue: 1,
   effect: InertiaCrownItemEffect(),
-  bonusShapeOverride: ItemBonusShape.circle,
 );
 
 /// Arma amarilla de remate que convierte la Quemadura acumulada en daño inmediato.

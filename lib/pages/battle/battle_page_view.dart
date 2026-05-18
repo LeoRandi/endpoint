@@ -31,10 +31,7 @@ class _BattleSceneView extends StatelessWidget {
   final BattleSceneController sceneController;
   final Battler? displayPlayerOverride;
   final Battler? displayEnemyOverride;
-  final bool isDrawingMode;
   final bool isPatternMode;
-  final bool isPresentingDrawAttack;
-  final bool isPresentingDrawDefense;
   final bool isPresentingPatternMatch;
   final bool isPlayingBattleAnimation;
   final GlobalKey battleAnimationRootKey;
@@ -64,10 +61,7 @@ class _BattleSceneView extends StatelessWidget {
     required this.sceneController,
     required this.displayPlayerOverride,
     required this.displayEnemyOverride,
-    required this.isDrawingMode,
     required this.isPatternMode,
-    required this.isPresentingDrawAttack,
-    required this.isPresentingDrawDefense,
     required this.isPresentingPatternMatch,
     required this.isPlayingBattleAnimation,
     required this.battleAnimationRootKey,
@@ -139,8 +133,6 @@ class _BattleSceneView extends StatelessWidget {
                     ),
                   ];
                   final playerActionsEnabled = sceneController.canUseActions &&
-                      !isPresentingDrawAttack &&
-                      !isPresentingDrawDefense &&
                       !isPresentingPatternMatch &&
                       !isPlayingBattleAnimation;
                   final playerHealthAnimationDuration =
@@ -220,7 +212,6 @@ class _BattleSceneView extends StatelessWidget {
                                     displayPlayer,
                                   ),
                                   isEnabled: playerActionsEnabled,
-                                  isDrawingMode: isDrawingMode,
                                   isPatternMode: isPatternMode,
                                   onAttack: onAttack,
                                   onBlock: onBlock,

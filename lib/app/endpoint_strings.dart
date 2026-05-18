@@ -53,7 +53,6 @@ enum EndpointTextKey {
   settingsDisabled,
   settingsDisabledTooltip,
   settingsGameModeClassic,
-  settingsGameModeDrawing,
   settingsGameModePattern,
   settingsLanguageSpanish,
   settingsLanguageEnglish,
@@ -139,9 +138,8 @@ abstract final class EndpointStrings {
       EndpointTextKey.settingsEnabled: 'Activado',
       EndpointTextKey.settingsDisabled: 'Desactivado',
       EndpointTextKey.settingsDisabledTooltip: 'Opcion desactivada',
-      EndpointTextKey.settingsGameModeClassic: 'Clasico',
-      EndpointTextKey.settingsGameModeDrawing: 'Dibujo',
-      EndpointTextKey.settingsGameModePattern: 'Patron',
+      EndpointTextKey.settingsGameModeClassic: 'Clásico',
+      EndpointTextKey.settingsGameModePattern: 'Patrón',
       EndpointTextKey.settingsLanguageSpanish: 'Espanol',
       EndpointTextKey.settingsLanguageEnglish: 'English',
     },
@@ -207,7 +205,6 @@ abstract final class EndpointStrings {
       EndpointTextKey.settingsDisabled: 'Disabled',
       EndpointTextKey.settingsDisabledTooltip: 'Option disabled',
       EndpointTextKey.settingsGameModeClassic: 'Classic',
-      EndpointTextKey.settingsGameModeDrawing: 'Drawing',
       EndpointTextKey.settingsGameModePattern: 'Pattern',
       EndpointTextKey.settingsLanguageSpanish: 'Espanol',
       EndpointTextKey.settingsLanguageEnglish: 'English',
@@ -226,7 +223,6 @@ abstract final class EndpointStrings {
   static EndpointTextKey gameModeKey(EndpointGameMode gameMode) {
     return switch (gameMode) {
       EndpointGameMode.classic => EndpointTextKey.settingsGameModeClassic,
-      EndpointGameMode.drawing => EndpointTextKey.settingsGameModeDrawing,
       EndpointGameMode.pattern => EndpointTextKey.settingsGameModePattern,
     };
   }

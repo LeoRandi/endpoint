@@ -2,7 +2,6 @@ part of 'battle_page.dart';
 
 class _ActionPanel extends StatelessWidget {
   final bool isEnabled;
-  final bool isDrawingMode;
   final bool isPatternMode;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
@@ -10,7 +9,6 @@ class _ActionPanel extends StatelessWidget {
 
   const _ActionPanel({
     required this.isEnabled,
-    required this.isDrawingMode,
     required this.isPatternMode,
     required this.onAttack,
     required this.onBlock,
@@ -31,14 +29,12 @@ class _ActionPanel extends StatelessWidget {
       children: [
         _AttackActionButton(
           isEnabled: isEnabled,
-          isDrawingMode: isDrawingMode,
           onAttack: onAttack,
           preview: actionPreview,
         ),
         const SizedBox(width: 8),
         _BlockActionButton(
           isEnabled: isEnabled,
-          isDrawingMode: isDrawingMode,
           onBlock: onBlock,
           blockBarrierGain: actionPreview.blockBarrierGain,
           effects: actionPreview.blockEffects,
@@ -52,7 +48,6 @@ class _PlayerBattleHud extends StatelessWidget {
   final Battler player;
   final List<BattlerAbility> visibleAbilities;
   final bool isEnabled;
-  final bool isDrawingMode;
   final bool isPatternMode;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
@@ -68,7 +63,6 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.player,
     required this.visibleAbilities,
     required this.isEnabled,
-    required this.isDrawingMode,
     required this.isPatternMode,
     required this.onAttack,
     required this.onBlock,
@@ -113,7 +107,6 @@ class _PlayerBattleHud extends StatelessWidget {
           children: [
             _ActionPanel(
               isEnabled: isEnabled,
-              isDrawingMode: isDrawingMode,
               isPatternMode: isPatternMode,
               onAttack: onAttack,
               onBlock: onBlock,
@@ -157,13 +150,11 @@ class _MatchActionButton extends StatelessWidget {
 
 class _AttackActionButton extends StatelessWidget {
   final bool isEnabled;
-  final bool isDrawingMode;
   final VoidCallback onAttack;
   final PlayerActionIntentPreview preview;
 
   const _AttackActionButton({
     required this.isEnabled,
-    required this.isDrawingMode,
     required this.onAttack,
     required this.preview,
   });
@@ -173,7 +164,7 @@ class _AttackActionButton extends StatelessWidget {
     return _IntentActionButton(
       label: 'Atacar',
       icon: Icons.flash_on_rounded,
-      tooltip: isDrawingMode ? 'Abrir ataque dibujado' : 'Atacar al enemigo',
+      tooltip: 'Atacar al enemigo',
       onPressed: isEnabled ? onAttack : null,
       valueLabel: preview.attackDamageLabel,
       valueAccent: EndpointPalette.dangerAccent,
@@ -184,14 +175,12 @@ class _AttackActionButton extends StatelessWidget {
 
 class _BlockActionButton extends StatelessWidget {
   final bool isEnabled;
-  final bool isDrawingMode;
   final VoidCallback onBlock;
   final int blockBarrierGain;
   final List<PlayerActionEffectIntent> effects;
 
   const _BlockActionButton({
     required this.isEnabled,
-    required this.isDrawingMode,
     required this.onBlock,
     required this.blockBarrierGain,
     required this.effects,
@@ -202,9 +191,7 @@ class _BlockActionButton extends StatelessWidget {
     return _IntentActionButton(
       label: 'Bloquear',
       icon: Icons.shield_rounded,
-      tooltip: isDrawingMode
-          ? 'Dibuja formas para activar bonus y neutralizar malus'
-          : 'Ganar barrera y terminar turno',
+      tooltip: 'Ganar barrera y terminar turno',
       onPressed: isEnabled ? onBlock : null,
       valueLabel: '$blockBarrierGain',
       valueAccent: BattlerStat.barrier.accent,

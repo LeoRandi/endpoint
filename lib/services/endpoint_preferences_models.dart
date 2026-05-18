@@ -7,7 +7,6 @@ import 'run_hour_snapshot.dart';
 
 enum EndpointGameMode {
   classic,
-  drawing,
   pattern,
 }
 

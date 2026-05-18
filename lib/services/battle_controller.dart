@@ -313,19 +313,9 @@ class BattleController extends ChangeNotifier {
 
   Future<void> handleAttack({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
-    BattleActionBonus? drawingBonus,
-    BattleAttackDrawingPenalty drawingPenalty =
-        BattleAttackDrawingPenalty.empty,
   }) async {
     if (!canUseActions) return;
-    final resolvedActionBonus = drawingBonus ?? actionBonus;
-
-    if (drawingPenalty.hasAnyPenalty) {
-      await _applyDrawingPenalty(drawingPenalty);
-      if (_finishImmediatelyIfPlayerIsDown()) {
-        return;
-      }
-    }
+    final resolvedActionBonus = actionBonus;
 
     if (resolvedActionBonus.healAmount > 0) {
       await _applyPlayerHealing(resolvedActionBonus.healAmount);
@@ -378,19 +368,9 @@ class BattleController extends ChangeNotifier {
 
   Future<void> handleBlock({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
-    BattleActionBonus? drawingBonus,
-    BattleAttackDrawingPenalty drawingPenalty =
-        BattleAttackDrawingPenalty.empty,
   }) async {
     if (!canUseActions) return;
-    final resolvedActionBonus = drawingBonus ?? actionBonus;
-
-    if (drawingPenalty.hasAnyPenalty) {
-      await _applyDrawingPenalty(drawingPenalty);
-      if (_finishImmediatelyIfPlayerIsDown()) {
-        return;
-      }
-    }
+    final resolvedActionBonus = actionBonus;
 
     if (resolvedActionBonus.healAmount > 0) {
       await _applyPlayerHealing(resolvedActionBonus.healAmount);
@@ -2632,110 +2612,12 @@ class BattleController extends ChangeNotifier {
     return EnemyAiDifficultyLevel.alpha;
   }
 
-  Future<void> _applyDrawingPenalty(BattleAttackDrawingPenalty penalty) async {
-    final playerBefore = _player;
-    final enemyBefore = _enemy;
-    if (penalty.directDamage > 0) {
-      _player = _player.receiveDirectDamage(
-        penalty.directDamage,
-        source: _enemy,
-      );
-    }
-
-    if (penalty.barrierTransferAmount > 0) {
-      final transferredBarrier = min(
-        _player.currentBarrier,
-        penalty.barrierTransferAmount,
-      );
-      if (transferredBarrier > 0) {
-        _player = _player.copyWith(
-          currentBarrier: _player.currentBarrier - transferredBarrier,
-        );
-        _enemy = _enemy.gainCombatBarrier(transferredBarrier);
-      }
-    }
-
-    if (penalty.healthTransferAmount > 0) {
-      final transferredHealth = min(
-        _player.health,
-        penalty.healthTransferAmount,
-      );
-      if (transferredHealth > 0) {
-        _player = _player.copyWith(
-          health: max(0, _player.health - transferredHealth),
-        );
-        _enemy = _enemy.heal(transferredHealth);
-      }
-    }
-
-    if (penalty.transferBuffs) {
-      final transferResolution = _transferBuffStatuses(
-        source: _player,
-        target: _enemy,
-      );
-      _player = transferResolution.source;
-      _enemy = transferResolution.target;
-    }
-
-    await _playCombatStateTransitionAnimations(
-      playerBefore: playerBefore,
-      enemyBefore: enemyBefore,
-      playerAfter: _player,
-      enemyAfter: _enemy,
-    );
-  }
-
-  _DrawingBuffTransferResolution _transferBuffStatuses({
-    required Battler source,
-    required Battler target,
-  }) {
-    final transferableBuffs = source.statuses
-        .where((status) => status.type == BattlerStatusType.buff)
-        .toList(growable: false);
-    if (transferableBuffs.isEmpty) {
-      return _DrawingBuffTransferResolution(
-        source: source,
-        target: target,
-      );
-    }
-
-    final sourceWithoutBuffs = source.copyWith(
-      statuses: List<BattlerStatus>.unmodifiable(
-        source.statuses
-            .where((status) => status.type != BattlerStatusType.buff)
-            .toList(growable: false),
-      ),
-    );
-    var targetWithStolenBuffs = target;
-    for (final buff in transferableBuffs) {
-      targetWithStolenBuffs = targetWithStolenBuffs.applyStatus(
-        buff.copyWith(),
-        applyEquipmentModifiers: false,
-      );
-    }
-
-    return _DrawingBuffTransferResolution(
-      source: sourceWithoutBuffs,
-      target: targetWithStolenBuffs,
-    );
-  }
-
   @override
   void dispose() {
     _isDisposed = true;
     _cancelTimers();
     super.dispose();
   }
-}
-
-class _DrawingBuffTransferResolution {
-  final Battler source;
-  final Battler target;
-
-  const _DrawingBuffTransferResolution({
-    required this.source,
-    required this.target,
-  });
 }
 
 class _BattleAttackHitResolution {
