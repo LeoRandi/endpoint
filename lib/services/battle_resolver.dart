@@ -23,11 +23,13 @@ class BattleResolver {
     required Battler attacker,
     required Battler defender,
     int flatAttackBonus = 0,
+    bool triggerAttackResolvedEffects = true,
   }) {
     if (defender.hasStatus(PuntoCiegoStatus.statusId)) {
       return _resolvePuntoCiegoMissedAttack(
         attacker: attacker,
         defender: defender,
+        triggerAttackResolvedEffects: triggerAttackResolvedEffects,
       );
     }
 
@@ -83,29 +85,32 @@ class BattleResolver {
     final barrierWasBrokenByAttack = defender.currentBarrier > 0 &&
         defenderAfterDamage.currentBarrier <= 0 &&
         damageDealt > 0;
-    var updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
-      owner: attacker,
-      target: defenderAfterDamage,
-      damageDealt: damageDealt,
-    );
+    var updatedAttacker = attacker;
     var updatedDefender = defenderAfterDamage;
-    final attackAbilityResolution =
-        _effectPipeline.applyAbilityAttackResolvedEffects(
-      owner: updatedAttacker,
-      target: updatedDefender,
-      damageDealt: damageDealt,
-    );
-    updatedAttacker = attackAbilityResolution.owner;
-    updatedDefender = attackAbilityResolution.opponent;
+    if (triggerAttackResolvedEffects) {
+      updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
+        owner: updatedAttacker,
+        target: updatedDefender,
+        damageDealt: damageDealt,
+      );
+      final attackAbilityResolution =
+          _effectPipeline.applyAbilityAttackResolvedEffects(
+        owner: updatedAttacker,
+        target: updatedDefender,
+        damageDealt: damageDealt,
+      );
+      updatedAttacker = attackAbilityResolution.owner;
+      updatedDefender = attackAbilityResolution.opponent;
 
-    final attackItemResolution =
-        _effectPipeline.applyEquippedItemAttackResolvedEffects(
-      owner: updatedAttacker,
-      target: updatedDefender,
-      damageDealt: damageDealt,
-    );
-    updatedAttacker = attackItemResolution.owner;
-    updatedDefender = attackItemResolution.opponent;
+      final attackItemResolution =
+          _effectPipeline.applyEquippedItemAttackResolvedEffects(
+        owner: updatedAttacker,
+        target: updatedDefender,
+        damageDealt: damageDealt,
+      );
+      updatedAttacker = attackItemResolution.owner;
+      updatedDefender = attackItemResolution.opponent;
+    }
     if (barrierWasBrokenByAttack) {
       updatedDefender = updatedDefender.addCombatFlag(
         Battler.barrierBrokenThisHitFlag,
@@ -153,31 +158,35 @@ class BattleResolver {
   BattleAttackResolution _resolvePuntoCiegoMissedAttack({
     required Battler attacker,
     required Battler defender,
+    required bool triggerAttackResolvedEffects,
   }) {
-    var updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
-      owner: attacker,
-      target: defender,
-      damageDealt: 0,
-    );
+    var updatedAttacker = attacker;
     var updatedDefender = defender;
+    if (triggerAttackResolvedEffects) {
+      updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
+        owner: updatedAttacker,
+        target: updatedDefender,
+        damageDealt: 0,
+      );
 
-    final attackAbilityResolution =
-        _effectPipeline.applyAbilityAttackResolvedEffects(
-      owner: updatedAttacker,
-      target: updatedDefender,
-      damageDealt: 0,
-    );
-    updatedAttacker = attackAbilityResolution.owner;
-    updatedDefender = defender;
+      final attackAbilityResolution =
+          _effectPipeline.applyAbilityAttackResolvedEffects(
+        owner: updatedAttacker,
+        target: updatedDefender,
+        damageDealt: 0,
+      );
+      updatedAttacker = attackAbilityResolution.owner;
+      updatedDefender = attackAbilityResolution.opponent;
 
-    final attackItemResolution =
-        _effectPipeline.applyEquippedItemAttackResolvedEffects(
-      owner: updatedAttacker,
-      target: updatedDefender,
-      damageDealt: 0,
-    );
-    updatedAttacker = attackItemResolution.owner;
-    updatedDefender = defender;
+      final attackItemResolution =
+          _effectPipeline.applyEquippedItemAttackResolvedEffects(
+        owner: updatedAttacker,
+        target: updatedDefender,
+        damageDealt: 0,
+      );
+      updatedAttacker = attackItemResolution.owner;
+      updatedDefender = attackItemResolution.opponent;
+    }
 
     final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
       ownerBefore: attacker,

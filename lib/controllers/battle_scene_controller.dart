@@ -146,6 +146,17 @@ class BattleSceneController extends ChangeNotifier {
     );
   }
 
+  /// Ejecuta una coincidencia de Patron, que puede contar como ataque, defensa o ambas.
+  Future<void> handlePlayerPatternMatch({
+    BattleActionBonus actionBonus = BattleActionBonus.empty,
+    BattlePatternMatchContext? patternContext,
+  }) {
+    return _battleController.handlePatternMatch(
+      actionBonus: actionBonus,
+      patternContext: patternContext,
+    );
+  }
+
   /// Ejecuta la accion de bloqueo del jugador y termina su turno.
   Future<void> handlePlayerBlock({
     BattleActionBonus actionBonus = BattleActionBonus.empty,

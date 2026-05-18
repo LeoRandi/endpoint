@@ -303,11 +303,9 @@ class RunDaySummary {
     RarityTier? defeatedEnemyRarity,
     bool includeRewards = true,
   }) {
-    final shouldCountEnemy = defeatedEnemy || defeatedEnemyBattler != null;
-
     return RunDaySummary(
       dayNumber: dayNumber,
-      enemiesKilled: enemiesKilled + (shouldCountEnemy ? 1 : 0),
+      enemiesKilled: enemiesKilled + (defeatedEnemy ? 1 : 0),
       moneyGained: moneyGained + max(0, after.money - before.money),
       gainedRewards: List<RunDaySummaryReward>.unmodifiable([
         ...gainedRewards,

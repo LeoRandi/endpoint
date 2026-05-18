@@ -172,6 +172,7 @@ enum ItemCombatFlagKind {
   ultimaPalabraTriggeredThisTurn,
   aceleradorRetoTriggered,
   thermalTurbineCombatStartTriggered,
+  resonanceEchoTriggeredThisTurn,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.
@@ -676,18 +677,24 @@ class Battler {
     required BattlerStat stat,
   }) {
     final baseValue = baseStats[stat] ?? 0;
-    final equipmentBonus = equippedItems.fold<int>(
-      0,
-      (total, item) => total + item.modifier(stat),
+    final equipmentBonus = _resolveEquipmentBonus(
+      equippedItems: equippedItems,
+      bonus: equippedItems.fold<int>(
+        0,
+        (total, item) => total + item.modifier(stat),
+      ),
     );
     final flatResolvedValue = max(0, baseValue + equipmentBonus);
     if (stat != BattlerStat.health) {
       return flatResolvedValue;
     }
 
-    final healthPercentModifier = equippedItems.fold<int>(
-      0,
-      (total, item) => total + item.maxHealthPercentModifier,
+    final healthPercentModifier = _resolveEquipmentBonus(
+      equippedItems: equippedItems,
+      bonus: equippedItems.fold<int>(
+        0,
+        (total, item) => total + item.maxHealthPercentModifier,
+      ),
     );
     if (healthPercentModifier == 0) {
       return flatResolvedValue;
@@ -704,12 +711,28 @@ class Battler {
     required int baseIncome,
     required List<Item> equippedItems,
   }) {
-    final equipmentBonus = equippedItems.fold<int>(
-      0,
-      (total, item) => total + item.incomeModifier,
+    final equipmentBonus = _resolveEquipmentBonus(
+      equippedItems: equippedItems,
+      bonus: equippedItems.fold<int>(
+        0,
+        (total, item) => total + item.incomeModifier,
+      ),
     );
 
     return max(0, baseIncome + equipmentBonus);
+  }
+
+  /// Reduce los bonus positivos del equipo cuando las Gafas de Sol estan equipadas.
+  static int _resolveEquipmentBonus({
+    required List<Item> equippedItems,
+    required int bonus,
+  }) {
+    if (bonus <= 0) return bonus;
+    if (!equippedItems.any((item) => item.id == ItemId.sunglasses)) {
+      return bonus;
+    }
+
+    return (bonus + 1) ~/ 2;
   }
 
   /// Calcula el coste de XP del siguiente nivel sin escalado entre niveles.

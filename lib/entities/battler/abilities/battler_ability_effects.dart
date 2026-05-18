@@ -1448,7 +1448,7 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbility ability,
     required bool isOwnerTurn,
   }) {
-    if (ability.isActive) {
+    if (ability.isActive || owner.combatRound > 1) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
@@ -1485,6 +1485,231 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(
       owner: updatedOwner.updateAbility(ability.deactivate()),
       opponent: source,
+    );
+  }
+}
+
+/// Recompensa patrones construidos solo con angulos rectos.
+class GeometriaLimpiaAbilityEffect extends BattlerAbilityEffect {
+  const GeometriaLimpiaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!pattern.hasOnlyRightAngles) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    return BattlerAbilityEffectResolution(
+      owner: owner.gainCombatBarrier(amount).gainResonance(amount),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Premia patrones sin angulos agudos ni obtusos.
+class PulsoIsometricoAbilityEffect extends BattlerAbilityEffect {
+  const PulsoIsometricoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!pattern.hasNoAcuteOrObtuseAngles) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    return BattlerAbilityEffectResolution(
+      owner: owner.heal(amount).gainCombatBarrier(amount),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Convierte un unico angulo agudo en dano directo adicional.
+class CorteTangencialAbilityEffect extends BattlerAbilityEffect {
+  const CorteTangencialAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!pattern.hasExactlyOneAcuteAngle) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final damage =
+        (max(1, ability.currentValue) + max(0, pattern.attackBonus)).toInt();
+    return BattlerAbilityEffectResolution(
+      owner: owner,
+      opponent: opponent.receiveDirectDamage(damage, source: owner),
+    );
+  }
+}
+
+/// Duplica el peso defensivo de patrones amplios y estables.
+class ArquitecturaPesadaAbilityEffect extends BattlerAbilityEffect {
+  const ArquitecturaPesadaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!pattern.hasNoAcuteAngles) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    return BattlerAbilityEffectResolution(
+      owner: owner
+          .gainCombatBarrier(max(0, pattern.barrierBonus))
+          .gainResonance(amount),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Premia patrones que activan equipamiento de otro arquetipo.
+class RutaContrabandoAbilityEffect extends BattlerAbilityEffect {
+  const RutaContrabandoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final count = max(0, pattern.otherArchetypeItemCount);
+    if (count <= 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    return BattlerAbilityEffectResolution(
+      owner:
+          owner.earnMoney(amount * count).gainCombatBarrier(amount).applyStatus(
+                PotenciaStatus(value: amount),
+                applyEquipmentModifiers: false,
+              ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Repite el bonus dominante cuando el patron tiene simetria.
+class EcoSimetriaAbilityEffect extends BattlerAbilityEffect {
+  const EcoSimetriaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!pattern.isSymmetric) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final reduction = max(0, ability.currentValue);
+    final strongest = max(pattern.attackBonus, pattern.barrierBonus);
+    final repeatedBonus = max(0, strongest - reduction);
+    if (repeatedBonus <= 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner;
+    if (pattern.attackBonus >= pattern.barrierBonus) {
+      updatedOwner = updatedOwner.applyStatus(
+        PotenciaStatus(value: repeatedBonus),
+        applyEquipmentModifiers: false,
+      );
+    }
+    if (pattern.barrierBonus >= pattern.attackBonus) {
+      updatedOwner = updatedOwner.gainCombatBarrier(repeatedBonus);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+    );
+  }
+}
+
+/// Convierte un Patron perfecto en una descarga completa de Resonancia.
+class PatronPerfectoAbilityEffect extends BattlerAbilityEffect {
+  const PatronPerfectoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!pattern.hasPerfectPattern || owner.resonanceValue <= 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final resonanceDamage = owner.resonanceDamageFor(owner.resonanceValue);
+    final updatedOwner = owner.gainBarrierFromResonanceDamage(resonanceDamage);
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent.receiveDirectDamage(
+        resonanceDamage,
+        source: updatedOwner,
+      ),
     );
   }
 }

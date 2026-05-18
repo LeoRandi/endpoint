@@ -155,6 +155,7 @@ class EndpointCurrentRunSnapshot {
   final int randomState;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
+  final RunDaySummary runSummary;
   final RunDaySummary currentDaySummary;
   final RunDaySummary? pendingDaySummary;
   final PathNode? activeNode;
@@ -172,6 +173,7 @@ class EndpointCurrentRunSnapshot {
     required this.randomState,
     required this.battleEnemyTurnDelay,
     required this.battleCombatEndDelay,
+    this.runSummary = const RunDaySummary.empty(),
     this.currentDaySummary = const RunDaySummary.empty(),
     this.pendingDaySummary,
     this.activeNode,

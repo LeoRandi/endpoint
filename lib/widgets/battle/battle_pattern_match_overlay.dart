@@ -28,17 +28,20 @@ class BattlePatternMatchResult {
   final int barrierBonus;
   final Set<String> activatedItemPointKeys;
   final BattlePatternBlockMode blockMode;
+  final BattlePatternMatchContext patternContext;
 
   const BattlePatternMatchResult({
     required this.attackBonus,
     required this.barrierBonus,
     required this.activatedItemPointKeys,
     required this.blockMode,
+    required this.patternContext,
   });
 
   factory BattlePatternMatchResult.fromResolution(
     OperativePatternResolution resolution,
     BattlePatternBlockMode blockMode,
+    BattlePatternMatchContext patternContext,
   ) {
     final activatedItemPointKeys = <String>{
       for (final entry in resolution.itemActivationByPointKey.entries)
@@ -53,6 +56,7 @@ class BattlePatternMatchResult {
         activatedItemPointKeys,
       ),
       blockMode: blockMode,
+      patternContext: patternContext,
     );
   }
 
@@ -528,7 +532,43 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       BattlePatternMatchResult.fromResolution(
         _currentResolution,
         _blockPlan.mode,
+        _currentPatternContext(_currentResolution),
       );
+
+  BattlePatternMatchContext _currentPatternContext(
+    OperativePatternResolution resolution,
+  ) {
+    return BattlePatternMatchContext(
+      patternPoints: List<OperativePatternPoint>.unmodifiable(_patternPoints),
+      attackBonus: resolution.attackBonus,
+      barrierBonus: resolution.barrierBonus,
+      otherArchetypeItemCount: _otherArchetypeActivatedItemCount(resolution),
+    );
+  }
+
+  int _otherArchetypeActivatedItemCount(OperativePatternResolution resolution) {
+    final playerArchetype = widget.player.archetypeId;
+    if (playerArchetype == null) return 0;
+
+    var count = 0;
+    for (final entry in resolution.itemActivationByPointKey.entries) {
+      if (!entry.value) continue;
+      final item = widget.equippedItemsByPointKey[entry.key];
+      if (item == null) continue;
+      if (_itemIsFromAnotherArchetype(item, playerArchetype)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  bool _itemIsFromAnotherArchetype(Item item, ArchetypeId playerArchetype) {
+    final playerAffinity = playerArchetype.itemAffinity;
+    final specificAffinities = item.archetypeAffinities.where(
+      (affinity) => affinity.isSpecific,
+    );
+    return specificAffinities.any((affinity) => affinity != playerAffinity);
+  }
 
   void _handlePatternChanged(List<OperativePatternPoint> points) {
     setState(() {
@@ -601,8 +641,10 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       for (final entry in widget.equippedItemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
-          bonus: entry.value.patternBonus,
-          requirement: entry.value.patternRequirement,
+          bonus: entry.value.hasPatternBonus ? entry.value.patternBonus : null,
+          requirement: entry.value.hasPatternBonus
+              ? entry.value.patternRequirement
+              : null,
           adjacencyBonuses: entry.value.patternAdjacencyBonuses,
           activatedAdjacencyBonuses:
               resolution.activatedAdjacencyBonusesAt(entry.key),
@@ -620,6 +662,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     final result = BattlePatternMatchResult.fromResolution(
       resolution,
       _blockPlan.mode,
+      _currentPatternContext(resolution),
     );
     final baseHitDamage = _estimatedHitDamageFor(0);
     final totalDamageLabel = _estimatedTotalDamageLabelFor(result.attackBonus);

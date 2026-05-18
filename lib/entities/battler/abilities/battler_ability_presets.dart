@@ -312,11 +312,126 @@ const noHayRetiradaAbility = BattlerAbility(
   tags: _buffAtaqueAbilityTags,
   name: 'No Hay Retirada',
   description:
-      'Pasiva. La primera vez que recibes daño cada turno, ganas Potencia. Si ya tenias Potencia, tambien ganas Calentando.',
+      'Pasiva. La primera vez que recibes daño en combate, ganas Potencia. Si ya tenias Potencia, tambien ganas Calentando.',
   icon: Icons.vertical_align_top_rounded,
   value: 1,
   upgradeValue: 1,
   effect: NoHayRetiradaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Patron que premia geometria ortogonal defensiva.
+const geometriaLimpiaAbility = BattlerAbility(
+  id: BattlerAbilityId.geometriaLimpia,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _resonanciaAtaqueBarreraAbilityTags,
+  name: 'Geometria Limpia',
+  description:
+      'Pasiva de Patron. Si el patron solo tiene angulos rectos, ganas Barrera y Resonancia.',
+  icon: Icons.grid_4x4_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: GeometriaLimpiaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Patron que recompensa trazos sin angulos agudos ni obtusos.
+const pulsoIsometricoAbility = BattlerAbility(
+  id: BattlerAbilityId.pulsoIsometrico,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _vidaBarreraAbilityTags,
+  name: 'Pulso Isometrico',
+  description:
+      'Pasiva de Patron. Si el patron no tiene angulos agudos ni obtusos, recuperas HP y ganas Barrera.',
+  icon: Icons.crop_square_rounded,
+  value: 3,
+  upgradeValue: 1,
+  effect: PulsoIsometricoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Patron que convierte un unico giro agresivo en dano directo.
+const corteTangencialAbility = BattlerAbility(
+  id: BattlerAbilityId.corteTangencial,
+  archetypeAffinities: [
+    BattlerAbilityArchetypeAffinity.veloz,
+    BattlerAbilityArchetypeAffinity.imparable,
+  ],
+  rarity: RarityTier.purple,
+  tags: _ataqueAbilityTags,
+  name: 'Corte Tangencial',
+  description:
+      'Pasiva de Patron. Si el patron tiene exactamente un angulo agudo, inflige dano directo segun este valor y el ATK del patron.',
+  icon: Icons.swipe_rounded,
+  value: 6,
+  upgradeValue: 4,
+  effect: CorteTangencialAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Patron que duplica el peso defensivo de figuras sin angulos agudos.
+const arquitecturaPesadaAbility = BattlerAbility(
+  id: BattlerAbilityId.arquitecturaPesada,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _resonanciaAtaqueBarreraAbilityTags,
+  name: 'Arquitectura Pesada',
+  description:
+      'Pasiva de Patron. Si el patron no tiene angulos agudos, repite su bonus de Barrera y gana Resonancia.',
+  icon: Icons.foundation_rounded,
+  value: 4,
+  upgradeValue: 2,
+  effect: ArquitecturaPesadaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Patron que premia activar equipamiento de otros arquetipos.
+const rutaContrabandoAbility = BattlerAbility(
+  id: BattlerAbilityId.rutaContrabando,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _economiaAbilityTags,
+  name: 'Ruta de Contrabando',
+  description:
+      'Pasiva de Patron. Si activas items de otro arquetipo, ganas creditos, Potencia y Barrera.',
+  icon: Icons.alt_route_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: RutaContrabandoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Patron que devuelve parte del bonus dominante en figuras simetricas.
+const ecoSimetriaAbility = BattlerAbility(
+  id: BattlerAbilityId.ecoSimetria,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _cicloAtaqueBarreraBuffAbilityTags,
+  name: 'Eco de Simetria',
+  description:
+      'Pasiva de Patron. Si el patron tiene simetria, repite el bonus dominante con una reduccion que mejora al subir de rareza.',
+  icon: Icons.flip_rounded,
+  value: 3,
+  upgradeValue: -2,
+  effect: EcoSimetriaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva de Patron que convierte una figura perfecta en dano de Resonancia.
+const patronPerfectoAbility = BattlerAbility(
+  id: BattlerAbilityId.patronPerfecto,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.yellow,
+  tags: _resonanciaAtaqueBarreraAbilityTags,
+  name: 'Patron perfecto',
+  description:
+      'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, inflige dano igual a toda tu Resonancia.',
+  icon: Icons.auto_awesome_rounded,
+  value: 5,
+  upgradeValue: 1,
+  effect: PatronPerfectoAbilityEffect(),
   isImplemented: true,
 );
 
@@ -342,6 +457,13 @@ const abilityPresets = <BattlerAbility>[
   diversificacionHostilAbility,
   furiaHematicaAbility,
   noHayRetiradaAbility,
+  geometriaLimpiaAbility,
+  pulsoIsometricoAbility,
+  corteTangencialAbility,
+  arquitecturaPesadaAbility,
+  rutaContrabandoAbility,
+  ecoSimetriaAbility,
+  patronPerfectoAbility,
 ];
 
 /// Indice canonico de presets para resolver ids sin duplicar switches.

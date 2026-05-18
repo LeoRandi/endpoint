@@ -12,7 +12,7 @@ class EmergencyPlatingItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
-    return '+$amount Barrera. Las primeras $amount veces en combate que empieces tu turno por debajo de la mitad de vida, bloqueas sin gastar tu turno.';
+    return 'Las primeras $amount veces en combate que empieces tu turno por debajo de la mitad de vida, bloqueas sin gastar tu turno.';
   }
 }
 
@@ -30,7 +30,7 @@ class DeflectiveCapacitorItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return '+1 Barrera. Las primeras ${max(1, item.value)} veces que fueras a recibir un debuff en combate, se lo aplicas al enemigo.';
+    return 'Las primeras ${max(1, item.value)} veces que fueras a recibir un debuff en combate, se lo aplicas al enemigo.';
   }
 
   @override
@@ -86,7 +86,7 @@ class ContingencySealItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final rounds = max(1, item.value);
-    return '+$rounds Barrera. Cuando se rompe tu Barrera, haces al agresor dano directo igual a la Barrera ganada en las ultimas $rounds rondas de este combate.';
+    return 'Cuando se rompe tu Barrera, haces al agresor dano directo igual a la Barrera ganada en las ultimas $rounds rondas de este combate.';
   }
 
   @override
@@ -128,7 +128,7 @@ class NucleoPiezoelectricoItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return '+2 Barrera. La primera vez cada turno que ganas Barrera, ganas ${max(1, item.value)} de Resonancia.';
+    return 'La primera vez cada turno que ganas Barrera, ganas ${max(1, item.value)} de Resonancia.';
   }
 }
 
@@ -145,7 +145,7 @@ class PlacasCompresionItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return '+3 Barrera. Cuando recibes dano a Barrera, ganas 1 Resonancia por cada punto de Barrera perdido, hasta ${max(1, item.value)} por golpe.';
+    return 'Cuando recibes dano a Barrera, ganas 1 Resonancia por cada punto de Barrera perdido, hasta ${max(1, item.value)} por golpe.';
   }
 
   @override
@@ -218,7 +218,7 @@ class AislanteArmonicoItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return '+1 Barrera. Al final de tu turno, si no has perdido vida este turno, ganas ${max(1, item.value)} de Resonancia.';
+    return 'Al final de tu turno, si no has perdido vida este turno, ganas ${max(1, item.value)} de Resonancia.';
   }
 
   @override
@@ -318,7 +318,126 @@ class CanonContrapresionItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return '+2 Barrera. Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad del dano infligido por Resonancia.';
+    return 'Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad del dano infligido por Resonancia.';
+  }
+}
+
+/// Consume toda la Resonancia para convertirla en dano directo al atacar.
+class DescargaResonanteItemEffect extends ItemEffect {
+  /// Crea el efecto propio de la Descarga Resonante.
+  const DescargaResonanteItemEffect()
+      : super(
+          description:
+              'Al atacar, consume toda tu Resonancia para infligir dano directo.',
+          hooks: const {
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al atacar, consume toda tu Resonancia e inflige dano directo igual a la Resonancia consumida.';
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final resonance = owner.resonanceValue;
+    if (resonance <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final resonanceDamage = owner.resonanceDamageFor(resonance);
+    final updatedOwner =
+        owner.clearResonance().gainBarrierFromResonanceDamage(resonanceDamage);
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: target.receiveDirectDamage(
+        resonanceDamage,
+        source: updatedOwner,
+      ),
+    );
+  }
+}
+
+/// Proyecta una porcion de la Resonancia como dano una vez por turno.
+class PrismaDeEcoItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Prisma de Eco.
+  const PrismaDeEcoItemEffect()
+      : super(
+          description:
+              'Una vez por turno, al atacar, tu Resonancia inflige dano directo parcial.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Una vez por turno, al atacar, infliges dano directo igual a la mitad de tu Resonancia actual sin consumirla.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.removeItemCombatFlagsFor(
+        item: item,
+        kind: ItemCombatFlagKind.resonanceEchoTriggeredThisTurn,
+      ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    if (owner.itemCombatFlagUseCount(
+          item: item,
+          kind: ItemCombatFlagKind.resonanceEchoTriggeredThisTurn,
+        ) >
+        0) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final resonance = owner.resonanceValue;
+    final baseDamage = resonance ~/ 2;
+    if (baseDamage <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final resonanceDamage = owner.resonanceDamageFor(baseDamage);
+    final updatedOwner = owner
+        .addItemCombatFlagUse(
+          item: item,
+          kind: ItemCombatFlagKind.resonanceEchoTriggeredThisTurn,
+        )
+        .gainBarrierFromResonanceDamage(resonanceDamage);
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: target.receiveDirectDamage(
+        resonanceDamage,
+        source: updatedOwner,
+      ),
+    );
   }
 }
 

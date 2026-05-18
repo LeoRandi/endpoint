@@ -188,14 +188,7 @@ const woodenStickItem = Item(
   description: '+1 ATK mientras este equipado.',
   iconEmoji: '\u{1FAB5}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
@@ -214,32 +207,13 @@ const sunglassesItem = Item(
   tags: _ataqueBarreraTags,
   name: 'Gafas de Sol',
   description:
-      '+1 Barrera. Mitad de ATK, pero cada ataque basico golpea dos veces.',
+      'Cada ataque basico golpea dos veces, pero tus bonus de items se reducen a la mitad.',
   iconEmoji: '\u{1F453}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.ciclo,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.ciclo,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: SunglassesItemEffect(),
 );
 
@@ -248,24 +222,14 @@ const crackedBatteryItem = Item(
   id: ItemId.crackedBattery,
   archetypeAffinities: _generalAffinities,
   name: 'Bateria Rajada',
-  description: 'Al atacar: ganas Calentando.',
+  description: 'Al inicio del combate, ganas una carga breve de Calentando.',
   iconEmoji: '\u{1F50B}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
-  value: 1,
+  value: 2,
   upgradeValue: 1,
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.calentando,
-    trigger: ItemStatusEffectTrigger.attackOwnerReinforce,
-  ),
+  effect: ThermalTurbineItemEffect(),
 );
 
 /// Accesorio gris de Ciclo que cambia entre barrera diurna y ataque nocturno.
@@ -277,20 +241,7 @@ const gafasFotocromaticasItem = Item(
   description: 'Ciclo. De dia: +1 Barrera. De noche: +1 ATK.',
   iconEmoji: '\u{1F317}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
@@ -303,26 +254,13 @@ const impactGlovesItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Guantes de Impacto',
-  description: '+1 ATK y castigo extra contra objetivos sin buffs.',
+  description: 'Castigo extra contra objetivos sin buffs.',
   iconEmoji: '\u{1F9E4}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.buff,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 2,
   upgradeValue: 2,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
   effect: ImpactGlovesItemEffect(),
 );
 
@@ -335,14 +273,7 @@ const guanteRetoItem = Item(
   description: 'La primera vez por combate que atacas, ganas Desafio.',
   iconEmoji: '\u{1F94A}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.barrera,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 4,
   upgradeValue: 2,
@@ -356,26 +287,13 @@ const mochilaStronkboxItem = Item(
   tags: _economiaBarreraTags,
   name: 'Mochila Stronkbox',
   description:
-      '+1 Barrera. Al inicio de tu turno, si tienes al menos 10C, recuperas 1 de Barrera.',
+      'Al inicio de tu turno, si tienes al menos 10C, recuperas 1 de Barrera.',
   iconEmoji: '\u{1F392}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: MochilaStronkboxItemEffect(),
 );
 
@@ -385,24 +303,13 @@ const mamparaPortatilItem = Item(
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraDebuffTags,
   name: 'Mampara Portatil',
-  description:
-      '+2 Barrera. Al inicio de tu turno, reduce turnos de debuffs aleatorios.',
+  description: 'Al inicio de tu turno, reduce turnos de debuffs aleatorios.',
   iconEmoji: '\u{1F6AA}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 2,
-  },
   effect: MamparaPortatilItemEffect(),
 );
 
@@ -415,14 +322,7 @@ const pagareRevalorizableItem = Item(
   description: 'No hace nada mientras este equipado.',
   iconEmoji: '\u{1F4DC}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.economia,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
@@ -438,14 +338,7 @@ const botiquinCompactoItem = Item(
   description: 'Al inicio de tu turno, recuperas 1 HP.',
   iconEmoji: '\u{1FA79}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.vida,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
@@ -458,26 +351,13 @@ const stunBatonItem = Item(
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Porra de Aturdimiento',
-  description: '+1 ATK. Al atacar: aplica Conmocion al enemigo.',
+  description: 'Al atacar: aplica Conmocion al enemigo.',
   iconEmoji: '\u{1F50C}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.conmocion,
     trigger: ItemStatusEffectTrigger.attackTarget,
@@ -493,14 +373,7 @@ const pocketJammerItem = Item(
   description: 'Al recibir daño: aplica Conmocion al agresor.',
   iconEmoji: '\u{1F4F6}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
@@ -517,26 +390,13 @@ const aislanteArmonicoItem = Item(
   tags: _resonanciaBarreraBuffTags,
   name: 'Aislante Armonico',
   description:
-      '+1 Barrera. Si no pierdes vida durante tu turno, ganas Resonancia al final.',
+      'Si no pierdes vida durante tu turno, ganas Resonancia al final.',
   iconEmoji: '\u{1F9F1}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: AislanteArmonicoItemEffect(),
 );
 
@@ -546,27 +406,13 @@ const rescueBladeItem = Item(
   archetypeAffinities: _generalAffinities,
   tags: _ataqueVidaTags,
   name: 'Cuchilla de Rescate',
-  description:
-      '+1 ATK. Si el objetivo queda al 50% de HP o menos, recuperas 1 HP.',
+  description: 'Si el objetivo queda al 50% de HP o menos, recuperas 1 HP.',
   iconEmoji: '\u{1F691}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
   effect: RescueBladeItemEffect(),
 );
 
@@ -577,26 +423,13 @@ const shockMeshItem = Item(
   tags: _barreraDebuffTags,
   name: 'Malla de Choque',
   description:
-      '+1 Barrera. Al recibir daño mientras conservas Barrera, aplicas Conmocion al agresor.',
+      'Al recibir daño mientras conservas Barrera, aplicas Conmocion al agresor.',
   iconEmoji: '\u{1F4A5}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: ShockMeshItemEffect(),
 );
 
@@ -607,23 +440,13 @@ const deflectiveCapacitorItem = Item(
   tags: _barreraBuffTags,
   name: 'Condensador Deflectivo',
   description:
-      '+1 Barrera. La primera vez que fueras a recibir un debuff, se lo aplicas al enemigo.',
+      'La primera vez que fueras a recibir un debuff, se lo aplicas al enemigo.',
   iconEmoji: '\u{1F530}',
   rarity: RarityTier.gray,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 2,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: DeflectiveCapacitorItemEffect(),
 );
 
@@ -639,26 +462,12 @@ const cyberWhipsItem = Item(
       '+1 ATK. Al atacar: aplica o aumenta Intoxicacion en el enemigo.',
   iconEmoji: '\u{26D3}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.intoxicacion,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
+  statModifiers: {BattlerStat.attack: 1},
+  upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: IntoxicarOnAttackItemEffect(),
 );
 
@@ -671,14 +480,7 @@ const shieldItem = Item(
   description: '+2 Barrera. Al defender, recuperas 5 HP.',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 5,
   upgradeValue: 5,
@@ -700,14 +502,7 @@ const bulwarkAmuletItem = Item(
   description: '+6 HP y +1 Barrera mientras este equipado.',
   iconEmoji: '\u{1F9FF}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.accesorio,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 6,
   upgradeValue: 6,
@@ -728,26 +523,14 @@ const bateriaCrepuscularItem = Item(
   tags: _cicloBuffTags,
   name: 'Bateria Crepuscular',
   description:
-      'Ciclo. Al inicio de tu turno: de dia recuperas Barrera; de noche ganas Potencia.',
+      '+1 Barrera. Ciclo. Al inicio de tu turno: de dia recuperas Barrera; de noche ganas Potencia.',
   iconEmoji: '\u{1F306}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.debuff,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.buff,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 2,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.barrier: 1},
   effect: BateriaCrepuscularItemEffect(),
 );
 
@@ -760,6 +543,7 @@ const visorAperturaItem = Item(
   description: 'Los golpes directos de Desafio ignoran Barrera enemiga.',
   iconEmoji: '\u{1F576}',
   rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjN,
@@ -777,7 +561,6 @@ const visorAperturaItem = Item(
   baseCost: 4,
   value: 3,
   upgradeValue: 1,
-  effect: VisorAperturaItemEffect(),
 );
 
 /// Accesorio verde ofensivo que aplica Intoxicacion al atacar.
@@ -786,26 +569,14 @@ const toxicCatalystItem = Item(
   archetypeAffinities: _velozAffinities,
   tags: _debuffIntoxicacionTags,
   name: 'Catalizador Toxico',
-  description: 'Accesorio quimico que contamina cada impacto.',
+  description: '+1 ATK. Accesorio quimico que contamina cada impacto.',
   iconEmoji: '\u2623',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.debuff,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.intoxicacion,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.attack: 1},
   effect: IntoxicarOnAttackItemEffect(),
 );
 
@@ -815,26 +586,14 @@ const emberCharmItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _debuffQuemaduraTags,
   name: 'Amuleto de Ascuas',
-  description: 'Accesorio ofensivo que prende fuego en cada impacto.',
+  description: '+1 ATK. Accesorio ofensivo que prende fuego en cada impacto.',
   iconEmoji: '\u{1F525}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.debuff,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.quemadura,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 3,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.attack: 1},
   effect: QuemaduraOnAttackItemEffect(),
 );
 
@@ -844,26 +603,14 @@ const chemicalFilterItem = Item(
   archetypeAffinities: _velozInamovibleMercanteAffinities,
   tags: _debuffQuemaduraIntoxicacionTags,
   name: 'Filtro Quimico',
-  description: 'Reduce la Quemadura y la Intoxicacion que recibes.',
+  description: '+1 Barrera. Reduce la Quemadura y la Intoxicacion que recibes.',
   iconEmoji: '\u{1F637}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.debuff,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.quemadura,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.barrier: 1},
   effect: ChemicalFilterItemEffect(),
 );
 
@@ -876,25 +623,11 @@ const billingModuleItem = Item(
   description: 'Convierte soporte vital en ingresos operativos.',
   iconEmoji: '\u{1F4B3}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.vida,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.economia,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 2,
   upgradeValue: 1,
   incomePerValueUnit: 1,
-  maxHealthPercentPerValueUnit: -5,
   effect: BillingModuleItemEffect(),
 );
 
@@ -907,20 +640,7 @@ const placaBisagraItem = Item(
   description: '+1 ATK y +1 Barrera mientras este equipada.',
   iconEmoji: '\u{2699}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   statModifiers: {
     BattlerStat.attack: 1,
@@ -941,20 +661,7 @@ const fundaAislanteItem = Item(
   description: '+2 HP y +1 Barrera mientras este equipada.',
   iconEmoji: '\u{1F9BA}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.vida,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   statModifiers: {
     BattlerStat.health: 2,
@@ -976,26 +683,12 @@ const clavoReactorItem = Item(
       '+2 ATK. La primera vez por turno que atacas, infliges daño directo extra y te aplicas Quemadura.',
   iconEmoji: '\u{1F529}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 2,
-  },
+  statModifiers: {BattlerStat.attack: 2},
+  upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: ClavoReactorItemEffect(),
 );
 
@@ -1008,29 +701,11 @@ const ironSwordItem = Item(
   description: '+3 ATK mientras este equipada.',
   iconEmoji: '\u2694',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-  ],
   baseCost: 4,
   value: 3,
   upgradeValue: 3,
-  statModifiers: {
-    BattlerStat.attack: 3,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 3,
-  },
+  statModifiers: {BattlerStat.attack: 3},
+  upgradeStatModifiers: {BattlerStat.attack: 3},
 );
 
 /// Soporte verde defensivo para enemigos y tienda.
@@ -1042,29 +717,11 @@ const guardShieldItem = Item(
   description: '+2 Barrera mientras este equipado.',
   iconEmoji: '\u{1F482}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
   baseCost: 4,
   value: 2,
   upgradeValue: 2,
-  statModifiers: {
-    BattlerStat.barrier: 2,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 2,
-  },
+  statModifiers: {BattlerStat.barrier: 2},
+  upgradeStatModifiers: {BattlerStat.barrier: 2},
 );
 
 /// Arma verde orientada a abrir ventanas de daño de forma estable.
@@ -1076,29 +733,12 @@ const serratedEdgeItem = Item(
   description: '+1 ATK. Al atacar: acumula Fragilidad en el enemigo.',
   iconEmoji: '\u2692',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
+  statModifiers: {BattlerStat.attack: 1},
+  upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.fragilidad,
     trigger: ItemStatusEffectTrigger.attackTarget,
@@ -1114,29 +754,12 @@ const containmentCoilItem = Item(
   description: '+1 Barrera. Al defender, recuperas 1 de Barrera.',
   iconEmoji: '\u26A1',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.buff,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
+  statModifiers: {BattlerStat.barrier: 1},
+  upgradeStatModifiers: {BattlerStat.barrier: 1},
   effect: ContainmentCoilItemEffect(),
 );
 
@@ -1146,26 +769,14 @@ const thermalTurbineItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Turbina Termica',
-  description: 'Al inicio del combate: ganas 10 Calentando.',
+  description: '+1 ATK. Al recibir Quemadura, ganas Potencia.',
   iconEmoji: '\u{1F321}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.buff,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 10,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.attack: 1},
   effect: ThermalTurbineItemEffect(),
 );
 
@@ -1179,30 +790,32 @@ const nucleoPiezoelectricoItem = Item(
       '+2 Barrera. La primera vez cada turno que ganas Barrera, ganas Resonancia.',
   iconEmoji: '\u{1F50A}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.resonancia,
-      _adjBarrier,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 2,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
+  statModifiers: {BattlerStat.barrier: 2},
+  upgradeStatModifiers: {BattlerStat.barrier: 1},
   effect: NucleoPiezoelectricoItemEffect(),
+);
+
+/// Arma verde que descarga toda la Resonancia acumulada en un golpe.
+const descargaResonanteItem = Item(
+  id: ItemId.descargaResonante,
+  archetypeAffinities: _inamovibleImparableAffinities,
+  tags: _resonanciaAtaqueBarreraTags,
+  name: 'Descarga Resonante',
+  description:
+      '+1 ATK. Al atacar, consume toda tu Resonancia para infligir dano directo.',
+  iconEmoji: '\u{1F4AB}',
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {BattlerStat.attack: 1},
+  upgradeStatModifiers: {BattlerStat.attack: 1},
+  effect: DescargaResonanteItemEffect(),
 );
 
 /// Arma verde de veneno progresivo con remate directo sobre objetivos ya expuestos.
@@ -1215,29 +828,12 @@ const toxicScalpelItem = Item(
       '+1 ATK. Al atacar: aplica o aumenta Intoxicacion. Si ya la tenia, infliges 1 daño directo extra.',
   iconEmoji: '\u{1F9A0}',
   rarity: RarityTier.green,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.arma,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-  ],
+  patternBonusAmountOverride: 0,
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
+  statModifiers: {BattlerStat.attack: 1},
+  upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: ToxicScalpelItemEffect(),
 );
 
@@ -1253,20 +849,6 @@ const relojDeTurnoItem = Item(
       'Ciclo. Al final de tu turno: de dia te curas; de noche infliges daño directo.',
   iconEmoji: '\u23F1',
   rarity: RarityTier.blue,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.vida,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.vida,
-      _adjBarrier,
-      1,
-    ),
-  ],
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
@@ -1283,6 +865,7 @@ const faroNoctivagoItem = Item(
       'Ciclo. De dia, al defender: Conmocion. De noche, al atacar: Fragilidad.',
   iconEmoji: '\u{1F6A8}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
@@ -1313,20 +896,6 @@ const seguroRotoItem = Item(
       'Cuando un Desafio provoca contraataque, mejora tus siguientes Desafios.',
   iconEmoji: '\u{1F4A5}',
   rarity: RarityTier.blue,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.desafio,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
   baseCost: 6,
   value: 1,
   upgradeValue: 1,
@@ -1340,9 +909,10 @@ const muestrarioContrabandoItem = Item(
   tags: _economiaVidaTags,
   name: 'Muestrario de Contrabando',
   description:
-      '+3 HP. Al atacar, te curas por cada item de otro arquetipo en tu inventario.',
+      'Al atacar, te curas por cada item de otro arquetipo en tu inventario.',
   iconEmoji: '\u{1F9F3}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjW,
@@ -1366,9 +936,6 @@ const muestrarioContrabandoItem = Item(
   baseCost: 6,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.health: 3,
-  },
   effect: MuestrarioContrabandoItemEffect(),
 );
 
@@ -1379,9 +946,10 @@ const magnetiCHammerItem = Item(
   tags: _ataqueBarreraTags,
   name: 'M(agneti)C Hammer',
   description:
-      '+1 ATK. Al defender, ganas Potencia para el siguiente golpe igual a tu Barrera total actual.',
+      'Al defender, ganas Potencia para el siguiente golpe igual a tu Barrera total actual.',
   iconEmoji: '\u{1F528}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
@@ -1405,12 +973,6 @@ const magnetiCHammerItem = Item(
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
   effect: MagnetiCHammerItemEffect(),
 );
 
@@ -1420,9 +982,10 @@ const silbatoMudoItem = Item(
   archetypeAffinities: _generalAffinities,
   tags: _barreraDebuffTags,
   name: 'Silbato Mudo',
-  description: '+1 Barrera. Al recibir daño: aplica Conmocion al agresor.',
+  description: 'Al recibir daño: aplica Conmocion al agresor.',
   iconEmoji: '\u{1F507}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjE,
@@ -1446,9 +1009,6 @@ const silbatoMudoItem = Item(
   baseCost: 6,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.conmocion,
     trigger: ItemStatusEffectTrigger.receiveDamageSource,
@@ -1465,26 +1025,6 @@ const bombaMiocardicaItem = Item(
       'Al inicio de tu turno, pierdes vida y ganas una gran Reserva de Inercia: ATK.',
   iconEmoji: '\u2764',
   rarity: RarityTier.blue,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.vida,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.buff,
-      _adjAttack,
-      1,
-    ),
-  ],
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
@@ -1500,6 +1040,7 @@ const reactiveCasingItem = Item(
   description: 'Blindaje inestable que devuelve fuego al agresor.',
   iconEmoji: '\u{1F9F1}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
@@ -1532,10 +1073,10 @@ const kunaiAnchoItem = Item(
   archetypeAffinities: _velozAffinities,
   tags: _ataqueBarreraDebuffTags,
   name: 'Kunai Ancho',
-  description:
-      '+1 ATK. Al defender, si el enemigo tiene un debuff, recuperas Barrera.',
+  description: 'Al defender, si el enemigo tiene un debuff, recuperas Barrera.',
   iconEmoji: '\u{1F52A}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
@@ -1559,9 +1100,6 @@ const kunaiAnchoItem = Item(
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 1,
-  },
   effect: KunaiAnchoItemEffect(),
 );
 
@@ -1571,9 +1109,10 @@ const pulseCarbineItem = Item(
   archetypeAffinities: _velozImparableAffinities,
   tags: _ataqueDebuffTags,
   name: 'Carabina de Pulsos',
-  description: '+2 ATK. Al atacar: aplica Conmocion al enemigo.',
+  description: 'Al atacar: aplica Conmocion al enemigo.',
   iconEmoji: '\u{1F52B}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjE,
@@ -1597,12 +1136,6 @@ const pulseCarbineItem = Item(
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 2,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.conmocion,
     trigger: ItemStatusEffectTrigger.attackTarget,
@@ -1615,9 +1148,10 @@ const phaseVeilItem = Item(
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Velo de Fase',
-  description: '+2 Barrera. Al inicio de tu turno, recuperas 2 de Barrera.',
+  description: 'Al inicio de tu turno, recuperas 2 de Barrera.',
   iconEmoji: '\u{1F300}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
@@ -1641,12 +1175,6 @@ const phaseVeilItem = Item(
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 2,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: RecoverBarrierOnTurnStartItemEffect(amount: 2),
 );
 
@@ -1659,26 +1187,6 @@ const inertialCoreItem = Item(
   description: 'Al inicio de tu turno, si no lo tienes, ganas Inercia.',
   iconEmoji: '\u{1F9F2}',
   rarity: RarityTier.blue,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.buff,
-      _adjBarrier,
-      1,
-    ),
-  ],
   baseCost: 6,
   value: 1,
   upgradeValue: 1,
@@ -1694,38 +1202,15 @@ const platedJacketItem = Item(
   archetypeAffinities: _generalAffinities,
   tags: _barreraTags,
   name: 'Chaqueta Blindada',
-  description: '+4 Barrera mientras este equipada.',
+  description: '+4 HP y +3 Barrera mientras este equipada.',
   iconEmoji: '\u{1F9E5}',
-  rarity: RarityTier.blue,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
-  baseCost: 6,
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
   value: 4,
   upgradeValue: 4,
-  statModifiers: {
-    BattlerStat.barrier: 4,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 4,
-  },
+  statModifiers: {BattlerStat.health: 4, BattlerStat.barrier: 3},
+  upgradeStatModifiers: {BattlerStat.health: 4, BattlerStat.barrier: 3},
 );
 
 /// Accesorio azul que descarga la barrera ganada cuando se rompe.
@@ -1735,38 +1220,12 @@ const contingencySealItem = Item(
   tags: _barreraBuffTags,
   name: 'Sello de Contingencia',
   description:
-      '+1 Barrera. Cuando se rompe tu Barrera, haces dano al agresor igual a la Barrera ganada en la ultima ronda de este combate.',
+      'Cuando se rompe tu Barrera, haces dano al agresor igual a la Barrera ganada en la ultima ronda de este combate.',
   iconEmoji: '\u2726',
   rarity: RarityTier.blue,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjS,
-      EntityTag.buff,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.accesorio,
-      _adjBarrier,
-      1,
-    ),
-  ],
   baseCost: 6,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 1,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: ContingencySealItemEffect(),
 );
 
@@ -1777,9 +1236,10 @@ const placasCompresionItem = Item(
   tags: _resonanciaBarreraBuffTags,
   name: 'Placas de Compresion',
   description:
-      '+3 Barrera. Cuando recibes dano a Barrera, ganas Resonancia por la Barrera perdida.',
+      'Cuando recibes dano a Barrera, ganas Resonancia por la Barrera perdida.',
   iconEmoji: '\u{1F4BF}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjW,
@@ -1803,12 +1263,6 @@ const placasCompresionItem = Item(
   baseCost: 6,
   value: 3,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 3,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: PlacasCompresionItemEffect(),
 );
 
@@ -1819,9 +1273,10 @@ const interferenceCannonItem = Item(
   tags: _ataqueDebuffTags,
   name: 'Canon de Conmocion',
   description:
-      '+2 ATK. Al atacar: aplica Conmocion. Si el objetivo ya la tenia, pierde 1 de Barrera.',
+      'Al atacar: aplica Conmocion. Si el objetivo ya la tenia, pierde 1 de Barrera.',
   iconEmoji: '\u{1F4E1}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
@@ -1845,12 +1300,6 @@ const interferenceCannonItem = Item(
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.attack: 2,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.attack: 1,
-  },
   effect: InterferenceCannonItemEffect(),
 );
 
@@ -1861,38 +1310,12 @@ const responseFrameItem = Item(
   tags: _barreraBuffTags,
   name: 'Bastidor de Respuesta',
   description:
-      '+2 Barrera. Al final de tu turno, si no has recibido daño, recuperas 2 de Barrera.',
+      'Al final de tu turno, si no has recibido daño, recuperas 2 de Barrera.',
   iconEmoji: '\u{1F5BC}',
   rarity: RarityTier.blue,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjW,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.buff,
-      _adjBarrier,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.barrera,
-      _adjBarrier,
-      1,
-    ),
-  ],
   baseCost: 6,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {
-    BattlerStat.barrier: 2,
-  },
-  upgradeStatModifiers: {
-    BattlerStat.barrier: 1,
-  },
   effect: ResponseFrameItemEffect(),
 );
 
@@ -1903,9 +1326,10 @@ const capaDelContrabandistaItem = Item(
   tags: _economiaBarreraDebuffTags,
   name: 'Capa del Contrabandista',
   description:
-      '+3 Barrera y +1 INCOME mientras este equipada. Al inicio de tu turno, si el enemigo tiene un debuff, recuperas Barrera segun tu INCOME actual.',
+      'Al inicio de tu turno, si el enemigo tiene un debuff, recuperas Barrera segun tu INCOME actual.',
   iconEmoji: '\u{1F977}',
   rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjW,
@@ -1930,9 +1354,6 @@ const capaDelContrabandistaItem = Item(
   value: 1,
   upgradeValue: 1,
   incomePerValueUnit: 1,
-  statModifiers: {
-    BattlerStat.barrier: 3,
-  },
   effect: CapaDelContrabandistaItemEffect(),
 );
 
@@ -2031,7 +1452,6 @@ const ultimaMarchaItem = Item(
   baseCost: 8,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {BattlerStat.attack: 1},
   effect: UltimaMarchaItemEffect(),
 );
 
@@ -2056,8 +1476,6 @@ const emergencyPlatingItem = Item(
   baseCost: 8,
   value: 2,
   upgradeValue: 2,
-  statModifiers: {BattlerStat.barrier: 2},
-  upgradeStatModifiers: {BattlerStat.barrier: 2},
   effect: EmergencyPlatingItemEffect(),
 );
 
@@ -2067,7 +1485,7 @@ const impulseSpearItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Lanza de Impulso',
-  description: '+2 ATK. Al atacar: ganas Reserva de Inercia: ATK.',
+  description: 'Al atacar: ganas Reserva de Inercia: ATK.',
   iconEmoji: '\u{1F531}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -2080,8 +1498,6 @@ const impulseSpearItem = Item(
   baseCost: 8,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {BattlerStat.attack: 2},
-  upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.inerciaAtaque,
     trigger: ItemStatusEffectTrigger.attackOwner,
@@ -2109,8 +1525,6 @@ const reboundHarnessItem = Item(
   baseCost: 8,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {BattlerStat.barrier: 2},
-  upgradeStatModifiers: {BattlerStat.barrier: 1},
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.inerciaBarrera,
     trigger: ItemStatusEffectTrigger.receiveDamageOwner,
@@ -2202,7 +1616,7 @@ const parasiticCapacitorItem = Item(
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _vidaTags,
   name: 'Capacitador Parasitario',
-  description: '+5 HP. Al recibir dano: ganas Reserva de Inercia: Barrera.',
+  description: 'Al recibir dano: ganas Reserva de Inercia: Barrera.',
   iconEmoji: '\u{1FAAB}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -2216,8 +1630,6 @@ const parasiticCapacitorItem = Item(
   baseCost: 8,
   value: 5,
   upgradeValue: 5,
-  statModifiers: {BattlerStat.health: 5},
-  upgradeStatModifiers: {BattlerStat.health: 5},
   effect: StatusItemEffect(
     kind: ItemStatusEffectKind.inerciaBarrera,
     trigger: ItemStatusEffectTrigger.receiveDamageOwner,
@@ -2231,7 +1643,7 @@ const succionaCreditosItem = Item(
   tags: _economiaBarreraDebuffTags,
   name: 'SuccionaCreditos',
   description:
-      '+1 Barrera. La primera vez por turno que atacas a un objetivo con un debuff, ganas creditos y recuperas Barrera.',
+      'La primera vez por turno que atacas a un objetivo con un debuff, ganas creditos y recuperas Barrera.',
   iconEmoji: '\u{1F4B8}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -2247,7 +1659,6 @@ const succionaCreditosItem = Item(
   baseCost: 8,
   value: 3,
   upgradeValue: 1,
-  statModifiers: {BattlerStat.barrier: 1},
   effect: SuccionaCreditosItemEffect(),
 );
 
@@ -2301,14 +1712,39 @@ const torreRetornoItem = Item(
   effect: TorreRetornoItemEffect(),
 );
 
+/// Accesorio morado que proyecta Resonancia como dano sin consumirla.
+const prismaDeEcoItem = Item(
+  id: ItemId.prismaDeEco,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _resonanciaAtaqueBarreraTags,
+  name: 'Prisma de Eco',
+  description:
+      'Una vez por turno, al atacar, infliges dano directo igual a la mitad de tu Resonancia actual.',
+  iconEmoji: '\u{1FA9E}',
+  rarity: RarityTier.purple,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+        _adjN, EntityTag.resonancia, _adjBarrier, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjE, EntityTag.ataque, _adjAttack, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjS, EntityTag.barrera, _adjBarrier, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjW, EntityTag.accesorio, _adjBarrier, 2),
+  ],
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 1,
+  effect: PrismaDeEcoItemEffect(),
+);
+
 /// Accesorio morado que traduce el sobrecalentamiento en defensa inmediata.
 const overloadAnchorItem = Item(
   id: ItemId.overloadAnchor,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBarreraBuffTags,
   name: 'Ancla de Sobrecarga',
-  description:
-      '+1 Barrera. Al defender, si tienes Calentando, recuperas Barrera.',
+  description: 'Al defender, si tienes Calentando, recuperas Barrera.',
   iconEmoji: '\u2693',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -2323,8 +1759,6 @@ const overloadAnchorItem = Item(
   baseCost: 8,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {BattlerStat.barrier: 1},
-  upgradeStatModifiers: {BattlerStat.barrier: 1},
   effect: OverloadAnchorItemEffect(),
 );
 
@@ -2351,8 +1785,6 @@ const reboundLensItem = Item(
   baseCost: 8,
   value: 2,
   upgradeValue: 1,
-  statModifiers: {BattlerStat.barrier: 1},
-  upgradeStatModifiers: {BattlerStat.barrier: 1},
   effect: ReboundLensItemEffect(),
 );
 
@@ -2379,6 +1811,7 @@ const ultimaPalabraItem = Item(
   baseCost: 10,
   value: 4,
   upgradeValue: 0,
+  statModifiers: {BattlerStat.attack: 3},
   effect: UltimaPalabraItemEffect(),
 );
 
@@ -2415,7 +1848,8 @@ const overloadInjectorItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Inyector de Sobrecarga',
-  description: '+3 ATK. Al atacar: genera o aumenta Calentando.',
+  description:
+      '+3 ATK. Al inicio del combate, ganas una gran carga de Calentando.',
   iconEmoji: '\u{1F489}',
   rarity: RarityTier.yellow,
   patternAdjacencyBonuses: [
@@ -2426,14 +1860,11 @@ const overloadInjectorItem = Item(
     OperativePatternAdjacencyBonus.match(_adjS, EntityTag.arma, _adjAttack, 2),
   ],
   baseCost: 10,
-  value: 2,
-  upgradeValue: 1,
+  value: 6,
+  upgradeValue: 2,
   statModifiers: {BattlerStat.attack: 3},
   upgradeStatModifiers: {BattlerStat.attack: 1},
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.calentando,
-    trigger: ItemStatusEffectTrigger.attackOwnerReinforce,
-  ),
+  effect: ThermalTurbineItemEffect(),
 );
 
 /// Armadura amarilla que garantiza una Inercia de alto valor si se pierde.
@@ -2499,7 +1930,7 @@ const sunsteelBladeItem = Item(
   archetypeAffinities: _generalAffinities,
   tags: _ataqueTags,
   name: 'Filo Solar',
-  description: '+8 ATK mientras este equipado.',
+  description: '+10 ATK mientras este equipado.',
   iconEmoji: '\u{1F5E1}',
   rarity: RarityTier.yellow,
   patternAdjacencyBonuses: [
@@ -2513,8 +1944,8 @@ const sunsteelBladeItem = Item(
   baseCost: 10,
   value: 8,
   upgradeValue: 8,
-  statModifiers: {BattlerStat.attack: 8},
-  upgradeStatModifiers: {BattlerStat.attack: 8},
+  statModifiers: {BattlerStat.attack: 10},
+  upgradeStatModifiers: {BattlerStat.attack: 10},
 );
 
 /// Accesorio amarillo centrado en vida maxima.
@@ -2523,7 +1954,7 @@ const dawnCharmItem = Item(
   archetypeAffinities: _generalAffinities,
   tags: _vidaTags,
   name: 'Amuleto del Alba',
-  description: '+16 HP mientras este equipado.',
+  description: '+20 HP mientras este equipado.',
   iconEmoji: '\u2600',
   rarity: RarityTier.yellow,
   patternAdjacencyBonuses: [
@@ -2537,8 +1968,8 @@ const dawnCharmItem = Item(
   baseCost: 10,
   value: 16,
   upgradeValue: 16,
-  statModifiers: {BattlerStat.health: 16},
-  upgradeStatModifiers: {BattlerStat.health: 16},
+  statModifiers: {BattlerStat.health: 20},
+  upgradeStatModifiers: {BattlerStat.health: 20},
 );
 
 /// Soporte amarillo que alterna entre defensa diurna y ataque nocturno.
@@ -2548,7 +1979,7 @@ const eclipseMantleItem = Item(
   tags: _cicloAtaqueBarreraTags,
   name: 'Manto de Eclipse',
   description:
-      'Ciclo. Alterna entre Barrera y ATK, y marca el ritmo para tus efectos de Ciclo.',
+      '+2 Barrera. Ciclo. Alterna entre Barrera y ATK, y marca el ritmo para tus efectos de Ciclo.',
   iconEmoji: '\u{1F318}',
   rarity: RarityTier.yellow,
   patternAdjacencyBonuses: [
@@ -2564,6 +1995,7 @@ const eclipseMantleItem = Item(
   baseCost: 10,
   value: 3,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.barrier: 2},
   effect: EclipseMantleItemEffect(),
 );
 
@@ -2574,7 +2006,7 @@ const operativeBlackBoxItem = Item(
   tags: _vidaTags,
   name: 'Caja Negra del Operativo',
   description:
-      'Failsafe de emergencia que rehusa dejar caer la unidad a la primera.',
+      '+8 HP. Failsafe de emergencia que rehusa dejar caer la unidad a la primera.',
   iconEmoji: '\u{1F4E6}',
   rarity: RarityTier.yellow,
   patternAdjacencyBonuses: [
@@ -2588,6 +2020,7 @@ const operativeBlackBoxItem = Item(
   baseCost: 10,
   value: 1,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.health: 8},
   effect: OperativeBlackBoxItemEffect(),
 );
 
@@ -2598,7 +2031,7 @@ const inertiaCrownItem = Item(
   tags: _ataqueBarreraBuffTags,
   name: 'Corona de Inercia',
   description:
-      'Si tienes Inercia al inicio de tu turno, ganas ambas reservas de Inercia.',
+      '+2 Barrera. Si tienes Inercia al inicio de tu turno, ganas ambas reservas de Inercia.',
   iconEmoji: '\u{1F451}',
   rarity: RarityTier.yellow,
   patternAdjacencyBonuses: [
@@ -2613,6 +2046,7 @@ const inertiaCrownItem = Item(
   baseCost: 10,
   value: 2,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.barrier: 2},
   effect: InertiaCrownItemEffect(),
 );
 
@@ -2717,8 +2151,10 @@ const itemPresets = <Item>[
   vectorBulwarkItem,
   contingencySealItem,
   nucleoPiezoelectricoItem,
+  descargaResonanteItem,
   placasCompresionItem,
   torreRetornoItem,
+  prismaDeEcoItem,
   aislanteArmonicoItem,
   canonContrapresionItem,
   ironSwordItem,

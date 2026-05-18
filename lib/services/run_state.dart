@@ -12,6 +12,7 @@ class RunState {
   final int stageIndex;
   final Duration battleEnemyTurnDelay;
   final Duration battleCombatEndDelay;
+  final RunDaySummary runSummary;
   final RunDaySummary currentDaySummary;
   final RunDaySummary? pendingDaySummary;
   final bool isRunComplete;
@@ -24,6 +25,7 @@ class RunState {
     required this.stageIndex,
     required this.battleEnemyTurnDelay,
     required this.battleCombatEndDelay,
+    this.runSummary = const RunDaySummary.empty(),
     this.currentDaySummary = const RunDaySummary.empty(),
     this.pendingDaySummary,
     this.isRunComplete = false,
@@ -37,6 +39,7 @@ class RunState {
     int? stageIndex,
     Duration? battleEnemyTurnDelay,
     Duration? battleCombatEndDelay,
+    RunDaySummary? runSummary,
     RunDaySummary? currentDaySummary,
     Object? pendingDaySummary = _copySentinel,
     bool? isRunComplete,
@@ -50,6 +53,7 @@ class RunState {
       stageIndex: stageIndex ?? this.stageIndex,
       battleEnemyTurnDelay: battleEnemyTurnDelay ?? this.battleEnemyTurnDelay,
       battleCombatEndDelay: battleCombatEndDelay ?? this.battleCombatEndDelay,
+      runSummary: runSummary ?? this.runSummary,
       currentDaySummary: currentDaySummary ?? this.currentDaySummary,
       pendingDaySummary: identical(pendingDaySummary, _copySentinel)
           ? this.pendingDaySummary

@@ -448,15 +448,23 @@ Map<String, Object?> _serializeItem(Item item) {
     'statModifiers': _serializeStatMap(item.statModifiers),
     'upgradeStatModifiers': _serializeStatMap(item.upgradeStatModifiers),
     'hasEffect': item.hasEffect,
-    'patternBonusKind': item.patternBonusKind.name,
+    'hasPatternBonus': item.hasPatternBonus,
+    'patternBonusKind':
+        item.hasPatternBonus ? item.patternBonusKind.name : null,
     'patternBonusAmount': item.patternBonusAmount,
-    'patternRequirementKind': item.patternRequirement.kind.name,
-    'patternRequirementLabel': item.patternRequirement.label,
-    'patternRequirementShortLabel': item.patternRequirement.shortLabel,
-    'patternRequirementDescription': item.patternRequirement.description,
-    'patternRequirementShape': item.patternRequirement.shapePoints
-        .map((point) => point.key)
-        .toList(growable: false),
+    'patternRequirementKind':
+        item.hasPatternBonus ? item.patternRequirement.kind.name : null,
+    'patternRequirementLabel':
+        item.hasPatternBonus ? item.patternRequirement.label : null,
+    'patternRequirementShortLabel':
+        item.hasPatternBonus ? item.patternRequirement.shortLabel : null,
+    'patternRequirementDescription':
+        item.hasPatternBonus ? item.patternRequirement.description : null,
+    'patternRequirementShape': item.hasPatternBonus
+        ? item.patternRequirement.shapePoints
+            .map((point) => point.key)
+            .toList(growable: false)
+        : const <String>[],
     'patternAdjacencyBonuses': item.patternAdjacencyBonuses
         .map<Map<String, Object?>>(_serializePatternAdjacencyBonus)
         .toList(growable: false),

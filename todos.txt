@@ -104,8 +104,6 @@
 ////
 ARREGLAR:
 -El botón de equipar/desequipar en al tienda a veces desaparece al equipar/desequipar/vender en una tienda?
--añadir objetos de resonancia para inamovible que usen resonancia(no hay ninguno que lo use para el daño)
--Modificar items y habilidades de Calentando para que en general se activen al comienzo del combate, con mucho burst
 
 ////
 PROBAR:
@@ -115,7 +113,6 @@ IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
 -mostrar si es habilidad o item en la recompensa(dejar como el resumen?)
 -Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
--Resumen en la pantalla de you Lose/you win
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.

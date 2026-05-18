@@ -50,6 +50,7 @@ class RunSessionController extends ChangeNotifier {
             stageIndex: snapshot.stageIndex,
             battleEnemyTurnDelay: snapshot.battleEnemyTurnDelay,
             battleCombatEndDelay: snapshot.battleCombatEndDelay,
+            runSummary: snapshot.runSummary,
             currentDaySummary: snapshot.currentDaySummary,
             pendingDaySummary: snapshot.pendingDaySummary,
             isRunComplete: snapshot.isRunComplete,
@@ -101,6 +102,7 @@ class RunSessionController extends ChangeNotifier {
               stageIndex: PathNodeService.startStageIndex,
               battleEnemyTurnDelay: battleEnemyTurnDelay,
               battleCombatEndDelay: battleCombatEndDelay,
+              runSummary: const RunDaySummary.empty(dayNumber: 1),
               currentDaySummary: const RunDaySummary.empty(dayNumber: 1),
             ) {
     _isResolvingNode = initialIsResolvingNode;
@@ -120,6 +122,7 @@ class RunSessionController extends ChangeNotifier {
   bool get isRunComplete => _state.isRunComplete;
   RunCompletionType? get completionType => _state.completionType;
   RunDaySummary get currentDaySummary => _state.currentDaySummary;
+  RunDaySummary get runSummary => _state.runSummary;
   RunDaySummary? get pendingDaySummary => _state.pendingDaySummary;
   bool get hasPendingDaySummary => _state.pendingDaySummary != null;
 
@@ -168,8 +171,16 @@ class RunSessionController extends ChangeNotifier {
             after: player,
           )
         : _state.currentDaySummary;
+    final updatedRunSummary =
+        _shouldRecordCurrentStageInDaySummary(recordRewardsInDaySummary)
+            ? _state.runSummary.recordScene(
+                before: _state.player,
+                after: player,
+              )
+            : _state.runSummary;
     var nextState = _state.copyWith(
       player: player,
+      runSummary: updatedRunSummary,
       currentDaySummary: updatedDaySummary,
       isRunComplete: resolvedCompletionType != null,
       completionType: resolvedCompletionType,
@@ -283,12 +294,18 @@ class RunSessionController extends ChangeNotifier {
       before: preparedPlayer,
       after: nextRunStep.player,
     );
+    final nextRunSummary = _recordTransitionGains(
+      summary: _state.runSummary,
+      before: preparedPlayer,
+      after: nextRunStep.player,
+    );
 
     _state = _state.copyWith(
       player: nextRunStep.player,
       stageIndex: nextStageIndex,
       currentHour: nextRunStep.hour,
       visibleNodes: List<PathNode>.unmodifiable(nextRunStep.hour.nodes),
+      runSummary: nextRunSummary,
       currentDaySummary: nextDaySummary,
       pendingDaySummary: null,
     );
@@ -325,8 +342,7 @@ class RunSessionController extends ChangeNotifier {
       updatedPlayer: updatedPlayer,
       forcedCompletionType: _completionTypeForBattleResult(result.type),
       defeatedEnemy: result.type == BattleFlowResultType.victory,
-      defeatedEnemyBattler:
-          result.type == BattleFlowResultType.victory ? node.enemy : null,
+      defeatedEnemyBattler: node.enemy,
       defeatedEnemyRarity: node.tier.rarity,
     );
   }
@@ -364,10 +380,34 @@ class RunSessionController extends ChangeNotifier {
   }) {
     final resolvedCompletionType = forcedCompletionType ??
         _resolveCompletionType(updatedPlayer: updatedPlayer);
+    final shouldRecordScene =
+        _shouldRecordCurrentStageInDaySummary(includeSceneRewardsInDaySummary);
+    final updatedDaySummary = shouldRecordScene
+        ? _state.currentDaySummary.recordScene(
+            before: _state.player,
+            after: updatedPlayer,
+            defeatedEnemy: defeatedEnemy,
+            defeatedEnemyBattler: defeatedEnemyBattler,
+            defeatedEnemyRarity: defeatedEnemyRarity,
+            includeRewards: includeSceneRewardsInDaySummary,
+          )
+        : _state.currentDaySummary;
+    final updatedRunSummary = shouldRecordScene
+        ? _state.runSummary.recordScene(
+            before: _state.player,
+            after: updatedPlayer,
+            defeatedEnemy: defeatedEnemy,
+            defeatedEnemyBattler: defeatedEnemyBattler,
+            defeatedEnemyRarity: defeatedEnemyRarity,
+            includeRewards: includeSceneRewardsInDaySummary,
+          )
+        : _state.runSummary;
 
     if (resolvedCompletionType != null) {
       _state = _state.copyWith(
         player: updatedPlayer,
+        runSummary: updatedRunSummary,
+        currentDaySummary: updatedDaySummary,
         isRunComplete: true,
         completionType: resolvedCompletionType,
         pendingDaySummary: null,
@@ -379,22 +419,12 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
-    final updatedDaySummary =
-        _shouldRecordCurrentStageInDaySummary(includeSceneRewardsInDaySummary)
-            ? _state.currentDaySummary.recordScene(
-                before: _state.player,
-                after: updatedPlayer,
-                defeatedEnemy: defeatedEnemy,
-                defeatedEnemyBattler: defeatedEnemyBattler,
-                defeatedEnemyRarity: defeatedEnemyRarity,
-                includeRewards: includeSceneRewardsInDaySummary,
-              )
-            : _state.currentDaySummary;
     final nextStageIndex = _state.stageIndex + 1;
     if (nextStageIndex > PathNodeService.sunriseStageIndex) {
       _state = _state.copyWith(
         player: updatedPlayer,
         stageIndex: nextStageIndex,
+        runSummary: updatedRunSummary,
         currentDaySummary: updatedDaySummary,
         pendingDaySummary: null,
         isRunComplete: true,
@@ -410,6 +440,7 @@ class RunSessionController extends ChangeNotifier {
     if (PathNodeService.isDailyBossStage(_state.stageIndex)) {
       _state = _state.copyWith(
         player: updatedPlayer,
+        runSummary: updatedRunSummary,
         currentDaySummary: updatedDaySummary,
         pendingDaySummary: updatedDaySummary,
         visibleNodes: const <PathNode>[],
@@ -431,12 +462,18 @@ class RunSessionController extends ChangeNotifier {
       before: updatedPlayer,
       after: nextRunStep.player,
     );
+    final nextRunSummary = _recordTransitionGains(
+      summary: updatedRunSummary,
+      before: updatedPlayer,
+      after: nextRunStep.player,
+    );
 
     _state = _state.copyWith(
       player: nextRunStep.player,
       stageIndex: nextStageIndex,
       currentHour: nextRunStep.hour,
       visibleNodes: List<PathNode>.unmodifiable(nextRunStep.hour.nodes),
+      runSummary: nextRunSummary,
       currentDaySummary: nextDaySummary,
     );
     _isResolvingNode = false;

@@ -366,6 +366,119 @@ class BattleController extends ChangeNotifier {
     }
   }
 
+  Future<void> handlePatternMatch({
+    BattleActionBonus actionBonus = BattleActionBonus.empty,
+    BattlePatternMatchContext? patternContext,
+  }) async {
+    if (!canUseActions) return;
+    final resolvedActionBonus = actionBonus;
+    final countsAsAttack = resolvedActionBonus.attackBonus >=
+        resolvedActionBonus.immediateBarrierAmount;
+    final countsAsDefend = resolvedActionBonus.immediateBarrierAmount >=
+        resolvedActionBonus.attackBonus;
+
+    if (resolvedActionBonus.healAmount > 0) {
+      await _applyPlayerHealing(resolvedActionBonus.healAmount);
+    }
+
+    final resolvedPatternContext = patternContext;
+    if (resolvedPatternContext != null) {
+      final playerBeforePatternAbilities = _player;
+      final enemyBeforePatternAbilities = _enemy;
+      final abilityResolution = _player.applyAbilityPatternMatchResolvedEffects(
+        opponent: _enemy,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBeforePatternAbilities,
+        enemyBefore: enemyBeforePatternAbilities,
+        playerAfter: abilityResolution.owner,
+        enemyAfter: abilityResolution.opponent,
+      );
+      if (_isDisposed || !canUseActions) return;
+
+      _player = abilityResolution.owner;
+      _enemy = abilityResolution.opponent;
+      final abilityFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (abilityFinish != null) {
+        _finishCombat(
+          resultType: abilityFinish.resultType,
+          resultText: abilityFinish.resultText,
+        );
+        return;
+      }
+    }
+
+    final attackerBefore = _player;
+    final defenderBefore = _enemy;
+    final attackResolution = _resolveAttackAction(
+      attacker: _player,
+      defender: _enemy,
+      flatAttackBonus: resolvedActionBonus.attackBonus,
+      triggerAttackResolvedEffects: countsAsAttack,
+    );
+
+    await _playAttackActionAnimations(
+      attackerSide: BattleCombatantSide.player,
+      attackerBefore: attackerBefore,
+      defenderBefore: defenderBefore,
+      resolution: attackResolution,
+    );
+    if (_isDisposed || !canUseActions) return;
+
+    _player = attackResolution.attacker;
+    _enemy = attackResolution.defender;
+    if (resolvedActionBonus.immediateBarrierAmount > 0) {
+      await _applyActionBarrierToPlayer(
+        resolvedActionBonus.immediateBarrierAmount,
+      );
+      if (_isDisposed) return;
+    }
+
+    if (countsAsDefend) {
+      final patternDefenderBefore = _player;
+      final patternOpponentBefore = _enemy;
+      final defendResolution = _resolveDefendAction(
+        defender: _player,
+        opponent: _enemy,
+        barrierGain: 0,
+      );
+      await _playBlockResolutionAnimation(
+        defenderSide: BattleCombatantSide.player,
+        defenderBefore: patternDefenderBefore,
+        opponentBefore: patternOpponentBefore,
+        defenderAfter: defendResolution.defender,
+        opponentAfter: defendResolution.opponent,
+      );
+      if (_isDisposed || !canUseActions) return;
+
+      _player = defendResolution.defender;
+      _enemy = defendResolution.opponent;
+    }
+
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
+
+    if (await _completeTurn(BattleTurnState.player)) {
+      return;
+    }
+
+    if (resolvedActionBonus.endTurnBarrierAmount > 0) {
+      await _applyActionBarrierToPlayer(
+        resolvedActionBonus.endTurnBarrierAmount,
+      );
+    }
+
+    await _beginTurn(BattleTurnState.enemy);
+    if (_turn == BattleTurnState.enemy) {
+      _scheduleEnemyTurn();
+    }
+  }
+
   Future<void> handleBlock({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
   }) async {
@@ -988,6 +1101,7 @@ class BattleController extends ChangeNotifier {
     required Battler defender,
     int flatAttackBonus = 0,
     int challengeCounterattackBonus = 0,
+    bool triggerAttackResolvedEffects = true,
   }) {
     var updatedAttacker = attacker.removeCombatFlag(
       Battler.pendingBasicAttackFollowUpFlag,
@@ -1055,6 +1169,7 @@ class BattleController extends ChangeNotifier {
         attacker: updatedAttacker,
         defender: updatedDefender,
         flatAttackBonus: flatAttackBonus,
+        triggerAttackResolvedEffects: triggerAttackResolvedEffects,
       );
       updatedAttacker = resolution.attacker.removeCombatFlag(
         Battler.pendingBasicAttackFollowUpFlag,

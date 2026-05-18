@@ -25,6 +25,7 @@ final velozArchetypeNode = ArchetypePathNode(
   rarity: RarityTier.blue,
   baseStatModifiers: const {
     BattlerStat.attack: 1,
+    BattlerStat.barrier: 1,
   },
   moneyModifier: 8,
   incomeModifier: 4,
@@ -46,8 +47,8 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   accent: const Color(0xFF5AF78E),
   rarity: RarityTier.green,
   baseStatModifiers: const {
-    BattlerStat.health: 4,
-    BattlerStat.barrier: 1,
+    BattlerStat.health: 5,
+    BattlerStat.barrier: 2,
   },
   moneyModifier: 12,
   incomeModifier: 3,
@@ -69,6 +70,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   accent: const Color(0xFFF3D35C),
   rarity: RarityTier.yellow,
   baseStatModifiers: const {
+    BattlerStat.health: 5,
     BattlerStat.attack: 2,
   },
   moneyModifier: 8,
@@ -132,6 +134,9 @@ final mercanteArchetypeNode = ArchetypePathNode(
   playerIconEmoji: '\u{1F4B3}',
   accent: const Color(0xFFEBCB5A),
   rarity: RarityTier.blue,
+  baseStatModifiers: const {
+    BattlerStat.health: 10,
+  },
   moneyModifier: 13,
   incomeModifier: 5,
   startingItems: [

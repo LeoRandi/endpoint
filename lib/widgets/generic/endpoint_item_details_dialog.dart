@@ -81,7 +81,8 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
       widget.accent,
       0.08,
     );
-    final shouldShowPatternBonus = _gameMode == EndpointGameMode.pattern;
+    final shouldShowPatternBonus =
+        _gameMode == EndpointGameMode.pattern && widget.item.hasPatternBonus;
 
     return EndpointDetailsDialogScaffold(
       accent: widget.accent,
@@ -616,4 +617,3 @@ class _PatternAdjacencyBonusChip extends StatelessWidget {
     };
   }
 }
-

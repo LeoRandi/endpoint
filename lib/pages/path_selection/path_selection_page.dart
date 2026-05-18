@@ -371,6 +371,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
         RunOutcomePage(
           completionType: completionType,
           player: _sessionController.player,
+          runSummary: _sessionController.runSummary,
         ),
       ),
     );

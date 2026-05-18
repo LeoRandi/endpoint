@@ -38,6 +38,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
         'randomState': randomizer.state,
         'battleEnemyTurnDelayMs': state.battleEnemyTurnDelay.inMilliseconds,
         'battleCombatEndDelayMs': state.battleCombatEndDelay.inMilliseconds,
+        'runSummary': state.runSummary.toJson(),
         'currentDaySummary': state.currentDaySummary.toJson(),
         'pendingDaySummary': state.pendingDaySummary?.toJson(),
         'currentHour': <String, Object?>{
@@ -171,6 +172,9 @@ abstract final class EndpointCurrentRunSnapshotCodec {
           fallback: 2000,
         ),
       ),
+      runSummary: RunDaySummary.fromJson(runJson['runSummary']) ??
+          RunDaySummary.fromJson(runJson['currentDaySummary']) ??
+          const RunDaySummary.empty(),
       currentDaySummary: RunDaySummary.fromJson(
             runJson['currentDaySummary'],
           ) ??

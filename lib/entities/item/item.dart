@@ -82,6 +82,8 @@ enum ItemId {
   seguroRoto,
   aceleradorReto,
   ultimaPalabra,
+  descargaResonante,
+  prismaDeEco,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -151,6 +153,7 @@ const _weaponTaggedItemIds = <ItemId>{
   ItemId.sunExecutionBlade,
   ItemId.guanteReto,
   ItemId.ultimaPalabra,
+  ItemId.descargaResonante,
 };
 
 const _accessoryTaggedItemIds = <ItemId>{
@@ -194,6 +197,7 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.torreRetorno,
   ItemId.aislanteArmonico,
   ItemId.canonContrapresion,
+  ItemId.prismaDeEco,
   ItemId.visorApertura,
   ItemId.seguroRoto,
   ItemId.aceleradorReto,
@@ -374,6 +378,9 @@ class Item {
   /// Indica si el objeto tiene una logica activa mas alla de sus stats planos.
   bool get hasEffect => effect != null;
 
+  /// Indica si este objeto aporta su propio bonus de Patron.
+  bool get hasPatternBonus => patternBonusAmount > 0;
+
   /// Describe el bonus que aporta este objeto cuando se cruza en Patron.
   OperativePatternBonus get patternBonus => OperativePatternBonus(
         kind: patternBonusKind,
@@ -386,7 +393,7 @@ class Item {
 
   /// Devuelve la magnitud interna del bonus de Patron.
   int get patternBonusAmount =>
-      max(1, patternBonusAmountOverride ?? rarity.factor);
+      patternBonusAmountOverride ?? max(1, rarity.factor);
 
   /// Devuelve la condicion que debe cumplir el trazo para activar su bonus de Patron.
   OperativePatternRequirement get patternRequirement =>
@@ -486,26 +493,40 @@ class Item {
   /// Genera la descripcion visible unica, priorizando el efecto con valores de instancia.
   String get displayDescription {
     final effectDescription = effect?.descriptionFor(this);
-    if (effectDescription != null) return effectDescription;
+    if (effectDescription != null) {
+      final statEntries = _statModifierDescriptionEntries();
+      if (statEntries.isEmpty) return effectDescription;
+
+      return [
+        ...statEntries,
+        effectDescription,
+      ].join('. ');
+    }
+
+    final entries = _modifierDescriptionEntries();
+    if (entries.isNotEmpty) return entries.join('. ');
 
     if (upgradeCount <= 0) return description;
 
-    final entries = _modifierDescriptionEntries();
-    if (entries.isEmpty) return description;
-
-    return entries.join('. ');
+    return description;
   }
 
   /// Devuelve la misma descripcion canonica para tooltips y tarjetas compactas.
   String get tooltipDescription => displayDescription;
 
-  List<String> _modifierDescriptionEntries() {
-    final entries = <String>[
+  List<String> _statModifierDescriptionEntries() {
+    return [
       ...statModifiers.entries.map((entry) {
         final value = entry.value;
         final sign = value >= 0 ? '+' : '';
         return '$sign$value ${_statLabel(entry.key)}';
       }),
+    ];
+  }
+
+  List<String> _modifierDescriptionEntries() {
+    final entries = <String>[
+      ..._statModifierDescriptionEntries(),
     ];
 
     if (incomeModifier != 0) {

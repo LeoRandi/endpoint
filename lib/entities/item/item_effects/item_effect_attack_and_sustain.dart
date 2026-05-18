@@ -1,31 +1,16 @@
 part of '../item_effect.dart';
 
-/// Convierte el ataque basico en un doble golpe a cambio de reducir el ATK total.
+/// Convierte el ataque basico en un doble golpe a cambio de diluir bonus de items.
 class SunglassesItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para las Gafas de Sol.
   const SunglassesItemEffect()
       : super(
           description:
-              'Tu ATK total se reduce a la mitad, redondeado hacia arriba y con minimo 1. A cambio, cada accion de ataque basico se resuelve dos veces.',
+              'Cada accion de ataque basico se resuelve dos veces, pero los bonus de items, adyacencias y patrones se reducen a la mitad, redondeando hacia arriba.',
           hooks: const {
-            ItemEffectHook.calculatedStatModifier,
             ItemEffectHook.basicAttackCountModifier,
           },
         );
-
-  @override
-
-  /// Reduce el ATK final del portador para equilibrar el doble golpe.
-  int modifyCalculatedStat({
-    required Battler owner,
-    required Item item,
-    required BattlerStat stat,
-    required int value,
-  }) {
-    if (stat != BattlerStat.attack) return value;
-
-    return max(1, (value + 1) ~/ 2);
-  }
 
   @override
 

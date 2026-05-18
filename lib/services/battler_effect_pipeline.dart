@@ -974,6 +974,55 @@ class BattlerEffectPipeline {
     );
   }
 
+  BattlerAbilityEffectResolution applyAbilityPatternMatchResolvedEffects({
+    required Battler owner,
+    required Battler opponent,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.patternMatchResolved),
+    );
+    if (activeAbilityIds.isEmpty) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+
+    for (final abilityId in activeAbilityIds) {
+      final previousAbility = updatedOwner.abilityById(abilityId);
+      final effect = previousAbility?.effect;
+      if (previousAbility == null || effect == null) continue;
+
+      final resolution = effect.onPatternMatchResolved(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        ability: previousAbility,
+        pattern: pattern,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+      updatedOwner = _applyRegulatedOverloadCooldownPenalty(
+        owner: updatedOwner,
+        previousAbility: previousAbility,
+      );
+
+      final itemResolution = applyEquippedItemAbilityResolvedEffects(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        previousAbility: previousAbility,
+        context: ItemAbilityResolutionContext.patternMatchResolved,
+      );
+      updatedOwner = itemResolution.owner;
+      updatedOpponent = itemResolution.opponent;
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      opponent: updatedOpponent.pruneExpiredStatuses(),
+    );
+  }
+
   BattlerAbilityEffectResolution applyAbilityPassiveEffects({
     required Battler owner,
     required Battler opponent,

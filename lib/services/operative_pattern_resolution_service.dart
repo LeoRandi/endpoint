@@ -76,6 +76,9 @@ abstract final class OperativePatternResolutionService {
     final activatedPatternBonusesByPointKey = <String, OperativePatternBonus>{};
     final activatedAdjacencyBonusesByPointKey =
         <String, List<OperativePatternAdjacencyBonus>>{};
+    final shouldHalveItemPatternBonuses = equippedItemsByPointKey.values.any(
+      (item) => item.id == ItemId.sunglasses,
+    );
     var attackBonus = 0;
     var barrierBonus = 0;
 
@@ -91,6 +94,7 @@ abstract final class OperativePatternResolutionService {
               point: point,
               patternPoints: stablePatternPoints,
               itemActivationByPointKey: itemActivationByPointKey,
+              shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
             );
       if (bonus != null) {
         activatedPatternBonusesByPointKey[point.key] = bonus;
@@ -109,6 +113,7 @@ abstract final class OperativePatternResolutionService {
         item: item,
         point: point,
         equippedItemsByPointKey: equippedItemsByPointKey,
+        shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
       );
       if (adjacencyBonuses.isEmpty) continue;
 
@@ -159,20 +164,29 @@ abstract final class OperativePatternResolutionService {
     required OperativePatternPoint point,
     required List<OperativePatternPoint> patternPoints,
     required Map<String, bool> itemActivationByPointKey,
+    required bool shouldHalveItemPatternBonuses,
   }) {
+    if (!item.hasPatternBonus) return null;
+
     final isEnabled = item.patternRequirement.isSatisfiedBy(
       patternPoints: patternPoints,
       itemPoint: point,
     );
     itemActivationByPointKey[point.key] = isEnabled;
 
-    return isEnabled ? item.patternBonus : null;
+    if (!isEnabled) return null;
+
+    return _resolveItemPatternBonusAmount(
+      item.patternBonus,
+      shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
+    );
   }
 
   static List<OperativePatternAdjacencyBonus> _resolveItemAdjacencyBonuses({
     required Item item,
     required OperativePatternPoint point,
     required Map<String, Item> equippedItemsByPointKey,
+    required bool shouldHalveItemPatternBonuses,
   }) {
     final activatedBonuses = <OperativePatternAdjacencyBonus>[];
     for (final adjacencyBonus in item.patternAdjacencyBonuses) {
@@ -184,9 +198,33 @@ abstract final class OperativePatternResolutionService {
       if (adjacentItem == null) continue;
       if (!adjacentItem.hasTag(adjacencyBonus.requiredTag)) continue;
 
-      activatedBonuses.add(adjacencyBonus);
+      activatedBonuses.add(
+        shouldHalveItemPatternBonuses
+            ? OperativePatternAdjacencyBonus(
+                direction: adjacencyBonus.direction,
+                requiredTag: adjacencyBonus.requiredTag,
+                kind: adjacencyBonus.kind,
+                amount: _resolveItemPatternBonusAmount(
+                  adjacencyBonus.bonus,
+                  shouldHalveItemPatternBonuses: true,
+                ).amount,
+              )
+            : adjacencyBonus,
+      );
     }
 
     return List<OperativePatternAdjacencyBonus>.unmodifiable(activatedBonuses);
+  }
+
+  static OperativePatternBonus _resolveItemPatternBonusAmount(
+    OperativePatternBonus bonus, {
+    required bool shouldHalveItemPatternBonuses,
+  }) {
+    if (!shouldHalveItemPatternBonuses || bonus.amount <= 0) return bonus;
+
+    return OperativePatternBonus(
+      kind: bonus.kind,
+      amount: (bonus.amount + 1) ~/ 2,
+    );
   }
 }

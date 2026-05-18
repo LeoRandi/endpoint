@@ -347,11 +347,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       if (!mounted || matchResult == null) return;
 
       _recordPatternMatchResult(matchResult);
-      await _sceneController.handlePlayerAttack(
+      await _sceneController.handlePlayerPatternMatch(
         actionBonus: BattleActionBonus(
           attackBonus: matchResult.attackBonus,
           immediateBarrierAmount: matchResult.barrierBonus,
         ),
+        patternContext: matchResult.patternContext,
       );
     } finally {
       if (mounted) {

@@ -511,6 +511,18 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
+  /// Ejecuta efectos de habilidades que reaccionan a la figura final de Patron.
+  BattlerAbilityEffectResolution applyAbilityPatternMatchResolvedEffects({
+    required Battler opponent,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return _battlerEffectPipeline.applyAbilityPatternMatchResolvedEffects(
+      owner: this,
+      opponent: opponent,
+      pattern: pattern,
+    );
+  }
+
   /// Ejecuta efectos de habilidades que se disparan al comenzar una nueva hora.
   Battler applyAbilityHourStartEffects() {
     return _battlerEffectPipeline.applyAbilityHourStartEffects(

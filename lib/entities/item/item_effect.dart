@@ -26,6 +26,7 @@ enum ItemAbilityResolutionContext {
   receiveDamageResolved,
   turnStart,
   turnEnd,
+  patternMatchResolved,
 }
 
 /// Enumera los puntos del ciclo de combate en los que un item equipado puede intervenir.

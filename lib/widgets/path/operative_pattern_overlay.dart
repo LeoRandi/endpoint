@@ -284,8 +284,10 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
       for (final entry in widget.equippedItemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
-          bonus: entry.value.patternBonus,
-          requirement: entry.value.patternRequirement,
+          bonus: entry.value.hasPatternBonus ? entry.value.patternBonus : null,
+          requirement: entry.value.hasPatternBonus
+              ? entry.value.patternRequirement
+              : null,
           adjacencyBonuses: entry.value.patternAdjacencyBonuses,
         ),
       for (final entry in _emptyBonusesByPointKey.entries)

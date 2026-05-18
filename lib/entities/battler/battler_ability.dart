@@ -55,6 +55,13 @@ enum BattlerAbilityId {
   provocacionFrontal,
   cargaTemeraria,
   mandatoColiseo,
+  geometriaLimpia,
+  pulsoIsometrico,
+  corteTangencial,
+  arquitecturaPesada,
+  rutaContrabando,
+  ecoSimetria,
+  patronPerfecto,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -133,8 +140,116 @@ enum BattlerAbilityHook {
   incomingStatusModifier,
   attackResolved,
   receiveDamageResolved,
+  patternMatchResolved,
   fatalDamage,
   passive,
+}
+
+/// Resume el trazo resuelto en modo Patron para que los aumentos reaccionen a la geometria.
+class BattlePatternMatchContext {
+  final List<OperativePatternPoint> patternPoints;
+  final int attackBonus;
+  final int barrierBonus;
+  final int otherArchetypeItemCount;
+
+  const BattlePatternMatchContext({
+    required this.patternPoints,
+    required this.attackBonus,
+    required this.barrierBonus,
+    this.otherArchetypeItemCount = 0,
+  });
+
+  List<OperativePatternPoint> get sequence =>
+      OperativePatternRequirement.normalizedSequence(patternPoints);
+
+  bool get isClosed => OperativePatternRequirement.isClosedPattern(
+        patternPoints,
+      );
+
+  bool get hasNoRepeatedPoints => sequence.toSet().length == sequence.length;
+
+  bool get isSymmetric {
+    final points = sequence.toSet();
+    if (points.isEmpty) return false;
+
+    final hasVerticalSymmetry = points.every(
+      (point) =>
+          points.contains(OperativePatternPoint(x: -point.x, y: point.y)),
+    );
+    final hasHorizontalSymmetry = points.every(
+      (point) =>
+          points.contains(OperativePatternPoint(x: point.x, y: -point.y)),
+    );
+    return hasVerticalSymmetry || hasHorizontalSymmetry;
+  }
+
+  bool get hasOnlyRightAngles {
+    final turns = _turnClassifications();
+    return turns.isNotEmpty &&
+        turns.every((turn) => turn == _PatternTurn.right);
+  }
+
+  bool get hasNoAcuteOrObtuseAngles {
+    return !_turnClassifications().any(
+      (turn) => turn == _PatternTurn.acute || turn == _PatternTurn.obtuse,
+    );
+  }
+
+  bool get hasNoAcuteAngles {
+    return !_turnClassifications().any((turn) => turn == _PatternTurn.acute);
+  }
+
+  bool get hasExactlyOneAcuteAngle {
+    return _turnClassifications()
+            .where((turn) => turn == _PatternTurn.acute)
+            .length ==
+        1;
+  }
+
+  bool get hasPerfectPattern =>
+      isClosed &&
+      isSymmetric &&
+      hasNoRepeatedPoints &&
+      attackBonus == barrierBonus;
+
+  List<_PatternTurn> _turnClassifications() {
+    final points = sequence;
+    if (points.length < 3) return const <_PatternTurn>[];
+
+    final turns = <_PatternTurn>[];
+    final closed = isClosed;
+    final maxIndex = closed ? points.length : points.length - 1;
+    final startIndex = closed ? 0 : 1;
+    for (var index = startIndex; index < maxIndex; index++) {
+      final previous = points[(index - 1 + points.length) % points.length];
+      final current = points[index % points.length];
+      final next = points[(index + 1) % points.length];
+      final firstX = current.x - previous.x;
+      final firstY = current.y - previous.y;
+      final secondX = next.x - current.x;
+      final secondY = next.y - current.y;
+      if ((firstX == 0 && firstY == 0) || (secondX == 0 && secondY == 0)) {
+        continue;
+      }
+
+      final dot = firstX * secondX + firstY * secondY;
+      if (dot == 0) {
+        turns.add(_PatternTurn.right);
+      } else if (dot > 0) {
+        turns.add(_PatternTurn.acute);
+      } else {
+        turns.add(_PatternTurn.obtuse);
+      }
+    }
+
+    return turns;
+  }
+}
+
+enum _PatternTurn {
+  acute,
+  right,
+  obtuse,
 }
 
 const _ataqueAbilityTags = <EntityTag>[
@@ -375,6 +490,16 @@ abstract class BattlerAbilityEffect {
     required int damageTaken,
   }) {
     return BattlerAbilityEffectResolution(owner: owner, opponent: source);
+  }
+
+  /// Resuelve efectos ligados a la figura final de un match de Patron.
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
   /// Aplica efectos pasivos que deben reevaluarse sin necesidad de un evento puntual.
@@ -793,12 +918,26 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.mordidaDeAcero:
       return 'Activacion manual en combate. Tu siguiente ataque inflige +$amount daño adicional y te cura la mitad del daño infligido por esta habilidad.';
     case BattlerAbilityId.noHayRetirada:
-      return 'Pasiva. La primera vez que recibes daño cada turno, ganas $positiveAmount de Potencia. Si ya tenias Potencia, tambien ganas $positiveAmount de Calentando.';
+      return 'Pasiva. La primera vez que recibes daño en combate, ganas $positiveAmount de Potencia. Si ya tenias Potencia, tambien ganas $positiveAmount de Calentando.';
     case BattlerAbilityId.pulsoArmonico:
       return 'Activacion manual en combate. Ganas $positiveAmount de Barrera y $positiveAmount de Resonancia.';
     case BattlerAbilityId.masaCritica:
       return 'Pasiva. Tus efectos de Resonancia infligen +$positiveAmount dano si tu Barrera es mayor que la mitad de tu vida maxima.';
     case BattlerAbilityId.descargaSismica:
       return 'Activacion manual en combate. Consume hasta $positiveAmount de tu Barrera e inflige esa cantidad como dano directo de Resonancia. Si consumes toda tu Barrera, aplica Conmocion ${max(1, positiveAmount ~/ 2)}.';
+    case BattlerAbilityId.geometriaLimpia:
+      return 'Pasiva de Patron. Si el patron solo tiene angulos rectos, ganas $positiveAmount de Barrera y $positiveAmount de Resonancia.';
+    case BattlerAbilityId.pulsoIsometrico:
+      return 'Pasiva de Patron. Si el patron no tiene angulos agudos ni obtusos, recuperas $positiveAmount HP y ganas $positiveAmount de Barrera.';
+    case BattlerAbilityId.corteTangencial:
+      return 'Pasiva de Patron. Si el patron tiene exactamente un angulo agudo, infliges $positiveAmount + el bonus de ATK del patron como dano directo.';
+    case BattlerAbilityId.arquitecturaPesada:
+      return 'Pasiva de Patron. Si el patron no tiene angulos agudos, repites su bonus de Barrera y ganas $positiveAmount de Resonancia.';
+    case BattlerAbilityId.rutaContrabando:
+      return 'Pasiva de Patron. Si activas items de otro arquetipo, ganas $positiveAmount C por item y sumas $positiveAmount de Potencia y Barrera.';
+    case BattlerAbilityId.ecoSimetria:
+      return 'Pasiva de Patron. Si el patron tiene simetria, repites su bonus dominante reducido en $positiveAmount. Al mejorar, esta reduccion baja.';
+    case BattlerAbilityId.patronPerfecto:
+      return 'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, infliges dano igual a toda tu Resonancia.';
   }
 }

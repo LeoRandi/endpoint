@@ -34,7 +34,8 @@ extension BattlerProgression on Battler {
             Battler.evenLevelProgressionBonusFor(level);
     final updatedBaseStats = Map<BattlerStat, int>.from(baseStats);
     var attackGain = 1;
-    var healthGain = 10;
+    const barrierGain = 1;
+    var healthGain = 5;
     var incomeGain = 0;
 
     final statReward = reward.statReward;
@@ -54,6 +55,8 @@ extension BattlerProgression on Battler {
 
     updatedBaseStats[BattlerStat.attack] =
         max(0, (updatedBaseStats[BattlerStat.attack] ?? 0) + attackGain);
+    updatedBaseStats[BattlerStat.barrier] =
+        max(0, (updatedBaseStats[BattlerStat.barrier] ?? 0) + barrierGain);
     updatedBaseStats[BattlerStat.health] =
         max(0, (updatedBaseStats[BattlerStat.health] ?? 0) + healthGain);
 
