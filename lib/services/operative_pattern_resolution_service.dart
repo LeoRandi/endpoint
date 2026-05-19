@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../entities/_exports.dart';
 
 class OperativePatternResolution {
@@ -41,6 +43,7 @@ abstract final class OperativePatternResolutionService {
     required List<OperativePatternPoint> patternPoints,
     required Map<String, Item> equippedItemsByPointKey,
     required Map<String, OperativePatternBonus> bonusesByPointKey,
+    int adaptationMaxEmptyItemBonus = 0,
     Set<String> blockedPointKeys = const <String>{},
   }) {
     final stablePatternPoints =
@@ -89,13 +92,23 @@ abstract final class OperativePatternResolutionService {
       final item = equippedItemsByPointKey[point.key];
       final bonus = item == null
           ? bonusesByPointKey[point.key]
-          : _resolveItemPatternBonus(
+          : _canUseAdaptationBonus(
               item: item,
-              point: point,
-              patternPoints: stablePatternPoints,
-              itemActivationByPointKey: itemActivationByPointKey,
-              shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
-            );
+              adaptationMaxEmptyItemBonus: adaptationMaxEmptyItemBonus,
+            )
+              ? _resolveAdaptationBonus(
+                  pointKey: point.key,
+                  bonusesByPointKey: bonusesByPointKey,
+                  itemActivationByPointKey: itemActivationByPointKey,
+                  adaptationMaxEmptyItemBonus: adaptationMaxEmptyItemBonus,
+                )
+              : _resolveItemPatternBonus(
+                  item: item,
+                  point: point,
+                  patternPoints: stablePatternPoints,
+                  itemActivationByPointKey: itemActivationByPointKey,
+                  shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
+                );
       if (bonus != null) {
         activatedPatternBonusesByPointKey[point.key] = bonus;
         switch (bonus.kind) {
@@ -157,6 +170,31 @@ abstract final class OperativePatternResolutionService {
       activatedAdjacencyBonusesByPointKey: activatedAdjacencyBonuses,
       itemActivationByPointKey: itemActivations,
     );
+  }
+
+  static bool _canUseAdaptationBonus({
+    required Item item,
+    required int adaptationMaxEmptyItemBonus,
+  }) {
+    return adaptationMaxEmptyItemBonus > 0 &&
+        !item.hasPatternBonus &&
+        item.patternAdjacencyBonuses.isEmpty;
+  }
+
+  static OperativePatternBonus? _resolveAdaptationBonus({
+    required String pointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
+    required Map<String, bool> itemActivationByPointKey,
+    required int adaptationMaxEmptyItemBonus,
+  }) {
+    final bonus = bonusesByPointKey[pointKey];
+    if (bonus == null) return null;
+
+    final amount = min(bonus.amount, max(1, adaptationMaxEmptyItemBonus));
+    itemActivationByPointKey[pointKey] = amount > 0;
+    if (amount <= 0) return null;
+
+    return OperativePatternBonus(kind: bonus.kind, amount: amount);
   }
 
   static OperativePatternBonus? _resolveItemPatternBonus({

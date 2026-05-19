@@ -1714,6 +1714,258 @@ class PatronPerfectoAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Convierte Calentando entrante en una curacion proporcional.
+class EncendidoBrutalAbilityEffect extends BattlerAbilityEffect {
+  const EncendidoBrutalAbilityEffect();
+}
+
+/// Abre el primer item usado en Patron con una carga de Calentando.
+class CombustionDirigidaAbilityEffect extends BattlerAbilityEffect {
+  const CombustionDirigidaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (pattern.usedItemPointCount <= 0 ||
+        owner.hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.combustionDirigidaTriggered,
+          ),
+        )) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final baseAmount = max(1, ability.currentValue);
+    final amount =
+        pattern.firstUsedItemHasAttackBonus ? baseAmount * 2 : baseAmount;
+    return BattlerAbilityEffectResolution(
+      owner: _applyOrIncreaseCalentando(
+        owner: owner.addCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.combustionDirigidaTriggered,
+          ),
+        ),
+        amount: amount,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Convierte Calentando acumulado en Desafio y una Quemadura propia.
+class PuntoIgnicionAbilityEffect extends BattlerAbilityEffect {
+  const PuntoIgnicionAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final calentando = owner.statusById(CalentandoStatus.statusId);
+    if (pattern.usedItemPointCount < 3 || calentando is! CalentandoStatus) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final resolvedCalentando = calentando.resolved(owner);
+    final desafio = max(1, (max(1, resolvedCalentando.value) / 2).ceil());
+    final burnTurns = max(1, ability.currentValue);
+    return BattlerAbilityEffectResolution(
+      owner: owner.gainDesafio(desafio).applyStatusFromSource(
+            QuemaduraStatus(remainingTurns: burnTurns),
+            source: owner,
+          ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Vende una ruta repetida de Patron una vez por combate.
+class ReventaCircularAbilityEffect extends BattlerAbilityEffect {
+  const ReventaCircularAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (pattern.repeatedItemPointCount <= 0 ||
+        owner.hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.reventaCircularTriggered,
+          ),
+        )) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner
+          .addCombatFlag(
+            const CombatRuntimeFlag.battler(
+              BattlerCombatFlag.reventaCircularTriggered,
+            ),
+          )
+          .earnMoney(max(1, ability.currentValue)),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Marca la mejora de reuso que resuelve la pipeline de items usados.
+class ContratoReusoAbilityEffect extends BattlerAbilityEffect {
+  const ContratoReusoAbilityEffect();
+}
+
+/// Convierte creditos en dano por cada punto de item repetido.
+class MercadoRecursivoAbilityEffect extends BattlerAbilityEffect {
+  const MercadoRecursivoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+    final maxCreditsPerPoint = max(1, ability.currentValue);
+
+    for (var index = 0; index < pattern.repeatedItemPointCount; index++) {
+      final spent = min(maxCreditsPerPoint, updatedOwner.money);
+      if (spent <= 0) break;
+      updatedOwner = updatedOwner.spendMoney(spent);
+      updatedOpponent = updatedOpponent.receiveDirectDamage(
+        spent,
+        source: updatedOwner,
+      );
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner,
+      opponent: updatedOpponent,
+    );
+  }
+}
+
+/// Aplica un debuff pseudoaleatorio al primer item usado en el Patron.
+class AgujaToxicaAbilityEffect extends BattlerAbilityEffect {
+  const AgujaToxicaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (pattern.usedItemPointCount <= 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    final options = <BattlerStatus>[
+      IntoxicacionStatus(value: amount),
+      FragilidadStatus(value: amount),
+      ConmocionStatus(value: amount),
+      QuemaduraStatus(remainingTurns: amount),
+    ];
+    final selected = options[_stableSelectionIndex(
+      owner: owner,
+      opponent: opponent,
+      length: options.length,
+      salt: pattern.usedItemPointCount + pattern.attackBonus,
+    )];
+
+    return _applyAbilityStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: selected,
+    );
+  }
+}
+
+/// Premia patrones largos de items con Fragilidad creciente.
+class RastroInestableAbilityEffect extends BattlerAbilityEffect {
+  const RastroInestableAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final amount = max(1, ability.currentValue);
+    if (pattern.usedItemPointCount < amount + 1) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final hasDifferentDebuff = opponent.statuses.any(
+      (status) =>
+          status.type == BattlerStatusType.debuff &&
+          status.id != FragilidadStatus.statusId,
+    );
+    return _applyAbilityStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: FragilidadStatus(value: hasDifferentDebuff ? amount * 2 : amount),
+    );
+  }
+}
+
+/// Marca el payoff de debuffs que resuelve la pipeline al detectar debuffs.
+class CadenaNeurotoxicaAbilityEffect extends BattlerAbilityEffect {
+  const CadenaNeurotoxicaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+}
+
+/// Marca el ajuste de Patron que resuelve el servicio de patrones.
+class AdaptacionAbilityEffect extends BattlerAbilityEffect {
+  const AdaptacionAbilityEffect();
+}
+
 /// Ignora debuffs entrantes limitados por combate y convierte el bloqueo en Barrera.
 class CortafuegosPortatilAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto pasivo de Cortafuegos Portatil.

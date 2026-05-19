@@ -129,6 +129,10 @@ extension BattlerStatusManagement on Battler {
     final resolvedInstancedStatus = instancedStatus;
     final updatedStatuses = List<BattlerStatus>.from(updatedOwner.statuses);
     if (resolvedInstancedStatus.canStack) {
+      updatedOwner = updatedOwner._healFromCalentandoGain(
+        previousStatus: null,
+        nextStatus: resolvedInstancedStatus,
+      );
       updatedStatuses.add(resolvedInstancedStatus);
       return updatedOwner
           .copyWith(
@@ -144,14 +148,39 @@ extension BattlerStatusManagement on Battler {
     );
 
     if (existingIndex >= 0) {
+      updatedOwner = updatedOwner._healFromCalentandoGain(
+        previousStatus: updatedStatuses[existingIndex],
+        nextStatus: resolvedInstancedStatus,
+      );
       updatedStatuses[existingIndex] = resolvedInstancedStatus;
     } else {
+      updatedOwner = updatedOwner._healFromCalentandoGain(
+        previousStatus: null,
+        nextStatus: resolvedInstancedStatus,
+      );
       updatedStatuses.add(resolvedInstancedStatus);
     }
 
     return updatedOwner
         .copyWith(statuses: List<BattlerStatus>.unmodifiable(updatedStatuses))
         ._removeExpiredStatuses();
+  }
+
+  Battler _healFromCalentandoGain({
+    required BattlerStatus? previousStatus,
+    required BattlerStatus nextStatus,
+  }) {
+    if (nextStatus.id != CalentandoStatus.statusId) return this;
+
+    final ability = abilityById(BattlerAbilityId.encendidoBrutal);
+    if (ability == null) return this;
+
+    final previousValue = previousStatus?.resolved(this).value ?? 0;
+    final gainedValue = max(0, nextStatus.resolved(this).value - previousValue);
+    if (gainedValue <= 0) return this;
+
+    final divisor = max(1, ability.currentValue);
+    return heal(max(1, (gainedValue / divisor).ceil()));
   }
 
   /// Elimina todas las instancias del estado indicado.

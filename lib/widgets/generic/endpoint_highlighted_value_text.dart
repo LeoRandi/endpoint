@@ -14,7 +14,7 @@ final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
 );
 final RegExp _highlightedTermPattern = RegExp(
-  r'\b(?:desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|inercia|ciclo|fragilidad|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
+  r'\b(?:al usarse|usarse|desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|inercia|ciclo|fragilidad|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
   caseSensitive: false,
 );
 
@@ -161,6 +161,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (normalizedToken.contains('resonancia')) {
       return _effectResonanceAccent;
     }
+    if (normalizedToken.contains('usarse')) {
+      return EndpointPalette.infoAccent;
+    }
     if (normalizedToken.contains('desafio')) {
       return _effectChallengeAccent;
     }
@@ -203,6 +206,14 @@ class EndpointHighlightedValueText extends StatelessWidget {
         icon: _HighlightIconSpec.material(Icons.graphic_eq_rounded),
         tooltip:
             'Resonancia: buff de carga defensiva acumulada. Algunos efectos la usan para infligir daño directo.',
+      );
+    }
+    if (normalizedToken.contains('usarse')) {
+      return const _HighlightTermMetadata(
+        accent: EndpointPalette.infoAccent,
+        icon: _HighlightIconSpec.material(Icons.route_rounded),
+        tooltip:
+            'Al usarse: este efecto solo se activa si el punto donde esta equipado el item forma parte del Patron final que dibujas.',
       );
     }
     if (normalizedToken.contains('desafio')) {

@@ -146,6 +146,8 @@ enum BattlerCombatFlag {
   sobrecargaReguladaPendingCooldownPenalty,
   mandatoColiseoOpeningGranted,
   mandatoColiseoCounterPreventedThisTurn,
+  combustionDirigidaTriggered,
+  reventaCircularTriggered,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.

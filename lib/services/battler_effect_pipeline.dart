@@ -859,6 +859,8 @@ class BattlerEffectPipeline {
     final activeItems = List<Item>.from(
       owner.equippedItemsForHook(ItemEffectHook.patternUsed),
     );
+    final contratoReuso = owner.abilityById(BattlerAbilityId.contratoReuso);
+    var usedContratoReuso = false;
 
     for (final item in activeItems) {
       final pointKey = owner
@@ -868,6 +870,7 @@ class BattlerEffectPipeline {
       final effect = item.effect;
       if (effect == null) continue;
 
+      final debuffPressureBefore = _debuffPressure(updatedOpponent);
       final resolution = effect.onPatternUsed(
         owner: updatedOwner,
         opponent: updatedOpponent,
@@ -876,6 +879,42 @@ class BattlerEffectPipeline {
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
+      final debuffPressureAfter = _debuffPressure(updatedOpponent);
+      if (debuffPressureAfter > debuffPressureBefore) {
+        final chainResolution = _applyCadenaNeurotoxicaDamage(
+          owner: updatedOwner,
+          opponent: updatedOpponent,
+        );
+        updatedOwner = chainResolution.owner;
+        updatedOpponent = chainResolution.opponent;
+      }
+
+      if (!usedContratoReuso &&
+          contratoReuso != null &&
+          pattern.firstRepeatedItemPointKey == pointKey) {
+        usedContratoReuso = true;
+        final boostedItem = item.copyWith(
+          value: item.value + max(1, contratoReuso.currentValue),
+        );
+        final extraDebuffPressureBefore = _debuffPressure(updatedOpponent);
+        final extraResolution = effect.onPatternUsed(
+          owner: updatedOwner,
+          opponent: updatedOpponent,
+          item: boostedItem,
+          pattern: pattern,
+        );
+        updatedOwner = extraResolution.owner;
+        updatedOpponent = extraResolution.opponent;
+        final extraDebuffPressureAfter = _debuffPressure(updatedOpponent);
+        if (extraDebuffPressureAfter > extraDebuffPressureBefore) {
+          final chainResolution = _applyCadenaNeurotoxicaDamage(
+            owner: updatedOwner,
+            opponent: updatedOpponent,
+          );
+          updatedOwner = chainResolution.owner;
+          updatedOpponent = chainResolution.opponent;
+        }
+      }
     }
 
     return ItemEffectResolution(
@@ -1038,12 +1077,23 @@ class BattlerEffectPipeline {
         ability: previousAbility,
         pattern: pattern,
       );
+      final debuffPressureBefore = _debuffPressure(updatedOpponent);
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
       updatedOwner = _applyRegulatedOverloadCooldownPenalty(
         owner: updatedOwner,
         previousAbility: previousAbility,
       );
+      final debuffPressureAfter = _debuffPressure(updatedOpponent);
+      if (abilityId != BattlerAbilityId.cadenaNeurotoxica &&
+          debuffPressureAfter > debuffPressureBefore) {
+        final chainResolution = _applyCadenaNeurotoxicaDamage(
+          owner: updatedOwner,
+          opponent: updatedOpponent,
+        );
+        updatedOwner = chainResolution.owner;
+        updatedOpponent = chainResolution.opponent;
+      }
 
       final itemResolution = applyEquippedItemAbilityResolvedEffects(
         owner: updatedOwner,
@@ -1406,6 +1456,36 @@ class BattlerEffectPipeline {
     bool Function(BattlerStatus status) predicate,
   ) {
     return battler.statuses.where(predicate).length;
+  }
+
+  ItemEffectResolution _applyCadenaNeurotoxicaDamage({
+    required Battler owner,
+    required Battler opponent,
+  }) {
+    final ability = owner.abilityById(BattlerAbilityId.cadenaNeurotoxica);
+    if (ability == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent.receiveDirectDamage(
+        max(1, ability.currentValue),
+        source: owner,
+      ),
+    );
+  }
+
+  int _debuffPressure(Battler battler) {
+    return battler.statuses
+        .where((status) => status.type == BattlerStatusType.debuff)
+        .fold<int>(
+          0,
+          (total, status) =>
+              total +
+              max(1, status.value).toInt() +
+              max(0, status.remainingTurns).toInt(),
+        );
   }
 
   bool _abilityEnteredCooldown(

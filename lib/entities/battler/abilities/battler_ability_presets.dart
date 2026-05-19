@@ -435,6 +435,165 @@ const patronPerfectoAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Pasiva imparable que convierte Calentando entrante en sustain.
+const encendidoBrutalAbility = BattlerAbility(
+  id: BattlerAbilityId.encendidoBrutal,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _cicloVidaAtaqueBuffAbilityTags,
+  name: 'Encendido Brutal',
+  description:
+      'Pasiva. Cuando ganas Calentando, recuperas una fraccion de ese valor como vida.',
+  icon: Icons.local_fire_department_rounded,
+  value: 4,
+  upgradeValue: -1,
+  effect: EncendidoBrutalAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva imparable que sobrecarga el primer item usado en Patron.
+const combustionDirigidaAbility = BattlerAbility(
+  id: BattlerAbilityId.combustionDirigida,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _buffAtaqueAbilityTags,
+  name: 'Combustion Dirigida',
+  description:
+      'Pasiva de Patron. La primera vez por combate que usas un item, ganas Calentando. Si el item empuja ATK, ganas el doble.',
+  icon: Icons.bolt_rounded,
+  value: 3,
+  upgradeValue: 1,
+  effect: CombustionDirigidaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva imparable que convierte sobrecalentamiento en Desafio.
+const puntoIgnicionAbility = BattlerAbility(
+  id: BattlerAbilityId.puntoIgnicion,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _desafioAtaqueAbilityTags,
+  name: 'Punto de Ignicion',
+  description:
+      'Pasiva de Patron. Si usas 3 o mas items, ganas Desafio segun tu Calentando y te quemas.',
+  icon: Icons.whatshot_rounded,
+  value: 8,
+  upgradeValue: -4,
+  effect: PuntoIgnicionAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva mercante que paga el primer reuso del combate.
+const reventaCircularAbility = BattlerAbility(
+  id: BattlerAbilityId.reventaCircular,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _economiaAbilityTags,
+  name: 'Reventa Circular',
+  description:
+      'Pasiva de Patron. Una vez por combate, repetir un punto con item genera creditos.',
+  icon: Icons.replay_rounded,
+  value: 4,
+  upgradeValue: 4,
+  effect: ReventaCircularAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva mercante que fuerza valor extra en el primer item repetido.
+const contratoReusoAbility = BattlerAbility(
+  id: BattlerAbilityId.contratoReuso,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _economiaAbilityTags,
+  name: 'Contrato de Reuso',
+  description:
+      'Pasiva de Patron. El primer item repetido dispara Al usarse una vez extra con mas value.',
+  icon: Icons.assignment_return_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: ContratoReusoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva mercante que convierte reusos en pagos ofensivos.
+const mercadoRecursivoAbility = BattlerAbility(
+  id: BattlerAbilityId.mercadoRecursivo,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _economiaAtaqueAbilityTags,
+  name: 'Mercado Recursivo',
+  description:
+      'Pasiva de Patron. Cada punto con item repetido consume creditos para infligir dano directo.',
+  icon: Icons.currency_exchange_rounded,
+  value: 5,
+  upgradeValue: 5,
+  effect: MercadoRecursivoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva veloz que convierte el primer item usado en un debuff aleatorio.
+const agujaToxicaAbility = BattlerAbility(
+  id: BattlerAbilityId.agujaToxica,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _ataqueDebuffAbilityTags,
+  name: 'Aguja Toxica',
+  description:
+      'Pasiva de Patron. El primer item usado aplica o aumenta un debuff aleatorio.',
+  icon: Icons.colorize_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: AgujaToxicaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva veloz que recompensa patrones con muchos puntos de item.
+const rastroInestableAbility = BattlerAbility(
+  id: BattlerAbilityId.rastroInestable,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _ataqueDebuffAbilityTags,
+  name: 'Rastro Inestable',
+  description:
+      'Pasiva de Patron. Patrones con suficientes items aplican Fragilidad, duplicada si ya habia otro debuff.',
+  icon: Icons.timeline_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: RastroInestableAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva veloz que remata cada debuff generado por Patron.
+const cadenaNeurotoxicaAbility = BattlerAbility(
+  id: BattlerAbilityId.cadenaNeurotoxica,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _ataqueDebuffAbilityTags,
+  name: 'Cadena Neurotoxica',
+  description:
+      'Pasiva de Patron. Los debuffs aplicados por items usados o aumentos infligen dano directo extra.',
+  icon: Icons.hub_rounded,
+  value: 3,
+  upgradeValue: 2,
+  effect: CadenaNeurotoxicaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva general que permite que items simples funcionen como huecos de Patron.
+const adaptacionAbility = BattlerAbility(
+  id: BattlerAbilityId.adaptacion,
+  rarity: RarityTier.purple,
+  tags: _ataqueBarreraAbilityTags,
+  name: 'Adaptacion',
+  description:
+      'Pasiva de Patron. Los items sin bonus de patron ni adyacencia cuentan como espacios vacios con bonus limitado.',
+  icon: Icons.extension_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: AdaptacionAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Pool canonica de aumentos pasivos que pueden usarse como recompensa o mutacion.
 const abilityPresets = <BattlerAbility>[
   weaknessHunterAbility,
@@ -464,6 +623,16 @@ const abilityPresets = <BattlerAbility>[
   rutaContrabandoAbility,
   ecoSimetriaAbility,
   patronPerfectoAbility,
+  encendidoBrutalAbility,
+  combustionDirigidaAbility,
+  puntoIgnicionAbility,
+  reventaCircularAbility,
+  contratoReusoAbility,
+  mercadoRecursivoAbility,
+  agujaToxicaAbility,
+  rastroInestableAbility,
+  cadenaNeurotoxicaAbility,
+  adaptacionAbility,
 ];
 
 /// Indice canonico de presets para resolver ids sin duplicar switches.

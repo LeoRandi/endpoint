@@ -398,6 +398,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     _bonusesByPointKey = buildOperativePatternBonusesByPointKey(
       playerLevel: widget.player.level,
       occupiedPointKeys: widget.equippedItemsByPointKey.keys,
+      adaptableOccupiedPointKeys: _adaptationEligiblePointKeys(),
+      maxAdaptableBonusAmount: _adaptationBonusCap(),
       nextInt: randomNextInt,
     );
     _maxPatternPoints = OperativePatternCombatRules.maxPatternPointsFor(
@@ -523,9 +525,29 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       patternPoints: _patternPoints,
       equippedItemsByPointKey: widget.equippedItemsByPointKey,
       bonusesByPointKey: _bonusesByPointKey,
+      adaptationMaxEmptyItemBonus: _adaptationBonusCap(),
       blockedPointKeys:
           _blockAnimationCompleted ? _blockPlan.pointKeys : const <String>{},
     );
+  }
+
+  int _adaptationBonusCap() {
+    return max(
+      0,
+      widget.player.abilityById(BattlerAbilityId.adaptacion)?.currentValue ?? 0,
+    );
+  }
+
+  Iterable<String> _adaptationEligiblePointKeys() {
+    if (_adaptationBonusCap() <= 0) return const <String>[];
+
+    return widget.equippedItemsByPointKey.entries
+        .where((entry) => _isAdaptationEligibleItem(entry.value))
+        .map((entry) => entry.key);
+  }
+
+  bool _isAdaptationEligibleItem(Item item) {
+    return !item.hasPatternBonus && item.patternAdjacencyBonuses.isEmpty;
   }
 
   BattlePatternMatchResult get _currentResult =>
@@ -538,12 +560,62 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   BattlePatternMatchContext _currentPatternContext(
     OperativePatternResolution resolution,
   ) {
+    final usedItemPointKeys = _usedItemPointKeys();
     return BattlePatternMatchContext(
       patternPoints: List<OperativePatternPoint>.unmodifiable(_patternPoints),
       attackBonus: resolution.attackBonus,
       barrierBonus: resolution.barrierBonus,
       otherArchetypeItemCount: _otherArchetypeActivatedItemCount(resolution),
+      usedItemPointKeys: List<String>.unmodifiable(usedItemPointKeys),
+      repeatedItemPointKeys: Set<String>.unmodifiable(
+        _repeatedItemPointKeys(usedItemPointKeys),
+      ),
+      firstRepeatedItemPointKey: _firstRepeatedItemPointKey(usedItemPointKeys),
+      firstUsedItemHasAttackBonus:
+          _firstUsedItemHasAttackBonus(usedItemPointKeys),
     );
+  }
+
+  List<String> _usedItemPointKeys() {
+    return [
+      for (final point in OperativePatternRequirement.normalizedSequence(
+        _patternPoints,
+      ))
+        if (widget.equippedItemsByPointKey.containsKey(point.key)) point.key,
+    ];
+  }
+
+  Set<String> _repeatedItemPointKeys(List<String> usedItemPointKeys) {
+    final seen = <String>{};
+    final repeated = <String>{};
+    for (final pointKey in usedItemPointKeys) {
+      if (!seen.add(pointKey)) {
+        repeated.add(pointKey);
+      }
+    }
+    return repeated;
+  }
+
+  String? _firstRepeatedItemPointKey(List<String> usedItemPointKeys) {
+    final seen = <String>{};
+    for (final pointKey in usedItemPointKeys) {
+      if (!seen.add(pointKey)) return pointKey;
+    }
+    return null;
+  }
+
+  bool _firstUsedItemHasAttackBonus(List<String> usedItemPointKeys) {
+    if (usedItemPointKeys.isEmpty) return false;
+
+    final item = widget.equippedItemsByPointKey[usedItemPointKeys.first];
+    if (item == null) return false;
+
+    return item.modifier(BattlerStat.attack) > 0 ||
+        (item.hasPatternBonus &&
+            item.patternBonus.kind == OperativePatternBonusKind.attack) ||
+        item.patternAdjacencyBonuses.any(
+          (bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack,
+        );
   }
 
   int _otherArchetypeActivatedItemCount(OperativePatternResolution resolution) {
@@ -641,7 +713,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       for (final entry in widget.equippedItemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
-          bonus: entry.value.hasPatternBonus ? entry.value.patternBonus : null,
+          bonus: entry.value.hasPatternBonus
+              ? entry.value.patternBonus
+              : _isAdaptationEligibleItem(entry.value)
+                  ? _bonusesByPointKey[entry.key]
+                  : null,
           requirement: entry.value.hasPatternBonus
               ? entry.value.patternRequirement
               : null,
@@ -652,7 +728,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
           isPatternBonusActivated: resolution.isItemBonusEnabledAt(entry.key),
         ),
       for (final entry in _bonusesByPointKey.entries)
-        entry.key: OperativePatternPointContent(bonus: entry.value),
+        if (!widget.equippedItemsByPointKey.containsKey(entry.key))
+          entry.key: OperativePatternPointContent(bonus: entry.value),
     };
   }
 

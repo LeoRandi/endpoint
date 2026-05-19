@@ -62,6 +62,16 @@ enum BattlerAbilityId {
   rutaContrabando,
   ecoSimetria,
   patronPerfecto,
+  encendidoBrutal,
+  combustionDirigida,
+  puntoIgnicion,
+  reventaCircular,
+  contratoReuso,
+  mercadoRecursivo,
+  agujaToxica,
+  rastroInestable,
+  cadenaNeurotoxica,
+  adaptacion,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -151,12 +161,20 @@ class BattlePatternMatchContext {
   final int attackBonus;
   final int barrierBonus;
   final int otherArchetypeItemCount;
+  final List<String> usedItemPointKeys;
+  final Set<String> repeatedItemPointKeys;
+  final String? firstRepeatedItemPointKey;
+  final bool firstUsedItemHasAttackBonus;
 
   const BattlePatternMatchContext({
     required this.patternPoints,
     required this.attackBonus,
     required this.barrierBonus,
     this.otherArchetypeItemCount = 0,
+    this.usedItemPointKeys = const <String>[],
+    this.repeatedItemPointKeys = const <String>{},
+    this.firstRepeatedItemPointKey,
+    this.firstUsedItemHasAttackBonus = false,
   });
 
   List<OperativePatternPoint> get sequence =>
@@ -212,6 +230,10 @@ class BattlePatternMatchContext {
       hasNoRepeatedPoints &&
       attackBonus == barrierBonus;
 
+  int get usedItemPointCount => usedItemPointKeys.toSet().length;
+
+  int get repeatedItemPointCount => repeatedItemPointKeys.length;
+
   List<_PatternTurn> _turnClassifications() {
     final points = sequence;
     if (points.length < 3) return const <_PatternTurn>[];
@@ -255,6 +277,10 @@ enum _PatternTurn {
 const _ataqueAbilityTags = <EntityTag>[
   EntityTag.ataque,
 ];
+const _ataqueBarreraAbilityTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.barrera,
+];
 const _ataqueDebuffAbilityTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
@@ -273,6 +299,10 @@ const _vidaDebuffAbilityTags = <EntityTag>[
 ];
 const _economiaAbilityTags = <EntityTag>[
   EntityTag.economia,
+];
+const _economiaAtaqueAbilityTags = <EntityTag>[
+  EntityTag.economia,
+  EntityTag.ataque,
 ];
 const _vidaAbilityTags = <EntityTag>[
   EntityTag.vida,
@@ -939,5 +969,25 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Pasiva de Patron. Si el patron tiene simetria, repites su bonus dominante reducido en $positiveAmount. Al mejorar, esta reduccion baja.';
     case BattlerAbilityId.patronPerfecto:
       return 'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, infliges dano igual a toda tu Resonancia.';
+    case BattlerAbilityId.encendidoBrutal:
+      return 'Pasiva. Cuando ganas Calentando, tambien recuperas vida igual a 1/$positiveAmount de ese Calentando. Al mejorar, esta division baja.';
+    case BattlerAbilityId.combustionDirigida:
+      return 'Pasiva de Patron. La primera vez por combate que usas un item en Patron, ganas $positiveAmount Calentando. Si ese item tiene bonus de ATK, ganas el doble.';
+    case BattlerAbilityId.puntoIgnicion:
+      return 'Pasiva de Patron. Si el patron usa 3 o mas items, antes de atacar ganas Desafio igual a la mitad de tu Calentando y te aplicas Quemadura $positiveAmount. Al mejorar, la Quemadura baja.';
+    case BattlerAbilityId.reventaCircular:
+      return 'Pasiva de Patron. Una vez por combate, si repites un punto con item en el patron, ganas $positiveAmount creditos.';
+    case BattlerAbilityId.contratoReuso:
+      return 'Pasiva de Patron. El primer punto con item repetido en cada patron dispara su efecto Al usarse una vez extra con +$positiveAmount al value del item.';
+    case BattlerAbilityId.mercadoRecursivo:
+      return 'Pasiva de Patron. Por cada punto con item repetido, consumes hasta $positiveAmount creditos para infligir ese mismo dano directo.';
+    case BattlerAbilityId.agujaToxica:
+      return 'Pasiva de Patron. El primer item usado en cada patron aplica o aumenta un debuff aleatorio con valor $positiveAmount.';
+    case BattlerAbilityId.rastroInestable:
+      return 'Pasiva de Patron. Si el patron usa ${positiveAmount + 1} puntos con item, aplica Fragilidad $positiveAmount. Si el enemigo tenia otro debuff, aplica el doble.';
+    case BattlerAbilityId.cadenaNeurotoxica:
+      return 'Pasiva de Patron. Cuando aplicas o aumentas un debuff con un item Al usarse u otro aumento, infliges $positiveAmount dano directo una vez por item y aumento.';
+    case BattlerAbilityId.adaptacion:
+      return 'Pasiva de Patron. Los items equipados sin bonus de patron ni adyacencia cuentan como espacios vacios al usarse, con un bonus maximo de $positiveAmount a ATK o Barrera.';
   }
 }
