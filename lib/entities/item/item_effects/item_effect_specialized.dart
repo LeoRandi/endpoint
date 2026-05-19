@@ -119,7 +119,7 @@ class SunExecutionBladeItemEffect extends ItemEffect {
           description:
               'Consume la Quemadura del objetivo para infligir daño directo extra.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
@@ -169,9 +169,9 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
     this.duration = QuemaduraStatus.defaultDuration,
   }) : super(
           description:
-              'Al atacar: anade un efecto de Quemadura de 3 turnos de duracion.',
+              'Al usarse: anade un efecto de Quemadura de 3 turnos de duracion.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
@@ -180,7 +180,7 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
   /// Genera la descripcion final usando la duracion actual del objeto equipado.
   String descriptionFor(Item item) {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
-    return 'Al atacar: anade Quemadura durante $resolvedDuration turnos.';
+    return 'Al usarse: anade Quemadura durante $resolvedDuration turnos.';
   }
 
   @override
@@ -426,15 +426,15 @@ class MuestrarioContrabandoItemEffect extends ItemEffect {
   const MuestrarioContrabandoItemEffect()
       : super(
           description:
-              'Al atacar, convierte el contrabando sin equipar en curacion inmediata.',
+              'Al usarse, convierte el contrabando sin equipar en curacion inmediata.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al atacar, te curas ${max(1, item.value)} HP por cada item de otro arquetipo en tu inventario, hasta $healCap HP.';
+    return 'Al usarse, te curas ${max(1, item.value)} HP por cada item de otro arquetipo en tu inventario, hasta $healCap HP.';
   }
 
   @override
@@ -674,7 +674,7 @@ class StatusItemEffect extends ItemEffect {
                   trigger == ItemStatusEffectTrigger.attackOwner ||
                   trigger == ItemStatusEffectTrigger.attackOwnerReinforce
               ? const {
-                  ItemEffectHook.attackResolved,
+                  ItemEffectHook.patternUsed,
                 }
               : trigger == ItemStatusEffectTrigger.receiveDamageSource ||
                       trigger == ItemStatusEffectTrigger.receiveDamageOwner
@@ -692,11 +692,11 @@ class StatusItemEffect extends ItemEffect {
 
     switch (trigger) {
       case ItemStatusEffectTrigger.attackTarget:
-        return 'Al atacar: aplica $phrase al enemigo.';
+        return 'Al usarse: aplica $phrase al enemigo.';
       case ItemStatusEffectTrigger.attackOwner:
-        return 'Al atacar: ganas $phrase.';
+        return 'Al usarse: ganas $phrase.';
       case ItemStatusEffectTrigger.attackOwnerReinforce:
-        return 'Al atacar: genera o aumenta $phrase.';
+        return 'Al usarse: genera o aumenta $phrase.';
       case ItemStatusEffectTrigger.receiveDamageSource:
         return 'Al recibir daño: aplica $phrase al agresor.';
       case ItemStatusEffectTrigger.receiveDamageOwner:

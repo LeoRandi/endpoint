@@ -151,17 +151,16 @@ class FaroNoctivagoItemEffect extends ItemEffect {
   const FaroNoctivagoItemEffect()
       : super(
           description:
-              'De dia castiga al defender y de noche deja el blanco expuesto.',
+              'De dia aplica Conmocion al usarse y de noche deja el blanco expuesto.',
           hooks: const {
-            ItemEffectHook.attackResolved,
-            ItemEffectHook.defendResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
-    return 'De dia, al defender: aplica Conmocion ($amount). De noche, al atacar: acumula Fragilidad ($amount).';
+    return 'Al usarse: de dia aplica Conmocion ($amount). De noche acumula Fragilidad ($amount).';
   }
 
   @override

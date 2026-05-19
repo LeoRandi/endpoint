@@ -349,6 +349,18 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
+  /// Ejecuta efectos de items cuyo punto se uso en el Patron final.
+  ItemEffectResolution applyEquippedItemPatternUsedEffects({
+    required Battler opponent,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return _battlerEffectPipeline.applyEquippedItemPatternUsedEffects(
+      owner: this,
+      opponent: opponent,
+      pattern: pattern,
+    );
+  }
+
   /// Ejecuta efectos de estados que reaccionan despues de recibir daño.
   Battler applyReceiveDamageResolvedEffects({
     required Battler source,

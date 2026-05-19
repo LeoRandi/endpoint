@@ -34,6 +34,7 @@ enum ItemEffectHook {
   turnStart,
   turnEnd,
   combatEnd,
+  patternUsed,
   defendResolved,
   outgoingDamageModifier,
   incomingDamageModifier,
@@ -120,6 +121,26 @@ abstract class ItemEffect {
     required Item item,
   }) {
     return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  /// Resuelve un item cuando su punto equipado se usa en el Patron final.
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final attackResolution = onAttackResolved(
+      owner: owner,
+      target: opponent,
+      item: item,
+      damageDealt: pattern.attackBonus,
+    );
+    return onDefendResolved(
+      owner: attackResolution.owner,
+      opponent: attackResolution.opponent,
+      item: item,
+    );
   }
 
   /// Resuelve efectos puntuales al terminar el combate antes de limpiar flags y cooldowns.

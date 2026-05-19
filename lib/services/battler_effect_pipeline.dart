@@ -846,6 +846,44 @@ class BattlerEffectPipeline {
     );
   }
 
+  ItemEffectResolution applyEquippedItemPatternUsedEffects({
+    required Battler owner,
+    required Battler opponent,
+    required BattlePatternMatchContext pattern,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+    final usedPointKeys =
+        pattern.patternPoints.map((point) => point.key).toSet();
+
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.patternUsed),
+    );
+
+    for (final item in activeItems) {
+      final pointKey = owner
+          .patternItemPointKeys[OperativePatternLayoutService.itemKey(item)];
+      if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
+
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onPatternUsed(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+        pattern: pattern,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      opponent: updatedOpponent.pruneExpiredStatuses(),
+    );
+  }
+
   Battler applyEquippedItemCombatEndEffects({
     required Battler owner,
   }) {

@@ -108,9 +108,9 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
     this.amount = 1,
   }) : super(
           description:
-              'Al atacar: intoxica el enemigo en 1, o aumenta su Intoxicacion en 1.',
+              'Al usarse: intoxica el enemigo en 1, o aumenta su Intoxicacion en 1.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
@@ -119,7 +119,7 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
   /// Genera la descripcion final usando el valor actual del objeto equipado.
   String descriptionFor(Item item) {
     final resolvedAmount = max(1, item.value > 0 ? item.value : amount);
-    return 'Al atacar: aplica o aumenta Intoxicacion en $resolvedAmount.';
+    return 'Al usarse: aplica o aumenta Intoxicacion en $resolvedAmount.';
   }
 
   @override
@@ -190,9 +190,9 @@ class HealOnDefendItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para objetos que se activan al bloquear.
   const HealOnDefendItemEffect()
       : super(
-          description: 'Al defender, recuperas una cantidad fija de vida.',
+          description: 'Al usarse, recuperas una cantidad fija de vida.',
           hooks: const {
-            ItemEffectHook.defendResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
@@ -200,7 +200,7 @@ class HealOnDefendItemEffect extends ItemEffect {
 
   /// Genera la descripcion final usando el value real del item equipado.
   String descriptionFor(Item item) {
-    return 'Al defender, recuperas ${item.value} HP.';
+    return 'Al usarse, recuperas ${item.value} HP.';
   }
 
   @override
@@ -308,13 +308,13 @@ class RescueBladeItemEffect extends ItemEffect {
           description:
               'Si el objetivo queda al 50% de HP o menos, recuperas vida.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al atacar, si el objetivo queda al 50% de HP o menos, recuperas ${item.value} HP.';
+    return 'Al usarse, si el objetivo queda al 50% de HP o menos, recuperas ${item.value} HP.';
   }
 
   @override
@@ -377,16 +377,16 @@ class ToxicScalpelItemEffect extends ItemEffect {
   const ToxicScalpelItemEffect()
       : super(
           description:
-              'Al atacar aplica Intoxicacion y castiga extra a objetivos ya intoxicados.',
+              'Al usarse aplica Intoxicacion y castiga extra a objetivos ya intoxicados.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
     final resolvedAmount = max(1, item.value);
-    return 'Al atacar: aplica o aumenta Intoxicacion en $resolvedAmount. Si el objetivo ya estaba intoxicado, infliges $resolvedAmount daño directo extra.';
+    return 'Al usarse: aplica o aumenta Intoxicacion en $resolvedAmount. Si el objetivo ya estaba intoxicado, infliges $resolvedAmount daño directo extra.';
   }
 
   @override
@@ -435,7 +435,7 @@ class SuccionaCreditosItemEffect extends ItemEffect {
               'La primera vez por turno que atacas a un objetivo con un debuff, ganas creditos y recuperas barrera.',
           hooks: const {
             ItemEffectHook.turnStart,
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
@@ -501,15 +501,15 @@ class KunaiAnchoItemEffect extends ItemEffect {
   const KunaiAnchoItemEffect()
       : super(
           description:
-              'Al defender, si el enemigo tiene un debuff, recuperas barrera.',
+              'Al usarse, si el enemigo tiene un debuff, recuperas barrera.',
           hooks: const {
-            ItemEffectHook.defendResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al defender, si el enemigo tiene un debuff, recuperas ${max(1, item.value)} de Barrera.';
+    return 'Al usarse, si el enemigo tiene un debuff, recuperas ${max(1, item.value)} de Barrera.';
   }
 
   @override
@@ -538,15 +538,15 @@ class MagnetiCHammerItemEffect extends ItemEffect {
   const MagnetiCHammerItemEffect()
       : super(
           description:
-              'Al defender, ganas Potencia igual a tu Barrera total actual.',
+              'Al usarse, ganas Potencia igual a tu Barrera total actual.',
           hooks: const {
-            ItemEffectHook.defendResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al defender, ganas Potencia con un bonus de daño igual a tu Barrera total actual para el siguiente golpe.';
+    return 'Al usarse, ganas Potencia con un bonus de daño igual a tu Barrera total actual para el siguiente golpe.';
   }
 
   @override
@@ -579,7 +579,7 @@ class ClavoReactorItemEffect extends ItemEffect {
               'La primera vez por turno que atacas, infliges daño directo extra y te aplicas Quemadura.',
           hooks: const {
             ItemEffectHook.turnStart,
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
@@ -703,7 +703,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.outgoingDamageModifier,
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 

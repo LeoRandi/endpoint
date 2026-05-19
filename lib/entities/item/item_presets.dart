@@ -351,7 +351,7 @@ const stunBatonItem = Item(
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Porra de Aturdimiento',
-  description: 'Al atacar: aplica Conmocion al enemigo.',
+  description: 'Al usarse: aplica Conmocion al enemigo.',
   iconEmoji: '\u{1F50C}',
   rarity: RarityTier.gray,
   patternBonusAmountOverride: 0,
@@ -459,7 +459,7 @@ const cyberWhipsItem = Item(
   tags: _ataqueDebuffIntoxicacionTags,
   name: 'Cyber Latigos',
   description:
-      '+1 ATK. Al atacar: aplica o aumenta Intoxicacion en el enemigo.',
+      '+1 ATK. Al usarse: aplica o aumenta Intoxicacion en el enemigo.',
   iconEmoji: '\u{26D3}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -477,7 +477,7 @@ const shieldItem = Item(
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _vidaBarreraTags,
   name: 'Escudo',
-  description: '+2 Barrera. Al defender, recuperas 5 HP.',
+  description: '+2 Barrera. Al usarse, recuperas 5 HP.',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -730,7 +730,7 @@ const serratedEdgeItem = Item(
   archetypeAffinities: _velozImparableAffinities,
   tags: _ataqueDebuffTags,
   name: 'Sierra Dentada',
-  description: '+1 ATK. Al atacar: acumula Fragilidad en el enemigo.',
+  description: '+1 ATK. Al usarse: acumula Fragilidad en el enemigo.',
   iconEmoji: '\u2692',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -751,7 +751,7 @@ const containmentCoilItem = Item(
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _barreraBuffTags,
   name: 'Bobina de Contencion',
-  description: '+1 Barrera. Al defender, recuperas 1 de Barrera.',
+  description: '+1 Barrera. Al usarse, recuperas 1 de Barrera.',
   iconEmoji: '\u26A1',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -806,7 +806,7 @@ const descargaResonanteItem = Item(
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Descarga Resonante',
   description:
-      '+1 ATK. Al atacar, consume toda tu Resonancia para infligir dano directo.',
+      '+1 ATK. Al usarse, consume toda tu Resonancia para infligir dano directo.',
   iconEmoji: '\u{1F4AB}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -825,7 +825,7 @@ const toxicScalpelItem = Item(
   tags: _ataqueDebuffIntoxicacionTags,
   name: 'Bisturi Toxico',
   description:
-      '+1 ATK. Al atacar: aplica o aumenta Intoxicacion. Si ya la tenia, infliges 1 daño directo extra.',
+      '+1 ATK. Al usarse: aplica o aumenta Intoxicacion. Si ya la tenia, infliges 1 daño directo extra.',
   iconEmoji: '\u{1F9A0}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -862,7 +862,7 @@ const faroNoctivagoItem = Item(
   tags: _cicloBarreraDebuffTags,
   name: 'Faro Noctivago',
   description:
-      'Ciclo. De dia, al defender: Conmocion. De noche, al atacar: Fragilidad.',
+      'Ciclo. Al usarse: de dia aplica Conmocion. De noche acumula Fragilidad.',
   iconEmoji: '\u{1F6A8}',
   rarity: RarityTier.blue,
   patternBonusAmountOverride: 0,
@@ -909,7 +909,7 @@ const muestrarioContrabandoItem = Item(
   tags: _economiaVidaTags,
   name: 'Muestrario de Contrabando',
   description:
-      'Al atacar, te curas por cada item de otro arquetipo en tu inventario.',
+      'Al usarse, te curas por cada item de otro arquetipo en tu inventario.',
   iconEmoji: '\u{1F9F3}',
   rarity: RarityTier.blue,
   patternBonusAmountOverride: 0,
@@ -946,7 +946,7 @@ const magnetiCHammerItem = Item(
   tags: _ataqueBarreraTags,
   name: 'M(agneti)C Hammer',
   description:
-      'Al defender, ganas Potencia para el siguiente golpe igual a tu Barrera total actual.',
+      'Al usarse, ganas Potencia para el siguiente golpe igual a tu Barrera total actual.',
   iconEmoji: '\u{1F528}',
   rarity: RarityTier.blue,
   patternBonusAmountOverride: 0,
@@ -1073,7 +1073,7 @@ const kunaiAnchoItem = Item(
   archetypeAffinities: _velozAffinities,
   tags: _ataqueBarreraDebuffTags,
   name: 'Kunai Ancho',
-  description: 'Al defender, si el enemigo tiene un debuff, recuperas Barrera.',
+  description: 'Al usarse, si el enemigo tiene un debuff, recuperas Barrera.',
   iconEmoji: '\u{1F52A}',
   rarity: RarityTier.blue,
   patternBonusAmountOverride: 0,
@@ -1109,7 +1109,7 @@ const pulseCarbineItem = Item(
   archetypeAffinities: _velozImparableAffinities,
   tags: _ataqueDebuffTags,
   name: 'Carabina de Pulsos',
-  description: 'Al atacar: aplica Conmocion al enemigo.',
+  description: 'Al usarse: aplica Conmocion al enemigo.',
   iconEmoji: '\u{1F52B}',
   rarity: RarityTier.blue,
   patternBonusAmountOverride: 0,
@@ -1273,7 +1273,7 @@ const interferenceCannonItem = Item(
   tags: _ataqueDebuffTags,
   name: 'Canon de Conmocion',
   description:
-      'Al atacar: aplica Conmocion. Si el objetivo ya la tenia, pierde 1 de Barrera.',
+      'Al usarse: aplica Conmocion. Si el objetivo ya la tenia, pierde 1 de Barrera.',
   iconEmoji: '\u{1F4E1}',
   rarity: RarityTier.blue,
   patternBonusAmountOverride: 0,
@@ -1485,7 +1485,7 @@ const impulseSpearItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Lanza de Impulso',
-  description: 'Al atacar: ganas Reserva de Inercia: ATK.',
+  description: 'Al usarse: ganas Reserva de Inercia: ATK.',
   iconEmoji: '\u{1F531}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -1694,7 +1694,7 @@ const torreRetornoItem = Item(
   tags: _resonanciaBarreraBuffTags,
   name: 'Torre de Retorno',
   description:
-      'Al defender, conviertes parte de tu Barrera actual en Resonancia duplicada.',
+      'Al usarse, conviertes parte de tu Barrera actual en Resonancia duplicada.',
   iconEmoji: '\u{1F5FC}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -1719,7 +1719,7 @@ const prismaDeEcoItem = Item(
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Prisma de Eco',
   description:
-      'Una vez por turno, al atacar, infliges dano directo igual a la mitad de tu Resonancia actual.',
+      'Una vez por turno, al usarse, infliges dano directo igual a la mitad de tu Resonancia actual.',
   iconEmoji: '\u{1FA9E}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -1744,7 +1744,7 @@ const overloadAnchorItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBarreraBuffTags,
   name: 'Ancla de Sobrecarga',
-  description: 'Al defender, si tienes Calentando, recuperas Barrera.',
+  description: 'Al usarse, si tienes Calentando, recuperas Barrera.',
   iconEmoji: '\u2693',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [

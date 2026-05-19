@@ -459,6 +459,36 @@ class BattleController extends ChangeNotifier {
       _enemy = defendResolution.opponent;
     }
 
+    if (resolvedPatternContext != null) {
+      final playerBeforeItemUse = _player;
+      final enemyBeforeItemUse = _enemy;
+      final itemUseResolution = _player.applyEquippedItemPatternUsedEffects(
+        opponent: _enemy,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBeforeItemUse,
+        enemyBefore: enemyBeforeItemUse,
+        playerAfter: itemUseResolution.owner,
+        enemyAfter: itemUseResolution.opponent,
+      );
+      if (_isDisposed || !canUseActions) return;
+
+      _player = itemUseResolution.owner;
+      _enemy = itemUseResolution.opponent;
+      final itemUseFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (itemUseFinish != null) {
+        _finishCombat(
+          resultType: itemUseFinish.resultType,
+          resultText: itemUseFinish.resultText,
+        );
+        return;
+      }
+    }
+
     if (_finishImmediatelyIfPlayerIsDown()) {
       return;
     }

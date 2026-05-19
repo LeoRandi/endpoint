@@ -55,13 +55,13 @@
 -Aumentos
 [--Añadir Tags]
 [--Meter en el loot]
---Crear al menos 20 generales y 20 por arquetipo[general: 5, veloz: 3, inamovible: 4, imparable: 5, mercante: 3]
+--Crear al menos 20 generales y 20 por arquetipo[general: 5, veloz: 4, inamovible: 8, imparable: 5, mercante: 4]
 
 -Items
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 60 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 23, Imparable: 22, Mercante: 16]
+--Meter al menos 60 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 25, Imparable: 23, Mercante: 16]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]

@@ -173,15 +173,15 @@ class TorreRetornoItemEffect extends ItemEffect {
   const TorreRetornoItemEffect()
       : super(
           description:
-              'Al defender, convierte Barrera actual en Resonancia duplicada.',
+              'Al usarse, convierte Barrera actual en Resonancia duplicada.',
           hooks: const {
-            ItemEffectHook.defendResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al defender, conviertes hasta ${max(1, item.value)} de tu Barrera actual en el doble de Resonancia.';
+    return 'Al usarse, conviertes hasta ${max(1, item.value)} de tu Barrera actual en el doble de Resonancia.';
   }
 
   @override
@@ -328,15 +328,15 @@ class DescargaResonanteItemEffect extends ItemEffect {
   const DescargaResonanteItemEffect()
       : super(
           description:
-              'Al atacar, consume toda tu Resonancia para infligir dano directo.',
+              'Al usarse, consume toda tu Resonancia para infligir dano directo.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al atacar, consume toda tu Resonancia e inflige dano directo igual a la Resonancia consumida.';
+    return 'Al usarse, consume toda tu Resonancia e inflige dano directo igual a la Resonancia consumida.';
   }
 
   @override
@@ -370,16 +370,16 @@ class PrismaDeEcoItemEffect extends ItemEffect {
   const PrismaDeEcoItemEffect()
       : super(
           description:
-              'Una vez por turno, al atacar, tu Resonancia inflige dano directo parcial.',
+              'Una vez por turno, al usarse, tu Resonancia inflige dano directo parcial.',
           hooks: const {
             ItemEffectHook.turnStart,
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Una vez por turno, al atacar, infliges dano directo igual a la mitad de tu Resonancia actual sin consumirla.';
+    return 'Una vez por turno, al usarse, infliges dano directo igual a la mitad de tu Resonancia actual sin consumirla.';
   }
 
   @override
@@ -447,15 +447,15 @@ class InterferenceCannonItemEffect extends ItemEffect {
   const InterferenceCannonItemEffect()
       : super(
           description:
-              'Al atacar aplica Conmocion y castiga barreras ya comprometidas.',
+              'Al usarse aplica Conmocion y castiga barreras ya comprometidas.',
           hooks: const {
-            ItemEffectHook.attackResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al atacar: aplica Conmocion ${max(1, item.value)}. Si el objetivo ya la tenia, ademas pierde 1 de Barrera.';
+    return 'Al usarse: aplica Conmocion ${max(1, item.value)}. Si el objetivo ya la tenia, ademas pierde 1 de Barrera.';
   }
 
   @override
@@ -585,15 +585,15 @@ class ContainmentCoilItemEffect extends ItemEffect {
   /// Crea el efecto propio de la Bobina de Contencion.
   const ContainmentCoilItemEffect()
       : super(
-          description: 'Al defender, recuperas barrera adicional.',
+          description: 'Al usarse, recuperas barrera adicional.',
           hooks: const {
-            ItemEffectHook.defendResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al defender, recuperas ${max(1, item.value)} de Barrera.';
+    return 'Al usarse, recuperas ${max(1, item.value)} de Barrera.';
   }
 
   @override
@@ -617,15 +617,15 @@ class OverloadAnchorItemEffect extends ItemEffect {
   /// Crea el efecto propio del Ancla de Sobrecarga.
   const OverloadAnchorItemEffect()
       : super(
-          description: 'Al defender, si tienes Calentando, recuperas barrera.',
+          description: 'Al usarse, si tienes Calentando, recuperas barrera.',
           hooks: const {
-            ItemEffectHook.defendResolved,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al defender, si tienes Calentando, recuperas ${max(1, item.value)} de Barrera.';
+    return 'Al usarse, si tienes Calentando, recuperas ${max(1, item.value)} de Barrera.';
   }
 
   @override

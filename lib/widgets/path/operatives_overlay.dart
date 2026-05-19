@@ -696,8 +696,8 @@ class _PatternEquipmentBoard extends StatelessWidget {
               right: 0,
               bottom: 0,
               child: _PatternEquipmentBoardPills(
-                baseAttack: battler.baseAttack,
-                baseBarrier: battler.baseBarrier,
+                baseAttack: battler.attack,
+                baseBarrier: battler.barrier,
                 adjacencyAttack: adjacencyTotals.attack,
                 adjacencyBarrier: adjacencyTotals.barrier,
               ),
