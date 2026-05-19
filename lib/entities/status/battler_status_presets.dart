@@ -136,6 +136,14 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       InerciaBarreraStatus(value: value),
+  BattlerStatusId.compensadorRuta: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      CompensadorRutaStatus(
+        stat: BattlerStat.attack,
+        value: value,
+      ),
   BattlerStatusId.deuda: ({
     required int remainingTurns,
     required int value,

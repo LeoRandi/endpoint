@@ -4,6 +4,7 @@ import '../../services/run_randomizer.dart';
 
 part 'item_effects/item_effect_attack_and_sustain.dart';
 part 'item_effects/item_effect_cycle.dart';
+part 'item_effects/item_effect_desafio_line.dart';
 part 'item_effects/item_effect_reactive_defense.dart';
 part 'item_effects/item_effect_specialized.dart';
 
@@ -34,9 +35,11 @@ enum ItemEffectHook {
   turnStart,
   turnEnd,
   combatEnd,
+  prePatternAttack,
   patternUsed,
   defendResolved,
   outgoingDamageModifier,
+  incomingDamageEffect,
   incomingDamageModifier,
   calculatedStatModifier,
   basicAttackCountModifier,
@@ -171,6 +174,25 @@ abstract class ItemEffect {
     return damage;
   }
 
+  /// Permite alterar el portador y el dano entrante justo antes de recibirlo.
+  BattlerIncomingDamageResolution onIncomingDamage({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damage,
+    required DamageKind kind,
+  }) {
+    return BattlerIncomingDamageResolution(
+      owner: owner,
+      damage: modifyIncomingDamage(
+        owner: owner,
+        source: source,
+        item: item,
+        damage: damage,
+      ),
+    );
+  }
+
   /// Ajusta una stat ya calculada del portador para efectos persistentes de equipo.
   int modifyCalculatedStat({
     required Battler owner,
@@ -198,6 +220,16 @@ abstract class ItemEffect {
     required int damageDealt,
   }) {
     return ItemEffectResolution(owner: owner, opponent: target);
+  }
+
+  /// Resuelve efectos que deben ocurrir antes del ataque de un Patron.
+  ItemEffectResolution onPrePatternAttack({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
   }
 
   /// Resuelve efectos posteriores a que el portador reciba daño.

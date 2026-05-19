@@ -28,6 +28,30 @@ class BattlerEffectPipeline {
     return updatedOwner.pruneExpiredStatuses();
   }
 
+  Battler applyAbilityCombatStartEffects({
+    required Battler owner,
+  }) {
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.combatStart),
+    );
+    if (activeAbilityIds.isEmpty) return owner;
+
+    var updatedOwner = owner;
+
+    for (final abilityId in activeAbilityIds) {
+      final ability = updatedOwner.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      updatedOwner = effect.onCombatStart(
+        owner: updatedOwner,
+        ability: ability,
+      );
+    }
+
+    return updatedOwner.pruneExpiredStatuses();
+  }
+
   Battler receiveDirectDamage({
     required Battler owner,
     required int damage,
@@ -46,12 +70,13 @@ class BattlerEffectPipeline {
     required Battler owner,
     required int damage,
     required Battler source,
+    DamageKind kind = DamageKind.debuff,
   }) {
     final resolution = applyIncomingDamageEffects(
       owner: owner,
       source: source,
       damage: damage,
-      kind: DamageKind.debuff,
+      kind: kind,
     );
     return resolution.owner.receiveDamage(resolution.damage);
   }
@@ -63,9 +88,10 @@ class BattlerEffectPipeline {
     final ownerAfterItems = applyEquippedItemCombatEndEffects(
       owner: ownerAfterStatuses,
     );
-    return applyAbilityCombatEndEffects(
+    final ownerAfterAbilities = applyAbilityCombatEndEffects(
       owner: ownerAfterItems,
     );
+    return _clearCombatItemAugments(ownerAfterAbilities);
   }
 
   Battler applyStatusTurnStart({
@@ -93,6 +119,7 @@ class BattlerEffectPipeline {
           owner: updatedOwner,
           damage: burnDamage,
           source: opponent,
+          kind: DamageKind.burn,
         );
       }
     }
@@ -396,6 +423,43 @@ class BattlerEffectPipeline {
       final resolution = resolvedStatus.onIncomingDamage(
         owner: updatedOwner,
         source: source,
+        damage: updatedDamage,
+        kind: kind,
+      );
+      updatedOwner = resolution.owner;
+      updatedDamage = resolution.damage;
+    }
+
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      updatedOwner.abilityIdsForHook(BattlerAbilityHook.incomingDamageEffect),
+    );
+    for (final abilityId in activeAbilityIds) {
+      final ability = updatedOwner.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      final resolution = effect.onIncomingDamage(
+        owner: updatedOwner,
+        source: source,
+        ability: ability,
+        damage: updatedDamage,
+        kind: kind,
+      );
+      updatedOwner = resolution.owner;
+      updatedDamage = resolution.damage;
+    }
+
+    final activeItems = List<Item>.from(
+      updatedOwner.equippedItemsForHook(ItemEffectHook.incomingDamageEffect),
+    );
+    for (final item in activeItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onIncomingDamage(
+        owner: updatedOwner,
+        source: source,
+        item: item,
         damage: updatedDamage,
         kind: kind,
       );
@@ -914,6 +978,90 @@ class BattlerEffectPipeline {
           updatedOwner = chainResolution.owner;
           updatedOpponent = chainResolution.opponent;
         }
+      }
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      opponent: updatedOpponent.pruneExpiredStatuses(),
+    );
+  }
+
+  ItemEffectResolution applyEquippedItemPrePatternAttackEffects({
+    required Battler owner,
+    required Battler opponent,
+    required BattlePatternMatchContext pattern,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+    final usedPointKeys =
+        pattern.patternPoints.map((point) => point.key).toSet();
+
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.prePatternAttack),
+    );
+
+    for (final item in activeItems) {
+      final pointKey = owner
+          .patternItemPointKeys[OperativePatternLayoutService.itemKey(item)];
+      if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
+
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onPrePatternAttack(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+        pattern: pattern,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      opponent: updatedOpponent.pruneExpiredStatuses(),
+    );
+  }
+
+  ItemEffectResolution applyEquippedItemForcedPatternUsedEffects({
+    required Battler owner,
+    required Battler opponent,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+    const pattern = BattlePatternMatchContext(
+      patternPoints: <OperativePatternPoint>[],
+      attackBonus: 0,
+      barrierBonus: 0,
+    );
+
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.patternUsed),
+    );
+
+    for (final item in activeItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final debuffPressureBefore = _debuffPressure(updatedOpponent);
+      final resolution = effect.onPatternUsed(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+        pattern: pattern,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+      final debuffPressureAfter = _debuffPressure(updatedOpponent);
+      if (debuffPressureAfter > debuffPressureBefore) {
+        final chainResolution = _applyCadenaNeurotoxicaDamage(
+          owner: updatedOwner,
+          opponent: updatedOpponent,
+        );
+        updatedOwner = chainResolution.owner;
+        updatedOpponent = chainResolution.opponent;
       }
     }
 
@@ -1494,4 +1642,21 @@ class BattlerEffectPipeline {
   ) {
     return !previousAbility.isOnCooldown && resolvedAbility.isOnCooldown;
   }
+}
+
+Battler _clearCombatItemAugments(Battler owner) {
+  if (!owner.equippedItems.any(
+    (item) =>
+        item.hasPatternAura ||
+        item.combatItemBonusBoost > 0 ||
+        item.combatGeneratedPatternBonus,
+  )) {
+    return owner;
+  }
+
+  return owner.copyWith(
+    equippedItems: List<Item>.unmodifiable(
+      owner.equippedItems.map((item) => item.clearCombatAugments()),
+    ),
+  );
 }

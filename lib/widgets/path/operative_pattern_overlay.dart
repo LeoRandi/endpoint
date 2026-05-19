@@ -9,6 +9,7 @@ const _operativePatternContentCounterRotation =
     -_operativePatternDiamondRotation;
 const _operativePatternEmptyBonusDialogSize = 132.0;
 const _operativePatternCoordinateHoldDuration = Duration(seconds: 1);
+const operativePatternQuickInspectHoldDuration = Duration(milliseconds: 500);
 const _operativePatternCoordinateHoldMoveTolerance = 12.0;
 const _operativePatternHitRadiusFactor = 0.72;
 
@@ -37,6 +38,7 @@ class OperativePatternPointContent {
   final List<OperativePatternAdjacencyBonus> activatedAdjacencyBonuses;
   final bool isBonusEnabled;
   final bool isPatternBonusActivated;
+  final bool hasAura;
 
   const OperativePatternPointContent({
     this.item,
@@ -46,6 +48,7 @@ class OperativePatternPointContent {
     this.activatedAdjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
     this.isBonusEnabled = true,
     this.isPatternBonusActivated = false,
+    this.hasAura = false,
   }) : assert(item != null || bonus != null);
 }
 
@@ -289,6 +292,7 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
               ? entry.value.patternRequirement
               : null,
           adjacencyBonuses: entry.value.patternAdjacencyBonuses,
+          hasAura: entry.value.hasPatternAura,
         ),
       for (final entry in _emptyBonusesByPointKey.entries)
         entry.key: OperativePatternPointContent(bonus: entry.value),
@@ -311,6 +315,7 @@ class OperativePatternBoard extends StatefulWidget {
   final bool keepLineAfterPointerUp;
   final int? maxPatternPoints;
   final Color accent;
+  final Duration longPressDuration;
 
   const OperativePatternBoard({
     super.key,
@@ -321,6 +326,7 @@ class OperativePatternBoard extends StatefulWidget {
     this.keepLineAfterPointerUp = false,
     this.maxPatternPoints,
     this.accent = EndpointPalette.patternAccent,
+    this.longPressDuration = _operativePatternCoordinateHoldDuration,
   });
 
   @override
@@ -365,7 +371,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     final onPointLongPressed = widget.onPointLongPressed;
     if (onPointLongPressed != null) {
       _coordinateHoldTimer = Timer(
-        _operativePatternCoordinateHoldDuration,
+        widget.longPressDuration,
         () {
           if (!mounted || _activePointer != event.pointer) return;
           onPointLongPressed(point);
@@ -893,6 +899,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
     final requirement = content?.requirement;
     final isBonusEnabled = content?.isBonusEnabled ?? true;
     final isPatternBonusActivated = content?.isPatternBonusActivated ?? false;
+    final hasAura = content?.hasAura ?? false;
     final activatedAdjacencyBonuses = content?.activatedAdjacencyBonuses ??
         const <OperativePatternAdjacencyBonus>[];
     final hasPatternActivation =
@@ -941,6 +948,11 @@ class _OperativePatternDotVisual extends StatelessWidget {
                 ),
               ),
             ),
+            if (hasAura)
+              _OperativePatternItemAura(
+                size: size,
+                accent: activeAccent,
+              ),
             Center(
               child: Transform.rotate(
                 angle: _operativePatternContentCounterRotation,
@@ -1141,6 +1153,77 @@ class _OperativePatternActivationBurst extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OperativePatternItemAura extends StatelessWidget {
+  final double size;
+  final Color accent;
+
+  const _OperativePatternItemAura({
+    required this.size,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final boltSize = (size * 0.32).clamp(12.0, 18.0).toDouble();
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: EndpointPalette.warningAccent.withValues(
+                      alpha: 0.42,
+                    ),
+                    blurRadius: 24,
+                    spreadRadius: 5,
+                  ),
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.34),
+                    blurRadius: 18,
+                    spreadRadius: 3,
+                  ),
+                ],
+              ),
+              child: SizedBox.square(dimension: size * 0.82),
+            ),
+            for (final spec in const <({double x, double y, double turns})>[
+              (x: -0.34, y: -0.36, turns: -0.08),
+              (x: 0.36, y: -0.26, turns: 0.09),
+              (x: -0.28, y: 0.34, turns: 0.13),
+            ])
+              Transform.translate(
+                offset: Offset(size * spec.x, size * spec.y),
+                child: Transform.rotate(
+                  angle: _operativePatternContentCounterRotation +
+                      (pi * spec.turns),
+                  child: Icon(
+                    Icons.bolt_rounded,
+                    size: boltSize,
+                    color: EndpointPalette.warningAccent.withValues(
+                      alpha: 0.96,
+                    ),
+                    shadows: [
+                      Shadow(
+                        color: EndpointPalette.warningAccent.withValues(
+                          alpha: 0.7,
+                        ),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

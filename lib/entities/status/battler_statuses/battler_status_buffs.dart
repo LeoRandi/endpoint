@@ -736,3 +736,66 @@ class ResonanciaStatus extends BattlerStatus {
     );
   }
 }
+
+class CompensadorRutaStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.compensadorRuta;
+  final BattlerStat stat;
+
+  const CompensadorRutaStatus({
+    required this.stat,
+    int value = 1,
+  }) : super(
+          id: statusId,
+          name: 'Compensador de Ruta',
+          type: BattlerStatusType.buff,
+          tags: _buffAtaqueStatusTags,
+          hooks: const {
+            BattlerStatusHook.calculatedStatModifier,
+            BattlerStatusHook.combatEnd,
+          },
+          icon: Icons.route_rounded,
+          description:
+              'Aumenta temporalmente la stat menos cubierta por tus items.',
+          remainingTurns: 1,
+          value: value,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Bonus actual: +$value ${stat.shortLabel}.';
+  }
+
+  @override
+  int modifyCalculatedStat({
+    required Battler owner,
+    required BattlerStat stat,
+    required int value,
+  }) {
+    if (stat != this.stat) return value;
+    return value + this.value;
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    return owner.removeStatusInstance(this);
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return CompensadorRutaStatus(
+      stat: stat,
+      value: value ?? this.value,
+    );
+  }
+}

@@ -5,6 +5,7 @@ enum OperativePatternRequirementKind {
   middlePoint,
   lastPoint,
   rightAngle,
+  straightAngle,
   exactShape,
 }
 
@@ -35,6 +36,11 @@ class OperativePatternRequirement {
         shapePoints = const <OperativePatternPoint>[],
         labelOverride = null;
 
+  const OperativePatternRequirement.straightAngle()
+      : kind = OperativePatternRequirementKind.straightAngle,
+        shapePoints = const <OperativePatternPoint>[],
+        labelOverride = null;
+
   const OperativePatternRequirement.exactShape({
     required this.shapePoints,
     this.labelOverride,
@@ -49,6 +55,7 @@ class OperativePatternRequirement {
       OperativePatternRequirementKind.middlePoint => 'Centro',
       OperativePatternRequirementKind.lastPoint => 'Final',
       OperativePatternRequirementKind.rightAngle => 'Angulo 90',
+      OperativePatternRequirementKind.straightAngle => 'Angulo 180',
       OperativePatternRequirementKind.exactShape => 'Figura',
     };
   }
@@ -59,6 +66,7 @@ class OperativePatternRequirement {
       OperativePatternRequirementKind.middlePoint => 'MED',
       OperativePatternRequirementKind.lastPoint => 'FIN',
       OperativePatternRequirementKind.rightAngle => '90',
+      OperativePatternRequirementKind.straightAngle => '180',
       OperativePatternRequirementKind.exactShape => _shortExactShapeLabel,
     };
   }
@@ -73,6 +81,8 @@ class OperativePatternRequirement {
         'Debe ser el ultimo vertice antes de cerrar.',
       OperativePatternRequirementKind.rightAngle =>
         'Debe ser el vertice de un angulo recto.',
+      OperativePatternRequirementKind.straightAngle =>
+        'Debe ser el vertice de un angulo llano de 180 grados.',
       OperativePatternRequirementKind.exactShape =>
         'El dibujo debe seguir esta figura en el orden indicado.',
     };
@@ -92,6 +102,8 @@ class OperativePatternRequirement {
       OperativePatternRequirementKind.lastPoint => sequence.last == itemPoint,
       OperativePatternRequirementKind.rightAngle =>
         _isRightAngleVertex(sequence, itemPoint),
+      OperativePatternRequirementKind.straightAngle =>
+        _isStraightAngleVertex(sequence, itemPoint),
       OperativePatternRequirementKind.exactShape =>
         isClosedPattern(patternPoints) &&
             _matchesExactShape(sequence) &&
@@ -191,6 +203,37 @@ class OperativePatternRequirement {
       }
 
       if ((incomingX * outgoingX) + (incomingY * outgoingY) == 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool _isStraightAngleVertex(
+    List<OperativePatternPoint> sequence,
+    OperativePatternPoint itemPoint,
+  ) {
+    if (sequence.length < 3) return false;
+
+    for (var index = 0; index < sequence.length; index++) {
+      if (sequence[index] != itemPoint) continue;
+
+      final previous =
+          sequence[(index - 1 + sequence.length) % sequence.length];
+      final next = sequence[(index + 1) % sequence.length];
+      final incomingX = previous.x - itemPoint.x;
+      final incomingY = previous.y - itemPoint.y;
+      final outgoingX = next.x - itemPoint.x;
+      final outgoingY = next.y - itemPoint.y;
+      if ((incomingX == 0 && incomingY == 0) ||
+          (outgoingX == 0 && outgoingY == 0)) {
+        continue;
+      }
+
+      final cross = incomingX * outgoingY - incomingY * outgoingX;
+      final dot = incomingX * outgoingX + incomingY * outgoingY;
+      if (cross == 0 && dot < 0) {
         return true;
       }
     }

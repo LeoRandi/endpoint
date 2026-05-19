@@ -273,6 +273,16 @@ BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
     json['value'],
     fallback: 1,
   );
+  if (statusId == BattlerStatusId.compensadorRuta) {
+    return CompensadorRutaStatus(
+      stat: EndpointJsonUtils.parseEnumByName(
+            BattlerStat.values,
+            json['stat'],
+          ) ??
+          BattlerStat.attack,
+      value: value,
+    );
+  }
   final statusFactory = battlerStatusFactoryById[statusId];
   if (statusFactory == null) return null;
 
@@ -349,6 +359,18 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['patternBonusAmount'],
     ),
     patternRequirementOverride: _deserializePatternRequirement(json),
+    hasPatternAura: EndpointJsonUtils.readBool(
+      json['hasPatternAura'],
+      fallback: preset.hasPatternAura,
+    ),
+    combatItemBonusBoost: EndpointJsonUtils.readInt(
+      json['combatItemBonusBoost'],
+      fallback: preset.combatItemBonusBoost,
+    ),
+    combatGeneratedPatternBonus: EndpointJsonUtils.readBool(
+      json['combatGeneratedPatternBonus'],
+      fallback: preset.combatGeneratedPatternBonus,
+    ),
     patternAdjacencyBonuses: _deserializePatternAdjacencyBonuses(
       json['patternAdjacencyBonuses'],
       fallback: preset.patternAdjacencyBonuses,
@@ -417,6 +439,7 @@ Map<String, Object?> _serializeStatus(BattlerStatus status) {
     'type': status.type.name,
     'remainingTurns': status.remainingTurns,
     'value': status.value,
+    if (status is CompensadorRutaStatus) 'stat': status.stat.name,
     'isIndefinite': status.isIndefinite,
     'canStack': status.canStack,
     'isPurgeable': status.isPurgeable,
@@ -452,6 +475,9 @@ Map<String, Object?> _serializeItem(Item item) {
     'patternBonusKind':
         item.hasPatternBonus ? item.patternBonusKind.name : null,
     'patternBonusAmount': item.patternBonusAmount,
+    'hasPatternAura': item.hasPatternAura,
+    'combatItemBonusBoost': item.combatItemBonusBoost,
+    'combatGeneratedPatternBonus': item.combatGeneratedPatternBonus,
     'patternRequirementKind':
         item.hasPatternBonus ? item.patternRequirement.kind.name : null,
     'patternRequirementLabel':
@@ -500,6 +526,8 @@ OperativePatternRequirement? _deserializePatternRequirement(
       return const OperativePatternRequirement.last();
     case OperativePatternRequirementKind.rightAngle:
       return const OperativePatternRequirement.rightAngle();
+    case OperativePatternRequirementKind.straightAngle:
+      return const OperativePatternRequirement.straightAngle();
     case OperativePatternRequirementKind.exactShape:
       final shapePoints = _deserializePatternPointList(
         json['patternRequirementShape'],

@@ -526,6 +526,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       equippedItemsByPointKey: widget.equippedItemsByPointKey,
       bonusesByPointKey: _bonusesByPointKey,
       adaptationMaxEmptyItemBonus: _adaptationBonusCap(),
+      shouldDilutePositiveBonuses: widget.player.hasBonusDilution,
       blockedPointKeys:
           _blockAnimationCompleted ? _blockPlan.pointKeys : const <String>{},
     );
@@ -573,6 +574,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       firstRepeatedItemPointKey: _firstRepeatedItemPointKey(usedItemPointKeys),
       firstUsedItemHasAttackBonus:
           _firstUsedItemHasAttackBonus(usedItemPointKeys),
+      activatedItemEffectCount: _activatedItemEffectCount(usedItemPointKeys),
     );
   }
 
@@ -618,6 +620,21 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
         );
   }
 
+  int _activatedItemEffectCount(List<String> usedItemPointKeys) {
+    var count = 0;
+    final seen = <String>{};
+    for (final pointKey in usedItemPointKeys) {
+      if (!seen.add(pointKey)) continue;
+      final effect = widget.equippedItemsByPointKey[pointKey]?.effect;
+      if (effect == null) continue;
+      if (effect.hooks.contains(ItemEffectHook.patternUsed) ||
+          effect.hooks.contains(ItemEffectHook.prePatternAttack)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   int _otherArchetypeActivatedItemCount(OperativePatternResolution resolution) {
     final playerArchetype = widget.player.archetypeId;
     if (playerArchetype == null) return 0;
@@ -646,6 +663,29 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     setState(() {
       _patternPoints = points;
     });
+  }
+
+  void _handlePointLongPressed(OperativePatternPoint point) {
+    final item = widget.equippedItemsByPointKey[point.key];
+    if (item == null) return;
+    unawaited(_openPointItemDetails(item));
+  }
+
+  Future<void> _openPointItemDetails(Item item) async {
+    await showEndpointDialog<void>(
+      context: context,
+      barrierLabel: 'Detalle de objeto equipado',
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
+        return EndpointItemDetailsDialog(
+          item: item,
+          accent: item.rarity.accent,
+          price: item.sellValue,
+          priceLabel: 'VENTA',
+          statusText: 'Estado actual: equipado',
+        );
+      },
+    );
   }
 
   void _submit() {
@@ -726,6 +766,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
               resolution.activatedAdjacencyBonusesAt(entry.key),
           isBonusEnabled: resolution.isItemBonusEnabledAt(entry.key),
           isPatternBonusActivated: resolution.isItemBonusEnabledAt(entry.key),
+          hasAura: entry.value.hasPatternAura,
         ),
       for (final entry in _bonusesByPointKey.entries)
         if (!widget.equippedItemsByPointKey.containsKey(entry.key))
@@ -820,6 +861,10 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                                         keepLineAfterPointerUp: true,
                                         maxPatternPoints: _maxPatternPoints,
                                         accent: EndpointPalette.neutralAccent,
+                                        longPressDuration:
+                                            operativePatternQuickInspectHoldDuration,
+                                        onPointLongPressed:
+                                            _handlePointLongPressed,
                                         onPatternChanged: _handlePatternChanged,
                                       ),
                                     ),

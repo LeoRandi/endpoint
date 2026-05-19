@@ -410,6 +410,35 @@ class BattleController extends ChangeNotifier {
         );
         return;
       }
+
+      final playerBeforePreAttackItems = _player;
+      final enemyBeforePreAttackItems = _enemy;
+      final preAttackItemResolution =
+          _player.applyEquippedItemPrePatternAttackEffects(
+        opponent: _enemy,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBeforePreAttackItems,
+        enemyBefore: enemyBeforePreAttackItems,
+        playerAfter: preAttackItemResolution.owner,
+        enemyAfter: preAttackItemResolution.opponent,
+      );
+      if (_isDisposed || !canUseActions) return;
+
+      _player = preAttackItemResolution.owner;
+      _enemy = preAttackItemResolution.opponent;
+      final preAttackItemFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (preAttackItemFinish != null) {
+        _finishCombat(
+          resultType: preAttackItemFinish.resultType,
+          resultText: preAttackItemFinish.resultText,
+        );
+        return;
+      }
     }
 
     final attackerBefore = _player;
@@ -636,6 +665,21 @@ class BattleController extends ChangeNotifier {
     if (_isDisposed || _turn != BattleTurnState.enemy) return;
     _enemy = enemyActionResolution.enemy;
     _player = enemyActionResolution.player;
+
+    final itemUseEnemyBefore = _enemy;
+    final itemUsePlayerBefore = _player;
+    final itemUseResolution =
+        _enemy.applyEquippedItemForcedPatternUsedEffects(opponent: _player);
+    await _playCombatStateTransitionAnimations(
+      playerBefore: itemUsePlayerBefore,
+      enemyBefore: itemUseEnemyBefore,
+      playerAfter: itemUseResolution.opponent,
+      enemyAfter: itemUseResolution.owner,
+    );
+    if (_isDisposed || _turn != BattleTurnState.enemy) return;
+    _enemy = itemUseResolution.owner;
+    _player = itemUseResolution.opponent;
+
     _registerEnemyResolvedAction(plannedAction);
     if (_finishImmediatelyIfPlayerIsDown()) {
       return;
@@ -761,6 +805,11 @@ class BattleController extends ChangeNotifier {
         predictedEnemy = actionResolution.enemy;
         predictedPlayer = actionResolution.player;
       }
+
+      final itemUseResolution = predictedEnemy
+          .applyEquippedItemForcedPatternUsedEffects(opponent: predictedPlayer);
+      predictedEnemy = itemUseResolution.owner;
+      predictedPlayer = itemUseResolution.opponent;
     }
 
     final damage = max(

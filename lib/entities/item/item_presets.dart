@@ -125,6 +125,25 @@ const _desafioAtaqueBuffTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.buff,
 ];
+const _desafioBuffTags = <EntityTag>[
+  EntityTag.desafio,
+  EntityTag.buff,
+];
+const _desafioVidaBuffTags = <EntityTag>[
+  EntityTag.desafio,
+  EntityTag.vida,
+  EntityTag.buff,
+];
+const _desafioBarreraBuffTags = <EntityTag>[
+  EntityTag.desafio,
+  EntityTag.barrera,
+  EntityTag.buff,
+];
+const _desafioQuemaduraBuffTags = <EntityTag>[
+  EntityTag.desafio,
+  EntityTag.quemadura,
+  EntityTag.buff,
+];
 const _economiaBarreraDebuffTags = <EntityTag>[
   EntityTag.economia,
   EntityTag.barrera,
@@ -280,6 +299,236 @@ const guanteRetoItem = Item(
   effect: GuanteRetoItemEffect(),
 );
 
+const clavoDuelistaItem = Item(
+  id: ItemId.clavoDuelista,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Clavo de Duelista',
+  description: 'Al usarse: si tienes mas HP que el enemigo, ganas 1 Desafio.',
+  iconEmoji: '\u{1F5E1}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  effect: ClavoDuelistaItemEffect(),
+);
+
+const vendasApretadasItem = Item(
+  id: ItemId.vendasApretadas,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioVidaBuffTags,
+  name: 'Vendas Apretadas',
+  description:
+      'Al recibir dano: si perdiste HP, ganas 2 Desafio. Una vez por turno.',
+  iconEmoji: '\u{1FA79}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 2,
+  upgradeValue: 1,
+  effect: VendasApretadasItemEffect(),
+);
+
+const marcaRetadorItem = Item(
+  id: ItemId.marcaRetador,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioVidaBuffTags,
+  name: 'Marca del Retador',
+  description:
+      'Al inicio de tu turno: si estas por debajo del 50% HP, ganas 3 Desafio.',
+  iconEmoji: '\u{1F3F7}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 3,
+  upgradeValue: 2,
+  effect: MarcaRetadorItemEffect(),
+);
+
+const hemomedidorItem = Item(
+  id: ItemId.hemomedidor,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioVidaBuffTags,
+  name: 'Hemomedidor',
+  description: 'Al usarse: ganas 1 Desafio por cada 10 HP faltantes, maximo 3.',
+  iconEmoji: '\u{1FA78}',
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
+  value: 1,
+  upgradeValue: 1,
+  effect: HemomedidorItemEffect(),
+);
+
+const heridaCarbonizadaItem = Item(
+  id: ItemId.heridaCarbonizada,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioQuemaduraBuffTags,
+  name: 'Herida Carbonizada',
+  description: 'Al recibir dano de Quemadura a tu HP: ganas 3 Desafio.',
+  iconEmoji: '\u{1FAE7}',
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
+  value: 3,
+  upgradeValue: 2,
+  effect: HeridaCarbonizadaItemEffect(),
+);
+
+const guanteProvocacionItem = Item(
+  id: ItemId.guanteProvocacion,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Guante de Provocacion',
+  description:
+      'Al usarse: ganas 2 Desafio. Si el enemigo tiene un debuff, ganas doble Desafio.',
+  iconEmoji: '\u{1F94A}',
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: GuanteProvocacionItemEffect(),
+);
+
+const contratoDolorosoItem = Item(
+  id: ItemId.contratoDoloroso,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioBarreraBuffTags,
+  name: 'Contrato Doloroso',
+  description:
+      'Al final de tu turno: si recibiste dano a tu HP este turno, ganas 2 Desafio y 1 Barrera.',
+  iconEmoji: '\u{1F4DC}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 2,
+  effect: ContratoDolorosoItemEffect(),
+);
+
+const yunqueCardiacoItem = Item(
+  id: ItemId.yunqueCardiaco,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioBarreraBuffTags,
+  name: 'Yunque Cardiaco',
+  description:
+      'Al recibir dano a HP: convierte hasta 2 de ese dano en Desafio, evitando ese dano hacia ti. Una vez por turno.',
+  iconEmoji: '\u{1F528}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 3,
+  statModifiers: {
+    BattlerStat.barrier: 2,
+  },
+  effect: YunqueCardiacoItemEffect(),
+);
+
+const revanchadoraItem = Item(
+  id: ItemId.revanchadora,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioQuemaduraBuffTags,
+  name: 'Revanchadora',
+  description:
+      'Cuando una Quemadura propia te hace dano, ganas Desafio igual a la mitad de esa Quemadura y te curas 2.',
+  iconEmoji: '\u{1F52A}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 3,
+  effect: RevanchadoraItemEffect(),
+);
+
+const embudoMejorasItem = Item(
+  id: ItemId.embudoMejoras,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioBuffTags,
+  name: 'Embudo de Mejoras',
+  description:
+      'Al final de tu turno: elimina tus buffos y convierte su value en Desafio, en un ratio de 2 a 1.',
+  iconEmoji: '\u{1F6E0}',
+  rarity: RarityTier.purple,
+  patternBonusAmountOverride: 0,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: -1,
+  effect: EmbudoMejorasItemEffect(),
+);
+
+const arnesTacticoItem = Item(
+  id: ItemId.arnesTactico,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioQuemaduraBuffTags,
+  name: 'Arnes Tactico',
+  description:
+      'Al recibir dano de Quemadura: ganas 2 Potencia. Una vez por turno, al gastar o purgar tu Potencia, recibes la mitad en Desafio.',
+  iconEmoji: '\u{1F9BA}',
+  rarity: RarityTier.purple,
+  patternBonusAmountOverride: 0,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 3,
+  effect: ArnesTacticoItemEffect(),
+);
+
+const mandibultimatumItem = Item(
+  id: ItemId.mandibultimatum,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioAtaqueBuffTags,
+  name: 'Mandibultimatum',
+  description:
+      'Al usarse: consumes hasta 2 Quemadura propia para recibir ese dano a la HP, y ganar el doble en Desafio ANTES de resolver el ataque.',
+  iconEmoji: '\u{1F9B7}',
+  rarity: RarityTier.purple,
+  patternBonusAmountOverride: 0,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 3,
+  statModifiers: {
+    BattlerStat.attack: 2,
+  },
+  effect: MandibultimatumItemEffect(),
+);
+
+const estandarteUltimoSolItem = Item(
+  id: ItemId.estandarteUltimoSol,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioQuemaduraBuffTags,
+  name: 'Estandarte del Ultimo Sol',
+  description:
+      'Al inicio de tu turno: ganas 2 Desafio por cada 5 HP faltantes. Si tienes Quemadura, ganas esa misma cantidad de Barrera.',
+  iconEmoji: '\u{1F6A9}',
+  rarity: RarityTier.yellow,
+  patternBonusAmountOverride: 0,
+  baseCost: 10,
+  value: 2,
+  upgradeValue: 2,
+  effect: EstandarteUltimoSolItemEffect(),
+);
+
+const motorMartirioItem = Item(
+  id: ItemId.motorMartirio,
+  archetypeAffinities: _imparableAffinities,
+  tags: _desafioVidaBuffTags,
+  name: 'Motor de Martirio',
+  description:
+      'Al recibir dano a HP, o dano de Quemadura: ganas Desafio igual al dano recibido, max 8 por turno. Al final del turno, si tienes 8+ Desafio, te curas 8 HP.',
+  iconEmoji: '\u{2699}',
+  rarity: RarityTier.yellow,
+  patternBonusAmountOverride: 0,
+  baseCost: 10,
+  value: 8,
+  upgradeValue: 2,
+  effect: MotorMartirioItemEffect(),
+);
+
 /// Soporte gris economico que convierte caja liquida en una pequena reserva defensiva.
 const mochilaStronkboxItem = Item(
   id: ItemId.mochilaStronkbox,
@@ -406,13 +655,16 @@ const rescueBladeItem = Item(
   archetypeAffinities: _generalAffinities,
   tags: _ataqueVidaTags,
   name: 'Cuchilla de Rescate',
-  description: 'Si el objetivo queda al 50% de HP o menos, recuperas 1 HP.',
+  description:
+      '+3 ATK. Al usarse, si el objetivo queda al 50% de HP o menos, recuperas 3 HP.',
   iconEmoji: '\u{1F691}',
-  rarity: RarityTier.gray,
+  rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
-  baseCost: 2,
-  value: 1,
+  baseCost: 4,
+  value: 3,
   upgradeValue: 1,
+  statModifiers: {BattlerStat.attack: 3},
+  upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: RescueBladeItemEffect(),
 );
 
@@ -459,15 +711,15 @@ const cyberWhipsItem = Item(
   tags: _ataqueDebuffIntoxicacionTags,
   name: 'Cyber Latigos',
   description:
-      '+1 ATK. Al usarse: aplica o aumenta Intoxicacion en el enemigo.',
+      'Al usarse: aplica o aumenta Intoxicacion en el enemigo. Bonus de Patron en angulos de 180 grados.',
   iconEmoji: '\u{26D3}',
   rarity: RarityTier.green,
-  patternBonusAmountOverride: 0,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 1,
+  patternRequirementOverride: OperativePatternRequirement.straightAngle(),
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
-  statModifiers: {BattlerStat.attack: 1},
-  upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: IntoxicarOnAttackItemEffect(),
 );
 
@@ -477,13 +729,13 @@ const shieldItem = Item(
   archetypeAffinities: _inamovibleMercanteAffinities,
   tags: _vidaBarreraTags,
   name: 'Escudo',
-  description: '+2 Barrera. Al usarse, recuperas 5 HP.',
+  description: '+2 Barrera. Al usarse, recuperas 1 HP.',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
   baseCost: 4,
-  value: 5,
-  upgradeValue: 5,
+  value: 1,
+  upgradeValue: 2,
   statModifiers: {
     BattlerStat.barrier: 2,
   },
@@ -680,7 +932,7 @@ const clavoReactorItem = Item(
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Clavo Reactor',
   description:
-      '+2 ATK. La primera vez por turno que atacas, infliges daño directo extra y te aplicas Quemadura.',
+      '+2 ATK. Al usarse, una vez por turno, infliges dano directo extra y te aplicas Quemadura.',
   iconEmoji: '\u{1F529}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -1437,7 +1689,7 @@ const ultimaMarchaItem = Item(
   tags: _ataqueVidaTags,
   name: 'Ultima Marcha',
   description:
-      '+1 ATK. La primera vez por turno que atacas, infliges daño extra segun la vida que te falta.',
+      '+1 ATK. Al usarse, una vez por turno, infliges dano extra segun la vida que te falta.',
   iconEmoji: '\u{1FA78}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -1643,7 +1895,7 @@ const succionaCreditosItem = Item(
   tags: _economiaBarreraDebuffTags,
   name: 'SuccionaCreditos',
   description:
-      'La primera vez por turno que atacas a un objetivo con un debuff, ganas creditos y recuperas Barrera.',
+      'Al usarse, una vez por turno, si el objetivo tiene un debuff, ganas creditos y recuperas Barrera.',
   iconEmoji: '\u{1F4B8}',
   rarity: RarityTier.purple,
   patternAdjacencyBonuses: [
@@ -2057,7 +2309,7 @@ const sunExecutionBladeItem = Item(
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Hoja de Ejecucion Solar',
   description:
-      '+4 ATK. Si el objetivo tiene Quemadura, la consume y anade daño directo extra.',
+      '+4 ATK. Al usarse, si el objetivo tiene Quemadura, la consume y anade dano directo extra.',
   iconEmoji: '\u{1F506}',
   rarity: RarityTier.yellow,
   patternAdjacencyBonuses: [
@@ -2113,6 +2365,20 @@ const itemPresets = <Item>[
   prismaCircadianoItem,
   impactGlovesItem,
   guanteRetoItem,
+  clavoDuelistaItem,
+  vendasApretadasItem,
+  marcaRetadorItem,
+  hemomedidorItem,
+  heridaCarbonizadaItem,
+  guanteProvocacionItem,
+  contratoDolorosoItem,
+  yunqueCardiacoItem,
+  revanchadoraItem,
+  embudoMejorasItem,
+  arnesTacticoItem,
+  mandibultimatumItem,
+  estandarteUltimoSolItem,
+  motorMartirioItem,
   visorAperturaItem,
   seguroRotoItem,
   aceleradorRetoItem,

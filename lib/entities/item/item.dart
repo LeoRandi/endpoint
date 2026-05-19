@@ -78,6 +78,20 @@ enum ItemId {
   aislanteArmonico,
   canonContrapresion,
   guanteReto,
+  clavoDuelista,
+  vendasApretadas,
+  marcaRetador,
+  hemomedidor,
+  heridaCarbonizada,
+  guanteProvocacion,
+  contratoDoloroso,
+  yunqueCardiaco,
+  revanchadora,
+  embudoMejoras,
+  arnesTactico,
+  mandibultimatum,
+  estandarteUltimoSol,
+  motorMartirio,
   visorApertura,
   seguroRoto,
   aceleradorReto,
@@ -152,6 +166,8 @@ const _weaponTaggedItemIds = <ItemId>{
   ItemId.magnetiCHammer,
   ItemId.sunExecutionBlade,
   ItemId.guanteReto,
+  ItemId.clavoDuelista,
+  ItemId.mandibultimatum,
   ItemId.ultimaPalabra,
   ItemId.descargaResonante,
 };
@@ -199,6 +215,14 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.canonContrapresion,
   ItemId.prismaDeEco,
   ItemId.visorApertura,
+  ItemId.vendasApretadas,
+  ItemId.marcaRetador,
+  ItemId.hemomedidor,
+  ItemId.guanteProvocacion,
+  ItemId.contratoDoloroso,
+  ItemId.revanchadora,
+  ItemId.embudoMejoras,
+  ItemId.estandarteUltimoSol,
   ItemId.seguroRoto,
   ItemId.aceleradorReto,
 };
@@ -342,6 +366,9 @@ class Item {
   final OperativePatternBonusKind? patternBonusKindOverride;
   final int? patternBonusAmountOverride;
   final OperativePatternRequirement? patternRequirementOverride;
+  final bool hasPatternAura;
+  final int combatItemBonusBoost;
+  final bool combatGeneratedPatternBonus;
   final List<OperativePatternAdjacencyBonus> patternAdjacencyBonuses;
 
   /// Crea un item inmutable que puede actuar como preset compartido o copia poseida.
@@ -366,6 +393,9 @@ class Item {
     this.patternBonusKindOverride,
     this.patternBonusAmountOverride,
     this.patternRequirementOverride,
+    this.hasPatternAura = false,
+    this.combatItemBonusBoost = 0,
+    this.combatGeneratedPatternBonus = false,
     this.patternAdjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
   }) : _declaredTags = tags;
 
@@ -582,6 +612,9 @@ class Item {
       patternRequirementOverride: upgradeTemplate.patternRequirementOverride,
       clearPatternRequirementOverride:
           upgradeTemplate.patternRequirementOverride == null,
+      hasPatternAura: false,
+      combatItemBonusBoost: 0,
+      combatGeneratedPatternBonus: false,
       patternAdjacencyBonuses: upgradeTemplate.patternAdjacencyBonuses,
     );
   }
@@ -611,6 +644,9 @@ class Item {
     bool clearPatternBonusAmountOverride = false,
     OperativePatternRequirement? patternRequirementOverride,
     bool clearPatternRequirementOverride = false,
+    bool? hasPatternAura,
+    int? combatItemBonusBoost,
+    bool? combatGeneratedPatternBonus,
     List<OperativePatternAdjacencyBonus>? patternAdjacencyBonuses,
   }) {
     return Item(
@@ -641,6 +677,11 @@ class Item {
       patternRequirementOverride: clearPatternRequirementOverride
           ? null
           : patternRequirementOverride ?? this.patternRequirementOverride,
+      hasPatternAura: hasPatternAura ?? this.hasPatternAura,
+      combatItemBonusBoost:
+          max(0, combatItemBonusBoost ?? this.combatItemBonusBoost),
+      combatGeneratedPatternBonus:
+          combatGeneratedPatternBonus ?? this.combatGeneratedPatternBonus,
       patternAdjacencyBonuses:
           patternAdjacencyBonuses ?? this.patternAdjacencyBonuses,
     );
@@ -672,6 +713,49 @@ class Item {
       patternBonusAmountOverride: patternBonusAmountOverride,
       patternRequirementOverride: patternRequirementOverride,
       patternAdjacencyBonuses: patternAdjacencyBonuses,
+    );
+  }
+
+  Item clearCombatAugments() {
+    var updatedItem = this;
+
+    if (combatItemBonusBoost > 0) {
+      final amount = combatItemBonusBoost;
+      final cleanedStats = <BattlerStat, int>{
+        for (final entry in statModifiers.entries)
+          entry.key: max(0, entry.value - amount),
+      };
+      final cleanedAdjacencyBonuses = patternAdjacencyBonuses
+          .map(
+            (bonus) => OperativePatternAdjacencyBonus(
+              direction: bonus.direction,
+              requiredTag: bonus.requiredTag,
+              kind: bonus.kind,
+              amount: max(0, bonus.amount - amount),
+            ),
+          )
+          .toList(growable: false);
+      updatedItem = updatedItem.copyWith(
+        value: effect != null && value > amount ? value - amount : value,
+        statModifiers: cleanedStats,
+        patternBonusAmountOverride:
+            hasPatternBonus ? max(0, patternBonusAmount - amount) : null,
+        patternAdjacencyBonuses: cleanedAdjacencyBonuses,
+      );
+    }
+
+    if (combatGeneratedPatternBonus) {
+      updatedItem = updatedItem.copyWith(
+        clearPatternBonusKindOverride: true,
+        patternBonusAmountOverride: 0,
+        clearPatternRequirementOverride: true,
+      );
+    }
+
+    return updatedItem.copyWith(
+      hasPatternAura: false,
+      combatItemBonusBoost: 0,
+      combatGeneratedPatternBonus: false,
     );
   }
 

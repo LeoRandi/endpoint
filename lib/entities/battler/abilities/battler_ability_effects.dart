@@ -580,6 +580,209 @@ class MasaCriticaAbilityEffect extends BattlerAbilityEffect {
   const MasaCriticaAbilityEffect();
 }
 
+/// Pasiva que anade un impacto basico y activa la dilucion positiva compartida.
+class AceleracionFotovoltaicaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Aceleracion Fotovoltaica.
+  const AceleracionFotovoltaicaAbilityEffect()
+      : super(
+          hooks: const {BattlerAbilityHook.basicAttackCountModifier},
+        );
+
+  @override
+  int modifyBasicAttackCount({
+    required Battler owner,
+    required BattlerAbility ability,
+    required int count,
+  }) {
+    return count + max(1, ability.currentValue);
+  }
+}
+
+class B4r3B0n3DAbilityEffect extends BattlerAbilityEffect {
+  const B4r3B0n3DAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (pattern.activatedItemEffectCount > 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    return BattlerAbilityEffectResolution(
+      owner: owner
+          .gainCombatBarrier(amount)
+          .applyStatus(PotenciaStatus(value: amount)),
+      opponent: opponent,
+    );
+  }
+}
+
+class CompensadorRutaAbilityEffect extends BattlerAbilityEffect {
+  const CompensadorRutaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.combatStart,
+          },
+        );
+
+  @override
+  Battler onCombatStart({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    final stats = <BattlerStat>[
+      BattlerStat.health,
+      BattlerStat.attack,
+      BattlerStat.barrier,
+    ];
+    final itemTotals = <BattlerStat, int>{
+      for (final stat in stats)
+        stat: owner.equippedItems.fold<int>(
+          0,
+          (total, item) => total + max(0, item.modifier(stat)),
+        ),
+    };
+    final selectedStat = stats.reduce((best, stat) {
+      final bestValue = itemTotals[best] ?? 0;
+      final nextValue = itemTotals[stat] ?? 0;
+      return nextValue < bestValue ? stat : best;
+    });
+
+    final amount = max(1, ability.currentValue);
+    final updatedOwner = owner.applyStatus(
+      CompensadorRutaStatus(
+        stat: selectedStat,
+        value: amount,
+      ),
+      applyEquipmentModifiers: false,
+    );
+    if (selectedStat != BattlerStat.health) return updatedOwner;
+
+    return updatedOwner.heal(amount);
+  }
+}
+
+class ATodoRiesgoAbilityEffect extends BattlerAbilityEffect {
+  const ATodoRiesgoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.incomingDamageEffect,
+          },
+        );
+
+  @override
+  BattlerIncomingDamageResolution onIncomingDamage({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damage,
+    required DamageKind kind,
+  }) {
+    const triggeredFlag = CombatRuntimeFlag.battler(
+      BattlerCombatFlag.aTodoRiesgoTriggered,
+    );
+    final hpDamage = kind == DamageKind.debuff
+        ? max(0, damage)
+        : max(0, damage - owner.currentBarrier);
+    if (hpDamage <= 0 || owner.hasCombatFlag(triggeredFlag)) {
+      return BattlerIncomingDamageResolution(owner: owner, damage: damage);
+    }
+
+    return BattlerIncomingDamageResolution(
+      owner: owner
+          .addCombatFlag(triggeredFlag)
+          .earnMoney(hpDamage + max(1, ability.currentValue)),
+      damage: damage,
+    );
+  }
+}
+
+class UltimaPiezaAbilityEffect extends BattlerAbilityEffect {
+  const UltimaPiezaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.combatStart,
+          },
+        );
+
+  @override
+  Battler onCombatStart({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    if (owner.equippedItems.isEmpty) return owner;
+
+    final selected = owner.equippedItems.reduce((best, item) {
+      final bestScore = _itemBonusComplexity(best);
+      final nextScore = _itemBonusComplexity(item);
+      return nextScore < bestScore ? item : best;
+    });
+    final amount = max(1, ability.currentValue);
+    final boosted = _boostLastPieceItem(item: selected, amount: amount);
+
+    return _replaceEquippedItem(
+      owner: owner,
+      currentItem: selected,
+      replacement: boosted,
+    );
+  }
+}
+
+class GeometriaBolsilloAbilityEffect extends BattlerAbilityEffect {
+  const GeometriaBolsilloAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.combatStart,
+          },
+        );
+
+  @override
+  Battler onCombatStart({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    final limit = max(1, ability.currentValue);
+    var updatedOwner = owner;
+    var applied = 0;
+    final candidates = owner.equippedItems
+        .where((item) => !item.hasPatternBonus)
+        .toList(growable: false)
+      ..sort((a, b) => _stableItemSeed(a).compareTo(_stableItemSeed(b)));
+
+    for (final item in candidates) {
+      if (applied >= limit) break;
+
+      final seed = _stableItemSeed(item) + applied;
+      final replacement = item.copyWith(
+        patternBonusKindOverride: seed.isEven
+            ? OperativePatternBonusKind.attack
+            : OperativePatternBonusKind.barrier,
+        patternBonusAmountOverride: 1,
+        patternRequirementOverride: _randomishPatternRequirement(seed),
+        combatGeneratedPatternBonus: true,
+      );
+      updatedOwner = _replaceEquippedItem(
+        owner: updatedOwner,
+        currentItem: item,
+        replacement: replacement,
+      );
+      applied++;
+    }
+
+    return updatedOwner;
+  }
+}
+
 /// Convierte Barrera activa en una descarga directa de Resonancia.
 class DescargaSismicaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Descarga Sismica.
@@ -1966,6 +2169,40 @@ class AdaptacionAbilityEffect extends BattlerAbilityEffect {
   const AdaptacionAbilityEffect();
 }
 
+/// Quema a ambos combatientes al comienzo del turno del portador.
+class HornoSimetricoAbilityEffect extends BattlerAbilityEffect {
+  const HornoSimetricoAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.turnStart,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required bool isOwnerTurn,
+  }) {
+    if (!isOwnerTurn) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, ability.currentValue);
+    return BattlerAbilityEffectResolution(
+      owner: owner.applyStatusFromSource(
+        QuemaduraStatus(remainingTurns: amount),
+        source: owner,
+      ),
+      opponent: opponent.applyStatusFromSource(
+        QuemaduraStatus(remainingTurns: amount),
+        source: owner,
+      ),
+    );
+  }
+}
+
 /// Ignora debuffs entrantes limitados por combate y convierte el bloqueo en Barrera.
 class CortafuegosPortatilAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto pasivo de Cortafuegos Portatil.
@@ -2318,6 +2555,22 @@ _DebuffBudgetReduction _reducePurgeableDebuffsWithHealingBudget({
       salt: index + spentBudget,
     );
     final selectedDebuff = debuffs[selectedIndex];
+    if (selectedDebuff.isIndefinite ||
+        selectedDebuff is IntoxicacionStatus ||
+        selectedDebuff is FragilidadStatus) {
+      final reducedValue = max(0, selectedDebuff.value - 1);
+      if (reducedValue <= 0) {
+        updatedOwner = updatedOwner.removeStatusInstance(selectedDebuff);
+      } else {
+        updatedOwner = updatedOwner.replaceStatusInstance(
+          currentStatus: selectedDebuff,
+          replacement: selectedDebuff.copyWith(value: reducedValue),
+        );
+      }
+      spentBudget++;
+      continue;
+    }
+
     final reducedTurns = max(0, selectedDebuff.remainingTurns - 1);
     if (reducedTurns <= 0) {
       updatedOwner = updatedOwner.removeStatusInstance(selectedDebuff);
@@ -2424,4 +2677,75 @@ Battler _deactivateCycleRouteAbility({
   }
 
   return owner.updateAbility(targetAbility.deactivate());
+}
+
+Battler _replaceEquippedItem({
+  required Battler owner,
+  required Item currentItem,
+  required Item replacement,
+}) {
+  final equippedIndex = owner.equippedItems.indexOf(currentItem);
+  if (equippedIndex < 0) return owner;
+
+  final updatedEquippedItems = List<Item>.from(owner.equippedItems);
+  updatedEquippedItems[equippedIndex] = replacement;
+  return owner.copyWith(
+    equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+  );
+}
+
+int _itemBonusComplexity(Item item) {
+  var score = 0;
+  if (item.statModifiers.values.any((value) => value > 0)) score++;
+  if (item.effect != null && item.value > 0) score++;
+  if (item.hasPatternBonus) score++;
+  if (item.patternAdjacencyBonuses.isNotEmpty) score++;
+  return score;
+}
+
+Item _boostLastPieceItem({
+  required Item item,
+  required int amount,
+}) {
+  final statModifiers = Map<BattlerStat, int>.from(item.statModifiers);
+  for (final entry in item.statModifiers.entries) {
+    if (entry.value <= 0) continue;
+    statModifiers[entry.key] = entry.value + amount;
+  }
+
+  final adjacencyBonuses = item.patternAdjacencyBonuses
+      .map(
+        (bonus) => OperativePatternAdjacencyBonus(
+          direction: bonus.direction,
+          requiredTag: bonus.requiredTag,
+          kind: bonus.kind,
+          amount: bonus.amount + amount,
+        ),
+      )
+      .toList(growable: false);
+
+  return item.copyWith(
+    value: item.effect != null && item.value > 0 ? item.value + amount : null,
+    statModifiers: statModifiers,
+    patternBonusAmountOverride:
+        item.hasPatternBonus ? item.patternBonusAmount + amount : null,
+    patternAdjacencyBonuses: adjacencyBonuses,
+    hasPatternAura: true,
+    combatItemBonusBoost: amount,
+  );
+}
+
+int _stableItemSeed(Item item) {
+  final instanceHash = item.instanceId?.hashCode ?? 0;
+  return Object.hash(item.id, item.name, item.rarity, instanceHash).abs();
+}
+
+OperativePatternRequirement _randomishPatternRequirement(int seed) {
+  return switch (seed % 5) {
+    0 => const OperativePatternRequirement.first(),
+    1 => const OperativePatternRequirement.middle(),
+    2 => const OperativePatternRequirement.last(),
+    3 => const OperativePatternRequirement.rightAngle(),
+    _ => const OperativePatternRequirement.straightAngle(),
+  };
 }

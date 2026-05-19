@@ -48,7 +48,7 @@ extension BattlerProgression on Battler {
           attackGain += 1;
           break;
         case BattlerLevelReward.health:
-          healthGain += 10;
+          healthGain += 5;
           break;
       }
     }

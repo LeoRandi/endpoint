@@ -710,7 +710,7 @@ class _EnemyIntentCard extends StatelessWidget {
                 if (intent.damage > 0 ||
                     intent.action == EnemyTurnAction.attack)
                   _EnemyIntentChip(
-                    icon: Icons.flash_on_rounded,
+                    symbol: '\u2694',
                     valueLabel: intent.damageLabel,
                     accent: EndpointPalette.dangerAccent,
                   ),

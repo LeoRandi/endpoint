@@ -49,7 +49,7 @@ class LevelUpRewardDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   EndpointText(
-                    'La mejora base siempre aplica +1 CAPACIDAD, +1 ATK, +10 VIDA y +1 vertice de Patron. La capacidad de equipo libre por encima de la inicial suma vertices extra.',
+                    _baseRewardDescription,
                     maxLines: null,
                     style: textMedium.copyWith(
                       color: EndpointPalette.softForeground.withValues(
@@ -59,7 +59,10 @@ class LevelUpRewardDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const _LevelUpStatPreviewRow(),
+                  _LevelUpStatPreviewRow(
+                    player: player,
+                    nextLevel: offer.nextLevel,
+                  ),
                   const SizedBox(height: 14),
                   EndpointText(
                     _sectionTitle,
@@ -100,34 +103,58 @@ class LevelUpRewardDialog extends StatelessWidget {
 
   Color get _sectionAccent =>
       offer.rarity?.accent ?? EndpointPalette.rewardAccent;
+
+  String get _baseRewardDescription {
+    final capacityGain = Battler.evenLevelProgressionBonusFor(offer.nextLevel) -
+        Battler.evenLevelProgressionBonusFor(player.level);
+    final extraText = capacityGain > 0
+        ? ' Este nivel tambien suma +$capacityGain CAP y +$capacityGain PP.'
+        : '';
+    return 'La mejora base aplica +1 ATK, +1 Barrera y +5 HP.$extraText';
+  }
 }
 
 /// Resume las mejoras base fijas de cualquier subida de nivel antes de la recompensa elegida.
 class _LevelUpStatPreviewRow extends StatelessWidget {
-  const _LevelUpStatPreviewRow();
+  final Battler player;
+  final int nextLevel;
+
+  const _LevelUpStatPreviewRow({
+    required this.player,
+    required this.nextLevel,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const Wrap(
+    final capacityGain = Battler.evenLevelProgressionBonusFor(nextLevel) -
+        Battler.evenLevelProgressionBonusFor(player.level);
+
+    return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        _LevelUpDeltaChip(
-          label: '+1 CAP',
-          accent: EndpointPalette.rewardAccent,
-        ),
-        _LevelUpDeltaChip(
+        const _LevelUpDeltaChip(
           label: '+1 ATK',
           accent: EndpointPalette.dangerAccent,
         ),
         _LevelUpDeltaChip(
-          label: '+10 VIDA',
+          label: '+1 BAR',
+          accent: BattlerStat.barrier.accent,
+        ),
+        const _LevelUpDeltaChip(
+          label: '+5 HP',
           accent: EndpointPalette.primaryAccent,
         ),
-        _LevelUpDeltaChip(
-          label: '+1 PATRON',
-          accent: EndpointPalette.patternAccent,
-        ),
+        if (capacityGain > 0) ...[
+          _LevelUpDeltaChip(
+            label: '+$capacityGain CAP',
+            accent: EndpointPalette.rewardAccent,
+          ),
+          _LevelUpDeltaChip(
+            label: '+$capacityGain PP',
+            accent: EndpointPalette.patternAccent,
+          ),
+        ],
       ],
     );
   }
@@ -291,7 +318,7 @@ class _LevelUpRewardCard extends StatelessWidget {
       case BattlerLevelReward.attack:
         return '+1 ATK EXTRA';
       case BattlerLevelReward.health:
-        return '+10 VIDA EXTRA';
+        return '+5 HP EXTRA';
     }
   }
 
@@ -302,7 +329,7 @@ class _LevelUpRewardCard extends StatelessWidget {
       case BattlerLevelReward.attack:
         return 'Suma un punto de ataque adicional al bonus base del nivel.';
       case BattlerLevelReward.health:
-        return 'Suma diez puntos mas de vida maxima sobre el bonus base del nivel.';
+        return 'Suma cinco puntos mas de vida maxima sobre el bonus base del nivel.';
     }
   }
 
@@ -460,4 +487,3 @@ class _LevelUpDeltaChip extends StatelessWidget {
     );
   }
 }
-

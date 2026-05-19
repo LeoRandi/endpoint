@@ -101,11 +101,13 @@ extension BattlerRuntimeService on Battler {
   Battler receiveDebuffDamage(
     int damage, {
     required Battler source,
+    DamageKind kind = DamageKind.debuff,
   }) {
     return _battlerEffectPipeline.receiveDebuffDamage(
       owner: this,
       damage: damage,
       source: source,
+      kind: kind,
     );
   }
 
@@ -123,12 +125,15 @@ extension BattlerRuntimeService on Battler {
         },
     };
 
-    return preparedOwner.copyWith(
+    final combatReadyOwner = preparedOwner.copyWith(
       combatFlags: <CombatRuntimeFlag>{
         Battler.combatActiveFlag,
         ...cycleFlags,
       },
       currentBarrier: preparedOwner.maxBarrier,
+    );
+    return _battlerEffectPipeline.applyAbilityCombatStartEffects(
+      owner: combatReadyOwner,
     );
   }
 
@@ -358,6 +363,28 @@ extension BattlerRuntimeService on Battler {
       owner: this,
       opponent: opponent,
       pattern: pattern,
+    );
+  }
+
+  /// Ejecuta efectos de items usados por el Patron antes de resolver su ataque.
+  ItemEffectResolution applyEquippedItemPrePatternAttackEffects({
+    required Battler opponent,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return _battlerEffectPipeline.applyEquippedItemPrePatternAttackEffects(
+      owner: this,
+      opponent: opponent,
+      pattern: pattern,
+    );
+  }
+
+  /// Ejecuta todos los efectos Al usarse de items equipados sin requerir Patron.
+  ItemEffectResolution applyEquippedItemForcedPatternUsedEffects({
+    required Battler opponent,
+  }) {
+    return _battlerEffectPipeline.applyEquippedItemForcedPatternUsedEffects(
+      owner: this,
+      opponent: opponent,
     );
   }
 

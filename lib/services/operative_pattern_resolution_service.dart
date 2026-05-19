@@ -44,6 +44,7 @@ abstract final class OperativePatternResolutionService {
     required Map<String, Item> equippedItemsByPointKey,
     required Map<String, OperativePatternBonus> bonusesByPointKey,
     int adaptationMaxEmptyItemBonus = 0,
+    bool shouldDilutePositiveBonuses = false,
     Set<String> blockedPointKeys = const <String>{},
   }) {
     final stablePatternPoints =
@@ -79,9 +80,6 @@ abstract final class OperativePatternResolutionService {
     final activatedPatternBonusesByPointKey = <String, OperativePatternBonus>{};
     final activatedAdjacencyBonusesByPointKey =
         <String, List<OperativePatternAdjacencyBonus>>{};
-    final shouldHalveItemPatternBonuses = equippedItemsByPointKey.values.any(
-      (item) => item.id == ItemId.sunglasses,
-    );
     var attackBonus = 0;
     var barrierBonus = 0;
 
@@ -107,7 +105,7 @@ abstract final class OperativePatternResolutionService {
                   point: point,
                   patternPoints: stablePatternPoints,
                   itemActivationByPointKey: itemActivationByPointKey,
-                  shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
+                  shouldHalveItemPatternBonuses: shouldDilutePositiveBonuses,
                 );
       if (bonus != null) {
         activatedPatternBonusesByPointKey[point.key] = bonus;
@@ -126,7 +124,7 @@ abstract final class OperativePatternResolutionService {
         item: item,
         point: point,
         equippedItemsByPointKey: equippedItemsByPointKey,
-        shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
+        shouldHalveItemPatternBonuses: shouldDilutePositiveBonuses,
       );
       if (adjacencyBonuses.isEmpty) continue;
 

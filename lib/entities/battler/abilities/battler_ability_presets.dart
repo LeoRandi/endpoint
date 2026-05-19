@@ -579,6 +579,92 @@ const cadenaNeurotoxicaAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Pasiva amarilla de Veloz que replica el doble golpe de las Gafas sin apilar su penalizacion.
+const aceleracionFotovoltaicaAbility = BattlerAbility(
+  id: BattlerAbilityId.aceleracionFotovoltaica,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.yellow,
+  tags: _ataqueAbilityTags,
+  name: 'Aceleracion Fotovoltaica',
+  description:
+      'Pasiva. Cada ataque basico golpea una vez adicional, pero tus bonus de items, adyacencias y patrones se reducen a la mitad si no estaban ya reducidos.',
+  icon: Icons.flash_on_rounded,
+  value: 1,
+  upgradeValue: 0,
+  effect: AceleracionFotovoltaicaAbilityEffect(),
+  isImplemented: true,
+);
+
+const b4r3b0n3dAbility = BattlerAbility(
+  id: BattlerAbilityId.b4r3b0n3d,
+  rarity: RarityTier.green,
+  tags: _ataqueBarreraAbilityTags,
+  name: 'B4r3B0n3D',
+  description:
+      'Pasiva de Patron. Si el Patron no activa efectos de items, ganas Potencia y Barrera antes del ataque.',
+  icon: Icons.data_object_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: B4r3B0n3DAbilityEffect(),
+  isImplemented: true,
+);
+
+const compensadorRutaAbility = BattlerAbility(
+  id: BattlerAbilityId.compensadorRuta,
+  rarity: RarityTier.purple,
+  tags: _ataqueBarreraAbilityTags,
+  name: 'Compensador de Ruta',
+  description:
+      'Pasiva. Al inicio del combate, ganas valor en la stat menos aportada por tus items entre HP, ATK y Barrera.',
+  icon: Icons.route_rounded,
+  value: 3,
+  upgradeValue: 1,
+  effect: CompensadorRutaAbilityEffect(),
+  isImplemented: true,
+);
+
+const aTodoRiesgoAbility = BattlerAbility(
+  id: BattlerAbilityId.aTodoRiesgo,
+  rarity: RarityTier.blue,
+  tags: _economiaVidaAbilityTags,
+  name: 'A Todo Riesgo',
+  description:
+      'Pasiva. La primera vez por combate que pierdes HP, ganas creditos igual al HP perdido mas valor.',
+  icon: Icons.policy_rounded,
+  value: 2,
+  upgradeValue: 2,
+  effect: ATodoRiesgoAbilityEffect(),
+  isImplemented: true,
+);
+
+const ultimaPiezaAbility = BattlerAbility(
+  id: BattlerAbilityId.ultimaPieza,
+  rarity: RarityTier.yellow,
+  tags: _ataqueBarreraAbilityTags,
+  name: 'Ultima Pieza',
+  description:
+      'Pasiva. Al inicio del combate, mejora el item equipado con menos bonuses y lo marca con un aura.',
+  icon: Icons.electric_bolt_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: UltimaPiezaAbilityEffect(),
+  isImplemented: true,
+);
+
+const geometriaBolsilloAbility = BattlerAbility(
+  id: BattlerAbilityId.geometriaBolsillo,
+  rarity: RarityTier.blue,
+  tags: _ataqueBarreraAbilityTags,
+  name: 'Geometria de Bolsillo',
+  description:
+      'Pasiva. Al inicio del combate, hasta 1 item sin bonus de Patron gana un bonus de Patron aleatorio.',
+  icon: Icons.category_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: GeometriaBolsilloAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Pasiva general que permite que items simples funcionen como huecos de Patron.
 const adaptacionAbility = BattlerAbility(
   id: BattlerAbilityId.adaptacion,
@@ -591,6 +677,22 @@ const adaptacionAbility = BattlerAbility(
   value: 2,
   upgradeValue: 1,
   effect: AdaptacionAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva especial de Cinder Executioner que convierte cada turno en un horno compartido.
+const hornoSimetricoAbility = BattlerAbility(
+  id: BattlerAbilityId.hornoSimetrico,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _ataqueDebuffAbilityTags,
+  name: 'Horno Simetrico',
+  description:
+      'Pasiva. Al inicio de tu turno, aplicas Quemadura a ti y al rival.',
+  icon: Icons.local_fire_department_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: HornoSimetricoAbilityEffect(),
   isImplemented: true,
 );
 
@@ -632,7 +734,14 @@ const abilityPresets = <BattlerAbility>[
   agujaToxicaAbility,
   rastroInestableAbility,
   cadenaNeurotoxicaAbility,
+  aceleracionFotovoltaicaAbility,
+  b4r3b0n3dAbility,
+  compensadorRutaAbility,
+  aTodoRiesgoAbility,
+  ultimaPiezaAbility,
+  geometriaBolsilloAbility,
   adaptacionAbility,
+  hornoSimetricoAbility,
 ];
 
 /// Indice canonico de presets para resolver ids sin duplicar switches.

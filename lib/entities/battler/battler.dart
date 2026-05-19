@@ -148,6 +148,7 @@ enum BattlerCombatFlag {
   mandatoColiseoCounterPreventedThisTurn,
   combustionDirigidaTriggered,
   reventaCircularTriggered,
+  aTodoRiesgoTriggered,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
@@ -175,6 +176,12 @@ enum ItemCombatFlagKind {
   aceleradorRetoTriggered,
   thermalTurbineCombatStartTriggered,
   resonanceEchoTriggeredThisTurn,
+  vendasApretadasTriggeredThisTurn,
+  contratoDolorosoDamagedThisTurn,
+  yunqueCardiacoTriggeredThisTurn,
+  motorMartirioDamageThisTurn,
+  arnesTacticoPotenciaTracked,
+  arnesTacticoDesafioTriggeredThisTurn,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.
@@ -329,6 +336,21 @@ class _BattlerDerivedState {
       }
     }
 
+    final basicAttackAbilityIds =
+        abilityIdsByHook[BattlerAbilityHook.basicAttackCountModifier] ??
+            const <BattlerAbilityId>[];
+    for (final abilityId in basicAttackAbilityIds) {
+      final ability = abilitiesById[abilityId];
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      basicAttackCount = effect.modifyBasicAttackCount(
+        owner: owner,
+        ability: ability,
+        count: basicAttackCount,
+      );
+    }
+
     final incomeStatuses = statusesByHook[BattlerStatusHook.incomeModifier] ??
         const <BattlerStatus>[];
     final statStatuses =
@@ -348,6 +370,7 @@ class _BattlerDerivedState {
         stat: Battler._calculateStat(
           baseStats: owner.baseStats,
           equippedItems: owner.equippedItems,
+          abilities: owner.abilities,
           stat: stat,
         ),
     };
@@ -355,6 +378,7 @@ class _BattlerDerivedState {
     var income = Battler._calculateIncome(
       baseIncome: owner.baseIncome,
       equippedItems: owner.equippedItems,
+      abilities: owner.abilities,
     );
     for (final status in resolvedIncomeStatuses) {
       income = status.modifyIncome(
@@ -423,8 +447,8 @@ class Battler {
   /// Marca el nivel operativo inicial que tiene cualquier battler controlado por la run.
   static const initialLevel = 1;
 
-  /// Limita la progresion total para evitar escalado indefinido mientras no exista postgame.
-  static const maximumLevel = 10;
+  /// Limite practico alto para que la progresion pueda seguir ciclando durante la run.
+  static const maximumLevel = 999;
 
   /// Define el coste fijo en XP para cualquier subida de nivel.
   static const initialLevelUpExperienceCost = 4;
@@ -676,11 +700,13 @@ class Battler {
   static int _calculateStat({
     required Map<BattlerStat, int> baseStats,
     required List<Item> equippedItems,
+    required List<BattlerAbility> abilities,
     required BattlerStat stat,
   }) {
     final baseValue = baseStats[stat] ?? 0;
     final equipmentBonus = _resolveEquipmentBonus(
       equippedItems: equippedItems,
+      abilities: abilities,
       bonus: equippedItems.fold<int>(
         0,
         (total, item) => total + item.modifier(stat),
@@ -693,6 +719,7 @@ class Battler {
 
     final healthPercentModifier = _resolveEquipmentBonus(
       equippedItems: equippedItems,
+      abilities: abilities,
       bonus: equippedItems.fold<int>(
         0,
         (total, item) => total + item.maxHealthPercentModifier,
@@ -712,9 +739,11 @@ class Battler {
   static int _calculateIncome({
     required int baseIncome,
     required List<Item> equippedItems,
+    required List<BattlerAbility> abilities,
   }) {
     final equipmentBonus = _resolveEquipmentBonus(
       equippedItems: equippedItems,
+      abilities: abilities,
       bonus: equippedItems.fold<int>(
         0,
         (total, item) => total + item.incomeModifier,
@@ -724,17 +753,35 @@ class Battler {
     return max(0, baseIncome + equipmentBonus);
   }
 
-  /// Reduce los bonus positivos del equipo cuando las Gafas de Sol estan equipadas.
+  /// Reduce los bonus positivos del equipo cuando un efecto de dilucion esta activo.
   static int _resolveEquipmentBonus({
     required List<Item> equippedItems,
+    required List<BattlerAbility> abilities,
     required int bonus,
   }) {
     if (bonus <= 0) return bonus;
-    if (!equippedItems.any((item) => item.id == ItemId.sunglasses)) {
+    if (!_hasBonusDilution(
+        equippedItems: equippedItems, abilities: abilities)) {
       return bonus;
     }
 
     return (bonus + 1) ~/ 2;
+  }
+
+  /// Indica si algun efecto activo ya redujo los bonus positivos al 50%.
+  bool get hasBonusDilution => Battler._hasBonusDilution(
+        equippedItems: equippedItems,
+        abilities: abilities,
+      );
+
+  static bool _hasBonusDilution({
+    required List<Item> equippedItems,
+    required List<BattlerAbility> abilities,
+  }) {
+    return equippedItems.any((item) => item.id == ItemId.sunglasses) ||
+        abilities.any(
+          (ability) => ability.id == BattlerAbilityId.aceleracionFotovoltaica,
+        );
   }
 
   /// Calcula el coste de XP del siguiente nivel sin escalado entre niveles.

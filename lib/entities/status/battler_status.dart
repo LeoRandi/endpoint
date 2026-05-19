@@ -15,6 +15,7 @@ enum BattlerStatusType {
 enum DamageKind {
   direct,
   debuff,
+  burn,
 }
 
 /// Enumera las identidades estables de los estados para evitar lookups por texto.
@@ -34,6 +35,7 @@ enum BattlerStatusId {
   puntoCiego,
   desafio,
   desafioExcitante,
+  compensadorRuta,
   deuda,
 }
 

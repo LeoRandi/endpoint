@@ -71,7 +71,14 @@ enum BattlerAbilityId {
   agujaToxica,
   rastroInestable,
   cadenaNeurotoxica,
+  aceleracionFotovoltaica,
+  b4r3b0n3d,
+  compensadorRuta,
+  aTodoRiesgo,
+  ultimaPieza,
+  geometriaBolsillo,
   adaptacion,
+  hornoSimetrico,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -142,15 +149,18 @@ extension ArchetypeIdAbilityAffinity on ArchetypeId {
 /// Enumera los puntos del ciclo de combate en los que una habilidad puede aportar hooks.
 enum BattlerAbilityHook {
   hourStart,
+  combatStart,
   turnStart,
   turnEnd,
   combatEnd,
+  incomingDamageEffect,
   outgoingDamageModifier,
   incomingDamageModifier,
   incomingStatusModifier,
   attackResolved,
   receiveDamageResolved,
   patternMatchResolved,
+  basicAttackCountModifier,
   fatalDamage,
   passive,
 }
@@ -165,6 +175,7 @@ class BattlePatternMatchContext {
   final Set<String> repeatedItemPointKeys;
   final String? firstRepeatedItemPointKey;
   final bool firstUsedItemHasAttackBonus;
+  final int activatedItemEffectCount;
 
   const BattlePatternMatchContext({
     required this.patternPoints,
@@ -175,6 +186,7 @@ class BattlePatternMatchContext {
     this.repeatedItemPointKeys = const <String>{},
     this.firstRepeatedItemPointKey,
     this.firstUsedItemHasAttackBonus = false,
+    this.activatedItemEffectCount = 0,
   });
 
   List<OperativePatternPoint> get sequence =>
@@ -299,6 +311,10 @@ const _vidaDebuffAbilityTags = <EntityTag>[
 ];
 const _economiaAbilityTags = <EntityTag>[
   EntityTag.economia,
+];
+const _economiaVidaAbilityTags = <EntityTag>[
+  EntityTag.economia,
+  EntityTag.vida,
 ];
 const _economiaAtaqueAbilityTags = <EntityTag>[
   EntityTag.economia,
@@ -440,6 +456,14 @@ abstract class BattlerAbilityEffect {
     return owner;
   }
 
+  /// Resuelve efectos que se aplican justo al preparar un combate.
+  Battler onCombatStart({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    return owner;
+  }
+
   /// Resuelve efectos que deben dispararse al inicio de turno.
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -488,6 +512,25 @@ abstract class BattlerAbilityEffect {
     return damage;
   }
 
+  /// Permite alterar el portador y el dano entrante justo antes de recibirlo.
+  BattlerIncomingDamageResolution onIncomingDamage({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damage,
+    required DamageKind kind,
+  }) {
+    return BattlerIncomingDamageResolution(
+      owner: owner,
+      damage: modifyIncomingDamage(
+        owner: owner,
+        source: source,
+        ability: ability,
+        damage: damage,
+      ),
+    );
+  }
+
   /// Permite alterar o cancelar un estado recibido antes de que se aplique.
   BattlerAbilityIncomingStatusResolution onIncomingStatus({
     required Battler owner,
@@ -530,6 +573,15 @@ abstract class BattlerAbilityEffect {
     required BattlePatternMatchContext pattern,
   }) {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  /// Ajusta cuantas veces se resuelve una accion de ataque basico.
+  int modifyBasicAttackCount({
+    required Battler owner,
+    required BattlerAbility ability,
+    required int count,
+  }) {
+    return count;
   }
 
   /// Aplica efectos pasivos que deben reevaluarse sin necesidad de un evento puntual.
@@ -987,7 +1039,21 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Pasiva de Patron. Si el patron usa ${positiveAmount + 1} puntos con item, aplica Fragilidad $positiveAmount. Si el enemigo tenia otro debuff, aplica el doble.';
     case BattlerAbilityId.cadenaNeurotoxica:
       return 'Pasiva de Patron. Cuando aplicas o aumentas un debuff con un item Al usarse u otro aumento, infliges $positiveAmount dano directo una vez por item y aumento.';
+    case BattlerAbilityId.aceleracionFotovoltaica:
+      return 'Pasiva. Cada ataque basico golpea una vez adicional, pero tus bonus de items, adyacencias y patrones se reducen a la mitad si no estaban ya reducidos.';
+    case BattlerAbilityId.b4r3b0n3d:
+      return 'Pasiva de Patron. Si el Patron no activa efectos de items, ganas $positiveAmount de Potencia y $positiveAmount de Barrera antes del ataque.';
+    case BattlerAbilityId.compensadorRuta:
+      return 'Pasiva. Al inicio del combate, ganas $positiveAmount en la stat menos aportada por tus items entre HP, ATK y Barrera.';
+    case BattlerAbilityId.aTodoRiesgo:
+      return 'Pasiva. La primera vez por combate que pierdes HP, ganas creditos igual al HP perdido +$positiveAmount.';
+    case BattlerAbilityId.ultimaPieza:
+      return 'Pasiva. Al inicio del combate, mejora el item equipado con menos bonuses: +$positiveAmount a sus stats, value, bonus de Patron y adyacencias si existen.';
+    case BattlerAbilityId.geometriaBolsillo:
+      return 'Pasiva. Al inicio del combate, hasta $positiveAmount items sin bonus de Patron ganan un bonus de Patron aleatorio.';
     case BattlerAbilityId.adaptacion:
       return 'Pasiva de Patron. Los items equipados sin bonus de patron ni adyacencia cuentan como espacios vacios al usarse, con un bonus maximo de $positiveAmount a ATK o Barrera.';
+    case BattlerAbilityId.hornoSimetrico:
+      return 'Pasiva. Al inicio de tu turno, aplicas Quemadura $positiveAmount a ti y al rival.';
   }
 }

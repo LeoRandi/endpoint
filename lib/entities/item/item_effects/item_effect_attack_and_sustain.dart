@@ -306,7 +306,7 @@ class RescueBladeItemEffect extends ItemEffect {
   const RescueBladeItemEffect()
       : super(
           description:
-              'Si el objetivo queda al 50% de HP o menos, recuperas vida.',
+              'Al usarse, si el objetivo queda al 50% de HP o menos, recuperas vida.',
           hooks: const {
             ItemEffectHook.patternUsed,
           },
@@ -432,7 +432,7 @@ class SuccionaCreditosItemEffect extends ItemEffect {
   const SuccionaCreditosItemEffect()
       : super(
           description:
-              'La primera vez por turno que atacas a un objetivo con un debuff, ganas creditos y recuperas barrera.',
+              'Al usarse, una vez por turno, si el objetivo tiene un debuff, ganas creditos y recuperas barrera.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.patternUsed,
@@ -442,7 +442,7 @@ class SuccionaCreditosItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedValue = max(1, item.value);
-    return 'La primera vez por turno que atacas a un objetivo con un debuff, ganas ${resolvedValue}C y recuperas $resolvedValue de Barrera.';
+    return 'Al usarse, una vez por turno, si el objetivo tiene un debuff, ganas ${resolvedValue}C y recuperas $resolvedValue de Barrera.';
   }
 
   @override
@@ -576,7 +576,7 @@ class ClavoReactorItemEffect extends ItemEffect {
   const ClavoReactorItemEffect()
       : super(
           description:
-              'La primera vez por turno que atacas, infliges daño directo extra y te aplicas Quemadura.',
+              'Al usarse, una vez por turno, infliges dano directo extra y te aplicas Quemadura.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.patternUsed,
@@ -586,7 +586,7 @@ class ClavoReactorItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedValue = max(1, item.value);
-    return 'La primera vez por turno que atacas, infliges ${resolvedValue * 2} de daño directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
+    return 'Al usarse, una vez por turno, infliges ${resolvedValue * 2} de dano directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
   }
 
   @override
@@ -699,7 +699,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
   const UltimaMarchaItemEffect()
       : super(
           description:
-              'La primera vez por turno que atacas, infliges daño extra segun la vida que te falta.',
+              'Al usarse, una vez por turno, infliges dano extra segun la vida que te falta.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.outgoingDamageModifier,
@@ -709,7 +709,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'La primera vez por turno que atacas, infliges daño adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
+    return 'Al usarse, una vez por turno, infliges dano adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
   }
 
   @override

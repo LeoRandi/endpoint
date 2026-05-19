@@ -15,7 +15,7 @@ class LevelUpRewardService {
 
     switch (rewardType) {
       case BattlerLevelRewardChoiceType.ability:
-        final rarity = nextLevel == 2 ? RarityTier.green : RarityTier.purple;
+        final rarity = abilityRarityForNextLevel(nextLevel);
         final choices = _buildAbilityChoices(
           player: player,
           targetRarity: rarity,
@@ -28,11 +28,11 @@ class LevelUpRewardService {
         return BattlerLevelRewardOffer(
           nextLevel: nextLevel,
           type: rewardType,
-          rarity: rarity,
+          rarity: choices.first.rarity ?? rarity,
           choices: choices,
         );
       case BattlerLevelRewardChoiceType.item:
-        final rarity = nextLevel == 3 ? RarityTier.blue : RarityTier.yellow;
+        final rarity = itemRarityForNextLevel(nextLevel);
         final choices = _buildItemChoices(
           player: player,
           targetRarity: rarity,
@@ -45,7 +45,7 @@ class LevelUpRewardService {
         return BattlerLevelRewardOffer(
           nextLevel: nextLevel,
           type: rewardType,
-          rarity: rarity,
+          rarity: choices.first.rarity ?? rarity,
           choices: choices,
         );
       case BattlerLevelRewardChoiceType.stat:
@@ -54,17 +54,25 @@ class LevelUpRewardService {
   }
 
   static BattlerLevelRewardChoiceType rewardTypeForNextLevel(int nextLevel) {
-    switch (nextLevel) {
-      case 2:
-      case 5:
-        return BattlerLevelRewardChoiceType.ability;
-      case 3:
-      case 6:
-        return BattlerLevelRewardChoiceType.item;
-      case 4:
-      default:
-        return BattlerLevelRewardChoiceType.stat;
-    }
+    final cycleIndex = (max(2, nextLevel) - 2) % 3;
+    return switch (cycleIndex) {
+      0 => BattlerLevelRewardChoiceType.ability,
+      1 => BattlerLevelRewardChoiceType.item,
+      _ => BattlerLevelRewardChoiceType.stat,
+    };
+  }
+
+  static RarityTier abilityRarityForNextLevel(int nextLevel) {
+    final cycleCount = (max(2, nextLevel) - 2) ~/ 3;
+    if (cycleCount <= 0) return RarityTier.green;
+    if (cycleCount == 1) return RarityTier.purple;
+    return RarityTier.yellow;
+  }
+
+  static RarityTier itemRarityForNextLevel(int nextLevel) {
+    final cycleCount = (max(3, nextLevel) - 3) ~/ 3;
+    if (cycleCount <= 0) return RarityTier.blue;
+    return RarityTier.yellow;
   }
 
   List<BattlerLevelRewardChoice> _buildStatChoices() {
@@ -89,23 +97,29 @@ class LevelUpRewardService {
     required RunRandomizer randomizer,
     required int count,
   }) {
-    final scopedCandidates = _abilityCandidatesForRarity(
-      abilityPoolForArchetype(player.archetypeId),
-      player: player,
-      targetRarity: targetRarity,
-    );
-    final fallbackCandidates = _abilityCandidatesForRarity(
-      abilityPresets,
-      player: player,
-      targetRarity: targetRarity,
-    );
-    final pickedAbilities = _pickPreferredThenFallback<BattlerAbility>(
-      preferred: scopedCandidates,
-      fallback: fallbackCandidates,
-      randomizer: randomizer,
-      count: count,
-      keyOf: (ability) => ability.id,
-    );
+    final pickedAbilities = <BattlerAbility>[];
+    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+      final scopedCandidates = _abilityCandidatesForRarity(
+        abilityPoolForArchetype(player.archetypeId),
+        player: player,
+        targetRarity: rarity,
+      );
+      final fallbackCandidates = _abilityCandidatesForRarity(
+        abilityPresets,
+        player: player,
+        targetRarity: rarity,
+      );
+      pickedAbilities.addAll(
+        _pickPreferredThenFallback<BattlerAbility>(
+          preferred: scopedCandidates,
+          fallback: fallbackCandidates,
+          randomizer: randomizer,
+          count: count,
+          keyOf: (ability) => ability.id,
+        ),
+      );
+      if (pickedAbilities.isNotEmpty) break;
+    }
 
     return List<BattlerLevelRewardChoice>.unmodifiable(
       pickedAbilities.map(BattlerLevelRewardChoice.ability),
@@ -118,21 +132,27 @@ class LevelUpRewardService {
     required RunRandomizer randomizer,
     required int count,
   }) {
-    final scopedCandidates = _itemCandidatesForRarity(
-      itemPoolForArchetype(player.archetypeId),
-      targetRarity: targetRarity,
-    );
-    final fallbackCandidates = _itemCandidatesForRarity(
-      itemPresets,
-      targetRarity: targetRarity,
-    );
-    final pickedItems = _pickPreferredThenFallback<Item>(
-      preferred: scopedCandidates,
-      fallback: fallbackCandidates,
-      randomizer: randomizer,
-      count: count,
-      keyOf: (item) => item.id,
-    );
+    final pickedItems = <Item>[];
+    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+      final scopedCandidates = _itemCandidatesForRarity(
+        itemPoolForArchetype(player.archetypeId),
+        targetRarity: rarity,
+      );
+      final fallbackCandidates = _itemCandidatesForRarity(
+        itemPresets,
+        targetRarity: rarity,
+      );
+      pickedItems.addAll(
+        _pickPreferredThenFallback<Item>(
+          preferred: scopedCandidates,
+          fallback: fallbackCandidates,
+          randomizer: randomizer,
+          count: count,
+          keyOf: (item) => item.id,
+        ),
+      );
+      if (pickedItems.isNotEmpty) break;
+    }
 
     return List<BattlerLevelRewardChoice>.unmodifiable(
       pickedItems.map(BattlerLevelRewardChoice.item),
@@ -214,6 +234,15 @@ class LevelUpRewardService {
     if (promotedItem.rarity != targetRarity) return null;
 
     return promotedItem;
+  }
+
+  List<RarityTier> _rarityFallbacksFrom(RarityTier targetRarity) {
+    return List<RarityTier>.unmodifiable(
+      RarityTier.values
+          .where((rarity) => rarity.index <= targetRarity.index)
+          .toList(growable: false)
+          .reversed,
+    );
   }
 
   List<T> _pickPreferredThenFallback<T>({

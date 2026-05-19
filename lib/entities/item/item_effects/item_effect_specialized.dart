@@ -117,7 +117,7 @@ class SunExecutionBladeItemEffect extends ItemEffect {
   const SunExecutionBladeItemEffect()
       : super(
           description:
-              'Consume la Quemadura del objetivo para infligir daño directo extra.',
+              'Al usarse, consume la Quemadura del objetivo para infligir dano directo extra.',
           hooks: const {
             ItemEffectHook.patternUsed,
           },
@@ -125,7 +125,7 @@ class SunExecutionBladeItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Si el objetivo tiene Quemadura, la consume e inflige daño directo extra igual a su daño actual total + ${max(1, item.value)}.';
+    return 'Al usarse, si el objetivo tiene Quemadura, la consume e inflige dano directo extra igual a su dano actual total + ${max(1, item.value)}.';
   }
 
   @override
