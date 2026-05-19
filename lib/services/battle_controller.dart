@@ -33,6 +33,7 @@ enum BattleCombatAnimationHook {
   barrierGain,
   barrierLoss,
   fragilidadBurst,
+  purgeDamage,
 }
 
 enum BattleCombatMotionAsset {
@@ -49,6 +50,7 @@ enum BattleCombatFloatingNumberTone {
   healing,
   barrierGain,
   fragilidadDamage,
+  purgeDamage,
 }
 
 class BattleCombatFloatingNumberCue {
@@ -72,6 +74,8 @@ class BattleCombatAnimationCue {
   final int effectCount;
   final BattleCombatMotionAsset motionAsset;
   final List<BattleCombatFloatingNumberCue> floatingNumbers;
+  final Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
+      floatingNumbersBySide;
 
   const BattleCombatAnimationCue({
     required this.hook,
@@ -84,6 +88,8 @@ class BattleCombatAnimationCue {
     this.effectCount = 1,
     this.motionAsset = BattleCombatMotionAsset.sword,
     this.floatingNumbers = const <BattleCombatFloatingNumberCue>[],
+    this.floatingNumbersBySide =
+        const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{},
   });
 }
 
@@ -156,6 +162,19 @@ class BattleController extends ChangeNotifier {
   bool get isCombatFinished => _turn == BattleTurnState.finished;
   bool get canUseActions => isPlayerTurn && !isCombatFinished;
   int get currentRound => _currentRound;
+  int get currentPurgeDamagePercent => _purgeDamagePercentForRound(
+        max(10, _currentRound),
+      );
+  bool get isPurgeWarningVisible => _currentRound >= 8;
+  bool get isPurgeActive => _currentRound >= 10;
+  int get playerPurgeDamagePreview => _purgeDamageForBattler(
+        battler: _player,
+        round: max(10, _currentRound),
+      );
+  int get enemyPurgeDamagePreview => _purgeDamageForBattler(
+        battler: _enemy,
+        round: max(10, _currentRound),
+      );
   int get playerBlockBarrierGain => _playerCurrentBlockBarrierGain();
   int get playerInitialBarrier => _playerInitialBlockBarrier;
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
@@ -2325,33 +2344,6 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    final pressureBeforePlayer = _player;
-    final pressureBeforeEnemy = _enemy;
-    final pressureResolution = _applyTurnPressureDamageIfNeeded(
-      player: _player,
-      enemy: _enemy,
-    );
-    await _playCombatStateTransitionAnimations(
-      playerBefore: pressureBeforePlayer,
-      enemyBefore: pressureBeforeEnemy,
-      playerAfter: pressureResolution.player,
-      enemyAfter: pressureResolution.enemy,
-    );
-    if (_isDisposed) return;
-    _player = pressureResolution.player;
-    _enemy = pressureResolution.enemy;
-    final pressureFinish = _turnEngine.finishFor(
-      player: _player,
-      enemy: _enemy,
-    );
-    if (pressureFinish != null) {
-      _finishCombat(
-        resultType: pressureFinish.resultType,
-        resultText: pressureFinish.resultText,
-      );
-      return;
-    }
-
     if (notify) {
       notifyListeners();
     }
@@ -2396,25 +2388,6 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    final pressureResolution = _applyTurnPressureDamageIfNeeded(
-      player: _player,
-      enemy: _enemy,
-    );
-    _player = pressureResolution.player;
-    _enemy = pressureResolution.enemy;
-
-    final finish = _turnEngine.finishFor(
-      player: _player,
-      enemy: _enemy,
-    );
-    if (finish != null) {
-      _finishCombat(
-        resultType: finish.resultType,
-        resultText: finish.resultText,
-      );
-      return;
-    }
-
     if (notify) {
       notifyListeners();
     }
@@ -2454,13 +2427,18 @@ class BattleController extends ChangeNotifier {
     if (_isDisposed) return true;
     _player = resolution.player;
     _enemy = resolution.enemy;
-    _registerCompletedTurn();
 
     if (resolution.finish != null) {
       _finishCombat(
         resultType: resolution.finish!.resultType,
         resultText: resolution.finish!.resultText,
       );
+      return true;
+    }
+
+    final completedRound = _registerCompletedTurn();
+    if (completedRound != null &&
+        await _applyPurgeDamageForCompletedRound(completedRound)) {
       return true;
     }
 
@@ -2644,32 +2622,68 @@ class BattleController extends ChangeNotifier {
     };
   }
 
-  void _registerCompletedTurn() {
+  int? _registerCompletedTurn() {
     _completedTurnsInCurrentRound++;
     if (_completedTurnsInCurrentRound < 2) {
-      return;
+      return null;
     }
 
+    final completedRound = _currentRound;
     _completedTurnsInCurrentRound = 0;
     _currentRound++;
+    return completedRound;
   }
 
-  BattleTurnResolution _applyTurnPressureDamageIfNeeded({
-    required Battler player,
-    required Battler enemy,
-  }) {
-    final pressurePercent = _turnPressureDamagePercentForRound(_currentRound);
-    if (pressurePercent <= 0) {
-      return BattleTurnResolution(player: player, enemy: enemy);
+  Future<bool> _applyPurgeDamageForCompletedRound(int completedRound) async {
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
+    final resolution = _applyPurgeDamage(
+      player: playerBefore,
+      enemy: enemyBefore,
+      round: completedRound,
+    );
+    if (resolution.player == playerBefore && resolution.enemy == enemyBefore) {
+      return false;
     }
 
-    final playerDamage = _turnPressureDamageForBattler(
-      battler: player,
-      pressurePercent: pressurePercent,
+    await _playPurgeDamageAnimation(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: resolution.player,
+      enemyAfter: resolution.enemy,
     );
-    final enemyDamage = _turnPressureDamageForBattler(
+    if (_isDisposed) return true;
+    _player = resolution.player;
+    _enemy = resolution.enemy;
+    notifyListeners();
+
+    final finish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (finish != null) {
+      _finishCombat(
+        resultType: finish.resultType,
+        resultText: finish.resultText,
+      );
+      return true;
+    }
+
+    return false;
+  }
+
+  BattleTurnResolution _applyPurgeDamage({
+    required Battler player,
+    required Battler enemy,
+    required int round,
+  }) {
+    final playerDamage = _purgeDamageForBattler(
+      battler: player,
+      round: round,
+    );
+    final enemyDamage = _purgeDamageForBattler(
       battler: enemy,
-      pressurePercent: pressurePercent,
+      round: round,
     );
 
     return BattleTurnResolution(
@@ -2678,19 +2692,75 @@ class BattleController extends ChangeNotifier {
     );
   }
 
-  int _turnPressureDamageForBattler({
-    required Battler battler,
-    required int pressurePercent,
+  Future<void> _playPurgeDamageAnimation({
+    required Battler playerBefore,
+    required Battler enemyBefore,
+    required Battler playerAfter,
+    required Battler enemyAfter,
+  }) async {
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.purgeDamage,
+        primarySide: BattleCombatantSide.player,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: playerAfter,
+        enemyAfter: enemyAfter,
+        floatingNumbersBySide: <BattleCombatantSide,
+            List<BattleCombatFloatingNumberCue>>{
+          BattleCombatantSide.player: _buildPurgeFloatingNumbers(
+            before: playerBefore,
+            after: playerAfter,
+          ),
+          BattleCombatantSide.enemy: _buildPurgeFloatingNumbers(
+            before: enemyBefore,
+            after: enemyAfter,
+          ),
+        },
+      ),
+    );
+  }
+
+  List<BattleCombatFloatingNumberCue> _buildPurgeFloatingNumbers({
+    required Battler before,
+    required Battler after,
   }) {
+    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
+    final healthLoss = max(0, before.health - after.health);
+    return List<BattleCombatFloatingNumberCue>.unmodifiable([
+      if (healthLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.purgeDamage,
+          amount: healthLoss,
+        ),
+      if (barrierLoss > 0)
+        BattleCombatFloatingNumberCue(
+          tone: BattleCombatFloatingNumberTone.purgeDamage,
+          amount: barrierLoss,
+        ),
+    ]);
+  }
+
+  int _purgeDamageForBattler({
+    required Battler battler,
+    required int round,
+  }) {
+    final pressurePercent = _purgeDamagePercentForRound(round);
     if (battler.isDefeated || pressurePercent <= 0) {
       return 0;
     }
 
-    final rawDamage = (battler.health * pressurePercent / 100).ceil();
-    return max(1, rawDamage);
+    final rawDamage = max(1, (battler.health * pressurePercent / 100).ceil());
+    return max(0, rawDamage - _purgeDamageReductionFor(battler));
   }
 
-  int _turnPressureDamagePercentForRound(int round) {
+  int _purgeDamageReductionFor(Battler battler) {
+    final ability = battler.abilityById(BattlerAbilityId.kilotonificacion);
+    if (ability == null) return 0;
+    return max(0, ability.currentValue);
+  }
+
+  int _purgeDamagePercentForRound(int round) {
     if (round < 10) {
       return 0;
     }

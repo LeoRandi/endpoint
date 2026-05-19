@@ -55,6 +55,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   startingItems: const [],
   startingAbilities: const [
     pulsoRepLAbility,
+    kilotonificacionAbility,
   ],
 );
 

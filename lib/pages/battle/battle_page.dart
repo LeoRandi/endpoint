@@ -420,6 +420,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       case BattleCombatAnimationHook.barrierLoss:
         await _playCombatStatCue(cue);
         break;
+      case BattleCombatAnimationHook.purgeDamage:
+        await _playPurgeDamageCue(cue);
+        break;
       case BattleCombatAnimationHook.fragilidadBurst:
         await _playFragilidadBurstCue(cue);
         break;
@@ -675,6 +678,60 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     _releaseDisplayOverrideOnNextSceneChange = true;
   }
 
+  Future<void> _playPurgeDamageCue(BattleCombatAnimationCue cue) async {
+    final floatingNumberBurst = _buildFloatingNumberBurst(cue);
+    final healthSides = <BattleCombatantSide>{
+      if (cue.playerAfter.health < cue.playerBefore.health)
+        BattleCombatantSide.player,
+      if (cue.enemyAfter.health < cue.enemyBefore.health)
+        BattleCombatantSide.enemy,
+    };
+    final barrierSides = <BattleCombatantSide>{
+      if (cue.playerAfter.currentBarrier < cue.playerBefore.currentBarrier)
+        BattleCombatantSide.player,
+      if (cue.enemyAfter.currentBarrier < cue.enemyBefore.currentBarrier)
+        BattleCombatantSide.enemy,
+    };
+
+    setState(() {
+      _isPlayingBattleAnimation = true;
+      _releaseDisplayOverrideOnNextSceneChange = false;
+      _displayPlayerOverride = cue.playerBefore;
+      _displayEnemyOverride = cue.enemyBefore;
+      _playerBarrierAnimationReference = _barrierAnimationReferenceFor(
+        cue.playerBefore,
+        cue.playerAfter,
+      );
+      _enemyBarrierAnimationReference = _barrierAnimationReferenceFor(
+        cue.enemyBefore,
+        cue.enemyAfter,
+      );
+      _animatedHealthSides = const {};
+      _animatedBarrierSides = const {};
+      _activeStatusEffectBurst = null;
+      _activeCombatIconMotion = null;
+      _activeFragilidadBurst = null;
+      _activeFloatingNumberBurst = floatingNumberBurst;
+    });
+    if (floatingNumberBurst != null) {
+      unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
+    }
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    setState(() {
+      _displayPlayerOverride = cue.playerAfter;
+      _displayEnemyOverride = cue.enemyAfter;
+      _animatedHealthSides = healthSides;
+      _animatedBarrierSides = barrierSides;
+    });
+
+    await Future<void>.delayed(_battleImpactBarDuration);
+    if (!mounted) return;
+    _releaseDisplayOverrideOnNextSceneChange = true;
+  }
+
   Future<void> _playFragilidadBurstCue(BattleCombatAnimationCue cue) async {
     final floatingNumberBurst = _buildFloatingNumberBurst(cue);
     final fragilidadBurst = _BattleFragilidadBurst(
@@ -729,6 +786,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   _BattleFloatingNumberBurst? _buildFloatingNumberBurst(
     BattleCombatAnimationCue cue,
   ) {
+    if (cue.floatingNumbersBySide.isNotEmpty) {
+      return _buildFloatingNumberBurstBySide(cue);
+    }
+
     final floatingNumbers = cue.floatingNumbers.isNotEmpty
         ? cue.floatingNumbers
         : _fallbackFloatingNumbersForCue(cue);
@@ -755,6 +816,41 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       );
     }
 
+    return _BattleFloatingNumberBurst(
+      id: ++_floatingNumberBurstSequence,
+      particles: List<_BattleFloatingNumberParticle>.unmodifiable(particles),
+    );
+  }
+
+  _BattleFloatingNumberBurst? _buildFloatingNumberBurstBySide(
+    BattleCombatAnimationCue cue,
+  ) {
+    const spacing = 50.0;
+    final particles = <_BattleFloatingNumberParticle>[];
+
+    for (final entry in cue.floatingNumbersBySide.entries) {
+      final floatingNumbers = entry.value;
+      if (floatingNumbers.isEmpty) continue;
+      final statusBarRect = _rectForStatusBar(entry.key);
+      final center = statusBarRect.center;
+      for (var index = 0; index < floatingNumbers.length; index++) {
+        final floatingNumber = floatingNumbers[index];
+        final centeredIndex = index - (floatingNumbers.length - 1) / 2;
+        particles.add(
+          _BattleFloatingNumberParticle(
+            label: _floatingNumberLabelFor(floatingNumber),
+            color: _floatingNumberColorFor(floatingNumber.tone),
+            start: Offset(
+              center.dx + centeredIndex * spacing,
+              center.dy + statusBarRect.height * 0.08,
+            ),
+            delay: index * 0.04,
+          ),
+        );
+      }
+    }
+
+    if (particles.isEmpty) return null;
     return _BattleFloatingNumberBurst(
       id: ++_floatingNumberBurstSequence,
       particles: List<_BattleFloatingNumberParticle>.unmodifiable(particles),
@@ -808,7 +904,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       BattleCombatFloatingNumberTone.barrierDamage ||
       BattleCombatFloatingNumberTone.burnDamage ||
       BattleCombatFloatingNumberTone.poisonDamage ||
-      BattleCombatFloatingNumberTone.fragilidadDamage =>
+      BattleCombatFloatingNumberTone.fragilidadDamage ||
+      BattleCombatFloatingNumberTone.purgeDamage =>
         '',
     };
 
@@ -826,6 +923,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       BattleCombatFloatingNumberTone.poisonDamage => const Color(0xFFC084FC),
       BattleCombatFloatingNumberTone.fragilidadDamage =>
         const FragilidadStatus().type.accent,
+      BattleCombatFloatingNumberTone.purgeDamage => const Color(0xFFFFEA70),
       BattleCombatFloatingNumberTone.healing => const Color(0xFF8DFFB2),
     };
   }

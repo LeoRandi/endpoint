@@ -249,6 +249,13 @@ class _BattleSceneView extends StatelessWidget {
                                   : null,
                         ),
                       ),
+                      _BattlePurgeWarningOverlay(
+                        round: sceneController.currentRound,
+                        isVisible: sceneController.isPurgeWarningVisible,
+                        isActive: sceneController.isPurgeActive,
+                        playerDamage: sceneController.playerPurgeDamagePreview,
+                        enemyDamage: sceneController.enemyPurgeDamagePreview,
+                      ),
                       if (activeCombatIconMotion != null)
                         Positioned.fill(
                           child: _BattleCombatIconAnimationLayer(
@@ -277,6 +284,170 @@ class _BattleSceneView extends StatelessWidget {
                     ],
                   );
                 },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BattlePurgeWarningOverlay extends StatefulWidget {
+  final int round;
+  final bool isVisible;
+  final bool isActive;
+  final int playerDamage;
+  final int enemyDamage;
+
+  const _BattlePurgeWarningOverlay({
+    required this.round,
+    required this.isVisible,
+    required this.isActive,
+    required this.playerDamage,
+    required this.enemyDamage,
+  });
+
+  @override
+  State<_BattlePurgeWarningOverlay> createState() =>
+      _BattlePurgeWarningOverlayState();
+}
+
+class _BattlePurgeWarningOverlayState
+    extends State<_BattlePurgeWarningOverlay> {
+  Timer? _hideTimer;
+  bool _isTransientVisible = false;
+  int? _lastShownRound;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshVisibility();
+  }
+
+  @override
+  void didUpdateWidget(_BattlePurgeWarningOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.round != widget.round ||
+        oldWidget.isVisible != widget.isVisible ||
+        oldWidget.isActive != widget.isActive) {
+      _refreshVisibility();
+    }
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    super.dispose();
+  }
+
+  void _refreshVisibility() {
+    _hideTimer?.cancel();
+    if (!widget.isVisible) {
+      _isTransientVisible = false;
+      _lastShownRound = null;
+      return;
+    }
+
+    if (widget.isActive) {
+      _isTransientVisible = true;
+      _lastShownRound = widget.round;
+      return;
+    }
+
+    if (_lastShownRound == widget.round) return;
+    _lastShownRound = widget.round;
+    _isTransientVisible = true;
+    _hideTimer = Timer(const Duration(milliseconds: 2400), () {
+      if (!mounted || widget.isActive) return;
+      setState(() {
+        _isTransientVisible = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = widget.isVisible && _isTransientVisible;
+    final title = widget.isActive ? 'PURGA ACTIVA' : 'PURGA INMINENTE';
+    final damageText =
+        'Jugador ${widget.playerDamage} | Enemigo ${widget.enemyDamage}';
+
+    return Positioned(
+      top: 78,
+      right: 8,
+      child: IgnorePointer(
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          offset: visible ? Offset.zero : const Offset(1.1, 0),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 180),
+            opacity: visible ? 1 : 0,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 210),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: EndpointPalette.panelBackgroundBattle.withAlpha(238),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFFFFEA70).withAlpha(210),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFEA70).withAlpha(46),
+                      blurRadius: 18,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        color: Color(0xFFFFEA70),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFFFEA70),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Fin de ronda $damageText',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: EndpointPalette.softForeground
+                                    .withAlpha(230),
+                                fontSize: 11,
+                                height: 1.12,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

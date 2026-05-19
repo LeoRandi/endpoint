@@ -696,6 +696,20 @@ const hornoSimetricoAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Pasiva defensiva que amortigua la Purga de final de ronda.
+const kilotonificacionAbility = BattlerAbility(
+  id: BattlerAbilityId.kilotonificacion,
+  archetypeAffinities: _inamovibleAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _vidaBarreraAbilityTags,
+  name: 'Kilotónificación',
+  description: 'Pasiva. Recibes value daño menos de la Purga.',
+  icon: Icons.warning_amber_rounded,
+  value: 3,
+  upgradeValue: 3,
+  isImplemented: true,
+);
+
 /// Pool canonica de aumentos pasivos que pueden usarse como recompensa o mutacion.
 const abilityPresets = <BattlerAbility>[
   weaknessHunterAbility,
@@ -742,6 +756,7 @@ const abilityPresets = <BattlerAbility>[
   geometriaBolsilloAbility,
   adaptacionAbility,
   hornoSimetricoAbility,
+  kilotonificacionAbility,
 ];
 
 /// Indice canonico de presets para resolver ids sin duplicar switches.

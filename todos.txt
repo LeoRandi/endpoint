@@ -55,7 +55,7 @@
 -Aumentos
 [--Añadir Tags]
 [--Meter en el loot]
---Crear al menos 20 generales y 20 por arquetipo[general: 10, veloz: 8, inamovible: 8, imparable: 8, mercante: 7]
+--Crear al menos 20 generales y 20 por arquetipo[general: 10, veloz: 8, inamovible: 9, imparable: 8, mercante: 7]
 
 -Items
 [--Añadir Tags]
@@ -113,6 +113,9 @@ IDEAS:
 -Evento de minijuego, obligatorio para un roguelike
 -mostrar si es habilidad o item en la recompensa(dejar como el resumen?)
 -Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
+
+-Aumentos generales que boostean no llevar items
+-Aumentos generales que boostean patrones o ángulos concretos 
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.

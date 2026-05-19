@@ -79,6 +79,7 @@ enum BattlerAbilityId {
   geometriaBolsillo,
   adaptacion,
   hornoSimetrico,
+  kilotonificacion,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -1055,5 +1056,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Pasiva de Patron. Los items equipados sin bonus de patron ni adyacencia cuentan como espacios vacios al usarse, con un bonus maximo de $positiveAmount a ATK o Barrera.';
     case BattlerAbilityId.hornoSimetrico:
       return 'Pasiva. Al inicio de tu turno, aplicas Quemadura $positiveAmount a ti y al rival.';
+    case BattlerAbilityId.kilotonificacion:
+      return 'Pasiva. Recibes $positiveAmount daño menos de la Purga.';
   }
 }
