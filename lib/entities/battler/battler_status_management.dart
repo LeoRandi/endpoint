@@ -99,6 +99,9 @@ extension BattlerStatusManagement on Battler {
     BattlerStatus status, {
     bool applyEquipmentModifiers = false,
   }) {
+    if (!CodexDiscoveryHook.isSuppressed) {
+      CodexDiscoveryHook.onStatusApplied?.call(status.id);
+    }
     var updatedOwner = this;
     BattlerStatus? instancedStatus = status.copyWith();
 

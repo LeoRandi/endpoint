@@ -87,7 +87,8 @@
 --Modificar IA en torno al modo Patrón
 
 -Codex
---Códice con todos los items, enemigos, habilidades y eventos descubiertos por el jugador
+[--Códice con todos los items, enemigos, habilidades y eventos descubiertos por el jugador]
+[--Hacer que el códice se desbloquee poco a poco a base de obtener ciertos objetos o aumentos]
 
 -General
 [--SEGUNDO DÍA]
@@ -115,29 +116,8 @@ IDEAS:
 -Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
 
 -Aumentos generales que boostean no llevar items
--Aumentos generales que boostean patrones o ángulos concretos 
 
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
 
 ////////////////////////////////
-
-Items:
-
-Vial Roto
-Grey, value: 1, upgradeValue: 2
-Effect: "Al principio del combate, aplica value de Contagio al enemigo"
-
-Cyber-cerbatana
-Blue, value: 2, upgradeValue: 2
-Effect: "Al usarse: aplica value de Contagio al enemigo, o aumenta el valor del Contagio enemigo en value"
-Pattern bonus: 180º, adds value attack
-
-Augments:
-Arma Biológica
-Blue, value: 1, upgradeValue: 2
-Effect: "Cuando Contagio enemigo pierde value, ya sea por purgar el efecto o por que se activa, haz value de daño directo al enemigo"
-
-Inmunización
-Purple, value: 4, upgradeValue: 4
-Effect: "Cuando Contagio pierde value en ti, ya sea por purgar el efecto o por que se activa, recuperas value de vida"

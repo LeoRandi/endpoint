@@ -51,6 +51,9 @@ extension BattlerAbilityManagement on Battler {
 
   /// Anade una habilidad nueva o mejora la existente si admite upgrade.
   Battler addAbility(BattlerAbility ability) {
+    if (!CodexDiscoveryHook.isSuppressed) {
+      CodexDiscoveryHook.onAbilityAdded?.call(ability.id);
+    }
     final existingIndex = abilities.indexWhere(
       (activeAbility) => activeAbility.id == ability.id,
     );

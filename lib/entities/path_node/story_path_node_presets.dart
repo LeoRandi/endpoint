@@ -68,7 +68,7 @@ final imparableArchetypeNode = ArchetypePathNode(
       '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y dano extra al pelear herido. Empieza con 8C y 3 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
-  accent: const Color(0xFFF3D35C),
+  accent: const Color(0xFFFF5A5F),
   rarity: RarityTier.yellow,
   baseStatModifiers: const {
     BattlerStat.health: 5,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../app/_exports.dart';
 import '../entities/_exports.dart';
 import '../pages/_exports.dart';
@@ -18,6 +20,11 @@ class RunNodeFlowCoordinator {
     switch (node.type) {
       case PathNodeType.encounter:
         final encounterNode = node as CombatPathNode;
+        unawaited(
+          CodexDiscoveryService.markIndexed(
+            CodexDiscoveryService.enemyKey(encounterNode.nodeId),
+          ),
+        );
         await _openNodeScene<BattleFlowResult>(
           context: context,
           session: session,
@@ -44,6 +51,7 @@ class RunNodeFlowCoordinator {
         final projectedPlayer = archetypeNode.applyTo(
           session.player,
           resolveDynamicStartingItems: false,
+          suppressCodexDiscovery: true,
         );
         final shouldConfirm = await showEndpointDialog<bool>(
           context: context,
@@ -60,6 +68,11 @@ class RunNodeFlowCoordinator {
           },
         );
         if (shouldConfirm == true) {
+          unawaited(
+            CodexDiscoveryService.markIndexed(
+              CodexDiscoveryService.archetypeKey(archetypeNode.archetypeId),
+            ),
+          );
           session.completeArchetypeSelection(
             archetypeNode.applyTo(
               session.player,
@@ -73,6 +86,11 @@ class RunNodeFlowCoordinator {
         return;
       case PathNodeType.shop:
         final shopNode = node as ShopPathNode;
+        unawaited(
+          CodexDiscoveryService.markIndexed(
+            CodexDiscoveryService.shopKey(shopNode.nodeId),
+          ),
+        );
         await _openNodeScene<WeaponShopVisitResult>(
           context: context,
           session: session,
@@ -113,6 +131,11 @@ class RunNodeFlowCoordinator {
         return;
       case PathNodeType.event:
         final eventNode = node as EventPathNode;
+        unawaited(
+          CodexDiscoveryService.markIndexed(
+            CodexDiscoveryService.eventKey(eventNode.id),
+          ),
+        );
         await _openNodeScene<PathEventVisitResult>(
           context: context,
           session: session,

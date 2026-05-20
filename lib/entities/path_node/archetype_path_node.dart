@@ -96,6 +96,7 @@ class ArchetypePathNode extends PathNode {
     Battler player, {
     RunRandomizer? randomizer,
     bool resolveDynamicStartingItems = true,
+    bool suppressCodexDiscovery = false,
   }) {
     final updatedBaseStats = Map<BattlerStat, int>.from(player.baseStats);
     final resolvedStartingItems =
@@ -122,16 +123,23 @@ class ArchetypePathNode extends PathNode {
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
     );
 
-    for (final item in resolvedStartingItems) {
-      updatedPlayer = updatedPlayer.addItem(item);
-      final inventoryItem = updatedPlayer.inventoryItemOfType(item.id);
-      if (item.isEquippable && inventoryItem != null) {
-        updatedPlayer = updatedPlayer.equipItem(inventoryItem);
+    final previousSuppression = CodexDiscoveryHook.isSuppressed;
+    CodexDiscoveryHook.isSuppressed =
+        previousSuppression || suppressCodexDiscovery;
+    try {
+      for (final item in resolvedStartingItems) {
+        updatedPlayer = updatedPlayer.addItem(item);
+        final inventoryItem = updatedPlayer.inventoryItemOfType(item.id);
+        if (item.isEquippable && inventoryItem != null) {
+          updatedPlayer = updatedPlayer.equipItem(inventoryItem);
+        }
       }
-    }
 
-    for (final ability in startingAbilities) {
-      updatedPlayer = updatedPlayer.addAbility(ability);
+      for (final ability in startingAbilities) {
+        updatedPlayer = updatedPlayer.addAbility(ability);
+      }
+    } finally {
+      CodexDiscoveryHook.isSuppressed = previousSuppression;
     }
 
     return updatedPlayer.copyWith(health: updatedPlayer.maxHealth);
@@ -161,4 +169,3 @@ class ArchetypePathNode extends PathNode {
     return candidates[randomizer.nextInt(candidates.length)];
   }
 }
-

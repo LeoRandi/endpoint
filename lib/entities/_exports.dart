@@ -7,3 +7,4 @@ export 'item/_exports.dart';
 export 'path_node/_exports.dart';
 export 'pattern/_exports.dart';
 export 'status/_exports.dart';
+export 'codex_discovery_hook.dart';

@@ -187,6 +187,14 @@ class _MainMenuPageState extends State<MainMenuPage>
     await _refreshCurrentRunSnapshot();
   }
 
+  Future<void> _openCodex() async {
+    await Navigator.of(context).push(
+      buildEndpointSceneRoute(
+        const CodexPage(),
+      ),
+    );
+  }
+
   Future<void> _refreshCurrentRunSnapshot() async {
     final restoredRun =
         await EndpointPreferencesService.loadCurrentRunSnapshot();
@@ -365,8 +373,9 @@ class _MainMenuPageState extends State<MainMenuPage>
                                   child: EndpointMenuButton(
                                     label: strings(EndpointTextKey.codex),
                                     tooltip: strings(
-                                      EndpointTextKey.codexUnavailable,
+                                      EndpointTextKey.mainMenuCodexDescription,
                                     ),
+                                    onPressed: _openCodex,
                                   ),
                                 ),
                                 const SeparatorFiori.half(),

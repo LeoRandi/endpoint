@@ -101,6 +101,20 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _setAllCodexIndexed() async {
+    await CodexDiscoveryService.markAllIndexed();
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  Future<void> _clearCodexIndexed() async {
+    await CodexDiscoveryService.clearIndexed();
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return EndpointTextScope(
@@ -351,6 +365,23 @@ class _SettingsPageState extends State<SettingsPage> {
                                         );
                                       },
                                     ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: 'Codex',
+                              caption: 'Herramientas de prueba.',
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  _SettingsChoiceButton(
+                                    label: 'Indexar todo',
+                                    onPressed: _setAllCodexIndexed,
+                                  ),
+                                  _SettingsChoiceButton(
+                                    label: 'Ocultar todo',
+                                    onPressed: _clearCodexIndexed,
+                                  ),
                                 ],
                               ),
                             ),

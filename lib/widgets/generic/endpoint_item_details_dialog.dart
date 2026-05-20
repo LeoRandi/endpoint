@@ -378,7 +378,7 @@ class _ItemArchetypeBadge extends StatelessWidget {
       ItemArchetypeAffinity.general => EndpointPalette.softForeground,
       ItemArchetypeAffinity.veloz => const Color(0xFF59B7FF),
       ItemArchetypeAffinity.inamovible => const Color(0xFF5AF78E),
-      ItemArchetypeAffinity.imparable => const Color(0xFFF3D35C),
+      ItemArchetypeAffinity.imparable => const Color(0xFFFF5A5F),
       ItemArchetypeAffinity.mercante => const Color(0xFFEBCB5A),
     };
   }

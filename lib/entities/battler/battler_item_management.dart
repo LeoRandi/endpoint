@@ -47,6 +47,9 @@ extension BattlerItemManagement on Battler {
 
   /// Anade un item nuevo o mejora la copia ya poseida si admite upgrades.
   Battler addItem(Item item) {
+    if (!CodexDiscoveryHook.isSuppressed) {
+      CodexDiscoveryHook.onItemAdded?.call(item.id);
+    }
     final ownedEquippedItem = _upgradeableEquippedItemFor(item);
     if (ownedEquippedItem != null) {
       final updatedEquippedItems = List<Item>.from(equippedItems);
