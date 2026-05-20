@@ -1777,6 +1777,112 @@ class CorteTangencialAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+/// Convierte cada angulo agudo del Patron en Potencia para el ataque.
+class CortesAgudosAbilityEffect extends BattlerAbilityEffect {
+  const CortesAgudosAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final count = pattern.acuteAngleCount;
+    if (count <= 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.applyStatus(
+        PotenciaStatus(value: max(1, ability.currentValue) * count),
+        applyEquipmentModifiers: false,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Convierte cada rotor de 90 grados del Patron en Barrera inmediata.
+class RotoresDefensivosAbilityEffect extends BattlerAbilityEffect {
+  const RotoresDefensivosAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final count = pattern.rightAngleCount;
+    if (count <= 0) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.gainCombatBarrier(max(1, ability.currentValue) * count),
+      opponent: opponent,
+    );
+  }
+}
+
+/// Reequilibra el Patron convirtiendo parte del bonus mayor hacia el menor.
+class PolarizacionAbilityEffect extends BattlerAbilityEffect {
+  const PolarizacionAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final amount = max(1, ability.currentValue);
+    final attackBonus = max(0, pattern.attackBonus);
+    final barrierBonus = max(0, pattern.barrierBonus);
+    if (attackBonus == barrierBonus) {
+      return BattlerAbilityEffectResolution(
+        owner: owner
+            .gainCombatBarrier(amount)
+            .applyStatus(
+              PotenciaStatus(value: amount),
+              applyEquipmentModifiers: false,
+            ),
+        opponent: opponent,
+      );
+    }
+    if (attackBonus > barrierBonus) {
+      return BattlerAbilityEffectResolution(
+        owner: owner.gainCombatBarrier(min(amount, attackBonus)),
+        opponent: opponent,
+      );
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.applyStatus(
+        PotenciaStatus(value: min(amount, barrierBonus)),
+        applyEquipmentModifiers: false,
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
 /// Duplica el peso defensivo de patrones amplios y estables.
 class ArquitecturaPesadaAbilityEffect extends BattlerAbilityEffect {
   const ArquitecturaPesadaAbilityEffect()

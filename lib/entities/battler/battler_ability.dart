@@ -87,6 +87,9 @@ enum BattlerAbilityId {
   adaptacion,
   hornoSimetrico,
   kilotonificacion,
+  cortesAgudos,
+  rotoresDefensivos,
+  polarizacion,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -240,11 +243,14 @@ class BattlePatternMatchContext {
   }
 
   bool get hasExactlyOneAcuteAngle {
-    return _turnClassifications()
-            .where((turn) => turn == _PatternTurn.acute)
-            .length ==
-        1;
+    return acuteAngleCount == 1;
   }
+
+  int get acuteAngleCount =>
+      _turnClassifications().where((turn) => turn == _PatternTurn.acute).length;
+
+  int get rightAngleCount =>
+      _turnClassifications().where((turn) => turn == _PatternTurn.right).length;
 
   bool get hasPerfectPattern =>
       isClosed &&
@@ -1113,6 +1119,12 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Pasiva de Patron. Los items equipados sin bonus de patron ni adyacencia cuentan como espacios vacios al usarse, con un bonus maximo de $positiveAmount a ATK o Barrera.';
     case BattlerAbilityId.hornoSimetrico:
       return 'Pasiva. Al inicio de tu turno, aplicas Quemadura $positiveAmount a ti y al rival.';
+    case BattlerAbilityId.cortesAgudos:
+      return 'Pasiva de Patron. Por cada angulo agudo del Patron, ganas $positiveAmount Potencia antes del ataque.';
+    case BattlerAbilityId.rotoresDefensivos:
+      return 'Pasiva de Patron. Por cada angulo de 90 grados del Patron, recuperas $positiveAmount Barrera.';
+    case BattlerAbilityId.polarizacion:
+      return 'Pasiva de Patron. El menor total entre ATK y Barrera del Patron polariza hasta $positiveAmount del mayor hacia el menor.';
     case BattlerAbilityId.kilotonificacion:
       return 'Pasiva. Recibes $positiveAmount daño menos de la Purga.';
   }

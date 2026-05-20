@@ -371,6 +371,51 @@ const corteTangencialAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Pasiva general que convierte giros agudos en presion ofensiva.
+const cortesAgudosAbility = BattlerAbility(
+  id: BattlerAbilityId.cortesAgudos,
+  rarity: RarityTier.green,
+  tags: _ataqueAbilityTags,
+  name: 'Cortes Agudos',
+  description:
+      'Pasiva de Patron. Por cada angulo agudo del Patron, ganas Potencia antes del ataque.',
+  icon: Icons.show_chart_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: CortesAgudosAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva general que convierte giros rectos en defensa.
+const rotoresDefensivosAbility = BattlerAbility(
+  id: BattlerAbilityId.rotoresDefensivos,
+  rarity: RarityTier.green,
+  tags: _buffBarreraAbilityTags,
+  name: 'Rotores Defensivos',
+  description:
+      'Pasiva de Patron. Por cada angulo de 90 grados del Patron, recuperas Barrera.',
+  icon: Icons.rotate_90_degrees_ccw_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: RotoresDefensivosAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva general que equilibra patrones cargados hacia una sola stat.
+const polarizacionAbility = BattlerAbility(
+  id: BattlerAbilityId.polarizacion,
+  rarity: RarityTier.purple,
+  tags: _ataqueBarreraAbilityTags,
+  name: 'Polarizacion',
+  description:
+      'Pasiva de Patron. El menor total entre ATK y Barrera del Patron polariza parte del mayor hacia el menor.',
+  icon: Icons.compare_arrows_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: PolarizacionAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Pasiva de Patron que duplica el peso defensivo de figuras sin angulos agudos.
 const arquitecturaPesadaAbility = BattlerAbility(
   id: BattlerAbilityId.arquitecturaPesada,
@@ -831,6 +876,9 @@ const abilityPresets = <BattlerAbility>[
   geometriaLimpiaAbility,
   pulsoIsometricoAbility,
   corteTangencialAbility,
+  cortesAgudosAbility,
+  rotoresDefensivosAbility,
+  polarizacionAbility,
   arquitecturaPesadaAbility,
   rutaContrabandoAbility,
   ecoSimetriaAbility,
