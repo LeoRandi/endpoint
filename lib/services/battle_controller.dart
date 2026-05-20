@@ -148,6 +148,40 @@ class BattleController extends ChangeNotifier {
         _randomizer = randomizer ?? RunRandomizer(),
         _enemyAiDifficulty = _difficultyForEnemyTier(enemyTier),
         _turnEngine = turnEngine {
+    final playerItemCombatStart =
+        _effectPipeline.applyEquippedItemCombatStartEffects(
+      owner: _player,
+      opponent: _enemy,
+      randomizer: _randomizer,
+    );
+    _player = playerItemCombatStart.owner;
+    _enemy = playerItemCombatStart.opponent;
+
+    final enemyItemCombatStart =
+        _effectPipeline.applyEquippedItemCombatStartEffects(
+      owner: _enemy,
+      opponent: _player,
+      randomizer: _randomizer,
+    );
+    _enemy = enemyItemCombatStart.owner;
+    _player = enemyItemCombatStart.opponent;
+
+    final playerAbilityCombatStart =
+        _effectPipeline.applyAbilityCombatStartOpponentEffects(
+      owner: _player,
+      opponent: _enemy,
+    );
+    _player = playerAbilityCombatStart.owner;
+    _enemy = playerAbilityCombatStart.opponent;
+
+    final enemyAbilityCombatStart =
+        _effectPipeline.applyAbilityCombatStartOpponentEffects(
+      owner: _enemy,
+      opponent: _player,
+    );
+    _enemy = enemyAbilityCombatStart.owner;
+    _player = enemyAbilityCombatStart.opponent;
+
     _playerInitialBlockBarrier = max(0, _player.maxBarrier);
     _enemyInitialBlockBarrier = max(0, _enemy.maxBarrier);
     _syncCombatRoundFlags();
@@ -162,7 +196,7 @@ class BattleController extends ChangeNotifier {
   bool get isCombatFinished => _turn == BattleTurnState.finished;
   bool get canUseActions => isPlayerTurn && !isCombatFinished;
   int get currentRound => _currentRound;
-  int get currentPurgeDamagePercent => _purgeDamagePercentForRound(
+  int get currentPurgeDamageAmount => _purgeDamageForRound(
         max(10, _currentRound),
       );
   bool get isPurgeWarningVisible => _currentRound >= 8;
@@ -2745,27 +2779,25 @@ class BattleController extends ChangeNotifier {
     required Battler battler,
     required int round,
   }) {
-    final pressurePercent = _purgeDamagePercentForRound(round);
-    if (battler.isDefeated || pressurePercent <= 0) {
+    final purgeDamage = _purgeDamageForRound(round);
+    if (battler.isDefeated || purgeDamage <= 0) {
       return 0;
     }
 
-    final rawDamage = max(1, (battler.health * pressurePercent / 100).ceil());
-    return max(0, rawDamage - _purgeDamageReductionFor(battler));
+    return purgeDamage;
   }
 
-  int _purgeDamageReductionFor(Battler battler) {
-    final ability = battler.abilityById(BattlerAbilityId.kilotonificacion);
-    if (ability == null) return 0;
-    return max(0, ability.currentValue);
-  }
-
-  int _purgeDamagePercentForRound(int round) {
+  int _purgeDamageForRound(int round) {
     if (round < 10) {
       return 0;
     }
 
-    return (round - 9) * 10;
+    final purgeCount = round - 9;
+    if (purgeCount <= 5) {
+      return purgeCount * 2;
+    }
+
+    return 10 + ((purgeCount - 5) * 4);
   }
 
   Future<void> _applyActionBarrierToPlayer(int amount) async {

@@ -311,6 +311,49 @@ extension BattlerRuntimeService on Battler {
       );
     }
 
+    if (instancedStatus is ContagioStatus) {
+      final cargaVirica = updatedSource.abilityById(BattlerAbilityId.cargaVirica);
+      const cargaViricaFlag = CombatRuntimeFlag.battler(
+        BattlerCombatFlag.cargaViricaTriggeredThisTurn,
+      );
+      if (cargaVirica != null &&
+          !updatedSource.hasCombatFlag(cargaViricaFlag)) {
+        updatedSource = updatedSource.addCombatFlag(cargaViricaFlag);
+        instancedStatus = instancedStatus.copyWith(
+          value: instancedStatus.value + max(1, cargaVirica.currentValue),
+        ) as ContagioStatus;
+      }
+    }
+
+    if (instancedStatus.type == BattlerStatusType.debuff &&
+        instancedStatus is! ContagioStatus) {
+      final contagio = updatedOwner.statusById(ContagioStatus.statusId);
+      if (contagio is ContagioStatus && contagio.value > 0) {
+        final boostedStatus = _boostDebuffWithContagio(
+          instancedStatus,
+          contagio.value,
+        );
+        final nextContagioValue = contagio.value - 1;
+        updatedOwner = nextContagioValue > 0
+            ? updatedOwner.replaceStatusInstance(
+                currentStatus: contagio,
+                replacement: contagio.copyWith(value: nextContagioValue),
+              )
+            : updatedOwner.removeStatusInstance(contagio);
+        final contagioResolution =
+            _battlerEffectPipeline.applyContagioValueLostEffects(
+          target: updatedOwner,
+          source: updatedSource,
+          triggerStatus: boostedStatus,
+          lostValue: 1,
+          wasRemoved: nextContagioValue <= 0,
+        );
+        updatedOwner = contagioResolution.target;
+        updatedSource = contagioResolution.source;
+        instancedStatus = boostedStatus;
+      }
+    }
+
     return BattlerStatusFromSourceResolution(
       owner: updatedOwner.applyStatus(
         instancedStatus,
@@ -318,6 +361,29 @@ extension BattlerRuntimeService on Battler {
       ),
       source: updatedSource,
     );
+  }
+
+  BattlerStatus _boostDebuffWithContagio(
+    BattlerStatus status,
+    int amount,
+  ) {
+    final boost = max(0, amount);
+    if (boost <= 0) return status;
+
+    if (status is QuemaduraStatus) {
+      return status.copyWith(
+        remainingTurns: status.remainingTurns + boost,
+      );
+    }
+    if (status is IntoxicacionStatus ||
+        status is FragilidadStatus ||
+        status is ConmocionStatus ||
+        status is CatalisisCruelStatus ||
+        status is DeudaStatus) {
+      return status.copyWith(value: status.value + boost);
+    }
+
+    return status.copyWith(value: status.value + boost);
   }
 
   /// Ejecuta efectos de estados que reaccionan despues de que el portador ataque.

@@ -25,12 +25,10 @@ enum BattlerStatusId {
   cicloEclipse,
   quemadura,
   intoxicacion,
+  contagio,
   catalisisCruel,
   fragilidad,
   conmocion,
-  inercia,
-  inerciaAtaque,
-  inerciaBarrera,
   resonancia,
   puntoCiego,
   desafio,
@@ -329,12 +327,12 @@ const _debuffIntoxicacionStatusTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.intoxicacion,
 ];
+const _debuffContagioStatusTags = <EntityTag>[
+  EntityTag.debuff,
+  EntityTag.contagio,
+];
 const _debuffStatusTags = <EntityTag>[
   EntityTag.debuff,
-];
-const _buffBarreraStatusTags = <EntityTag>[
-  EntityTag.buff,
-  EntityTag.barrera,
 ];
 const _buffResonanciaStatusTags = <EntityTag>[
   EntityTag.buff,
@@ -347,11 +345,6 @@ const _buffDesafioStatusTags = <EntityTag>[
 const _debuffAtaqueStatusTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.ataque,
-];
-const _buffAtaqueBarreraStatusTags = <EntityTag>[
-  EntityTag.buff,
-  EntityTag.ataque,
-  EntityTag.barrera,
 ];
 const _debuffEconomiaStatusTags = <EntityTag>[
   EntityTag.debuff,

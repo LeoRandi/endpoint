@@ -48,6 +48,11 @@ class BattleTurnEngine {
                 BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
               ),
             )
+            .removeCombatFlag(
+              const CombatRuntimeFlag.battler(
+                BattlerCombatFlag.cargaViricaTriggeredThisTurn,
+              ),
+            )
         : player;
     var updatedEnemy = isPlayerTurn
         ? enemy
@@ -62,6 +67,11 @@ class BattleTurnEngine {
       updatedEnemy = updatedEnemy.removeCombatFlag(
         const CombatRuntimeFlag.battler(
           BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
+        ),
+      );
+      updatedEnemy = updatedEnemy.removeCombatFlag(
+        const CombatRuntimeFlag.battler(
+          BattlerCombatFlag.cargaViricaTriggeredThisTurn,
         ),
       );
     }

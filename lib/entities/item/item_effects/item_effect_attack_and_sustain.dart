@@ -644,55 +644,6 @@ class ClavoReactorItemEffect extends ItemEffect {
   }
 }
 
-/// Convierte vida directa en una gran reserva temporal de ataque.
-class BombaMiocardicaItemEffect extends ItemEffect {
-  /// Crea el efecto propio de la Bomba Miocardica.
-  const BombaMiocardicaItemEffect()
-      : super(
-          description:
-              'Al inicio de tu turno, pierdes vida y ganas una gran Reserva de Inercia: ATK.',
-          hooks: const {
-            ItemEffectHook.turnStart,
-          },
-        );
-
-  @override
-  String descriptionFor(Item item) {
-    final resolvedValue = max(1, item.value);
-    return 'Al inicio de tu turno, pierdes $resolvedValue HP y ganas Reserva de Inercia: ATK (+${resolvedValue * 2}).';
-  }
-
-  @override
-  ItemEffectResolution onTurnStart({
-    required Battler owner,
-    required Battler opponent,
-    required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
-  }) {
-    if (!isOwnerTurn) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final resolvedValue = max(1, item.value);
-    final updatedOwner = _loseHealthDirectly(
-      owner: owner,
-      amount: resolvedValue,
-    );
-    if (updatedOwner.health <= 0) {
-      return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.applyStatusFromSource(
-        InerciaAtaqueStatus(value: resolvedValue * 2),
-        source: updatedOwner,
-      ),
-      opponent: opponent,
-    );
-  }
-}
-
 /// Convierte la vida faltante en una amenaza ofensiva inmediata durante el primer ataque del turno.
 class UltimaMarchaItemEffect extends ItemEffect {
   /// Crea el efecto propio de Ultima Marcha.

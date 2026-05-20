@@ -369,12 +369,11 @@ class _BattlePurgeWarningOverlayState
   @override
   Widget build(BuildContext context) {
     final visible = widget.isVisible && _isTransientVisible;
-    final title = widget.isActive ? 'PURGA ACTIVA' : 'PURGA INMINENTE';
-    final damageText =
-        'Jugador ${widget.playerDamage} | Enemigo ${widget.enemyDamage}';
+    final purgeDamage = max(widget.playerDamage, widget.enemyDamage);
 
     return Positioned(
-      top: 78,
+      top: 0,
+      bottom: 0,
       right: 8,
       child: IgnorePointer(
         child: AnimatedSlide(
@@ -384,68 +383,70 @@ class _BattlePurgeWarningOverlayState
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 180),
             opacity: visible ? 1 : 0,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 210),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: EndpointPalette.panelBackgroundBattle.withAlpha(238),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFFFFEA70).withAlpha(210),
-                    width: 1.2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFEA70).withAlpha(46),
-                      blurRadius: 18,
-                      spreadRadius: 1,
+            child: Center(
+              child: SizedBox(
+                width: 142,
+                height: 142,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: EndpointPalette.panelBackgroundBattle.withAlpha(238),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFFFFEA70).withAlpha(210),
+                      width: 1.2,
                     ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.warning_amber_rounded,
-                        color: Color(0xFFFFEA70),
-                        size: 22,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Color(0xFFFFEA70),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Fin de ronda $damageText',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: EndpointPalette.softForeground
-                                    .withAlpha(230),
-                                fontSize: 11,
-                                height: 1.12,
-                                letterSpacing: 0,
-                              ),
-                            ),
-                          ],
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFFEA70).withAlpha(46),
+                        blurRadius: 18,
+                        spreadRadius: 1,
                       ),
                     ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'WARNING',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFFFEA70),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 180),
+                          child: Text(
+                            widget.isActive ? '$purgeDamage' : 'Purge incoming',
+                            key: ValueKey<String>(
+                              widget.isActive
+                                  ? 'purge-damage-$purgeDamage'
+                                  : 'purge-incoming',
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color:
+                                  EndpointPalette.softForeground.withAlpha(236),
+                              fontSize: widget.isActive ? 44 : 15,
+                              fontWeight: widget.isActive
+                                  ? FontWeight.w900
+                                  : FontWeight.w700,
+                              height: widget.isActive ? 0.95 : 1.12,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

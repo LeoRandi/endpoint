@@ -318,6 +318,7 @@ class _EndpointTagPill extends StatelessWidget {
     return switch (tag) {
       EntityTag.debuff => Icons.warning_amber_rounded,
       EntityTag.buff => Icons.auto_awesome_rounded,
+      EntityTag.contagio => Icons.coronavirus_rounded,
       EntityTag.quemadura => Icons.whatshot_rounded,
       EntityTag.intoxicacion => Icons.science_rounded,
       EntityTag.ciclo => Icons.brightness_medium_rounded,
@@ -338,6 +339,8 @@ class _EndpointTagPill extends StatelessWidget {
         'Debuff: estado perjudicial que puede reducir recursos, bloquear acciones o aplicar daño.',
       EntityTag.buff =>
         'Buff: estado beneficioso que mejora stats, guarda recursos o habilita efectos positivos.',
+      EntityTag.contagio =>
+        'Contagio: debuff permanente durante el combate que potencia el siguiente debuff aplicado al portador y luego baja en 1.',
       EntityTag.quemadura =>
         'Quemadura: debuff de daño al final del turno. Su valor baja con la duracion y primero pasa por Barrera.',
       EntityTag.intoxicacion =>

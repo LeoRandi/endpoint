@@ -195,6 +195,77 @@ class IntoxicacionStatus extends BattlerStatus {
   }
 }
 
+/// Debuff persistente que potencia otros debuffs entrantes y se consume.
+class ContagioStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.contagio;
+  static const defaultValue = 1;
+
+  /// Crea una instancia de Contagio con su valor de amplificacion actual.
+  const ContagioStatus({
+    int value = defaultValue,
+  }) : super(
+          id: statusId,
+          name: 'Contagio',
+          type: BattlerStatusType.debuff,
+          tags: _debuffContagioStatusTags,
+          hooks: const {
+            BattlerStatusHook.combatEnd,
+            BattlerStatusHook.statusApplied,
+          },
+          icon: Icons.coronavirus_rounded,
+          description:
+              'Cuando otro debuffo es aplicado al portador, aumenta su valor en value y reduce Contagio en 1.',
+          remainingTurns: 1,
+          value: value,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return 'Cuando otro debuffo es aplicado al portador, aumenta su valor en $value y reduce Contagio en 1.';
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    return owner.removeStatusInstance(this);
+  }
+
+  @override
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    if (appliedStatus.id != id) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    return BattlerStatusApplicationResolution(
+      owner: owner.removeStatusInstance(this),
+      appliedStatus: copyWith(value: max(0, value) + appliedStatus.value),
+    );
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return ContagioStatus(
+      value: value ?? this.value,
+    );
+  }
+}
+
 /// Debuff puente que multiplica el siguiente debuff recibido y luego se consume.
 class CatalisisCruelStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.catalisisCruel;

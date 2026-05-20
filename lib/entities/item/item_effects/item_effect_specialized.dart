@@ -1,50 +1,6 @@
 part of '../item_effect.dart';
 
-/// Duplica el motor de Inercia generando ambas reservas al arrancar turno.
-class InertiaCrownItemEffect extends ItemEffect {
-  /// Crea el efecto propio de la Corona de Inercia.
-  const InertiaCrownItemEffect()
-      : super(
-          description:
-              'Si tienes Inercia al inicio del turno, ganas ambas reservas.',
-          hooks: const {
-            ItemEffectHook.turnStart,
-          },
-        );
-
-  @override
-  String descriptionFor(Item item) {
-    return 'Al inicio de tu turno, si tienes Inercia, ganas Reserva de Inercia: ATK (+${max(1, item.value)}) y Reserva de Inercia: Barrera (+${max(1, item.value)}).';
-  }
-
-  @override
-  ItemEffectResolution onTurnStart({
-    required Battler owner,
-    required Battler opponent,
-    required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
-  }) {
-    if (!isOwnerTurn || !owner.hasStatus(InerciaStatus.statusId)) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final resolvedValue = max(1, item.value);
-    final ownerWithAttackReserve = owner.applyStatusFromSource(
-      InerciaAtaqueStatus(value: resolvedValue),
-      source: owner,
-    );
-    return ItemEffectResolution(
-      owner: ownerWithAttackReserve.applyStatusFromSource(
-        InerciaBarreraStatus(value: resolvedValue),
-        source: ownerWithAttackReserve,
-      ),
-      opponent: opponent,
-    );
-  }
-}
-
-/// Entrega Calentando una sola vez al comenzar el primer turno propio del combate.
+/// Entrega Calentando una sola vez al comenzar el combate.
 class ThermalTurbineItemEffect extends ItemEffect {
   /// Crea el efecto propio de la Turbina Termica.
   const ThermalTurbineItemEffect()
@@ -52,7 +8,7 @@ class ThermalTurbineItemEffect extends ItemEffect {
           description:
               'Al inicio del combate, ganas una reserva fuerte de Calentando.',
           hooks: const {
-            ItemEffectHook.turnStart,
+            ItemEffectHook.combatStart,
           },
         );
 
@@ -62,17 +18,12 @@ class ThermalTurbineItemEffect extends ItemEffect {
   }
 
   @override
-  ItemEffectResolution onTurnStart({
+  ItemEffectResolution onCombatStart({
     required Battler owner,
     required Battler opponent,
     required Item item,
-    required bool isOwnerTurn,
     RunRandomizer? randomizer,
   }) {
-    if (!isOwnerTurn) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
     final triggeredFlag = _itemCombatFlag(
       item,
       ItemCombatFlagKind.thermalTurbineCombatStartTriggered,
@@ -638,14 +589,305 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
   }
 }
 
+class VialRotoItemEffect extends ItemEffect {
+  const VialRotoItemEffect()
+      : super(
+          description: 'Al principio del combate, aplica Contagio al enemigo.',
+          hooks: const {ItemEffectHook.combatStart},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al principio del combate, aplica ${max(1, item.value)} Contagio al enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onCombatStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    RunRandomizer? randomizer,
+  }) {
+    return _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: ContagioStatus(value: max(1, item.value)),
+    );
+  }
+}
+
+class PlumaSepticaItemEffect extends ItemEffect {
+  const PlumaSepticaItemEffect()
+      : super(
+          description: 'Al usarse: aplica debuffos aleatorios al enemigo.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: aplica ${max(1, item.value)} veces un debuff aleatorio al enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+    final randomizer = RunRandomizer();
+
+    for (var i = 0; i < max(1, item.value); i++) {
+      final status = switch (randomizer.nextInt(4)) {
+        0 => const QuemaduraStatus(remainingTurns: 1),
+        1 => const IntoxicacionStatus(value: 1),
+        2 => const FragilidadStatus(value: 1),
+        _ => const ConmocionStatus(value: 1),
+      };
+      final resolution = _applyStatusToOpponentFromOwner(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        status: status,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: updatedOpponent,
+    );
+  }
+}
+
+class LanzaSuciaItemEffect extends ItemEffect {
+  const LanzaSuciaItemEffect()
+      : super(
+          description:
+              'Al usarse contra un enemigo con debuff, aplica Contagio.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse contra un enemigo con debuff, aplica ${max(1, item.value)} Contagio.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!_hasAnyDebuff(opponent)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: ContagioStatus(value: max(1, item.value)),
+    );
+  }
+}
+
+class AmpollaInestableItemEffect extends ItemEffect {
+  const AmpollaInestableItemEffect()
+      : super(
+          description:
+              'Al usarse: aplica Contagio. Si ya tenia Contagio, aplica Fragilidad.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final amount = max(1, item.value);
+    return 'Al usarse: aplica $amount Contagio. Si el enemigo ya tenia Contagio, aplica ${amount * 2} Fragilidad.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final hadContagio = opponent.hasStatus(ContagioStatus.statusId);
+    final contagioResolution = _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: ContagioStatus(value: max(1, item.value)),
+    );
+    if (!hadContagio) return contagioResolution;
+
+    return _applyStatusToOpponentFromOwner(
+      owner: contagioResolution.owner,
+      opponent: contagioResolution.opponent,
+      status: FragilidadStatus(value: max(1, item.value) * 2),
+    );
+  }
+}
+
+class TuboCultivoItemEffect extends ItemEffect {
+  const TuboCultivoItemEffect()
+      : super(
+          description:
+              'Al final de tu turno: si el enemigo tiene 2+ debuffos, aplica Contagio.',
+          hooks: const {ItemEffectHook.turnEnd},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al final de tu turno: si el enemigo tiene 2+ debuffos, aplica ${max(1, item.value)} Contagio.';
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn || _debuffCount(opponent) < 2) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: ContagioStatus(value: max(1, item.value)),
+    );
+  }
+}
+
+class CyberCerbatanaItemEffect extends ItemEffect {
+  const CyberCerbatanaItemEffect()
+      : super(
+          description: 'Al usarse: aplica o aumenta Contagio al enemigo.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: aplica ${max(1, item.value)} Contagio al enemigo, o aumenta el Contagio enemigo en ${max(1, item.value)}.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: ContagioStatus(value: max(1, item.value)),
+    );
+  }
+}
+
+class ProtocoloBroteItemEffect extends ItemEffect {
+  const ProtocoloBroteItemEffect()
+      : super(
+          description:
+              'Cuando Contagio enemigo llega a 0 al activarse, aplica Intoxicacion.',
+          hooks: const {ItemEffectHook.contagioValueLost},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Cuando Contagio enemigo llega a 0 al activarse, aplica ${max(1, item.value)} Intoxicacion.';
+  }
+
+  @override
+  ItemEffectResolution onContagioValueLost({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required int lostValue,
+    required bool isOwnerContagioCarrier,
+    required bool wasRemoved,
+    required BattlerStatus triggerStatus,
+  }) {
+    if (isOwnerContagioCarrier || !wasRemoved) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: IntoxicacionStatus(value: max(1, item.value)),
+    );
+  }
+}
+
+class IncubadoraPortatilItemEffect extends ItemEffect {
+  const IncubadoraPortatilItemEffect()
+      : super(
+          description:
+              'Al principio del combate, aplica Contagio. Cuando Contagio enemigo se activa, ganas Barrera.',
+          hooks: const {
+            ItemEffectHook.combatStart,
+            ItemEffectHook.contagioValueLost,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al principio del combate, aplica ${max(1, item.value)} Contagio. Cada vez que Contagio enemigo se activa, recuperas 3 Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onCombatStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    RunRandomizer? randomizer,
+  }) {
+    return _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: opponent,
+      status: ContagioStatus(value: max(1, item.value)),
+    );
+  }
+
+  @override
+  ItemEffectResolution onContagioValueLost({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required int lostValue,
+    required bool isOwnerContagioCarrier,
+    required bool wasRemoved,
+    required BattlerStatus triggerStatus,
+  }) {
+    if (isOwnerContagioCarrier) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _recoverBarrier(owner: owner, amount: 3),
+      opponent: opponent,
+    );
+  }
+}
+
+int _debuffCount(Battler battler) {
+  return battler.statuses
+      .where((status) => status.type == BattlerStatusType.debuff)
+      .length;
+}
+
 /// Enumera los estados "nuevos" que pueden ser aplicados por objetos.
 enum ItemStatusEffectKind {
   calentando,
   conmocion,
   fragilidad,
-  inercia,
-  inerciaAtaque,
-  inerciaBarrera,
 }
 
 /// Identifica en que momento del combate un objeto genera uno de esos estados.
@@ -880,12 +1122,6 @@ class StatusItemEffect extends ItemEffect {
         return ConmocionStatus(value: resolvedValue);
       case ItemStatusEffectKind.fragilidad:
         return FragilidadStatus(value: resolvedValue);
-      case ItemStatusEffectKind.inercia:
-        return InerciaStatus(value: resolvedValue);
-      case ItemStatusEffectKind.inerciaAtaque:
-        return InerciaAtaqueStatus(value: resolvedValue);
-      case ItemStatusEffectKind.inerciaBarrera:
-        return InerciaBarreraStatus(value: resolvedValue);
     }
   }
 
@@ -899,12 +1135,6 @@ class StatusItemEffect extends ItemEffect {
         return 'Conmocion (-$resolvedValue daño en el siguiente ataque)';
       case ItemStatusEffectKind.fragilidad:
         return 'Fragilidad ($resolvedValue acumulacion)';
-      case ItemStatusEffectKind.inercia:
-        return 'Inercia (+$resolvedValue por acumulacion)';
-      case ItemStatusEffectKind.inerciaAtaque:
-        return 'Reserva de Inercia: ATK (+$resolvedValue)';
-      case ItemStatusEffectKind.inerciaBarrera:
-        return 'Reserva de Inercia: Barrera (+$resolvedValue)';
     }
   }
 }

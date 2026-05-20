@@ -55,13 +55,13 @@
 -Aumentos
 [--Añadir Tags]
 [--Meter en el loot]
---Crear al menos 20 generales y 20 por arquetipo[general: 10, veloz: 8, inamovible: 9, imparable: 8, mercante: 7]
+--Crear al menos 20 generales y 20 por arquetipo[general: 11, veloz: 15, inamovible: 9, imparable: 10, mercante: 7]
 
 -Items
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 60 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 22, Inamovible: 25, Imparable: 37, Mercante: 16]
+--Meter al menos 45 generales y 60 por arquetipo(45 para mercante)[General: 16, Veloz: 30, Inamovible: 22, Imparable: 32, Mercante: 15]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
@@ -122,3 +122,22 @@ IDEAS:
 
 ////////////////////////////////
 
+Items:
+
+Vial Roto
+Grey, value: 1, upgradeValue: 2
+Effect: "Al principio del combate, aplica value de Contagio al enemigo"
+
+Cyber-cerbatana
+Blue, value: 2, upgradeValue: 2
+Effect: "Al usarse: aplica value de Contagio al enemigo, o aumenta el valor del Contagio enemigo en value"
+Pattern bonus: 180º, adds value attack
+
+Augments:
+Arma Biológica
+Blue, value: 1, upgradeValue: 2
+Effect: "Cuando Contagio enemigo pierde value, ya sea por purgar el efecto o por que se activa, haz value de daño directo al enemigo"
+
+Inmunización
+Purple, value: 4, upgradeValue: 4
+Effect: "Cuando Contagio pierde value en ti, ya sea por purgar el efecto o por que se activa, recuperas value de vida"

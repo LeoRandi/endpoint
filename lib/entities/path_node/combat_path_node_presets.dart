@@ -200,12 +200,12 @@ final purpleCombatNode = CombatPathNode(
   label: purpleEnemyBattler.name,
 );
 
-/// Nodo morado de inercia que acumula reservas en ambos ejes.
-final inertiaHarpoonerCombatNode = CombatPathNode(
-  nodeId: 'combat_inertia_harpooner',
-  enemy: inertiaHarpoonerEnemyBattler,
+/// Nodo morado Imparable que encadena Desafio y contraataques.
+final challengeHarpoonerCombatNode = CombatPathNode(
+  nodeId: 'combat_challenge_harpooner',
+  enemy: challengeHarpoonerEnemyBattler,
   tier: CombatNodeTier.purple,
-  label: inertiaHarpoonerEnemyBattler.name,
+  label: challengeHarpoonerEnemyBattler.name,
 );
 
 /// Nodo morado de fuego extremo con remate por vida faltante.
@@ -305,7 +305,7 @@ final List<CombatPathNode> purpleCombatNodes = List.unmodifiable([
   venomOracleCombatNode,
   cinderExecutionerCombatNode,
   phaseDredgerCombatNode,
-  inertiaHarpoonerCombatNode,
+  challengeHarpoonerCombatNode,
   ovenHarrowerCombatNode,
   voidLeecherCombatNode,
   gloomSmugglerCombatNode,

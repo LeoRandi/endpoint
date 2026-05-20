@@ -21,14 +21,14 @@ const desafioExcitanteStatus = DesafioExcitanteStatus();
 /// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
 const catalisisCruelStatus = CatalisisCruelStatus();
 
+/// Preset rapido del debuff Contagio con su amplificacion inicial.
+const contagioStatus = ContagioStatus();
+
 /// Preset rapido de Fragilidad con su acumulacion inicial.
 const fragilidadStatus = FragilidadStatus();
 
 /// Preset rapido de Conmocion con su penalizacion inicial.
 const conmocionStatus = ConmocionStatus();
-
-/// Preset rapido de Inercia con la ganancia base por activacion.
-const inerciaStatus = InerciaStatus();
 
 /// Preset rapido de Deuda con la cuota inicial estandar.
 const deudaStatus = DeudaStatus();
@@ -103,6 +103,11 @@ final battlerStatusFactoryById =
         remainingTurns: remainingTurns,
         value: value,
       ),
+  BattlerStatusId.contagio: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      ContagioStatus(value: value),
   BattlerStatusId.catalisisCruel: ({
     required int remainingTurns,
     required int value,
@@ -121,21 +126,6 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       ConmocionStatus(value: value),
-  BattlerStatusId.inercia: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      InerciaStatus(value: value),
-  BattlerStatusId.inerciaAtaque: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      InerciaAtaqueStatus(value: value),
-  BattlerStatusId.inerciaBarrera: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      InerciaBarreraStatus(value: value),
   BattlerStatusId.compensadorRuta: ({
     required int remainingTurns,
     required int value,

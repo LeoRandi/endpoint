@@ -15,7 +15,7 @@ final List<Item> inamovibleItemPool = _itemsWithAffinity(
   ItemArchetypeAffinity.inamovible,
 );
 
-/// Objetos con identidad ofensiva, Quemadura, Calentando o motor de Inercia.
+/// Objetos con identidad ofensiva, Quemadura, Calentando o Desafio.
 final List<Item> imparableItemPool = _itemsWithAffinity(
   ItemArchetypeAffinity.imparable,
 );

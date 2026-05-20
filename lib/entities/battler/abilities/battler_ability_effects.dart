@@ -2493,35 +2493,203 @@ class MandatoColiseoAbilityEffect extends BattlerAbilityEffect {
   const MandatoColiseoAbilityEffect()
       : super(
           hooks: const {
-            BattlerAbilityHook.turnStart,
+            BattlerAbilityHook.combatStart,
           },
         );
 
   @override
-  BattlerAbilityEffectResolution onTurnStart({
+  Battler onCombatStart({
     required Battler owner,
-    required Battler opponent,
     required BattlerAbility ability,
-    required bool isOwnerTurn,
   }) {
-    if (!isOwnerTurn ||
-        owner.hasCombatFlag(
+    if (owner.hasCombatFlag(
+      const CombatRuntimeFlag.battler(
+        BattlerCombatFlag.mandatoColiseoOpeningGranted,
+      ),
+    )) {
+      return owner;
+    }
+
+    return owner
+        .addCombatFlag(
           const CombatRuntimeFlag.battler(
             BattlerCombatFlag.mandatoColiseoOpeningGranted,
           ),
-        )) {
+        )
+        .gainDesafio(max(1, ability.currentValue));
+  }
+}
+
+class ArmaBiologicaAbilityEffect extends BattlerAbilityEffect {
+  const ArmaBiologicaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.contagioValueLost,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onContagioValueLost({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required int lostValue,
+    required bool isOwnerContagioCarrier,
+    required bool wasRemoved,
+    required BattlerStatus triggerStatus,
+  }) {
+    if (isOwnerContagioCarrier) {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
     return BattlerAbilityEffectResolution(
-      owner: owner
-          .addCombatFlag(
-            const CombatRuntimeFlag.battler(
-              BattlerCombatFlag.mandatoColiseoOpeningGranted,
-            ),
-          )
-          .gainDesafio(max(1, ability.currentValue)),
+      owner: owner,
+      opponent: opponent.receiveDirectDamage(
+        max(1, ability.currentValue),
+        source: owner,
+      ),
+    );
+  }
+}
+
+class InmunizacionAbilityEffect extends BattlerAbilityEffect {
+  const InmunizacionAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.contagioValueLost,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onContagioValueLost({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required int lostValue,
+    required bool isOwnerContagioCarrier,
+    required bool wasRemoved,
+    required BattlerStatus triggerStatus,
+  }) {
+    if (!isOwnerContagioCarrier) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: owner.heal(max(1, ability.currentValue)),
       opponent: opponent,
+    );
+  }
+}
+
+class CargaViricaAbilityEffect extends BattlerAbilityEffect {
+  const CargaViricaAbilityEffect();
+}
+
+class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
+  const EpidemiologiaTacticaAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.patternMatchResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onPatternMatchResolved({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final usedPointKeys = pattern.patternPoints.map((point) => point.key).toSet();
+    final debuffItemCount = owner.equippedItems.where((item) {
+      final pointKey =
+          owner.patternItemPointKeys[OperativePatternLayoutService.itemKey(item)];
+      return pointKey != null &&
+          usedPointKeys.contains(pointKey) &&
+          item.hasTag(EntityTag.debuff);
+    }).length;
+    if (debuffItemCount < 2) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final resolution = opponent.applyStatusFromSourceResolved(
+      ContagioStatus(value: max(1, ability.currentValue)),
+      source: owner,
+    );
+    return BattlerAbilityEffectResolution(
+      owner: resolution.source,
+      opponent: resolution.owner,
+    );
+  }
+}
+
+class SintomasCruzadosAbilityEffect extends BattlerAbilityEffect {
+  const SintomasCruzadosAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.contagioValueLost,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onContagioValueLost({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required int lostValue,
+    required bool isOwnerContagioCarrier,
+    required bool wasRemoved,
+    required BattlerStatus triggerStatus,
+  }) {
+    if (isOwnerContagioCarrier) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final BattlerStatus? followUpStatus = switch (triggerStatus) {
+      QuemaduraStatus() => const IntoxicacionStatus(value: 1),
+      IntoxicacionStatus() => const QuemaduraStatus(remainingTurns: 1),
+      _ => null,
+    };
+    if (followUpStatus == null) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final resolution = opponent.applyStatusFromSourceResolved(
+      followUpStatus,
+      source: owner,
+    );
+    return BattlerAbilityEffectResolution(
+      owner: resolution.source,
+      opponent: resolution.owner,
+    );
+  }
+}
+
+class PacienteCeroAbilityEffect extends BattlerAbilityEffect {
+  const PacienteCeroAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.combatStartOpponent,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onCombatStartOpponent({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+  }) {
+    final velozItemCount = owner.equippedItems
+        .where((item) => item.hasArchetypeAffinity(ItemArchetypeAffinity.veloz))
+        .length;
+    final amount = max(max(1, ability.currentValue), velozItemCount);
+    final resolution = opponent.applyStatusFromSourceResolved(
+      ContagioStatus(value: amount),
+      source: owner,
+    );
+    return BattlerAbilityEffectResolution(
+      owner: resolution.source,
+      opponent: resolution.owner,
     );
   }
 }

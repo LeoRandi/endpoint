@@ -579,6 +579,102 @@ const cadenaNeurotoxicaAbility = BattlerAbility(
   isImplemented: true,
 );
 
+/// Pasiva veloz que castiga cada perdida de Contagio enemigo con dano directo.
+const armaBiologicaAbility = BattlerAbility(
+  id: BattlerAbilityId.armaBiologica,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _ataqueDebuffContagioAbilityTags,
+  name: 'Arma Biologica',
+  description:
+      'Pasiva. Cuando Contagio enemigo pierde valor, infliges dano directo.',
+  icon: Icons.biotech_rounded,
+  value: 1,
+  upgradeValue: 2,
+  effect: ArmaBiologicaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva veloz defensiva que cura cuando el Contagio propio baja.
+const inmunizacionAbility = BattlerAbility(
+  id: BattlerAbilityId.inmunizacion,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _vidaDebuffContagioAbilityTags,
+  name: 'Inmunizacion',
+  description:
+      'Pasiva. Cuando Contagio pierde valor en ti, recuperas vida.',
+  icon: Icons.vaccines_rounded,
+  value: 4,
+  upgradeValue: 4,
+  effect: InmunizacionAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva veloz que aumenta el primer Contagio aplicado cada turno.
+const cargaViricaAbility = BattlerAbility(
+  id: BattlerAbilityId.cargaVirica,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.green,
+  tags: _debuffContagioAbilityTags,
+  name: 'Carga Virica',
+  description:
+      'Pasiva. La primera vez por turno que aplicas Contagio, aplica Contagio adicional.',
+  icon: Icons.bubble_chart_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: CargaViricaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva veloz que premia usar varios items de debuff en un Patron.
+const epidemiologiaTacticaAbility = BattlerAbility(
+  id: BattlerAbilityId.epidemiologiaTactica,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _debuffContagioAbilityTags,
+  name: 'Epidemiologia Tactica',
+  description:
+      'Pasiva de Patron. Si el Patron usa 2+ items con debuff, aplica Contagio antes de sus efectos.',
+  icon: Icons.insights_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: EpidemiologiaTacticaAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva veloz que cruza Quemadura e Intoxicacion al activar Contagio.
+const sintomasCruzadosAbility = BattlerAbility(
+  id: BattlerAbilityId.sintomasCruzados,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.purple,
+  tags: _debuffContagioAbilityTags,
+  name: 'Sintomas Cruzados',
+  description:
+      'Pasiva. Si activas Contagio aplicando Quemadura o Intoxicacion, tambien aplicas el otro debuff.',
+  icon: Icons.sync_alt_rounded,
+  value: 1,
+  upgradeValue: 0,
+  effect: SintomasCruzadosAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva amarilla que abre el combate propagando Contagio por los items Veloz.
+const pacienteCeroAbility = BattlerAbility(
+  id: BattlerAbilityId.pacienteCero,
+  archetypeAffinities: _velozAbilityAffinities,
+  rarity: RarityTier.yellow,
+  tags: _debuffContagioAbilityTags,
+  name: 'Paciente Cero',
+  description:
+      'Pasiva. Al principio del combate, aplica Contagio segun tus items Veloz equipados.',
+  icon: Icons.personal_injury_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: PacienteCeroAbilityEffect(),
+  isImplemented: true,
+);
+
 /// Pasiva amarilla de Veloz que replica el doble golpe de las Gafas sin apilar su penalizacion.
 const aceleracionFotovoltaicaAbility = BattlerAbility(
   id: BattlerAbilityId.aceleracionFotovoltaica,
@@ -748,6 +844,12 @@ const abilityPresets = <BattlerAbility>[
   agujaToxicaAbility,
   rastroInestableAbility,
   cadenaNeurotoxicaAbility,
+  armaBiologicaAbility,
+  inmunizacionAbility,
+  cargaViricaAbility,
+  epidemiologiaTacticaAbility,
+  sintomasCruzadosAbility,
+  pacienteCeroAbility,
   aceleracionFotovoltaicaAbility,
   b4r3b0n3dAbility,
   compensadorRutaAbility,

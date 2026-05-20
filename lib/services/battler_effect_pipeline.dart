@@ -1,5 +1,15 @@
 import '_imports.dart';
 
+class ContagioValueLossResolution {
+  final Battler target;
+  final Battler source;
+
+  const ContagioValueLossResolution({
+    required this.target,
+    required this.source,
+  });
+}
+
 /// Centraliza la resolucion de hooks de estados, habilidades e items.
 class BattlerEffectPipeline {
   const BattlerEffectPipeline();
@@ -50,6 +60,159 @@ class BattlerEffectPipeline {
     }
 
     return updatedOwner.pruneExpiredStatuses();
+  }
+
+  ItemEffectResolution applyEquippedItemCombatStartEffects({
+    required Battler owner,
+    required Battler opponent,
+    RunRandomizer? randomizer,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+
+    final activeItems = List<Item>.from(
+      owner.equippedItemsForHook(ItemEffectHook.combatStart),
+    );
+
+    for (final item in activeItems) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onCombatStart(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        item: item,
+        randomizer: randomizer,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      opponent: updatedOpponent.pruneExpiredStatuses(),
+    );
+  }
+
+  BattlerAbilityEffectResolution applyAbilityCombatStartOpponentEffects({
+    required Battler owner,
+    required Battler opponent,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+
+    final activeAbilityIds = List<BattlerAbilityId>.from(
+      owner.abilityIdsForHook(BattlerAbilityHook.combatStartOpponent),
+    );
+
+    for (final abilityId in activeAbilityIds) {
+      final ability = updatedOwner.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      final resolution = effect.onCombatStartOpponent(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        ability: ability,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return BattlerAbilityEffectResolution(
+      owner: updatedOwner.pruneExpiredStatuses(),
+      opponent: updatedOpponent.pruneExpiredStatuses(),
+    );
+  }
+
+  ContagioValueLossResolution applyContagioValueLostEffects({
+    required Battler target,
+    required Battler source,
+    required BattlerStatus triggerStatus,
+    required int lostValue,
+    required bool wasRemoved,
+  }) {
+    var updatedTarget = target;
+    var updatedSource = source;
+
+    for (final abilityId in updatedTarget
+        .abilityIdsForHook(BattlerAbilityHook.contagioValueLost)) {
+      final ability = updatedTarget.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      final resolution = effect.onContagioValueLost(
+        owner: updatedTarget,
+        opponent: updatedSource,
+        ability: ability,
+        lostValue: lostValue,
+        isOwnerContagioCarrier: true,
+        wasRemoved: wasRemoved,
+        triggerStatus: triggerStatus,
+      );
+      updatedTarget = resolution.owner;
+      updatedSource = resolution.opponent;
+    }
+
+    for (final item
+        in updatedTarget.equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onContagioValueLost(
+        owner: updatedTarget,
+        opponent: updatedSource,
+        item: item,
+        lostValue: lostValue,
+        isOwnerContagioCarrier: true,
+        wasRemoved: wasRemoved,
+        triggerStatus: triggerStatus,
+      );
+      updatedTarget = resolution.owner;
+      updatedSource = resolution.opponent;
+    }
+
+    for (final abilityId in updatedSource
+        .abilityIdsForHook(BattlerAbilityHook.contagioValueLost)) {
+      final ability = updatedSource.abilityById(abilityId);
+      final effect = ability?.effect;
+      if (ability == null || effect == null) continue;
+
+      final resolution = effect.onContagioValueLost(
+        owner: updatedSource,
+        opponent: updatedTarget,
+        ability: ability,
+        lostValue: lostValue,
+        isOwnerContagioCarrier: false,
+        wasRemoved: wasRemoved,
+        triggerStatus: triggerStatus,
+      );
+      updatedSource = resolution.owner;
+      updatedTarget = resolution.opponent;
+    }
+
+    for (final item
+        in updatedSource.equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
+      final effect = item.effect;
+      if (effect == null) continue;
+
+      final resolution = effect.onContagioValueLost(
+        owner: updatedSource,
+        opponent: updatedTarget,
+        item: item,
+        lostValue: lostValue,
+        isOwnerContagioCarrier: false,
+        wasRemoved: wasRemoved,
+        triggerStatus: triggerStatus,
+      );
+      updatedSource = resolution.owner;
+      updatedTarget = resolution.opponent;
+    }
+
+    return ContagioValueLossResolution(
+      target: updatedTarget.pruneExpiredStatuses(),
+      source: updatedSource.pruneExpiredStatuses(),
+    );
   }
 
   Battler receiveDirectDamage({

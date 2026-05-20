@@ -7,6 +7,7 @@ const _effectBuffAccent = EndpointPalette.warningAccent;
 const _effectDebuffAccent = Color(0xFFB77945);
 const _effectBurnAccent = Color(0xFFFF8C42);
 const _effectPoisonAccent = Color(0xFFC178FF);
+const _effectContagionAccent = Color(0xFFB56DFF);
 const _effectResonanceAccent = Color(0xFFD0D5DE);
 const _effectChallengeAccent = Color(0xFF55D6C2);
 
@@ -14,7 +15,7 @@ final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
 );
 final RegExp _highlightedTermPattern = RegExp(
-  r'\b(?:al usarse|usarse|desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|inercia|ciclo|fragilidad|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
+  r'\b(?:al usarse|usarse|desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|ciclo|fragilidad|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
   caseSensitive: false,
 );
 
@@ -86,6 +87,13 @@ class EndpointHighlightedValueText extends StatelessWidget {
           accent: _accentForValue(match.start, match.end),
         ),
       for (final match in _highlightedTermPattern.allMatches(data))
+        _HighlightedToken.term(
+          start: match.start,
+          end: match.end,
+          term: _metadataForTerm(match.group(0) ?? ''),
+        ),
+      for (final match in RegExp(r'\bcontagio\b', caseSensitive: false)
+          .allMatches(data))
         _HighlightedToken.term(
           start: match.start,
           end: match.end,
@@ -167,6 +175,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (normalizedToken.contains('desafio')) {
       return _effectChallengeAccent;
     }
+    if (normalizedToken.contains('contagio')) {
+      return _effectContagionAccent;
+    }
     if (normalizedToken.contains('intoxicacion')) {
       return _effectPoisonAccent;
     }
@@ -224,6 +235,14 @@ class EndpointHighlightedValueText extends StatelessWidget {
             'Desafio: buff que guarda un golpe directo antes del siguiente ataque. Si llega al final del combate, cura.',
       );
     }
+    if (normalizedToken.contains('contagio')) {
+      return const _HighlightTermMetadata(
+        accent: _effectContagionAccent,
+        icon: _HighlightIconSpec.material(Icons.coronavirus_rounded),
+        tooltip:
+            'Contagio: debuff permanente durante el combate. Cuando otro debuff se aplica al portador, aumenta ese debuff por su valor y Contagio baja en 1.',
+      );
+    }
     if (normalizedToken.contains('intoxicacion')) {
       return const _HighlightTermMetadata(
         accent: _effectPoisonAccent,
@@ -278,14 +297,6 @@ class EndpointHighlightedValueText extends StatelessWidget {
         icon: _HighlightIconSpec.material(Icons.local_fire_department_rounded),
         tooltip:
             'Calentando: buff. Suma su valor al daño del siguiente ataque y luego se consume. Se limpia al terminar el combate.',
-      );
-    }
-    if (normalizedToken.contains('inercia')) {
-      return const _HighlightTermMetadata(
-        accent: _effectBuffAccent,
-        icon: _HighlightIconSpec.material(Icons.motion_photos_on_rounded),
-        tooltip:
-            'Inercia: buff. Al final de tu turno genera una reserva temporal de ATK o Barrera.',
       );
     }
     if (normalizedToken.startsWith('buff')) {
@@ -372,6 +383,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (tagSet.contains(EntityTag.desafio)) {
       return _effectChallengeAccent;
     }
+    if (tagSet.contains(EntityTag.contagio)) {
+      return _effectContagionAccent;
+    }
     if (tagSet.contains(EntityTag.vida)) {
       return _effectHealingAccent;
     }
@@ -400,6 +414,10 @@ class EndpointHighlightedValueText extends StatelessWidget {
       const _ValueAccentCandidate(
         color: _effectChallengeAccent,
         patterns: ['desafio'],
+      ),
+      const _ValueAccentCandidate(
+        color: _effectContagionAccent,
+        patterns: ['contagio'],
       ),
       const _ValueAccentCandidate(
         color: _effectPoisonAccent,
@@ -432,7 +450,6 @@ class EndpointHighlightedValueText extends StatelessWidget {
         patterns: [
           'potencia',
           'calentando',
-          'inercia',
           'buff',
           'reserva',
         ],

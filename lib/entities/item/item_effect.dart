@@ -32,6 +32,7 @@ enum ItemAbilityResolutionContext {
 
 /// Enumera los puntos del ciclo de combate en los que un item equipado puede intervenir.
 enum ItemEffectHook {
+  combatStart,
   turnStart,
   turnEnd,
   combatEnd,
@@ -50,6 +51,7 @@ enum ItemEffectHook {
   abilityResolved,
   outgoingStatusModifier,
   incomingStatusModifier,
+  contagioValueLost,
   fatalDamage,
 }
 
@@ -94,6 +96,16 @@ abstract class ItemEffect {
 
   /// Devuelve la descripcion mostrada por la UI, pudiendo usar el value del item.
   String descriptionFor(Item item) => description;
+
+  /// Resuelve el efecto del item al inicio del combate.
+  ItemEffectResolution onCombatStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    RunRandomizer? randomizer,
+  }) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
 
   /// Resuelve el efecto del item al inicio de turno.
   ItemEffectResolution onTurnStart({
@@ -315,6 +327,19 @@ abstract class ItemEffect {
         status: status,
       ),
     );
+  }
+
+  /// Reacciona cuando Contagio pierde valor al activarse o desaparecer.
+  ItemEffectResolution onContagioValueLost({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required int lostValue,
+    required bool isOwnerContagioCarrier,
+    required bool wasRemoved,
+    required BattlerStatus triggerStatus,
+  }) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
   }
 
   /// Permite interceptar un golpe letal justo antes de que el portador muera.

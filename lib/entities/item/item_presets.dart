@@ -88,14 +88,23 @@ const _ataqueVidaTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.vida,
 ];
-const _ataqueBuffVidaTags = <EntityTag>[
-  EntityTag.ataque,
-  EntityTag.buff,
-  EntityTag.vida,
-];
 const _ataqueDebuffTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
+];
+const _debuffContagioTags = <EntityTag>[
+  EntityTag.debuff,
+  EntityTag.contagio,
+];
+const _ataqueDebuffContagioTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.debuff,
+  EntityTag.contagio,
+];
+const _barreraDebuffContagioTags = <EntityTag>[
+  EntityTag.barrera,
+  EntityTag.debuff,
+  EntityTag.contagio,
 ];
 const _ataqueDebuffQuemaduraTags = <EntityTag>[
   EntityTag.ataque,
@@ -702,6 +711,57 @@ const deflectiveCapacitorItem = Item(
   effect: DeflectiveCapacitorItemEffect(),
 );
 
+/// Accesorio gris que prepara al enemigo para amplificar otros debuffs.
+const vialRotoItem = Item(
+  id: ItemId.vialRoto,
+  archetypeAffinities: _velozAffinities,
+  tags: _debuffContagioTags,
+  name: 'Vial Roto',
+  description: 'Al principio del combate, aplica Contagio al enemigo.',
+  iconEmoji: '\u{1F9EA}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 2,
+  effect: VialRotoItemEffect(),
+);
+
+/// Arma gris de Veloz que siembra debuffs aleatorios en cada uso.
+const plumaSepticaItem = Item(
+  id: ItemId.plumaSeptica,
+  archetypeAffinities: _velozAffinities,
+  tags: _ataqueDebuffTags,
+  name: 'Pluma Septica',
+  description: 'Al usarse: aplica un debuff aleatorio al enemigo.',
+  iconEmoji: '\u{1FAB6}',
+  rarity: RarityTier.gray,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 1,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  effect: PlumaSepticaItemEffect(),
+);
+
+/// Arma gris que convierte enemigos ya debilitados en focos de Contagio.
+const lanzaSuciaItem = Item(
+  id: ItemId.lanzaSucia,
+  archetypeAffinities: _velozAffinities,
+  tags: _ataqueDebuffContagioTags,
+  name: 'Lanza Sucia',
+  description:
+      'Al usarse contra un enemigo con debuff, aplica Contagio. Bonus de Patron en ataques.',
+  iconEmoji: '\u{1F531}',
+  rarity: RarityTier.gray,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 1,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  effect: LanzaSuciaItemEffect(),
+);
+
 // Green
 
 /// Variante agil del arma basica usada por el arquetipo Veloz.
@@ -721,6 +781,23 @@ const cyberWhipsItem = Item(
   value: 1,
   upgradeValue: 1,
   effect: IntoxicarOnAttackItemEffect(),
+);
+
+/// Accesorio verde que refuerza la Fragilidad cuando Contagio ya prendio.
+const ampollaInestableItem = Item(
+  id: ItemId.ampollaInestable,
+  archetypeAffinities: _velozAffinities,
+  tags: _debuffContagioTags,
+  name: 'Ampolla Inestable',
+  description:
+      'Al usarse: aplica Contagio. Si el enemigo ya tenia Contagio, aplica el doble de Fragilidad.',
+  iconEmoji: '\u{2697}',
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
+  value: 1,
+  upgradeValue: 1,
+  effect: AmpollaInestableItemEffect(),
 );
 
 /// Soporte defensivo verde para builds de aguante.
@@ -796,23 +873,10 @@ const visorAperturaItem = Item(
   iconEmoji: '\u{1F576}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-      _adjN,
-      EntityTag.ataque,
-      _adjAttack,
-      1,
-    ),
-    OperativePatternAdjacencyBonus.match(
-      _adjE,
-      EntityTag.desafio,
-      _adjAttack,
-      1,
-    ),
-  ],
   baseCost: 4,
   value: 3,
   upgradeValue: 1,
+  effect: VisorAperturaItemEffect(),
 );
 
 /// Accesorio verde ofensivo que aplica Intoxicacion al atacar.
@@ -1091,6 +1155,42 @@ const toxicScalpelItem = Item(
 
 // Blue
 
+/// Accesorio azul que cultiva Contagio cuando el enemigo acumula sintomas.
+const tuboCultivoItem = Item(
+  id: ItemId.tuboCultivo,
+  archetypeAffinities: _velozAffinities,
+  tags: _debuffContagioTags,
+  name: 'Tubo de Cultivo',
+  description:
+      'Al final de tu turno: si el enemigo tiene 2+ debuffos, aplica Contagio.',
+  iconEmoji: '\u{1F9EB}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 1,
+  upgradeValue: 1,
+  effect: TuboCultivoItemEffect(),
+);
+
+/// Arma azul que inyecta Contagio desde patrones rectos.
+const cyberCerbatanaItem = Item(
+  id: ItemId.cyberCerbatana,
+  archetypeAffinities: _velozAffinities,
+  tags: _ataqueDebuffContagioTags,
+  name: 'Cyber-cerbatana',
+  description:
+      'Al usarse: aplica o aumenta Contagio al enemigo. Bonus de Patron en angulos de 180 grados.',
+  iconEmoji: '\u{1FA88}',
+  rarity: RarityTier.blue,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 2,
+  patternRequirementOverride: OperativePatternRequirement.straightAngle(),
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 2,
+  effect: CyberCerbatanaItemEffect(),
+);
+
 /// Accesorio azul que marca pulsos de curacion o daño segun el momento del Ciclo.
 const relojDeTurnoItem = Item(
   id: ItemId.relojDeTurno,
@@ -1267,22 +1367,6 @@ const silbatoMudoItem = Item(
   ),
 );
 
-/// Accesorio azul que sacrifica vida real para cargar una reserva enorme de ataque.
-const bombaMiocardicaItem = Item(
-  id: ItemId.bombaMiocardica,
-  archetypeAffinities: _imparableAffinities,
-  tags: _ataqueBuffVidaTags,
-  name: 'Bomba Miocardica',
-  description:
-      'Al inicio de tu turno, pierdes vida y ganas una gran Reserva de Inercia: ATK.',
-  iconEmoji: '\u2764',
-  rarity: RarityTier.blue,
-  baseCost: 6,
-  value: 2,
-  upgradeValue: 1,
-  effect: BombaMiocardicaItemEffect(),
-);
-
 /// Soporte azul reactivo que devuelve Quemadura al recibir golpes.
 const reactiveCasingItem = Item(
   id: ItemId.reactiveCasing,
@@ -1428,24 +1512,6 @@ const phaseVeilItem = Item(
   value: 2,
   upgradeValue: 1,
   effect: RecoverBarrierOnTurnStartItemEffect(amount: 2),
-);
-
-/// Accesorio azul que garantiza acceso continuo al motor de Inercia.
-const inertialCoreItem = Item(
-  id: ItemId.inertialCore,
-  archetypeAffinities: _imparableAffinities,
-  tags: _ataqueBarreraBuffTags,
-  name: 'Nucleo Inercial',
-  description: 'Al inicio de tu turno, si no lo tienes, ganas Inercia.',
-  iconEmoji: '\u{1F9F2}',
-  rarity: RarityTier.blue,
-  baseCost: 6,
-  value: 1,
-  upgradeValue: 1,
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.inercia,
-    trigger: ItemStatusEffectTrigger.turnStartOwnerIfMissing,
-  ),
 );
 
 /// Blindaje azul de barrera plana alta.
@@ -1611,6 +1677,23 @@ const capaDelContrabandistaItem = Item(
 
 // Purple
 
+/// Accesorio morado que convierte el agotamiento de Contagio en veneno.
+const protocoloBroteItem = Item(
+  id: ItemId.protocoloBrote,
+  archetypeAffinities: _velozAffinities,
+  tags: _debuffContagioTags,
+  name: 'Protocolo de Brote',
+  description:
+      'Cuando Contagio enemigo llega a 0 al activarse, aplica Intoxicacion.',
+  iconEmoji: '\u{1F9EC}',
+  rarity: RarityTier.purple,
+  patternBonusAmountOverride: 0,
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 1,
+  effect: ProtocoloBroteItemEffect(),
+);
+
 /// Accesorio morado que refuerza la defensa diurna y la pegada nocturna.
 const prismaCircadianoItem = Item(
   id: ItemId.prismaCircadiano,
@@ -1731,58 +1814,6 @@ const emergencyPlatingItem = Item(
   effect: EmergencyPlatingItemEffect(),
 );
 
-/// Arma morada que convierte cada impacto en reserva de ataque acumulable.
-const impulseSpearItem = Item(
-  id: ItemId.impulseSpear,
-  archetypeAffinities: _imparableAffinities,
-  tags: _ataqueBuffTags,
-  name: 'Lanza de Impulso',
-  description: 'Al usarse: ganas Reserva de Inercia: ATK.',
-  iconEmoji: '\u{1F531}',
-  rarity: RarityTier.purple,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(_adjN, EntityTag.arma, _adjAttack, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjE, EntityTag.ataque, _adjAttack, 2),
-    OperativePatternAdjacencyBonus.match(_adjS, EntityTag.buff, _adjAttack, 2),
-    OperativePatternAdjacencyBonus.match(_adjW, EntityTag.arma, _adjAttack, 2),
-  ],
-  baseCost: 8,
-  value: 2,
-  upgradeValue: 1,
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.inerciaAtaque,
-    trigger: ItemStatusEffectTrigger.attackOwner,
-  ),
-);
-
-/// Armadura morada que convierte castigo en una reserva defensiva creciente.
-const reboundHarnessItem = Item(
-  id: ItemId.reboundHarness,
-  archetypeAffinities: _inamovibleAffinities,
-  tags: _barreraBuffTags,
-  name: 'Arnes de Rebote',
-  description:
-      '+2 Barrera. Al recibir daño: ganas Reserva de Inercia: Barrera.',
-  iconEmoji: '\u{1FAA2}',
-  rarity: RarityTier.purple,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-        _adjE, EntityTag.barrera, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(_adjS, EntityTag.buff, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjW, EntityTag.barrera, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(_adjN, EntityTag.buff, _adjBarrier, 2),
-  ],
-  baseCost: 8,
-  value: 2,
-  upgradeValue: 1,
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.inerciaBarrera,
-    trigger: ItemStatusEffectTrigger.receiveDamageOwner,
-  ),
-);
-
 /// Accesorio morado que devuelve una conmocion potente al agresor.
 const concussionPrismItem = Item(
   id: ItemId.concussionPrism,
@@ -1860,32 +1891,6 @@ const portableOvenItem = Item(
   value: 1,
   upgradeValue: 1,
   effect: PortableOvenItemEffect(),
-);
-
-/// Accesorio morado que convierte golpes recibidos en reserva defensiva.
-const parasiticCapacitorItem = Item(
-  id: ItemId.parasiticCapacitor,
-  archetypeAffinities: _inamovibleMercanteAffinities,
-  tags: _vidaTags,
-  name: 'Capacitador Parasitario',
-  description: 'Al recibir dano: ganas Reserva de Inercia: Barrera.',
-  iconEmoji: '\u{1FAAB}',
-  rarity: RarityTier.purple,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(_adjE, EntityTag.vida, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjS, EntityTag.accesorio, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(_adjW, EntityTag.vida, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjN, EntityTag.accesorio, _adjBarrier, 2),
-  ],
-  baseCost: 8,
-  value: 5,
-  upgradeValue: 5,
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.inerciaBarrera,
-    trigger: ItemStatusEffectTrigger.receiveDamageOwner,
-  ),
 );
 
 /// Accesorio morado oportunista que roba liquidez y la convierte en aguante.
@@ -2042,6 +2047,23 @@ const reboundLensItem = Item(
 
 // Yellow
 
+/// Accesorio amarillo que abre el combate con Contagio y da Barrera al activarlo.
+const incubadoraPortatilItem = Item(
+  id: ItemId.incubadoraPortatil,
+  archetypeAffinities: _velozAffinities,
+  tags: _barreraDebuffContagioTags,
+  name: 'Incubadora Portatil',
+  description:
+      'Al principio del combate, aplica Contagio. Cada vez que Contagio enemigo se activa, recuperas 3 Barrera.',
+  iconEmoji: '\u{1F9EB}',
+  rarity: RarityTier.yellow,
+  patternBonusAmountOverride: 0,
+  baseCost: 10,
+  value: 3,
+  upgradeValue: 1,
+  effect: IncubadoraPortatilItemEffect(),
+);
+
 /// Arma amarilla que remata tras recibir el castigo de Desafio.
 const ultimaPalabraItem = Item(
   id: ItemId.ultimaPalabra,
@@ -2117,36 +2139,6 @@ const overloadInjectorItem = Item(
   statModifiers: {BattlerStat.attack: 3},
   upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: ThermalTurbineItemEffect(),
-);
-
-/// Armadura amarilla que garantiza una Inercia de alto valor si se pierde.
-const vectorBulwarkItem = Item(
-  id: ItemId.vectorBulwark,
-  archetypeAffinities: _inamovibleImparableAffinities,
-  tags: _ataqueBarreraBuffTags,
-  name: 'Bastion Vectorial',
-  description:
-      '+3 Barrera. Al inicio de tu turno, si no lo tienes, ganas Inercia.',
-  iconEmoji: '\u{1F9ED}',
-  rarity: RarityTier.yellow,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-        _adjN, EntityTag.ataque, _adjAttack, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjE, EntityTag.barrera, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(_adjS, EntityTag.buff, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjW, EntityTag.ataque, _adjAttack, 2),
-  ],
-  baseCost: 10,
-  value: 2,
-  upgradeValue: 1,
-  statModifiers: {BattlerStat.barrier: 3},
-  upgradeStatModifiers: {BattlerStat.barrier: 1},
-  effect: StatusItemEffect(
-    kind: ItemStatusEffectKind.inercia,
-    trigger: ItemStatusEffectTrigger.turnStartOwnerIfMissing,
-  ),
 );
 
 /// Accesorio amarillo que devuelve Barrera cuando la Resonancia hace dano.
@@ -2276,32 +2268,6 @@ const operativeBlackBoxItem = Item(
   effect: OperativeBlackBoxItemEffect(),
 );
 
-/// Accesorio amarillo que duplica el rendimiento del motor de Inercia.
-const inertiaCrownItem = Item(
-  id: ItemId.inertiaCrown,
-  archetypeAffinities: _imparableAffinities,
-  tags: _ataqueBarreraBuffTags,
-  name: 'Corona de Inercia',
-  description:
-      '+2 Barrera. Si tienes Inercia al inicio de tu turno, ganas ambas reservas de Inercia.',
-  iconEmoji: '\u{1F451}',
-  rarity: RarityTier.yellow,
-  patternAdjacencyBonuses: [
-    OperativePatternAdjacencyBonus.match(
-        _adjN, EntityTag.ataque, _adjAttack, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjE, EntityTag.barrera, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(_adjS, EntityTag.buff, _adjBarrier, 2),
-    OperativePatternAdjacencyBonus.match(
-        _adjW, EntityTag.accesorio, _adjBarrier, 2),
-  ],
-  baseCost: 10,
-  value: 2,
-  upgradeValue: 1,
-  statModifiers: {BattlerStat.barrier: 2},
-  effect: InertiaCrownItemEffect(),
-);
-
 /// Arma amarilla de remate que convierte la Quemadura acumulada en daño inmediato.
 const sunExecutionBladeItem = Item(
   id: ItemId.sunExecutionBlade,
@@ -2353,7 +2319,13 @@ const sunExecutionBladeItem = Item(
 /// Pool maestro de objetos ofrecidos por tiendas y recompensas.
 const itemPresets = <Item>[
   woodenStickItem,
+  vialRotoItem,
+  plumaSepticaItem,
+  lanzaSuciaItem,
   cyberWhipsItem,
+  ampollaInestableItem,
+  tuboCultivoItem,
+  cyberCerbatanaItem,
   sunglassesItem,
   shieldItem,
   bulwarkAmuletItem,
@@ -2380,8 +2352,10 @@ const itemPresets = <Item>[
   estandarteUltimoSolItem,
   motorMartirioItem,
   visorAperturaItem,
+  protocoloBroteItem,
   seguroRotoItem,
   aceleradorRetoItem,
+  incubadoraPortatilItem,
   ultimaPalabraItem,
   toxicCatalystItem,
   emberCharmItem,
@@ -2399,7 +2373,6 @@ const itemPresets = <Item>[
   botiquinCompactoItem,
   fundaAislanteItem,
   clavoReactorItem,
-  bombaMiocardicaItem,
   ultimaMarchaItem,
   stunBatonItem,
   emergencyPlatingItem,
@@ -2409,12 +2382,8 @@ const itemPresets = <Item>[
   thermalTurbineItem,
   pulseCarbineItem,
   phaseVeilItem,
-  inertialCoreItem,
-  impulseSpearItem,
-  reboundHarnessItem,
   concussionPrismItem,
   overloadInjectorItem,
-  vectorBulwarkItem,
   contingencySealItem,
   nucleoPiezoelectricoItem,
   descargaResonanteItem,
@@ -2428,7 +2397,6 @@ const itemPresets = <Item>[
   platedJacketItem,
   reactiveCasingItem,
   portableOvenItem,
-  parasiticCapacitorItem,
   succionaCreditosItem,
   sunsteelBladeItem,
   dawnCharmItem,
@@ -2446,7 +2414,6 @@ const itemPresets = <Item>[
   capaDelContrabandistaItem,
   overloadAnchorItem,
   reboundLensItem,
-  inertiaCrownItem,
   sunExecutionBladeItem,
 ];
 

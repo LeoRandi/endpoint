@@ -6,6 +6,7 @@ enum EntityTag {
   buff,
   quemadura,
   intoxicacion,
+  contagio,
   ciclo,
   vida,
   ataque,
@@ -29,6 +30,8 @@ extension EntityTagPresentation on EntityTag {
         return 'Quemadura';
       case EntityTag.intoxicacion:
         return 'Intoxicacion';
+      case EntityTag.contagio:
+        return 'Contagio';
       case EntityTag.ciclo:
         return 'Ciclo';
       case EntityTag.vida:
@@ -60,6 +63,8 @@ extension EntityTagPresentation on EntityTag {
         return const Color(0xFFFF8C42);
       case EntityTag.intoxicacion:
         return const Color(0xFF74D66A);
+      case EntityTag.contagio:
+        return const Color(0xFFB56DFF);
       case EntityTag.ciclo:
         return const Color(0xFFC0C0C0);
       case EntityTag.vida:

@@ -1,5 +1,6 @@
 import '../_imports.dart';
 import '../../services/battler_runtime_service.dart';
+import '../../services/operative_pattern_layout_service.dart';
 
 part 'abilities/battler_ability_effects.dart';
 part 'abilities/battler_ability_presets.dart';
@@ -72,6 +73,12 @@ enum BattlerAbilityId {
   rastroInestable,
   cadenaNeurotoxica,
   aceleracionFotovoltaica,
+  armaBiologica,
+  inmunizacion,
+  cargaVirica,
+  epidemiologiaTactica,
+  sintomasCruzados,
+  pacienteCero,
   b4r3b0n3d,
   compensadorRuta,
   aTodoRiesgo,
@@ -158,6 +165,8 @@ enum BattlerAbilityHook {
   outgoingDamageModifier,
   incomingDamageModifier,
   incomingStatusModifier,
+  contagioValueLost,
+  combatStartOpponent,
   attackResolved,
   receiveDamageResolved,
   patternMatchResolved,
@@ -297,6 +306,20 @@ const _ataqueBarreraAbilityTags = <EntityTag>[
 const _ataqueDebuffAbilityTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
+];
+const _ataqueDebuffContagioAbilityTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.debuff,
+  EntityTag.contagio,
+];
+const _vidaDebuffContagioAbilityTags = <EntityTag>[
+  EntityTag.vida,
+  EntityTag.debuff,
+  EntityTag.contagio,
+];
+const _debuffContagioAbilityTags = <EntityTag>[
+  EntityTag.debuff,
+  EntityTag.contagio,
 ];
 const _vidaBarreraAbilityTags = <EntityTag>[
   EntityTag.vida,
@@ -465,6 +488,15 @@ abstract class BattlerAbilityEffect {
     return owner;
   }
 
+  /// Resuelve efectos al comenzar combate cuando ambos combatientes existen.
+  BattlerAbilityEffectResolution onCombatStartOpponent({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+  }) {
+    return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
+  }
+
   /// Resuelve efectos que deben dispararse al inicio de turno.
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -544,6 +576,19 @@ abstract class BattlerAbilityEffect {
       source: source,
       status: status,
     );
+  }
+
+  /// Reacciona cuando Contagio pierde valor al activarse o desaparecer.
+  BattlerAbilityEffectResolution onContagioValueLost({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerAbility ability,
+    required int lostValue,
+    required bool isOwnerContagioCarrier,
+    required bool wasRemoved,
+    required BattlerStatus triggerStatus,
+  }) {
+    return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
   /// Resuelve efectos posteriores a que el portador complete un ataque.
@@ -1042,6 +1087,18 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Pasiva de Patron. Cuando aplicas o aumentas un debuff con un item Al usarse u otro aumento, infliges $positiveAmount dano directo una vez por item y aumento.';
     case BattlerAbilityId.aceleracionFotovoltaica:
       return 'Pasiva. Cada ataque basico golpea una vez adicional, pero tus bonus de items, adyacencias y patrones se reducen a la mitad si no estaban ya reducidos.';
+    case BattlerAbilityId.armaBiologica:
+      return 'Pasiva. Cuando Contagio enemigo pierde $positiveAmount, infliges $positiveAmount dano directo al enemigo.';
+    case BattlerAbilityId.inmunizacion:
+      return 'Pasiva. Cuando Contagio pierde $positiveAmount en ti, recuperas $positiveAmount vida.';
+    case BattlerAbilityId.cargaVirica:
+      return 'Pasiva. La primera vez por turno que aplicas Contagio, aplica +$positiveAmount adicional.';
+    case BattlerAbilityId.epidemiologiaTactica:
+      return 'Pasiva de Patron. Si usas 2 o mas items de debuff, aplica $positiveAmount Contagio antes de los efectos de items.';
+    case BattlerAbilityId.sintomasCruzados:
+      return 'Pasiva. Si activas Contagio aplicando Quemadura o Intoxicacion, aplica tambien el otro debuff.';
+    case BattlerAbilityId.pacienteCero:
+      return 'Pasiva. Al inicio del combate, aplica Contagio igual a tus items Veloz equipados, minimo $positiveAmount.';
     case BattlerAbilityId.b4r3b0n3d:
       return 'Pasiva de Patron. Si el Patron no activa efectos de items, ganas $positiveAmount de Potencia y $positiveAmount de Barrera antes del ataque.';
     case BattlerAbilityId.compensadorRuta:

@@ -345,24 +345,25 @@ const shieldmendBruteEnemyBattler = Battler(
   equippedItems: _greenShieldmendSetItems,
 );
 
-/// Enemigo azul que mezcla barrera y daño para el tramo medio de la run.
+/// Enemigo azul Imparable que fuerza intercambios con Desafio.
 const blueEnemyBattler = Battler(
   name: 'RIFT HOUND',
-  health: 59,
+  health: 63,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 59,
+    BattlerStat.health: 63,
     BattlerStat.attack: 5,
     BattlerStat.barrier: 3,
     BattlerStat.thorns: 0,
     BattlerStat.damageReduction: 0,
     BattlerStat.vampirism: 0,
   },
-  abilities: [weaknessHunterAbility],
+  abilities: [mandatoColiseoAbility],
   equippedItems: [
-    ironSwordItem,
-    platedJacketItem,
+    guanteProvocacionItem,
+    visorAperturaItem,
+    yunqueCardiacoItem,
   ],
 );
 
@@ -559,7 +560,7 @@ const purpleEnemyBattler = Battler(
   ],
   equippedItems: [
     emergencyPlatingItem,
-    parasiticCapacitorItem,
+    contingencySealItem,
     reboundLensItem,
   ],
 );
@@ -630,7 +631,7 @@ const phaseDredgerEnemyBattler = Battler(
   ],
   equippedItems: [
     torreRetornoItem,
-    parasiticCapacitorItem,
+    deflectiveCapacitorItem,
   ],
 );
 
@@ -638,13 +639,13 @@ const phaseDredgerEnemyBattler = Battler(
 /// SETS DE COMBATE (MORADO)
 /// -------------------------------
 const _purpleHarpoonerSetItems = <Item>[
-  impulseSpearItem,
-  inertialCoreItem,
-  reboundHarnessItem,
+  guanteProvocacionItem,
+  visorAperturaItem,
+  ultimaPalabraItem,
 ];
 const _purpleHarpoonerSetAbilities = <BattlerAbility>[
-  nucleoParasitarioAbility,
-  noHayRetiradaAbility,
+  mandatoColiseoAbility,
+  hemostasiaAgresivaAbility,
 ];
 
 const _purpleOvenSetItems = <Item>[
@@ -661,7 +662,7 @@ const _purpleOvenSetAbilities = <BattlerAbility>[
 const _purpleVoidSetItems = <Item>[
   emergencyPlatingItem,
   reboundLensItem,
-  parasiticCapacitorItem,
+  contingencySealItem,
 ];
 const _purpleVoidSetAbilities = <BattlerAbility>[
   escanerRupturaAbility,
@@ -679,9 +680,9 @@ const _purpleSmugglerSetAbilities = <BattlerAbility>[
   mallaReboteAbility,
 ];
 
-/// Variante morada de inercia que acumula reservas en ambos ejes.
-const inertiaHarpoonerEnemyBattler = Battler(
-  name: 'INERTIA HARPOONER',
+/// Variante morada Imparable que encadena Desafio y contraataques.
+const challengeHarpoonerEnemyBattler = Battler(
+  name: 'CHALLENGE HARPOONER',
   health: 80,
   money: 0,
   income: 0,
@@ -775,7 +776,7 @@ const yellowEnemyBattler = Battler(
     sunExecutionBladeItem,
     portableOvenItem,
     ceramicaPurgadoraItem,
-    vectorBulwarkItem,
+    canonContrapresionItem,
     reactiveCasingItem,
   ],
 );

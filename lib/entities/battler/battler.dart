@@ -149,6 +149,7 @@ enum BattlerCombatFlag {
   combustionDirigidaTriggered,
   reventaCircularTriggered,
   aTodoRiesgoTriggered,
+  cargaViricaTriggeredThisTurn,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
