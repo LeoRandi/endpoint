@@ -1,5 +1,11 @@
 import '../_imports.dart';
 
+const _patternTop = '0,1';
+const _patternLeft = '-1,0';
+const _patternCenter = '0,0';
+const _patternRight = '1,0';
+const _patternBottom = '0,-1';
+
 /// Enemigo gris basico usado como encuentro de entrada y referencia de dificultad minima.
 const grayEnemyBattler = Battler(
   name: 'SCRAP MITE',
@@ -15,6 +21,9 @@ const grayEnemyBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   equippedItems: [woodenStickItem],
+  patternItemPointKeys: {
+    'woodenStick': _patternCenter,
+  },
 );
 
 /// Variante gris evasiva que intercambia daño por mas impactos.
@@ -32,6 +41,9 @@ const shadeSkipperEnemyBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   equippedItems: [sunglassesItem],
+  patternItemPointKeys: {
+    'sunglasses': _patternCenter,
+  },
 );
 
 /// Variante gris ofensiva que castiga a objetivos sin buffs.
@@ -49,6 +61,9 @@ const lensRuntEnemyBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   equippedItems: [impactGlovesItem],
+  patternItemPointKeys: {
+    'impactGloves': _patternCenter,
+  },
 );
 
 /// Variante gris defensiva apoyada en una pasiva de mitigar daño.
@@ -66,6 +81,9 @@ const phaseMoteEnemyBattler = Battler(
     BattlerStat.vampirism: 0,
   },
   equippedItems: [mamparaPortatilItem],
+  patternItemPointKeys: {
+    'mamparaPortatil': _patternCenter,
+  },
 );
 
 /// -------------------------------
@@ -107,6 +125,9 @@ const chiselImpEnemyBattler = Battler(
   },
   abilities: _grayChiselSetAbilities,
   equippedItems: _grayChiselSetItems,
+  patternItemPointKeys: {
+    'stunBaton': _patternCenter,
+  },
 );
 
 /// Variante gris defensiva que castiga al agresor cuando entra en contacto.
@@ -125,6 +146,9 @@ const staticTickEnemyBattler = Battler(
   },
   abilities: _grayStaticSetAbilities,
   equippedItems: _grayStaticSetItems,
+  patternItemPointKeys: {
+    'shockMesh': _patternCenter,
+  },
 );
 
 /// Variante gris agresiva que presiona a rivales sin buffs.
@@ -143,6 +167,9 @@ const scrapHushEnemyBattler = Battler(
   },
   abilities: _grayHushSetAbilities,
   equippedItems: _grayHushSetItems,
+  patternItemPointKeys: {
+    'impactGloves': _patternCenter,
+  },
 );
 
 /// Variante gris de desgaste que se mantiene mientras limpia sus debuffs.
@@ -161,6 +188,9 @@ const rustLeechEnemyBattler = Battler(
   },
   abilities: _grayLeechSetAbilities,
   equippedItems: _grayLeechSetItems,
+  patternItemPointKeys: {
+    'botiquinCompacto': _patternCenter,
+  },
 );
 
 /// Enemigo verde estandar con postura defensiva para la capa media inicial.
@@ -179,6 +209,9 @@ const greenEnemyBattler = Battler(
   },
   abilities: [ghostMeshAbility],
   equippedItems: [guardShieldItem],
+  patternItemPointKeys: {
+    'guardShield': _patternCenter,
+  },
 );
 
 /// Variante verde toxica que combina daño base con castigo a debuffs.
@@ -197,6 +230,9 @@ const venomStitchEnemyBattler = Battler(
   },
   abilities: [weaknessHunterAbility],
   equippedItems: [cyberWhipsItem],
+  patternItemPointKeys: {
+    'cyberWhips': _patternCenter,
+  },
 );
 
 /// Variante verde de aguante que regenera mientras sostiene la linea.
@@ -217,6 +253,10 @@ const patchBulwarkEnemyBattler = Battler(
     shieldItem,
     bulwarkAmuletItem,
   ],
+  patternItemPointKeys: {
+    'shield': _patternCenter,
+    'bulwarkAmulet': _patternTop,
+  },
 );
 
 /// Variante verde de presion temprana centrada en quemar al objetivo.
@@ -237,6 +277,10 @@ const cinderClawEnemyBattler = Battler(
     ironSwordItem,
     emberCharmItem,
   ],
+  patternItemPointKeys: {
+    'ironSword': _patternCenter,
+    'emberCharm': _patternRight,
+  },
 );
 
 /// -------------------------------
@@ -289,6 +333,10 @@ const toxicLacerEnemyBattler = Battler(
   },
   abilities: _greenToxicSetAbilities,
   equippedItems: _greenToxicSetItems,
+  patternItemPointKeys: {
+    'toxicScalpel': _patternCenter,
+    'serratedEdge': _patternRight,
+  },
 );
 
 /// Variante morada de aguante progresivo con doble motor de barrera.
@@ -307,6 +355,10 @@ const bastionSpringEnemyBattler = Battler(
   },
   abilities: _bastionSpringSetAbilities,
   equippedItems: _bastionSpringSetItems,
+  patternItemPointKeys: {
+    'containmentCoil': _patternCenter,
+    'deflectiveCapacitor': _patternTop,
+  },
 );
 
 /// Variante verde de presion ofensiva que escala por calor.
@@ -325,6 +377,10 @@ const furnaceFangEnemyBattler = Battler(
   },
   abilities: _greenFurnaceSetAbilities,
   equippedItems: _greenFurnaceSetItems,
+  patternItemPointKeys: {
+    'ironSword': _patternCenter,
+    'thermalTurbine': _patternTop,
+  },
 );
 
 /// Variante verde equilibrada con mezcla de sostén y daño estable.
@@ -343,6 +399,10 @@ const shieldmendBruteEnemyBattler = Battler(
   },
   abilities: _greenShieldmendSetAbilities,
   equippedItems: _greenShieldmendSetItems,
+  patternItemPointKeys: {
+    'shield': _patternCenter,
+    'placaBisagra': _patternTop,
+  },
 );
 
 /// Enemigo azul Imparable que fuerza intercambios con Desafio.
@@ -365,6 +425,11 @@ const blueEnemyBattler = Battler(
     visorAperturaItem,
     yunqueCardiacoItem,
   ],
+  patternItemPointKeys: {
+    'guanteProvocacion': _patternCenter,
+    'visorApertura': _patternLeft,
+    'yunqueCardiaco': _patternRight,
+  },
 );
 
 /// Variante azul toxica que escala mejor cuando el veneno ya esta activo.
@@ -386,6 +451,10 @@ const toxicReaverEnemyBattler = Battler(
     cyberWhipsItem,
     toxicCatalystItem,
   ],
+  patternItemPointKeys: {
+    'cyberWhips': _patternCenter,
+    'toxicCatalyst': _patternRight,
+  },
 );
 
 /// Variante azul defensiva que se cura, refleja fuego y resiste mejor el burst.
@@ -407,6 +476,10 @@ const phaseBastionEnemyBattler = Battler(
     shieldItem,
     reactiveCasingItem,
   ],
+  patternItemPointKeys: {
+    'reactiveCasing': _patternCenter,
+    'shield': _patternTop,
+  },
 );
 
 /// Variante azul agresiva que abre el combate con un golpe potenciado y Quemadura.
@@ -428,6 +501,10 @@ const cinderRamEnemyBattler = Battler(
     ironSwordItem,
     emberCharmItem,
   ],
+  patternItemPointKeys: {
+    'ironSword': _patternCenter,
+    'emberCharm': _patternRight,
+  },
 );
 
 /// -------------------------------
@@ -484,6 +561,10 @@ const jammerHowlerEnemyBattler = Battler(
   },
   abilities: _blueJammerSetAbilities,
   equippedItems: _blueJammerSetItems,
+  patternItemPointKeys: {
+    'interferenceCannon': _patternCenter,
+    'silbatoMudo': _patternTop,
+  },
 );
 
 /// Variante azul de burst que convierte barrera en daño puntual.
@@ -502,6 +583,10 @@ const magnetMaulerEnemyBattler = Battler(
   },
   abilities: _blueMagnetSetAbilities,
   equippedItems: _blueMagnetSetItems,
+  patternItemPointKeys: {
+    'magnetiCHammer': _patternCenter,
+    'platedJacket': _patternTop,
+  },
 );
 
 /// Variante azul de ejecución sobre objetivos ya debilitados.
@@ -520,6 +605,10 @@ const veninRunnerEnemyBattler = Battler(
   },
   abilities: _blueVeninSetAbilities,
   equippedItems: _blueVeninSetItems,
+  patternItemPointKeys: {
+    'kunaiAncho': _patternCenter,
+    'toxicScalpel': _patternLeft,
+  },
 );
 
 /// Variante azul de tempo defensivo con retorno de quemadura.
@@ -538,6 +627,10 @@ const ashenFrameEnemyBattler = Battler(
   },
   abilities: _blueAshenSetAbilities,
   equippedItems: _blueAshenSetItems,
+  patternItemPointKeys: {
+    'reactiveCasing': _patternCenter,
+    'responseFrame': _patternTop,
+  },
 );
 
 /// Enemigo morado pensado para la noche, con kit completo de aguante y castigo.
@@ -563,6 +656,11 @@ const purpleEnemyBattler = Battler(
     contingencySealItem,
     reboundLensItem,
   ],
+  patternItemPointKeys: {
+    'emergencyPlating': _patternCenter,
+    'contingencySeal': _patternTop,
+    'reboundLens': _patternRight,
+  },
 );
 
 /// Variante morada toxica con mitigacion parcial contra debuffs rivales.
@@ -585,6 +683,11 @@ const venomOracleEnemyBattler = Battler(
     reboundLensItem,
     concussionPrismItem,
   ],
+  patternItemPointKeys: {
+    'succionaCreditos': _patternCenter,
+    'reboundLens': _patternTop,
+    'concussionPrism': _patternRight,
+  },
 );
 
 /// Variante morada de fuego sostenido que abre fuerte y escala sus Quemaduras.
@@ -609,6 +712,10 @@ const cinderExecutionerEnemyBattler = Battler(
     ultimaMarchaItem,
     aceleradorRetoItem,
   ],
+  patternItemPointKeys: {
+    'ultimaMarcha': _patternCenter,
+    'aceleradorReto': _patternRight,
+  },
 );
 
 /// Variante morada tecnica con barrera, drenaje y un primer golpe preparado.
@@ -633,6 +740,10 @@ const phaseDredgerEnemyBattler = Battler(
     torreRetornoItem,
     deflectiveCapacitorItem,
   ],
+  patternItemPointKeys: {
+    'torreRetorno': _patternCenter,
+    'deflectiveCapacitor': _patternBottom,
+  },
 );
 
 /// -------------------------------
@@ -696,6 +807,11 @@ const challengeHarpoonerEnemyBattler = Battler(
   },
   abilities: _purpleHarpoonerSetAbilities,
   equippedItems: _purpleHarpoonerSetItems,
+  patternItemPointKeys: {
+    'ultimaPalabra': _patternCenter,
+    'guanteProvocacion': _patternRight,
+    'visorApertura': _patternTop,
+  },
 );
 
 /// Variante morada de fuego extremo con remate por vida faltante.
@@ -714,6 +830,11 @@ const ovenHarrowerEnemyBattler = Battler(
   },
   abilities: _purpleOvenSetAbilities,
   equippedItems: _purpleOvenSetItems,
+  patternItemPointKeys: {
+    'portableOven': _patternCenter,
+    'emberCharm': _patternRight,
+    'ultimaMarcha': _patternBottom,
+  },
 );
 
 /// Variante morada híbrida de presión estadística y castigo reactivo.
@@ -732,6 +853,11 @@ const voidLeecherEnemyBattler = Battler(
   },
   abilities: _purpleVoidSetAbilities,
   equippedItems: _purpleVoidSetItems,
+  patternItemPointKeys: {
+    'emergencyPlating': _patternCenter,
+    'reboundLens': _patternTop,
+    'contingencySeal': _patternRight,
+  },
 );
 
 /// Variante morada de control sostenido con economía táctica y muro frontal.
@@ -750,6 +876,11 @@ const gloomSmugglerEnemyBattler = Battler(
   },
   abilities: _purpleSmugglerSetAbilities,
   equippedItems: _purpleSmugglerSetItems,
+  patternItemPointKeys: {
+    'succionaCreditos': _patternCenter,
+    'reboundLens': _patternTop,
+    'concussionPrism': _patternRight,
+  },
 );
 
 /// Enemigo final amarillo con el kit mas completo del roster actual.
@@ -779,6 +910,13 @@ const yellowEnemyBattler = Battler(
     canonContrapresionItem,
     reactiveCasingItem,
   ],
+  patternItemPointKeys: {
+    'sunExecutionBlade': _patternCenter,
+    'portableOven': _patternTop,
+    'ceramicaPurgadora': _patternLeft,
+    'canonContrapresion': _patternBottom,
+    'reactiveCasing': _patternRight,
+  },
 );
 
 /// Alias del enemigo por defecto usado en previews y valores fallback.

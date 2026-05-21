@@ -165,15 +165,11 @@ class _BattleSceneView extends StatelessWidget {
                           Expanded(
                             child: _BattleSide(
                               key: enemySideKey,
-                              title: 'THREAT',
-                              subtitle: 'Enemy',
                               accent: enemyAccent,
                               background: enemyBackground,
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
                                   enemy: displayEnemy,
-                                  enemyIntent:
-                                      sceneController.enemyTurnIntentPreview,
                                   visibleAbilities:
                                       sceneController.visibleAbilitiesFor(
                                     displayEnemy,
@@ -194,14 +190,21 @@ class _BattleSceneView extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            height: 2,
-                            color: playerAccent.withAlpha(51),
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(235),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(180),
+                                  blurRadius: 18,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
                           ),
                           Expanded(
                             child: _BattleSide(
                               key: playerSideKey,
-                              title: 'OPERATIVE',
-                              subtitle: 'Player',
                               accent: playerAccent,
                               background: playerBackground,
                               child: SizedBox.expand(
@@ -234,21 +237,23 @@ class _BattleSceneView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Center(
-                        child: _BattleCenterOverlay(
-                          title: sceneController.turnTitle,
-                          description: sceneController.turnDescription,
-                          round: sceneController.currentRound,
-                          isEnemyTurn:
-                              sceneController.turn == BattleTurnState.enemy,
-                          isCombatFinished: sceneController.isCombatFinished,
-                          onAdvancePressed:
-                              sceneController.hasPendingVictoryRewards &&
-                                      !isPlayingBattleAnimation
-                                  ? onAdvancePressed
-                                  : null,
+                      if (!isPatternMode ||
+                          sceneController.hasPendingVictoryRewards)
+                        Center(
+                          child: _BattleCenterOverlay(
+                            title: sceneController.turnTitle,
+                            description: sceneController.turnDescription,
+                            round: sceneController.currentRound,
+                            isEnemyTurn:
+                                sceneController.turn == BattleTurnState.enemy,
+                            isCombatFinished: sceneController.isCombatFinished,
+                            onAdvancePressed:
+                                sceneController.hasPendingVictoryRewards &&
+                                        !isPlayingBattleAnimation
+                                    ? onAdvancePressed
+                                    : null,
+                          ),
                         ),
-                      ),
                       _BattlePurgeWarningOverlay(
                         round: sceneController.currentRound,
                         isVisible: sceneController.isPurgeWarningVisible,
@@ -459,16 +464,12 @@ class _BattlePurgeWarningOverlayState
 }
 
 class _BattleSide extends StatelessWidget {
-  final String title;
-  final String subtitle;
   final Color accent;
   final List<Color> background;
   final Widget child;
 
   const _BattleSide({
     super.key,
-    required this.title,
-    required this.subtitle,
     required this.accent,
     required this.background,
     required this.child,
@@ -494,29 +495,7 @@ class _BattleSide extends StatelessWidget {
                 painter: _BattleSideGridPainter(accent),
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                EndpointSceneHeader(
-                  title: title.toUpperCase(),
-                  description: subtitle,
-                  foreground: accent,
-                  descriptionColor:
-                      EndpointPalette.softForeground.withAlpha(184),
-                  titleStyle: textTitleSmallBold.copyWith(
-                    fontSize: 13,
-                    letterSpacing: 2,
-                  ),
-                  descriptionStyle: textSmallBold.copyWith(
-                    fontSize: 12,
-                    letterSpacing: 1,
-                  ),
-                  spacing: 2,
-                ),
-                const SizedBox(height: 4),
-                Expanded(child: child),
-              ],
-            ),
+            child,
           ],
         ),
       ),
@@ -674,10 +653,10 @@ class _BattleFloatingNumberParticleView extends StatelessWidget {
     final opacity = _opacityForFloatingNumberProgress(localProgress);
 
     return Positioned(
-      left: particle.start.dx - 36,
-      top: particle.start.dy - 16,
-      width: 72,
-      height: 32,
+      left: particle.start.dx - 44,
+      top: particle.start.dy - 20,
+      width: 88,
+      height: 40,
       child: Opacity(
         opacity: opacity,
         child: Transform.translate(
@@ -718,9 +697,10 @@ class _BattleOutlinedFloatingNumberText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baseStyle = textTitleSmallBold.copyWith(
-      fontSize: 18,
+      fontSize: 23,
       letterSpacing: 0.8,
       height: 1,
+      decoration: TextDecoration.none,
     );
 
     return Stack(
@@ -880,6 +860,7 @@ class _BattleStatusEffectGlyph extends StatelessWidget {
         style: TextStyle(
           fontSize: size,
           height: 1,
+          decoration: TextDecoration.none,
           shadows: [
             Shadow(
               color: burst.accent.withAlpha(179),

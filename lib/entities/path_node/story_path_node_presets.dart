@@ -11,6 +11,14 @@ const _velvetArmoryAccent = Color(0xFFA95CFF);
 const _chemicalExchangeAccent = Color(0xFF4DE7D2);
 const _debuffBrokerAccent = Color(0xFFFF5A5F);
 const _buffParlorAccent = Color(0xFFFF8BE8);
+const _impActsAccent = Color(0xFFF3D35C);
+const _firstAidAccent = Color(0xFFFF8BA7);
+const _mendingAccent = Color(0xFF59B7FF);
+const _gangananciasAccent = Color(0xFFEBCB5A);
+const _routineMarketAccent = Color(0xFFC0C0C0);
+const _resonanceBankAccent = Color(0xFFD0D5DE);
+const _duelowPricesAccent = Color(0xFF55D6C2);
+const _contagionCompanyAccent = Color(0xFFB56DFF);
 
 /// Arquetipo agil orientado a ataque ligero y economia temprana.
 final velozArchetypeNode = ArchetypePathNode(
@@ -165,6 +173,14 @@ final greenItemShopCriterion = ShopInventoryCriterion(
   exactRarity: RarityTier.green,
 );
 
+/// Criterio trampa para tiendas que venden objetos verdes y azules mas caros.
+final scamUpgradeShopCriterion = ShopInventoryCriterion(
+  label: 'VERDE / AZUL',
+  description: 'Solo aparecen objetos de rareza verde o azul.',
+  minimumRarity: RarityTier.green,
+  maximumRarity: RarityTier.blue,
+);
+
 /// Criterio de lujo reservado a reliquias amarillas.
 final luxuryShopCriterion = ShopInventoryCriterion(
   label: 'RELIQUIAS DE LUJO',
@@ -186,6 +202,54 @@ final barrierShopCriterion = ShopInventoryCriterion(
   label: 'BARRERA',
   description: 'Solo aparecen objetos que otorgan barrera.',
   requiredPositiveModifierStat: BattlerStat.barrier,
+);
+
+/// Criterio de vida para tiendas centradas en aguantar mas tiempo.
+final healthShopCriterion = ShopInventoryCriterion(
+  label: 'VIDA',
+  description: 'Solo aparecen objetos grises con la tag de Vida.',
+  exactRarity: RarityTier.gray,
+  requiredTags: [
+    EntityTag.vida,
+  ],
+);
+
+/// Criterio ofensivo por tag para tiendas de dano directo.
+final attackShopCriterion = ShopInventoryCriterion(
+  label: 'ATAQUE',
+  description: 'Solo aparecen objetos grises con la tag de Ataque.',
+  exactRarity: RarityTier.gray,
+  requiredTags: [
+    EntityTag.ataque,
+  ],
+);
+
+/// Criterio gris defensivo para objetos que aportan barrera directa.
+final grayBarrierShopCriterion = ShopInventoryCriterion(
+  label: 'BARRERA',
+  description: 'Solo aparecen objetos grises que otorgan barrera.',
+  exactRarity: RarityTier.gray,
+  requiredPositiveModifierStat: BattlerStat.barrier,
+);
+
+/// Criterio economico para tiendas centradas en dinero y valor.
+final economyShopCriterion = ShopInventoryCriterion(
+  label: 'ECONOMIA',
+  description: 'Solo aparecen objetos verdes con la tag de Economia.',
+  exactRarity: RarityTier.green,
+  requiredTags: [
+    EntityTag.economia,
+  ],
+);
+
+/// Criterio de ciclo para piezas que premian la cadencia de la run.
+final cycleShopCriterion = ShopInventoryCriterion(
+  label: 'CICLO',
+  description: 'Solo aparecen objetos verdes con la tag de Ciclo.',
+  exactRarity: RarityTier.green,
+  requiredTags: [
+    EntityTag.ciclo,
+  ],
 );
 
 /// Criterio quimico que acepta objetos de Quemadura o Intoxicacion hasta azul.
@@ -237,6 +301,43 @@ final buffShopCriterion = ShopInventoryCriterion(
   ],
 );
 
+/// Criterio azul para objetos de Resonancia.
+final resonanceShopCriterion = ShopInventoryCriterion(
+  label: 'RESONANCIA',
+  description: 'Solo aparecen objetos con la tag de Resonancia.',
+  requiredTags: [
+    EntityTag.resonancia,
+  ],
+);
+
+/// Criterio azul para objetos de Desafio.
+final challengeShopCriterion = ShopInventoryCriterion(
+  label: 'DESAFIO',
+  description: 'Solo aparecen objetos con la tag de Desafio.',
+  requiredTags: [
+    EntityTag.desafio,
+  ],
+);
+
+/// Criterio azul para objetos de Contagio.
+final contagionShopCriterion = ShopInventoryCriterion(
+  label: 'CONTAGIO',
+  description: 'Solo aparecen objetos con la tag de Contagio.',
+  requiredTags: [
+    EntityTag.contagio,
+  ],
+);
+
+/// Criterio hibrido para piezas tacticas de ataque y barrera.
+final tacticsShopCriterion = ShopInventoryCriterion(
+  label: 'ATAQUE / BARRERA',
+  description: 'Solo aparecen objetos con las tags de Ataque y Barrera.',
+  requiredTags: [
+    EntityTag.ataque,
+    EntityTag.barrera,
+  ],
+);
+
 /// Tienda gris de armas basicas para las primeras horas.
 final scrapArsenalNode = ShopPathNode(
   nodeId: 'shop_scrap_arsenal',
@@ -253,6 +354,68 @@ final scrapArsenalNode = ShopPathNode(
   stockCriterion: grayShopCriterion,
 );
 
+/// Tienda gris de vida y supervivencia temprana.
+final firstAidStandNode = ShopPathNode(
+  nodeId: 'shop_first_aid_stand',
+  label: 'Puesto de Primeros Auxilios',
+  tooltip: 'Suministros basicos para seguir respirando',
+  iconEmoji: '\u{1FA79}',
+  rarity: RarityTier.gray,
+  accent: _firstAidAccent,
+  badgeLabel: 'VIDA',
+  showTitle: 'Puesto de Primeros Auxilios',
+  shopTitle: 'PUESTO DE PRIMEROS AUXILIOS',
+  shopSubtitle:
+      'Gasas limpias, reanimadores y la promesa de seguir respirando.',
+  stockCriterion: healthShopCriterion,
+);
+
+/// Tienda gris centrada en objetos de ataque.
+final impActsNode = ShopPathNode(
+  nodeId: 'shop_imp_acts',
+  label: 'Imp Acts',
+  tooltip: 'Herramientas tempranas para hacer dano',
+  iconEmoji: '\u{1F528}',
+  rarity: RarityTier.gray,
+  accent: _impActsAccent,
+  badgeLabel: 'ATAQUE',
+  showTitle: 'Imp Acts',
+  shopTitle: 'IMP ACTS',
+  shopSubtitle: 'Todo pesa, corta o golpea. Algunas cosas hacen las tres.',
+  stockCriterion: attackShopCriterion,
+);
+
+/// Tienda gris centrada en protecciones de entrada.
+final remiendosAndDontsNode = ShopPathNode(
+  nodeId: 'shop_remiendos_and_donts',
+  label: "Remiendos and don'ts",
+  tooltip: 'Blindaje barato con advertencias razonables',
+  iconEmoji: '\u{1F9F5}',
+  rarity: RarityTier.gray,
+  accent: _mendingAccent,
+  badgeLabel: 'BARRERA',
+  showTitle: "Remiendos and don'ts",
+  shopTitle: "REMIENDOS AND DON'TS",
+  shopSubtitle: 'Placas torcidas, cierres rapidos y blindaje con historial.',
+  stockCriterion: grayBarrierShopCriterion,
+);
+
+/// Tienda gris sospechosa con stock superior a precio inflado.
+final gangananciasNode = ShopPathNode(
+  nodeId: 'shop_ganganancias',
+  label: 'Ganganancias',
+  tooltip: 'Objetos verdes y azules al doble de precio',
+  iconEmoji: '\u{1F4B8}',
+  rarity: RarityTier.gray,
+  accent: _gangananciasAccent,
+  badgeLabel: 'TRATO',
+  showTitle: 'Ganganancias',
+  shopTitle: 'GANGANANCIAS',
+  shopSubtitle: 'Ofertas demasiado buenas para ser verdad y aun mas caras.',
+  stockCriterion: scamUpgradeShopCriterion,
+  priceMultiplier: 2,
+);
+
 /// Tienda verde generalista de objetos de rareza verde.
 final greenItemVendorNode = ShopPathNode(
   nodeId: 'shop_bulwark_workshop',
@@ -266,6 +429,44 @@ final greenItemVendorNode = ShopPathNode(
   shopTitle: 'VENDEDOR VERDE',
   shopSubtitle: 'Un puesto directo: todo el stock es de rareza verde.',
   stockCriterion: greenItemShopCriterion,
+);
+
+/// Tienda verde Mercante de economia.
+final cambientGoldSellerNode = ShopPathNode(
+  nodeId: 'shop_cambient_gold_seller',
+  label: 'Cambient Gold Seller',
+  tooltip: 'Mercado economico reservado para Mercante',
+  iconEmoji: '\u{1F4B1}',
+  rarity: RarityTier.green,
+  accent: _gangananciasAccent,
+  badgeLabel: 'ORO',
+  showTitle: 'Cambient Gold Seller',
+  shopTitle: 'CAMBIENT GOLD SELLER',
+  shopSubtitle:
+      'Comisiones abusivas, oportunidades reales y recibos imposibles.',
+  stockCriterion: economyShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.mercante,
+  ],
+);
+
+/// Tienda verde Veloz de ciclo.
+final routineMarketNode = ShopPathNode(
+  nodeId: 'shop_routine_market',
+  label: 'Routine Market',
+  tooltip: 'Piezas de ciclo reservadas para Veloz',
+  iconEmoji: '\u{1F501}',
+  rarity: RarityTier.green,
+  accent: _routineMarketAccent,
+  badgeLabel: 'CICLO',
+  showTitle: 'Routine Market',
+  shopTitle: 'ROUTINE MARKET',
+  shopSubtitle:
+      'Maquinas repetitivas, relojes abiertos y piezas que vuelven solas.',
+  stockCriterion: cycleShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.veloz,
+  ],
 );
 
 /// Tienda amarilla de reliquias caras y poderosas.
@@ -569,6 +770,76 @@ final buffParlorNode = ShopPathNode(
   stockCriterion: buffShopCriterion,
 );
 
+/// Tienda azul Inamovible centrada en Resonancia.
+final resonanceBankNode = ShopPathNode(
+  nodeId: 'shop_resonance_bank',
+  label: 'Banco de Resonancia',
+  tooltip: 'Piezas de Resonancia reservadas para Inamovible',
+  iconEmoji: '\u{1F3E6}',
+  rarity: RarityTier.blue,
+  accent: _resonanceBankAccent,
+  badgeLabel: 'RESON',
+  showTitle: 'Banco de Resonancia',
+  shopTitle: 'BANCO DE RESONANCIA',
+  shopSubtitle: 'Cada pieza vibra con algo que todavia no has equipado.',
+  stockCriterion: resonanceShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.inamovible,
+  ],
+);
+
+/// Tienda azul Imparable centrada en Desafio.
+final duelowPricesNode = ShopPathNode(
+  nodeId: 'shop_duelow_prices',
+  label: 'Duelow Prices',
+  tooltip: 'Piezas de Desafio reservadas para Imparable',
+  iconEmoji: '\u2694',
+  rarity: RarityTier.blue,
+  accent: _duelowPricesAccent,
+  badgeLabel: 'DUELO',
+  showTitle: 'Duelow Prices',
+  shopTitle: 'DUELOW PRICES',
+  shopSubtitle: 'Cuanto peor pinta la pelea, mas alto sube el descuento.',
+  stockCriterion: challengeShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.imparable,
+  ],
+);
+
+/// Tienda azul Veloz centrada en Contagio.
+final contagionCompanyNode = ShopPathNode(
+  nodeId: 'shop_contagion_company',
+  label: 'The Contagion Company',
+  tooltip: 'Piezas de Contagio reservadas para Veloz',
+  iconEmoji: '\u{1F9AB}',
+  rarity: RarityTier.blue,
+  accent: _contagionCompanyAccent,
+  badgeLabel: 'CONTAG',
+  showTitle: 'The Contagion Company',
+  shopTitle: 'THE CONTAGION COMPANY',
+  shopSubtitle:
+      'Nada se queda en un solo objetivo si pagas al intermediario correcto.',
+  stockCriterion: contagionShopCriterion,
+  possibleArchetypes: const [
+    ArchetypeId.veloz,
+  ],
+);
+
+/// Tienda azul hibrida de ataque y barrera.
+final tacticsAndTreasuresNode = ShopPathNode(
+  nodeId: 'shop_tactics_and_treasures',
+  label: 'Tactics and Treasures',
+  tooltip: 'Objetos tacticos que combinan ataque y barrera',
+  iconEmoji: '\u{1F5FA}',
+  rarity: RarityTier.blue,
+  accent: _velvetArmoryAccent,
+  badgeLabel: 'TACTIC',
+  showTitle: 'Tactics and Treasures',
+  shopTitle: 'TACTICS AND TREASURES',
+  shopSubtitle: 'Golpear sin caer: una filosofia cara, pero popular.',
+  stockCriterion: tacticsShopCriterion,
+);
+
 /// Evento azul nocturno reservado para efectos temporales mas agresivos.
 final afterHoursTechnosurgeonNode = EventPathNode(
   id: PathEventId.afterHoursTechnosurgeon,
@@ -647,7 +918,13 @@ final severeMedicationCampNode = CampSitePathNode(
 /// Tiendas posibles durante el tramo diurno de la run.
 final List<ShopPathNode> dayShopNodes = List.unmodifiable([
   scrapArsenalNode,
+  firstAidStandNode,
+  impActsNode,
+  remiendosAndDontsNode,
+  gangananciasNode,
   greenItemVendorNode,
+  cambientGoldSellerNode,
+  routineMarketNode,
   emberFoundryNode,
   toxinLabNode,
 ]);
@@ -677,6 +954,10 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
 final List<ShopPathNode> nightShopNodes = List.unmodifiable([
   afterHoursArsenalNode,
   velvetArmoryNode,
+  resonanceBankNode,
+  duelowPricesNode,
+  contagionCompanyNode,
+  tacticsAndTreasuresNode,
   luxuryRelicsNode,
   emberFoundryNode,
   toxinLabNode,

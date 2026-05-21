@@ -308,10 +308,12 @@ Offset operativePatternBoardLocalCenterFor({
 }
 
 class OperativePatternBoard extends StatefulWidget {
+  final ValueChanged<OperativePatternPoint>? onPointTapped;
   final ValueChanged<OperativePatternPoint>? onPointLongPressed;
   final ValueChanged<List<OperativePatternPoint>>? onPatternChanged;
   final Map<String, OperativePatternPointContent> contentsByPointKey;
   final Set<String> blockedPointKeys;
+  final List<OperativePatternPoint>? displayedPatternPoints;
   final bool keepLineAfterPointerUp;
   final int? maxPatternPoints;
   final Color accent;
@@ -319,10 +321,12 @@ class OperativePatternBoard extends StatefulWidget {
 
   const OperativePatternBoard({
     super.key,
+    this.onPointTapped,
     this.onPointLongPressed,
     this.onPatternChanged,
     required this.contentsByPointKey,
     this.blockedPointKeys = const <String>{},
+    this.displayedPatternPoints,
     this.keepLineAfterPointerUp = false,
     this.maxPatternPoints,
     this.accent = EndpointPalette.patternAccent,
@@ -357,6 +361,13 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     final point = layout.pointAt(event.localPosition);
     if (point == null || _isPointBlocked(point)) {
       _clearActivePattern();
+      return;
+    }
+
+    final onPointTapped = widget.onPointTapped;
+    if (onPointTapped != null) {
+      _clearActivePattern();
+      onPointTapped(point);
       return;
     }
 
@@ -526,6 +537,8 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
   }
 
   List<OperativePatternPoint> get _displayedPatternPoints {
+    final override = widget.displayedPatternPoints;
+    if (override != null) return override;
     if (_activePatternPoints.isNotEmpty) return _activePatternPoints;
     return _completedPatternPoints;
   }

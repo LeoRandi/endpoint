@@ -1,16 +1,41 @@
 import '../_imports.dart';
+import 'package:flutter/foundation.dart';
 import '../../services/battler_effect_pipeline.dart';
 import '../../services/battle_controller.dart';
 import '../../services/operative_pattern_bonus_service.dart';
 import '../../services/operative_pattern_combat_rules.dart';
 import '../../services/operative_pattern_resolution_service.dart';
 
-const _battlePatternEnemyTravel = 42.0;
-const _battlePatternEnemySize = 112.0;
+class BattlePatternAnimationTargets {
+  final Rect playerSpriteRect;
+  final Rect enemySpriteRect;
+  final Rect playerStatusRect;
+  final Rect enemyStatusRect;
+
+  const BattlePatternAnimationTargets({
+    required this.playerSpriteRect,
+    required this.enemySpriteRect,
+    required this.playerStatusRect,
+    required this.enemyStatusRect,
+  });
+}
+
+class BattlePatternVisualBattlers {
+  final Battler player;
+  final Battler enemy;
+
+  const BattlePatternVisualBattlers({
+    required this.player,
+    required this.enemy,
+  });
+}
+
 const _battlePatternBlockStartDelay = Duration(milliseconds: 500);
 const _battlePatternBlockTravelDuration = Duration(milliseconds: 1100);
+const _enemyPatternBlockTravelDuration = Duration(milliseconds: 520);
+const _enemyPatternPointStepDuration = Duration(milliseconds: 750);
 const _battlePatternBlockMarkSize = 50.0;
-const _battlePatternBoardScale = 0.66;
+const _enemyPatternBlockCount = 2;
 
 enum BattlePatternBlockMode {
   randomOne,
@@ -61,6 +86,40 @@ class BattlePatternMatchResult {
   }
 
   bool get hasBonus => attackBonus > 0 || barrierBonus > 0;
+}
+
+class EnemyBattlePatternMatchResult {
+  final int attackBonus;
+  final int barrierBonus;
+  final Set<String> activatedItemPointKeys;
+  final BattlePatternMatchContext patternContext;
+
+  const EnemyBattlePatternMatchResult({
+    required this.attackBonus,
+    required this.barrierBonus,
+    required this.activatedItemPointKeys,
+    required this.patternContext,
+  });
+
+  factory EnemyBattlePatternMatchResult.fromResolution(
+    OperativePatternResolution resolution,
+    BattlePatternMatchContext patternContext,
+  ) {
+    final activatedItemPointKeys = <String>{
+      for (final entry in resolution.itemActivationByPointKey.entries)
+        if (entry.value) entry.key,
+      ...resolution.activatedAdjacencyBonusesByPointKey.keys,
+    };
+
+    return EnemyBattlePatternMatchResult(
+      attackBonus: resolution.attackBonus,
+      barrierBonus: resolution.barrierBonus,
+      activatedItemPointKeys: Set<String>.unmodifiable(
+        activatedItemPointKeys,
+      ),
+      patternContext: patternContext,
+    );
+  }
 }
 
 final Map<String, OperativePatternPoint> _battlePatternPointsByKey =
@@ -339,6 +398,12 @@ class BattlePatternMatchOverlay extends StatefulWidget {
   final Map<String, int> itemPointUseCounts;
   final BattlePatternBlockMode? previousYellowBlockMode;
   final int Function(int max)? randomNextInt;
+  final Future<void> Function(BattlePatternMatchResult result)? onResolve;
+  final ValueListenable<Widget?>? combatAnimationOverlay;
+  final ValueListenable<BattlePatternVisualBattlers>? visualBattlers;
+  final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
+  final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
+  final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
   const BattlePatternMatchOverlay({
     super.key,
@@ -351,6 +416,12 @@ class BattlePatternMatchOverlay extends StatefulWidget {
     this.itemPointUseCounts = const <String, int>{},
     this.previousYellowBlockMode,
     this.randomNextInt,
+    this.onResolve,
+    this.combatAnimationOverlay,
+    this.visualBattlers,
+    this.onAnimationTargetsChanged,
+    this.onPlayerAbilityPressed,
+    this.onEnemyAbilityPressed,
   });
 
   @override
@@ -362,8 +433,10 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     with TickerProviderStateMixin {
   final GlobalKey _matchStackKey = GlobalKey();
   final GlobalKey _enemySpriteKey = GlobalKey();
+  final GlobalKey _enemyStatusKey = GlobalKey();
+  final GlobalKey _playerSpriteKey = GlobalKey();
+  final GlobalKey _playerStatusKey = GlobalKey();
   final GlobalKey _patternBoardKey = GlobalKey();
-  late final AnimationController _enemyMotionController;
   late final AnimationController _blockMotionController;
   late final Map<String, OperativePatternBonus> _bonusesByPointKey;
   late final int _maxPatternPoints;
@@ -378,10 +451,6 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   @override
   void initState() {
     super.initState();
-    _enemyMotionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1300),
-    )..repeat(reverse: true);
     _blockMotionController = AnimationController(
       vsync: this,
       duration: _battlePatternBlockTravelDuration,
@@ -412,7 +481,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   void dispose() {
     _blockStartTimer?.cancel();
     _blockMotionController.dispose();
-    _enemyMotionController.dispose();
+    widget.onAnimationTargetsChanged?.call(null);
     super.dispose();
   }
 
@@ -688,10 +757,13 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_hasSubmitted || !_blockAnimationCompleted) return;
     _hasSubmitted = true;
-    Navigator.of(context).pop(_currentResult);
+    final result = _currentResult;
+    await widget.onResolve?.call(result);
+    if (!mounted) return;
+    Navigator.of(context).pop(result);
   }
 
   int _estimatedHitDamageFor(int attackBonus) {
@@ -784,160 +856,687 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     );
     final baseHitDamage = _estimatedHitDamageFor(0);
     final totalDamageLabel = _estimatedTotalDamageLabelFor(result.attackBonus);
-    final isClosed = resolution.isClosed;
     final blockedPointKeys =
         _blockAnimationCompleted ? _blockPlan.pointKeys : const <String>{};
     final isBoardDimmed = !_blockAnimationCompleted;
-    final isEnemyDimmed = _blockAnimationCompleted;
 
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 560,
-              maxHeight: 740,
-            ),
-            child: EndpointPanel(
-              accent: EndpointPalette.neutralAccent,
-              backgroundColor: EndpointPalette.panelBackgroundOpaque,
-              borderRadius: 18,
-              glowOpacity: 0.12,
-              blurRadius: 22,
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-              child: Stack(
-                key: _matchStackKey,
-                children: [
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 118,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            _BattlePatternEnemyStage(
-                              enemy: widget.enemy,
-                              animation: _enemyMotionController,
-                              enemySpriteKey: _enemySpriteKey,
-                            ),
-                            _BattlePatternFocusDimmer(
-                              isVisible: isEnemyDimmed,
-                            ),
-                          ],
+    return _BattlePatternCombatPage(
+      stackKey: _matchStackKey,
+      turnAccent: EndpointPalette.patternAccent,
+      top: _PatternVisualBattlerHeader(
+        visualBattlers: widget.visualBattlers,
+        fallbackBattler: widget.enemy,
+        side: BattleCombatantSide.enemy,
+        accent: EndpointPalette.dangerAccent,
+        spriteKey: _enemySpriteKey,
+        statusKey: _enemyStatusKey,
+        spriteOnLeft: true,
+      ),
+      topAugments: _PatternAugmentStrip(
+        abilities: widget.enemy.abilities
+            .where(
+              (ability) => ability.appearsInContext(
+                BattlerAbilityActivationContext.battle,
+              ),
+            )
+            .toList(growable: false),
+        accent: EndpointPalette.dangerAccent,
+        alignEnd: true,
+        onAbilityPressed: widget.onEnemyAbilityPressed,
+      ),
+      matrix: _PatternMatrixCard(
+        accent: EndpointPalette.patternAccent,
+        entryAccent: EndpointPalette.dangerAccent,
+        summary: _BattlePatternLiveSummary(
+          baseHitDamage: baseHitDamage,
+          totalDamageLabel: totalDamageLabel,
+          attackBonus: result.attackBonus,
+          barrierBonus: result.barrierBonus,
+          effects: widget.actionEffects,
+          pointCount: resolution.distinctPointCount,
+        ),
+        pointCount: resolution.distinctPointCount,
+        maxPointCount: _maxPatternPoints,
+        blockingCount: 3,
+        maxBlockingCount: 3,
+        round: widget.combatRound,
+        finishEnabled: _blockAnimationCompleted,
+        onFinish: _submit,
+        dimPatternPoints: isBoardDimmed,
+        dimBlockPoints: isBoardDimmed,
+        dimFinishButton: isBoardDimmed,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: FractionallySizedBox(
+                  widthFactor: 0.79,
+                  heightFactor: 0.79,
+                  child: IgnorePointer(
+                    ignoring: !_blockAnimationCompleted,
+                    child: _PatternDimmedRegion(
+                      isDimmed: isBoardDimmed,
+                      child: Transform.rotate(
+                        angle: pi / 4,
+                        child: OperativePatternBoard(
+                          key: _patternBoardKey,
+                          contentsByPointKey: _buildContentsByPointKey(
+                            resolution,
+                          ),
+                          blockedPointKeys: blockedPointKeys,
+                          keepLineAfterPointerUp: true,
+                          maxPatternPoints: _maxPatternPoints,
+                          accent: EndpointPalette.patternAccent,
+                          longPressDuration:
+                              operativePatternQuickInspectHoldDuration,
+                          onPointLongPressed: _handlePointLongPressed,
+                          onPatternChanged: _handlePatternChanged,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      _BattlePatternLiveSummary(
-                        baseHitDamage: baseHitDamage,
-                        totalDamageLabel: totalDamageLabel,
-                        attackBonus: result.attackBonus,
-                        barrierBonus: result.barrierBonus,
-                        effects: widget.actionEffects,
-                        pointCount: resolution.distinctPointCount,
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Center(
-                              child: AspectRatio(
-                                aspectRatio: 1,
-                                child: FractionallySizedBox(
-                                  widthFactor: _battlePatternBoardScale,
-                                  heightFactor: _battlePatternBoardScale,
-                                  child: IgnorePointer(
-                                    ignoring: !_blockAnimationCompleted,
-                                    child: Transform.rotate(
-                                      angle: pi / 4,
-                                      child: OperativePatternBoard(
-                                        key: _patternBoardKey,
-                                        contentsByPointKey:
-                                            _buildContentsByPointKey(
-                                          resolution,
-                                        ),
-                                        blockedPointKeys: blockedPointKeys,
-                                        keepLineAfterPointerUp: true,
-                                        maxPatternPoints: _maxPatternPoints,
-                                        accent: EndpointPalette.neutralAccent,
-                                        longPressDuration:
-                                            operativePatternQuickInspectHoldDuration,
-                                        onPointLongPressed:
-                                            _handlePointLongPressed,
-                                        onPatternChanged: _handlePatternChanged,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            _BattlePatternFocusDimmer(
-                              isVisible: isBoardDimmed,
-                              opacity: 0.58,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _BattlePatternMatchFooter(
-                        isClosed: isClosed,
-                        pointCount: resolution.distinctPointCount,
-                        maxPointCount: _maxPatternPoints,
-                        onPressed: _blockAnimationCompleted ? _submit : null,
-                      ),
-                    ],
+                    ),
                   ),
-                  if (!_blockAnimationCompleted)
-                    for (final animation in _blockMarkMotions)
-                      _BattlePatternBlockMotion(
-                        animation: animation,
-                      ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
+      bottomAugments: _PatternAugmentStrip(
+        abilities: widget.player.abilities
+            .where(
+              (ability) => ability.appearsInContext(
+                BattlerAbilityActivationContext.battle,
+              ),
+            )
+            .toList(growable: false),
+        accent: EndpointPalette.patternAccent,
+        onAbilityPressed: widget.onPlayerAbilityPressed,
+      ),
+      bottom: _PatternVisualBattlerHeader(
+        visualBattlers: widget.visualBattlers,
+        fallbackBattler: widget.player,
+        side: BattleCombatantSide.player,
+        accent: EndpointPalette.patternAccent,
+        spriteKey: _playerSpriteKey,
+        statusKey: _playerStatusKey,
+        spriteOnLeft: false,
+      ),
+      overlay: !_blockAnimationCompleted
+          ? Stack(
+              children: [
+                for (final animation in _blockMarkMotions)
+                  _BattlePatternBlockMotion(animation: animation),
+              ],
+            )
+          : null,
+      combatAnimationOverlay: widget.combatAnimationOverlay,
+      onAnimationTargetsChanged: widget.onAnimationTargetsChanged,
+      enemySpriteKey: _enemySpriteKey,
+      enemyStatusKey: _enemyStatusKey,
+      playerSpriteKey: _playerSpriteKey,
+      playerStatusKey: _playerStatusKey,
     );
   }
 }
 
-class _BattlePatternEnemyStage extends StatelessWidget {
+class EnemyBattlePatternMatchOverlay extends StatefulWidget {
+  final Battler player;
   final Battler enemy;
-  final Animation<double> animation;
-  final Key enemySpriteKey;
+  final Map<String, Item> equippedItemsByPointKey;
+  final int combatRound;
+  final int Function(int max)? randomNextInt;
+  final Future<void> Function(EnemyBattlePatternMatchResult result)? onResolve;
+  final ValueListenable<Widget?>? combatAnimationOverlay;
+  final ValueListenable<BattlePatternVisualBattlers>? visualBattlers;
+  final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
+  final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
+  final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
-  const _BattlePatternEnemyStage({
+  const EnemyBattlePatternMatchOverlay({
+    super.key,
+    required this.player,
     required this.enemy,
-    required this.animation,
-    required this.enemySpriteKey,
+    required this.equippedItemsByPointKey,
+    this.combatRound = 1,
+    this.randomNextInt,
+    this.onResolve,
+    this.combatAnimationOverlay,
+    this.visualBattlers,
+    this.onAnimationTargetsChanged,
+    this.onPlayerAbilityPressed,
+    this.onEnemyAbilityPressed,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Center(
-          child: AnimatedBuilder(
-            animation: animation,
-            builder: (context, child) {
-              final phase = sin(animation.value * pi * 2);
-              return Transform.translate(
-                offset: Offset(phase * _battlePatternEnemyTravel, 0),
-                child: child,
-              );
-            },
-            child: EndpointEmojiSprite(
-              key: enemySpriteKey,
-              emoji: enemy.iconEmoji,
-              accent: EndpointPalette.dangerAccent,
-              size: _battlePatternEnemySize,
-            ),
-          ),
+  State<EnemyBattlePatternMatchOverlay> createState() =>
+      _EnemyBattlePatternMatchOverlayState();
+}
+
+class _EnemyBattlePatternMatchOverlayState
+    extends State<EnemyBattlePatternMatchOverlay>
+    with TickerProviderStateMixin {
+  final GlobalKey _matchStackKey = GlobalKey();
+  final GlobalKey _enemyPatternBoardKey = GlobalKey();
+  final GlobalKey _enemySpriteKey = GlobalKey();
+  final GlobalKey _enemyStatusKey = GlobalKey();
+  final GlobalKey _playerSpriteKey = GlobalKey();
+  final GlobalKey _playerStatusKey = GlobalKey();
+  late final AnimationController _blockMotionController;
+  late final Map<String, OperativePatternBonus> _bonusesByPointKey;
+  late final int _maxPatternPoints;
+  late final int Function(int max) _nextInt;
+  Animation<Offset>? _activeBlockMotion;
+  List<OperativePatternPoint> _blockedPoints = const <OperativePatternPoint>[];
+  List<OperativePatternPoint> _displayedEnemyPatternPoints =
+      const <OperativePatternPoint>[];
+  bool _isAnimatingBlock = false;
+  bool _isPlayingEnemyPattern = false;
+  bool _hasSubmitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nextInt = widget.randomNextInt ?? Random().nextInt;
+    _blockMotionController = AnimationController(
+      vsync: this,
+      duration: _enemyPatternBlockTravelDuration,
+    );
+    _bonusesByPointKey = buildOperativePatternBonusesByPointKey(
+      playerLevel: widget.enemy.level,
+      occupiedPointKeys: widget.equippedItemsByPointKey.keys,
+      nextInt: _nextInt,
+    );
+    _maxPatternPoints = OperativePatternCombatRules.maxPatternPointsFor(
+      widget.enemy,
+    );
+  }
+
+  @override
+  void dispose() {
+    _blockMotionController.dispose();
+    widget.onAnimationTargetsChanged?.call(null);
+    super.dispose();
+  }
+
+  Set<String> get _blockedPointKeys => Set<String>.unmodifiable(
+        _blockedPoints.map((point) => point.key),
+      );
+
+  OperativePatternResolution get _currentResolution {
+    return OperativePatternResolutionService.resolve(
+      patternPoints: _displayedEnemyPatternPoints,
+      equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      bonusesByPointKey: _bonusesByPointKey,
+      blockedPointKeys: _blockedPointKeys,
+    );
+  }
+
+  EnemyBattlePatternMatchResult get _currentResult =>
+      EnemyBattlePatternMatchResult.fromResolution(
+        _currentResolution,
+        _currentPatternContext(_currentResolution),
+      );
+
+  BattlePatternMatchContext _currentPatternContext(
+    OperativePatternResolution resolution,
+  ) {
+    final usedItemPointKeys = _usedItemPointKeys();
+    return BattlePatternMatchContext(
+      patternPoints: List<OperativePatternPoint>.unmodifiable(
+        _displayedEnemyPatternPoints,
+      ),
+      attackBonus: resolution.attackBonus,
+      barrierBonus: resolution.barrierBonus,
+      otherArchetypeItemCount: 0,
+      usedItemPointKeys: List<String>.unmodifiable(usedItemPointKeys),
+      repeatedItemPointKeys: Set<String>.unmodifiable(
+        _repeatedItemPointKeys(usedItemPointKeys),
+      ),
+      firstRepeatedItemPointKey: _firstRepeatedItemPointKey(usedItemPointKeys),
+      firstUsedItemHasAttackBonus:
+          _firstUsedItemHasAttackBonus(usedItemPointKeys),
+      activatedItemEffectCount: _activatedItemEffectCount(usedItemPointKeys),
+    );
+  }
+
+  List<String> _usedItemPointKeys() {
+    return [
+      for (final point in OperativePatternRequirement.normalizedSequence(
+        _displayedEnemyPatternPoints,
+      ))
+        if (widget.equippedItemsByPointKey.containsKey(point.key)) point.key,
+    ];
+  }
+
+  Set<String> _repeatedItemPointKeys(List<String> usedItemPointKeys) {
+    final seen = <String>{};
+    final repeated = <String>{};
+    for (final pointKey in usedItemPointKeys) {
+      if (!seen.add(pointKey)) {
+        repeated.add(pointKey);
+      }
+    }
+    return repeated;
+  }
+
+  String? _firstRepeatedItemPointKey(List<String> usedItemPointKeys) {
+    final seen = <String>{};
+    for (final pointKey in usedItemPointKeys) {
+      if (!seen.add(pointKey)) return pointKey;
+    }
+    return null;
+  }
+
+  bool _firstUsedItemHasAttackBonus(List<String> usedItemPointKeys) {
+    if (usedItemPointKeys.isEmpty) return false;
+
+    final item = widget.equippedItemsByPointKey[usedItemPointKeys.first];
+    if (item == null) return false;
+
+    return item.modifier(BattlerStat.attack) > 0 ||
+        (item.hasPatternBonus &&
+            item.patternBonus.kind == OperativePatternBonusKind.attack) ||
+        item.patternAdjacencyBonuses.any(
+          (bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack,
+        );
+  }
+
+  int _activatedItemEffectCount(List<String> usedItemPointKeys) {
+    var count = 0;
+    final seen = <String>{};
+    for (final pointKey in usedItemPointKeys) {
+      if (!seen.add(pointKey)) continue;
+      final effect = widget.equippedItemsByPointKey[pointKey]?.effect;
+      if (effect == null) continue;
+      if (effect.hooks.contains(ItemEffectHook.patternUsed) ||
+          effect.hooks.contains(ItemEffectHook.prePatternAttack)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  Map<String, OperativePatternPointContent> _buildContentsByPointKey(
+    OperativePatternResolution resolution,
+  ) {
+    return <String, OperativePatternPointContent>{
+      for (final entry in widget.equippedItemsByPointKey.entries)
+        entry.key: OperativePatternPointContent(
+          item: entry.value,
+          bonus: entry.value.hasPatternBonus
+              ? entry.value.patternBonus
+              : _bonusesByPointKey[entry.key],
+          requirement: entry.value.hasPatternBonus
+              ? entry.value.patternRequirement
+              : null,
+          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
+          activatedAdjacencyBonuses:
+              resolution.activatedAdjacencyBonusesAt(entry.key),
+          isBonusEnabled: resolution.isItemBonusEnabledAt(entry.key),
+          isPatternBonusActivated: resolution.isItemBonusEnabledAt(entry.key),
+          hasAura: entry.value.hasPatternAura,
         ),
-      ],
+      for (final entry in _bonusesByPointKey.entries)
+        if (!widget.equippedItemsByPointKey.containsKey(entry.key))
+          entry.key: OperativePatternPointContent(bonus: entry.value),
+    };
+  }
+
+  Future<void> _handleEnemyPointTapped(OperativePatternPoint point) async {
+    if (_isAnimatingBlock ||
+        _isPlayingEnemyPattern ||
+        _blockedPointKeys.contains(point.key) ||
+        _blockedPoints.length >= _enemyPatternBlockCount) {
+      return;
+    }
+
+    final start = _localCenterFor(_playerSpriteKey);
+    final end = _localEnemyPatternPointCenter(point);
+    if (start == null || end == null) return;
+
+    _blockMotionController.stop();
+    _blockMotionController.reset();
+    setState(() {
+      _isAnimatingBlock = true;
+      _activeBlockMotion = Tween<Offset>(
+        begin: start,
+        end: end,
+      ).animate(
+        CurvedAnimation(
+          parent: _blockMotionController,
+          curve: Curves.easeInOutCubic,
+        ),
+      );
+    });
+
+    try {
+      await _blockMotionController.forward(from: 0).orCancel;
+    } on TickerCanceled {
+      return;
+    }
+    if (!mounted) return;
+
+    setState(() {
+      _blockedPoints = List<OperativePatternPoint>.unmodifiable([
+        ..._blockedPoints,
+        point,
+      ]);
+      _isAnimatingBlock = false;
+      _activeBlockMotion = null;
+    });
+
+    if (_blockedPoints.length >= _enemyPatternBlockCount && mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _playEnemyPattern() async {
+    if (_isPlayingEnemyPattern || _hasSubmitted) return;
+
+    final pattern = _buildEnemyPattern();
+    setState(() {
+      _isPlayingEnemyPattern = true;
+      _displayedEnemyPatternPoints = const <OperativePatternPoint>[];
+    });
+
+    for (var i = 0; i < pattern.length; i++) {
+      if (!mounted) return;
+      await Future<void>.delayed(_enemyPatternPointStepDuration);
+      if (!mounted) return;
+      setState(() {
+        _displayedEnemyPatternPoints = List<OperativePatternPoint>.unmodifiable(
+          pattern.take(i + 1),
+        );
+      });
+    }
+
+    if (!mounted || _hasSubmitted) return;
+    _hasSubmitted = true;
+    await Future<void>.delayed(const Duration(milliseconds: 220));
+    if (!mounted) return;
+    final result = _currentResult;
+    await widget.onResolve?.call(result);
+    if (!mounted) return;
+    Navigator.of(context).pop(result);
+  }
+
+  List<OperativePatternPoint> _buildEnemyPattern() {
+    final blockedKeys = _blockedPointKeys;
+    final maxDistinctPoints = max(3, _maxPatternPoints);
+    final selected = <OperativePatternPoint>[];
+    final selectedKeys = <String>{};
+
+    void addPoint(OperativePatternPoint? point) {
+      if (point == null) return;
+      if (blockedKeys.contains(point.key) || !selectedKeys.add(point.key)) {
+        return;
+      }
+      selected.add(point);
+    }
+
+    final itemPoints = <OperativePatternPoint>[
+      for (final point in operativePatternPoints)
+        if (widget.equippedItemsByPointKey.containsKey(point.key) &&
+            !blockedKeys.contains(point.key))
+          point,
+    ];
+    itemPoints.sort((a, b) {
+      final aItem = widget.equippedItemsByPointKey[a.key];
+      final bItem = widget.equippedItemsByPointKey[b.key];
+      final aScore = _enemyPointPriority(aItem);
+      final bScore = _enemyPointPriority(bItem);
+      return bScore.compareTo(aScore);
+    });
+
+    for (final point in itemPoints) {
+      if (selected.length >= maxDistinctPoints) break;
+      addPoint(point);
+    }
+
+    final filler = <OperativePatternPoint>[
+      for (final point in operativePatternPoints)
+        if (!blockedKeys.contains(point.key) &&
+            !selectedKeys.contains(point.key))
+          point,
+    ];
+    while (selected.length < min(3, maxDistinctPoints) && filler.isNotEmpty) {
+      final index = _nextInt(filler.length);
+      addPoint(filler.removeAt(index));
+    }
+
+    if (selected.length < 3) {
+      return List<OperativePatternPoint>.unmodifiable(selected);
+    }
+
+    return List<OperativePatternPoint>.unmodifiable([
+      ...selected,
+      selected.first,
+    ]);
+  }
+
+  int _enemyPointPriority(Item? item) {
+    if (item == null) return 0;
+    var score = item.modifier(BattlerStat.attack) * 3;
+    if (item.hasPatternBonus &&
+        item.patternBonus.kind == OperativePatternBonusKind.attack) {
+      score += item.patternBonus.amount * 4;
+    }
+    score += item.patternAdjacencyBonuses
+        .where((bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack)
+        .fold<int>(0, (sum, bonus) => sum + bonus.bonus.amount * 2);
+    return score;
+  }
+
+  Offset? _localCenterFor(GlobalKey key) {
+    final stackRenderObject = _matchStackKey.currentContext?.findRenderObject();
+    final targetRenderObject = key.currentContext?.findRenderObject();
+    if (stackRenderObject is! RenderBox ||
+        targetRenderObject is! RenderBox ||
+        !stackRenderObject.hasSize ||
+        !targetRenderObject.hasSize ||
+        targetRenderObject.size.width <= 0 ||
+        targetRenderObject.size.height <= 0) {
+      return null;
+    }
+
+    final targetCenter = Offset(
+      targetRenderObject.size.width / 2,
+      targetRenderObject.size.height / 2,
+    );
+    return stackRenderObject.globalToLocal(
+      targetRenderObject.localToGlobal(targetCenter),
+    );
+  }
+
+  Offset? _localEnemyPatternPointCenter(OperativePatternPoint point) {
+    final stackRenderObject = _matchStackKey.currentContext?.findRenderObject();
+    final boardRenderObject =
+        _enemyPatternBoardKey.currentContext?.findRenderObject();
+    if (stackRenderObject is! RenderBox ||
+        boardRenderObject is! RenderBox ||
+        !stackRenderObject.hasSize ||
+        !boardRenderObject.hasSize ||
+        boardRenderObject.size.width <= 0 ||
+        boardRenderObject.size.height <= 0) {
+      return null;
+    }
+
+    final localPointCenter = operativePatternBoardLocalCenterFor(
+      boardSize: boardRenderObject.size,
+      point: point,
+    );
+    return stackRenderObject.globalToLocal(
+      boardRenderObject.localToGlobal(localPointCenter),
+    );
+  }
+
+  int _estimatedHitDamageFor(int attackBonus) {
+    if (widget.player.hasStatus(PuntoCiegoStatus.statusId)) return 0;
+
+    const effectPipeline = BattlerEffectPipeline();
+    final baseDamage = (widget.enemy.calculateDamageAgainst(widget.player) +
+            max(0, attackBonus))
+        .toInt();
+    final outgoingStatusModifiedDamage =
+        effectPipeline.applyOutgoingDamageModifiers(
+      owner: widget.enemy,
+      target: widget.player,
+      damage: baseDamage,
+    );
+    final outgoingAbilityModifiedDamage =
+        effectPipeline.applyAbilityOutgoingDamageModifiers(
+      owner: widget.enemy,
+      target: widget.player,
+      damage: outgoingStatusModifiedDamage,
+    );
+    final outgoingItemModifiedDamage =
+        effectPipeline.applyEquippedItemOutgoingDamageModifiers(
+      owner: widget.enemy,
+      target: widget.player,
+      damage: outgoingAbilityModifiedDamage,
+    );
+    final incomingStatusModifiedDamage =
+        effectPipeline.applyIncomingDamageModifiers(
+      owner: widget.player,
+      source: widget.enemy,
+      damage: outgoingItemModifiedDamage,
+    );
+    final incomingAbilityModifiedDamage =
+        effectPipeline.applyAbilityIncomingDamageModifiers(
+      owner: widget.player,
+      source: widget.enemy,
+      damage: incomingStatusModifiedDamage,
+    );
+    return effectPipeline.applyEquippedItemIncomingDamageModifiers(
+      owner: widget.player,
+      source: widget.enemy,
+      damage: incomingAbilityModifiedDamage,
+    );
+  }
+
+  String _estimatedTotalDamageLabelFor(int attackBonus) {
+    final hitDamage = _estimatedHitDamageFor(attackBonus);
+    final hitCount = max(1, widget.enemy.basicAttackCount);
+    if (hitCount <= 1) return '$hitDamage';
+
+    return '${max(0, hitDamage)}x$hitCount';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final resolution = _currentResolution;
+    final result = _currentResult;
+    final activeBlockMotion = _activeBlockMotion;
+    final baseHitDamage = _estimatedHitDamageFor(0);
+    final totalDamageLabel = _estimatedTotalDamageLabelFor(result.attackBonus);
+    final waitingForBlocks = _blockedPoints.length < _enemyPatternBlockCount &&
+        !_isPlayingEnemyPattern;
+
+    return _BattlePatternCombatPage(
+      stackKey: _matchStackKey,
+      turnAccent: EndpointPalette.dangerAccent,
+      top: _PatternVisualBattlerHeader(
+        visualBattlers: widget.visualBattlers,
+        fallbackBattler: widget.enemy,
+        side: BattleCombatantSide.enemy,
+        accent: EndpointPalette.dangerAccent,
+        spriteKey: _enemySpriteKey,
+        statusKey: _enemyStatusKey,
+        spriteOnLeft: true,
+      ),
+      topAugments: _PatternAugmentStrip(
+        abilities: widget.enemy.abilities
+            .where(
+              (ability) => ability.appearsInContext(
+                BattlerAbilityActivationContext.battle,
+              ),
+            )
+            .toList(growable: false),
+        accent: EndpointPalette.dangerAccent,
+        alignEnd: true,
+        onAbilityPressed: widget.onEnemyAbilityPressed,
+      ),
+      matrix: _PatternMatrixCard(
+        accent: EndpointPalette.dangerAccent,
+        entryAccent: EndpointPalette.patternAccent,
+        summary: _BattlePatternLiveSummary(
+          baseHitDamage: baseHitDamage,
+          totalDamageLabel: totalDamageLabel,
+          attackBonus: result.attackBonus,
+          barrierBonus: result.barrierBonus,
+          effects: const <PlayerActionEffectIntent>[],
+          pointCount: resolution.distinctPointCount,
+        ),
+        pointCount: resolution.distinctPointCount,
+        maxPointCount: _maxPatternPoints,
+        blockingCount: max(0, _enemyPatternBlockCount - _blockedPoints.length),
+        maxBlockingCount: _enemyPatternBlockCount,
+        round: widget.combatRound,
+        finishEnabled: !waitingForBlocks && !_isPlayingEnemyPattern,
+        onFinish: _playEnemyPattern,
+        dimPatternPoints: true,
+        dimBlockPoints: false,
+        dimFinishButton: waitingForBlocks || _isPlayingEnemyPattern,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: FractionallySizedBox(
+                  widthFactor: 0.79,
+                  heightFactor: 0.79,
+                  child: Transform.rotate(
+                    angle: pi / 4,
+                    child: OperativePatternBoard(
+                      key: _enemyPatternBoardKey,
+                      contentsByPointKey: _buildContentsByPointKey(resolution),
+                      blockedPointKeys: _blockedPointKeys,
+                      displayedPatternPoints: _displayedEnemyPatternPoints,
+                      keepLineAfterPointerUp: true,
+                      maxPatternPoints: _maxPatternPoints,
+                      accent: EndpointPalette.dangerAccent,
+                      onPointTapped:
+                          waitingForBlocks ? _handleEnemyPointTapped : null,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomAugments: _PatternAugmentStrip(
+        abilities: widget.player.abilities
+            .where(
+              (ability) => ability.appearsInContext(
+                BattlerAbilityActivationContext.battle,
+              ),
+            )
+            .toList(growable: false),
+        accent: EndpointPalette.patternAccent,
+        onAbilityPressed: widget.onPlayerAbilityPressed,
+      ),
+      bottom: _PatternVisualBattlerHeader(
+        visualBattlers: widget.visualBattlers,
+        fallbackBattler: widget.player,
+        side: BattleCombatantSide.player,
+        accent: EndpointPalette.patternAccent,
+        spriteKey: _playerSpriteKey,
+        statusKey: _playerStatusKey,
+        spriteOnLeft: false,
+      ),
+      overlay: activeBlockMotion == null
+          ? null
+          : _BattlePatternBlockMotion(animation: activeBlockMotion),
+      combatAnimationOverlay: widget.combatAnimationOverlay,
+      onAnimationTargetsChanged: widget.onAnimationTargetsChanged,
+      enemySpriteKey: _enemySpriteKey,
+      enemyStatusKey: _enemyStatusKey,
+      playerSpriteKey: _playerSpriteKey,
+      playerStatusKey: _playerStatusKey,
     );
   }
 }
@@ -1336,25 +1935,250 @@ class _BattlePatternMetricShell extends StatelessWidget {
   }
 }
 
-class _BattlePatternFocusDimmer extends StatelessWidget {
-  final bool isVisible;
-  final double opacity;
+class _BattlePatternCombatPage extends StatelessWidget {
+  final GlobalKey stackKey;
+  final Color turnAccent;
+  final Widget top;
+  final Widget topAugments;
+  final Widget matrix;
+  final Widget bottomAugments;
+  final Widget bottom;
+  final Widget? overlay;
+  final ValueListenable<Widget?>? combatAnimationOverlay;
+  final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
+  final GlobalKey enemySpriteKey;
+  final GlobalKey enemyStatusKey;
+  final GlobalKey playerSpriteKey;
+  final GlobalKey playerStatusKey;
 
-  const _BattlePatternFocusDimmer({
-    required this.isVisible,
-    this.opacity = 0.46,
+  const _BattlePatternCombatPage({
+    required this.stackKey,
+    required this.turnAccent,
+    required this.top,
+    required this.topAugments,
+    required this.matrix,
+    required this.bottomAugments,
+    required this.bottom,
+    this.overlay,
+    this.combatAnimationOverlay,
+    this.onAnimationTargetsChanged,
+    required this.enemySpriteKey,
+    required this.enemyStatusKey,
+    required this.playerSpriteKey,
+    required this.playerStatusKey,
   });
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 240),
-        curve: Curves.easeOutCubic,
-        opacity: isVisible ? 1 : 0,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: opacity),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final targets = _resolveAnimationTargets();
+      if (targets != null) {
+        onAnimationTargetsChanged?.call(targets);
+      }
+    });
+
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: EndpointGradients.battle),
+      child: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+              child: Stack(
+                key: stackKey,
+                fit: StackFit.expand,
+                children: [
+                  Column(
+                    children: [
+                      top,
+                      const SizedBox(height: 6),
+                      topAugments,
+                      const SizedBox(height: 8),
+                      Expanded(child: matrix),
+                      const SizedBox(height: 8),
+                      bottomAugments,
+                      const SizedBox(height: 6),
+                      bottom,
+                    ],
+                  ),
+                  if (overlay != null) overlay!,
+                  if (combatAnimationOverlay != null)
+                    ValueListenableBuilder<Widget?>(
+                      valueListenable: combatAnimationOverlay!,
+                      builder: (context, overlay, _) {
+                        return overlay ?? const SizedBox.shrink();
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  BattlePatternAnimationTargets? _resolveAnimationTargets() {
+    final stackBox = stackKey.currentContext?.findRenderObject();
+    if (stackBox is! RenderBox || !stackBox.hasSize) return null;
+
+    Rect? localRectFor(GlobalKey key) {
+      final renderObject = key.currentContext?.findRenderObject();
+      if (renderObject is! RenderBox ||
+          !renderObject.hasSize ||
+          renderObject.size.isEmpty) {
+        return null;
+      }
+
+      final topLeft = stackBox.globalToLocal(
+        renderObject.localToGlobal(Offset.zero),
+      );
+      return topLeft & renderObject.size;
+    }
+
+    final enemySpriteRect = localRectFor(enemySpriteKey);
+    final enemyStatusRect = localRectFor(enemyStatusKey);
+    final playerSpriteRect = localRectFor(playerSpriteKey);
+    final playerStatusRect = localRectFor(playerStatusKey);
+    if (enemySpriteRect == null ||
+        enemyStatusRect == null ||
+        playerSpriteRect == null ||
+        playerStatusRect == null) {
+      return null;
+    }
+
+    return BattlePatternAnimationTargets(
+      playerSpriteRect: playerSpriteRect,
+      enemySpriteRect: enemySpriteRect,
+      playerStatusRect: playerStatusRect,
+      enemyStatusRect: enemyStatusRect,
+    );
+  }
+}
+
+class _PatternVisualBattlerHeader extends StatelessWidget {
+  final ValueListenable<BattlePatternVisualBattlers>? visualBattlers;
+  final Battler fallbackBattler;
+  final BattleCombatantSide side;
+  final Color accent;
+  final bool spriteOnLeft;
+  final Key? spriteKey;
+  final Key? statusKey;
+
+  const _PatternVisualBattlerHeader({
+    required this.visualBattlers,
+    required this.fallbackBattler,
+    required this.side,
+    required this.accent,
+    required this.spriteOnLeft,
+    this.spriteKey,
+    this.statusKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final listenable = visualBattlers;
+    if (listenable == null) {
+      return _PatternBattlerHeader(
+        battler: fallbackBattler,
+        accent: accent,
+        spriteOnLeft: spriteOnLeft,
+        spriteKey: spriteKey,
+        statusKey: statusKey,
+      );
+    }
+
+    return ValueListenableBuilder<BattlePatternVisualBattlers>(
+      valueListenable: listenable,
+      builder: (context, visualBattlers, _) {
+        final battler = switch (side) {
+          BattleCombatantSide.player => visualBattlers.player,
+          BattleCombatantSide.enemy => visualBattlers.enemy,
+        };
+        return _PatternBattlerHeader(
+          battler: battler,
+          accent: accent,
+          spriteOnLeft: spriteOnLeft,
+          spriteKey: spriteKey,
+          statusKey: statusKey,
+        );
+      },
+    );
+  }
+}
+
+class _PatternBattlerHeader extends StatelessWidget {
+  final Battler battler;
+  final Color accent;
+  final bool spriteOnLeft;
+  final Key? spriteKey;
+  final Key? statusKey;
+
+  const _PatternBattlerHeader({
+    required this.battler,
+    required this.accent,
+    required this.spriteOnLeft,
+    this.spriteKey,
+    this.statusKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sprite = _PatternSprite(
+      key: spriteKey,
+      battler: battler,
+      accent: accent,
+      mirror: !spriteOnLeft,
+    );
+    final status = Expanded(
+      child: _PatternStatusBars(
+        key: statusKey,
+        battler: battler,
+        accent: accent,
+        alignEnd: !spriteOnLeft,
+      ),
+    );
+    final rowChildren = spriteOnLeft
+        ? <Widget>[sprite, const SizedBox(width: 8), status]
+        : <Widget>[status, const SizedBox(width: 8), sprite];
+
+    return SizedBox(
+      height: 70,
+      child: Row(children: rowChildren),
+    );
+  }
+}
+
+class _PatternSprite extends StatelessWidget {
+  final Battler battler;
+  final Color accent;
+  final bool mirror;
+
+  const _PatternSprite({
+    super.key,
+    required this.battler,
+    required this.accent,
+    required this.mirror,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 62,
+      height: 62,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.panelBackgroundBattleOpaque,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: accent.withAlpha(150)),
+        ),
+        child: Center(
+          child: EndpointEmojiSprite(
+            emoji: battler.iconEmoji,
+            accent: accent,
+            size: 52,
+            mirror: mirror,
           ),
         ),
       ),
@@ -1362,42 +2186,111 @@ class _BattlePatternFocusDimmer extends StatelessWidget {
   }
 }
 
-class _BattlePatternMatchFooter extends StatelessWidget {
-  final bool isClosed;
-  final int pointCount;
-  final int maxPointCount;
-  final VoidCallback? onPressed;
+class _PatternStatusBars extends StatelessWidget {
+  final Battler battler;
+  final Color accent;
+  final bool alignEnd;
 
-  const _BattlePatternMatchFooter({
-    required this.isClosed,
-    required this.pointCount,
-    required this.maxPointCount,
-    required this.onPressed,
+  const _PatternStatusBars({
+    super.key,
+    required this.battler,
+    required this.accent,
+    required this.alignEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final healthMax = max(1, battler.maxHealth);
+    final health = battler.maxHealth <= 0
+        ? 0.0
+        : (battler.health / healthMax).clamp(0.0, 1.0).toDouble();
+    final barrierMax = max(1, max(battler.maxBarrier, battler.currentBarrier));
+    final barrier =
+        (battler.currentBarrier / barrierMax).clamp(0.0, 1.0).toDouble();
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundBattleOpaque,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: accent.withAlpha(132)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+        child: Column(
+          crossAxisAlignment:
+              alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            EndpointText(
+              battler.name.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+              style: textSmallBold.copyWith(
+                color: EndpointPalette.softForeground,
+                fontSize: 11,
+                letterSpacing: 0.9,
+              ),
+            ),
+            const SizedBox(height: 4),
+            _PatternMeterRow(
+              value: health,
+              color: EndpointPalette.dangerAccent,
+              label: '${max(0, battler.health)}/$healthMax',
+            ),
+            const SizedBox(height: 4),
+            _PatternMeterRow(
+              value: barrier,
+              color: BattlerStat.barrier.accent,
+              label: '${max(0, battler.currentBarrier)}',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PatternMeterRow extends StatelessWidget {
+  final double value;
+  final Color color;
+  final String label;
+
+  const _PatternMeterRow({
+    required this.value,
+    required this.color,
+    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _BattlePatternPointLimitPill(
-          pointCount: pointCount,
-          maxPointCount: maxPointCount,
+        SizedBox(
+          width: 42,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            child: EndpointText(
+              label,
+              key: ValueKey<String>(label),
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              textAlign: TextAlign.right,
+              style: textSmallNumericBold.copyWith(
+                color: EndpointPalette.softForeground,
+                fontSize: 10,
+                height: 1,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Expanded(
-          child: EndpointActionButton(
-            label: isClosed ? 'MATCHED' : 'MATCH',
-            icon: Icons.join_inner_rounded,
-            onPressed: onPressed,
-            tooltip: isClosed ? 'Resolver patron' : 'Cerrar sin patron cerrado',
-            height: 46,
-            useMarquee: false,
-            backgroundColor: EndpointPalette.controlBackground,
-            foregroundColor: EndpointPalette.softForeground,
-            accent: isClosed
-                ? EndpointPalette.patternAccent
-                : EndpointPalette.neutralAccent,
-            textStyle: textSmallBold.copyWith(letterSpacing: 1),
+          child: _PatternMeter(
+            value: value,
+            color: color,
           ),
         ),
       ],
@@ -1405,42 +2298,548 @@ class _BattlePatternMatchFooter extends StatelessWidget {
   }
 }
 
-class _BattlePatternPointLimitPill extends StatelessWidget {
-  final int pointCount;
-  final int maxPointCount;
+class _PatternMeter extends StatelessWidget {
+  final double value;
+  final Color color;
 
-  const _BattlePatternPointLimitPill({
-    required this.pointCount,
-    required this.maxPointCount,
+  const _PatternMeter({
+    required this.value,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isFull = pointCount >= maxPointCount;
-    final accent =
-        isFull ? EndpointPalette.warningAccent : EndpointPalette.neutralAccent;
-
-    return Tooltip(
-      message: 'Vertices de patron disponibles',
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: EndpointPalette.controlBackground,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: accent.withValues(alpha: 0.52)),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: SizedBox(
+        height: 6,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(
+            begin: value,
+            end: value,
+          ),
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          builder: (context, animatedValue, _) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(color: Colors.black.withAlpha(150)),
+                FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: animatedValue.clamp(0.0, 1.0).toDouble(),
+                  child: ColoredBox(color: color),
+                ),
+              ],
+            );
+          },
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(9, 6, 9, 6),
-          child: EndpointText(
-            '$pointCount/$maxPointCount',
-            style: textSmallNumericBold.copyWith(
-              color: accent,
-              fontSize: 13,
-              letterSpacing: 0.3,
+      ),
+    );
+  }
+}
+
+class _PatternAugmentStrip extends StatelessWidget {
+  final List<BattlerAbility> abilities;
+  final Color accent;
+  final bool alignEnd;
+  final ValueChanged<BattlerAbility>? onAbilityPressed;
+
+  const _PatternAugmentStrip({
+    required this.abilities,
+    required this.accent,
+    this.alignEnd = false,
+    this.onAbilityPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 42,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final row = Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment:
+                alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+            textDirection: alignEnd ? TextDirection.rtl : TextDirection.ltr,
+            children: [
+              for (var index = 0; index < abilities.length; index++) ...[
+                if (index > 0) const SizedBox(width: 8),
+                _PatternAugmentDot(
+                  ability: abilities[index],
+                  accent: accent,
+                  onPressed: onAbilityPressed,
+                ),
+              ],
+            ],
+          );
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            reverse: alignEnd,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Align(
+                alignment:
+                    alignEnd ? Alignment.centerRight : Alignment.centerLeft,
+                child: row,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PatternAugmentDot extends StatelessWidget {
+  final BattlerAbility ability;
+  final Color accent;
+  final ValueChanged<BattlerAbility>? onPressed;
+
+  const _PatternAugmentDot({
+    required this.ability,
+    required this.accent,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final handlePressed = onPressed;
+    return Tooltip(
+      message: ability.name,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: handlePressed == null ? null : () => handlePressed(ability),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: EndpointPalette.panelBackgroundBattleOpaque,
+              border: Border.all(color: accent.withAlpha(150), width: 2),
+            ),
+            child: SizedBox(
+              width: 38,
+              height: 38,
+              child: Icon(ability.icon, color: ability.accent, size: 20),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+class _PatternMatrixCard extends StatelessWidget {
+  final Color accent;
+  final Color entryAccent;
+  final Widget summary;
+  final Widget child;
+  final int pointCount;
+  final int maxPointCount;
+  final int blockingCount;
+  final int maxBlockingCount;
+  final int round;
+  final bool finishEnabled;
+  final bool dimPatternPoints;
+  final bool dimBlockPoints;
+  final bool dimFinishButton;
+  final VoidCallback onFinish;
+
+  const _PatternMatrixCard({
+    required this.accent,
+    required this.entryAccent,
+    required this.summary,
+    required this.child,
+    required this.pointCount,
+    required this.maxPointCount,
+    required this.blockingCount,
+    required this.maxBlockingCount,
+    required this.round,
+    required this.finishEnabled,
+    required this.dimPatternPoints,
+    required this.dimBlockPoints,
+    required this.dimFinishButton,
+    required this.onFinish,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(begin: entryAccent, end: accent),
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedAccent, _) {
+        final resolvedAccent = animatedAccent ?? accent;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: EndpointPalette.blend(
+              EndpointPalette.panelBackgroundBattleOpaque,
+              resolvedAccent,
+              0.1,
+            ),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: resolvedAccent, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: resolvedAccent.withAlpha(54),
+                blurRadius: 22,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            child: Column(
+              children: [
+                summary,
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Tooltip(
+                          message: 'Pattern matrix: connect points to form a match.',
+                          child: child,
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: _PatternCornerTriangle(
+                            alignment: Alignment.topLeft,
+                            color: const Color(0xFFFFEA4D),
+                            label: '$pointCount/$maxPointCount',
+                            tooltip:
+                                'Pattern points used and available this turn.',
+                            textColor: Colors.black,
+                            isDimmed: dimPatternPoints,
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: _PatternCornerTriangle(
+                            alignment: Alignment.topRight,
+                            color: const Color(0xFFB05CFF),
+                            label: '$blockingCount/$maxBlockingCount',
+                            tooltip:
+                                'Blocking points available to stop enemy pattern points.',
+                            isDimmed: dimBlockPoints,
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: _PatternCornerTriangle(
+                            alignment: Alignment.bottomLeft,
+                            color: const Color(0xFF24242A),
+                            label: 'Round $round',
+                            tooltip: 'Current combat round.',
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: _PatternFinishCorner(
+                            enabled: finishEnabled,
+                            isDimmed: dimFinishButton,
+                            tooltip: 'Finish turn and resolve the pattern.',
+                            onPressed: onFinish,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PatternCornerTriangle extends StatelessWidget {
+  final Alignment alignment;
+  final Color color;
+  final String label;
+  final String tooltip;
+  final Color textColor;
+  final bool isDimmed;
+
+  const _PatternCornerTriangle({
+    required this.alignment,
+    required this.color,
+    required this.label,
+    required this.tooltip,
+    this.textColor = Colors.white,
+    this.isDimmed = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        opacity: isDimmed ? 0.38 : 1,
+        child: SizedBox(
+          width: 100,
+          height: 100,
+          child: CustomPaint(
+            painter: _PatternTrianglePainter(
+              alignment: alignment,
+              color: color.withAlpha(222),
+            ),
+            child: Align(
+              alignment: alignment,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Transform.rotate(
+                  angle: alignment.y < 0
+                      ? (alignment.x < 0 ? -pi / 4 : pi / 4)
+                      : (alignment.x < 0 ? pi / 4 : -pi / 4),
+                  child: EndpointText(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textSmallNumericBold.copyWith(
+                      color: textColor,
+                      fontSize: 14,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PatternDimmedRegion extends StatelessWidget {
+  final bool isDimmed;
+  final Widget child;
+
+  const _PatternDimmedRegion({
+    required this.isDimmed,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      opacity: isDimmed ? 0.38 : 1,
+      child: child,
+    );
+  }
+}
+
+class _PatternFinishCorner extends StatefulWidget {
+  final bool enabled;
+  final bool isDimmed;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  const _PatternFinishCorner({
+    required this.enabled,
+    required this.isDimmed,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  @override
+  State<_PatternFinishCorner> createState() => _PatternFinishCornerState();
+}
+
+class _PatternFinishCornerState extends State<_PatternFinishCorner> {
+  bool _isPressed = false;
+
+  void _setPressed(bool isPressed) {
+    if (_isPressed == isPressed) return;
+    setState(() {
+      _isPressed = isPressed;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = widget.enabled;
+    final fillAlpha = isActive ? (_isPressed ? 242 : 210) : 92;
+    final textAlpha = isActive ? (_isPressed ? 255 : 230) : 120;
+
+    return Tooltip(
+      message: widget.tooltip,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        opacity: widget.isDimmed ? 0.38 : 1,
+        child: SizedBox(
+          width: 108,
+          height: 108,
+          child: AnimatedScale(
+            duration: const Duration(milliseconds: 90),
+            curve: Curves.easeOutCubic,
+            scale: _isPressed ? 0.96 : 1,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: isActive ? widget.onPressed : null,
+                onTapDown: isActive ? (_) => _setPressed(true) : null,
+                onTapUp: isActive ? (_) => _setPressed(false) : null,
+                onTapCancel: isActive ? () => _setPressed(false) : null,
+                splashColor: Colors.black.withAlpha(35),
+                highlightColor: Colors.black.withAlpha(24),
+                customBorder: const _PatternCornerTriangleBorder(
+                  alignment: Alignment.bottomRight,
+                ),
+                child: CustomPaint(
+                  painter: _PatternTrianglePainter(
+                    alignment: Alignment.bottomRight,
+                    color: Colors.white.withAlpha(fillAlpha),
+                  ),
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 14, 18),
+                      child: Transform.rotate(
+                        angle: -pi / 4,
+                        child: IgnorePointer(
+                          child: EndpointText(
+                            'Finish\nturn',
+                            textAlign: TextAlign.center,
+                            style: textSmallBold.copyWith(
+                              color: Colors.black.withAlpha(textAlpha),
+                              fontSize: 13,
+                              height: 0.95,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PatternCornerTriangleBorder extends ShapeBorder {
+  final Alignment alignment;
+
+  const _PatternCornerTriangleBorder({
+    required this.alignment,
+  });
+
+  @override
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
+    return getOuterPath(rect, textDirection: textDirection);
+  }
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    final path = Path();
+    if (alignment == Alignment.topLeft) {
+      path
+        ..moveTo(rect.left, rect.top)
+        ..lineTo(rect.right, rect.top)
+        ..lineTo(rect.left, rect.bottom);
+    } else if (alignment == Alignment.topRight) {
+      path
+        ..moveTo(rect.right, rect.top)
+        ..lineTo(rect.right, rect.bottom)
+        ..lineTo(rect.left, rect.top);
+    } else if (alignment == Alignment.bottomLeft) {
+      path
+        ..moveTo(rect.left, rect.bottom)
+        ..lineTo(rect.left, rect.top)
+        ..lineTo(rect.right, rect.bottom);
+    } else {
+      path
+        ..moveTo(rect.right, rect.bottom)
+        ..lineTo(rect.left, rect.bottom)
+        ..lineTo(rect.right, rect.top);
+    }
+    path.close();
+    return path;
+  }
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+
+  @override
+  ShapeBorder scale(double t) {
+    return this;
+  }
+}
+
+class _PatternTrianglePainter extends CustomPainter {
+  final Alignment alignment;
+  final Color color;
+
+  const _PatternTrianglePainter({
+    required this.alignment,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path();
+    if (alignment == Alignment.topLeft) {
+      path
+        ..moveTo(0, 0)
+        ..lineTo(size.width, 0)
+        ..lineTo(0, size.height);
+    } else if (alignment == Alignment.topRight) {
+      path
+        ..moveTo(size.width, 0)
+        ..lineTo(size.width, size.height)
+        ..lineTo(0, 0);
+    } else if (alignment == Alignment.bottomLeft) {
+      path
+        ..moveTo(0, size.height)
+        ..lineTo(0, 0)
+        ..lineTo(size.width, size.height);
+    } else {
+      path
+        ..moveTo(size.width, size.height)
+        ..lineTo(0, size.height)
+        ..lineTo(size.width, 0);
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PatternTrianglePainter oldDelegate) {
+    return oldDelegate.alignment != alignment || oldDelegate.color != color;
   }
 }
 

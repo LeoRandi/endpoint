@@ -193,8 +193,10 @@ class BattleController extends ChangeNotifier {
   Battler get player => _player;
   BattleTurnState get turn => _turn;
   bool get isPlayerTurn => _turn == BattleTurnState.player;
+  bool get isEnemyTurn => _turn == BattleTurnState.enemy;
   bool get isCombatFinished => _turn == BattleTurnState.finished;
   bool get canUseActions => isPlayerTurn && !isCombatFinished;
+  bool get canResolveEnemyPattern => isEnemyTurn && !isCombatFinished;
   int get currentRound => _currentRound;
   int get currentPurgeDamageAmount => _purgeDamageForRound(
         max(10, _currentRound),
@@ -422,6 +424,7 @@ class BattleController extends ChangeNotifier {
   Future<void> handlePatternMatch({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
     BattlePatternMatchContext? patternContext,
+    bool scheduleEnemyTurn = true,
   }) async {
     if (!canUseActions) return;
     final resolvedActionBonus = actionBonus;
@@ -586,9 +589,190 @@ class BattleController extends ChangeNotifier {
     }
 
     await _beginTurn(BattleTurnState.enemy);
-    if (_turn == BattleTurnState.enemy) {
+    if (scheduleEnemyTurn && _turn == BattleTurnState.enemy) {
       _scheduleEnemyTurn();
     }
+  }
+
+  Future<void> handleEnemyPatternMatch({
+    BattleActionBonus actionBonus = BattleActionBonus.empty,
+    BattlePatternMatchContext? patternContext,
+  }) async {
+    if (!canResolveEnemyPattern) return;
+
+    final resolvedActionBonus = actionBonus;
+    final resolvedPatternContext = patternContext;
+
+    final preAttackPlayerBefore = _player;
+    final preAttackEnemyBefore = _enemy;
+    final preAttackResolution = _resolveEnemyPreAttackState(
+      enemy: _enemy,
+      player: _player,
+    );
+    await _playCombatStateTransitionAnimations(
+      playerBefore: preAttackPlayerBefore,
+      enemyBefore: preAttackEnemyBefore,
+      playerAfter: preAttackResolution.player,
+      enemyAfter: preAttackResolution.enemy,
+    );
+    if (_isDisposed || _turn != BattleTurnState.enemy) return;
+    _enemy = preAttackResolution.enemy;
+    _player = preAttackResolution.player;
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
+
+    final preAttackFinish = _turnEngine.finishFor(
+      player: _player,
+      enemy: _enemy,
+    );
+    if (preAttackFinish != null) {
+      _finishCombat(
+        resultType: preAttackFinish.resultType,
+        resultText: preAttackFinish.resultText,
+      );
+      return;
+    }
+
+    if (resolvedPatternContext != null) {
+      final enemyBeforePatternAbilities = _enemy;
+      final playerBeforePatternAbilities = _player;
+      final abilityResolution = _enemy.applyAbilityPatternMatchResolvedEffects(
+        opponent: _player,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBeforePatternAbilities,
+        enemyBefore: enemyBeforePatternAbilities,
+        playerAfter: abilityResolution.opponent,
+        enemyAfter: abilityResolution.owner,
+      );
+      if (_isDisposed || _turn != BattleTurnState.enemy) return;
+
+      _enemy = abilityResolution.owner;
+      _player = abilityResolution.opponent;
+      final abilityFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (abilityFinish != null) {
+        _finishCombat(
+          resultType: abilityFinish.resultType,
+          resultText: abilityFinish.resultText,
+        );
+        return;
+      }
+
+      final enemyBeforePreAttackItems = _enemy;
+      final playerBeforePreAttackItems = _player;
+      final preAttackItemResolution =
+          _enemy.applyEquippedItemPrePatternAttackEffects(
+        opponent: _player,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBeforePreAttackItems,
+        enemyBefore: enemyBeforePreAttackItems,
+        playerAfter: preAttackItemResolution.opponent,
+        enemyAfter: preAttackItemResolution.owner,
+      );
+      if (_isDisposed || _turn != BattleTurnState.enemy) return;
+
+      _enemy = preAttackItemResolution.owner;
+      _player = preAttackItemResolution.opponent;
+      final preAttackItemFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (preAttackItemFinish != null) {
+        _finishCombat(
+          resultType: preAttackItemFinish.resultType,
+          resultText: preAttackItemFinish.resultText,
+        );
+        return;
+      }
+    }
+
+    final attackerBefore = _enemy;
+    final defenderBefore = _player;
+    final attackResolution = _resolveAttackAction(
+      attacker: _enemy,
+      defender: _player,
+      flatAttackBonus: resolvedActionBonus.attackBonus,
+      triggerAttackResolvedEffects: true,
+    );
+    await _playAttackActionAnimations(
+      attackerSide: BattleCombatantSide.enemy,
+      attackerBefore: attackerBefore,
+      defenderBefore: defenderBefore,
+      resolution: attackResolution,
+    );
+    if (_isDisposed || _turn != BattleTurnState.enemy) return;
+
+    _enemy = attackResolution.attacker;
+    _player = attackResolution.defender;
+
+    if (resolvedActionBonus.immediateBarrierAmount > 0) {
+      final defenderBeforeBarrier = _enemy;
+      final opponentBeforeBarrier = _player;
+      final defendResolution = _resolveDefendAction(
+        defender: _enemy,
+        opponent: _player,
+        barrierGain: resolvedActionBonus.immediateBarrierAmount,
+      );
+      await _playBlockResolutionAnimation(
+        defenderSide: BattleCombatantSide.enemy,
+        defenderBefore: defenderBeforeBarrier,
+        opponentBefore: opponentBeforeBarrier,
+        defenderAfter: defendResolution.defender,
+        opponentAfter: defendResolution.opponent,
+      );
+      if (_isDisposed || _turn != BattleTurnState.enemy) return;
+      _enemy = defendResolution.defender;
+      _player = defendResolution.opponent;
+    }
+
+    if (resolvedPatternContext != null) {
+      final itemUseEnemyBefore = _enemy;
+      final itemUsePlayerBefore = _player;
+      final itemUseResolution = _enemy.applyEquippedItemPatternUsedEffects(
+        opponent: _player,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: itemUsePlayerBefore,
+        enemyBefore: itemUseEnemyBefore,
+        playerAfter: itemUseResolution.opponent,
+        enemyAfter: itemUseResolution.owner,
+      );
+      if (_isDisposed || _turn != BattleTurnState.enemy) return;
+      _enemy = itemUseResolution.owner;
+      _player = itemUseResolution.opponent;
+
+      final itemUseFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (itemUseFinish != null) {
+        _finishCombat(
+          resultType: itemUseFinish.resultType,
+          resultText: itemUseFinish.resultText,
+        );
+        return;
+      }
+    }
+
+    _registerEnemyResolvedAction(EnemyTurnAction.attack);
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
+
+    if (await _completeTurn(BattleTurnState.enemy)) {
+      return;
+    }
+
+    _enemyNextAction = _rollEnemyTurnAction();
+    await _beginTurn(BattleTurnState.player);
   }
 
   Future<void> handleBlock({
@@ -1733,23 +1917,13 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    var hitIndex = 0;
-    while (hitIndex < resolution.hits.length) {
-      final firstHit = resolution.hits[hitIndex];
-      var groupEnd = hitIndex + 1;
-      while (groupEnd < resolution.hits.length &&
-          resolution.hits[groupEnd].primaryCombatant ==
-              firstHit.primaryCombatant &&
-          resolution.hits[groupEnd].motionAsset == firstHit.motionAsset) {
-        groupEnd++;
-      }
-
+    for (final hit in resolution.hits) {
       final visualState = _visualStateForAttackHit(
-        hit: firstHit,
+        hit: hit,
         attackerSide: attackerSide,
       );
       final primarySide = _primarySideForAttackHit(
-        hit: firstHit,
+        hit: hit,
         attackerSide: attackerSide,
       );
       final secondarySide = primarySide == BattleCombatantSide.player
@@ -1764,28 +1938,18 @@ class BattleController extends ChangeNotifier {
           enemyBefore: visualState.enemyBefore,
           playerAfter: visualState.playerBefore,
           enemyAfter: visualState.enemyBefore,
-          effectCount: groupEnd - hitIndex,
-          motionAsset: firstHit.motionAsset,
+          motionAsset: hit.motionAsset,
         ),
       );
       if (_isDisposed) return;
 
-      for (var index = hitIndex; index < groupEnd; index++) {
-        final hit = resolution.hits[index];
-        final hitVisualState = _visualStateForAttackHit(
-          hit: hit,
-          attackerSide: attackerSide,
-        );
-        await _playCombatStateTransitionAnimations(
-          playerBefore: hitVisualState.playerBefore,
-          enemyBefore: hitVisualState.enemyBefore,
-          playerAfter: hitVisualState.playerAfter,
-          enemyAfter: hitVisualState.enemyAfter,
-        );
-        if (_isDisposed) return;
-      }
-
-      hitIndex = groupEnd;
+      await _playCombatStateTransitionAnimations(
+        playerBefore: visualState.playerBefore,
+        enemyBefore: visualState.enemyBefore,
+        playerAfter: visualState.playerAfter,
+        enemyAfter: visualState.enemyAfter,
+      );
+      if (_isDisposed) return;
     }
   }
 

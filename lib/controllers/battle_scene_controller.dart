@@ -96,6 +96,7 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Indica si la vista puede ofrecer acciones manuales al jugador.
   bool get canUseActions => _battleController.canUseActions;
+  bool get canResolveEnemyPattern => _battleController.canResolveEnemyPattern;
 
   /// Indica si el combate ya termino dentro del motor principal.
   bool get isCombatFinished => _battleController.isCombatFinished;
@@ -155,8 +156,20 @@ class BattleSceneController extends ChangeNotifier {
   Future<void> handlePlayerPatternMatch({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
     BattlePatternMatchContext? patternContext,
+    bool scheduleEnemyTurn = true,
   }) {
     return _battleController.handlePatternMatch(
+      actionBonus: actionBonus,
+      patternContext: patternContext,
+      scheduleEnemyTurn: scheduleEnemyTurn,
+    );
+  }
+
+  Future<void> handleEnemyPatternMatch({
+    BattleActionBonus actionBonus = BattleActionBonus.empty,
+    BattlePatternMatchContext? patternContext,
+  }) {
+    return _battleController.handleEnemyPatternMatch(
       actionBonus: actionBonus,
       patternContext: patternContext,
     );

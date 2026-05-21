@@ -80,13 +80,16 @@ class _PlayerBattleHud extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Spacer(),
-        _BattleLoadoutStrip(
+        const SizedBox(height: 4),
+        _BattleItemStrip(
           battler: player,
+          accent: EndpointPalette.primaryAccent,
+          onItemPressed: onOpenEquippedItemDetails,
+        ),
+        const SizedBox(height: 8),
+        _BattleAbilityStrip(
           abilities: visibleAbilities,
           accent: EndpointPalette.primaryAccent,
-          mirrorHorizontally: false,
-          onItemPressed: onOpenEquippedItemDetails,
           onAbilityPressed: onOpenAbilityDetails,
           enableAbilityTooltipLongPress: false,
         ),
@@ -105,18 +108,19 @@ class _PlayerBattleHud extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _ActionPanel(
-              isEnabled: isEnabled,
-              isPatternMode: isPatternMode,
-              onAttack: onAttack,
-              onBlock: onBlock,
-              actionPreview: actionPreview,
+            Expanded(
+              child: _ActionPanel(
+                isEnabled: isEnabled,
+                isPatternMode: isPatternMode,
+                onAttack: onAttack,
+                onBlock: onBlock,
+                actionPreview: actionPreview,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(width: 8),
             _BattleSpriteDock(
               emoji: player.iconEmoji,
               accent: EndpointPalette.primaryAccent,
-              label: 'TU',
               mirror: true,
             ),
           ],
@@ -137,13 +141,32 @@ class _MatchActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BattleActionButton(
+    return EndpointActionButton(
       label: 'MATCH',
       icon: Icons.join_inner_rounded,
-      dimension: 92,
       onPressed: isEnabled ? onMatch : null,
       tooltip: 'Abrir patron de combate',
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      height: 72,
+      useMarquee: false,
+      labelMaxLines: 1,
+      iconSize: 22,
+      iconSpacing: 8,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      textStyle: textTitleSmallBold.copyWith(
+        color: isEnabled
+            ? EndpointPalette.softForeground
+            : EndpointPalette.softForeground.withAlpha(107),
+        fontSize: 18,
+        letterSpacing: 1,
+        height: 1,
+      ),
+      backgroundColor: EndpointPalette.closeButtonBackground,
+      foregroundColor: isEnabled
+          ? EndpointPalette.softForeground
+          : EndpointPalette.softForeground.withAlpha(107),
+      accent: EndpointPalette.primaryAccent,
     );
   }
 }
@@ -587,7 +610,6 @@ class _ActionIntentMarqueeState extends State<_ActionIntentMarquee>
 
 class _EnemyBattleHud extends StatelessWidget {
   final Battler enemy;
-  final EnemyTurnIntentPreview enemyIntent;
   final List<BattlerAbility> visibleAbilities;
   final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
   final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
@@ -598,7 +620,6 @@ class _EnemyBattleHud extends StatelessWidget {
 
   const _EnemyBattleHud({
     required this.enemy,
-    required this.enemyIntent,
     required this.visibleAbilities,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
@@ -614,18 +635,25 @@ class _EnemyBattleHud extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const _BattleSpriteDock(
-              emoji: '\u{1F47E}',
+            _BattleSpriteDock(
+              emoji: enemy.iconEmoji,
               accent: EndpointPalette.dangerAccent,
-              label: 'FOE',
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Align(
-                alignment: Alignment.topRight,
-                child: _EnemyIntentCard(intent: enemyIntent),
+              child: EndpointText(
+                enemy.name.toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: textTitleSmallBold.copyWith(
+                  color: EndpointPalette.softForeground,
+                  fontSize: 32,
+                  letterSpacing: 1.4,
+                  height: 0.95,
+                ),
               ),
             ),
           ],
@@ -642,157 +670,19 @@ class _EnemyBattleHud extends StatelessWidget {
           barrierAnimationReference: barrierAnimationReference,
         ),
         const SizedBox(height: 8),
-        _BattleLoadoutStrip(
-          battler: enemy,
+        _BattleAbilityStrip(
           abilities: visibleAbilities,
           accent: EndpointPalette.dangerAccent,
-          mirrorHorizontally: true,
-          onItemPressed: onOpenEquippedItemDetails,
           onAbilityPressed: onOpenAbilityDetails,
+        ),
+        const SizedBox(height: 8),
+        _BattleItemStrip(
+          battler: enemy,
+          accent: EndpointPalette.dangerAccent,
+          onItemPressed: onOpenEquippedItemDetails,
         ),
         const Spacer(),
       ],
-    );
-  }
-}
-
-class _EnemyIntentCard extends StatelessWidget {
-  final EnemyTurnIntentPreview intent;
-
-  const _EnemyIntentCard({
-    required this.intent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        EndpointText(
-          'INCOMING:',
-          style: textSmallBold.copyWith(
-            color: EndpointPalette.dangerAccent.withAlpha(224),
-            fontSize: 10,
-            letterSpacing: 1.1,
-          ),
-        ),
-        const SizedBox(height: 4),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 252),
-          child: EndpointSectionPanel(
-            preset: _buildBattlePanelPreset(
-              EndpointPalette.dangerAccent,
-              borderRadius: 11,
-              glowOpacity: 0.05,
-              padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
-            ),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.end,
-              children: [
-                _EnemyIntentChip(
-                  symbol:
-                      intent.action == EnemyTurnAction.attack ? '\u2694' : null,
-                  icon: intent.action == EnemyTurnAction.defend
-                      ? Icons.shield_rounded
-                      : null,
-                  accent: intent.action == EnemyTurnAction.defend
-                      ? BattlerStat.barrier.accent
-                      : EndpointPalette.dangerAccent,
-                ),
-                if (intent.activatedBattleAbility != null)
-                  _EnemyIntentChip(
-                    icon: intent.activatedBattleAbility!.icon,
-                    accent: intent.activatedBattleAbility!.accent,
-                  ),
-                if (intent.damage > 0 ||
-                    intent.action == EnemyTurnAction.attack)
-                  _EnemyIntentChip(
-                    symbol: '\u2694',
-                    valueLabel: intent.damageLabel,
-                    accent: EndpointPalette.dangerAccent,
-                  ),
-                if (intent.barrierGain > 0)
-                  _EnemyIntentChip(
-                    icon: Icons.shield_rounded,
-                    valueLabel: '${intent.barrierGain}',
-                    accent: BattlerStat.barrier.accent,
-                  ),
-                for (final debuff in intent.appliedDebuffs)
-                  _EnemyIntentChip(
-                    icon: debuff.status.icon,
-                    valueLabel: debuff.amountLabel,
-                    accent: debuff.status.type.accent,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _EnemyIntentChip extends StatelessWidget {
-  final IconData? icon;
-  final String? symbol;
-  final String? valueLabel;
-  final Color accent;
-
-  const _EnemyIntentChip({
-    this.icon,
-    this.symbol,
-    required this.accent,
-    this.valueLabel,
-  }) : assert(icon != null || symbol != null);
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.panelBackgroundBattleOpaque,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: accent.withAlpha(158),
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null)
-              Icon(
-                icon,
-                size: 17,
-                color: accent,
-              ),
-            if (symbol != null)
-              EndpointText(
-                symbol!,
-                style: textSmallBold.copyWith(
-                  color: accent,
-                  fontSize: 15,
-                  height: 1,
-                ),
-              ),
-            if (valueLabel != null) ...[
-              const SizedBox(width: 4),
-              EndpointText(
-                valueLabel!,
-                style: textSmallNumericBold.copyWith(
-                  fontSize: 13,
-                  color: EndpointPalette.softForeground,
-                  letterSpacing: 0.9,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }

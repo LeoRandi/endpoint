@@ -138,6 +138,8 @@ class BattlePage extends StatefulWidget {
 class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   late final BattleSceneController _sceneController;
   late final AnimationController _attackFlightController;
+  late final ValueNotifier<Widget?> _patternCombatAnimationOverlay;
+  late final ValueNotifier<BattlePatternVisualBattlers> _patternVisualBattlers;
   final Random _statusEffectVisualRandom = Random();
   final GlobalKey _battleAnimationRootKey = GlobalKey();
   final GlobalKey _playerSideKey = GlobalKey();
@@ -149,8 +151,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   _BattleStatusEffectBurst? _activeStatusEffectBurst;
   _BattleFloatingNumberBurst? _activeFloatingNumberBurst;
   _BattleFragilidadBurst? _activeFragilidadBurst;
+  BattlePatternAnimationTargets? _patternAnimationTargets;
   Battler? _displayPlayerOverride;
   Battler? _displayEnemyOverride;
+  BattleFlowResult? _deferredPatternExitResult;
   int? _playerBarrierAnimationReference;
   int? _enemyBarrierAnimationReference;
   Set<BattleCombatantSide> _animatedHealthSides = const {};
@@ -170,6 +174,13 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     _attackFlightController = AnimationController(
       vsync: this,
       duration: _battleAttackFlightDuration,
+    );
+    _patternCombatAnimationOverlay = ValueNotifier<Widget?>(null);
+    _patternVisualBattlers = ValueNotifier<BattlePatternVisualBattlers>(
+      BattlePatternVisualBattlers(
+        player: widget.player.prepareForCombat(phase: widget.phase),
+        enemy: widget.enemy.prepareForCombat(phase: widget.phase),
+      ),
     );
     _sceneController = BattleSceneController(
       enemy: widget.enemy,
@@ -194,6 +205,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       ..removeListener(_handleSceneChanged)
       ..dispose();
     _attackFlightController.dispose();
+    _patternCombatAnimationOverlay.dispose();
+    _patternVisualBattlers.dispose();
     super.dispose();
   }
 
@@ -215,16 +228,22 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         _animatedBarrierSides = const {};
         _isPlayingBattleAnimation = false;
       });
+      _refreshPatternCombatAnimationOverlay();
     }
 
     final exitResult = _sceneController.consumeImmediateExitResult();
     if (exitResult != null) {
+      if (_isPresentingPatternMatch) {
+        _deferredPatternExitResult = exitResult;
+        return;
+      }
       _completeBattleExit(exitResult);
       return;
     }
 
     if (_sceneController.hasPendingVictoryRewards &&
-        !_sceneController.isPresentingRewards) {
+        !_sceneController.isPresentingRewards &&
+        !_isPresentingPatternMatch) {
       _handleOpenPendingRewards();
     }
   }
@@ -321,46 +340,156 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     });
 
     try {
-      final patternLayout = OperativePatternLayoutService.resolveForPlayer(
-        player: _sceneController.player,
-      );
-      if (!identical(patternLayout.player, _sceneController.player)) {
-        _sceneController.replacePlayer(patternLayout.player);
-      }
-      final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
-        context: context,
-        barrierDismissible: false,
-        barrierColor: EndpointPalette.overlayScrimStrong,
-        builder: (_) => BattlePatternMatchOverlay(
-          player: _sceneController.player,
-          enemy: _sceneController.enemy,
-          equippedItemsByPointKey: patternLayout.itemsByPointKey,
-          enemyTier: widget.enemyTier,
-          combatRound: _sceneController.currentRound,
-          actionEffects:
-              _sceneController.playerActionIntentPreview.attackEffects,
-          itemPointUseCounts: _patternItemPointUseCounts,
-          previousYellowBlockMode: _previousYellowPatternBlockMode,
-          randomNextInt: _sceneController.randomizer.nextInt,
-        ),
-      );
-      if (!mounted || matchResult == null) return;
+      while (mounted &&
+          _isPatternMode &&
+          _sceneController.canUseActions &&
+          !_sceneController.hasPendingVictoryRewards &&
+          !_sceneController.isCombatFinished) {
+        final didResolvePlayerTurn = await _presentPlayerPatternTurn();
+        if (!mounted || !didResolvePlayerTurn) return;
 
-      _recordPatternMatchResult(matchResult);
-      await _sceneController.handlePlayerPatternMatch(
-        actionBonus: BattleActionBonus(
-          attackBonus: matchResult.attackBonus,
-          immediateBarrierAmount: matchResult.barrierBonus,
-        ),
-        patternContext: matchResult.patternContext,
-      );
+        if (!_sceneController.canResolveEnemyPattern ||
+            _sceneController.hasPendingVictoryRewards ||
+            _sceneController.isCombatFinished) {
+          return;
+        }
+
+        final didResolveEnemyTurn = await _handleEnemyPatternMatchFlow();
+        if (!mounted || !didResolveEnemyTurn) return;
+      }
     } finally {
       if (mounted) {
         setState(() {
           _isPresentingPatternMatch = false;
         });
+        _refreshPatternCombatAnimationOverlay();
+        _completeDeferredPatternExitIfNeeded();
+        if (_sceneController.hasPendingVictoryRewards &&
+            !_sceneController.isPresentingRewards) {
+          unawaited(_handleOpenPendingRewards());
+        }
       }
     }
+  }
+
+  void _completeDeferredPatternExitIfNeeded() {
+    final exitResult = _deferredPatternExitResult;
+    if (exitResult == null) return;
+
+    _deferredPatternExitResult = null;
+    _completeBattleExit(exitResult);
+  }
+
+  void _refreshPatternCombatAnimationOverlay() {
+    _refreshPatternVisualBattlers();
+    if (!_isPresentingPatternMatch) {
+      _patternCombatAnimationOverlay.value = null;
+      return;
+    }
+
+    final layers = <Widget>[
+      if (_activeCombatIconMotion != null)
+        Positioned.fill(
+          child: _BattleCombatIconAnimationLayer(
+            animation: _attackFlightController,
+            motion: _activeCombatIconMotion!,
+          ),
+        ),
+      if (_activeStatusEffectBurst != null)
+        Positioned.fill(
+          child: _BattleStatusEffectAnimationLayer(
+            burst: _activeStatusEffectBurst!,
+          ),
+        ),
+      if (_activeFloatingNumberBurst != null)
+        Positioned.fill(
+          child: _BattleFloatingNumberAnimationLayer(
+            burst: _activeFloatingNumberBurst!,
+          ),
+        ),
+      if (_activeFragilidadBurst != null)
+        Positioned.fill(
+          child: _BattleFragilidadBurstAnimationLayer(
+            burst: _activeFragilidadBurst!,
+          ),
+        ),
+    ];
+
+    _patternCombatAnimationOverlay.value = layers.isEmpty
+        ? null
+        : IgnorePointer(
+            child: Stack(
+              fit: StackFit.expand,
+              clipBehavior: Clip.none,
+              children: layers,
+            ),
+          );
+  }
+
+  void _refreshPatternVisualBattlers() {
+    final next = BattlePatternVisualBattlers(
+      player: _displayPlayerOverride ?? _sceneController.player,
+      enemy: _displayEnemyOverride ?? _sceneController.enemy,
+    );
+    final current = _patternVisualBattlers.value;
+    if (identical(current.player, next.player) &&
+        identical(current.enemy, next.enemy)) {
+      return;
+    }
+
+    _patternVisualBattlers.value = next;
+  }
+
+  Future<bool> _presentPlayerPatternTurn() async {
+    final patternLayout = OperativePatternLayoutService.resolveForPlayer(
+      player: _sceneController.player,
+    );
+    if (!identical(patternLayout.player, _sceneController.player)) {
+      _sceneController.replacePlayer(patternLayout.player);
+    }
+    var didResolveTurn = false;
+    final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      transitionDuration: Duration.zero,
+      builder: (_) => BattlePatternMatchOverlay(
+        player: _sceneController.player,
+        enemy: _sceneController.enemy,
+        equippedItemsByPointKey: patternLayout.itemsByPointKey,
+        enemyTier: widget.enemyTier,
+        combatRound: _sceneController.currentRound,
+        actionEffects: _sceneController.playerActionIntentPreview.attackEffects,
+        itemPointUseCounts: _patternItemPointUseCounts,
+        previousYellowBlockMode: _previousYellowPatternBlockMode,
+        randomNextInt: _sceneController.randomizer.nextInt,
+        combatAnimationOverlay: _patternCombatAnimationOverlay,
+        visualBattlers: _patternVisualBattlers,
+        onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
+        onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
+          ability,
+          canControlOwner: true,
+        ),
+        onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
+          ability,
+          canControlOwner: false,
+        ),
+        onResolve: (matchResult) async {
+          if (didResolveTurn) return;
+          didResolveTurn = true;
+          _recordPatternMatchResult(matchResult);
+          await _sceneController.handlePlayerPatternMatch(
+            actionBonus: BattleActionBonus(
+              attackBonus: matchResult.attackBonus,
+              immediateBarrierAmount: matchResult.barrierBonus,
+            ),
+            patternContext: matchResult.patternContext,
+            scheduleEnemyTurn: false,
+          );
+        },
+      ),
+    );
+    return mounted && (didResolveTurn || matchResult != null);
   }
 
   void _recordPatternMatchResult(BattlePatternMatchResult result) {
@@ -374,6 +503,56 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     _patternItemPointUseCounts = Map<String, int>.unmodifiable(
       updatedUseCounts,
     );
+  }
+
+  Future<bool> _handleEnemyPatternMatchFlow() async {
+    final patternLayout = OperativePatternLayoutService.resolveForPlayer(
+      player: _sceneController.enemy,
+    );
+    var didResolveTurn = false;
+    final matchResult =
+        await showEndpointOverlay<EnemyBattlePatternMatchResult>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      transitionDuration: Duration.zero,
+      builder: (_) => EnemyBattlePatternMatchOverlay(
+        player: _sceneController.player,
+        enemy: _sceneController.enemy,
+        equippedItemsByPointKey: patternLayout.itemsByPointKey,
+        combatRound: _sceneController.currentRound,
+        randomNextInt: _sceneController.randomizer.nextInt,
+        combatAnimationOverlay: _patternCombatAnimationOverlay,
+        visualBattlers: _patternVisualBattlers,
+        onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
+        onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
+          ability,
+          canControlOwner: true,
+        ),
+        onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
+          ability,
+          canControlOwner: false,
+        ),
+        onResolve: (matchResult) async {
+          if (didResolveTurn) return;
+          didResolveTurn = true;
+          await _sceneController.handleEnemyPatternMatch(
+            actionBonus: BattleActionBonus(
+              attackBonus: matchResult.attackBonus,
+              immediateBarrierAmount: matchResult.barrierBonus,
+            ),
+            patternContext: matchResult.patternContext,
+          );
+        },
+      ),
+    );
+    return mounted && (didResolveTurn || matchResult != null);
+  }
+
+  void _handlePatternAnimationTargetsChanged(
+    BattlePatternAnimationTargets? targets,
+  ) {
+    _patternAnimationTargets = targets;
   }
 
   Future<void> _handlePlayerBlockFlow() async {
@@ -470,6 +649,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _isPlayingBattleAnimation = false;
     });
+    _refreshPatternCombatAnimationOverlay();
   }
 
   Future<void> _playCombatMotionCue(BattleCombatAnimationCue cue) async {
@@ -504,6 +684,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         totalDuration: totalDuration,
       );
     });
+    _refreshPatternCombatAnimationOverlay();
 
     try {
       await _attackFlightController.forward(from: 0).orCancel;
@@ -516,6 +697,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _activeCombatIconMotion = null;
       _isPlayingBattleAnimation = false;
     });
+    _refreshPatternCombatAnimationOverlay();
   }
 
   String _assetPathForMotionCue(BattleCombatAnimationCue cue) {
@@ -549,6 +731,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _activeFragilidadBurst = null;
       _activeStatusEffectBurst = burst;
     });
+    _refreshPatternCombatAnimationOverlay();
 
     await Future<void>.delayed(_battleStatusEffectBurstDuration);
     if (!mounted) return;
@@ -559,6 +742,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       }
       _isPlayingBattleAnimation = false;
     });
+    _refreshPatternCombatAnimationOverlay();
   }
 
   Future<void> _clearFloatingNumberBurstAfterDelay(
@@ -570,6 +754,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     setState(() {
       _activeFloatingNumberBurst = null;
     });
+    _refreshPatternCombatAnimationOverlay();
   }
 
   _BattleStatusEffectBurst _buildStatusEffectBurst(
@@ -655,6 +840,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _activeFragilidadBurst = null;
       _activeFloatingNumberBurst = floatingNumberBurst;
     });
+    _refreshPatternCombatAnimationOverlay();
     if (floatingNumberBurst != null) {
       unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
     }
@@ -672,10 +858,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           ? <BattleCombatantSide>{animatedSide}
           : const <BattleCombatantSide>{};
     });
+    _refreshPatternCombatAnimationOverlay();
 
     await Future<void>.delayed(_battleImpactBarDuration);
     if (!mounted) return;
     _releaseDisplayOverrideOnNextSceneChange = true;
+    _refreshPatternCombatAnimationOverlay();
   }
 
   Future<void> _playPurgeDamageCue(BattleCombatAnimationCue cue) async {
@@ -713,6 +901,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _activeFragilidadBurst = null;
       _activeFloatingNumberBurst = floatingNumberBurst;
     });
+    _refreshPatternCombatAnimationOverlay();
     if (floatingNumberBurst != null) {
       unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
     }
@@ -726,10 +915,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedHealthSides = healthSides;
       _animatedBarrierSides = barrierSides;
     });
+    _refreshPatternCombatAnimationOverlay();
 
     await Future<void>.delayed(_battleImpactBarDuration);
     if (!mounted) return;
     _releaseDisplayOverrideOnNextSceneChange = true;
+    _refreshPatternCombatAnimationOverlay();
   }
 
   Future<void> _playFragilidadBurstCue(BattleCombatAnimationCue cue) async {
@@ -759,6 +950,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _activeFloatingNumberBurst = floatingNumberBurst;
       _activeFragilidadBurst = fragilidadBurst;
     });
+    _refreshPatternCombatAnimationOverlay();
     if (floatingNumberBurst != null) {
       unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
     }
@@ -772,6 +964,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedHealthSides = <BattleCombatantSide>{cue.primarySide};
       _animatedBarrierSides = const <BattleCombatantSide>{};
     });
+    _refreshPatternCombatAnimationOverlay();
 
     await Future<void>.delayed(_battleFragilidadBurstDuration);
     if (!mounted) return;
@@ -781,6 +974,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       }
     });
     _releaseDisplayOverrideOnNextSceneChange = true;
+    _refreshPatternCombatAnimationOverlay();
   }
 
   _BattleFloatingNumberBurst? _buildFloatingNumberBurst(
@@ -937,12 +1131,28 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   Offset _centerForSide(BattleCombatantSide side) {
+    final patternTargets = _patternAnimationTargets;
+    if (_isPresentingPatternMatch && patternTargets != null) {
+      return switch (side) {
+        BattleCombatantSide.player => patternTargets.playerSpriteRect.center,
+        BattleCombatantSide.enemy => patternTargets.enemySpriteRect.center,
+      };
+    }
+
     final key =
         side == BattleCombatantSide.player ? _playerSideKey : _enemySideKey;
     return _centerOfKey(key) ?? _fallbackCenterForSide(side);
   }
 
   Offset _centerForStatusBar(BattleCombatantSide side) {
+    final patternTargets = _patternAnimationTargets;
+    if (_isPresentingPatternMatch && patternTargets != null) {
+      return switch (side) {
+        BattleCombatantSide.player => patternTargets.playerStatusRect.center,
+        BattleCombatantSide.enemy => patternTargets.enemyStatusRect.center,
+      };
+    }
+
     final key = side == BattleCombatantSide.player
         ? _playerStatusBarKey
         : _enemyStatusBarKey;
@@ -950,6 +1160,14 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   Rect _rectForStatusBar(BattleCombatantSide side) {
+    final patternTargets = _patternAnimationTargets;
+    if (_isPresentingPatternMatch && patternTargets != null) {
+      return switch (side) {
+        BattleCombatantSide.player => patternTargets.playerStatusRect,
+        BattleCombatantSide.enemy => patternTargets.enemyStatusRect,
+      };
+    }
+
     final key = side == BattleCombatantSide.player
         ? _playerStatusBarKey
         : _enemyStatusBarKey;
@@ -962,6 +1180,15 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   Rect _rectForSide(BattleCombatantSide side) {
+    final patternTargets = _patternAnimationTargets;
+    if (_isPresentingPatternMatch && patternTargets != null) {
+      final spriteRect = switch (side) {
+        BattleCombatantSide.player => patternTargets.playerSpriteRect,
+        BattleCombatantSide.enemy => patternTargets.enemySpriteRect,
+      };
+      return spriteRect.inflate(14);
+    }
+
     final key =
         side == BattleCombatantSide.player ? _playerSideKey : _enemySideKey;
     return _rectOfKey(key) ?? _fallbackRectForSide(side);

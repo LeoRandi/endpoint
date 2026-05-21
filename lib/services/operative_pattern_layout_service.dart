@@ -20,7 +20,10 @@ abstract final class OperativePatternLayoutService {
     final equippedItems = player.equippedItems;
     final validPointKeys =
         operativePatternPoints.map((point) => point.key).toSet();
-    final equippedItemKeys = equippedItems.map(itemKey).toSet();
+    final equippedItemKeys = <String>{
+      for (final item in equippedItems) itemKey(item),
+      for (final item in equippedItems) item.id.name,
+    };
     final existingAssignments = Map<String, String>.from(
       player.patternItemPointKeys,
     )..removeWhere(
@@ -33,7 +36,10 @@ abstract final class OperativePatternLayoutService {
     final resolvedAssignments = <String, String>{};
     for (final item in equippedItems) {
       final key = itemKey(item);
-      final assignedPointKey = existingAssignments[key];
+      final assignedPointKey = _assignedPointKeyFor(
+        item: item,
+        assignments: existingAssignments,
+      );
       if (assignedPointKey == null ||
           usedPointKeys.contains(assignedPointKey)) {
         continue;
@@ -66,8 +72,9 @@ abstract final class OperativePatternLayoutService {
       itemsByPointKey[pointKey] = item;
     }
 
-    final resolvedPatternItemPointKeys = Map<String, String>.unmodifiable(
-      resolvedAssignments,
+    final resolvedPatternItemPointKeys = _resolvedPatternItemPointKeysFor(
+      player: player,
+      resolvedAssignments: resolvedAssignments,
     );
     return OperativePatternLayoutResult(
       player: _sameStringMap(
@@ -123,6 +130,40 @@ abstract final class OperativePatternLayoutService {
 
   static String itemKey(Item item) {
     return item.instanceId ?? '${item.id.name}:${identityHashCode(item)}';
+  }
+
+  static String? _assignedPointKeyFor({
+    required Item item,
+    required Map<String, String> assignments,
+  }) {
+    return assignments[itemKey(item)] ?? assignments[item.id.name];
+  }
+
+  static Map<String, String> _resolvedPatternItemPointKeysFor({
+    required Battler player,
+    required Map<String, String> resolvedAssignments,
+  }) {
+    final presetAssignments = player.patternItemPointKeys;
+    final validPointKeys =
+        operativePatternPoints.map((point) => point.key).toSet();
+    final presetItemIds = player.equippedItems.map((item) => item.id.name);
+    final usesPresetItemKeys = presetItemIds.any(presetAssignments.containsKey);
+    if (!usesPresetItemKeys) {
+      return Map<String, String>.unmodifiable(resolvedAssignments);
+    }
+
+    final normalizedAssignments = <String, String>{};
+    for (final item in player.equippedItems) {
+      final assignedPointKey =
+          presetAssignments[item.id.name] ?? resolvedAssignments[itemKey(item)];
+      if (assignedPointKey == null ||
+          !validPointKeys.contains(assignedPointKey)) {
+        continue;
+      }
+      normalizedAssignments[item.id.name] = assignedPointKey;
+    }
+
+    return Map<String, String>.unmodifiable(normalizedAssignments);
   }
 
   static bool _sameStringMap(
