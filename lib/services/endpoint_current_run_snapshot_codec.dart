@@ -24,7 +24,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
     PathNode? activeNode,
   }) {
     final payload = <String, Object?>{
-      'schemaVersion': 4,
+      'schemaVersion': 5,
       'savedAt': DateTime.now().toUtc().toIso8601String(),
       'trigger': trigger,
       'run': <String, Object?>{
@@ -41,6 +41,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
         'runSummary': state.runSummary.toJson(),
         'currentDaySummary': state.currentDaySummary.toJson(),
         'pendingDaySummary': state.pendingDaySummary?.toJson(),
+        'shownShopNodeIds': state.shownShopNodeIds,
         'currentHour': <String, Object?>{
           'stageIndex': state.currentHour.stageIndex,
           'phase': state.currentHour.phase.name,
@@ -182,9 +183,18 @@ abstract final class EndpointCurrentRunSnapshotCodec {
             dayNumber: PathNodeService.dayNumberForStageIndex(stageIndex),
           ),
       pendingDaySummary: pendingDaySummary,
+      shownShopNodeIds: _readStringList(runJson['shownShopNodeIds']),
       activeNode: activeNode,
     );
   }
+}
+
+List<String> _readStringList(Object? rawValue) {
+  if (rawValue is! List) return const <String>[];
+
+  return List<String>.unmodifiable(
+    rawValue.whereType<String>(),
+  );
 }
 
 RunHourPhase _parseRunHourPhase(

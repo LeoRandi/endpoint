@@ -25,6 +25,7 @@ class PathNodeService {
 
   final RunRandomizer _randomizer;
   final PathEventService _pathEventService;
+  final WeaponShopStockService _shopStockService;
   late final List<ShopPathNode> _allShopNodes = _deduplicateShopNodes([
     ...dayShopNodes,
     ...nightShopNodes,
@@ -45,8 +46,10 @@ class PathNodeService {
   PathNodeService({
     required RunRandomizer randomizer,
     PathEventService pathEventService = const PathEventService(),
+    WeaponShopStockService shopStockService = const WeaponShopStockService(),
   })  : _randomizer = randomizer,
-        _pathEventService = pathEventService;
+        _pathEventService = pathEventService,
+        _shopStockService = shopStockService;
 
   RunRandomizer get randomizer => _randomizer;
 
@@ -101,6 +104,7 @@ class PathNodeService {
     required int stageIndex,
     Battler? player,
     List<PathNode>? availableNodes,
+    Iterable<String> shownShopNodeIds = const <String>[],
     int nodeCount = 3,
   }) {
     final clampedStageIndex = stageIndex
@@ -110,13 +114,19 @@ class PathNodeService {
         )
         .toInt();
     final resolvedNodeCount = max(1, nodeCount);
-    final definition = _definitionFor(clampedStageIndex, player);
+    final definition = _definitionFor(
+      clampedStageIndex,
+      player,
+      shownShopNodeIds: shownShopNodeIds,
+    );
 
     final resolvedNodes = _resolveNodes(
       fallbackNodes: definition.nodes,
       availableNodes: availableNodes,
       nodeCount: resolvedNodeCount,
       player: player,
+      phase: definition.phase,
+      dayNumber: dayNumberForStageIndex(clampedStageIndex),
     );
 
     return RunHourSnapshot(
@@ -144,9 +154,11 @@ class PathNodeService {
         )
         .toInt();
     final definition = _definitionFor(clampedStageIndex, player);
-    final nodes = _buildSuddenConventionShopNodes(player)
-        .take(max(1, nodeCount))
-        .toList(growable: false);
+    final nodes = _buildSuddenConventionShopNodes(
+      player,
+      phase: definition.phase,
+      dayNumber: dayNumberForStageIndex(clampedStageIndex),
+    ).take(max(1, nodeCount)).toList(growable: false);
 
     return RunHourSnapshot(
       stageIndex: clampedStageIndex,
@@ -157,7 +169,11 @@ class PathNodeService {
     );
   }
 
-  _RunStageDefinition _definitionFor(int stageIndex, Battler? player) {
+  _RunStageDefinition _definitionFor(
+    int stageIndex,
+    Battler? player, {
+    Iterable<String> shownShopNodeIds = const <String>[],
+  }) {
     if (stageIndex == startStageIndex) {
       return _RunStageDefinition(
         phase: RunHourPhase.day,
@@ -174,7 +190,11 @@ class PathNodeService {
         phase: RunHourPhase.day,
         title: 'DIA $dayNumber - HORA ${stageOffset + 1}',
         subtitle: 'Mercados, eventos y amenazas antes del anochecer.',
-        nodes: _buildDayNodes(dayNumber, player),
+        nodes: _buildDayNodes(
+          dayNumber,
+          player,
+          shownShopNodeIds: shownShopNodeIds,
+        ),
       );
     }
 
@@ -193,7 +213,11 @@ class PathNodeService {
         phase: RunHourPhase.night,
         title: 'DIA $dayNumber - NOCHE ${stageOffset - duskStageOffset}',
         subtitle: 'Mas violencia, peores tratos y menos margen de error.',
-        nodes: _buildNightNodes(dayNumber, player),
+        nodes: _buildNightNodes(
+          dayNumber,
+          player,
+          shownShopNodeIds: shownShopNodeIds,
+        ),
       );
     }
 
@@ -226,11 +250,16 @@ class PathNodeService {
         .toList(growable: false);
   }
 
-  List<PathNode> _buildDayNodes(int dayNumber, Battler? player) {
+  List<PathNode> _buildDayNodes(
+    int dayNumber,
+    Battler? player, {
+    Iterable<String> shownShopNodeIds = const <String>[],
+  }) {
     final shopCandidates = _weightedShopCandidatesFor(
       dayNumber: dayNumber,
       phase: RunHourPhase.day,
       player: player,
+      shownShopNodeIds: shownShopNodeIds,
     );
 
     return _buildUniqueHourNodes(
@@ -244,11 +273,16 @@ class PathNodeService {
     );
   }
 
-  List<PathNode> _buildNightNodes(int dayNumber, Battler? player) {
+  List<PathNode> _buildNightNodes(
+    int dayNumber,
+    Battler? player, {
+    Iterable<String> shownShopNodeIds = const <String>[],
+  }) {
     final shopCandidates = _weightedShopCandidatesFor(
       dayNumber: dayNumber,
       phase: RunHourPhase.night,
       player: player,
+      shownShopNodeIds: shownShopNodeIds,
     );
 
     return _buildUniqueHourNodes(
@@ -309,6 +343,8 @@ class PathNodeService {
   List<PathNode> _resolveNodes({
     required List<PathNode> fallbackNodes,
     required int nodeCount,
+    required RunHourPhase phase,
+    required int dayNumber,
     Battler? player,
     List<PathNode>? availableNodes,
   }) {
@@ -316,12 +352,44 @@ class PathNodeService {
         ? fallbackNodes
         : availableNodes;
     final resolvedNodes = sourceNodes
-        .where((node) => _canAppearForPlayer(node, player))
+        .where(
+          (node) => _canAppearForPlayer(
+            node,
+            player,
+            phase: phase,
+            dayNumber: dayNumber,
+          ),
+        )
         .toList(growable: false);
 
-    return resolvedNodes.take(min(nodeCount, resolvedNodes.length)).toList(
-          growable: false,
-        );
+    return _limitShopNodes(
+      resolvedNodes,
+      nodeCount: min(nodeCount, resolvedNodes.length),
+    );
+  }
+
+  Set<String> eligibleShopNodeIdsFor({
+    required int stageIndex,
+    required Battler? player,
+  }) {
+    final dayNumber = dayNumberForStageIndex(stageIndex);
+    final stageOffset = stageOffsetInDayForStageIndex(stageIndex);
+    final phase = stageOffset < duskStageOffset
+        ? RunHourPhase.day
+        : stageOffset == duskStageOffset
+            ? RunHourPhase.dusk
+            : stageOffset < dailyBossStageOffset
+                ? RunHourPhase.night
+                : RunHourPhase.sunrise;
+    if (phase == RunHourPhase.sunrise || phase == RunHourPhase.dusk) {
+      return const <String>{};
+    }
+
+    return _baseWeightedShopCandidatesFor(
+      dayNumber: dayNumber,
+      phase: phase,
+      player: player,
+    ).map((candidate) => candidate.node.nodeId).toSet();
   }
 
   List<_WeightedPathNode> _buildSideCandidates({
@@ -375,9 +443,19 @@ class PathNodeService {
     );
   }
 
-  bool _canAppearForPlayer(PathNode node, Battler? player) {
+  bool _canAppearForPlayer(
+    PathNode node,
+    Battler? player, {
+    required RunHourPhase phase,
+    required int dayNumber,
+  }) {
     if (node is ShopPathNode) {
-      return node.canAppearForArchetype(player?.archetypeId);
+      return _canShopAppearForPlayer(
+        node,
+        player,
+        phase: phase,
+        dayNumber: dayNumber,
+      );
     }
     if (node is! EventPathNode) return true;
 
@@ -387,7 +465,11 @@ class PathNodeService {
     );
   }
 
-  List<ShopPathNode> _buildSuddenConventionShopNodes(Battler? player) {
+  List<ShopPathNode> _buildSuddenConventionShopNodes(
+    Battler? player, {
+    required RunHourPhase phase,
+    required int dayNumber,
+  }) {
     const tiers = [
       RarityTier.blue,
       RarityTier.purple,
@@ -400,12 +482,16 @@ class PathNodeService {
       var candidates = _shopCandidatesForTier(
         tier,
         player: player,
+        phase: phase,
+        dayNumber: dayNumber,
         excludedNodeIds: selectedNodeIds,
       );
       if (candidates.isEmpty) {
         candidates = _shopCandidatesForTier(
           tier,
           player: null,
+          phase: phase,
+          dayNumber: dayNumber,
           excludedNodeIds: selectedNodeIds,
         );
       }
@@ -422,6 +508,8 @@ class PathNodeService {
   List<ShopPathNode> _shopCandidatesForTier(
     RarityTier tier, {
     required Battler? player,
+    required RunHourPhase phase,
+    required int dayNumber,
     required Set<String> excludedNodeIds,
   }) {
     return _allShopNodes
@@ -429,7 +517,12 @@ class PathNodeService {
           (node) =>
               node.rarity == tier &&
               !excludedNodeIds.contains(node.nodeId) &&
-              node.canAppearForArchetype(player?.archetypeId),
+              _canShopAppearForPlayer(
+                node,
+                player,
+                phase: phase,
+                dayNumber: dayNumber,
+              ),
         )
         .toList(growable: false);
   }
@@ -438,16 +531,19 @@ class PathNodeService {
     required List<_WeightedPathNode> sideCandidates,
     required List<_WeightedPathNode> shopCandidates,
   }) {
+    final nonShopSideCandidates = sideCandidates
+        .where((candidate) => candidate.node is! ShopPathNode)
+        .toList(growable: false);
     if (shopCandidates.isEmpty) {
       return _pickDistinctWeightedNodes(
-        sideCandidates,
+        nonShopSideCandidates,
         count: 3,
       );
     }
 
     final centerNode = _buildCenterShopNode(shopCandidates);
     final sideNodes = _pickDistinctWeightedNodes(
-      sideCandidates,
+      nonShopSideCandidates,
       count: 2,
       excludedKeys: {_nodeKey(centerNode)},
     );
@@ -481,9 +577,36 @@ class PathNodeService {
     required int dayNumber,
     required RunHourPhase phase,
     Battler? player,
+    Iterable<String> shownShopNodeIds = const <String>[],
+  }) {
+    final candidates = _baseWeightedShopCandidatesFor(
+      dayNumber: dayNumber,
+      phase: phase,
+      player: player,
+    );
+    final shownIds = shownShopNodeIds.toSet();
+    if (shownIds.isEmpty) return candidates;
+
+    final unshownCandidates = candidates
+        .where((candidate) => !shownIds.contains(candidate.node.nodeId))
+        .toList(growable: false);
+    return unshownCandidates.isEmpty ? candidates : unshownCandidates;
+  }
+
+  List<_WeightedPathNode> _baseWeightedShopCandidatesFor({
+    required int dayNumber,
+    required RunHourPhase phase,
+    Battler? player,
   }) {
     return _allShopNodes
-        .where((node) => node.canAppearForArchetype(player?.archetypeId))
+        .where(
+          (node) => _canShopAppearForPlayer(
+            node,
+            player,
+            phase: phase,
+            dayNumber: dayNumber,
+          ),
+        )
         .map(
           (node) => _WeightedPathNode(
             node: node,
@@ -493,6 +616,21 @@ class PathNodeService {
           ),
         )
         .toList(growable: false);
+  }
+
+  bool _canShopAppearForPlayer(
+    ShopPathNode node,
+    Battler? player, {
+    required RunHourPhase phase,
+    required int dayNumber,
+  }) {
+    return node.canAppearForArchetype(player?.archetypeId) &&
+        _shopStockService.hasAvailableStock(
+          criterion: node.stockCriterion,
+          phase: phase,
+          player: player,
+          dayNumber: dayNumber,
+        );
   }
 
   double _shopPhaseAffinity(ShopPathNode node, RunHourPhase phase) {
@@ -753,6 +891,25 @@ class PathNodeService {
       remainingCandidates.removeWhere(
         (candidate) => _nodeKey(candidate.node) == pickedKey,
       );
+    }
+
+    return selectedNodes;
+  }
+
+  List<PathNode> _limitShopNodes(
+    List<PathNode> nodes, {
+    required int nodeCount,
+  }) {
+    final selectedNodes = <PathNode>[];
+    var hasSelectedShop = false;
+
+    for (final node in nodes) {
+      if (selectedNodes.length >= nodeCount) break;
+      if (node is ShopPathNode) {
+        if (hasSelectedShop) continue;
+        hasSelectedShop = true;
+      }
+      selectedNodes.add(node);
     }
 
     return selectedNodes;

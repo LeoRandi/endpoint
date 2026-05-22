@@ -1,20 +1,39 @@
 import '_imports.dart';
 
 class WeaponShopController extends ChangeNotifier {
+  static const defaultMaxRerolls = 1;
+
   final double priceMultiplier;
+  final ShopInventoryCriterion _stockCriterion;
+  final RunHourPhase _phase;
+  final RunRandomizer _randomizer;
+  final int _dayNumber;
+  final List<Item> _stockPool;
+  final WeaponShopStockService _stockService;
+  final int maxRerolls;
+  final RarityTier shopRarity;
   final List<Item> _stock;
   Battler _player;
+  int _usedRerolls = 0;
 
   WeaponShopController({
     required Battler player,
     required ShopInventoryCriterion stockCriterion,
     required RunHourPhase phase,
     required RunRandomizer randomizer,
+    required this.shopRarity,
     int dayNumber = 1,
     List<Item> stockPool = itemPresets,
     this.priceMultiplier = 1,
+    this.maxRerolls = defaultMaxRerolls,
     WeaponShopStockService stockService = const WeaponShopStockService(),
-  })  : _player = player.materializeOwnedItems(),
+  })  : _stockCriterion = stockCriterion,
+        _phase = phase,
+        _randomizer = randomizer,
+        _dayNumber = dayNumber,
+        _stockPool = stockPool,
+        _stockService = stockService,
+        _player = player.materializeOwnedItems(),
         _stock = List<Item>.from(
           stockService.buildInitialStock(
             criterion: stockCriterion,
@@ -28,9 +47,28 @@ class WeaponShopController extends ChangeNotifier {
 
   Battler get player => _player;
   List<Item> get stock => List<Item>.unmodifiable(_stock);
+  int get usedRerolls => _usedRerolls;
+  int get rerollsRemaining => max(0, maxRerolls - _usedRerolls);
+  int get rerollCost => 1 + shopRarity.factor;
 
   bool canBuy(Item item) =>
       _stock.contains(item) && _player.canAfford(purchasePriceFor(item));
+
+  bool get canRerollStock {
+    if (rerollsRemaining <= 0 || !_player.canAfford(rerollCost)) {
+      return false;
+    }
+
+    return _stockService.availableStockCount(
+          criterion: _stockCriterion,
+          phase: _phase,
+          player: _player,
+          dayNumber: _dayNumber,
+          pool: _stockPool,
+          excludedItemIds: _stock.map((item) => item.id).toSet(),
+        ) >=
+        WeaponShopStockService.defaultStockSize;
+  }
 
   int purchasePriceFor(Item item) =>
       max(1, (item.cost * priceMultiplier).ceil());
@@ -76,13 +114,10 @@ class WeaponShopController extends ChangeNotifier {
     return 'Vender: ${sellPriceFor(item)}C';
   }
 
-  bool canSell(Item item) => _player.inventoryItems.contains(item);
+  bool canSell(Item item) => _player.ownsItem(item);
 
   String inventorySellTooltipFor(Item item) {
-    if (_player.equippedItems.contains(item)) {
-      return 'Desequipalo antes de venderlo';
-    }
-    if (!_player.inventoryItems.contains(item)) {
+    if (!_player.ownsItem(item)) {
       return 'El objeto ya no esta disponible';
     }
 
@@ -165,6 +200,35 @@ class WeaponShopController extends ChangeNotifier {
     _player = _player.earnMoney(sellPriceFor(item)).removeItem(item);
     _stock.add(item);
     notifyListeners();
+  }
+
+  bool rerollStock() {
+    if (!canRerollStock) return false;
+
+    final replacementStock = _buildRerollStock();
+    if (replacementStock.length != WeaponShopStockService.defaultStockSize) {
+      return false;
+    }
+
+    _player = _player.spendMoney(rerollCost);
+    _stock
+      ..clear()
+      ..addAll(replacementStock);
+    _usedRerolls++;
+    notifyListeners();
+    return true;
+  }
+
+  List<Item> _buildRerollStock() {
+    return _stockService.buildInitialStock(
+      criterion: _stockCriterion,
+      phase: _phase,
+      randomizer: _randomizer,
+      player: _player,
+      dayNumber: _dayNumber,
+      pool: _stockPool,
+      excludedItemIds: _stock.map((item) => item.id).toSet(),
+    );
   }
 
   WeaponShopVisitResult buildResult() {

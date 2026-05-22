@@ -227,28 +227,6 @@ const _imparableAffinities = <ItemArchetypeAffinity>[
 const _mercanteAffinities = <ItemArchetypeAffinity>[
   ItemArchetypeAffinity.mercante,
 ];
-const _velozImparableAffinities = <ItemArchetypeAffinity>[
-  ItemArchetypeAffinity.veloz,
-  ItemArchetypeAffinity.imparable,
-];
-const _velozInamovibleAffinities = <ItemArchetypeAffinity>[
-  ItemArchetypeAffinity.veloz,
-  ItemArchetypeAffinity.inamovible,
-];
-const _inamovibleImparableAffinities = <ItemArchetypeAffinity>[
-  ItemArchetypeAffinity.inamovible,
-  ItemArchetypeAffinity.imparable,
-];
-const _inamovibleMercanteAffinities = <ItemArchetypeAffinity>[
-  ItemArchetypeAffinity.inamovible,
-  ItemArchetypeAffinity.mercante,
-];
-const _velozInamovibleMercanteAffinities = <ItemArchetypeAffinity>[
-  ItemArchetypeAffinity.veloz,
-  ItemArchetypeAffinity.inamovible,
-  ItemArchetypeAffinity.mercante,
-];
-
 // Item presets ordered by tier: gray -> green -> blue -> purple -> yellow
 
 /// Arma gris sencilla para encuentros y tiendas de bajo nivel.
@@ -748,7 +726,7 @@ const rescueBladeItem = Item(
 /// Armadura gris que devuelve una pequena penalizacion ofensiva si resiste el golpe.
 const shockMeshItem = Item(
   id: ItemId.shockMesh,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraDebuffTags,
   name: 'Malla de Choque',
   description:
@@ -765,7 +743,7 @@ const shockMeshItem = Item(
 /// Accesorio gris de seguridad que redirige los primeros debuffs recibidos.
 const deflectiveCapacitorItem = Item(
   id: ItemId.deflectiveCapacitor,
-  archetypeAffinities: _velozInamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Condensador Deflectivo',
   description:
@@ -875,7 +853,7 @@ const ampollaInestableItem = Item(
 /// Soporte defensivo verde para builds de aguante.
 const shieldItem = Item(
   id: ItemId.shield,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _vidaBarreraTags,
   name: 'Escudo',
   description: '+2 Barrera. Al usarse, recuperas 1 HP.',
@@ -899,7 +877,7 @@ const shieldItem = Item(
 /// Accesorio verde que sube vida maxima y barrera a la vez.
 const bulwarkAmuletItem = Item(
   id: ItemId.bulwarkAmulet,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _vidaBarreraTags,
   name: 'Amuleto de Bastion',
   description: '+6 HP y +1 Barrera mientras este equipado.',
@@ -1000,7 +978,7 @@ const emberCharmItem = Item(
 /// Accesorio verde defensivo contra Quemadura e Intoxicacion.
 const chemicalFilterItem = Item(
   id: ItemId.chemicalFilter,
-  archetypeAffinities: _velozInamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _debuffQuemaduraIntoxicacionTags,
   name: 'Filtro Quimico',
   description: '+1 Barrera. Reduce la Quemadura y la Intoxicacion que recibes.',
@@ -1143,7 +1121,7 @@ const guardShieldItem = Item(
 /// Arma verde orientada a abrir ventanas de daño de forma estable.
 const serratedEdgeItem = Item(
   id: ItemId.serratedEdge,
-  archetypeAffinities: _velozImparableAffinities,
+  archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Sierra Dentada',
   description: '+1 ATK. Al usarse: acumula Fragilidad en el enemigo.',
@@ -1166,7 +1144,7 @@ const serratedEdgeItem = Item(
 /// Armadura verde que recompone una pequena porcion de barrera al defender.
 const containmentCoilItem = Item(
   id: ItemId.containmentCoil,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Bobina de Contencion',
   description: '+1 Barrera. Al usarse, recuperas 1 de Barrera.',
@@ -1226,7 +1204,7 @@ const nucleoPiezoelectricoItem = Item(
 /// Arma verde que descarga toda la Resonancia acumulada en un golpe.
 const descargaResonanteItem = Item(
   id: ItemId.descargaResonante,
-  archetypeAffinities: _inamovibleImparableAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Descarga Resonante',
   description:
@@ -1574,7 +1552,7 @@ const kunaiAnchoItem = Item(
 /// Arma azul que castiga el siguiente ataque del rival.
 const pulseCarbineItem = Item(
   id: ItemId.pulseCarbine,
-  archetypeAffinities: _velozImparableAffinities,
+  archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Carabina de Pulsos',
   description: 'Al usarse: aplica Conmocion al enemigo.',
@@ -1615,7 +1593,7 @@ const pulseCarbineItem = Item(
 /// Armadura azul que recompone una buena porcion de barrera cada turno.
 const phaseVeilItem = Item(
   id: ItemId.phaseVeil,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Velo de Fase',
   description: 'Al inicio de tu turno, recuperas 2 de Barrera.',
@@ -1672,7 +1650,7 @@ const platedJacketItem = Item(
 /// Accesorio azul que descarga la barrera ganada cuando se rompe.
 const contingencySealItem = Item(
   id: ItemId.contingencySeal,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Sello de Contingencia',
   description:
@@ -1769,7 +1747,7 @@ const interferenceCannonItem = Item(
 /// Armadura azul de respuesta que recompone barrera solo si no la castigan.
 const responseFrameItem = Item(
   id: ItemId.responseFrame,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Bastidor de Respuesta',
   description:
@@ -1957,7 +1935,7 @@ const ultimaMarchaItem = Item(
 /// Armadura morada que bloquea automaticamente cuando la vida cae demasiado.
 const emergencyPlatingItem = Item(
   id: ItemId.emergencyPlating,
-  archetypeAffinities: _inamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Placa de Emergencia',
   description:
@@ -1984,7 +1962,7 @@ const emergencyPlatingItem = Item(
 /// Accesorio morado que devuelve una conmocion potente al agresor.
 const concussionPrismItem = Item(
   id: ItemId.concussionPrism,
-  archetypeAffinities: _velozInamovibleAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraDebuffTags,
   name: 'Prisma Concusivo',
   description: 'Al recibir daño: aplica Conmocion al agresor.',
@@ -2213,7 +2191,7 @@ const overloadAnchorItem = Item(
 /// Accesorio morado reactivo que solo devuelve una penalizacion por turno.
 const reboundLensItem = Item(
   id: ItemId.reboundLens,
-  archetypeAffinities: _velozInamovibleMercanteAffinities,
+  archetypeAffinities: _inamovibleAffinities,
   tags: _barreraDebuffTags,
   name: 'Lente de Rebote',
   description:

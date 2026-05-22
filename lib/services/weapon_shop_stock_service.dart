@@ -5,6 +5,54 @@ class WeaponShopStockService {
 
   const WeaponShopStockService();
 
+  bool hasAvailableStock({
+    required ShopInventoryCriterion criterion,
+    required RunHourPhase phase,
+    Battler? player,
+    int dayNumber = 1,
+    List<Item> pool = itemPresets,
+  }) {
+    return availableStockCount(
+          criterion: criterion,
+          phase: phase,
+          player: player,
+          dayNumber: dayNumber,
+          pool: pool,
+        ) >
+        0;
+  }
+
+  int availableStockCount({
+    required ShopInventoryCriterion criterion,
+    required RunHourPhase phase,
+    Battler? player,
+    int dayNumber = 1,
+    List<Item> pool = itemPresets,
+    Set<ItemId> excludedItemIds = const <ItemId>{},
+  }) {
+    final itemPool = _deduplicateByItemType(pool);
+    final maximumRarity = _maximumItemRarityFor(
+      phase: phase,
+      dayNumber: dayNumber,
+    );
+    final availableItemIds = <ItemId>{};
+
+    for (final rarity in RarityTier.values) {
+      if (rarity.index > maximumRarity.index) continue;
+
+      final candidates = _stockCandidatesForExactRarity(
+        items: itemPool,
+        criterion: criterion,
+        player: player,
+        targetRarity: rarity,
+        excludedItemIds: excludedItemIds,
+      );
+      availableItemIds.addAll(candidates.map((item) => item.id));
+    }
+
+    return availableItemIds.length;
+  }
+
   List<Item> buildInitialStock({
     required ShopInventoryCriterion criterion,
     required RunHourPhase phase,
@@ -12,6 +60,7 @@ class WeaponShopStockService {
     Battler? player,
     int dayNumber = 1,
     List<Item> pool = itemPresets,
+    Set<ItemId> excludedItemIds = const <ItemId>{},
     int stockSize = defaultStockSize,
   }) {
     if (stockSize <= 0) return const <Item>[];
@@ -22,7 +71,7 @@ class WeaponShopStockService {
       dayNumber: dayNumber,
     );
     final pickedItems = <Item>[];
-    final pickedItemIds = <ItemId>{};
+    final pickedItemIds = <ItemId>{...excludedItemIds};
 
     while (pickedItems.length < stockSize) {
       final availableRarities = _availableStockRarities(

@@ -15,6 +15,7 @@ class RunState {
   final RunDaySummary runSummary;
   final RunDaySummary currentDaySummary;
   final RunDaySummary? pendingDaySummary;
+  final List<String> shownShopNodeIds;
   final bool isRunComplete;
   final RunCompletionType? completionType;
 
@@ -28,6 +29,7 @@ class RunState {
     this.runSummary = const RunDaySummary.empty(),
     this.currentDaySummary = const RunDaySummary.empty(),
     this.pendingDaySummary,
+    this.shownShopNodeIds = const <String>[],
     this.isRunComplete = false,
     this.completionType,
   });
@@ -42,6 +44,7 @@ class RunState {
     RunDaySummary? runSummary,
     RunDaySummary? currentDaySummary,
     Object? pendingDaySummary = _copySentinel,
+    List<String>? shownShopNodeIds,
     bool? isRunComplete,
     RunCompletionType? completionType,
     bool clearCompletionType = false,
@@ -58,6 +61,7 @@ class RunState {
       pendingDaySummary: identical(pendingDaySummary, _copySentinel)
           ? this.pendingDaySummary
           : pendingDaySummary as RunDaySummary?,
+      shownShopNodeIds: shownShopNodeIds ?? this.shownShopNodeIds,
       isRunComplete: isRunComplete ?? this.isRunComplete,
       completionType:
           clearCompletionType ? null : completionType ?? this.completionType,

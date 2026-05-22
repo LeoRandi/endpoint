@@ -26,6 +26,7 @@ void main() {
         ),
         phase: RunHourPhase.day,
         randomizer: RunRandomizer(seed: 7),
+        shopRarity: RarityTier.purple,
         priceMultiplier: 1.5,
       );
 
@@ -33,6 +34,59 @@ void main() {
         controller.sellPriceFor(item),
         (controller.purchasePriceFor(item) / 2).ceil(),
       );
+    });
+
+    test('shop reroll replaces stock once with different items for rarity cost',
+        () {
+      final controller = WeaponShopController(
+        player: defaultPlayerBattler.copyWith(money: 20),
+        stockCriterion: grayShopCriterion,
+        phase: RunHourPhase.day,
+        randomizer: RunRandomizer(seed: 4),
+        shopRarity: RarityTier.gray,
+      );
+      final initialStock = controller.stock;
+
+      expect(initialStock, hasLength(WeaponShopStockService.defaultStockSize));
+      expect(controller.rerollCost, 2);
+      expect(controller.rerollsRemaining, 1);
+      expect(controller.canRerollStock, isTrue);
+      expect(controller.rerollStock(), isTrue);
+
+      final rerolledStock = controller.stock;
+      expect(rerolledStock, hasLength(WeaponShopStockService.defaultStockSize));
+      expect(
+        rerolledStock.map((item) => item.id).toSet().intersection(
+              initialStock.map((item) => item.id).toSet(),
+            ),
+        isEmpty,
+      );
+      expect(controller.player.money, 18);
+      expect(controller.rerollsRemaining, 0);
+      expect(controller.canRerollStock, isFalse);
+      expect(controller.rerollStock(), isFalse);
+    });
+
+    test('shop reroll is unavailable when replacement stock is incomplete', () {
+      final stockPool = itemPresets
+          .where(grayShopCriterion.matches)
+          .take(WeaponShopStockService.defaultStockSize)
+          .toList(growable: false);
+      final controller = WeaponShopController(
+        player: defaultPlayerBattler.copyWith(money: 20),
+        stockCriterion: grayShopCriterion,
+        phase: RunHourPhase.day,
+        randomizer: RunRandomizer(seed: 9),
+        shopRarity: RarityTier.yellow,
+        stockPool: stockPool,
+      );
+
+      expect(
+          controller.stock, hasLength(WeaponShopStockService.defaultStockSize));
+      expect(controller.rerollCost, 6);
+      expect(controller.canRerollStock, isFalse);
+      expect(controller.rerollStock(), isFalse);
+      expect(controller.player.money, 20);
     });
 
     test('operatives quick sell removes inventory item for tier value', () {

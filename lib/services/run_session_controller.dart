@@ -53,6 +53,7 @@ class RunSessionController extends ChangeNotifier {
             runSummary: snapshot.runSummary,
             currentDaySummary: snapshot.currentDaySummary,
             pendingDaySummary: snapshot.pendingDaySummary,
+            shownShopNodeIds: snapshot.shownShopNodeIds,
             isRunComplete: snapshot.isRunComplete,
             completionType: snapshot.completionType,
           ),
@@ -193,6 +194,11 @@ class RunSessionController extends ChangeNotifier {
         nextState = nextState.copyWith(
           currentHour: conventionHour,
           visibleNodes: List<PathNode>.unmodifiable(conventionHour.nodes),
+          shownShopNodeIds: _updatedShownShopNodeIds(
+            previousShownShopNodeIds: _state.shownShopNodeIds,
+            hour: conventionHour,
+            player: player,
+          ),
         );
       } else if (shouldRerollVisibleNodes) {
         final rerolledHour = _buildRefactoredHourSnapshot(
@@ -202,6 +208,11 @@ class RunSessionController extends ChangeNotifier {
         nextState = nextState.copyWith(
           currentHour: rerolledHour,
           visibleNodes: List<PathNode>.unmodifiable(rerolledHour.nodes),
+          shownShopNodeIds: _updatedShownShopNodeIds(
+            previousShownShopNodeIds: _state.shownShopNodeIds,
+            hour: rerolledHour,
+            player: player,
+          ),
         );
       }
     }
@@ -252,12 +263,18 @@ class RunSessionController extends ChangeNotifier {
       player: _state.player,
       availableNodes:
           _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
+      shownShopNodeIds: _state.shownShopNodeIds,
       nodeCount: _nodeCount,
     );
 
     _state = _state.copyWith(
       currentHour: currentHour,
       visibleNodes: List<PathNode>.unmodifiable(currentHour.nodes),
+      shownShopNodeIds: _updatedShownShopNodeIds(
+        previousShownShopNodeIds: _state.shownShopNodeIds,
+        hour: currentHour,
+        player: _state.player,
+      ),
     );
     notifyListeners();
     if (saveTrigger != null) {
@@ -308,6 +325,7 @@ class RunSessionController extends ChangeNotifier {
       runSummary: nextRunSummary,
       currentDaySummary: nextDaySummary,
       pendingDaySummary: null,
+      shownShopNodeIds: nextRunStep.shownShopNodeIds,
     );
     _isResolvingNode = false;
     _activeNode = null;
@@ -475,6 +493,7 @@ class RunSessionController extends ChangeNotifier {
       visibleNodes: List<PathNode>.unmodifiable(nextRunStep.hour.nodes),
       runSummary: nextRunSummary,
       currentDaySummary: nextDaySummary,
+      shownShopNodeIds: nextRunStep.shownShopNodeIds,
     );
     _isResolvingNode = false;
     _activeNode = null;
@@ -512,6 +531,7 @@ class RunSessionController extends ChangeNotifier {
       player: nextPlayer,
       availableNodes:
           _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
+      shownShopNodeIds: _state.shownShopNodeIds,
       nodeCount: _nodeCount,
     );
     if (_shouldApplyHourStartEffects(nextHour)) {
@@ -521,6 +541,7 @@ class RunSessionController extends ChangeNotifier {
         player: nextPlayer,
         availableNodes:
             _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
+        shownShopNodeIds: _state.shownShopNodeIds,
         nodeCount: _nodeCount,
       );
     }
@@ -532,6 +553,11 @@ class RunSessionController extends ChangeNotifier {
     return _RunStep(
       player: nextPlayer,
       hour: nextHour,
+      shownShopNodeIds: _updatedShownShopNodeIds(
+        previousShownShopNodeIds: _state.shownShopNodeIds,
+        hour: nextHour,
+        player: nextPlayer,
+      ),
     );
   }
 
@@ -687,6 +713,7 @@ class RunSessionController extends ChangeNotifier {
       player: player,
       availableNodes:
           _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
+      shownShopNodeIds: _state.shownShopNodeIds,
       nodeCount: _nodeCount,
     );
 
@@ -698,6 +725,7 @@ class RunSessionController extends ChangeNotifier {
               player: player,
               availableNodes: _scriptedNodesForStage(_state.stageIndex) ??
                   _availableNodesOverride,
+              shownShopNodeIds: _state.shownShopNodeIds,
               nodeCount: _nodeCount,
             );
       latestSnapshot = candidateSnapshot;
@@ -727,6 +755,33 @@ class RunSessionController extends ChangeNotifier {
       player: player,
       nodeCount: _nodeCount,
     );
+  }
+
+  List<String> _updatedShownShopNodeIds({
+    required List<String> previousShownShopNodeIds,
+    required RunHourSnapshot hour,
+    required Battler player,
+  }) {
+    final visibleShopNodeIds = hour.nodes
+        .whereType<ShopPathNode>()
+        .map((node) => node.nodeId)
+        .toList(growable: false);
+    if (visibleShopNodeIds.isEmpty) {
+      return previousShownShopNodeIds;
+    }
+
+    final eligibleShopNodeIds = _pathNodeService.eligibleShopNodeIdsFor(
+      stageIndex: hour.stageIndex,
+      player: player,
+    );
+    final previousShownSet = previousShownShopNodeIds.toSet();
+    final hasCompletedCycle = eligibleShopNodeIds.isNotEmpty &&
+        eligibleShopNodeIds.every(previousShownSet.contains);
+    final updatedShownSet =
+        hasCompletedCycle ? <String>{} : Set<String>.from(previousShownSet);
+    updatedShownSet.addAll(visibleShopNodeIds);
+
+    return List<String>.unmodifiable(updatedShownSet);
   }
 
   bool _areNodeListsEqualById(
@@ -791,9 +846,11 @@ class RunSessionController extends ChangeNotifier {
 class _RunStep {
   final Battler player;
   final RunHourSnapshot hour;
+  final List<String> shownShopNodeIds;
 
   const _RunStep({
     required this.player,
     required this.hour,
+    required this.shownShopNodeIds,
   });
 }

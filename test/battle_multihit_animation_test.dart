@@ -130,6 +130,86 @@ void main() {
     controller.dispose();
   });
 
+  test('player pattern barrier gain resolves after shield motion', () async {
+    final cues = <BattleCombatAnimationCue>[];
+    final controller = BattleController(
+      player: const Battler(
+        name: 'PLAYER',
+        health: 20,
+        money: 0,
+        income: 0,
+        baseStats: <BattlerStat, int>{
+          BattlerStat.health: 20,
+          BattlerStat.attack: 1,
+          BattlerStat.barrier: 0,
+          BattlerStat.thorns: 0,
+          BattlerStat.damageReduction: 0,
+          BattlerStat.vampirism: 0,
+        },
+      ),
+      enemy: const Battler(
+        name: 'ENEMY',
+        health: 20,
+        money: 0,
+        income: 0,
+        baseStats: <BattlerStat, int>{
+          BattlerStat.health: 20,
+          BattlerStat.attack: 1,
+          BattlerStat.barrier: 0,
+          BattlerStat.thorns: 0,
+          BattlerStat.damageReduction: 0,
+          BattlerStat.vampirism: 0,
+        },
+      ),
+      phase: RunHourPhase.day,
+      enemyTier: 1,
+      enemyTurnDelay: const Duration(days: 1),
+      combatEndDelay: const Duration(days: 1),
+      onCombatAnimation: (cue) async {
+        cues.add(cue);
+      },
+    );
+
+    await controller.handlePatternMatch(
+      actionBonus: const BattleActionBonus(
+        attackBonus: 3,
+        immediateBarrierAmount: 2,
+      ),
+      scheduleEnemyTurn: false,
+    );
+
+    final relevantCues = cues
+        .where(
+          (cue) =>
+              cue.hook == BattleCombatAnimationHook.attackMotion ||
+              cue.hook == BattleCombatAnimationHook.blockMotion ||
+              cue.hook == BattleCombatAnimationHook.healthLoss ||
+              cue.hook == BattleCombatAnimationHook.damageTaken ||
+              cue.hook == BattleCombatAnimationHook.barrierGain,
+        )
+        .toList(growable: false);
+
+    expect(
+      relevantCues.map((cue) => cue.hook),
+      <BattleCombatAnimationHook>[
+        BattleCombatAnimationHook.attackMotion,
+        BattleCombatAnimationHook.healthLoss,
+        BattleCombatAnimationHook.blockMotion,
+        BattleCombatAnimationHook.barrierGain,
+      ],
+    );
+    expect(relevantCues[1].primarySide, BattleCombatantSide.enemy);
+    expect(relevantCues.last.primarySide, BattleCombatantSide.player);
+    expect(
+      relevantCues.last.floatingNumbers.single.tone,
+      BattleCombatFloatingNumberTone.barrierGain,
+    );
+    expect(relevantCues.last.floatingNumbers.single.amount, 2);
+    expect(controller.player.currentBarrier, 2);
+
+    controller.dispose();
+  });
+
   test('Fragilidad explosion uses a separate animation and damage cue',
       () async {
     final cues = <BattleCombatAnimationCue>[];

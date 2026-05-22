@@ -61,6 +61,84 @@ void main() {
         CombatNodeTier.yellow,
       );
     });
+
+    test('normal path selections contain at most one shop', () {
+      for (var seed = 1; seed <= 20; seed++) {
+        final service = PathNodeService(randomizer: RunRandomizer(seed: seed));
+
+        for (var stageIndex = PathNodeService.firstPlayableStageIndex;
+            stageIndex < PathNodeService.firstDayBossStageIndex;
+            stageIndex++) {
+          final hour = service.buildHourSnapshot(
+            stageIndex: stageIndex,
+            player: defaultPlayerBattler,
+          );
+
+          expect(
+            hour.nodes.whereType<ShopPathNode>(),
+            hasLength(lessThanOrEqualTo(1)),
+          );
+        }
+      }
+    });
+
+    test('shop selection prefers unshown eligible shops until cycle resets',
+        () {
+      final service = PathNodeService(randomizer: RunRandomizer(seed: 3));
+      const stageIndex = PathNodeService.firstPlayableStageIndex;
+      final eligibleShopNodeIds = service.eligibleShopNodeIdsFor(
+        stageIndex: stageIndex,
+        player: defaultPlayerBattler,
+      );
+      final remainingShopNodeId = eligibleShopNodeIds.first;
+      final shownShopNodeIds = eligibleShopNodeIds
+          .where((nodeId) => nodeId != remainingShopNodeId)
+          .toList(growable: false);
+
+      final hour = service.buildHourSnapshot(
+        stageIndex: stageIndex,
+        player: defaultPlayerBattler,
+        shownShopNodeIds: shownShopNodeIds,
+      );
+
+      expect(hour.nodes.whereType<ShopPathNode>().single.nodeId,
+          remainingShopNodeId);
+
+      final resetHour = service.buildHourSnapshot(
+        stageIndex: stageIndex,
+        player: defaultPlayerBattler,
+        shownShopNodeIds: eligibleShopNodeIds,
+      );
+
+      expect(resetHour.nodes.whereType<ShopPathNode>(), hasLength(1));
+      expect(
+        eligibleShopNodeIds,
+        contains(resetHour.nodes.whereType<ShopPathNode>().single.nodeId),
+      );
+    });
+
+    test('filters shop nodes that would have empty stock', () {
+      final service = PathNodeService(
+        randomizer: RunRandomizer(seed: 5),
+        shopStockService: const _EmptyShopStockService(),
+      );
+
+      final hour = service.buildHourSnapshot(
+        stageIndex: PathNodeService.firstPlayableStageIndex,
+        player: defaultPlayerBattler,
+        availableNodes: [
+          scrapArsenalNode,
+          grayCombatNode,
+          greenCombatNode,
+        ],
+      );
+
+      expect(hour.nodes.whereType<ShopPathNode>(), isEmpty);
+      expect(
+        hour.nodes.map((node) => node.nodeId),
+        isNot(contains(scrapArsenalNode.nodeId)),
+      );
+    });
   });
 
   group('RunSessionController', () {
@@ -292,4 +370,19 @@ RunSessionController _bossController({
     ),
     persistRun: false,
   );
+}
+
+class _EmptyShopStockService extends WeaponShopStockService {
+  const _EmptyShopStockService();
+
+  @override
+  bool hasAvailableStock({
+    required ShopInventoryCriterion criterion,
+    required RunHourPhase phase,
+    Battler? player,
+    int dayNumber = 1,
+    List<Item> pool = itemPresets,
+  }) {
+    return false;
+  }
 }

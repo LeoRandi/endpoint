@@ -516,20 +516,14 @@ class BattleController extends ChangeNotifier {
 
     _player = attackResolution.attacker;
     _enemy = attackResolution.defender;
-    if (resolvedActionBonus.immediateBarrierAmount > 0) {
-      await _applyActionBarrierToPlayer(
-        resolvedActionBonus.immediateBarrierAmount,
-      );
-      if (_isDisposed) return;
-    }
 
-    if (countsAsDefend) {
+    if (countsAsDefend || resolvedActionBonus.immediateBarrierAmount > 0) {
       final patternDefenderBefore = _player;
       final patternOpponentBefore = _enemy;
       final defendResolution = _resolveDefendAction(
         defender: _player,
         opponent: _enemy,
-        barrierGain: 0,
+        barrierGain: resolvedActionBonus.immediateBarrierAmount,
       );
       await _playBlockResolutionAnimation(
         defenderSide: BattleCombatantSide.player,
