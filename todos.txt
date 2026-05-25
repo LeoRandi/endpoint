@@ -117,6 +117,8 @@ IDEAS:
 
 -Aumentos generales que boostean no llevar items
 
+-Diferentes Arquetipos tienen diferentes boards, bloqueando lineas o formas concretas
+
 -Eventos:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
 

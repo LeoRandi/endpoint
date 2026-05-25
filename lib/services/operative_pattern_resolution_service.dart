@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../entities/_exports.dart';
+import 'operative_pattern_adjacency_service.dart';
 
 class OperativePatternResolution {
   final List<OperativePatternPoint> patternPoints;
@@ -121,7 +122,6 @@ abstract final class OperativePatternResolutionService {
 
       if (item == null) continue;
       final adjacencyBonuses = _resolveItemAdjacencyBonuses(
-        item: item,
         point: point,
         equippedItemsByPointKey: equippedItemsByPointKey,
         shouldHalveItemPatternBonuses: shouldDilutePositiveBonuses,
@@ -219,37 +219,15 @@ abstract final class OperativePatternResolutionService {
   }
 
   static List<OperativePatternAdjacencyBonus> _resolveItemAdjacencyBonuses({
-    required Item item,
     required OperativePatternPoint point,
     required Map<String, Item> equippedItemsByPointKey,
     required bool shouldHalveItemPatternBonuses,
   }) {
-    final activatedBonuses = <OperativePatternAdjacencyBonus>[];
-    for (final adjacencyBonus in item.patternAdjacencyBonuses) {
-      final adjacentPointKey = operativePatternPointKey(
-        point.x + adjacencyBonus.direction.dx,
-        point.y + adjacencyBonus.direction.dy,
-      );
-      final adjacentItem = equippedItemsByPointKey[adjacentPointKey];
-      if (adjacentItem == null) continue;
-      if (!adjacentItem.hasTag(adjacencyBonus.requiredTag)) continue;
-
-      activatedBonuses.add(
-        shouldHalveItemPatternBonuses
-            ? OperativePatternAdjacencyBonus(
-                direction: adjacencyBonus.direction,
-                requiredTag: adjacencyBonus.requiredTag,
-                kind: adjacencyBonus.kind,
-                amount: _resolveItemPatternBonusAmount(
-                  adjacencyBonus.bonus,
-                  shouldHalveItemPatternBonuses: true,
-                ).amount,
-              )
-            : adjacencyBonus,
-      );
-    }
-
-    return List<OperativePatternAdjacencyBonus>.unmodifiable(activatedBonuses);
+    return OperativePatternAdjacencyService.matchedBonusesForPoint(
+      itemsByPointKey: equippedItemsByPointKey,
+      point: point,
+      shouldHalveItemPatternBonuses: shouldHalveItemPatternBonuses,
+    );
   }
 
   static OperativePatternBonus _resolveItemPatternBonusAmount(

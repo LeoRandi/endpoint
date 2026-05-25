@@ -132,6 +132,16 @@ abstract final class OperativePatternLayoutService {
     return item.instanceId ?? '${item.id.name}:${identityHashCode(item)}';
   }
 
+  static String? pointKeyForItem({
+    required Battler player,
+    required Item item,
+  }) {
+    return _assignedPointKeyFor(
+      item: item,
+      assignments: player.patternItemPointKeys,
+    );
+  }
+
   static String? _assignedPointKeyFor({
     required Item item,
     required Map<String, String> assignments,

@@ -2,6 +2,7 @@ import '../_imports.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/battler_effect_pipeline.dart';
 import '../../services/battle_controller.dart';
+import '../../services/battle_pattern_block_plan_service.dart';
 import '../../services/operative_pattern_bonus_service.dart';
 import '../../services/operative_pattern_combat_rules.dart';
 import '../../services/operative_pattern_resolution_service.dart';
@@ -36,17 +37,6 @@ const _enemyPatternBlockTravelDuration = Duration(milliseconds: 520);
 const _enemyPatternPointStepDuration = Duration(milliseconds: 750);
 const _battlePatternBlockMarkSize = 50.0;
 const _enemyPatternBlockCount = 2;
-
-enum BattlePatternBlockMode {
-  randomOne,
-  itemOne,
-  randomTwo,
-  randomAndItem,
-  mostUsedItem,
-  randomThree,
-  itemTwo,
-  randomAndMostUsed,
-}
 
 class BattlePatternMatchResult {
   final int attackBonus;
@@ -122,272 +112,6 @@ class EnemyBattlePatternMatchResult {
   }
 }
 
-final Map<String, OperativePatternPoint> _battlePatternPointsByKey =
-    Map<String, OperativePatternPoint>.unmodifiable({
-  for (final point in operativePatternPoints) point.key: point,
-});
-
-class _BattlePatternBlockPlan {
-  final BattlePatternBlockMode mode;
-  final List<OperativePatternPoint> points;
-
-  const _BattlePatternBlockPlan({
-    required this.mode,
-    required this.points,
-  });
-
-  Set<String> get pointKeys => Set<String>.unmodifiable(
-        points.map((point) => point.key),
-      );
-
-  static _BattlePatternBlockPlan resolve({
-    required int enemyTier,
-    required int combatRound,
-    required Map<String, Item> equippedItemsByPointKey,
-    required Map<String, int> itemPointUseCounts,
-    required BattlePatternBlockMode? previousYellowBlockMode,
-    required int Function(int max) nextInt,
-  }) {
-    final mode = _modeFor(
-      enemyTier: enemyTier,
-      combatRound: combatRound,
-      previousYellowBlockMode: previousYellowBlockMode,
-      nextInt: nextInt,
-    );
-    final points = _pointsForMode(
-      mode: mode,
-      equippedItemsByPointKey: equippedItemsByPointKey,
-      itemPointUseCounts: itemPointUseCounts,
-      nextInt: nextInt,
-    );
-
-    return _BattlePatternBlockPlan(
-      mode: mode,
-      points: points.isEmpty
-          ? _randomPoints(
-              count: 1,
-              excludedPointKeys: const <String>{},
-              nextInt: nextInt,
-            )
-          : points,
-    );
-  }
-
-  static BattlePatternBlockMode _modeFor({
-    required int enemyTier,
-    required int combatRound,
-    required BattlePatternBlockMode? previousYellowBlockMode,
-    required int Function(int max) nextInt,
-  }) {
-    final safeTier = max(1, enemyTier);
-    final isOddRound = combatRound.isOdd;
-
-    if (safeTier >= RarityTier.yellow.factor) {
-      const yellowModes = <BattlePatternBlockMode>[
-        BattlePatternBlockMode.randomThree,
-        BattlePatternBlockMode.itemTwo,
-        BattlePatternBlockMode.randomAndMostUsed,
-      ];
-      final availableModes = yellowModes
-          .where((mode) => mode != previousYellowBlockMode)
-          .toList(growable: false);
-      final choices = availableModes.isEmpty ? yellowModes : availableModes;
-      return choices[nextInt(choices.length)];
-    }
-    if (safeTier >= RarityTier.purple.factor) {
-      return isOddRound
-          ? BattlePatternBlockMode.randomAndItem
-          : BattlePatternBlockMode.mostUsedItem;
-    }
-    if (safeTier >= RarityTier.blue.factor) {
-      return isOddRound
-          ? BattlePatternBlockMode.randomTwo
-          : BattlePatternBlockMode.itemOne;
-    }
-    if (safeTier >= RarityTier.green.factor) {
-      return isOddRound
-          ? BattlePatternBlockMode.randomOne
-          : BattlePatternBlockMode.itemOne;
-    }
-
-    return BattlePatternBlockMode.randomOne;
-  }
-
-  static List<OperativePatternPoint> _pointsForMode({
-    required BattlePatternBlockMode mode,
-    required Map<String, Item> equippedItemsByPointKey,
-    required Map<String, int> itemPointUseCounts,
-    required int Function(int max) nextInt,
-  }) {
-    final selected = <OperativePatternPoint>[];
-    final selectedPointKeys = <String>{};
-
-    void addPoint(OperativePatternPoint? point) {
-      if (point == null || !selectedPointKeys.add(point.key)) return;
-      selected.add(point);
-    }
-
-    void addRandomPoints(int count) {
-      for (final point in _randomPoints(
-        count: count,
-        excludedPointKeys: selectedPointKeys,
-        nextInt: nextInt,
-      )) {
-        addPoint(point);
-      }
-    }
-
-    void addRandomItemPoints(int count) {
-      final before = selected.length;
-      for (final point in _randomItemPoints(
-        count: count,
-        equippedItemsByPointKey: equippedItemsByPointKey,
-        excludedPointKeys: selectedPointKeys,
-        nextInt: nextInt,
-      )) {
-        addPoint(point);
-      }
-      final added = selected.length - before;
-      if (added < count) {
-        addRandomPoints(count - added);
-      }
-    }
-
-    switch (mode) {
-      case BattlePatternBlockMode.randomOne:
-        addRandomPoints(1);
-        break;
-      case BattlePatternBlockMode.itemOne:
-        addRandomItemPoints(1);
-        break;
-      case BattlePatternBlockMode.randomTwo:
-        addRandomPoints(2);
-        break;
-      case BattlePatternBlockMode.randomAndItem:
-        addRandomItemPoints(1);
-        addRandomPoints(1);
-        break;
-      case BattlePatternBlockMode.mostUsedItem:
-        addPoint(
-          _mostUsedItemPoint(
-            equippedItemsByPointKey: equippedItemsByPointKey,
-            itemPointUseCounts: itemPointUseCounts,
-            nextInt: nextInt,
-          ),
-        );
-        if (selected.isEmpty) addRandomPoints(1);
-        break;
-      case BattlePatternBlockMode.randomThree:
-        addRandomPoints(3);
-        break;
-      case BattlePatternBlockMode.itemTwo:
-        addRandomItemPoints(2);
-        break;
-      case BattlePatternBlockMode.randomAndMostUsed:
-        final mostUsedPoint = _mostUsedItemPoint(
-          equippedItemsByPointKey: equippedItemsByPointKey,
-          itemPointUseCounts: itemPointUseCounts,
-          nextInt: nextInt,
-        );
-        if (mostUsedPoint == null) {
-          addRandomPoints(2);
-        } else {
-          addPoint(mostUsedPoint);
-          addRandomPoints(1);
-        }
-        break;
-    }
-
-    return List<OperativePatternPoint>.unmodifiable(selected);
-  }
-
-  static OperativePatternPoint? _mostUsedItemPoint({
-    required Map<String, Item> equippedItemsByPointKey,
-    required Map<String, int> itemPointUseCounts,
-    required int Function(int max) nextInt,
-  }) {
-    final candidates = equippedItemsByPointKey.entries
-        .where((entry) => _battlePatternPointsByKey.containsKey(entry.key))
-        .toList(growable: false);
-    if (candidates.isEmpty) return null;
-
-    final highestUseCount = candidates
-        .map((entry) => max(0, itemPointUseCounts[entry.key] ?? 0))
-        .reduce(max);
-    final mostUsedCandidates = candidates
-        .where(
-          (entry) =>
-              max(0, itemPointUseCounts[entry.key] ?? 0) == highestUseCount,
-        )
-        .toList(growable: false);
-    final highestTier = mostUsedCandidates
-        .map((entry) => entry.value.rarity.factor)
-        .reduce(max);
-    final highestTierCandidates = mostUsedCandidates
-        .where((entry) => entry.value.rarity.factor == highestTier)
-        .toList(growable: false);
-    final selectedEntry =
-        highestTierCandidates[nextInt(highestTierCandidates.length)];
-
-    return _battlePatternPointsByKey[selectedEntry.key];
-  }
-
-  static List<OperativePatternPoint> _randomItemPoints({
-    required int count,
-    required Map<String, Item> equippedItemsByPointKey,
-    required Set<String> excludedPointKeys,
-    required int Function(int max) nextInt,
-  }) {
-    final candidates = <OperativePatternPoint>[
-      for (final pointKey in equippedItemsByPointKey.keys)
-        if (!excludedPointKeys.contains(pointKey) &&
-            _battlePatternPointsByKey[pointKey] != null)
-          _battlePatternPointsByKey[pointKey]!,
-    ];
-
-    return _takeRandom(
-      candidates: candidates,
-      count: count,
-      nextInt: nextInt,
-    );
-  }
-
-  static List<OperativePatternPoint> _randomPoints({
-    required int count,
-    required Set<String> excludedPointKeys,
-    required int Function(int max) nextInt,
-  }) {
-    final candidates = <OperativePatternPoint>[
-      for (final point in operativePatternPoints)
-        if (!excludedPointKeys.contains(point.key)) point,
-    ];
-
-    return _takeRandom(
-      candidates: candidates,
-      count: count,
-      nextInt: nextInt,
-    );
-  }
-
-  static List<OperativePatternPoint> _takeRandom({
-    required List<OperativePatternPoint> candidates,
-    required int count,
-    required int Function(int max) nextInt,
-  }) {
-    if (count <= 0 || candidates.isEmpty) {
-      return const <OperativePatternPoint>[];
-    }
-
-    final pool = List<OperativePatternPoint>.from(candidates);
-    final selected = <OperativePatternPoint>[];
-    while (selected.length < count && pool.isNotEmpty) {
-      selected.add(pool.removeAt(nextInt(pool.length)));
-    }
-
-    return List<OperativePatternPoint>.unmodifiable(selected);
-  }
-}
-
 class BattlePatternMatchOverlay extends StatefulWidget {
   final Battler player;
   final Battler enemy;
@@ -440,7 +164,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   late final AnimationController _blockMotionController;
   late final Map<String, OperativePatternBonus> _bonusesByPointKey;
   late final int _maxPatternPoints;
-  late final _BattlePatternBlockPlan _blockPlan;
+  late final BattlePatternBlockPlan _blockPlan;
   Timer? _blockStartTimer;
   List<Animation<Offset>> _blockMarkMotions = const <Animation<Offset>>[];
   List<OperativePatternPoint> _patternPoints = const <OperativePatternPoint>[];
@@ -456,7 +180,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       duration: _battlePatternBlockTravelDuration,
     )..addStatusListener(_handleBlockMotionStatus);
     final randomNextInt = widget.randomNextInt ?? Random().nextInt;
-    _blockPlan = _BattlePatternBlockPlan.resolve(
+    _blockPlan = BattlePatternBlockPlanService.resolve(
       enemyTier: widget.enemyTier,
       combatRound: widget.combatRound,
       equippedItemsByPointKey: widget.equippedItemsByPointKey,
@@ -2144,7 +1868,7 @@ class _PatternBattlerHeader extends StatelessWidget {
         : <Widget>[status, const SizedBox(width: 8), sprite];
 
     return SizedBox(
-      height: 70,
+      height: 78,
       child: Row(children: rowChildren),
     );
   }
@@ -2208,44 +1932,67 @@ class _PatternStatusBars extends StatelessWidget {
     final barrier =
         (battler.currentBarrier / barrierMax).clamp(0.0, 1.0).toDouble();
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.panelBackgroundBattleOpaque,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: accent.withAlpha(132)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-        child: Column(
-          crossAxisAlignment:
-              alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            EndpointText(
-              battler.name.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground,
-                fontSize: 11,
-                letterSpacing: 0.9,
+    final hasStatuses = battler.statuses.isNotEmpty;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(
+          top: hasStatuses ? 12 : 0,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: EndpointPalette.panelBackgroundBattleOpaque,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: accent.withAlpha(132)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+              child: Column(
+                crossAxisAlignment: alignEnd
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  EndpointText(
+                    battler.name.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+                    style: textSmallBold.copyWith(
+                      color: EndpointPalette.softForeground,
+                      fontSize: 11,
+                      letterSpacing: 0.9,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  _PatternMeterRow(
+                    value: health,
+                    color: EndpointPalette.dangerAccent,
+                    label: '${max(0, battler.health)}/$healthMax',
+                  ),
+                  const SizedBox(height: 4),
+                  _PatternMeterRow(
+                    value: barrier,
+                    color: BattlerStat.barrier.accent,
+                    label: '${max(0, battler.currentBarrier)}',
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            _PatternMeterRow(
-              value: health,
-              color: EndpointPalette.dangerAccent,
-              label: '${max(0, battler.health)}/$healthMax',
-            ),
-            const SizedBox(height: 4),
-            _PatternMeterRow(
-              value: barrier,
-              color: BattlerStat.barrier.accent,
-              label: '${max(0, battler.currentBarrier)}',
-            ),
-          ],
+          ),
         ),
-      ),
+        if (hasStatuses)
+          Positioned(
+            top: 0,
+            left: alignEnd ? null : 8,
+            right: alignEnd ? 8 : null,
+            child: EndpointStatusBadges(
+              battler: battler,
+              alignment: alignEnd ? WrapAlignment.end : WrapAlignment.start,
+              badgeSize: 22,
+              spacing: 4,
+            ),
+          ),
+      ],
     );
   }
 }

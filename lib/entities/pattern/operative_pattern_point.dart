@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 const operativePatternPoints = <OperativePatternPoint>[
   OperativePatternPoint(x: -1, y: 1),
   OperativePatternPoint(x: 0, y: 1),
@@ -11,6 +13,32 @@ const operativePatternPoints = <OperativePatternPoint>[
 ];
 
 String operativePatternPointKey(int x, int y) => '$x,$y';
+
+final Map<String, OperativePatternPoint> operativePatternPointsByKey =
+    Map<String, OperativePatternPoint>.unmodifiable({
+  for (final point in operativePatternPoints) point.key: point,
+});
+
+OperativePatternPoint? operativePatternPointAt({
+  required int x,
+  required int y,
+}) {
+  return operativePatternPointsByKey[operativePatternPointKey(x, y)];
+}
+
+Offset operativePatternPointCenter({
+  required OperativePatternPoint point,
+  required double boardSide,
+}) {
+  final cellSize = boardSide / 3;
+  final column = point.x + 1;
+  final row = 1 - point.y;
+
+  return Offset(
+    (column + 0.5) * cellSize,
+    (row + 0.5) * cellSize,
+  );
+}
 
 class OperativePatternPoint {
   final int x;

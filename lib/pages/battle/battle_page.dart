@@ -453,40 +453,44 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       barrierDismissible: false,
       barrierColor: EndpointPalette.overlayScrimStrong,
       transitionDuration: Duration.zero,
-      builder: (_) => BattlePatternMatchOverlay(
-        player: _sceneController.player,
-        enemy: _sceneController.enemy,
-        equippedItemsByPointKey: patternLayout.itemsByPointKey,
-        enemyTier: widget.enemyTier,
-        combatRound: _sceneController.currentRound,
-        actionEffects: _sceneController.playerActionIntentPreview.attackEffects,
-        itemPointUseCounts: _patternItemPointUseCounts,
-        previousYellowBlockMode: _previousYellowPatternBlockMode,
-        randomNextInt: _sceneController.randomizer.nextInt,
-        combatAnimationOverlay: _patternCombatAnimationOverlay,
-        visualBattlers: _patternVisualBattlers,
-        onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
-        onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
-          ability,
-          canControlOwner: true,
+      builder: (_) => WillPopScope(
+        onWillPop: () async => false,
+        child: BattlePatternMatchOverlay(
+          player: _sceneController.player,
+          enemy: _sceneController.enemy,
+          equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          enemyTier: widget.enemyTier,
+          combatRound: _sceneController.currentRound,
+          actionEffects:
+              _sceneController.playerActionIntentPreview.attackEffects,
+          itemPointUseCounts: _patternItemPointUseCounts,
+          previousYellowBlockMode: _previousYellowPatternBlockMode,
+          randomNextInt: _sceneController.randomizer.nextInt,
+          combatAnimationOverlay: _patternCombatAnimationOverlay,
+          visualBattlers: _patternVisualBattlers,
+          onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
+          onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
+            ability,
+            canControlOwner: true,
+          ),
+          onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
+            ability,
+            canControlOwner: false,
+          ),
+          onResolve: (matchResult) async {
+            if (didResolveTurn) return;
+            didResolveTurn = true;
+            _recordPatternMatchResult(matchResult);
+            await _sceneController.handlePlayerPatternMatch(
+              actionBonus: BattleActionBonus(
+                attackBonus: matchResult.attackBonus,
+                immediateBarrierAmount: matchResult.barrierBonus,
+              ),
+              patternContext: matchResult.patternContext,
+              scheduleEnemyTurn: false,
+            );
+          },
         ),
-        onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
-          ability,
-          canControlOwner: false,
-        ),
-        onResolve: (matchResult) async {
-          if (didResolveTurn) return;
-          didResolveTurn = true;
-          _recordPatternMatchResult(matchResult);
-          await _sceneController.handlePlayerPatternMatch(
-            actionBonus: BattleActionBonus(
-              attackBonus: matchResult.attackBonus,
-              immediateBarrierAmount: matchResult.barrierBonus,
-            ),
-            patternContext: matchResult.patternContext,
-            scheduleEnemyTurn: false,
-          );
-        },
       ),
     );
     return mounted && (didResolveTurn || matchResult != null);
@@ -516,34 +520,37 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       barrierDismissible: false,
       barrierColor: EndpointPalette.overlayScrimStrong,
       transitionDuration: Duration.zero,
-      builder: (_) => EnemyBattlePatternMatchOverlay(
-        player: _sceneController.player,
-        enemy: _sceneController.enemy,
-        equippedItemsByPointKey: patternLayout.itemsByPointKey,
-        combatRound: _sceneController.currentRound,
-        randomNextInt: _sceneController.randomizer.nextInt,
-        combatAnimationOverlay: _patternCombatAnimationOverlay,
-        visualBattlers: _patternVisualBattlers,
-        onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
-        onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
-          ability,
-          canControlOwner: true,
+      builder: (_) => WillPopScope(
+        onWillPop: () async => false,
+        child: EnemyBattlePatternMatchOverlay(
+          player: _sceneController.player,
+          enemy: _sceneController.enemy,
+          equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          combatRound: _sceneController.currentRound,
+          randomNextInt: _sceneController.randomizer.nextInt,
+          combatAnimationOverlay: _patternCombatAnimationOverlay,
+          visualBattlers: _patternVisualBattlers,
+          onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
+          onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
+            ability,
+            canControlOwner: true,
+          ),
+          onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
+            ability,
+            canControlOwner: false,
+          ),
+          onResolve: (matchResult) async {
+            if (didResolveTurn) return;
+            didResolveTurn = true;
+            await _sceneController.handleEnemyPatternMatch(
+              actionBonus: BattleActionBonus(
+                attackBonus: matchResult.attackBonus,
+                immediateBarrierAmount: matchResult.barrierBonus,
+              ),
+              patternContext: matchResult.patternContext,
+            );
+          },
         ),
-        onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
-          ability,
-          canControlOwner: false,
-        ),
-        onResolve: (matchResult) async {
-          if (didResolveTurn) return;
-          didResolveTurn = true;
-          await _sceneController.handleEnemyPatternMatch(
-            actionBonus: BattleActionBonus(
-              attackBonus: matchResult.attackBonus,
-              immediateBarrierAmount: matchResult.barrierBonus,
-            ),
-            patternContext: matchResult.patternContext,
-          );
-        },
       ),
     );
     return mounted && (didResolveTurn || matchResult != null);

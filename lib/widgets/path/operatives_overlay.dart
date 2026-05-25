@@ -1,5 +1,6 @@
 import '../_imports.dart';
 import '../../services/endpoint_preferences_models.dart';
+import '../../services/operative_pattern_adjacency_service.dart';
 import '../../services/operative_pattern_layout_service.dart';
 import 'package:flutter/foundation.dart';
 
@@ -646,12 +647,13 @@ class _PatternEquipmentBoard extends StatelessWidget {
       builder: (context, constraints) {
         final outerSide = min(constraints.maxWidth, constraints.maxHeight);
         final boardSide = outerSide * _operativesPatternBoardScale;
+        final adjacencyEvaluations = _adjacencyEvaluations(itemsByPoint);
         final adjacencyGuideSegments = _adjacencyGuideSegments(
-          itemsByPoint: itemsByPoint,
+          evaluations: adjacencyEvaluations,
           boardSide: boardSide,
         );
-        final adjacencyTotals = _adjacencyBonusTotals(
-          itemsByPoint: itemsByPoint,
+        final adjacencyTotals = OperativePatternAdjacencyService.totalsFor(
+          adjacencyEvaluations,
         );
 
         return Stack(
@@ -709,104 +711,36 @@ class _PatternEquipmentBoard extends StatelessWidget {
   }
 
   Offset _patternPointCenter(OperativePatternPoint point, double boardSide) {
-    final cellSize = boardSide / 3;
-    final column = point.x + 1;
-    final row = 1 - point.y;
+    return operativePatternPointCenter(
+      point: point,
+      boardSide: boardSide,
+    );
+  }
 
-    return Offset(
-      (column + 0.5) * cellSize,
-      (row + 0.5) * cellSize,
+  List<OperativePatternAdjacencyEvaluation> _adjacencyEvaluations(
+    Map<OperativePatternPoint, Item> itemsByPoint,
+  ) {
+    return OperativePatternAdjacencyService.evaluate(
+      itemsByPointKey: {
+        for (final entry in itemsByPoint.entries) entry.key.key: entry.value,
+      },
     );
   }
 
   List<OperativePatternAdjacencyGuideSegment> _adjacencyGuideSegments({
-    required Map<OperativePatternPoint, Item> itemsByPoint,
+    required List<OperativePatternAdjacencyEvaluation> evaluations,
     required double boardSide,
   }) {
-    final segments = <OperativePatternAdjacencyGuideSegment>[];
-    for (final entry in itemsByPoint.entries) {
-      final point = entry.key;
-      final item = entry.value;
-      for (final adjacencyBonus in item.patternAdjacencyBonuses) {
-        final targetPoint = _patternPointAt(
-          x: point.x + adjacencyBonus.direction.dx,
-          y: point.y + adjacencyBonus.direction.dy,
-        );
-        if (targetPoint == null) continue;
-
-        final targetItem = itemsByPoint[targetPoint];
-        segments.add(
-          OperativePatternAdjacencyGuideSegment(
-            start: _patternPointCenter(point, boardSide),
-            end: _patternPointCenter(targetPoint, boardSide),
-            accent: adjacencyBonus.requiredTag.accent,
-            isMatched: targetItem?.hasTag(adjacencyBonus.requiredTag) ?? false,
-          ),
-        );
-      }
-    }
-
-    return List<OperativePatternAdjacencyGuideSegment>.unmodifiable(segments);
+    return <OperativePatternAdjacencyGuideSegment>[
+      for (final evaluation in evaluations)
+        OperativePatternAdjacencyGuideSegment(
+          start: _patternPointCenter(evaluation.sourcePoint, boardSide),
+          end: _patternPointCenter(evaluation.targetPoint, boardSide),
+          accent: evaluation.bonus.requiredTag.accent,
+          isMatched: evaluation.isMatched,
+        ),
+    ];
   }
-
-  _PatternAdjacencyBonusTotals _adjacencyBonusTotals({
-    required Map<OperativePatternPoint, Item> itemsByPoint,
-  }) {
-    var attack = 0;
-    var barrier = 0;
-
-    for (final entry in itemsByPoint.entries) {
-      final point = entry.key;
-      final item = entry.value;
-      for (final adjacencyBonus in item.patternAdjacencyBonuses) {
-        final targetPoint = _patternPointAt(
-          x: point.x + adjacencyBonus.direction.dx,
-          y: point.y + adjacencyBonus.direction.dy,
-        );
-        if (targetPoint == null) continue;
-
-        final targetItem = itemsByPoint[targetPoint];
-        if (targetItem == null ||
-            !targetItem.hasTag(adjacencyBonus.requiredTag)) {
-          continue;
-        }
-
-        switch (adjacencyBonus.kind) {
-          case OperativePatternBonusKind.attack:
-            attack += adjacencyBonus.amount;
-            break;
-          case OperativePatternBonusKind.barrier:
-            barrier += adjacencyBonus.amount;
-            break;
-        }
-      }
-    }
-
-    return _PatternAdjacencyBonusTotals(
-      attack: attack,
-      barrier: barrier,
-    );
-  }
-
-  OperativePatternPoint? _patternPointAt({
-    required int x,
-    required int y,
-  }) {
-    for (final point in operativePatternPoints) {
-      if (point.x == x && point.y == y) return point;
-    }
-    return null;
-  }
-}
-
-class _PatternAdjacencyBonusTotals {
-  final int attack;
-  final int barrier;
-
-  const _PatternAdjacencyBonusTotals({
-    required this.attack,
-    required this.barrier,
-  });
 }
 
 class _PatternEquipmentBoardPills extends StatefulWidget {

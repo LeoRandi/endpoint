@@ -2706,10 +2706,13 @@ class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
     required BattlerAbility ability,
     required BattlePatternMatchContext pattern,
   }) {
-    final usedPointKeys = pattern.patternPoints.map((point) => point.key).toSet();
+    final usedPointKeys =
+        pattern.patternPoints.map((point) => point.key).toSet();
     final debuffItemCount = owner.equippedItems.where((item) {
-      final pointKey =
-          owner.patternItemPointKeys[OperativePatternLayoutService.itemKey(item)];
+      final pointKey = OperativePatternLayoutService.pointKeyForItem(
+        player: owner,
+        item: item,
+      );
       return pointKey != null &&
           usedPointKeys.contains(pointKey) &&
           item.hasTag(EntityTag.debuff);

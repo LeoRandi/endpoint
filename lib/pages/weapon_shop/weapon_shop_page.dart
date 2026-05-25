@@ -313,13 +313,14 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                               Positioned.fill(
                                 child: IgnorePointer(
                                   child: Align(
-                                    alignment: Alignment.topCenter,
+                                    alignment: const Alignment(0, 0.72),
                                     child: _CreditsCircle(
                                       value: player.money,
                                       accent: EndpointPalette.warningAccent,
                                       foreground:
                                           EndpointPalette.softForegroundWarm,
                                       backgroundColor: panelBackground,
+                                      size: 42,
                                     ),
                                   ),
                                 ),
@@ -1095,12 +1096,14 @@ class _CreditsCircle extends StatelessWidget {
   final Color accent;
   final Color foreground;
   final Color backgroundColor;
+  final double size;
 
   const _CreditsCircle({
     required this.value,
     required this.accent,
     required this.foreground,
     required this.backgroundColor,
+    this.size = 50,
   });
 
   @override
@@ -1114,21 +1117,21 @@ class _CreditsCircle extends StatelessWidget {
       borderOpacity: 0.95,
       glowOpacity: 0.14,
       child: SizedBox(
-        width: 50,
-        height: 50,
+        width: size,
+        height: size,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.monetization_on_rounded,
               color: accent,
-              size: 15,
+              size: size * 0.28,
             ),
             EndpointText(
               '$value',
               style: textSmallNumericBold.copyWith(
                 color: foreground,
-                fontSize: 13,
+                fontSize: size * 0.24,
               ),
             ),
           ],

@@ -1090,8 +1090,10 @@ class BattlerEffectPipeline {
     var usedContratoReuso = false;
 
     for (final item in activeItems) {
-      final pointKey = owner
-          .patternItemPointKeys[OperativePatternLayoutService.itemKey(item)];
+      final pointKey = OperativePatternLayoutService.pointKeyForItem(
+        player: owner,
+        item: item,
+      );
       if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
 
       final effect = item.effect;
@@ -1165,8 +1167,10 @@ class BattlerEffectPipeline {
     );
 
     for (final item in activeItems) {
-      final pointKey = owner
-          .patternItemPointKeys[OperativePatternLayoutService.itemKey(item)];
+      final pointKey = OperativePatternLayoutService.pointKeyForItem(
+        player: owner,
+        item: item,
+      );
       if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
 
       final effect = item.effect;

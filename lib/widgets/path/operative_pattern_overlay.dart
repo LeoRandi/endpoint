@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/operative_pattern_adjacency_service.dart';
 import '../../services/operative_pattern_bonus_service.dart';
 
 const _operativePatternBoardRadius = 18.0;
@@ -490,32 +491,25 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
   List<OperativePatternAdjacencyGuideSegment> _adjacencyGuideSegments(
     _OperativePatternGridLayout layout,
   ) {
-    final segments = <OperativePatternAdjacencyGuideSegment>[];
-    for (final point in operativePatternPoints) {
-      final content = widget.contentsByPointKey[point.key];
-      final item = content?.item;
-      if (item == null || content!.adjacencyBonuses.isEmpty) continue;
+    final evaluations = OperativePatternAdjacencyService.evaluate(
+      itemsByPointKey: {
+        for (final entry in widget.contentsByPointKey.entries)
+          if (entry.value.item != null) entry.key: entry.value.item!,
+      },
+      adjacencyBonusesForItem: (point, item) =>
+          widget.contentsByPointKey[point.key]?.adjacencyBonuses ??
+          item.patternAdjacencyBonuses,
+    );
 
-      for (final adjacencyBonus in content.adjacencyBonuses) {
-        final targetPoint = _patternPointAt(
-          x: point.x + adjacencyBonus.direction.dx,
-          y: point.y + adjacencyBonus.direction.dy,
-        );
-        if (targetPoint == null) continue;
-
-        final targetItem = widget.contentsByPointKey[targetPoint.key]?.item;
-        segments.add(
-          OperativePatternAdjacencyGuideSegment(
-            start: layout.centerFor(point),
-            end: layout.centerFor(targetPoint),
-            accent: adjacencyBonus.requiredTag.accent,
-            isMatched: targetItem?.hasTag(adjacencyBonus.requiredTag) ?? false,
-          ),
-        );
-      }
-    }
-
-    return List<OperativePatternAdjacencyGuideSegment>.unmodifiable(segments);
+    return <OperativePatternAdjacencyGuideSegment>[
+      for (final evaluation in evaluations)
+        OperativePatternAdjacencyGuideSegment(
+          start: layout.centerFor(evaluation.sourcePoint),
+          end: layout.centerFor(evaluation.targetPoint),
+          accent: evaluation.bonus.requiredTag.accent,
+          isMatched: evaluation.isMatched,
+        ),
+    ];
   }
 
   Set<OperativePatternPoint> _recentPatternPointsBlockedForReuse() {
@@ -587,16 +581,6 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     widget.onPatternChanged?.call(
       List<OperativePatternPoint>.unmodifiable(points),
     );
-  }
-
-  OperativePatternPoint? _patternPointAt({
-    required int x,
-    required int y,
-  }) {
-    for (final point in operativePatternPoints) {
-      if (point.x == x && point.y == y) return point;
-    }
-    return null;
   }
 
   @override
@@ -818,14 +802,12 @@ class _OperativePatternGridLayout {
       (boardSize.width - side) / 2,
       (boardSize.height - side) / 2,
     );
-    final column = point.x + 1;
-    final row = 1 - point.y;
-    final cellSize = side / 3;
-
-    return Offset(
-      topLeft.dx + ((column + 0.5) * cellSize),
-      topLeft.dy + ((row + 0.5) * cellSize),
+    final pointCenter = operativePatternPointCenter(
+      point: point,
+      boardSide: side,
     );
+
+    return topLeft + pointCenter;
   }
 
   OperativePatternPoint? pointAt(Offset position) {
