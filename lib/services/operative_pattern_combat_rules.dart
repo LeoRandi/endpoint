@@ -2,11 +2,17 @@ import '../entities/_exports.dart';
 
 abstract final class OperativePatternCombatRules {
   static const int initialMaxPatternPoints = 3;
+  static const int initialMaxBlockingPoints = 1;
 
   static int maxPatternPointsFor(Battler player) {
     return initialMaxPatternPoints +
         Battler.evenLevelProgressionBonusFor(player.level) +
         _archetypePatternPointBonus(player);
+  }
+
+  static int maxBlockingPointsFor(Battler player) {
+    return initialMaxBlockingPoints +
+        Battler.evenLevelProgressionBonusFor(player.level);
   }
 
   static int _archetypePatternPointBonus(Battler player) {

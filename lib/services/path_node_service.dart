@@ -362,10 +362,11 @@ class PathNodeService {
         )
         .toList(growable: false);
 
-    return _limitShopNodes(
+    final limitedNodes = _limitShopNodes(
       resolvedNodes,
       nodeCount: min(nodeCount, resolvedNodes.length),
     );
+    return _scaleCombatNodesForDay(limitedNodes, dayNumber: dayNumber);
   }
 
   Set<String> eligibleShopNodeIdsFor({
@@ -833,6 +834,18 @@ class PathNodeService {
     }
 
     return candidates[_randomizer.nextInt(candidates.length)];
+  }
+
+  List<PathNode> _scaleCombatNodesForDay(
+    List<PathNode> nodes, {
+    required int dayNumber,
+  }) {
+    return nodes
+        .map(
+          (node) =>
+              node is CombatPathNode ? node.scaledForDay(dayNumber) : node,
+        )
+        .toList(growable: false);
   }
 
   List<_WeightedPathNode> _scaleWeightedNodes(

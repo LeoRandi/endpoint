@@ -3,6 +3,7 @@ import 'dart:math';
 import '../entities/_exports.dart';
 
 enum BattlePatternBlockMode {
+  pass,
   randomOne,
   itemOne,
   randomTwo,
@@ -31,11 +32,19 @@ abstract final class BattlePatternBlockPlanService {
   static BattlePatternBlockPlan resolve({
     required int enemyTier,
     required int combatRound,
+    required int maxBlockingPoints,
     required Map<String, Item> equippedItemsByPointKey,
     required Map<String, int> itemPointUseCounts,
     required BattlePatternBlockMode? previousYellowBlockMode,
     required int Function(int max) nextInt,
   }) {
+    if (maxBlockingPoints <= 0) {
+      return const BattlePatternBlockPlan(
+        mode: BattlePatternBlockMode.pass,
+        points: <OperativePatternPoint>[],
+      );
+    }
+
     final mode = _modeFor(
       enemyTier: enemyTier,
       combatRound: combatRound,
@@ -48,16 +57,18 @@ abstract final class BattlePatternBlockPlanService {
       itemPointUseCounts: itemPointUseCounts,
       nextInt: nextInt,
     );
+    final cappedPointCount = max(0, maxBlockingPoints);
+    final cappedPoints = points.take(cappedPointCount).toList(growable: false);
 
     return BattlePatternBlockPlan(
       mode: mode,
-      points: points.isEmpty
+      points: cappedPoints.isEmpty
           ? _randomPoints(
               count: 1,
               excludedPointKeys: const <String>{},
               nextInt: nextInt,
             )
-          : points,
+          : List<OperativePatternPoint>.unmodifiable(cappedPoints),
     );
   }
 
@@ -142,6 +153,8 @@ abstract final class BattlePatternBlockPlanService {
     }
 
     switch (mode) {
+      case BattlePatternBlockMode.pass:
+        break;
       case BattlePatternBlockMode.randomOne:
         addRandomPoints(1);
         break;

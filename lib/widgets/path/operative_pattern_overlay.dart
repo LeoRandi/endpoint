@@ -1280,37 +1280,43 @@ class _OperativePatternBonusVisual extends StatelessWidget {
     final accent = bonus.accent;
     final enabledOpacity = isEnabled ? 1.0 : 0.36;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Image.asset(
-          bonus.iconAssetPath,
-          width: (size * 0.34).clamp(10.0, 15.0).toDouble(),
-          height: (size * 0.34).clamp(10.0, 15.0).toDouble(),
-          filterQuality: FilterQuality.none,
-          color: accent.withValues(
-            alpha: (isActive ? 1 : 0.9) * enabledOpacity,
-          ),
-        ),
-        SizedBox(width: max(1, size * 0.04)),
-        EndpointText(
-          '+${bonus.amount}',
-          style: textSmallNumericBold.copyWith(
-            color: accent.withValues(
-              alpha: (isActive ? 1.0 : 0.92) * enabledOpacity,
-            ),
-            fontSize: (size * 0.42).clamp(13.0, 18.0).toDouble(),
-            letterSpacing: 0.1,
-            shadows: [
-              Shadow(
-                color: accent.withValues(alpha: isEnabled ? 0.38 : 0.1),
-                blurRadius: isActive ? 12 : 7,
+    return SizedBox(
+      width: size,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              bonus.iconAssetPath,
+              width: (size * 0.34).clamp(10.0, 15.0).toDouble(),
+              height: (size * 0.34).clamp(10.0, 15.0).toDouble(),
+              filterQuality: FilterQuality.none,
+              color: accent.withValues(
+                alpha: (isActive ? 1 : 0.9) * enabledOpacity,
               ),
-            ],
-          ),
+            ),
+            SizedBox(width: max(1, size * 0.04)),
+            EndpointText(
+              '+${bonus.amount}',
+              style: textSmallNumericBold.copyWith(
+                color: accent.withValues(
+                  alpha: (isActive ? 1.0 : 0.92) * enabledOpacity,
+                ),
+                fontSize: (size * 0.42).clamp(13.0, 18.0).toDouble(),
+                letterSpacing: 0,
+                shadows: [
+                  Shadow(
+                    color: accent.withValues(alpha: isEnabled ? 0.38 : 0.1),
+                    blurRadius: isActive ? 12 : 7,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

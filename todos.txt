@@ -30,7 +30,7 @@
 [--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
 [--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
 [--Aplicar el efecto día/noche a diferentes objetos y habilidades][Tag CICLO]
---Efecto de animación para bosses
+[--Efecto de animación para bosses]
 
 -Combate
 [--Que intoxicación pase a través de la barrera]
@@ -40,11 +40,11 @@
 [--Mejorar UI de dibujo en combate]
 [--Añadir estados alterados]
 [--Mejorar la IA enemiga]
---Arreglar nombre de enemigo y datos visibles durante el combate
----Arreglar que se muevan tanto las barras de vida y barrera durante el combate
+[--Arreglar nombre de enemigo y datos visibles durante el combate]
+[---Arreglar que se muevan tanto las barras de vida y barrera durante el combate]
 [--Separar el scroll de equipamiento y de habilidades]
 [--Mejorar nivel de las CPU(activar habilidades, distintos intents)]
---Animaciones:
+[--Animaciones:]
 [---Mejorar animación de bloquear para que solo vaya hasta la mitad de la pantalla antes de volver]
 [---Añadir animaciones separadas para quemado e intoxicación, que ocurran antes de la de daño]
 

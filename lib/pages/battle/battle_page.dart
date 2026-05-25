@@ -164,6 +164,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   bool _isPresentingPatternMatch = false;
   Map<String, int> _patternItemPointUseCounts = const <String, int>{};
   BattlePatternBlockMode? _previousYellowPatternBlockMode;
+  int? _patternBlockingPointsForEnemyTurn;
+  int? _enemyBlockingPointsForPlayerTurn;
+  bool _enemyPatternOverchargedPreviousTurn = false;
+  bool _enemyHasConsideredFirstBlockBank = false;
   int _statusEffectBurstSequence = 0;
   int _floatingNumberBurstSequence = 0;
   int _fragilidadBurstSequence = 0;
@@ -447,6 +451,25 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.player)) {
       _sceneController.replacePlayer(patternLayout.player);
     }
+    final baseBlockingPoints = OperativePatternCombatRules.maxBlockingPointsFor(
+      _sceneController.player,
+    );
+    final availableBlockingPoints =
+        (_patternBlockingPointsForEnemyTurn ?? 0) + baseBlockingPoints;
+    final enemyBlockingPoints =
+        OperativePatternCombatRules.maxBlockingPointsFor(
+      _sceneController.enemy,
+    );
+    final availableEnemyBlockingPoints = max(
+      0,
+      (_enemyBlockingPointsForPlayerTurn ?? 0) +
+          enemyBlockingPoints -
+          (_enemyPatternOverchargedPreviousTurn ? 1 : 0),
+    );
+    final enemyBanksBlockingPoints = !_enemyHasConsideredFirstBlockBank &&
+        availableEnemyBlockingPoints > 0 &&
+        _sceneController.randomizer.nextInt(3) == 0;
+    _enemyHasConsideredFirstBlockBank = true;
     var didResolveTurn = false;
     final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
       context: context,
@@ -461,6 +484,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
           enemyTier: widget.enemyTier,
           combatRound: _sceneController.currentRound,
+          availableBlockingPoints: availableBlockingPoints,
+          enemyBlockingPoints: availableEnemyBlockingPoints,
+          enemyBanksBlockingPoints: enemyBanksBlockingPoints,
           actionEffects:
               _sceneController.playerActionIntentPreview.attackEffects,
           itemPointUseCounts: _patternItemPointUseCounts,
@@ -498,6 +524,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   void _recordPatternMatchResult(BattlePatternMatchResult result) {
     _previousYellowPatternBlockMode = result.blockMode;
+    _patternBlockingPointsForEnemyTurn = result.blockingPointsAvailable;
+    _enemyBlockingPointsForPlayerTurn = result.enemyBlockingPointsRemaining;
     if (result.activatedItemPointKeys.isEmpty) return;
 
     final updatedUseCounts = Map<String, int>.from(_patternItemPointUseCounts);
@@ -513,6 +541,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final patternLayout = OperativePatternLayoutService.resolveForPlayer(
       player: _sceneController.enemy,
     );
+    final enemyBlockingPoints =
+        OperativePatternCombatRules.maxBlockingPointsFor(
+      _sceneController.enemy,
+    );
+    final enemyOverchargesPattern =
+        enemyBlockingPoints > 0 && _sceneController.randomizer.nextInt(2) == 0;
     var didResolveTurn = false;
     final matchResult =
         await showEndpointOverlay<EnemyBattlePatternMatchResult>(
@@ -526,6 +560,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           player: _sceneController.player,
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          maxBlockingPoints: _patternBlockingPointsForEnemyTurn ?? 0,
+          enemyOverchargesPattern: enemyOverchargesPattern,
           combatRound: _sceneController.currentRound,
           randomNextInt: _sceneController.randomizer.nextInt,
           combatAnimationOverlay: _patternCombatAnimationOverlay,
@@ -549,6 +585,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
               ),
               patternContext: matchResult.patternContext,
             );
+            _patternBlockingPointsForEnemyTurn =
+                matchResult.blockingPointsRemaining;
+            _enemyPatternOverchargedPreviousTurn = enemyOverchargesPattern;
           },
         ),
       ),
