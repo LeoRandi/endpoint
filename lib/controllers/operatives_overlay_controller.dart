@@ -74,7 +74,7 @@ class OperativesOverlayController extends ChangeNotifier {
 
   /// Indica si la accion primaria del dialogo del jugador esta disponible.
   bool isActionEnabled(Item item) {
-    if (_player.equippedItems.contains(item)) return true;
+    if (_player.equippedItems.contains(item)) return _player.hasInventorySpace;
     if (_player.inventoryItems.contains(item)) {
       return _player.canEquipItem(item);
     }
@@ -85,6 +85,9 @@ class OperativesOverlayController extends ChangeNotifier {
   /// Explica la accion primaria disponible para un item del jugador.
   String enabledActionTooltipFor(Item item) {
     if (_player.equippedItems.contains(item)) {
+      if (!_player.hasInventorySpace) {
+        return 'Inventario lleno (${Battler.maxInventoryItems}/${Battler.maxInventoryItems})';
+      }
       return 'Quitar objeto del equipo activo';
     }
     final nextCost = _player.equippedItemCost + 1;
@@ -104,6 +107,7 @@ class OperativesOverlayController extends ChangeNotifier {
     bool canUnequip,
   ) {
     if (!canUnequip) return null;
+    if (!owner.hasInventorySpace) return null;
     if (owner.equippedItems.contains(item)) return 'Quitar';
     return null;
   }
@@ -114,7 +118,9 @@ class OperativesOverlayController extends ChangeNotifier {
     Item item,
     bool canUnequip,
   ) {
-    return canUnequip && owner.equippedItems.contains(item);
+    return canUnequip &&
+        owner.hasInventorySpace &&
+        owner.equippedItems.contains(item);
   }
 
   /// Alterna equipar o quitar un item del jugador y propaga el cambio al consumidor externo.

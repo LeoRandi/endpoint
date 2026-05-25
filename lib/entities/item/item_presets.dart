@@ -13,6 +13,7 @@ const _patternRightAngle = OperativePatternRequirement.rightAngle();
 const _patternStraightAngle = OperativePatternRequirement.straightAngle();
 const _patternSquare = OperativePatternRequirement.exactShape(
   labelOverride: 'Cuadrado',
+  shapeKind: OperativePatternShapeKind.square,
   shapePoints: <OperativePatternPoint>[
     OperativePatternPoint(x: -1, y: 1),
     OperativePatternPoint(x: 1, y: 1),
@@ -22,6 +23,7 @@ const _patternSquare = OperativePatternRequirement.exactShape(
 );
 const _patternDiamond = OperativePatternRequirement.exactShape(
   labelOverride: 'Diamante',
+  shapeKind: OperativePatternShapeKind.diamond,
   shapePoints: <OperativePatternPoint>[
     OperativePatternPoint(x: 0, y: 1),
     OperativePatternPoint(x: 1, y: 0),
@@ -31,6 +33,7 @@ const _patternDiamond = OperativePatternRequirement.exactShape(
 );
 const _patternHourglass = OperativePatternRequirement.exactShape(
   labelOverride: 'Reloj arena',
+  shapeKind: OperativePatternShapeKind.hourglass,
   shapePoints: <OperativePatternPoint>[
     OperativePatternPoint(x: -1, y: 1),
     OperativePatternPoint(x: 1, y: 1),
@@ -40,6 +43,7 @@ const _patternHourglass = OperativePatternRequirement.exactShape(
 );
 const _patternZigzag = OperativePatternRequirement.exactShape(
   labelOverride: 'Zigzag',
+  shapeKind: OperativePatternShapeKind.zigzag,
   shapePoints: <OperativePatternPoint>[
     OperativePatternPoint(x: -1, y: 1),
     OperativePatternPoint(x: 0, y: 0),

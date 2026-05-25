@@ -384,7 +384,7 @@ class _ItemArchetypeBadge extends StatelessWidget {
   }
 }
 
-class _ItemPatternBonusSection extends StatelessWidget {
+class _ItemPatternBonusSection extends StatefulWidget {
   final Item item;
 
   const _ItemPatternBonusSection({
@@ -392,131 +392,177 @@ class _ItemPatternBonusSection extends StatelessWidget {
   });
 
   @override
+  State<_ItemPatternBonusSection> createState() =>
+      _ItemPatternBonusSectionState();
+}
+
+class _ItemPatternBonusSectionState extends State<_ItemPatternBonusSection> {
+  bool _isMatrixExpanded = false;
+
+  void _toggleMatrix() {
+    setState(() {
+      _isMatrixExpanded = !_isMatrixExpanded;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     final bonus = item.patternBonus;
     final requirement = item.patternRequirement;
     final adjacencyBonuses = item.patternAdjacencyBonuses;
     final accent = _bonusAccent(bonus.kind);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.blend(
-          EndpointPalette.panelBackgroundGold,
-          accent,
-          0.08,
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _toggleMatrix,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.42),
-          width: 1.2,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                EndpointText(
-                  'PATRON BONUS',
-                  style: textSmallBold.copyWith(
-                    color: accent,
-                    fontSize: 10,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-                const Spacer(),
-                Image.asset(
-                  _bonusIconAssetPath(bonus.kind),
-                  width: 15,
-                  height: 15,
-                  filterQuality: FilterQuality.none,
-                  color: accent,
-                ),
-                const SizedBox(width: 4),
-                EndpointText(
-                  '+${bonus.amount}',
-                  style: textSmallNumericBold.copyWith(
-                    color: accent,
-                    fontSize: 12,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ],
+        child: Ink(
+          decoration: BoxDecoration(
+            color: EndpointPalette.blend(
+              EndpointPalette.panelBackgroundGold,
+              accent,
+              0.08,
             ),
-            const SizedBox(height: 6),
-            Row(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: accent.withValues(alpha: 0.42),
+              width: 1.2,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: EndpointPalette.panelBackgroundOpaque.withValues(
-                      alpha: 0.7,
-                    ),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: EndpointPalette.softForeground.withValues(
-                        alpha: 0.36,
-                      ),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 3,
-                    ),
-                    child: EndpointText(
-                      requirement.shortLabel,
+                Row(
+                  children: [
+                    EndpointText(
+                      'PATRON BONUS',
                       style: textSmallBold.copyWith(
-                        color: EndpointPalette.softForeground,
-                        fontSize: 9,
-                        letterSpacing: 0.6,
+                        color: accent,
+                        fontSize: 10,
+                        letterSpacing: 1.1,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: EndpointText(
-                    '${requirement.label}: ${requirement.description}',
-                    maxLines: null,
-                    style: textSmall.copyWith(
-                      color: EndpointPalette.softForeground.withValues(
-                        alpha: 0.78,
+                    const Spacer(),
+                    Image.asset(
+                      _bonusIconAssetPath(bonus.kind),
+                      width: 15,
+                      height: 15,
+                      filterQuality: FilterQuality.none,
+                      color: accent,
+                    ),
+                    const SizedBox(width: 4),
+                    EndpointText(
+                      '+${bonus.amount}',
+                      style: textSmallNumericBold.copyWith(
+                        color: accent,
+                        fontSize: 12,
+                        letterSpacing: 0.3,
                       ),
-                      fontSize: 11,
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _isMatrixExpanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      color: accent,
+                      size: 18,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: EndpointPalette.panelBackgroundOpaque.withValues(
+                          alpha: 0.7,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: EndpointPalette.softForeground.withValues(
+                            alpha: 0.36,
+                          ),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        child: EndpointText(
+                          requirement.shortLabel,
+                          style: textSmallBold.copyWith(
+                            color: EndpointPalette.softForeground,
+                            fontSize: 9,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: EndpointText(
+                        '${requirement.label}: ${requirement.description}',
+                        maxLines: null,
+                        style: textSmall.copyWith(
+                          color: EndpointPalette.softForeground.withValues(
+                            alpha: 0.78,
+                          ),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                AnimatedCrossFade(
+                  firstChild: const SizedBox(width: double.infinity),
+                  secondChild: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: _ItemPatternRequirementPreview(
+                      item: item,
+                      requirement: requirement,
+                      accent: EndpointPalette.patternAccent,
                     ),
                   ),
+                  crossFadeState: _isMatrixExpanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 180),
+                  sizeCurve: Curves.easeOutCubic,
                 ),
+                if (adjacencyBonuses.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  EndpointText(
+                    'ADYACENCIA',
+                    style: textSmallBold.copyWith(
+                      color: EndpointPalette.patternAccent,
+                      fontSize: 9,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Wrap(
+                    spacing: 5,
+                    runSpacing: 5,
+                    children: [
+                      for (final adjacencyBonus in adjacencyBonuses)
+                        _PatternAdjacencyBonusChip(
+                          adjacencyBonus: adjacencyBonus,
+                          accent: _bonusAccent(adjacencyBonus.bonus.kind),
+                          iconAssetPath:
+                              _bonusIconAssetPath(adjacencyBonus.bonus.kind),
+                        ),
+                    ],
+                  ),
+                ],
               ],
             ),
-            if (adjacencyBonuses.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              EndpointText(
-                'ADYACENCIA',
-                style: textSmallBold.copyWith(
-                  color: EndpointPalette.patternAccent,
-                  fontSize: 9,
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Wrap(
-                spacing: 5,
-                runSpacing: 5,
-                children: [
-                  for (final adjacencyBonus in adjacencyBonuses)
-                    _PatternAdjacencyBonusChip(
-                      adjacencyBonus: adjacencyBonus,
-                      accent: _bonusAccent(adjacencyBonus.bonus.kind),
-                      iconAssetPath:
-                          _bonusIconAssetPath(adjacencyBonus.bonus.kind),
-                    ),
-                ],
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
@@ -535,6 +581,453 @@ class _ItemPatternBonusSection extends StatelessWidget {
       OperativePatternBonusKind.barrier =>
         'assets/images/icons/icon_shield.png',
     };
+  }
+}
+
+class _ItemPatternRequirementPreview extends StatefulWidget {
+  final Item item;
+  final OperativePatternRequirement requirement;
+  final Color accent;
+
+  const _ItemPatternRequirementPreview({
+    required this.item,
+    required this.requirement,
+    required this.accent,
+  });
+
+  @override
+  State<_ItemPatternRequirementPreview> createState() =>
+      _ItemPatternRequirementPreviewState();
+}
+
+class _ItemPatternRequirementPreviewState
+    extends State<_ItemPatternRequirementPreview> {
+  static const _pointStepDuration = Duration(milliseconds: 260);
+  static const _completedHoldDuration = Duration(seconds: 2);
+  static const _clearedHoldDuration = Duration(milliseconds: 180);
+
+  Timer? _timer;
+  int _visiblePointCount = 0;
+  int _variantIndex = 0;
+
+  List<_PatternPreviewVariant> get _variants =>
+      _PatternPreviewVariant.buildFor(widget.requirement);
+
+  _PatternPreviewVariant get _activeVariant {
+    final variants = _variants;
+    return variants[_variantIndex % variants.length];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleNextStep(_clearedHoldDuration);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ItemPatternRequirementPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.requirement == widget.requirement &&
+        oldWidget.accent == widget.accent) {
+      return;
+    }
+
+    _timer?.cancel();
+    _visiblePointCount = 0;
+    _variantIndex = 0;
+    _scheduleNextStep(_clearedHoldDuration);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _scheduleNextStep(Duration delay) {
+    _timer?.cancel();
+    _timer = Timer(delay, _advanceAnimation);
+  }
+
+  void _advanceAnimation() {
+    if (!mounted) return;
+
+    final path = _activeVariant.path;
+    if (path.isEmpty) return;
+
+    if (_visiblePointCount >= path.length) {
+      setState(() {
+        _visiblePointCount = 0;
+        _variantIndex = (_variantIndex + 1) % _variants.length;
+      });
+      _scheduleNextStep(_clearedHoldDuration);
+      return;
+    }
+
+    setState(() {
+      _visiblePointCount++;
+    });
+    _scheduleNextStep(
+      _visiblePointCount >= path.length
+          ? _completedHoldDuration
+          : _pointStepDuration,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final variant = _activeVariant;
+    final path = variant.path;
+    if (path.isEmpty) return const SizedBox.shrink();
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: _PatternRequirementMiniMatrix(
+        item: widget.item,
+        itemPoint: variant.itemPoint,
+        visiblePath: path.take(_visiblePointCount).toList(growable: false),
+        accent: widget.accent,
+      ),
+    );
+  }
+}
+
+class _PatternPreviewVariant {
+  final List<OperativePatternPoint> path;
+  final OperativePatternPoint itemPoint;
+
+  const _PatternPreviewVariant({
+    required this.path,
+    required this.itemPoint,
+  });
+
+  static List<_PatternPreviewVariant> buildFor(
+    OperativePatternRequirement requirement,
+  ) {
+    return switch (requirement.kind) {
+      OperativePatternRequirementKind.firstPoint => [
+          _variant([
+            const OperativePatternPoint(x: -1, y: 0),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: 0),
+          ], const OperativePatternPoint(x: -1, y: 0)),
+          _variant([
+            const OperativePatternPoint(x: 0, y: 1),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 0, y: -1),
+          ], const OperativePatternPoint(x: 0, y: 1)),
+        ],
+      OperativePatternRequirementKind.middlePoint => [
+          _variant([
+            const OperativePatternPoint(x: -1, y: 0),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: 0),
+          ], const OperativePatternPoint(x: 0, y: 0)),
+          _variant([
+            const OperativePatternPoint(x: -1, y: 1),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: -1),
+          ], const OperativePatternPoint(x: 0, y: 0)),
+        ],
+      OperativePatternRequirementKind.lastPoint => [
+          _variant([
+            const OperativePatternPoint(x: -1, y: 0),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: 0),
+          ], const OperativePatternPoint(x: 1, y: 0)),
+          _variant([
+            const OperativePatternPoint(x: 0, y: 1),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 0, y: -1),
+          ], const OperativePatternPoint(x: 0, y: -1)),
+        ],
+      OperativePatternRequirementKind.rightAngle => [
+          _variant([
+            const OperativePatternPoint(x: -1, y: 0),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 0, y: 1),
+          ], const OperativePatternPoint(x: 0, y: 0)),
+          _variant([
+            const OperativePatternPoint(x: 0, y: -1),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: 0),
+          ], const OperativePatternPoint(x: 0, y: 0)),
+        ],
+      OperativePatternRequirementKind.straightAngle => [
+          _variant([
+            const OperativePatternPoint(x: -1, y: 0),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: 0),
+          ], const OperativePatternPoint(x: 0, y: 0)),
+          _variant([
+            const OperativePatternPoint(x: -1, y: -1),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: 1),
+          ], const OperativePatternPoint(x: 0, y: 0)),
+        ],
+      OperativePatternRequirementKind.exactShape =>
+        _exactShapeVariants(requirement),
+    };
+  }
+
+  static List<_PatternPreviewVariant> _exactShapeVariants(
+    OperativePatternRequirement requirement,
+  ) {
+    return switch (requirement.shapeKind) {
+      OperativePatternShapeKind.square => [
+          _closedVariant([
+            const OperativePatternPoint(x: -1, y: 1),
+            const OperativePatternPoint(x: 1, y: 1),
+            const OperativePatternPoint(x: 1, y: -1),
+            const OperativePatternPoint(x: -1, y: -1),
+          ]),
+          _closedVariant([
+            const OperativePatternPoint(x: 0, y: 1),
+            const OperativePatternPoint(x: 1, y: 0),
+            const OperativePatternPoint(x: 0, y: -1),
+            const OperativePatternPoint(x: -1, y: 0),
+          ]),
+        ],
+      OperativePatternShapeKind.diamond => [
+          _closedVariant([
+            const OperativePatternPoint(x: 0, y: 1),
+            const OperativePatternPoint(x: 1, y: 0),
+            const OperativePatternPoint(x: 0, y: -1),
+            const OperativePatternPoint(x: -1, y: 0),
+          ]),
+          _closedVariant([
+            const OperativePatternPoint(x: -1, y: 1),
+            const OperativePatternPoint(x: 1, y: 1),
+            const OperativePatternPoint(x: 1, y: -1),
+            const OperativePatternPoint(x: -1, y: -1),
+          ]),
+        ],
+      OperativePatternShapeKind.hourglass => [
+          _closedVariant([
+            const OperativePatternPoint(x: -1, y: 1),
+            const OperativePatternPoint(x: 1, y: 1),
+            const OperativePatternPoint(x: -1, y: -1),
+            const OperativePatternPoint(x: 1, y: -1),
+          ]),
+          _closedVariant([
+            const OperativePatternPoint(x: -1, y: -1),
+            const OperativePatternPoint(x: -1, y: 1),
+            const OperativePatternPoint(x: 1, y: -1),
+            const OperativePatternPoint(x: 1, y: 1),
+          ]),
+        ],
+      OperativePatternShapeKind.zigzag || OperativePatternShapeKind.literal => [
+          _closedVariant(requirement.shapePoints),
+          _closedVariant(_mirrorHorizontally(requirement.shapePoints)),
+        ],
+    };
+  }
+
+  static _PatternPreviewVariant _closedVariant(
+    List<OperativePatternPoint> points,
+  ) {
+    if (points.isEmpty) {
+      return const _PatternPreviewVariant(
+        path: <OperativePatternPoint>[],
+        itemPoint: OperativePatternPoint(x: 0, y: 0),
+      );
+    }
+
+    return _PatternPreviewVariant(
+      path: List<OperativePatternPoint>.unmodifiable([
+        ...points,
+        points.first,
+      ]),
+      itemPoint: points.first,
+    );
+  }
+
+  static _PatternPreviewVariant _variant(
+    List<OperativePatternPoint> points,
+    OperativePatternPoint itemPoint,
+  ) {
+    return _PatternPreviewVariant(
+      path: List<OperativePatternPoint>.unmodifiable(points),
+      itemPoint: itemPoint,
+    );
+  }
+
+  static List<OperativePatternPoint> _mirrorHorizontally(
+    List<OperativePatternPoint> points,
+  ) {
+    return List<OperativePatternPoint>.unmodifiable([
+      for (final point in points)
+        OperativePatternPoint(x: -point.x, y: point.y),
+    ]);
+  }
+}
+
+class _PatternRequirementMiniMatrix extends StatelessWidget {
+  final Item item;
+  final OperativePatternPoint itemPoint;
+  final List<OperativePatternPoint> visiblePath;
+  final Color accent;
+
+  const _PatternRequirementMiniMatrix({
+    required this.item,
+    required this.itemPoint,
+    required this.visiblePath,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const matrixSize = 100.0;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.34),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(7, 7, 7, 7),
+        child: SizedBox(
+          width: matrixSize,
+          height: matrixSize,
+          child: CustomPaint(
+            painter: _PatternRequirementMiniMatrixPainter(
+              item: item,
+              itemPoint: itemPoint,
+              visiblePath: visiblePath,
+              accent: accent,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PatternRequirementMiniMatrixPainter extends CustomPainter {
+  final Item item;
+  final OperativePatternPoint itemPoint;
+  final List<OperativePatternPoint> visiblePath;
+  final Color accent;
+
+  const _PatternRequirementMiniMatrixPainter({
+    required this.item,
+    required this.itemPoint,
+    required this.visiblePath,
+    required this.accent,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const points = operativePatternPoints;
+    final visibleKeys = visiblePath.map((point) => point.key).toSet();
+
+    final lineOffsets = visiblePath.map((point) {
+      return _centerFor(point, size);
+    }).toList(growable: false);
+    _drawPath(canvas, lineOffsets);
+
+    for (final point in points) {
+      final center = _centerFor(point, size);
+      final isVisible = visibleKeys.contains(point.key);
+      final isItemPoint = point == itemPoint;
+      final ringPaint = Paint()
+        ..color = isVisible
+            ? (isItemPoint ? item.rarity.accent : accent).withValues(alpha: 0.9)
+            : EndpointPalette.softForeground.withValues(alpha: 0.28)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = isItemPoint
+            ? 2.1
+            : isVisible
+                ? 1.8
+                : 1.1;
+      final fillPaint = Paint()
+        ..color = isItemPoint
+            ? item.rarity.accent.withValues(alpha: isVisible ? 0.32 : 0.18)
+            : isVisible
+                ? accent.withValues(alpha: 0.24)
+                : Colors.black.withValues(alpha: 0.22)
+        ..style = PaintingStyle.fill;
+
+      canvas.drawCircle(center, isItemPoint ? 7.2 : 5.8, fillPaint);
+      canvas.drawCircle(center, isItemPoint ? 7.2 : 5.8, ringPaint);
+      if (isItemPoint) {
+        _drawItemGlyph(canvas, center);
+      } else if (isVisible) {
+        canvas.drawCircle(
+          center,
+          2.2,
+          Paint()
+            ..color = EndpointPalette.softForeground.withValues(alpha: 0.82),
+        );
+      }
+    }
+  }
+
+  void _drawItemGlyph(Canvas canvas, Offset center) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: item.iconEmoji,
+        style: const TextStyle(
+          fontSize: 10,
+          height: 1,
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout();
+    textPainter.paint(
+      canvas,
+      center - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
+  }
+
+  void _drawPath(Canvas canvas, List<Offset> points) {
+    if (points.length < 2) return;
+
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      path.lineTo(point.dx, point.dy);
+    }
+
+    final glowPaint = Paint()
+      ..color = accent.withValues(alpha: 0.24)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final corePaint = Paint()
+      ..color = EndpointPalette.softForeground.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(path, glowPaint);
+    canvas.drawPath(path, corePaint);
+  }
+
+  Offset _centerFor(OperativePatternPoint point, Size size) {
+    final usableWidth = max(1.0, size.width - 16);
+    final usableHeight = max(1.0, size.height - 16);
+    final column = point.x + 1;
+    final row = 1 - point.y;
+    final x = 8 + (column / 2) * usableWidth;
+    final y = 8 + (row / 2) * usableHeight;
+    return Offset(x, y);
+  }
+
+  @override
+  bool shouldRepaint(
+    covariant _PatternRequirementMiniMatrixPainter oldDelegate,
+  ) {
+    return oldDelegate.item != item ||
+        oldDelegate.itemPoint != itemPoint ||
+        oldDelegate.visiblePath != visiblePath ||
+        oldDelegate.accent != accent;
   }
 }
 

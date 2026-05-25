@@ -480,6 +480,8 @@ Map<String, Object?> _serializeItem(Item item) {
     'combatGeneratedPatternBonus': item.combatGeneratedPatternBonus,
     'patternRequirementKind':
         item.hasPatternBonus ? item.patternRequirement.kind.name : null,
+    'patternRequirementShapeKind':
+        item.hasPatternBonus ? item.patternRequirement.shapeKind.name : null,
     'patternRequirementLabel':
         item.hasPatternBonus ? item.patternRequirement.label : null,
     'patternRequirementShortLabel':
@@ -540,11 +542,31 @@ OperativePatternRequirement? _deserializePatternRequirement(
 
       return OperativePatternRequirement.exactShape(
         shapePoints: shapePoints,
+        shapeKind: EndpointJsonUtils.parseEnumByName(
+              OperativePatternShapeKind.values,
+              json['patternRequirementShapeKind'],
+            ) ??
+            _inferPatternShapeKindFromLabel(
+              EndpointJsonUtils.readNullableString(
+                json['patternRequirementLabel'],
+              ),
+            ),
         labelOverride: EndpointJsonUtils.readNullableString(
           json['patternRequirementLabel'],
         ),
       );
   }
+}
+
+OperativePatternShapeKind _inferPatternShapeKindFromLabel(String? label) {
+  final normalized = label?.toLowerCase().replaceAll(' ', '') ?? '';
+  if (normalized.contains('cuadrado')) return OperativePatternShapeKind.square;
+  if (normalized.contains('diamante')) return OperativePatternShapeKind.diamond;
+  if (normalized.contains('relojarena')) {
+    return OperativePatternShapeKind.hourglass;
+  }
+  if (normalized.contains('zigzag')) return OperativePatternShapeKind.zigzag;
+  return OperativePatternShapeKind.literal;
 }
 
 List<OperativePatternPoint> _deserializePatternPointList(Object? rawValue) {

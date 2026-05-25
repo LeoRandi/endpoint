@@ -19,6 +19,7 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final bool showBudgetBadge;
+  final bool showPatternBadges;
 
   const EndpointEquipmentSlotsStrip({
     super.key,
@@ -33,6 +34,7 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
     this.backgroundColor = EndpointPalette.controlBackground,
     this.textColor = EndpointPalette.softForeground,
     this.showBudgetBadge = true,
+    this.showPatternBadges = false,
   });
 
   @override
@@ -91,6 +93,7 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
         borderColor: borderColor,
         backgroundColor: backgroundColor,
         textColor: textColor,
+        showPatternBadges: showPatternBadges,
         onPressed:
             onItemPressed == null ? null : () => onItemPressed!.call(item),
       ),
@@ -113,7 +116,7 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
             'Sin equipo',
             textAlign: TextAlign.center,
             style: textSmallBold.copyWith(
-              color: textColor.withOpacity(0.72),
+              color: textColor.withValues(alpha: 0.72),
               letterSpacing: 0.6,
             ),
           ),
@@ -170,6 +173,7 @@ class _EndpointEquippedItemCard extends StatelessWidget {
   final Color borderColor;
   final Color backgroundColor;
   final Color textColor;
+  final bool showPatternBadges;
   final VoidCallback? onPressed;
 
   const _EndpointEquippedItemCard({
@@ -178,6 +182,7 @@ class _EndpointEquippedItemCard extends StatelessWidget {
     required this.borderColor,
     required this.backgroundColor,
     required this.textColor,
+    required this.showPatternBadges,
     this.onPressed,
   });
 
@@ -189,7 +194,7 @@ class _EndpointEquippedItemCard extends StatelessWidget {
       border: Border.all(color: borderColor),
       boxShadow: [
         BoxShadow(
-          color: borderColor.withOpacity(0.12),
+          color: borderColor.withValues(alpha: 0.12),
           blurRadius: 8,
         ),
       ],
@@ -221,6 +226,10 @@ class _EndpointEquippedItemCard extends StatelessWidget {
               letterSpacing: 0.4,
             ),
           ),
+          if (showPatternBadges) ...[
+            const SizedBox(height: 4),
+            EndpointItemPatternBadges(item: item),
+          ],
         ],
       ),
     );

@@ -300,6 +300,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     final tile = EndpointInventoryItemTile(
       item: item,
       onPressed: () => _openItemDetails(item),
+      showPatternBadges: true,
     );
 
     if (widget.gameMode != EndpointGameMode.pattern ||
@@ -320,6 +321,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
           child: EndpointInventoryItemTile(
             item: item,
             glowOpacity: 0.14,
+            showPatternBadges: true,
           ),
         ),
       ),
@@ -510,7 +512,7 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                               ),
                               const Spacer(),
                               EndpointText(
-                                '${player.inventoryItems.length}',
+                                '${player.inventoryItems.length}/${Battler.maxInventoryItems}',
                                 style: textSmallBold.copyWith(
                                   color: Colors.white.withValues(alpha: 0.76),
                                 ),
@@ -1051,37 +1053,53 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasPatternBonus = item.hasPatternBonus;
+    final requirement = hasPatternBonus ? item.patternRequirement : null;
     final content = SizedBox.square(
       dimension: _operativesPatternPointHitSize,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: EndpointPalette.blend(
-            EndpointPalette.panelBackground,
-            item.rarity.accent,
-            0.16,
-          ),
-          border: Border.all(
-            color: item.rarity.accent.withValues(alpha: 0.9),
-            width: 1.8,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: item.rarity.accent.withValues(alpha: 0.2),
-              blurRadius: 14,
-              spreadRadius: 1,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: EndpointPalette.blend(
+                  EndpointPalette.panelBackground,
+                  item.rarity.accent,
+                  0.16,
+                ),
+                border: Border.all(
+                  color: item.rarity.accent.withValues(alpha: 0.9),
+                  width: 1.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: item.rarity.accent.withValues(alpha: 0.2),
+                    blurRadius: 14,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-        child: Center(
-          child: EndpointText(
+          ),
+          EndpointText(
             item.iconEmoji,
             style: const TextStyle(
               fontSize: 20,
               height: 1,
             ),
           ),
-        ),
+          if (requirement != null)
+            Positioned(
+              right: 3,
+              top: 3,
+              child: _PatternEquipmentRequirementBadge(
+                requirement: requirement,
+              ),
+            ),
+        ],
       ),
     );
 
@@ -1098,6 +1116,43 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
                 child: content,
               ),
             ),
+    );
+  }
+}
+
+class _PatternEquipmentRequirementBadge extends StatelessWidget {
+  final OperativePatternRequirement requirement;
+
+  const _PatternEquipmentRequirementBadge({
+    required this.requirement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: 20,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.86),
+          border: Border.all(
+            color: EndpointPalette.softForeground.withValues(alpha: 0.68),
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: EndpointText(
+            requirement.shortLabel,
+            maxLines: 1,
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.softForeground,
+              fontSize: 8.5,
+              letterSpacing: 0,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1247,6 +1302,7 @@ class _EquipmentRow extends StatelessWidget {
                 battler: battler,
                 layout: EndpointEquipmentLayout.standard,
                 showBudgetBadge: false,
+                showPatternBadges: true,
                 onItemPressed: onItemPressed,
               ),
             ),

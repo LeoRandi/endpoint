@@ -52,7 +52,9 @@ class WeaponShopController extends ChangeNotifier {
   int get rerollCost => 1 + shopRarity.factor;
 
   bool canBuy(Item item) =>
-      _stock.contains(item) && _player.canAfford(purchasePriceFor(item));
+      _stock.contains(item) &&
+      _player.canAfford(purchasePriceFor(item)) &&
+      _player.canReceiveItem(item);
 
   bool get canRerollStock {
     if (rerollsRemaining <= 0 || !_player.canAfford(rerollCost)) {
@@ -77,6 +79,7 @@ class WeaponShopController extends ChangeNotifier {
 
   String stockStatusLabelFor(Item item) {
     if (!_stock.contains(item)) return 'Agotado';
+    if (!_player.canReceiveItem(item)) return 'Inventario lleno';
     if (canBuy(item)) return 'Disponible';
     final missingMoney = max(0, purchasePriceFor(item) - _player.money);
     return 'Te faltan ${missingMoney}C';
@@ -92,6 +95,9 @@ class WeaponShopController extends ChangeNotifier {
 
   String stockPrimaryActionTooltipFor(Item item) {
     final price = purchasePriceFor(item);
+    if (!_player.canReceiveItem(item)) {
+      return 'Inventario lleno (${Battler.maxInventoryItems}/${Battler.maxInventoryItems})';
+    }
     if (willUpgradeItem(item)) {
       return 'Mejorar objeto por $price creditos';
     }
@@ -149,7 +155,8 @@ class WeaponShopController extends ChangeNotifier {
     return _player.canEquipItem(item);
   }
 
-  bool canUnequip(Item item) => _player.equippedItems.contains(item);
+  bool canUnequip(Item item) =>
+      _player.equippedItems.contains(item) && _player.hasInventorySpace;
 
   String inventorySecondaryActionTooltipFor(Item item) {
     final blockReason = _player.equipItemBlockReason(item);
@@ -167,6 +174,9 @@ class WeaponShopController extends ChangeNotifier {
     }
     if (!_player.equippedItems.contains(item)) {
       return 'El objeto ya no esta equipado';
+    }
+    if (!_player.hasInventorySpace) {
+      return 'Inventario lleno (${Battler.maxInventoryItems}/${Battler.maxInventoryItems})';
     }
 
     return 'Quitar objeto del equipo activo';

@@ -444,6 +444,7 @@ class _BattlerDerivedState {
 /// Representa el estado completo de un combatiente, incluyendo economia, equipo y hooks runtime.
 class Battler {
   static const defaultEquipmentCapacity = 3;
+  static const maxInventoryItems = 10;
 
   /// Marca el nivel operativo inicial que tiene cualquier battler controlado por la run.
   static const initialLevel = 1;
@@ -653,7 +654,7 @@ class Battler {
       statuses ?? this.statuses,
     );
     final resolvedInventoryItems = List<Item>.unmodifiable(
-      inventoryItems ?? this.inventoryItems,
+      (inventoryItems ?? this.inventoryItems).take(maxInventoryItems),
     );
     final resolvedEquippedItems = List<Item>.unmodifiable(
       equippedItems ?? this.equippedItems,

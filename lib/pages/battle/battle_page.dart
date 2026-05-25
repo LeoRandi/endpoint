@@ -260,6 +260,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       return request.exitResult.player;
     }
 
+    final settings = await _ensureSettingsSnapshot();
+    if (!mounted) return request.exitResult.player;
+
     return showEndpointOverlay<Battler>(
       context: context,
       barrierDismissible: false,
@@ -270,6 +273,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         lootAbility: request.rewards.lootAbility,
         moneyReward: request.rewards.moneyReward,
         enemyName: _sceneController.enemy.name,
+        gameMode: settings.gameMode,
       ),
     );
   }
@@ -312,6 +316,33 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   bool get _isPatternMode =>
       _settingsSnapshot?.gameMode == EndpointGameMode.pattern;
+
+  bool get _canOpenPreviewOperatives {
+    return _sceneController.currentRound == 1 &&
+        _sceneController.turn == BattleTurnState.player &&
+        _sceneController.canUseActions &&
+        !_sceneController.hasPendingVictoryRewards &&
+        !_isPlayingBattleAnimation &&
+        !_isPresentingPatternMatch;
+  }
+
+  Future<void> _handleOpenPreviewOperatives() async {
+    if (!_canOpenPreviewOperatives) return;
+
+    final settings = await _ensureSettingsSnapshot();
+    if (!mounted || !_canOpenPreviewOperatives) return;
+
+    await showEndpointOverlay<void>(
+      context: context,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      builder: (_) => OperativesOverlay(
+        player: _sceneController.player,
+        gameMode: settings.gameMode,
+        onPlayerChanged: _sceneController.replacePlayer,
+      ),
+    );
+  }
+
   void _handlePlayerAttack() {
     unawaited(_handlePlayerAttackFlow());
   }
@@ -1413,6 +1444,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       animatedBarrierSides: _animatedBarrierSides,
       onAttack: _handlePlayerAttack,
       onBlock: _handlePlayerBlock,
+      canOpenPreviewOperatives: _canOpenPreviewOperatives,
+      onOpenPreviewOperatives: _handleOpenPreviewOperatives,
       onAdvancePressed: _handleOpenPendingRewards,
       onOpenPlayerItemDetails: (item) {
         return _handleOpenEquippedItemDetails(

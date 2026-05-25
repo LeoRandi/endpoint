@@ -40,6 +40,13 @@ extension BattlerItemManagement on Battler {
   /// Indica si el objeto cabe dentro de la capacidad de equipo disponible.
   bool canEquipItem(Item item) => equipItemBlockReason(item) == null;
 
+  /// Indica si el inventario todavia admite un objeto nuevo.
+  bool get hasInventorySpace =>
+      inventoryItems.length < Battler.maxInventoryItems;
+
+  /// Indica si recibir este item entraria en inventario o mejoraria una copia existente.
+  bool canReceiveItem(Item item) => wouldUpgradeItem(item) || hasInventorySpace;
+
   /// Devuelve solo los items equipados que declararon el hook pedido en su efecto.
   List<Item> equippedItemsForHook(ItemEffectHook hook) {
     return _derivedState.equippedItemsByHook[hook] ?? const <Item>[];
@@ -69,6 +76,8 @@ extension BattlerItemManagement on Battler {
         inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
       );
     }
+
+    if (!hasInventorySpace) return this;
 
     return copyWith(
       inventoryItems: List<Item>.unmodifiable([
@@ -170,6 +179,7 @@ extension BattlerItemManagement on Battler {
   /// Devuelve un item equipado al inventario sin alterar el resto del equipo.
   Battler unequipItem(Item item) {
     if (!equippedItems.contains(item)) return this;
+    if (!hasInventorySpace) return this;
 
     final updatedEquippedItems = List<Item>.from(equippedItems)..remove(item);
     final updatedInventoryItems = List<Item>.from(inventoryItems)..add(item);

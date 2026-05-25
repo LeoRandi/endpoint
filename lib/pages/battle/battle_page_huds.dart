@@ -51,6 +51,8 @@ class _PlayerBattleHud extends StatelessWidget {
   final bool isPatternMode;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
+  final bool canOpenPreviewOperatives;
+  final Future<void> Function() onOpenPreviewOperatives;
   final PlayerActionIntentPreview actionPreview;
   final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
   final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
@@ -66,6 +68,8 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.isPatternMode,
     required this.onAttack,
     required this.onBlock,
+    required this.canOpenPreviewOperatives,
+    required this.onOpenPreviewOperatives,
     required this.actionPreview,
     required this.onOpenEquippedItemDetails,
     required this.onOpenAbilityDetails,
@@ -117,6 +121,12 @@ class _PlayerBattleHud extends StatelessWidget {
                 actionPreview: actionPreview,
               ),
             ),
+            if (canOpenPreviewOperatives) ...[
+              const SizedBox(width: 8),
+              _PreviewOperativesButton(
+                onPressed: () => unawaited(onOpenPreviewOperatives()),
+              ),
+            ],
             const SizedBox(width: 8),
             _BattleSpriteDock(
               emoji: player.iconEmoji,
@@ -126,6 +136,41 @@ class _PlayerBattleHud extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _PreviewOperativesButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _PreviewOperativesButton({
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return EndpointActionButton(
+      label: 'Equipo',
+      icon: Icons.inventory_2_outlined,
+      onPressed: onPressed,
+      tooltip: 'Abrir inventario y equipo',
+      height: 72,
+      useMarquee: false,
+      labelMaxLines: 1,
+      iconSize: 20,
+      iconSpacing: 6,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      textStyle: textSmallBold.copyWith(
+        color: EndpointPalette.softForeground,
+        fontSize: 12,
+        letterSpacing: 0.8,
+        height: 1,
+      ),
+      backgroundColor: EndpointPalette.closeButtonBackground,
+      foregroundColor: EndpointPalette.softForeground,
+      accent: EndpointPalette.primaryAccent,
     );
   }
 }

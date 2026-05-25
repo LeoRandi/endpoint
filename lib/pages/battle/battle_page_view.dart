@@ -50,6 +50,8 @@ class _BattleSceneView extends StatelessWidget {
   final Set<BattleCombatantSide> animatedBarrierSides;
   final VoidCallback onAttack;
   final VoidCallback onBlock;
+  final bool canOpenPreviewOperatives;
+  final Future<void> Function() onOpenPreviewOperatives;
   final Future<void> Function() onAdvancePressed;
   final _OpenBattleItemDetailsCallback onOpenPlayerItemDetails;
   final _OpenBattleItemDetailsCallback onOpenEnemyItemDetails;
@@ -80,6 +82,8 @@ class _BattleSceneView extends StatelessWidget {
     required this.animatedBarrierSides,
     required this.onAttack,
     required this.onBlock,
+    required this.canOpenPreviewOperatives,
+    required this.onOpenPreviewOperatives,
     required this.onAdvancePressed,
     required this.onOpenPlayerItemDetails,
     required this.onOpenEnemyItemDetails,
@@ -218,6 +222,10 @@ class _BattleSceneView extends StatelessWidget {
                                   isPatternMode: isPatternMode,
                                   onAttack: onAttack,
                                   onBlock: onBlock,
+                                  canOpenPreviewOperatives:
+                                      canOpenPreviewOperatives,
+                                  onOpenPreviewOperatives:
+                                      onOpenPreviewOperatives,
                                   actionPreview:
                                       sceneController.playerActionIntentPreview,
                                   onOpenEquippedItemDetails:

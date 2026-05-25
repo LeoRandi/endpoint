@@ -1,4 +1,5 @@
 import '../_imports.dart';
+import '../../services/endpoint_preferences_models.dart';
 
 const _rewardActionHeight = 56.0;
 
@@ -8,12 +9,14 @@ class BattleLootOverlay extends StatefulWidget {
   final BattlerAbility? lootAbility;
   final int moneyReward;
   final String enemyName;
+  final EndpointGameMode gameMode;
 
   const BattleLootOverlay({
     super.key,
     required this.player,
     required this.moneyReward,
     required this.enemyName,
+    this.gameMode = EndpointGameMode.pattern,
     this.lootItem,
     this.lootAbility,
   });
@@ -33,11 +36,20 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   bool get _hasPendingMoney => widget.moneyReward > 0 && !_isMoneyCollected;
   bool get _hasPendingRewards => _hasPendingLoot || _hasPendingMoney;
   bool get _lootWillUpgradeItem =>
-      widget.lootItem != null &&
-      widget.player.wouldUpgradeItem(widget.lootItem!);
+      widget.lootItem != null && _player.wouldUpgradeItem(widget.lootItem!);
   bool get _lootWillUpgradeAbility =>
       widget.lootAbility != null &&
-      widget.player.wouldUpgradeAbility(widget.lootAbility!);
+      _player.wouldUpgradeAbility(widget.lootAbility!);
+  bool get _canCollectLoot {
+    final lootItem = widget.lootItem;
+    return lootItem == null || _player.canReceiveItem(lootItem);
+  }
+
+  String? get _blockedLootReason {
+    final lootItem = widget.lootItem;
+    if (lootItem == null || _canCollectLoot) return null;
+    return 'Inventario lleno (${Battler.maxInventoryItems}/${Battler.maxInventoryItems})';
+  }
 
   @override
   void initState() {
@@ -172,7 +184,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   }
 
   void _collectLoot() {
-    if (!_hasPendingLoot) return;
+    if (!_hasPendingLoot || !_canCollectLoot) return;
 
     setState(() {
       _player = _applyLoot(_player);
@@ -190,6 +202,8 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   }
 
   void _collectAll() {
+    if (_hasPendingLoot && !_canCollectLoot) return;
+
     var updatedPlayer = _player;
 
     if (_hasPendingLoot) {
@@ -200,6 +214,22 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     }
 
     Navigator.of(context).pop(updatedPlayer);
+  }
+
+  Future<void> _openOperatives() async {
+    await showEndpointOverlay<void>(
+      context: context,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      builder: (_) => OperativesOverlay(
+        player: _player,
+        gameMode: widget.gameMode,
+        onPlayerChanged: (updatedPlayer) {
+          setState(() {
+            _player = updatedPlayer;
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -255,6 +285,24 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                       ),
                     ),
                     const SizedBox(width: 12),
+                    EndpointActionButton(
+                      label: 'Equipo',
+                      icon: Icons.inventory_2_outlined,
+                      onPressed: () => unawaited(_openOperatives()),
+                      tooltip: 'Abrir inventario y equipo',
+                      accent: EndpointPalette.primaryAccent,
+                      backgroundColor: EndpointPalette.closeButtonBackground,
+                      foregroundColor: EndpointPalette.softForeground,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      textStyle: textSmallBold.copyWith(
+                        fontSize: 12,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     EndpointSceneCloseButton(
                       onPressed: _handleClosePressed,
                       tooltip: 'Cerrar recompensas',
@@ -291,12 +339,13 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           isCollected: _isLootCollected,
                           collectedLabel:
                               _lootWillUpgradeItem ? 'MEJORADO' : 'RECOGIDO',
-                          pendingLabel:
-                              _lootWillUpgradeItem ? 'MEJORAR' : 'RECLAMAR',
+                          pendingLabel: _blockedLootReason ??
+                              (_lootWillUpgradeItem ? 'MEJORAR' : 'RECLAMAR'),
                           showUpgradeIndicator: _lootWillUpgradeItem,
                           upgradeIndicatorColor:
                               endpointUpgradeIndicatorNeonYellow,
                           onPressed: _collectLoot,
+                          isEnabled: _canCollectLoot,
                         ),
                       if (widget.lootItem != null && widget.lootAbility != null)
                         const SizedBox(height: 12),
@@ -341,7 +390,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                   child: EndpointActionButton(
                     label: 'Saquear todo',
                     icon: Icons.download_rounded,
-                    onPressed: _collectAll,
+                    onPressed: _hasPendingLoot && !_canCollectLoot
+                        ? null
+                        : _collectAll,
                     tooltip: 'Recoger todas las recompensas y salir',
                     accent: accent,
                     backgroundColor: EndpointPalette.blend(
@@ -380,6 +431,7 @@ class _BattleLootRewardCard extends StatelessWidget {
   final bool showUpgradeIndicator;
   final Color? upgradeIndicatorColor;
   final VoidCallback onPressed;
+  final bool isEnabled;
 
   const _BattleLootRewardCard({
     required this.title,
@@ -392,6 +444,7 @@ class _BattleLootRewardCard extends StatelessWidget {
     this.showUpgradeIndicator = false,
     this.upgradeIndicatorColor,
     required this.onPressed,
+    this.isEnabled = true,
     this.emoji,
     this.icon,
   });
@@ -487,7 +540,7 @@ class _BattleLootRewardCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isCollected ? null : onPressed,
+          onTap: isCollected || !isEnabled ? null : onPressed,
           borderRadius: BorderRadius.circular(14),
           child: rewardPanel,
         ),
