@@ -369,6 +369,44 @@ class MochilaStronkboxItemEffect extends ItemEffect {
   }
 }
 
+/// Describe la generacion de botin extra que resuelve la pantalla de recompensas.
+class VirtualMailboxItemEffect extends ItemEffect {
+  /// Crea el efecto comun de los Buzones Virtuales.
+  const VirtualMailboxItemEffect()
+      : super(
+          description:
+              'Al ganar un combate, anade un item aleatorio de su categoria a las recompensas si tienes espacio.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final focusLabel = _focusTagFor(item).label;
+    final statLine = item.id == ItemId.buzonVirtualAzul
+        ? '+1 PP mientras este equipado. '
+        : '';
+    return '${statLine}Al terminar un combate, si tienes espacio, ofrece un item ${item.rarity.label} aleatorio con tag $focusLabel en la pantalla de recompensas.';
+  }
+
+  EntityTag _focusTagFor(Item item) {
+    switch (item.id) {
+      case ItemId.buzonVirtualAzul:
+        return item.rarity.index <= RarityTier.gray.index
+            ? EntityTag.accesorio
+            : EntityTag.ciclo;
+      case ItemId.buzonVirtualRojo:
+        return item.rarity.index <= RarityTier.gray.index
+            ? EntityTag.ataque
+            : EntityTag.quemadura;
+      case ItemId.buzonVirtualVerde:
+        return item.rarity.index <= RarityTier.green.index
+            ? EntityTag.barrera
+            : EntityTag.resonancia;
+      default:
+        return EntityTag.economia;
+    }
+  }
+}
+
 /// Premia guardar mercancia ajena en el inventario con curacion ofensiva.
 class MuestrarioContrabandoItemEffect extends ItemEffect {
   static const healCap = 10;

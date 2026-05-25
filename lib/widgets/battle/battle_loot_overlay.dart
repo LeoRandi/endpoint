@@ -1,11 +1,12 @@
 import '../_imports.dart';
-import '../../services/endpoint_preferences_models.dart';
+import '../../services/_exports.dart';
 
 const _rewardActionHeight = 56.0;
 
 class BattleLootOverlay extends StatefulWidget {
   final Battler player;
   final Item? lootItem;
+  final List<BattleItemReward> itemRewards;
   final BattlerAbility? lootAbility;
   final int moneyReward;
   final String enemyName;
@@ -18,6 +19,7 @@ class BattleLootOverlay extends StatefulWidget {
     required this.enemyName,
     this.gameMode = EndpointGameMode.pattern,
     this.lootItem,
+    this.itemRewards = const <BattleItemReward>[],
     this.lootAbility,
   });
 
@@ -27,27 +29,41 @@ class BattleLootOverlay extends StatefulWidget {
 
 class _BattleLootOverlayState extends State<BattleLootOverlay> {
   late Battler _player;
-  late bool _isLootCollected;
+  late Set<int> _collectedItemRewardIndexes;
+  late bool _isAbilityCollected;
   late bool _isMoneyCollected;
 
+  List<BattleItemReward> get _itemRewards => widget.itemRewards.isNotEmpty
+      ? widget.itemRewards
+      : [
+          if (widget.lootItem != null) BattleItemReward(item: widget.lootItem!),
+        ];
   bool get _hasLootReward =>
-      widget.lootItem != null || widget.lootAbility != null;
-  bool get _hasPendingLoot => _hasLootReward && !_isLootCollected;
+      _itemRewards.isNotEmpty || widget.lootAbility != null;
+  bool get _hasPendingLoot =>
+      _collectedItemRewardIndexes.length < _itemRewards.length ||
+      (widget.lootAbility != null && !_isAbilityCollected);
   bool get _hasPendingMoney => widget.moneyReward > 0 && !_isMoneyCollected;
   bool get _hasPendingRewards => _hasPendingLoot || _hasPendingMoney;
-  bool get _lootWillUpgradeItem =>
-      widget.lootItem != null && _player.wouldUpgradeItem(widget.lootItem!);
   bool get _lootWillUpgradeAbility =>
       widget.lootAbility != null &&
       _player.wouldUpgradeAbility(widget.lootAbility!);
-  bool get _canCollectLoot {
-    final lootItem = widget.lootItem;
-    return lootItem == null || _player.canReceiveItem(lootItem);
+
+  bool _itemRewardWillUpgrade(int index) {
+    return _player.wouldUpgradeItem(_itemRewards[index].item);
   }
 
-  String? get _blockedLootReason {
-    final lootItem = widget.lootItem;
-    if (lootItem == null || _canCollectLoot) return null;
+  bool _canCollectItemReward(int index) {
+    final reward = _itemRewards[index];
+    if (reward.hasSource) {
+      return _player.canReceiveItemInInventoryOrEquipment(reward.item);
+    }
+
+    return _player.canReceiveItem(reward.item);
+  }
+
+  String? _blockedItemRewardReason(int index) {
+    if (_canCollectItemReward(index)) return null;
     return 'Inventario lleno (${Battler.maxInventoryItems}/${Battler.maxInventoryItems})';
   }
 
@@ -55,22 +71,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   void initState() {
     super.initState();
     _player = widget.player;
-    _isLootCollected = !_hasLootReward;
+    _collectedItemRewardIndexes = <int>{};
+    _isAbilityCollected = widget.lootAbility == null;
     _isMoneyCollected = widget.moneyReward <= 0;
-  }
-
-  Battler _applyLoot(Battler player) {
-    var updatedPlayer = player;
-
-    if (widget.lootItem != null) {
-      updatedPlayer = updatedPlayer.addItem(widget.lootItem!);
-    }
-    if (widget.lootAbility != null) {
-      updatedPlayer =
-          updatedPlayer.addAbility(widget.lootAbility!.resetState());
-    }
-
-    return updatedPlayer;
   }
 
   Future<void> _handleBackNavigation() async {
@@ -183,12 +186,30 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     return shouldLeave ?? false;
   }
 
-  void _collectLoot() {
-    if (!_hasPendingLoot || !_canCollectLoot) return;
+  void _collectItemReward(int index) {
+    if (_collectedItemRewardIndexes.contains(index) ||
+        !_canCollectItemReward(index)) {
+      return;
+    }
 
     setState(() {
-      _player = _applyLoot(_player);
-      _isLootCollected = true;
+      final reward = _itemRewards[index];
+      _player = reward.hasSource
+          ? _player.addItemToInventoryOrEquipment(reward.item)
+          : _player.addItem(reward.item);
+      _collectedItemRewardIndexes = <int>{
+        ..._collectedItemRewardIndexes,
+        index,
+      };
+    });
+  }
+
+  void _collectAbility() {
+    if (widget.lootAbility == null || _isAbilityCollected) return;
+
+    setState(() {
+      _player = _player.addAbility(widget.lootAbility!.resetState());
+      _isAbilityCollected = true;
     });
   }
 
@@ -202,12 +223,24 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
   }
 
   void _collectAll() {
-    if (_hasPendingLoot && !_canCollectLoot) return;
-
     var updatedPlayer = _player;
+    final collectedIndexes = <int>{..._collectedItemRewardIndexes};
 
-    if (_hasPendingLoot) {
-      updatedPlayer = _applyLoot(updatedPlayer);
+    for (var index = 0; index < _itemRewards.length; index++) {
+      if (collectedIndexes.contains(index)) continue;
+      final reward = _itemRewards[index];
+      final canReceive = reward.hasSource
+          ? updatedPlayer.canReceiveItemInInventoryOrEquipment(reward.item)
+          : updatedPlayer.canReceiveItem(reward.item);
+      if (!canReceive) return;
+      updatedPlayer = reward.hasSource
+          ? updatedPlayer.addItemToInventoryOrEquipment(reward.item)
+          : updatedPlayer.addItem(reward.item);
+      collectedIndexes.add(index);
+    }
+    if (widget.lootAbility != null && !_isAbilityCollected) {
+      updatedPlayer =
+          updatedPlayer.addAbility(widget.lootAbility!.resetState());
     }
     if (_hasPendingMoney) {
       updatedPlayer = updatedPlayer.earnMoney(widget.moneyReward);
@@ -329,25 +362,38 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                 Expanded(
                   child: ListView(
                     children: [
-                      if (widget.lootItem != null)
+                      for (var index = 0;
+                          index < _itemRewards.length;
+                          index++) ...[
+                        if (index > 0) const SizedBox(height: 12),
                         _BattleLootRewardCard(
-                          title: widget.lootItem!.displayName,
-                          subtitle: widget.lootItem!.tooltipDescription,
-                          tags: widget.lootItem!.tags,
-                          accent: widget.lootItem!.rarity.accent,
-                          emoji: widget.lootItem!.iconEmoji,
-                          isCollected: _isLootCollected,
-                          collectedLabel:
-                              _lootWillUpgradeItem ? 'MEJORADO' : 'RECOGIDO',
-                          pendingLabel: _blockedLootReason ??
-                              (_lootWillUpgradeItem ? 'MEJORAR' : 'RECLAMAR'),
-                          showUpgradeIndicator: _lootWillUpgradeItem,
+                          title: _itemRewards[index].item.displayName,
+                          subtitle: _itemRewards[index].item.tooltipDescription,
+                          tags: _itemRewards[index].item.tags,
+                          accent: _itemRewards[index].item.rarity.accent,
+                          emoji: _itemRewards[index].item.iconEmoji,
+                          sourceEmoji:
+                              _itemRewards[index].sourceItem?.iconEmoji,
+                          sourceTooltip: _itemRewards[index].sourceItem == null
+                              ? null
+                              : 'Generado por ${_itemRewards[index].sourceItem!.displayName}',
+                          isCollected:
+                              _collectedItemRewardIndexes.contains(index),
+                          collectedLabel: _itemRewardWillUpgrade(index)
+                              ? 'MEJORADO'
+                              : 'RECOGIDO',
+                          pendingLabel: _blockedItemRewardReason(index) ??
+                              (_itemRewardWillUpgrade(index)
+                                  ? 'MEJORAR'
+                                  : 'RECLAMAR'),
+                          showUpgradeIndicator: _itemRewardWillUpgrade(index),
                           upgradeIndicatorColor:
                               endpointUpgradeIndicatorNeonYellow,
-                          onPressed: _collectLoot,
-                          isEnabled: _canCollectLoot,
+                          onPressed: () => _collectItemReward(index),
+                          isEnabled: _canCollectItemReward(index),
                         ),
-                      if (widget.lootItem != null && widget.lootAbility != null)
+                      ],
+                      if (_itemRewards.isNotEmpty && widget.lootAbility != null)
                         const SizedBox(height: 12),
                       if (widget.lootAbility != null)
                         _BattleLootRewardCard(
@@ -356,7 +402,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           tags: widget.lootAbility!.tags,
                           accent: widget.lootAbility!.accent,
                           icon: widget.lootAbility!.icon,
-                          isCollected: _isLootCollected,
+                          isCollected: _isAbilityCollected,
                           collectedLabel: _lootWillUpgradeAbility
                               ? 'MEJORADA'
                               : 'APRENDIDA',
@@ -365,7 +411,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           showUpgradeIndicator: _lootWillUpgradeAbility,
                           upgradeIndicatorColor:
                               endpointUpgradeIndicatorNeonYellow,
-                          onPressed: _collectLoot,
+                          onPressed: _collectAbility,
                         ),
                       if (_hasLootReward && widget.moneyReward > 0)
                         const SizedBox(height: 12),
@@ -390,9 +436,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                   child: EndpointActionButton(
                     label: 'Saquear todo',
                     icon: Icons.download_rounded,
-                    onPressed: _hasPendingLoot && !_canCollectLoot
-                        ? null
-                        : _collectAll,
+                    onPressed: _collectAll,
                     tooltip: 'Recoger todas las recompensas y salir',
                     accent: accent,
                     backgroundColor: EndpointPalette.blend(
@@ -424,6 +468,8 @@ class _BattleLootRewardCard extends StatelessWidget {
   final Iterable<EntityTag> tags;
   final Color accent;
   final String? emoji;
+  final String? sourceEmoji;
+  final String? sourceTooltip;
   final IconData? icon;
   final bool isCollected;
   final String collectedLabel;
@@ -446,6 +492,8 @@ class _BattleLootRewardCard extends StatelessWidget {
     required this.onPressed,
     this.isEnabled = true,
     this.emoji,
+    this.sourceEmoji,
+    this.sourceTooltip,
     this.icon,
   });
 
@@ -458,11 +506,45 @@ class _BattleLootRewardCard extends StatelessWidget {
         isCollected ? Colors.white.withValues(alpha: 0.54) : accent;
     final rewardContent = Row(
       children: [
-        _BattleLootRewardLead(
-          accent: accent,
-          emoji: emoji,
-          icon: icon,
-          isCollected: isCollected,
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _BattleLootRewardLead(
+              accent: accent,
+              emoji: emoji,
+              icon: icon,
+              isCollected: isCollected,
+            ),
+            if (sourceEmoji != null)
+              Positioned(
+                right: -5,
+                bottom: -5,
+                child: Tooltip(
+                  message: sourceTooltip ?? 'Generado por item',
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: EndpointPalette.panelBackgroundBattleOpaque,
+                      borderRadius: BorderRadius.circular(7),
+                      border: Border.all(
+                        color: accent.withValues(alpha: 0.72),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: EndpointText(
+                      sourceEmoji!,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isCollected
+                            ? Colors.white.withValues(alpha: 0.56)
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(width: 12),
         Expanded(

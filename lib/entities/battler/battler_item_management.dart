@@ -47,6 +47,12 @@ extension BattlerItemManagement on Battler {
   /// Indica si recibir este item entraria en inventario o mejoraria una copia existente.
   bool canReceiveItem(Item item) => wouldUpgradeItem(item) || hasInventorySpace;
 
+  /// Indica si recibir este item entraria en inventario, equipo o mejora.
+  bool canReceiveItemInInventoryOrEquipment(Item item) {
+    return canReceiveItem(item) ||
+        (item.isEquippable && remainingEquipmentCapacity >= 1);
+  }
+
   /// Devuelve solo los items equipados que declararon el hook pedido en su efecto.
   List<Item> equippedItemsForHook(ItemEffectHook hook) {
     return _derivedState.equippedItemsByHook[hook] ?? const <Item>[];
@@ -82,6 +88,23 @@ extension BattlerItemManagement on Battler {
     return copyWith(
       inventoryItems: List<Item>.unmodifiable([
         ...inventoryItems,
+        item.toOwnedInstance(),
+      ]),
+    );
+  }
+
+  /// Anade un item nuevo, usando equipo libre si no queda inventario.
+  Battler addItemToInventoryOrEquipment(Item item) {
+    if (canReceiveItem(item)) return addItem(item);
+
+    if (!item.isEquippable || remainingEquipmentCapacity < 1) return this;
+    if (!CodexDiscoveryHook.isSuppressed) {
+      CodexDiscoveryHook.onItemAdded?.call(item.id);
+    }
+
+    return copyWith(
+      equippedItems: List<Item>.unmodifiable([
+        ...equippedItems,
         item.toOwnedInstance(),
       ]),
     );

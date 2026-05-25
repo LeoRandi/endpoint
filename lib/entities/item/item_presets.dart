@@ -603,6 +603,63 @@ const mochilaStronkboxItem = Item(
   effect: MochilaStronkboxItemEffect(),
 );
 
+/// Buzon gris de Veloz que trae accesorios y, al mejorar, piezas de Ciclo.
+const buzonVirtualAzulItem = Item(
+  id: ItemId.buzonVirtualAzul,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaTags,
+  name: 'Buzon Virtual Azul',
+  description:
+      'Al terminar un combate, ofrece un item aleatorio de su categoria en la pantalla de recompensas.',
+  iconEmoji: '\u{1F4EC}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  effect: VirtualMailboxItemEffect(),
+);
+
+/// Buzon gris de Imparable que trae ataque y, al mejorar, Quemadura.
+const buzonVirtualRojoItem = Item(
+  id: ItemId.buzonVirtualRojo,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaAtaqueTags,
+  name: 'Buzon Virtual Rojo',
+  description:
+      'Al terminar un combate, ofrece un item aleatorio de su categoria en la pantalla de recompensas.',
+  iconEmoji: '\u{1F4EA}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 2,
+  },
+  effect: VirtualMailboxItemEffect(),
+);
+
+/// Buzon gris de Inamovible que trae Barrera y, al mejorar, Resonancia.
+const buzonVirtualVerdeItem = Item(
+  id: ItemId.buzonVirtualVerde,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaBarreraTags,
+  name: 'Buzon Virtual Verde',
+  description:
+      'Al terminar un combate, ofrece un item aleatorio de su categoria en la pantalla de recompensas.',
+  iconEmoji: '\u{1F4ED}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 2,
+  },
+  effect: VirtualMailboxItemEffect(),
+);
+
 /// Soporte gris que va drenando turnos de debuff de forma dispersa.
 const mamparaPortatilItem = Item(
   id: ItemId.mamparaPortatil,
@@ -2567,6 +2624,9 @@ const itemPresets = <Item>[
   chemicalFilterItem,
   billingModuleItem,
   mochilaStronkboxItem,
+  buzonVirtualAzulItem,
+  buzonVirtualRojoItem,
+  buzonVirtualVerdeItem,
   muestrarioContrabandoItem,
   roperaUnidaItem,
   mamparaPortatilItem,

@@ -270,6 +270,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       builder: (_) => BattleLootOverlay(
         player: request.exitResult.player,
         lootItem: request.rewards.lootItem,
+        itemRewards: request.rewards.itemRewards,
         lootAbility: request.rewards.lootAbility,
         moneyReward: request.rewards.moneyReward,
         enemyName: _sceneController.enemy.name,

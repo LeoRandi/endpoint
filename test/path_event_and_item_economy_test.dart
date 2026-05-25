@@ -105,6 +105,44 @@ void main() {
       expect(controller.player.money, 5);
       expect(controller.player.inventoryItems, isEmpty);
     });
+
+    test('virtual mailbox adds sourced item rewards after victory', () {
+      final rewards = const BattleRewardService().buildVictoryRewards(
+        enemy: defaultEnemyBattler.copyWith(equippedItems: const []),
+        player: defaultPlayerBattler.copyWith(
+          equippedItems: const [buzonVirtualRojoItem],
+        ),
+        victoryMoneyFactor: 0,
+        randomizer: RunRandomizer(seed: 19),
+      );
+
+      expect(rewards.lootItem, isNull);
+      expect(rewards.itemRewards, hasLength(1));
+      expect(
+          rewards.itemRewards.single.sourceItem?.id, ItemId.buzonVirtualRojo);
+      expect(rewards.itemRewards.single.item.rarity, RarityTier.gray);
+      expect(rewards.itemRewards.single.item.hasTag(EntityTag.ataque), isTrue);
+    });
+
+    test('mailbox rewards can use free equipment capacity if inventory is full',
+        () {
+      final fullInventory = List<Item>.generate(
+        Battler.maxInventoryItems,
+        (_) => woodenStickItem.toOwnedInstance(),
+      );
+      final player = defaultPlayerBattler.copyWith(
+        equipmentCapacity: 2,
+        equippedItems: const [buzonVirtualRojoItem],
+        inventoryItems: fullInventory,
+      );
+
+      final updatedPlayer = player.addItemToInventoryOrEquipment(ironSwordItem);
+
+      expect(
+          updatedPlayer.inventoryItems, hasLength(Battler.maxInventoryItems));
+      expect(updatedPlayer.equippedItems.map((item) => item.id),
+          contains(ItemId.ironSword));
+    });
   });
 
   group('basic item events', () {

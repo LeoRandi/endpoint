@@ -99,6 +99,9 @@ enum ItemId {
   cyberCerbatana,
   protocoloBrote,
   incubadoraPortatil,
+  buzonVirtualAzul,
+  buzonVirtualRojo,
+  buzonVirtualVerde,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -229,6 +232,9 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.tuboCultivo,
   ItemId.protocoloBrote,
   ItemId.incubadoraPortatil,
+  ItemId.buzonVirtualAzul,
+  ItemId.buzonVirtualRojo,
+  ItemId.buzonVirtualVerde,
 };
 
 const _patternSquareRequirement = OperativePatternRequirement.exactShape(

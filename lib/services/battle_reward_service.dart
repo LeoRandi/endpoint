@@ -1,18 +1,38 @@
 import '_imports.dart';
 
+class BattleItemReward {
+  final Item item;
+  final Item? sourceItem;
+
+  const BattleItemReward({
+    required this.item,
+    this.sourceItem,
+  });
+
+  bool get hasSource => sourceItem != null;
+}
+
 class BattleRewardBundle {
   final Item? lootItem;
   final BattlerAbility? lootAbility;
   final int moneyReward;
+  final List<BattleItemReward> itemRewards;
 
-  const BattleRewardBundle({
+  BattleRewardBundle({
     this.lootItem,
     this.lootAbility,
     this.moneyReward = 0,
-  }) : assert(lootItem == null || lootAbility == null);
+    List<BattleItemReward>? itemRewards,
+  })  : assert(lootItem == null || lootAbility == null),
+        itemRewards = List<BattleItemReward>.unmodifiable(
+          itemRewards ??
+              [
+                if (lootItem != null) BattleItemReward(item: lootItem),
+              ],
+        );
 
   bool get hasRewards =>
-      lootItem != null || lootAbility != null || moneyReward > 0;
+      itemRewards.isNotEmpty || lootAbility != null || moneyReward > 0;
 }
 
 class BattleRewardService {
@@ -37,6 +57,14 @@ class BattleRewardService {
         player: player,
         victoryMoneyFactor: victoryMoneyFactor,
       ),
+      itemRewards: [
+        if (lootReward.lootItem != null)
+          BattleItemReward(item: lootReward.lootItem!),
+        ..._buildMailboxRewards(
+          player: player,
+          randomizer: randomizer,
+        ),
+      ],
     );
   }
 
@@ -73,7 +101,7 @@ class BattleRewardService {
     }.values.toList(growable: false);
     final totalLootCount = lootItems.length + lootAbilities.length;
     if (totalLootCount <= 0) {
-      return const BattleRewardBundle();
+      return BattleRewardBundle();
     }
 
     final selectedIndex = randomizer.nextInt(totalLootCount);
@@ -94,5 +122,58 @@ class BattleRewardService {
     if (ownedAbility == null) return true;
 
     return ownedAbility.rarity == ability.rarity && ownedAbility.canUpgrade;
+  }
+
+  List<BattleItemReward> _buildMailboxRewards({
+    required Battler player,
+    required RunRandomizer randomizer,
+  }) {
+    var projectedPlayer = player;
+    final rewards = <BattleItemReward>[];
+
+    for (final mailbox in player.equippedItems.where(_isVirtualMailbox)) {
+      final candidates = itemPresets.where((candidate) {
+        return candidate.id != mailbox.id &&
+            candidate.rarity == mailbox.rarity &&
+            candidate.hasTag(_mailboxFocusTag(mailbox)) &&
+            projectedPlayer.canReceiveItemInInventoryOrEquipment(candidate);
+      }).toList(growable: false);
+      if (candidates.isEmpty) continue;
+
+      final selected = candidates[randomizer.nextInt(candidates.length)];
+      rewards.add(BattleItemReward(item: selected, sourceItem: mailbox));
+
+      final previousSuppression = CodexDiscoveryHook.isSuppressed;
+      CodexDiscoveryHook.isSuppressed = true;
+      projectedPlayer = projectedPlayer.addItemToInventoryOrEquipment(selected);
+      CodexDiscoveryHook.isSuppressed = previousSuppression;
+    }
+
+    return List<BattleItemReward>.unmodifiable(rewards);
+  }
+
+  bool _isVirtualMailbox(Item item) {
+    return item.id == ItemId.buzonVirtualAzul ||
+        item.id == ItemId.buzonVirtualRojo ||
+        item.id == ItemId.buzonVirtualVerde;
+  }
+
+  EntityTag _mailboxFocusTag(Item item) {
+    switch (item.id) {
+      case ItemId.buzonVirtualAzul:
+        return item.rarity.index <= RarityTier.gray.index
+            ? EntityTag.accesorio
+            : EntityTag.ciclo;
+      case ItemId.buzonVirtualRojo:
+        return item.rarity.index <= RarityTier.gray.index
+            ? EntityTag.ataque
+            : EntityTag.quemadura;
+      case ItemId.buzonVirtualVerde:
+        return item.rarity.index <= RarityTier.green.index
+            ? EntityTag.barrera
+            : EntityTag.resonancia;
+      default:
+        return EntityTag.economia;
+    }
   }
 }

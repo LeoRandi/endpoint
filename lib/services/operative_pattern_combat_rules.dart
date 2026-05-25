@@ -7,7 +7,8 @@ abstract final class OperativePatternCombatRules {
   static int maxPatternPointsFor(Battler player) {
     return initialMaxPatternPoints +
         Battler.evenLevelProgressionBonusFor(player.level) +
-        _archetypePatternPointBonus(player);
+        _archetypePatternPointBonus(player) +
+        _itemPatternPointBonus(player);
   }
 
   static int maxBlockingPointsFor(Battler player) {
@@ -26,5 +27,11 @@ abstract final class OperativePatternCombatRules {
       case null:
         return 0;
     }
+  }
+
+  static int _itemPatternPointBonus(Battler player) {
+    return player.equippedItems
+        .where((item) => item.id == ItemId.buzonVirtualAzul)
+        .length;
   }
 }
