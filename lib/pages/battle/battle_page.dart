@@ -552,6 +552,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             await _sceneController.handlePlayerPatternMatch(
               actionBonus: BattleActionBonus(
                 attackBonus: matchResult.attackBonus,
+                healAmount: matchResult.healthBonus,
                 immediateBarrierAmount: matchResult.barrierBonus,
               ),
               patternContext: matchResult.patternContext,
@@ -605,6 +606,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
           wallSegments: _sceneController.enemy.combatWallSegments,
           maxBlockingPoints: playerWallCapacity,
+          maxWallActions:
+              OperativePatternCombatRules.wallActionsPerBlockingTurnFor(
+            _sceneController.player,
+          ),
           enemyOverchargesPattern: enemyOverchargesPattern,
           combatRound: _sceneController.currentRound,
           randomNextInt: _sceneController.randomizer.nextInt,
@@ -630,6 +635,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             await _sceneController.handleEnemyPatternMatch(
               actionBonus: BattleActionBonus(
                 attackBonus: matchResult.attackBonus,
+                healAmount: matchResult.healthBonus,
                 immediateBarrierAmount: matchResult.barrierBonus,
               ),
               patternContext: matchResult.patternContext,
@@ -647,10 +653,19 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     );
     if (capacity <= 0) return;
 
-    final nextWalls = _randomlyPlacedOrMovedWalls(
-      currentWalls: _sceneController.player.combatWallSegments,
-      capacity: capacity,
+    var nextWalls = _sceneController.player.combatWallSegments;
+    final actionCount = max(
+      1,
+      OperativePatternCombatRules.wallActionsPerBlockingTurnFor(
+        _sceneController.enemy,
+      ),
     );
+    for (var i = 0; i < actionCount; i++) {
+      nextWalls = _randomlyPlacedOrMovedWalls(
+        currentWalls: nextWalls,
+        capacity: capacity,
+      );
+    }
     if (_sameWallKeys(nextWalls, _sceneController.player.combatWallSegments)) {
       return;
     }

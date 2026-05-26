@@ -9,6 +9,7 @@ class OperativePatternResolution {
   final int distinctPointCount;
   final int attackBonus;
   final int barrierBonus;
+  final int healthBonus;
   final Map<String, OperativePatternBonus> activatedPatternBonusesByPointKey;
   final Map<String, List<OperativePatternAdjacencyBonus>>
       activatedAdjacencyBonusesByPointKey;
@@ -20,12 +21,13 @@ class OperativePatternResolution {
     required this.distinctPointCount,
     required this.attackBonus,
     required this.barrierBonus,
+    this.healthBonus = 0,
     required this.activatedPatternBonusesByPointKey,
     required this.activatedAdjacencyBonusesByPointKey,
     required this.itemActivationByPointKey,
   });
 
-  bool get hasBonus => attackBonus > 0 || barrierBonus > 0;
+  bool get hasBonus => attackBonus > 0 || barrierBonus > 0 || healthBonus > 0;
 
   bool isItemBonusEnabledAt(String pointKey) {
     return itemActivationByPointKey[pointKey] ?? false;
@@ -67,6 +69,7 @@ abstract final class OperativePatternResolutionService {
         distinctPointCount: distinctPointCount,
         attackBonus: 0,
         barrierBonus: 0,
+        healthBonus: 0,
         activatedPatternBonusesByPointKey: const <String,
             OperativePatternBonus>{},
         activatedAdjacencyBonusesByPointKey: const <String,
@@ -83,6 +86,7 @@ abstract final class OperativePatternResolutionService {
         <String, List<OperativePatternAdjacencyBonus>>{};
     var attackBonus = 0;
     var barrierBonus = 0;
+    var healthBonus = 0;
 
     for (final point in stablePatternPoints) {
       if (!seenPointKeys.add(point.key)) continue;
@@ -117,6 +121,9 @@ abstract final class OperativePatternResolutionService {
           case OperativePatternBonusKind.barrier:
             barrierBonus += bonus.amount;
             break;
+          case OperativePatternBonusKind.health:
+            healthBonus += bonus.amount;
+            break;
         }
       }
 
@@ -136,6 +143,9 @@ abstract final class OperativePatternResolutionService {
             break;
           case OperativePatternBonusKind.barrier:
             barrierBonus += adjacencyBonus.bonus.amount;
+            break;
+          case OperativePatternBonusKind.health:
+            healthBonus += adjacencyBonus.bonus.amount;
             break;
         }
       }
@@ -164,6 +174,7 @@ abstract final class OperativePatternResolutionService {
       distinctPointCount: distinctPointCount,
       attackBonus: attackBonus,
       barrierBonus: barrierBonus,
+      healthBonus: healthBonus,
       activatedPatternBonusesByPointKey: activatedPatternBonuses,
       activatedAdjacencyBonusesByPointKey: activatedAdjacencyBonuses,
       itemActivationByPointKey: itemActivations,

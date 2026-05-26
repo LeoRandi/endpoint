@@ -21,10 +21,12 @@ class OperativePatternAdjacencyEvaluation {
 class OperativePatternAdjacencyTotals {
   final int attack;
   final int barrier;
+  final int health;
 
   const OperativePatternAdjacencyTotals({
     required this.attack,
     required this.barrier,
+    this.health = 0,
   });
 }
 
@@ -35,8 +37,7 @@ abstract final class OperativePatternAdjacencyService {
     Iterable<OperativePatternAdjacencyBonus> Function(
       OperativePatternPoint point,
       Item item,
-    )?
-        adjacencyBonusesForItem,
+    )? adjacencyBonusesForItem,
   }) {
     final evaluations = <OperativePatternAdjacencyEvaluation>[];
 
@@ -95,6 +96,7 @@ abstract final class OperativePatternAdjacencyService {
   ) {
     var attack = 0;
     var barrier = 0;
+    var health = 0;
 
     for (final evaluation in evaluations) {
       if (!evaluation.isMatched) continue;
@@ -106,12 +108,16 @@ abstract final class OperativePatternAdjacencyService {
         case OperativePatternBonusKind.barrier:
           barrier += evaluation.bonus.amount;
           break;
+        case OperativePatternBonusKind.health:
+          health += evaluation.bonus.amount;
+          break;
       }
     }
 
     return OperativePatternAdjacencyTotals(
       attack: attack,
       barrier: barrier,
+      health: health,
     );
   }
 

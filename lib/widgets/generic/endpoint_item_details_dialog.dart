@@ -572,6 +572,7 @@ class _ItemPatternBonusSectionState extends State<_ItemPatternBonusSection> {
     return switch (kind) {
       OperativePatternBonusKind.attack => EndpointPalette.dangerAccent,
       OperativePatternBonusKind.barrier => BattlerStat.barrier.accent,
+      OperativePatternBonusKind.health => BattlerStat.health.accent,
     };
   }
 
@@ -580,6 +581,7 @@ class _ItemPatternBonusSectionState extends State<_ItemPatternBonusSection> {
       OperativePatternBonusKind.attack => 'assets/images/icons/icon_sword.png',
       OperativePatternBonusKind.barrier =>
         'assets/images/icons/icon_shield.png',
+      OperativePatternBonusKind.health => 'assets/images/icons/icon_health.png',
     };
   }
 }

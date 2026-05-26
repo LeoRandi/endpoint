@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../entities/_exports.dart';
 
 abstract final class OperativePatternCombatRules {
@@ -12,9 +14,19 @@ abstract final class OperativePatternCombatRules {
   }
 
   static int maxBlockingPointsFor(Battler player) {
-    return initialMaxBlockingPoints +
-        Battler.evenLevelProgressionBonusFor(player.level) +
-        _itemBlockingPointBonus(player);
+    return max(
+      0,
+      initialMaxBlockingPoints +
+          Battler.evenLevelProgressionBonusFor(player.level) +
+          _itemBlockingPointBonus(player),
+    );
+  }
+
+  static int wallActionsPerBlockingTurnFor(Battler player) {
+    return 1 +
+        player.equippedItems
+            .where((item) => item.id == ItemId.tonfasEscudo)
+            .length;
   }
 
   static int _archetypePatternPointBonus(Battler player) {
@@ -37,8 +49,14 @@ abstract final class OperativePatternCombatRules {
   }
 
   static int _itemBlockingPointBonus(Battler player) {
-    return player.equippedItems
-        .where((item) => item.id == ItemId.passCard)
-        .length;
+    return player.equippedItems.fold<int>(0, (total, item) {
+      return total +
+          switch (item.id) {
+            ItemId.passCard => 1,
+            ItemId.tonfasEscudo => -1,
+            ItemId.constructionSeal => 4,
+            _ => 0,
+          };
+    });
   }
 }

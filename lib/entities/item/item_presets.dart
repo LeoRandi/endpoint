@@ -6,6 +6,7 @@ const _adjS = OperativePatternAdjacencyDirection.south;
 const _adjW = OperativePatternAdjacencyDirection.west;
 const _adjAttack = OperativePatternBonusKind.attack;
 const _adjBarrier = OperativePatternBonusKind.barrier;
+const _adjHealth = OperativePatternBonusKind.health;
 const _patternFirst = OperativePatternRequirement.first();
 const _patternMiddle = OperativePatternRequirement.middle();
 const _patternLast = OperativePatternRequirement.last();
@@ -106,6 +107,16 @@ const _ataqueBarreraMurallaTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.barrera,
   EntityTag.muralla,
+];
+const _armaAtaqueBarreraMurallaTags = <EntityTag>[
+  EntityTag.arma,
+  EntityTag.ataque,
+  EntityTag.barrera,
+  EntityTag.muralla,
+];
+const _accesorioVidaTags = <EntityTag>[
+  EntityTag.accesorio,
+  EntityTag.vida,
 ];
 const _ataqueBuffTags = <EntityTag>[
   EntityTag.ataque,
@@ -830,6 +841,80 @@ const passCardItem = Item(
     ),
   ],
   effect: PassCardItemEffect(),
+);
+
+const tonfasEscudoItem = Item(
+  id: ItemId.tonfasEscudo,
+  archetypeAffinities: _velozAffinities,
+  tags: _armaAtaqueBarreraMurallaTags,
+  name: 'Tonfas Escudo',
+  description:
+      'Puedes poner o mover una Muralla mas por turno para bloquear a tu oponente, pero -1 BP maximo.',
+  iconEmoji: '\u{1FA83}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 2,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjE,
+      EntityTag.barrera,
+      _adjAttack,
+      2,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjW,
+      EntityTag.arma,
+      _adjBarrier,
+      2,
+    ),
+  ],
+  effect: TonfasEscudoItemEffect(),
+);
+
+const constructionSealItem = Item(
+  id: ItemId.constructionSeal,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _accesorioVidaTags,
+  name: 'Construction Seal',
+  description:
+      '+4 BP. Al principio de turno: te curas 2 veces tus BP restantes. Al usarse: al final de tu turno, destruye una Muralla en tu tablero o en el de tu enemigo.',
+  iconEmoji: '\u{1F3D7}',
+  rarity: RarityTier.yellow,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 4,
+  patternRequirementOverride: _patternHourglass,
+  baseCost: 10,
+  value: 2,
+  upgradeValue: 0,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.muralla,
+      _adjHealth,
+      5,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjE,
+      EntityTag.vida,
+      _adjHealth,
+      5,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjW,
+      EntityTag.barrera,
+      _adjHealth,
+      5,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjS,
+      EntityTag.accesorio,
+      _adjHealth,
+      5,
+    ),
+  ],
+  effect: ConstructionSealItemEffect(),
 );
 
 const pilarAceroItem = Item(
@@ -2904,6 +2989,8 @@ const itemPresets = <Item>[
   barbedShieldItem,
   literalPaywallItem,
   passCardItem,
+  tonfasEscudoItem,
+  constructionSealItem,
   pilarAceroItem,
   duplicadorAtomosItem,
   cortinaHumoItem,

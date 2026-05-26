@@ -112,6 +112,8 @@ enum ItemId {
   cortinaHumo,
   literalPaywall,
   passCard,
+  tonfasEscudo,
+  constructionSeal,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -185,6 +187,7 @@ const _weaponTaggedItemIds = <ItemId>{
   ItemId.descargaResonante,
   ItemId.lanzaSucia,
   ItemId.cyberCerbatana,
+  ItemId.tonfasEscudo,
 };
 
 const _accessoryTaggedItemIds = <ItemId>{
@@ -252,6 +255,7 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.cortinaHumo,
   ItemId.literalPaywall,
   ItemId.passCard,
+  ItemId.constructionSeal,
 };
 
 const _patternSquareRequirement = OperativePatternRequirement.exactShape(
@@ -315,6 +319,7 @@ const _exactPatternRequirementsByItemId = <ItemId, OperativePatternRequirement>{
   ItemId.cuboDinamitalico: _patternSquareRequirement,
   ItemId.duplicadorAtomos: _patternSquareRequirement,
   ItemId.passCard: _patternSquareRequirement,
+  ItemId.constructionSeal: _patternHourglassRequirement,
   ItemId.pilarAcero: OperativePatternRequirement.straightAngle(),
 };
 
@@ -619,6 +624,20 @@ class Item {
       );
     }
 
+    final updatedValue = value + upgradeTemplate.upgradeValue;
+    final updatedAdjacencyBonuses = upgradeTemplate.patternAdjacencyBonuses
+        .map(
+          (bonus) => id == ItemId.tonfasEscudo
+              ? OperativePatternAdjacencyBonus(
+                  direction: bonus.direction,
+                  requiredTag: bonus.requiredTag,
+                  kind: bonus.kind,
+                  amount: max(0, updatedValue),
+                )
+              : bonus,
+        )
+        .toList(growable: false);
+
     return copyWith(
       archetypeAffinities: upgradeTemplate.archetypeAffinities,
       tags: upgradeTemplate._declaredTags,
@@ -628,7 +647,7 @@ class Item {
       rarity: rarity.nextTier,
       baseCost: upgradeTemplate.baseCost,
       sellValueBonus: sellValueBonus,
-      value: value + upgradeTemplate.upgradeValue,
+      value: updatedValue,
       upgradeValue: upgradeTemplate.upgradeValue,
       incomePerValueUnit: upgradeTemplate.incomePerValueUnit,
       maxHealthPercentPerValueUnit:
@@ -648,7 +667,7 @@ class Item {
       hasPatternAura: false,
       combatItemBonusBoost: 0,
       combatGeneratedPatternBonus: false,
-      patternAdjacencyBonuses: upgradeTemplate.patternAdjacencyBonuses,
+      patternAdjacencyBonuses: updatedAdjacencyBonuses,
     );
   }
 

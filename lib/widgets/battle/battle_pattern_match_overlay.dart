@@ -45,6 +45,7 @@ bool _hasPassCardWallDisableActive(Battler battler) {
 class BattlePatternMatchResult {
   final int attackBonus;
   final int barrierBonus;
+  final int healthBonus;
   final int blockingPointsAvailable;
   final int enemyBlockingPointsRemaining;
   final Set<String> activatedItemPointKeys;
@@ -54,6 +55,7 @@ class BattlePatternMatchResult {
   const BattlePatternMatchResult({
     required this.attackBonus,
     required this.barrierBonus,
+    this.healthBonus = 0,
     required this.blockingPointsAvailable,
     required this.enemyBlockingPointsRemaining,
     required this.activatedItemPointKeys,
@@ -77,6 +79,7 @@ class BattlePatternMatchResult {
     return BattlePatternMatchResult(
       attackBonus: resolution.attackBonus,
       barrierBonus: resolution.barrierBonus,
+      healthBonus: resolution.healthBonus,
       blockingPointsAvailable: blockingPointsAvailable,
       enemyBlockingPointsRemaining: enemyBlockingPointsRemaining,
       activatedItemPointKeys: Set<String>.unmodifiable(
@@ -87,12 +90,13 @@ class BattlePatternMatchResult {
     );
   }
 
-  bool get hasBonus => attackBonus > 0 || barrierBonus > 0;
+  bool get hasBonus => attackBonus > 0 || barrierBonus > 0 || healthBonus > 0;
 }
 
 class EnemyBattlePatternMatchResult {
   final int attackBonus;
   final int barrierBonus;
+  final int healthBonus;
   final int blockingPointsRemaining;
   final List<OperativePatternWallSegment> wallSegments;
   final Set<String> activatedItemPointKeys;
@@ -101,6 +105,7 @@ class EnemyBattlePatternMatchResult {
   const EnemyBattlePatternMatchResult({
     required this.attackBonus,
     required this.barrierBonus,
+    this.healthBonus = 0,
     required this.blockingPointsRemaining,
     required this.wallSegments,
     required this.activatedItemPointKeys,
@@ -122,6 +127,7 @@ class EnemyBattlePatternMatchResult {
     return EnemyBattlePatternMatchResult(
       attackBonus: resolution.attackBonus,
       barrierBonus: resolution.barrierBonus,
+      healthBonus: resolution.healthBonus,
       blockingPointsRemaining: blockingPointsRemaining,
       wallSegments: List<OperativePatternWallSegment>.unmodifiable(
         wallSegments,
@@ -553,6 +559,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
 
   Future<void> _submit() async {
     if (_hasSubmitted || !_blockAnimationCompleted) return;
+    if (!OperativePatternRequirement.isClosedPattern(_patternPoints)) return;
     _hasSubmitted = true;
     final result = _currentResult;
     await widget.onResolve?.call(result);
@@ -699,6 +706,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
           totalDamageLabel: totalDamageLabel,
           attackBonus: result.attackBonus,
           barrierBonus: result.barrierBonus,
+          healthBonus: result.healthBonus,
           effects: widget.actionEffects,
           pointCount: resolution.distinctPointCount,
         ),
@@ -737,7 +745,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
             ? _cornerOwnerLabelFor(widget.enemy.name)
             : 'YOU',
         round: widget.combatRound,
-        finishEnabled: _blockAnimationCompleted,
+        finishEnabled: _blockAnimationCompleted &&
+            OperativePatternRequirement.isClosedPattern(_patternPoints),
         onFinish: _submit,
         dimPatternPoints: false,
         dimBlockPoints: false,
@@ -831,6 +840,7 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
   final Map<String, Item> equippedItemsByPointKey;
   final List<OperativePatternWallSegment> wallSegments;
   final int maxBlockingPoints;
+  final int maxWallActions;
   final bool enemyOverchargesPattern;
   final int combatRound;
   final int Function(int max)? randomNextInt;
@@ -848,6 +858,7 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
     required this.equippedItemsByPointKey,
     this.wallSegments = const <OperativePatternWallSegment>[],
     required this.maxBlockingPoints,
+    this.maxWallActions = 1,
     required this.enemyOverchargesPattern,
     this.combatRound = 1,
     this.randomNextInt,
@@ -883,7 +894,7 @@ class _EnemyBattlePatternMatchOverlayState
   List<OperativePatternPoint> _displayedEnemyPatternPoints =
       const <OperativePatternPoint>[];
   final bool _isAnimatingBlock = false;
-  bool _hasUsedWallAction = false;
+  int _wallActionsUsed = 0;
   bool _isSwappingCorners = false;
   bool _isPlayingEnemyPattern = false;
   bool _hasSwappedToEnemyCorners = false;
@@ -930,7 +941,6 @@ class _EnemyBattlePatternMatchOverlayState
       );
 
   int get _blockingPointsRemaining {
-    if (_hasUsedWallAction) return 0;
     return max(0, widget.maxBlockingPoints - _wallSegments.length);
   }
 
@@ -938,7 +948,7 @@ class _EnemyBattlePatternMatchOverlayState
     return !_isAnimatingBlock &&
         !_isSwappingCorners &&
         !_isPlayingEnemyPattern &&
-        !_hasUsedWallAction &&
+        _wallActionsUsed < max(1, widget.maxWallActions) &&
         widget.maxBlockingPoints > 0;
   }
 
@@ -1088,7 +1098,7 @@ class _EnemyBattlePatternMatchOverlayState
         nextWalls,
       );
       _previewWallSegment = null;
-      _hasUsedWallAction = true;
+      _wallActionsUsed++;
     });
   }
 
@@ -1141,7 +1151,7 @@ class _EnemyBattlePatternMatchOverlayState
       );
       _draggedWallKey = null;
       _previewWallSegment = null;
-      _hasUsedWallAction = true;
+      _wallActionsUsed++;
     });
   }
 
@@ -1154,7 +1164,7 @@ class _EnemyBattlePatternMatchOverlayState
       _wallSegmentsBeforeAction = null;
       _previewWallSegment = null;
       _draggedWallKey = null;
-      _hasUsedWallAction = false;
+      _wallActionsUsed = 0;
     });
   }
 
@@ -1207,7 +1217,7 @@ class _EnemyBattlePatternMatchOverlayState
   Future<void> _playEnemyPattern() async {
     if (_isSwappingCorners || _isPlayingEnemyPattern || _hasSubmitted) return;
 
-    final pattern = _buildEnemyPattern();
+    final pattern = _buildClosedEnemyPatternOrPass();
     setState(() {
       _isSwappingCorners = true;
       _hasSwappedToEnemyCorners = true;
@@ -1239,6 +1249,17 @@ class _EnemyBattlePatternMatchOverlayState
     await widget.onResolve?.call(result);
     if (!mounted) return;
     Navigator.of(context).pop(result);
+  }
+
+  List<OperativePatternPoint> _buildClosedEnemyPatternOrPass() {
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final pattern = _buildEnemyPattern();
+      if (OperativePatternRequirement.isClosedPattern(pattern)) {
+        return pattern;
+      }
+    }
+
+    return const <OperativePatternPoint>[];
   }
 
   List<OperativePatternPoint> _buildEnemyPattern() {
@@ -1440,8 +1461,7 @@ class _EnemyBattlePatternMatchOverlayState
         OperativePatternCombatRules.maxPatternPointsFor(
       widget.player,
     );
-    final playerBlockingPoints =
-        _hasUsedWallAction ? 0 : _blockingPointsRemaining;
+    final playerBlockingPoints = _blockingPointsRemaining;
     final animatedWallSegmentKeys = _canMoveWall
         ? _wallSegments.map((wall) => wall.key).toSet()
         : const <String>{};
@@ -1478,6 +1498,7 @@ class _EnemyBattlePatternMatchOverlayState
           totalDamageLabel: totalDamageLabel,
           attackBonus: result.attackBonus,
           barrierBonus: result.barrierBonus,
+          healthBonus: result.healthBonus,
           effects: const <PlayerActionEffectIntent>[],
           pointCount: resolution.distinctPointCount,
         ),
@@ -1544,23 +1565,26 @@ class _EnemyBattlePatternMatchOverlayState
                   child: FractionallySizedBox(
                     widthFactor: 0.79,
                     heightFactor: 0.79,
-                    child: Transform.rotate(
-                      angle: pi / 4,
-                      child: OperativePatternBoard(
-                        key: _enemyPatternBoardKey,
-                        contentsByPointKey:
-                            _buildContentsByPointKey(resolution),
-                        blockedPointKeys: const <String>{},
-                        displayedPatternPoints: _displayedEnemyPatternPoints,
-                        keepLineAfterPointerUp: true,
-                        isPatternInputEnabled: !_canMoveWall,
-                        maxPatternPoints: _enemyEffectiveMaxPatternPoints,
-                        wallSegments: _wallSegments,
-                        disabledWallSegmentKeys: disabledWallSegmentKeys,
-                        previewWallSegment: _previewWallSegment,
-                        animatedWallSegmentKeys: animatedWallSegmentKeys,
-                        wallAccent: EndpointPalette.patternAccent,
-                        accent: EndpointPalette.dangerAccent,
+                    child: AbsorbPointer(
+                      absorbing: _canMoveWall,
+                      child: Transform.rotate(
+                        angle: pi / 4,
+                        child: OperativePatternBoard(
+                          key: _enemyPatternBoardKey,
+                          contentsByPointKey:
+                              _buildContentsByPointKey(resolution),
+                          blockedPointKeys: const <String>{},
+                          displayedPatternPoints: _displayedEnemyPatternPoints,
+                          keepLineAfterPointerUp: true,
+                          isPatternInputEnabled: !_canMoveWall,
+                          maxPatternPoints: _enemyEffectiveMaxPatternPoints,
+                          wallSegments: _wallSegments,
+                          disabledWallSegmentKeys: disabledWallSegmentKeys,
+                          previewWallSegment: _previewWallSegment,
+                          animatedWallSegmentKeys: animatedWallSegmentKeys,
+                          wallAccent: EndpointPalette.patternAccent,
+                          accent: EndpointPalette.dangerAccent,
+                        ),
                       ),
                     ),
                   ),
@@ -1606,6 +1630,7 @@ class _BattlePatternLiveSummary extends StatelessWidget {
   final String totalDamageLabel;
   final int attackBonus;
   final int barrierBonus;
+  final int healthBonus;
   final List<PlayerActionEffectIntent> effects;
   final int pointCount;
 
@@ -1614,6 +1639,7 @@ class _BattlePatternLiveSummary extends StatelessWidget {
     required this.totalDamageLabel,
     required this.attackBonus,
     required this.barrierBonus,
+    required this.healthBonus,
     required this.effects,
     required this.pointCount,
   });
@@ -1654,6 +1680,17 @@ class _BattlePatternLiveSummary extends StatelessWidget {
                 iconAssetPath: 'assets/images/icons/icon_shield.png',
                 value: barrierBonus,
                 accent: BattlerStat.barrier.accent,
+                pulseKey: pointCount,
+              ),
+            ),
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 48,
+              child: _BattlePatternAnimatedMetric(
+                label: '+H',
+                iconAssetPath: 'assets/images/icons/icon_health.png',
+                value: healthBonus,
+                accent: BattlerStat.health.accent,
                 pulseKey: pointCount,
               ),
             ),

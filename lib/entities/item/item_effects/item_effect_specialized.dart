@@ -652,13 +652,13 @@ class PassCardItemEffect extends ItemEffect {
     final cost = max(0, item.value);
     return ItemEffectResolution(
       owner: owner.addCombatFlag(
-            CombatRuntimeFlag.item(
-              itemFlag: ItemCombatFlagKind.passCardPendingPayment,
-              itemId: item.id,
-              itemInstanceId: item.instanceId,
-              secondaryValue: cost,
-            ),
-          ),
+        CombatRuntimeFlag.item(
+          itemFlag: ItemCombatFlagKind.passCardPendingPayment,
+          itemId: item.id,
+          itemInstanceId: item.instanceId,
+          secondaryValue: cost,
+        ),
+      ),
       opponent: opponent,
     );
   }
@@ -684,9 +684,7 @@ class PassCardItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: owner
-          .removeCombatFlag(pendingFlag)
-          .addCombatFlag(
+      owner: owner.removeCombatFlag(pendingFlag).addCombatFlag(
             _itemCombatFlag(
               item,
               ItemCombatFlagKind.passCardWallsDisabledThisTurn,
@@ -740,6 +738,105 @@ class PassCardItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+  }
+}
+
+class TonfasEscudoItemEffect extends ItemEffect {
+  const TonfasEscudoItemEffect()
+      : super(
+          description:
+              'Puedes poner o mover una Muralla mas por turno, pero tienes -1 BP maximo.',
+          hooks: const {
+            ItemEffectHook.passive,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Puedes poner o mover una Muralla mas por turno para bloquear a tu oponente, pero -1 BP maximo.';
+  }
+}
+
+class ConstructionSealItemEffect extends ItemEffect {
+  const ConstructionSealItemEffect()
+      : super(
+          description:
+              'Al principio de turno, te curas segun tus BP restantes. Al usarse, destruye una Muralla al final de tu turno.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.turnEnd,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return '+4 BP mientras este equipado. Al principio de turno: te curas ${max(0, item.value)} veces tus BP restantes. Al usarse: al final de tu turno, destruye una Muralla en tu tablero o en el de tu enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final remainingBp = max(
+      0,
+      OperativePatternCombatRules.maxBlockingPointsFor(owner) -
+          opponent.combatWallSegments.length,
+    );
+    final healing = max(0, item.value) * remainingBp;
+    return ItemEffectResolution(
+      owner: healing > 0 ? owner.heal(healing) : owner,
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+    final candidates = <({bool ownerBoard, OperativePatternWallSegment wall})>[
+      for (final wall in updatedOwner.combatWallSegments)
+        (ownerBoard: true, wall: wall),
+      for (final wall in updatedOpponent.combatWallSegments)
+        (ownerBoard: false, wall: wall),
+    ];
+    if (candidates.isEmpty) {
+      return ItemEffectResolution(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+      );
+    }
+
+    final nextInt = randomizer?.nextInt ?? Random().nextInt;
+    final selected = candidates[nextInt(candidates.length)];
+    if (selected.ownerBoard) {
+      updatedOwner = updatedOwner.destroyCombatWalls([selected.wall]);
+    } else {
+      updatedOpponent = updatedOpponent.destroyCombatWalls([selected.wall]);
+    }
+    updatedOwner = updatedOwner.recordDestroyedCombatWalls(1);
+
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: updatedOpponent,
+    );
   }
 }
 

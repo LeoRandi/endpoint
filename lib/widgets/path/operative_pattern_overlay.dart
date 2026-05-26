@@ -19,6 +19,7 @@ extension _OperativePatternBonusVisualTokens on OperativePatternBonus {
     return switch (kind) {
       OperativePatternBonusKind.attack => EndpointPalette.dangerAccent,
       OperativePatternBonusKind.barrier => BattlerStat.barrier.accent,
+      OperativePatternBonusKind.health => BattlerStat.health.accent,
     };
   }
 
@@ -27,6 +28,7 @@ extension _OperativePatternBonusVisualTokens on OperativePatternBonus {
       OperativePatternBonusKind.attack => 'assets/images/icons/icon_sword.png',
       OperativePatternBonusKind.barrier =>
         'assets/images/icons/icon_shield.png',
+      OperativePatternBonusKind.health => 'assets/images/icons/icon_health.png',
     };
   }
 }
@@ -1600,8 +1602,8 @@ class _OperativePatternWallPainter extends CustomPainter {
 
       final direction = delta / distance;
       final normal = Offset(-direction.dy, direction.dx);
-      final pulseScale = 1 + 0.18 * pulse;
-      final pulseAlpha = 1 + 0.22 * pulse;
+      final pulseScale = 1 + 0.42 * pulse;
+      final pulseAlpha = 1 + 0.6 * pulse;
 
       final glowPaint = Paint()
         ..color = accent.withValues(
@@ -1755,8 +1757,8 @@ class _OperativePatternWallGlyphPainter extends CustomPainter {
     final start = Offset(size.width * 0.18, size.height / 2);
     final end = Offset(size.width * 0.82, size.height / 2);
     const normal = Offset(0, 1);
-    final pulseScale = 1 + 0.18 * pulse;
-    final pulseAlpha = 1 + 0.22 * pulse;
+    final pulseScale = 1 + 0.42 * pulse;
+    final pulseAlpha = 1 + 0.6 * pulse;
     final glowPaint = Paint()
       ..color = accent.withValues(
         alpha: (0.32 * opacity * pulseAlpha).clamp(0.0, 1.0),

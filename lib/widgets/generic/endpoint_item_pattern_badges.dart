@@ -47,6 +47,7 @@ class EndpointItemPatternBadges extends StatelessWidget {
     final statLabel = switch (bonus.kind) {
       OperativePatternBonusKind.attack => 'ATK',
       OperativePatternBonusKind.barrier => 'BAR',
+      OperativePatternBonusKind.health => 'HP',
     };
     return '+${bonus.amount} $statLabel';
   }
@@ -55,6 +56,7 @@ class EndpointItemPatternBadges extends StatelessWidget {
     return switch (kind) {
       OperativePatternBonusKind.attack => EndpointPalette.dangerAccent,
       OperativePatternBonusKind.barrier => BattlerStat.barrier.accent,
+      OperativePatternBonusKind.health => BattlerStat.health.accent,
     };
   }
 }

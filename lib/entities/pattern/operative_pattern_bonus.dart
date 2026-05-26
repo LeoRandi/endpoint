@@ -1,6 +1,7 @@
 enum OperativePatternBonusKind {
   attack,
   barrier,
+  health,
 }
 
 class OperativePatternBonus {
