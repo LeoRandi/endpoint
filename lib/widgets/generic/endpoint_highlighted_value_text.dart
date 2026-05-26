@@ -10,6 +10,7 @@ const _effectPoisonAccent = Color(0xFFC178FF);
 const _effectContagionAccent = Color(0xFFB56DFF);
 const _effectResonanceAccent = Color(0xFFD0D5DE);
 const _effectChallengeAccent = Color(0xFF55D6C2);
+const _effectWallAccent = Color(0xFFB8C0CC);
 
 final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
@@ -92,8 +93,15 @@ class EndpointHighlightedValueText extends StatelessWidget {
           end: match.end,
           term: _metadataForTerm(match.group(0) ?? ''),
         ),
-      for (final match in RegExp(r'\bcontagio\b', caseSensitive: false)
-          .allMatches(data))
+      for (final match
+          in RegExp(r'\bcontagio\b', caseSensitive: false).allMatches(data))
+        _HighlightedToken.term(
+          start: match.start,
+          end: match.end,
+          term: _metadataForTerm(match.group(0) ?? ''),
+        ),
+      for (final match
+          in RegExp(r'\bmurallas?\b', caseSensitive: false).allMatches(data))
         _HighlightedToken.term(
           start: match.start,
           end: match.end,
@@ -184,6 +192,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (normalizedToken.contains('quemadura')) {
       return _effectBurnAccent;
     }
+    if (normalizedToken.contains('muralla')) {
+      return _effectWallAccent;
+    }
     if (normalizedToken.startsWith('debuff')) {
       return _effectDebuffAccent;
     }
@@ -257,6 +268,14 @@ class EndpointHighlightedValueText extends StatelessWidget {
         icon: _HighlightIconSpec.material(Icons.whatshot_rounded),
         tooltip:
             'Quemadura: debuff. Hace daño al inicio del turno del portador segun su duracion restante, baja con los turnos y su daño pasa primero por Barrera.',
+      );
+    }
+    if (normalizedToken.contains('muralla')) {
+      return const _HighlightTermMetadata(
+        accent: _effectWallAccent,
+        icon: _HighlightIconSpec.material(Icons.linear_scale_rounded),
+        tooltip:
+            'Muralla: obstaculo del Patron. Bloquea el trazo entre puntos y puede ser creada, movida o destruida por efectos.',
       );
     }
     if (normalizedToken.contains('fragilidad')) {
@@ -374,6 +393,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (tagSet.contains(EntityTag.quemadura)) {
       return _effectBurnAccent;
     }
+    if (tagSet.contains(EntityTag.muralla)) {
+      return _effectWallAccent;
+    }
     if (tagSet.contains(EntityTag.barrera)) {
       return _effectBarrierAccent;
     }
@@ -426,6 +448,10 @@ class EndpointHighlightedValueText extends StatelessWidget {
       const _ValueAccentCandidate(
         color: _effectBurnAccent,
         patterns: ['quemadura'],
+      ),
+      const _ValueAccentCandidate(
+        color: _effectWallAccent,
+        patterns: ['muralla', 'murallas'],
       ),
       const _ValueAccentCandidate(
         color: _effectBarrierAccent,

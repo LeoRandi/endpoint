@@ -258,6 +258,157 @@ extension BattlerCombatRuntime on Battler {
     return copyWith(combatFlags: const <CombatRuntimeFlag>{});
   }
 
+  Battler clearCombatWalls() {
+    if (combatWallSegments.isEmpty &&
+        temporaryCombatWallSegments.isEmpty &&
+        queuedTemporaryCombatWallSegments.isEmpty &&
+        combatDestroyedWallCount == 0) {
+      return this;
+    }
+
+    return copyWith(
+      combatWallSegments: const <OperativePatternWallSegment>[],
+      temporaryCombatWallSegments: const <OperativePatternWallSegment>[],
+      queuedTemporaryCombatWallSegments: const <OperativePatternWallSegment>[],
+      combatDestroyedWallCount: 0,
+    );
+  }
+
+  Battler seedRandomCombatWalls({
+    required int count,
+    required int Function(int max) nextInt,
+  }) {
+    final candidates = <OperativePatternWallSegment>[];
+    for (final point in operativePatternPoints) {
+      for (final delta in const [
+        (x: 1, y: 0),
+        (x: 0, y: 1),
+      ]) {
+        final neighbor = operativePatternPointAt(
+          x: point.x + delta.x,
+          y: point.y + delta.y,
+        );
+        if (neighbor == null) continue;
+        candidates.add(OperativePatternWallSegment(a: point, b: neighbor));
+      }
+    }
+
+    final remaining = List<OperativePatternWallSegment>.from(candidates);
+    final picked = <OperativePatternWallSegment>[];
+    while (picked.length < count && remaining.isNotEmpty) {
+      picked.add(remaining.removeAt(nextInt(remaining.length)));
+    }
+
+    return addCombatWalls(picked);
+  }
+
+  Battler addCombatWalls(Iterable<OperativePatternWallSegment> walls) {
+    final nextWalls = _mergedWalls(combatWallSegments, walls);
+    if (_sameWallKeys(combatWallSegments, nextWalls)) return this;
+
+    return copyWith(combatWallSegments: nextWalls);
+  }
+
+  Battler queueTemporaryCombatWalls(
+    Iterable<OperativePatternWallSegment> walls,
+  ) {
+    final nextWalls = _mergedWalls(queuedTemporaryCombatWallSegments, walls);
+    if (_sameWallKeys(queuedTemporaryCombatWallSegments, nextWalls)) {
+      return this;
+    }
+
+    return copyWith(queuedTemporaryCombatWallSegments: nextWalls);
+  }
+
+  Battler activateQueuedTemporaryCombatWalls() {
+    if (queuedTemporaryCombatWallSegments.isEmpty) return this;
+
+    final queuedWalls = queuedTemporaryCombatWallSegments;
+    return copyWith(
+      combatWallSegments: _mergedWalls(combatWallSegments, queuedWalls),
+      temporaryCombatWallSegments:
+          _mergedWalls(temporaryCombatWallSegments, queuedWalls),
+      queuedTemporaryCombatWallSegments: const <OperativePatternWallSegment>[],
+    );
+  }
+
+  Battler expireTemporaryCombatWalls() {
+    if (temporaryCombatWallSegments.isEmpty) return this;
+
+    final temporaryKeys =
+        temporaryCombatWallSegments.map((wall) => wall.key).toSet();
+    return copyWith(
+      combatWallSegments: combatWallSegments
+          .where((wall) => !temporaryKeys.contains(wall.key))
+          .toList(growable: false),
+      temporaryCombatWallSegments: const <OperativePatternWallSegment>[],
+    );
+  }
+
+  Battler destroyCombatWalls(Iterable<OperativePatternWallSegment> walls) {
+    final keysToDestroy = walls.map((wall) => wall.key).toSet();
+    if (keysToDestroy.isEmpty) return this;
+
+    final beforeCount = combatWallSegments.length;
+    final nextWalls = combatWallSegments
+        .where((wall) => !keysToDestroy.contains(wall.key))
+        .toList(growable: false);
+    final destroyedCount = beforeCount - nextWalls.length;
+    if (destroyedCount <= 0) return this;
+
+    return copyWith(
+      combatWallSegments: nextWalls,
+      temporaryCombatWallSegments: temporaryCombatWallSegments
+          .where((wall) => !keysToDestroy.contains(wall.key))
+          .toList(growable: false),
+      queuedTemporaryCombatWallSegments: queuedTemporaryCombatWallSegments
+          .where((wall) => !keysToDestroy.contains(wall.key))
+          .toList(growable: false),
+    );
+  }
+
+  Battler recordDestroyedCombatWalls(int count) {
+    final safeCount = max(0, count);
+    if (safeCount <= 0) return this;
+
+    return copyWith(
+      combatDestroyedWallCount: combatDestroyedWallCount + safeCount,
+    );
+  }
+
+  List<OperativePatternWallSegment> combatWallsAdjacentTo(
+    OperativePatternPoint point,
+  ) {
+    return combatWallSegments.where((wall) {
+      return wall.a == point || wall.b == point;
+    }).toList(growable: false);
+  }
+
+  List<OperativePatternWallSegment> combatWallsCrossedBy(
+    List<OperativePatternPoint> points, {
+    int startIndex = 0,
+  }) {
+    final sequence = OperativePatternRequirement.normalizedSequence(points);
+    if (sequence.length < 2) return const <OperativePatternWallSegment>[];
+
+    final crossed = <OperativePatternWallSegment>{};
+    final connectedKeys = _connectedCombatWallKeys(combatWallSegments);
+    for (var i = max(0, startIndex); i < sequence.length - 1; i++) {
+      final from = sequence[i];
+      final to = sequence[i + 1];
+      for (final wall in combatWallSegments) {
+        if (wall.blocks(
+          from,
+          to,
+          isConnected: connectedKeys.contains(wall.key),
+        )) {
+          crossed.add(wall);
+        }
+      }
+    }
+    return List<OperativePatternWallSegment>.unmodifiable(crossed);
+  }
+
   Battler _recordCombatBarrierGain(int amount) {
     final safeAmount = max(0, amount);
     if (safeAmount <= 0 || !hasCombatFlag(Battler.combatActiveFlag)) {
@@ -287,6 +438,48 @@ extension BattlerCombatRuntime on Battler {
     return copyWith(
       combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
     );
+  }
+
+  List<OperativePatternWallSegment> _mergedWalls(
+    Iterable<OperativePatternWallSegment> first,
+    Iterable<OperativePatternWallSegment> second,
+  ) {
+    final byKey = <String, OperativePatternWallSegment>{};
+    for (final wall in first) {
+      byKey[wall.key] = wall;
+    }
+    for (final wall in second) {
+      byKey[wall.key] = wall;
+    }
+    return List<OperativePatternWallSegment>.unmodifiable(byKey.values);
+  }
+
+  bool _sameWallKeys(
+    Iterable<OperativePatternWallSegment> first,
+    Iterable<OperativePatternWallSegment> second,
+  ) {
+    final firstKeys = first.map((wall) => wall.key).toSet();
+    final secondKeys = second.map((wall) => wall.key).toSet();
+    return firstKeys.length == secondKeys.length &&
+        firstKeys.containsAll(secondKeys);
+  }
+
+  Set<String> _connectedCombatWallKeys(
+    Iterable<OperativePatternWallSegment> walls,
+  ) {
+    final endpointCounts = <String, int>{};
+    for (final wall in walls) {
+      endpointCounts.update(wall.a.key, (count) => count + 1,
+          ifAbsent: () => 1);
+      endpointCounts.update(wall.b.key, (count) => count + 1,
+          ifAbsent: () => 1);
+    }
+    return {
+      for (final wall in walls)
+        if ((endpointCounts[wall.a.key] ?? 0) > 1 ||
+            (endpointCounts[wall.b.key] ?? 0) > 1)
+          wall.key,
+    };
   }
 
   int _secondaryValueForBattlerFlag(BattlerCombatFlag kind) {

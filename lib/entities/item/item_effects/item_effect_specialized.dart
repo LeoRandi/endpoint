@@ -407,6 +407,631 @@ class VirtualMailboxItemEffect extends ItemEffect {
   }
 }
 
+class TaladronItemEffect extends ItemEffect {
+  const TaladronItemEffect()
+      : super(
+          description:
+              'Al usarse: destruye las Murallas atravesadas despues de este punto.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: Todas las Murallas atravesadas despues de este punto son destruidas.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final itemPointKey = _assignedPointKeyForItem(owner: owner, item: item);
+    if (itemPointKey == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final sequence = pattern.sequence;
+    final startIndex =
+        sequence.indexWhere((point) => point.key == itemPointKey);
+    if (startIndex < 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final crossedWalls = opponent.combatWallsCrossedBy(
+      sequence,
+      startIndex: startIndex,
+    );
+    if (crossedWalls.isEmpty) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return _destroyOpponentWalls(
+      owner: owner,
+      opponent: opponent,
+      walls: crossedWalls,
+    );
+  }
+}
+
+class CuboDinamitalicoItemEffect extends ItemEffect {
+  const CuboDinamitalicoItemEffect()
+      : super(
+          description:
+              'Al comienzo del combate, destruye cualquier Muralla adyacente a su posicion.',
+          hooks: const {ItemEffectHook.combatStart},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al comienzo del combate, destruye cualquier Muralla adyacente a su posicion.';
+  }
+
+  @override
+  ItemEffectResolution onCombatStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    RunRandomizer? randomizer,
+  }) {
+    final point = _assignedPointForItem(owner: owner, item: item);
+    if (point == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final adjacentWalls = opponent.combatWallsAdjacentTo(point);
+    return _destroyOpponentWalls(
+      owner: owner,
+      opponent: opponent,
+      walls: adjacentWalls,
+    );
+  }
+}
+
+class MedidorRoturaItemEffect extends ItemEffect {
+  const MedidorRoturaItemEffect()
+      : super(
+          description: 'Ganas ataque por cada Muralla destruida este combate.',
+          hooks: const {ItemEffectHook.calculatedStatModifier},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Ganas +${max(1, item.value)} ataque por cada Muralla destruida este combate.';
+  }
+
+  @override
+  int modifyCalculatedStat({
+    required Battler owner,
+    required Item item,
+    required BattlerStat stat,
+    required int value,
+  }) {
+    if (stat != BattlerStat.attack) return value;
+
+    return value + (max(1, item.value) * owner.combatDestroyedWallCount);
+  }
+}
+
+class MurallaAutomaticaItemEffect extends ItemEffect {
+  const MurallaAutomaticaItemEffect()
+      : super(
+          description:
+              'Al comienzo del combate, crea Murallas en la matriz enemiga.',
+          hooks: const {ItemEffectHook.combatStart},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al comienzo del combate, crea ${max(1, item.value)} Murallas en la matriz enemiga.';
+  }
+
+  @override
+  ItemEffectResolution onCombatStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    RunRandomizer? randomizer,
+  }) {
+    final walls = _randomAvailableWalls(
+      existingWalls: opponent.combatWallSegments,
+      count: max(1, item.value),
+      nextInt: randomizer?.nextInt ?? Random().nextInt,
+    );
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent.addCombatWalls(walls),
+    );
+  }
+}
+
+class LiteralPaywallItemEffect extends ItemEffect {
+  const LiteralPaywallItemEffect()
+      : super(
+          description:
+              'Al usarse: al final del turno, paga creditos para crear una Muralla para el enemigo.',
+          hooks: const {ItemEffectHook.patternUsed, ItemEffectHook.turnEnd},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: al final del turno, paga ${max(0, item.value)} creditos si es posible para crear una Muralla para el enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(
+        CombatRuntimeFlag.item(
+          itemFlag: ItemCombatFlagKind.literalPaywallPendingWall,
+          itemId: item.id,
+          itemInstanceId: item.instanceId,
+          secondaryValue: max(0, item.value),
+        ),
+      ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final pendingFlags = owner.combatFlags.where((flag) {
+      return flag.itemFlag == ItemCombatFlagKind.literalPaywallPendingWall &&
+          flag.itemId == item.id &&
+          flag.itemInstanceId == item.instanceId;
+    }).toList(growable: false);
+    if (pendingFlags.isEmpty) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner.removeItemCombatFlagsFor(
+      item: item,
+      kind: ItemCombatFlagKind.literalPaywallPendingWall,
+    );
+    var updatedOpponent = opponent;
+    final nextInt = randomizer?.nextInt ?? Random().nextInt;
+    for (final flag in pendingFlags) {
+      final cost = max(0, flag.secondaryValue ?? item.value);
+      if (!updatedOwner.canAfford(cost)) continue;
+
+      final walls = _randomAvailableWalls(
+        existingWalls: updatedOpponent.combatWallSegments,
+        count: 1,
+        nextInt: nextInt,
+      );
+      if (walls.isEmpty) continue;
+
+      updatedOwner = updatedOwner.spendMoney(cost);
+      updatedOpponent = updatedOpponent.addCombatWalls(walls);
+    }
+
+    return ItemEffectResolution(owner: updatedOwner, opponent: updatedOpponent);
+  }
+}
+
+class PassCardItemEffect extends ItemEffect {
+  const PassCardItemEffect()
+      : super(
+          description:
+              'Al usarse, al final del turno paga creditos para desactivar las Murallas de tu matriz durante tu proximo turno.',
+          hooks: const {
+            ItemEffectHook.patternUsed,
+            ItemEffectHook.turnStart,
+            ItemEffectHook.turnEnd,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return '+1 BP mientras este equipado. Al usarse: al final del turno, paga ${max(0, item.value)} creditos si es posible. Durante tu proximo turno, las Murallas de tu matriz quedan desactivadas: se ven atenuadas y puedes atravesarlas.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final cost = max(0, item.value);
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(
+            CombatRuntimeFlag.item(
+              itemFlag: ItemCombatFlagKind.passCardPendingPayment,
+              itemId: item.id,
+              itemInstanceId: item.instanceId,
+              secondaryValue: cost,
+            ),
+          ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final pendingFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.passCardWallsDisabledNextTurn,
+    );
+    if (!owner.hasCombatFlag(pendingFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner
+          .removeCombatFlag(pendingFlag)
+          .addCombatFlag(
+            _itemCombatFlag(
+              item,
+              ItemCombatFlagKind.passCardWallsDisabledThisTurn,
+            ),
+          ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner.removeItemCombatFlagsFor(
+      item: item,
+      kind: ItemCombatFlagKind.passCardWallsDisabledThisTurn,
+    );
+
+    final pendingPayments = updatedOwner.combatFlags.where((flag) {
+      return flag.itemFlag == ItemCombatFlagKind.passCardPendingPayment &&
+          flag.itemId == item.id &&
+          flag.itemInstanceId == item.instanceId;
+    }).toList(growable: false);
+    if (pendingPayments.isEmpty) {
+      return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+    }
+
+    updatedOwner = updatedOwner.removeItemCombatFlagsFor(
+      item: item,
+      kind: ItemCombatFlagKind.passCardPendingPayment,
+    );
+    for (final pendingPayment in pendingPayments) {
+      final cost = max(0, pendingPayment.secondaryValue ?? item.value);
+      if (!updatedOwner.canAfford(cost)) continue;
+
+      updatedOwner = updatedOwner.spendMoney(cost).addCombatFlag(
+            CombatRuntimeFlag.item(
+              itemFlag: ItemCombatFlagKind.passCardWallsDisabledNextTurn,
+              itemId: item.id,
+              itemInstanceId: item.instanceId,
+            ),
+          );
+    }
+
+    return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+  }
+}
+
+class BarbedShieldItemEffect extends ItemEffect {
+  const BarbedShieldItemEffect()
+      : super(
+          description:
+              'Al usarse: hace dano al enemigo al final del turno segun las Murallas en ambas matrices.',
+          hooks: const {ItemEffectHook.patternUsed, ItemEffectHook.turnEnd},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: Hace dano al enemigo al final del turno igual a ${max(1, item.value)} veces el numero de Murallas en tu matriz y en la del enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(
+        CombatRuntimeFlag.item(
+          itemFlag: ItemCombatFlagKind.barbedShieldPendingDamage,
+          itemId: item.id,
+          itemInstanceId: item.instanceId,
+          secondaryValue: max(1, item.value),
+        ),
+      ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final pendingFlags = owner.combatFlags.where((flag) {
+      return flag.itemFlag == ItemCombatFlagKind.barbedShieldPendingDamage &&
+          flag.itemId == item.id &&
+          flag.itemInstanceId == item.instanceId;
+    }).toList(growable: false);
+    if (pendingFlags.isEmpty) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final multiplier = pendingFlags.fold<int>(
+      0,
+      (total, flag) => total + max(1, flag.secondaryValue ?? item.value),
+    );
+    final wallCount =
+        owner.combatWallSegments.length + opponent.combatWallSegments.length;
+    final damage = multiplier * wallCount;
+    return ItemEffectResolution(
+      owner: owner.removeItemCombatFlagsFor(
+        item: item,
+        kind: ItemCombatFlagKind.barbedShieldPendingDamage,
+      ),
+      opponent: damage <= 0
+          ? opponent
+          : opponent.receiveDirectDamage(damage, source: owner),
+    );
+  }
+}
+
+class PilarAceroItemEffect extends ItemEffect {
+  const PilarAceroItemEffect()
+      : super(
+          description:
+              'Al usarse: crea Murallas temporales alrededor de su punto.',
+          hooks: const {ItemEffectHook.patternUsed, ItemEffectHook.turnEnd},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: Crea Murallas al rededor de su punto al final del turno, que duran un turno, tanto en tu matriz como en la del enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final point = _assignedPointForItem(owner: owner, item: item);
+    if (point == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final walls = _wallsAroundPoint(point);
+    return ItemEffectResolution(
+      owner: owner.queueTemporaryCombatWalls(walls),
+      opponent: opponent.queueTemporaryCombatWalls(walls),
+    );
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner
+          .expireTemporaryCombatWalls()
+          .activateQueuedTemporaryCombatWalls(),
+      opponent: opponent
+          .expireTemporaryCombatWalls()
+          .activateQueuedTemporaryCombatWalls(),
+    );
+  }
+}
+
+class DuplicadorAtomosItemEffect extends ItemEffect {
+  const DuplicadorAtomosItemEffect()
+      : super(
+          description:
+              'Al usarse: copia Murallas de tu matriz a la del enemigo.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: Copia ${max(1, item.value)} Murallas en tu matriz a la de tu enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent.addCombatWalls(
+        owner.combatWallSegments.take(max(1, item.value)),
+      ),
+    );
+  }
+}
+
+class CortinaHumoItemEffect extends ItemEffect {
+  const CortinaHumoItemEffect()
+      : super(
+          description:
+              'Al usarse: mueve Murallas de tu matriz a la del enemigo.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: Mueve ${max(1, item.value)} Murallas de tu matriz a la del enemigo.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final movedWalls = owner.combatWallSegments
+        .take(max(1, item.value))
+        .toList(growable: false);
+    if (movedWalls.isEmpty) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.destroyCombatWalls(movedWalls),
+      opponent: opponent.addCombatWalls(movedWalls),
+    );
+  }
+}
+
+ItemEffectResolution _destroyOpponentWalls({
+  required Battler owner,
+  required Battler opponent,
+  required Iterable<OperativePatternWallSegment> walls,
+}) {
+  final wallsToDestroy = walls.toList(growable: false);
+  if (wallsToDestroy.isEmpty) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  final beforeCount = opponent.combatWallSegments.length;
+  final updatedOpponent = opponent.destroyCombatWalls(wallsToDestroy);
+  final destroyedCount =
+      beforeCount - updatedOpponent.combatWallSegments.length;
+  return ItemEffectResolution(
+    owner: owner.recordDestroyedCombatWalls(destroyedCount),
+    opponent: updatedOpponent,
+  );
+}
+
+String? _assignedPointKeyForItem({
+  required Battler owner,
+  required Item item,
+}) {
+  final instanceKey = item.instanceId;
+  if (instanceKey != null) {
+    final pointKey = owner.patternItemPointKeys[instanceKey];
+    if (pointKey != null) return pointKey;
+  }
+  return owner.patternItemPointKeys[item.id.name];
+}
+
+OperativePatternPoint? _assignedPointForItem({
+  required Battler owner,
+  required Item item,
+}) {
+  final pointKey = _assignedPointKeyForItem(owner: owner, item: item);
+  if (pointKey == null) return null;
+
+  for (final point in operativePatternPoints) {
+    if (point.key == pointKey) return point;
+  }
+  return null;
+}
+
+List<OperativePatternWallSegment> _wallsAroundPoint(
+  OperativePatternPoint point,
+) {
+  final walls = <OperativePatternWallSegment>[];
+  for (final delta in const [
+    (x: 0, y: 1),
+    (x: 1, y: 0),
+    (x: 0, y: -1),
+    (x: -1, y: 0),
+  ]) {
+    final neighbor = operativePatternPointAt(
+      x: point.x + delta.x,
+      y: point.y + delta.y,
+    );
+    if (neighbor == null) continue;
+    walls.add(OperativePatternWallSegment(a: point, b: neighbor));
+  }
+  return List<OperativePatternWallSegment>.unmodifiable(walls);
+}
+
+List<OperativePatternWallSegment> _randomAvailableWalls({
+  required Iterable<OperativePatternWallSegment> existingWalls,
+  required int count,
+  required int Function(int max) nextInt,
+}) {
+  final existingKeys = existingWalls.map((wall) => wall.key).toSet();
+  final candidates = <OperativePatternWallSegment>[];
+  for (final point in operativePatternPoints) {
+    for (final delta in const [
+      (x: 1, y: 0),
+      (x: 0, y: 1),
+    ]) {
+      final neighbor = operativePatternPointAt(
+        x: point.x + delta.x,
+        y: point.y + delta.y,
+      );
+      if (neighbor == null) continue;
+
+      final wall = OperativePatternWallSegment(a: point, b: neighbor);
+      if (!existingKeys.contains(wall.key)) {
+        candidates.add(wall);
+      }
+    }
+  }
+
+  final remaining = List<OperativePatternWallSegment>.from(candidates);
+  final picked = <OperativePatternWallSegment>[];
+  while (picked.length < count && remaining.isNotEmpty) {
+    picked.add(remaining.removeAt(nextInt(remaining.length)));
+  }
+  return List<OperativePatternWallSegment>.unmodifiable(picked);
+}
+
 /// Premia guardar mercancia ajena en el inventario con curacion ofensiva.
 class MuestrarioContrabandoItemEffect extends ItemEffect {
   static const healCap = 10;

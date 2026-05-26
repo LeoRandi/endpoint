@@ -43,6 +43,7 @@ class _BattleSceneView extends StatelessWidget {
   final _BattleCombatIconMotion? activeCombatIconMotion;
   final _BattleStatusEffectBurst? activeStatusEffectBurst;
   final _BattleFloatingNumberBurst? activeFloatingNumberBurst;
+  final _BattleMoneyBurst? activeMoneyBurst;
   final _BattleFragilidadBurst? activeFragilidadBurst;
   final int? playerBarrierAnimationReference;
   final int? enemyBarrierAnimationReference;
@@ -75,6 +76,7 @@ class _BattleSceneView extends StatelessWidget {
     required this.activeCombatIconMotion,
     required this.activeStatusEffectBurst,
     required this.activeFloatingNumberBurst,
+    required this.activeMoneyBurst,
     required this.activeFragilidadBurst,
     required this.playerBarrierAnimationReference,
     required this.enemyBarrierAnimationReference,
@@ -286,6 +288,12 @@ class _BattleSceneView extends StatelessWidget {
                         Positioned.fill(
                           child: _BattleFloatingNumberAnimationLayer(
                             burst: activeFloatingNumberBurst!,
+                          ),
+                        ),
+                      if (activeMoneyBurst != null)
+                        Positioned.fill(
+                          child: _BattleMoneyAnimationLayer(
+                            burst: activeMoneyBurst!,
                           ),
                         ),
                       if (activeFragilidadBurst != null)
@@ -535,6 +543,138 @@ class _BattleFloatingNumberAnimationLayer extends StatelessWidget {
                   particle: particle,
                   progress: progress,
                 ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BattleMoneyAnimationLayer extends StatelessWidget {
+  final _BattleMoneyBurst burst;
+
+  const _BattleMoneyAnimationLayer({
+    required this.burst,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey<int>(burst.id),
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: _battleFloatingNumberDuration,
+      curve: Curves.linear,
+      builder: (context, progress, _) {
+        final pop = Curves.easeOutBack.transform(
+          (progress / 0.34).clamp(0.0, 1.0).toDouble(),
+        );
+        final lift = Curves.easeOutCubic.transform(progress) * -24;
+        final fade = progress < 0.14
+            ? (progress / 0.14).clamp(0.0, 1.0).toDouble()
+            : progress > 0.72
+                ? ((1 - progress) / 0.28).clamp(0.0, 1.0).toDouble()
+                : 1.0;
+        final accent = burst.isGain
+            ? const Color(0xFFFFD76A)
+            : EndpointPalette.dangerAccent;
+        final label = '${burst.isGain ? '+' : '-'}${burst.amount}C';
+        final iconRect = burst.iconRect;
+        final badgeWidth = max(104.0, min(150.0, iconRect.width * 1.12));
+        const badgeHeight = 44.0;
+        final badgeCenter = iconRect.center.translate(
+          0,
+          -iconRect.height * 0.18,
+        );
+
+        return IgnorePointer(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fromRect(
+                rect: iconRect,
+                child: Opacity(
+                  opacity: 0.52 * fade,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: badgeCenter.dx - badgeWidth / 2,
+                top: badgeCenter.dy - badgeHeight / 2,
+                width: badgeWidth,
+                height: badgeHeight,
+                child: Opacity(
+                  opacity: fade,
+                  child: Transform.translate(
+                    offset: Offset(0, lift),
+                    child: Transform.scale(
+                      scale: 0.82 + pop * 0.2,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: EndpointPalette.panelBackgroundBattleOpaque
+                              .withAlpha(232),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                            color: accent.withAlpha(210),
+                            width: 1.4,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accent.withAlpha(122),
+                              blurRadius: 18,
+                              spreadRadius: 2,
+                            ),
+                            BoxShadow(
+                              color: Colors.black.withAlpha(184),
+                              blurRadius: 12,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.monetization_on_rounded,
+                              color: accent,
+                              size: 25,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  label,
+                                  maxLines: 1,
+                                  style: textTitleSmallBold.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    height: 1,
+                                    letterSpacing: 0,
+                                    decoration: TextDecoration.none,
+                                    shadows: [
+                                      Shadow(
+                                        color: accent.withAlpha(136),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         );

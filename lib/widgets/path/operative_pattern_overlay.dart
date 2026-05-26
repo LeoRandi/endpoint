@@ -163,11 +163,13 @@ class OperativePatternAdjacencyGuidePainter extends CustomPainter {
 class OperativePatternOverlay extends StatefulWidget {
   final Map<String, Item> equippedItemsByPointKey;
   final int playerLevel;
+  final List<OperativePatternWallSegment> wallSegments;
 
   const OperativePatternOverlay({
     super.key,
     this.equippedItemsByPointKey = const <String, Item>{},
     this.playerLevel = Battler.initialLevel,
+    this.wallSegments = const <OperativePatternWallSegment>[],
   });
 
   static String pointKey(int x, int y) => operativePatternPointKey(x, y);
@@ -272,6 +274,7 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
                     child: OperativePatternBoard(
                       onPointLongPressed: _handlePointLongPressed,
                       contentsByPointKey: _buildContentsByPointKey(),
+                      wallSegments: widget.wallSegments,
                     ),
                   ),
                 ),
@@ -308,14 +311,58 @@ Offset operativePatternBoardLocalCenterFor({
   return _OperativePatternGridLayout.fromBoardSize(boardSize).centerFor(point);
 }
 
+OperativePatternWallSegment? operativePatternNearestWallSegmentFor({
+  required Size boardSize,
+  required Offset localPosition,
+  double maxDistanceFactor = 0.16,
+}) {
+  final layout = _OperativePatternGridLayout.fromBoardSize(boardSize);
+  final candidates = <OperativePatternWallSegment>[];
+  for (final point in operativePatternPoints) {
+    for (final delta in const [
+      (x: 1, y: 0),
+      (x: 0, y: 1),
+    ]) {
+      final neighbor = operativePatternPointAt(
+        x: point.x + delta.x,
+        y: point.y + delta.y,
+      );
+      if (neighbor == null) continue;
+      candidates.add(OperativePatternWallSegment(a: point, b: neighbor));
+    }
+  }
+
+  OperativePatternWallSegment? nearest;
+  var nearestDistance = double.infinity;
+  for (final candidate in candidates) {
+    final a = layout.centerFor(candidate.a);
+    final b = layout.centerFor(candidate.b);
+    final midpoint = Offset.lerp(a, b, 0.5)!;
+    final distance = (localPosition - midpoint).distance;
+    if (distance >= nearestDistance) continue;
+    nearestDistance = distance;
+    nearest = candidate;
+  }
+
+  final maxDistance = boardSize.shortestSide * maxDistanceFactor;
+  return nearestDistance <= maxDistance ? nearest : null;
+}
+
 class OperativePatternBoard extends StatefulWidget {
   final ValueChanged<OperativePatternPoint>? onPointTapped;
   final ValueChanged<OperativePatternPoint>? onPointLongPressed;
   final ValueChanged<List<OperativePatternPoint>>? onPatternChanged;
   final Map<String, OperativePatternPointContent> contentsByPointKey;
+  final List<OperativePatternWallSegment> wallSegments;
+  final Set<String> disabledWallSegmentKeys;
+  final OperativePatternWallSegment? previewWallSegment;
+  final Set<String> animatedWallSegmentKeys;
+  final Color wallAccent;
+  final double previewWallOpacity;
   final Set<String> blockedPointKeys;
   final List<OperativePatternPoint>? displayedPatternPoints;
   final bool keepLineAfterPointerUp;
+  final bool isPatternInputEnabled;
   final int? maxPatternPoints;
   final Color accent;
   final Duration longPressDuration;
@@ -326,9 +373,16 @@ class OperativePatternBoard extends StatefulWidget {
     this.onPointLongPressed,
     this.onPatternChanged,
     required this.contentsByPointKey,
+    this.wallSegments = const <OperativePatternWallSegment>[],
+    this.disabledWallSegmentKeys = const <String>{},
+    this.previewWallSegment,
+    this.animatedWallSegmentKeys = const <String>{},
+    this.wallAccent = EndpointPalette.dangerAccent,
+    this.previewWallOpacity = 0.5,
     this.blockedPointKeys = const <String>{},
     this.displayedPatternPoints,
     this.keepLineAfterPointerUp = false,
+    this.isPatternInputEnabled = true,
     this.maxPatternPoints,
     this.accent = EndpointPalette.patternAccent,
     this.longPressDuration = _operativePatternCoordinateHoldDuration,
@@ -338,11 +392,12 @@ class OperativePatternBoard extends StatefulWidget {
   State<OperativePatternBoard> createState() => _OperativePatternBoardState();
 }
 
-class _OperativePatternBoardState extends State<OperativePatternBoard> {
+class _OperativePatternBoardState extends State<OperativePatternBoard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _wallPulseController;
   Timer? _coordinateHoldTimer;
   int? _activePointer;
   Offset? _activeFinger;
-  Offset? _lastFinger;
   Offset? _coordinateHoldOrigin;
   List<OperativePatternPoint> _activePatternPoints =
       const <OperativePatternPoint>[];
@@ -350,8 +405,38 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
       const <OperativePatternPoint>[];
 
   @override
+  void initState() {
+    super.initState();
+    _wallPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 920),
+    );
+    _syncWallPulseController();
+  }
+
+  @override
+  void didUpdateWidget(covariant OperativePatternBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animatedWallSegmentKeys != widget.animatedWallSegmentKeys) {
+      _syncWallPulseController();
+    }
+  }
+
+  void _syncWallPulseController() {
+    if (widget.animatedWallSegmentKeys.isEmpty) {
+      _wallPulseController.stop();
+      _wallPulseController.value = 0;
+      return;
+    }
+    if (!_wallPulseController.isAnimating) {
+      _wallPulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _coordinateHoldTimer?.cancel();
+    _wallPulseController.dispose();
     super.dispose();
   }
 
@@ -359,6 +444,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     PointerDownEvent event,
     _OperativePatternGridLayout layout,
   ) {
+    if (!widget.isPatternInputEnabled) return;
     final point = layout.pointAt(event.localPosition);
     if (point == null || _isPointBlocked(point)) {
       _clearActivePattern();
@@ -378,7 +464,6 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     _completedPatternPoints = const <OperativePatternPoint>[];
     _activePatternPoints = <OperativePatternPoint>[point];
     _activeFinger = event.localPosition;
-    _lastFinger = event.localPosition;
 
     final onPointLongPressed = widget.onPointLongPressed;
     if (onPointLongPressed != null) {
@@ -399,6 +484,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     PointerMoveEvent event,
     _OperativePatternGridLayout layout,
   ) {
+    if (!widget.isPatternInputEnabled) return;
     if (_activePointer != event.pointer || _activePatternPoints.isEmpty) {
       return;
     }
@@ -414,11 +500,17 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
       _coordinateHoldOrigin = null;
     }
 
-    final previousFinger = _lastFinger ?? event.localPosition;
+    final lastPatternCenter = layout.centerFor(_activePatternPoints.last);
+    final constrainedFinger = layout.constrainSegmentByWalls(
+      from: lastPatternCenter,
+      to: event.localPosition,
+      wallSegments: _activeWallSegments,
+      connectedWallKeys: _connectedWallKeys,
+    );
     final crossedPoints = _acceptedCrossedPoints(
       layout.pointsCrossedBySegment(
-        from: previousFinger,
-        to: event.localPosition,
+        from: lastPatternCenter,
+        to: constrainedFinger,
         excludedPoints: <OperativePatternPoint>{
           ..._recentPatternPointsBlockedForReuse(),
           ..._blockedPoints,
@@ -433,8 +525,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
           ...crossedPoints,
         ];
       }
-      _activeFinger = event.localPosition;
-      _lastFinger = event.localPosition;
+      _activeFinger = constrainedFinger;
     });
 
     if (crossedPoints.isNotEmpty) {
@@ -443,6 +534,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
   }
 
   void _handlePointerEnd(PointerEvent event) {
+    if (!widget.isPatternInputEnabled) return;
     if (_activePointer != event.pointer) return;
     if (widget.keepLineAfterPointerUp) {
       _coordinateHoldTimer?.cancel();
@@ -452,7 +544,6 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
       setState(() {
         _activePointer = null;
         _activeFinger = null;
-        _lastFinger = null;
         _coordinateHoldOrigin = null;
         _activePatternPoints = const <OperativePatternPoint>[];
         _completedPatternPoints = completedPattern;
@@ -468,7 +559,6 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     _coordinateHoldTimer?.cancel();
     _activePointer = null;
     _activeFinger = null;
-    _lastFinger = null;
     _coordinateHoldOrigin = null;
 
     if (_activePatternPoints.isEmpty && _completedPatternPoints.isEmpty) {
@@ -546,15 +636,13 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
   List<OperativePatternPoint> _acceptedCrossedPoints(
     List<OperativePatternPoint> crossedPoints,
   ) {
-    final maxPatternPoints = widget.maxPatternPoints;
-    if (maxPatternPoints == null || maxPatternPoints <= 0) {
-      return crossedPoints;
-    }
     if (_activePatternPoints.isEmpty ||
         OperativePatternRequirement.isClosedPattern(_activePatternPoints)) {
       return const <OperativePatternPoint>[];
     }
 
+    final maxPatternPoints = widget.maxPatternPoints;
+    final hasPointLimit = maxPatternPoints != null && maxPatternPoints > 0;
     final acceptedPoints = <OperativePatternPoint>[];
     final firstPoint = _activePatternPoints.first;
     var distinctPointCount =
@@ -563,18 +651,72 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
     for (final point in crossedPoints) {
       final closesPattern = point == firstPoint &&
           (_activePatternPoints.length + acceptedPoints.length) >= 3;
+      final previousPoint = acceptedPoints.isEmpty
+          ? _activePatternPoints.last
+          : acceptedPoints.last;
+      if (_isSegmentBlocked(previousPoint, point)) break;
+
       if (closesPattern) {
         acceptedPoints.add(point);
         break;
       }
 
-      if (distinctPointCount >= maxPatternPoints) continue;
+      if (hasPointLimit && distinctPointCount >= maxPatternPoints) continue;
 
       acceptedPoints.add(point);
       distinctPointCount++;
     }
 
     return List<OperativePatternPoint>.unmodifiable(acceptedPoints);
+  }
+
+  bool _isSegmentBlocked(
+    OperativePatternPoint from,
+    OperativePatternPoint to,
+  ) {
+    final connectedWallKeys = _connectedWallKeys;
+    return _activeWallSegments.any(
+      (wall) => wall.blocks(
+        from,
+        to,
+        isConnected: connectedWallKeys.contains(wall.key),
+      ),
+    );
+  }
+
+  Set<String> get _connectedWallKeys {
+    final endpointUseCounts = <String, int>{};
+    for (final wall in _activeWallSegments) {
+      endpointUseCounts.update(wall.a.key, (count) => count + 1,
+          ifAbsent: () => 1);
+      endpointUseCounts.update(wall.b.key, (count) => count + 1,
+          ifAbsent: () => 1);
+    }
+
+    return <String>{
+      for (final wall in _activeWallSegments)
+        if ((endpointUseCounts[wall.a.key] ?? 0) > 1 ||
+            (endpointUseCounts[wall.b.key] ?? 0) > 1)
+          wall.key,
+    };
+  }
+
+  List<OperativePatternWallSegment> get _activeWallSegments {
+    if (widget.disabledWallSegmentKeys.isEmpty) return widget.wallSegments;
+
+    return widget.wallSegments
+        .where((wall) => !widget.disabledWallSegmentKeys.contains(wall.key))
+        .toList(growable: false);
+  }
+
+  List<OperativePatternWallSegment> get _disabledWallSegments {
+    if (widget.disabledWallSegmentKeys.isEmpty) {
+      return const <OperativePatternWallSegment>[];
+    }
+
+    return widget.wallSegments
+        .where((wall) => widget.disabledWallSegmentKeys.contains(wall.key))
+        .toList(growable: false);
   }
 
   void _notifyPatternChanged(List<OperativePatternPoint> points) {
@@ -595,96 +737,173 @@ class _OperativePatternBoardState extends State<OperativePatternBoard> {
         final lineCenters = _linePointCenters(layout);
         final adjacencyGuideSegments = _adjacencyGuideSegments(layout);
         final lineFinger = _activeFinger;
+        final activeWallSegments = _activeWallSegments;
+        final disabledWallSegments = _disabledWallSegments;
 
-        return Listener(
-          behavior: HitTestBehavior.opaque,
-          onPointerDown: (event) => _handlePointerDown(event, layout),
-          onPointerMove: (event) => _handlePointerMove(event, layout),
-          onPointerUp: _handlePointerEnd,
-          onPointerCancel: _handlePointerEnd,
-          child: SizedBox.expand(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: EndpointPalette.blend(
-                  EndpointPalette.panelBackground,
-                  widget.accent,
-                  0.08,
-                ),
-                borderRadius: BorderRadius.circular(
-                  _operativePatternBoardRadius,
-                ),
-                border: Border.all(
-                  color: EndpointPalette.softForeground.withValues(alpha: 0.72),
-                  width: 1.6,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.accent.withValues(alpha: 0.12),
-                    blurRadius: 22,
-                    spreadRadius: 1,
+        return AnimatedBuilder(
+          animation: _wallPulseController,
+          builder: (context, _) {
+            final wallPulse = widget.animatedWallSegmentKeys.isEmpty
+                ? 0.0
+                : _wallPulseController.value;
+            final animatedWallSegments = activeWallSegments
+                .where((wall) => widget.animatedWallSegmentKeys.contains(
+                      wall.key,
+                    ))
+                .toList(growable: false);
+            final staticWallSegments = activeWallSegments
+                .where((wall) => !widget.animatedWallSegmentKeys.contains(
+                      wall.key,
+                    ))
+                .toList(growable: false);
+
+            return Listener(
+              behavior: HitTestBehavior.opaque,
+              onPointerDown: (event) => _handlePointerDown(event, layout),
+              onPointerMove: (event) => _handlePointerMove(event, layout),
+              onPointerUp: _handlePointerEnd,
+              onPointerCancel: _handlePointerEnd,
+              child: SizedBox.expand(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: EndpointPalette.blend(
+                      EndpointPalette.panelBackground,
+                      widget.accent,
+                      0.08,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      _operativePatternBoardRadius,
+                    ),
+                    border: Border.all(
+                      color: EndpointPalette.softForeground
+                          .withValues(alpha: 0.72),
+                      width: 1.6,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.accent.withValues(alpha: 0.12),
+                        blurRadius: 22,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  _operativePatternBoardRadius - 1,
-                ),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            center: Alignment.center,
-                            radius: 0.9,
-                            colors: [
-                              widget.accent.withValues(alpha: 0.12),
-                              EndpointPalette.panelBackground.withValues(
-                                alpha: 0.86,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      _operativePatternBoardRadius - 1,
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                center: Alignment.center,
+                                radius: 0.9,
+                                colors: [
+                                  widget.accent.withValues(alpha: 0.12),
+                                  EndpointPalette.panelBackground.withValues(
+                                    alpha: 0.86,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (adjacencyGuideSegments.isNotEmpty)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: CustomPaint(
-                            painter: OperativePatternAdjacencyGuidePainter(
-                              segments: adjacencyGuideSegments,
-                              endpointInset: layout.dotSize * 0.58,
                             ),
                           ),
                         ),
-                      ),
-                    if (lineCenters.isNotEmpty)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: CustomPaint(
-                            painter: _OperativePatternDragLinePainter(
-                              points: lineCenters,
-                              finger: lineFinger,
-                              accent: widget.accent,
-                              isClosed: isClosedPattern,
+                        if (adjacencyGuideSegments.isNotEmpty)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: OperativePatternAdjacencyGuidePainter(
+                                  segments: adjacencyGuideSegments,
+                                  endpointInset: layout.dotSize * 0.58,
+                                ),
+                              ),
                             ),
                           ),
+                        if (lineCenters.isNotEmpty)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _OperativePatternDragLinePainter(
+                                  points: lineCenters,
+                                  finger: lineFinger,
+                                  accent: widget.accent,
+                                  isClosed: isClosedPattern,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (staticWallSegments.isNotEmpty)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _OperativePatternWallPainter(
+                                  wallSegments: staticWallSegments,
+                                  connectedWallKeys: _connectedWallKeys,
+                                  layout: layout,
+                                  accent: widget.wallAccent,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (animatedWallSegments.isNotEmpty)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _OperativePatternWallPainter(
+                                  wallSegments: animatedWallSegments,
+                                  connectedWallKeys: _connectedWallKeys,
+                                  layout: layout,
+                                  accent: widget.wallAccent,
+                                  pulse: wallPulse,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (disabledWallSegments.isNotEmpty)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _OperativePatternWallPainter(
+                                  wallSegments: disabledWallSegments,
+                                  connectedWallKeys: const <String>{},
+                                  layout: layout,
+                                  accent: EndpointPalette.softForeground,
+                                  opacity: 0.34,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (widget.previewWallSegment != null)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _OperativePatternWallPainter(
+                                  wallSegments: [widget.previewWallSegment!],
+                                  connectedWallKeys: _connectedWallKeys,
+                                  layout: layout,
+                                  accent: widget.wallAccent,
+                                  opacity: widget.previewWallOpacity,
+                                ),
+                              ),
+                            ),
+                          ),
+                        Positioned.fill(
+                          child: _OperativePatternGrid(
+                            layout: layout,
+                            activePoints: displayedPatternPoints.toSet(),
+                            contentsByPointKey: widget.contentsByPointKey,
+                            blockedPointKeys: widget.blockedPointKeys,
+                            accent: widget.accent,
+                          ),
                         ),
-                      ),
-                    Positioned.fill(
-                      child: _OperativePatternGrid(
-                        layout: layout,
-                        activePoints: displayedPatternPoints.toSet(),
-                        contentsByPointKey: widget.contentsByPointKey,
-                        blockedPointKeys: widget.blockedPointKeys,
-                        accent: widget.accent,
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -860,6 +1079,85 @@ class _OperativePatternGridLayout {
     hits.sort((a, b) => a.order.compareTo(b.order));
     return hits.map((hit) => hit.point).toList(growable: false);
   }
+
+  Offset constrainSegmentByWalls({
+    required Offset from,
+    required Offset to,
+    required List<OperativePatternWallSegment> wallSegments,
+    required Set<String> connectedWallKeys,
+  }) {
+    final segment = to - from;
+    if (segment.distanceSquared == 0 || wallSegments.isEmpty) return to;
+
+    double? nearestIntersection;
+    for (final wall in wallSegments) {
+      final wallLine = wallLineFor(
+        wall,
+        isConnected: connectedWallKeys.contains(wall.key),
+      );
+      final intersection = _segmentIntersectionParameter(
+        from,
+        to,
+        wallLine.start,
+        wallLine.end,
+      );
+      if (intersection == null) continue;
+      if (intersection <= 0 || intersection > 1) continue;
+      if (nearestIntersection == null || intersection < nearestIntersection) {
+        nearestIntersection = intersection;
+      }
+    }
+
+    if (nearestIntersection == null) return to;
+    return from + segment * max(0, nearestIntersection - 0.02);
+  }
+
+  _OperativePatternWallLine wallLineFor(
+    OperativePatternWallSegment wall, {
+    required bool isConnected,
+  }) {
+    final aCenter = centerFor(wall.a);
+    final bCenter = centerFor(wall.b);
+    final delta = bCenter - aCenter;
+    final distance = delta.distance;
+    if (distance <= 0) {
+      return _OperativePatternWallLine(start: aCenter, end: aCenter);
+    }
+
+    final midpoint = Offset.lerp(aCenter, bCenter, 0.5)!;
+    final normal = Offset(-delta.dy / distance, delta.dx / distance);
+    final halfLength = distance *
+        (isConnected
+            ? OperativePatternWallSegment.connectedHalfLength
+            : OperativePatternWallSegment.baseHalfLength);
+    return _OperativePatternWallLine(
+      start: midpoint - normal * halfLength,
+      end: midpoint + normal * halfLength,
+    );
+  }
+
+  double? _segmentIntersectionParameter(
+    Offset a,
+    Offset b,
+    Offset c,
+    Offset d,
+  ) {
+    final r = b - a;
+    final s = d - c;
+    final denominator = _cross(r, s);
+    if (denominator.abs() < 0.000001) return null;
+
+    final cMinusA = c - a;
+    final t = _cross(cMinusA, s) / denominator;
+    final u = _cross(cMinusA, r) / denominator;
+    if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+
+    return t;
+  }
+
+  double _cross(Offset a, Offset b) {
+    return (a.dx * b.dy) - (a.dy * b.dx);
+  }
 }
 
 class _OperativePatternPointHit {
@@ -869,6 +1167,16 @@ class _OperativePatternPointHit {
   const _OperativePatternPointHit({
     required this.point,
     required this.order,
+  });
+}
+
+class _OperativePatternWallLine {
+  final Offset start;
+  final Offset end;
+
+  const _OperativePatternWallLine({
+    required this.start,
+    required this.end,
   });
 }
 
@@ -1259,6 +1567,228 @@ class OperativePatternBlockedMark extends StatelessWidget {
       angle: _operativePatternContentCounterRotation,
       child: mark,
     );
+  }
+}
+
+class _OperativePatternWallPainter extends CustomPainter {
+  final List<OperativePatternWallSegment> wallSegments;
+  final Set<String> connectedWallKeys;
+  final _OperativePatternGridLayout layout;
+  final Color accent;
+  final double opacity;
+  final double pulse;
+
+  const _OperativePatternWallPainter({
+    required this.wallSegments,
+    required this.connectedWallKeys,
+    required this.layout,
+    required this.accent,
+    this.opacity = 1,
+    this.pulse = 0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final wall in wallSegments) {
+      final wallLine = layout.wallLineFor(
+        wall,
+        isConnected: connectedWallKeys.contains(wall.key),
+      );
+      final delta = wallLine.end - wallLine.start;
+      final distance = delta.distance;
+      if (distance <= 0) continue;
+
+      final direction = delta / distance;
+      final normal = Offset(-direction.dy, direction.dx);
+      final pulseScale = 1 + 0.18 * pulse;
+      final pulseAlpha = 1 + 0.22 * pulse;
+
+      final glowPaint = Paint()
+        ..color = accent.withValues(
+          alpha: (0.32 * opacity * pulseAlpha).clamp(0.0, 1.0),
+        )
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 12 * pulseScale
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      final corePaint = Paint()
+        ..color = accent.withValues(alpha: 0.95 * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 5.2 * pulseScale;
+      final edgePaint = Paint()
+        ..color = EndpointPalette.softForeground.withValues(
+          alpha: 0.78 * opacity,
+        )
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 1.5 * pulseScale;
+
+      canvas.drawLine(wallLine.start, wallLine.end, glowPaint);
+      canvas.drawLine(wallLine.start, wallLine.end, corePaint);
+      canvas.drawLine(
+          wallLine.start + normal * 4, wallLine.end + normal * 4, edgePaint);
+      canvas.drawLine(
+          wallLine.start - normal * 4, wallLine.end - normal * 4, edgePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _OperativePatternWallPainter oldDelegate) {
+    return oldDelegate.wallSegments != wallSegments ||
+        oldDelegate.connectedWallKeys != connectedWallKeys ||
+        oldDelegate.layout != layout ||
+        oldDelegate.accent != accent ||
+        oldDelegate.opacity != opacity ||
+        oldDelegate.pulse != pulse;
+  }
+}
+
+class OperativePatternWallGlyph extends StatelessWidget {
+  final Color accent;
+  final bool enabled;
+  final bool animate;
+  final double width;
+  final double height;
+
+  const OperativePatternWallGlyph({
+    super.key,
+    required this.accent,
+    this.enabled = true,
+    this.animate = false,
+    this.width = 52,
+    this.height = 26,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = enabled ? accent : EndpointPalette.softForeground;
+    final opacity = enabled ? 1.0 : 0.36;
+    if (!animate) {
+      return CustomPaint(
+        size: Size(width, height),
+        painter: _OperativePatternWallGlyphPainter(
+          accent: color,
+          opacity: opacity,
+        ),
+      );
+    }
+
+    return _PulsingOperativePatternWallGlyph(
+      accent: color,
+      opacity: opacity,
+      width: width,
+      height: height,
+    );
+  }
+}
+
+class _PulsingOperativePatternWallGlyph extends StatefulWidget {
+  final Color accent;
+  final double opacity;
+  final double width;
+  final double height;
+
+  const _PulsingOperativePatternWallGlyph({
+    required this.accent,
+    required this.opacity,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  State<_PulsingOperativePatternWallGlyph> createState() =>
+      _PulsingOperativePatternWallGlyphState();
+}
+
+class _PulsingOperativePatternWallGlyphState
+    extends State<_PulsingOperativePatternWallGlyph>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 920),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return CustomPaint(
+          size: Size(widget.width, widget.height),
+          painter: _OperativePatternWallGlyphPainter(
+            accent: widget.accent,
+            opacity: widget.opacity,
+            pulse: _controller.value,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _OperativePatternWallGlyphPainter extends CustomPainter {
+  final Color accent;
+  final double opacity;
+  final double pulse;
+
+  const _OperativePatternWallGlyphPainter({
+    required this.accent,
+    required this.opacity,
+    this.pulse = 0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final start = Offset(size.width * 0.18, size.height / 2);
+    final end = Offset(size.width * 0.82, size.height / 2);
+    const normal = Offset(0, 1);
+    final pulseScale = 1 + 0.18 * pulse;
+    final pulseAlpha = 1 + 0.22 * pulse;
+    final glowPaint = Paint()
+      ..color = accent.withValues(
+        alpha: (0.32 * opacity * pulseAlpha).clamp(0.0, 1.0),
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 12 * pulseScale
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    final corePaint = Paint()
+      ..color = accent.withValues(alpha: 0.95 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 5.2 * pulseScale;
+    final edgePaint = Paint()
+      ..color = EndpointPalette.softForeground.withValues(
+        alpha: 0.78 * opacity,
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 1.5 * pulseScale;
+
+    canvas.drawLine(start, end, glowPaint);
+    canvas.drawLine(start, end, corePaint);
+    canvas.drawLine(start + normal * 4, end + normal * 4, edgePaint);
+    canvas.drawLine(start - normal * 4, end - normal * 4, edgePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _OperativePatternWallGlyphPainter oldDelegate) {
+    return oldDelegate.accent != accent ||
+        oldDelegate.opacity != opacity ||
+        oldDelegate.pulse != pulse;
   }
 }
 

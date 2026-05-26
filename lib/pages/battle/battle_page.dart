@@ -95,6 +95,20 @@ class _BattleFloatingNumberBurst {
   });
 }
 
+class _BattleMoneyBurst {
+  final int id;
+  final Rect iconRect;
+  final int amount;
+  final bool isGain;
+
+  const _BattleMoneyBurst({
+    required this.id,
+    required this.iconRect,
+    required this.amount,
+    required this.isGain,
+  });
+}
+
 class _BattleFragilidadBurst {
   final int id;
   final Offset center;
@@ -150,6 +164,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   _BattleCombatIconMotion? _activeCombatIconMotion;
   _BattleStatusEffectBurst? _activeStatusEffectBurst;
   _BattleFloatingNumberBurst? _activeFloatingNumberBurst;
+  _BattleMoneyBurst? _activeMoneyBurst;
   _BattleFragilidadBurst? _activeFragilidadBurst;
   BattlePatternAnimationTargets? _patternAnimationTargets;
   Battler? _displayPlayerOverride;
@@ -164,12 +179,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   bool _isPresentingPatternMatch = false;
   Map<String, int> _patternItemPointUseCounts = const <String, int>{};
   BattlePatternBlockMode? _previousYellowPatternBlockMode;
-  int? _patternBlockingPointsForEnemyTurn;
-  int? _enemyBlockingPointsForPlayerTurn;
-  bool _enemyPatternOverchargedPreviousTurn = false;
-  bool _enemyHasConsideredFirstBlockBank = false;
   int _statusEffectBurstSequence = 0;
   int _floatingNumberBurstSequence = 0;
+  int _moneyBurstSequence = 0;
   int _fragilidadBurstSequence = 0;
 
   @override
@@ -225,6 +237,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         _displayEnemyOverride = null;
         _activeCombatIconMotion = null;
         _activeStatusEffectBurst = null;
+        _activeMoneyBurst = null;
         _activeFragilidadBurst = null;
         _playerBarrierAnimationReference = null;
         _enemyBarrierAnimationReference = null;
@@ -443,6 +456,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             burst: _activeFloatingNumberBurst!,
           ),
         ),
+      if (_activeMoneyBurst != null)
+        Positioned.fill(
+          child: _BattleMoneyAnimationLayer(
+            burst: _activeMoneyBurst!,
+          ),
+        ),
       if (_activeFragilidadBurst != null)
         Positioned.fill(
           child: _BattleFragilidadBurstAnimationLayer(
@@ -483,25 +502,15 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.player)) {
       _sceneController.replacePlayer(patternLayout.player);
     }
-    final baseBlockingPoints = OperativePatternCombatRules.maxBlockingPointsFor(
+    _applyEnemyWallActionToPlayerBoard();
+    final availableBlockingPoints =
+        OperativePatternCombatRules.maxBlockingPointsFor(
       _sceneController.player,
     );
-    final availableBlockingPoints =
-        (_patternBlockingPointsForEnemyTurn ?? 0) + baseBlockingPoints;
-    final enemyBlockingPoints =
+    final availableEnemyBlockingPoints =
         OperativePatternCombatRules.maxBlockingPointsFor(
       _sceneController.enemy,
     );
-    final availableEnemyBlockingPoints = max(
-      0,
-      (_enemyBlockingPointsForPlayerTurn ?? 0) +
-          enemyBlockingPoints -
-          (_enemyPatternOverchargedPreviousTurn ? 1 : 0),
-    );
-    final enemyBanksBlockingPoints = !_enemyHasConsideredFirstBlockBank &&
-        availableEnemyBlockingPoints > 0 &&
-        _sceneController.randomizer.nextInt(3) == 0;
-    _enemyHasConsideredFirstBlockBank = true;
     var didResolveTurn = false;
     final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
       context: context,
@@ -514,11 +523,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           player: _sceneController.player,
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          wallSegments: _sceneController.player.combatWallSegments,
           enemyTier: widget.enemyTier,
           combatRound: _sceneController.currentRound,
           availableBlockingPoints: availableBlockingPoints,
           enemyBlockingPoints: availableEnemyBlockingPoints,
-          enemyBanksBlockingPoints: enemyBanksBlockingPoints,
+          enemyBanksBlockingPoints: false,
           actionEffects:
               _sceneController.playerActionIntentPreview.attackEffects,
           itemPointUseCounts: _patternItemPointUseCounts,
@@ -556,8 +566,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   void _recordPatternMatchResult(BattlePatternMatchResult result) {
     _previousYellowPatternBlockMode = result.blockMode;
-    _patternBlockingPointsForEnemyTurn = result.blockingPointsAvailable;
-    _enemyBlockingPointsForPlayerTurn = result.enemyBlockingPointsRemaining;
     if (result.activatedItemPointKeys.isEmpty) return;
 
     final updatedUseCounts = Map<String, int>.from(_patternItemPointUseCounts);
@@ -573,12 +581,15 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final patternLayout = OperativePatternLayoutService.resolveForPlayer(
       player: _sceneController.enemy,
     );
-    final enemyBlockingPoints =
-        OperativePatternCombatRules.maxBlockingPointsFor(
-      _sceneController.enemy,
+    if (!identical(patternLayout.player, _sceneController.enemy)) {
+      _sceneController.replaceEnemy(patternLayout.player);
+    }
+    _applyEnemyWallActionToPlayerBoard();
+    final playerWallCapacity = OperativePatternCombatRules.maxBlockingPointsFor(
+      _sceneController.player,
     );
     final enemyOverchargesPattern =
-        enemyBlockingPoints > 0 && _sceneController.randomizer.nextInt(2) == 0;
+        playerWallCapacity > 0 && _sceneController.randomizer.nextInt(2) == 0;
     var didResolveTurn = false;
     final matchResult =
         await showEndpointOverlay<EnemyBattlePatternMatchResult>(
@@ -592,7 +603,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           player: _sceneController.player,
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
-          maxBlockingPoints: _patternBlockingPointsForEnemyTurn ?? 0,
+          wallSegments: _sceneController.enemy.combatWallSegments,
+          maxBlockingPoints: playerWallCapacity,
           enemyOverchargesPattern: enemyOverchargesPattern,
           combatRound: _sceneController.currentRound,
           randomNextInt: _sceneController.randomizer.nextInt,
@@ -610,6 +622,11 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
             didResolveTurn = true;
+            _sceneController.replaceEnemy(
+              _sceneController.enemy.copyWith(
+                combatWallSegments: matchResult.wallSegments,
+              ),
+            );
             await _sceneController.handleEnemyPatternMatch(
               actionBonus: BattleActionBonus(
                 attackBonus: matchResult.attackBonus,
@@ -617,14 +634,89 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
               ),
               patternContext: matchResult.patternContext,
             );
-            _patternBlockingPointsForEnemyTurn =
-                matchResult.blockingPointsRemaining;
-            _enemyPatternOverchargedPreviousTurn = enemyOverchargesPattern;
           },
         ),
       ),
     );
     return mounted && (didResolveTurn || matchResult != null);
+  }
+
+  void _applyEnemyWallActionToPlayerBoard() {
+    final capacity = OperativePatternCombatRules.maxBlockingPointsFor(
+      _sceneController.enemy,
+    );
+    if (capacity <= 0) return;
+
+    final nextWalls = _randomlyPlacedOrMovedWalls(
+      currentWalls: _sceneController.player.combatWallSegments,
+      capacity: capacity,
+    );
+    if (_sameWallKeys(nextWalls, _sceneController.player.combatWallSegments)) {
+      return;
+    }
+
+    _sceneController.replacePlayer(
+      _sceneController.player.copyWith(combatWallSegments: nextWalls),
+    );
+  }
+
+  List<OperativePatternWallSegment> _randomlyPlacedOrMovedWalls({
+    required List<OperativePatternWallSegment> currentWalls,
+    required int capacity,
+  }) {
+    final candidates = _allPatternWallCandidates();
+    if (candidates.isEmpty) return currentWalls;
+
+    final currentKeys = currentWalls.map((wall) => wall.key).toSet();
+    final available = candidates
+        .where((wall) => !currentKeys.contains(wall.key))
+        .toList(growable: false);
+    if (available.isEmpty) return currentWalls;
+
+    final selected = available[_sceneController.randomizer.nextInt(
+      available.length,
+    )];
+    if (currentWalls.length < capacity) {
+      return List<OperativePatternWallSegment>.unmodifiable([
+        ...currentWalls,
+        selected,
+      ]);
+    }
+
+    final replacedIndex = _sceneController.randomizer.nextInt(
+      currentWalls.length,
+    );
+    final nextWalls = List<OperativePatternWallSegment>.from(currentWalls);
+    nextWalls[replacedIndex] = selected;
+    return List<OperativePatternWallSegment>.unmodifiable(nextWalls);
+  }
+
+  List<OperativePatternWallSegment> _allPatternWallCandidates() {
+    final candidates = <OperativePatternWallSegment>[];
+    for (final point in operativePatternPoints) {
+      for (final delta in const [
+        (x: 1, y: 0),
+        (x: 0, y: 1),
+      ]) {
+        final neighbor = operativePatternPointAt(
+          x: point.x + delta.x,
+          y: point.y + delta.y,
+        );
+        if (neighbor == null) continue;
+        candidates.add(OperativePatternWallSegment(a: point, b: neighbor));
+      }
+    }
+    return List<OperativePatternWallSegment>.unmodifiable(candidates);
+  }
+
+  bool _sameWallKeys(
+    List<OperativePatternWallSegment> first,
+    List<OperativePatternWallSegment> second,
+  ) {
+    final firstKeys = first.map((wall) => wall.key).toSet();
+    final secondKeys = second.map((wall) => wall.key).toSet();
+    return firstKeys.length == secondKeys.length &&
+        firstKeys.containsAll(secondKeys);
   }
 
   void _handlePatternAnimationTargetsChanged(
@@ -677,6 +769,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       case BattleCombatAnimationHook.barrierLoss:
         await _playCombatStatCue(cue);
         break;
+      case BattleCombatAnimationHook.moneyChange:
+        await _playMoneyCue(cue);
+        break;
       case BattleCombatAnimationHook.purgeDamage:
         await _playPurgeDamageCue(cue);
         break;
@@ -725,6 +820,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _displayEnemyOverride = null;
       _animatedHealthSides = const {};
       _animatedBarrierSides = const {};
+      _activeMoneyBurst = null;
       _isPlayingBattleAnimation = false;
     });
     _refreshPatternCombatAnimationOverlay();
@@ -751,6 +847,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeStatusEffectBurst = null;
       _activeFloatingNumberBurst = null;
+      _activeMoneyBurst = null;
       _activeFragilidadBurst = null;
       _activeCombatIconMotion = _BattleCombatIconMotion(
         hook: cue.hook,
@@ -806,6 +903,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeCombatIconMotion = null;
       _activeFloatingNumberBurst = null;
+      _activeMoneyBurst = null;
       _activeFragilidadBurst = null;
       _activeStatusEffectBurst = burst;
     });
@@ -877,6 +975,75 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _playMoneyCue(BattleCombatAnimationCue cue) async {
+    final moneyBurst = _buildMoneyBurst(cue);
+    if (moneyBurst == null) return;
+
+    setState(() {
+      _isPlayingBattleAnimation = true;
+      _releaseDisplayOverrideOnNextSceneChange = false;
+      _displayPlayerOverride = cue.playerBefore;
+      _displayEnemyOverride = cue.enemyBefore;
+      _animatedHealthSides = const {};
+      _animatedBarrierSides = const {};
+      _activeStatusEffectBurst = null;
+      _activeCombatIconMotion = null;
+      _activeFloatingNumberBurst = null;
+      _activeFragilidadBurst = null;
+      _activeMoneyBurst = moneyBurst;
+    });
+    _refreshPatternCombatAnimationOverlay();
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    setState(() {
+      _displayPlayerOverride = cue.playerAfter;
+      _displayEnemyOverride = cue.enemyAfter;
+    });
+    _refreshPatternCombatAnimationOverlay();
+
+    await Future<void>.delayed(_battleFloatingNumberDuration);
+    if (!mounted) return;
+
+    setState(() {
+      if (_activeMoneyBurst?.id == moneyBurst.id) {
+        _activeMoneyBurst = null;
+      }
+      _isPlayingBattleAnimation = false;
+    });
+    _releaseDisplayOverrideOnNextSceneChange = true;
+    _refreshPatternCombatAnimationOverlay();
+  }
+
+  _BattleMoneyBurst? _buildMoneyBurst(BattleCombatAnimationCue cue) {
+    final before = cue.primarySide == BattleCombatantSide.player
+        ? cue.playerBefore
+        : cue.enemyBefore;
+    final after = cue.primarySide == BattleCombatantSide.player
+        ? cue.playerAfter
+        : cue.enemyAfter;
+    final delta = after.money - before.money;
+    BattleCombatFloatingNumberCue? moneyCue;
+    for (final floatingNumber in cue.floatingNumbers) {
+      if (floatingNumber.tone == BattleCombatFloatingNumberTone.moneyGain ||
+          floatingNumber.tone == BattleCombatFloatingNumberTone.moneyLoss) {
+        moneyCue = floatingNumber;
+        break;
+      }
+    }
+    final amount = moneyCue?.amount ?? delta.abs();
+    if (amount <= 0) return null;
+
+    return _BattleMoneyBurst(
+      id: ++_moneyBurstSequence,
+      iconRect: _rectForBattlerIcon(cue.primarySide),
+      amount: amount,
+      isGain: moneyCue?.tone == BattleCombatFloatingNumberTone.moneyGain ||
+          (moneyCue == null && delta > 0),
+    );
+  }
+
   Offset? _motionEndForCue(BattleCombatAnimationCue cue) {
     if (cue.hook == BattleCombatAnimationHook.blockMotion) {
       return _centerOfBattleArea();
@@ -915,6 +1082,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeStatusEffectBurst = null;
       _activeCombatIconMotion = null;
+      _activeMoneyBurst = null;
       _activeFragilidadBurst = null;
       _activeFloatingNumberBurst = floatingNumberBurst;
     });
@@ -976,6 +1144,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeStatusEffectBurst = null;
       _activeCombatIconMotion = null;
+      _activeMoneyBurst = null;
       _activeFragilidadBurst = null;
       _activeFloatingNumberBurst = floatingNumberBurst;
     });
@@ -1025,6 +1194,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _animatedBarrierSides = const {};
       _activeStatusEffectBurst = null;
       _activeCombatIconMotion = null;
+      _activeMoneyBurst = null;
       _activeFloatingNumberBurst = floatingNumberBurst;
       _activeFragilidadBurst = fragilidadBurst;
     });
@@ -1177,11 +1347,20 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       BattleCombatFloatingNumberTone.burnDamage ||
       BattleCombatFloatingNumberTone.poisonDamage ||
       BattleCombatFloatingNumberTone.fragilidadDamage ||
+      BattleCombatFloatingNumberTone.moneyLoss ||
       BattleCombatFloatingNumberTone.purgeDamage =>
         '',
+      BattleCombatFloatingNumberTone.moneyGain => '+',
     };
 
-    return '$prefix${floatingNumber.amount}';
+    final suffix = switch (floatingNumber.tone) {
+      BattleCombatFloatingNumberTone.moneyGain ||
+      BattleCombatFloatingNumberTone.moneyLoss =>
+        'C',
+      _ => '',
+    };
+
+    return '$prefix${floatingNumber.amount}$suffix';
   }
 
   Color _floatingNumberColorFor(BattleCombatFloatingNumberTone tone) {
@@ -1195,6 +1374,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       BattleCombatFloatingNumberTone.poisonDamage => const Color(0xFFC084FC),
       BattleCombatFloatingNumberTone.fragilidadDamage =>
         const FragilidadStatus().type.accent,
+      BattleCombatFloatingNumberTone.moneyGain => const Color(0xFFFFD76A),
+      BattleCombatFloatingNumberTone.moneyLoss => EndpointPalette.dangerAccent,
       BattleCombatFloatingNumberTone.purgeDamage => const Color(0xFFFFEA70),
       BattleCombatFloatingNumberTone.healing => const Color(0xFF8DFFB2),
     };
@@ -1270,6 +1451,28 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final key =
         side == BattleCombatantSide.player ? _playerSideKey : _enemySideKey;
     return _rectOfKey(key) ?? _fallbackRectForSide(side);
+  }
+
+  Rect _rectForBattlerIcon(BattleCombatantSide side) {
+    final patternTargets = _patternAnimationTargets;
+    if (_isPresentingPatternMatch && patternTargets != null) {
+      return switch (side) {
+        BattleCombatantSide.player => patternTargets.playerSpriteRect,
+        BattleCombatantSide.enemy => patternTargets.enemySpriteRect,
+      };
+    }
+
+    final sideRect = _rectForSide(side);
+    final size = min(112.0, min(sideRect.width * 0.36, sideRect.height * 0.72));
+    final center = Offset(
+      sideRect.center.dx,
+      sideRect.center.dy + (side == BattleCombatantSide.player ? -8 : 8),
+    );
+    return Rect.fromCenter(
+      center: center,
+      width: max(72.0, size),
+      height: max(72.0, size),
+    );
   }
 
   Offset _centerOfBattleArea() {
@@ -1438,6 +1641,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       activeCombatIconMotion: _activeCombatIconMotion,
       activeStatusEffectBurst: _activeStatusEffectBurst,
       activeFloatingNumberBurst: _activeFloatingNumberBurst,
+      activeMoneyBurst: _activeMoneyBurst,
       activeFragilidadBurst: _activeFragilidadBurst,
       playerBarrierAnimationReference: _playerBarrierAnimationReference,
       enemyBarrierAnimationReference: _enemyBarrierAnimationReference,

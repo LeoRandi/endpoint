@@ -150,6 +150,7 @@ enum BattlerCombatFlag {
   reventaCircularTriggered,
   aTodoRiesgoTriggered,
   cargaViricaTriggeredThisTurn,
+  barbedShieldPendingDamage,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
@@ -183,6 +184,11 @@ enum ItemCombatFlagKind {
   motorMartirioDamageThisTurn,
   arnesTacticoPotenciaTracked,
   arnesTacticoDesafioTriggeredThisTurn,
+  barbedShieldPendingDamage,
+  literalPaywallPendingWall,
+  passCardPendingPayment,
+  passCardWallsDisabledNextTurn,
+  passCardWallsDisabledThisTurn,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.
@@ -498,6 +504,10 @@ class Battler {
   final List<Item> inventoryItems;
   final List<Item> equippedItems;
   final Map<String, String> patternItemPointKeys;
+  final List<OperativePatternWallSegment> combatWallSegments;
+  final List<OperativePatternWallSegment> temporaryCombatWallSegments;
+  final List<OperativePatternWallSegment> queuedTemporaryCombatWallSegments;
+  final int combatDestroyedWallCount;
   final Set<CombatRuntimeFlag> combatFlags;
 
   // Los presets de juego dependen de constructores const, asi que la cache de
@@ -531,12 +541,18 @@ class Battler {
     this.inventoryItems = const [],
     this.equippedItems = const [],
     this.patternItemPointKeys = const <String, String>{},
+    this.combatWallSegments = const <OperativePatternWallSegment>[],
+    this.temporaryCombatWallSegments = const <OperativePatternWallSegment>[],
+    this.queuedTemporaryCombatWallSegments =
+        const <OperativePatternWallSegment>[],
+    this.combatDestroyedWallCount = 0,
     this.combatFlags = const <CombatRuntimeFlag>{},
   })  : baseIncome = income,
         assert(health >= 0),
         assert(currentBarrier >= 0),
         assert(level >= initialLevel),
-        assert(experience >= 0);
+        assert(experience >= 0),
+        assert(combatDestroyedWallCount >= 0);
 
   /// Devuelve la vida maxima base sin modificadores de equipo ni estados.
   int get baseMaxHealth => baseStat(BattlerStat.health);
@@ -644,6 +660,10 @@ class Battler {
     List<Item>? inventoryItems,
     List<Item>? equippedItems,
     Map<String, String>? patternItemPointKeys,
+    List<OperativePatternWallSegment>? combatWallSegments,
+    List<OperativePatternWallSegment>? temporaryCombatWallSegments,
+    List<OperativePatternWallSegment>? queuedTemporaryCombatWallSegments,
+    int? combatDestroyedWallCount,
     Set<CombatRuntimeFlag>? combatFlags,
   }) {
     final resolvedBaseStats = baseStats ?? this.baseStats;
@@ -661,6 +681,23 @@ class Battler {
     );
     final resolvedPatternItemPointKeys = Map<String, String>.unmodifiable(
       patternItemPointKeys ?? this.patternItemPointKeys,
+    );
+    final resolvedCombatWallSegments =
+        List<OperativePatternWallSegment>.unmodifiable(
+      _deduplicateWallSegments(combatWallSegments ?? this.combatWallSegments),
+    );
+    final resolvedTemporaryCombatWallSegments =
+        List<OperativePatternWallSegment>.unmodifiable(
+      _deduplicateWallSegments(
+        temporaryCombatWallSegments ?? this.temporaryCombatWallSegments,
+      ),
+    );
+    final resolvedQueuedTemporaryCombatWallSegments =
+        List<OperativePatternWallSegment>.unmodifiable(
+      _deduplicateWallSegments(
+        queuedTemporaryCombatWallSegments ??
+            this.queuedTemporaryCombatWallSegments,
+      ),
     );
     final resolvedCombatFlags = Set<CombatRuntimeFlag>.unmodifiable(
       combatFlags ?? this.combatFlags,
@@ -685,6 +722,14 @@ class Battler {
       inventoryItems: resolvedInventoryItems,
       equippedItems: resolvedEquippedItems,
       patternItemPointKeys: resolvedPatternItemPointKeys,
+      combatWallSegments: resolvedCombatWallSegments,
+      temporaryCombatWallSegments: resolvedTemporaryCombatWallSegments,
+      queuedTemporaryCombatWallSegments:
+          resolvedQueuedTemporaryCombatWallSegments,
+      combatDestroyedWallCount: max(
+        0,
+        combatDestroyedWallCount ?? this.combatDestroyedWallCount,
+      ),
       combatFlags: resolvedCombatFlags,
     );
   }
@@ -811,6 +856,11 @@ class Battler {
     required List<Item> inventoryItems,
     required List<Item> equippedItems,
     required Map<String, String> patternItemPointKeys,
+    required List<OperativePatternWallSegment> combatWallSegments,
+    required List<OperativePatternWallSegment> temporaryCombatWallSegments,
+    required List<OperativePatternWallSegment>
+        queuedTemporaryCombatWallSegments,
+    required int combatDestroyedWallCount,
     required Set<CombatRuntimeFlag> combatFlags,
   }) {
     final seedBarrier = max(
@@ -836,6 +886,10 @@ class Battler {
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,
       patternItemPointKeys: patternItemPointKeys,
+      combatWallSegments: combatWallSegments,
+      temporaryCombatWallSegments: temporaryCombatWallSegments,
+      queuedTemporaryCombatWallSegments: queuedTemporaryCombatWallSegments,
+      combatDestroyedWallCount: combatDestroyedWallCount,
       combatFlags: combatFlags,
     );
     final clampedHealth = min(candidate.health, candidate.maxHealth);
@@ -872,7 +926,21 @@ class Battler {
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,
       patternItemPointKeys: patternItemPointKeys,
+      combatWallSegments: combatWallSegments,
+      temporaryCombatWallSegments: temporaryCombatWallSegments,
+      queuedTemporaryCombatWallSegments: queuedTemporaryCombatWallSegments,
+      combatDestroyedWallCount: combatDestroyedWallCount,
       combatFlags: combatFlags,
     );
+  }
+
+  static List<OperativePatternWallSegment> _deduplicateWallSegments(
+    Iterable<OperativePatternWallSegment> walls,
+  ) {
+    final byKey = <String, OperativePatternWallSegment>{};
+    for (final wall in walls) {
+      byKey[wall.key] = wall;
+    }
+    return List<OperativePatternWallSegment>.unmodifiable(byKey.values);
   }
 }

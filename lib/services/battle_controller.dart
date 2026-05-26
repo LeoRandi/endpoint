@@ -33,6 +33,7 @@ enum BattleCombatAnimationHook {
   barrierGain,
   barrierLoss,
   fragilidadBurst,
+  moneyChange,
   purgeDamage,
 }
 
@@ -50,6 +51,8 @@ enum BattleCombatFloatingNumberTone {
   healing,
   barrierGain,
   fragilidadDamage,
+  moneyGain,
+  moneyLoss,
   purgeDamage,
 }
 
@@ -222,6 +225,13 @@ class BattleController extends ChangeNotifier {
     if (identical(_player, player)) return;
 
     _player = player;
+    notifyListeners();
+  }
+
+  void replaceEnemy(Battler enemy) {
+    if (identical(_enemy, enemy)) return;
+
+    _enemy = enemy;
     notifyListeners();
   }
 
@@ -2188,6 +2198,41 @@ class BattleController extends ChangeNotifier {
         visualPlayer = playerAfter;
       } else {
         visualEnemy = enemyAfter;
+      }
+    }
+
+    for (final side in BattleCombatantSide.values) {
+      final before =
+          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
+      final after = side == BattleCombatantSide.player
+          ? targetPlayerAfter
+          : targetEnemyAfter;
+      final moneyDelta = after.money - before.money;
+      if (moneyDelta == 0) continue;
+
+      final next = before.copyWith(money: after.money);
+      await _playCombatAnimation(
+        _stateTransitionCue(
+          hook: BattleCombatAnimationHook.moneyChange,
+          side: side,
+          playerBefore: visualPlayer,
+          enemyBefore: visualEnemy,
+          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
+          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
+          floatingNumbers: <BattleCombatFloatingNumberCue>[
+            BattleCombatFloatingNumberCue(
+              tone: moneyDelta > 0
+                  ? BattleCombatFloatingNumberTone.moneyGain
+                  : BattleCombatFloatingNumberTone.moneyLoss,
+              amount: moneyDelta.abs(),
+            ),
+          ],
+        ),
+      );
+      if (side == BattleCombatantSide.player) {
+        visualPlayer = next;
+      } else {
+        visualEnemy = next;
       }
     }
   }

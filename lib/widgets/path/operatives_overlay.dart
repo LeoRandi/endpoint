@@ -524,14 +524,6 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
                         ],
                       ),
                     ),
-                    Positioned(
-                      left: 12,
-                      bottom: 12,
-                      child: _OperativesModeShortcuts(
-                        gameMode: widget.gameMode,
-                        onOpenPatternBoard: _openPatternBoard,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -539,24 +531,6 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
           ),
         );
       },
-    );
-  }
-
-  Future<void> _openPatternBoard() async {
-    _syncPatternAssignments(_controller.player, persistPlayer: true);
-    final equippedItemsByPointKey = <String, Item>{
-      for (final entry in _patternAssignments.entries)
-        entry.value.key: entry.key,
-    };
-
-    await showEndpointOverlay<void>(
-      context: context,
-      barrierLabel: 'Abrir patron de objetos',
-      barrierColor: EndpointPalette.overlayScrimStrong,
-      builder: (_) => OperativePatternOverlay(
-        equippedItemsByPointKey: equippedItemsByPointKey,
-        playerLevel: _controller.player.level,
-      ),
     );
   }
 }
@@ -1157,32 +1131,6 @@ class _PatternEquipmentRequirementBadge extends StatelessWidget {
   }
 }
 
-class _OperativesModeShortcuts extends StatelessWidget {
-  final EndpointGameMode gameMode;
-  final Future<void> Function() onOpenPatternBoard;
-
-  const _OperativesModeShortcuts({
-    required this.gameMode,
-    required this.onOpenPatternBoard,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    switch (gameMode) {
-      case EndpointGameMode.classic:
-        return const SizedBox.shrink();
-      case EndpointGameMode.pattern:
-        return _OperativesShortcutButton(
-          label: 'Patrón',
-          icon: Icons.grid_view_rounded,
-          tooltip: 'Abrir patron de objetos',
-          accent: EndpointPalette.patternAccent,
-          onPressed: () => unawaited(onOpenPatternBoard()),
-        );
-    }
-  }
-}
-
 class _OperativeIconCard extends StatelessWidget {
   final Battler battler;
   final bool isSelected;
@@ -1308,76 +1256,6 @@ class _EquipmentRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Boton flotante reutilizable para accesos secundarios del overlay.
-class _OperativesShortcutButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final String tooltip;
-  final Color accent;
-  final VoidCallback onPressed;
-
-  const _OperativesShortcutButton({
-    required this.label,
-    required this.icon,
-    required this.tooltip,
-    required this.accent,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return HoldTooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(999),
-          child: Ink(
-            padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
-            decoration: BoxDecoration(
-              color: EndpointPalette.blend(
-                EndpointPalette.panelBackground,
-                accent,
-                0.12,
-              ),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: accent.withValues(alpha: 0.72),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.14),
-                  blurRadius: 14,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: accent,
-                ),
-                const SizedBox(width: 6),
-                EndpointText(
-                  label,
-                  style: textSmallBold.copyWith(
-                    color: EndpointPalette.softForeground,
-                    letterSpacing: 0.9,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

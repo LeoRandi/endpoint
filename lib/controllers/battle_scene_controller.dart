@@ -143,6 +143,10 @@ class BattleSceneController extends ChangeNotifier {
     _battleController.replacePlayer(player);
   }
 
+  void replaceEnemy(Battler enemy) {
+    _battleController.replaceEnemy(enemy);
+  }
+
   /// Ejecuta el ataque basico del jugador cuando la escena lo solicita.
   Future<void> handlePlayerAttack({
     BattleActionBonus actionBonus = BattleActionBonus.empty,

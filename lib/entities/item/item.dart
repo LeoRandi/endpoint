@@ -102,6 +102,16 @@ enum ItemId {
   buzonVirtualAzul,
   buzonVirtualRojo,
   buzonVirtualVerde,
+  taladron,
+  cuboDinamitalico,
+  medidorRotura,
+  murallaAutomatica,
+  barbedShield,
+  pilarAcero,
+  duplicadorAtomos,
+  cortinaHumo,
+  literalPaywall,
+  passCard,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -235,6 +245,13 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.buzonVirtualAzul,
   ItemId.buzonVirtualRojo,
   ItemId.buzonVirtualVerde,
+  ItemId.taladron,
+  ItemId.cuboDinamitalico,
+  ItemId.medidorRotura,
+  ItemId.duplicadorAtomos,
+  ItemId.cortinaHumo,
+  ItemId.literalPaywall,
+  ItemId.passCard,
 };
 
 const _patternSquareRequirement = OperativePatternRequirement.exactShape(
@@ -295,6 +312,10 @@ const _exactPatternRequirementsByItemId = <ItemId, OperativePatternRequirement>{
   ItemId.capaDelContrabandista: _patternHourglassRequirement,
   ItemId.sunExecutionBlade: _patternHourglassRequirement,
   ItemId.cyberCerbatana: OperativePatternRequirement.straightAngle(),
+  ItemId.cuboDinamitalico: _patternSquareRequirement,
+  ItemId.duplicadorAtomos: _patternSquareRequirement,
+  ItemId.passCard: _patternSquareRequirement,
+  ItemId.pilarAcero: OperativePatternRequirement.straightAngle(),
 };
 
 const _firstPointPatternItemIds = <ItemId>{
@@ -491,7 +512,7 @@ class Item {
         : preset.upgradeStatModifiers;
 
     return !rarity.isMaxTier &&
-        (resolvedUpgradeValue > 0 || resolvedUpgradeStats.isNotEmpty);
+        (resolvedUpgradeValue != 0 || resolvedUpgradeStats.isNotEmpty);
   }
 
   /// Devuelve el coste actual del objeto para compra y reventa.
@@ -520,12 +541,13 @@ class Item {
     final preset = presetForId(id);
     final resolvedUpgradeValue =
         upgradeValue > 0 ? upgradeValue : preset.upgradeValue;
-    if (resolvedUpgradeValue <= 0) return 0;
+    if (resolvedUpgradeValue == 0) return 0;
 
     final baseValue = preset.value;
-    if (value <= baseValue) return 0;
+    if (resolvedUpgradeValue > 0 && value <= baseValue) return 0;
+    if (resolvedUpgradeValue < 0 && value >= baseValue) return 0;
 
-    return max(0, (value - baseValue) ~/ resolvedUpgradeValue);
+    return max(0, ((value - baseValue) ~/ resolvedUpgradeValue).abs());
   }
 
   /// Devuelve el nombre visible del objeto sin marcadores extras de mejora.

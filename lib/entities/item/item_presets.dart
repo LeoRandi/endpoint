@@ -87,6 +87,26 @@ const _economiaAtaqueTags = <EntityTag>[
 const _economiaTags = <EntityTag>[
   EntityTag.economia,
 ];
+const _murallaTags = <EntityTag>[
+  EntityTag.muralla,
+];
+const _economiaMurallaTags = <EntityTag>[
+  EntityTag.muralla,
+  EntityTag.economia,
+];
+const _ataqueMurallaTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.muralla,
+];
+const _barreraMurallaTags = <EntityTag>[
+  EntityTag.barrera,
+  EntityTag.muralla,
+];
+const _ataqueBarreraMurallaTags = <EntityTag>[
+  EntityTag.ataque,
+  EntityTag.barrera,
+  EntityTag.muralla,
+];
 const _ataqueBuffTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.buff,
@@ -658,6 +678,256 @@ const buzonVirtualVerdeItem = Item(
     BattlerStat.barrier: 2,
   },
   effect: VirtualMailboxItemEffect(),
+);
+
+const taladronItem = Item(
+  id: ItemId.taladron,
+  archetypeAffinities: _imparableAffinities,
+  tags: _ataqueMurallaTags,
+  name: 'Taladron',
+  description:
+      'Al usarse: Todas las Murallas atravesadas despues de este punto son destruidas.',
+  iconEmoji: '\u{1FA9B}',
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 2,
+  statModifiers: {
+    BattlerStat.attack: 2,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 2,
+  },
+  effect: TaladronItemEffect(),
+);
+
+const cuboDinamitalicoItem = Item(
+  id: ItemId.cuboDinamitalico,
+  archetypeAffinities: _imparableAffinities,
+  tags: _barreraMurallaTags,
+  name: 'Cubo Dinamitalico',
+  description:
+      'Al comienzo del combate, destruye cualquier Muralla adyacente a su posicion.',
+  iconEmoji: '\u{1F9F1}',
+  rarity: RarityTier.blue,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 2,
+  patternRequirementOverride: _patternSquare,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 1,
+  effect: CuboDinamitalicoItemEffect(),
+);
+
+const medidorRoturaItem = Item(
+  id: ItemId.medidorRotura,
+  archetypeAffinities: _imparableAffinities,
+  tags: _ataqueMurallaTags,
+  name: 'Medidor de Rotura',
+  description: 'Ganas +1 ataque por cada Muralla destruida este combate.',
+  iconEmoji: '\u{1F4DF}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 1,
+  upgradeValue: 2,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 2,
+  },
+  effect: MedidorRoturaItemEffect(),
+);
+
+const murallaAutomaticaItem = Item(
+  id: ItemId.murallaAutomatica,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _barreraMurallaTags,
+  name: 'Muralla automatica',
+  description: 'Al comienzo del combate, crea 1 Murallas en la matriz enemiga.',
+  iconEmoji: '\u{1F6E1}',
+  rarity: RarityTier.green,
+  patternBonusAmountOverride: 0,
+  baseCost: 4,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: MurallaAutomaticaItemEffect(),
+);
+
+const barbedShieldItem = Item(
+  id: ItemId.barbedShield,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _ataqueBarreraMurallaTags,
+  name: 'Barbed Shield',
+  description:
+      'Al usarse: Hace dano al enemigo al final del turno igual a 1 veces el numero de Murallas en tu matriz y en la del enemigo.',
+  iconEmoji: '\u{1F6E1}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: BarbedShieldItemEffect(),
+);
+
+const literalPaywallItem = Item(
+  id: ItemId.literalPaywall,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaMurallaTags,
+  name: 'Literal Paywall',
+  description:
+      'Al usarse: al final del turno, paga 8 creditos si es posible para crear una Muralla para el enemigo.',
+  iconEmoji: '\u{1F9F1}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  baseCost: 6,
+  value: 8,
+  upgradeValue: -3,
+  effect: LiteralPaywallItemEffect(),
+);
+
+const passCardItem = Item(
+  id: ItemId.passCard,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaMurallaTags,
+  name: 'Pass-card',
+  description:
+      '+1 BP. Al usarse: al final del turno, paga 5 creditos si es posible. Durante tu proximo turno, las Murallas de tu matriz quedan desactivadas.',
+  iconEmoji: '\u{1F3AB}',
+  rarity: RarityTier.purple,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 4,
+  patternRequirementOverride: _patternSquare,
+  baseCost: 8,
+  value: 5,
+  upgradeValue: -4,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.accesorio,
+      _adjBarrier,
+      2,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjW,
+      EntityTag.economia,
+      _adjBarrier,
+      2,
+    ),
+  ],
+  effect: PassCardItemEffect(),
+);
+
+const pilarAceroItem = Item(
+  id: ItemId.pilarAcero,
+  archetypeAffinities: _inamovibleAffinities,
+  tags: _murallaTags,
+  name: 'Pilar de Acero',
+  description:
+      'Al usarse: Crea Murallas al rededor de su punto al final del turno, que duran un turno, tanto en tu matriz como en la del enemigo.',
+  iconEmoji: '\u{1F5FC}',
+  rarity: RarityTier.purple,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 1,
+  patternRequirementOverride: _patternStraightAngle,
+  baseCost: 8,
+  value: 1,
+  upgradeValue: 1,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.muralla,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjS,
+      EntityTag.muralla,
+      _adjBarrier,
+      1,
+    ),
+  ],
+  effect: PilarAceroItemEffect(),
+);
+
+const duplicadorAtomosItem = Item(
+  id: ItemId.duplicadorAtomos,
+  archetypeAffinities: _velozAffinities,
+  tags: _murallaTags,
+  name: 'Duplicador de atomos',
+  description: 'Al usarse: Copia 1 Murallas en tu matriz a la de tu enemigo.',
+  iconEmoji: '\u{269B}',
+  rarity: RarityTier.purple,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 1,
+  patternRequirementOverride: _patternSquare,
+  baseCost: 8,
+  value: 1,
+  upgradeValue: 1,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.muralla,
+      _adjBarrier,
+      1,
+    ),
+  ],
+  effect: DuplicadorAtomosItemEffect(),
+);
+
+const cortinaHumoItem = Item(
+  id: ItemId.cortinaHumo,
+  archetypeAffinities: _velozAffinities,
+  tags: _barreraMurallaTags,
+  name: 'Cortina de Humo',
+  description: 'Al usarse: Mueve 1 Murallas de tu matriz a la del enemigo.',
+  iconEmoji: '\u{1F32B}',
+  rarity: RarityTier.yellow,
+  patternBonusAmountOverride: 0,
+  baseCost: 10,
+  value: 1,
+  upgradeValue: 0,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.muralla,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjS,
+      EntityTag.muralla,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjE,
+      EntityTag.muralla,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjW,
+      EntityTag.muralla,
+      _adjBarrier,
+      1,
+    ),
+  ],
+  effect: CortinaHumoItemEffect(),
 );
 
 /// Soporte gris que va drenando turnos de debuff de forma dispersa.
@@ -2627,6 +2897,16 @@ const itemPresets = <Item>[
   buzonVirtualAzulItem,
   buzonVirtualRojoItem,
   buzonVirtualVerdeItem,
+  taladronItem,
+  cuboDinamitalicoItem,
+  medidorRoturaItem,
+  murallaAutomaticaItem,
+  barbedShieldItem,
+  literalPaywallItem,
+  passCardItem,
+  pilarAceroItem,
+  duplicadorAtomosItem,
+  cortinaHumoItem,
   muestrarioContrabandoItem,
   roperaUnidaItem,
   mamparaPortatilItem,

@@ -115,7 +115,8 @@ extension BattlerRuntimeService on Battler {
   Battler prepareForCombat({
     RunHourPhase phase = RunHourPhase.day,
   }) {
-    final preparedOwner = materializeOwnedItems().clearCombatFlags();
+    final preparedOwner =
+        materializeOwnedItems().clearCombatFlags().clearCombatWalls();
     final cycleFlags = switch (phase) {
       RunHourPhase.day || RunHourPhase.sunrise => <CombatRuntimeFlag>{
           Battler.cycleDayContextFlag,
@@ -312,7 +313,8 @@ extension BattlerRuntimeService on Battler {
     }
 
     if (instancedStatus is ContagioStatus) {
-      final cargaVirica = updatedSource.abilityById(BattlerAbilityId.cargaVirica);
+      final cargaVirica =
+          updatedSource.abilityById(BattlerAbilityId.cargaVirica);
       const cargaViricaFlag = CombatRuntimeFlag.battler(
         BattlerCombatFlag.cargaViricaTriggeredThisTurn,
       );

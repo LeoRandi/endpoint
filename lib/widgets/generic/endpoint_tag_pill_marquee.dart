@@ -330,6 +330,7 @@ class _EndpointTagPill extends StatelessWidget {
       EntityTag.economia => Icons.account_balance_wallet_rounded,
       EntityTag.arma => Icons.hardware_rounded,
       EntityTag.accesorio => Icons.category_rounded,
+      EntityTag.muralla => Icons.fort_rounded,
     };
   }
 
@@ -363,6 +364,8 @@ class _EndpointTagPill extends StatelessWidget {
         'Arma: objeto ofensivo que normalmente se combina con Ataque o debuffs.',
       EntityTag.accesorio =>
         'Accesorio: objeto de soporte que suele aportar utilidad, economia o defensa.',
+      EntityTag.muralla =>
+        'Muralla: Bloqueo en patrón que impide el paso del dibujo.',
     };
   }
 }

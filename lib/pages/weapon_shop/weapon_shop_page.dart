@@ -297,7 +297,7 @@ class _WeaponShopPageState extends State<WeaponShopPage> {
                                     child: _ShopOwnedColumn(
                                       title: 'Inventory',
                                       countLabel:
-                                          '${player.inventoryItems.length}',
+                                          '${player.inventoryItems.length}/${Battler.maxInventoryItems}',
                                       items: player.inventoryItems,
                                       controller: _controller,
                                       foreground: foreground,

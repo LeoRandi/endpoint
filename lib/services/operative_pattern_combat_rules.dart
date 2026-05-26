@@ -2,7 +2,7 @@ import '../entities/_exports.dart';
 
 abstract final class OperativePatternCombatRules {
   static const int initialMaxPatternPoints = 3;
-  static const int initialMaxBlockingPoints = 1;
+  static const int initialMaxBlockingPoints = 2;
 
   static int maxPatternPointsFor(Battler player) {
     return initialMaxPatternPoints +
@@ -13,7 +13,8 @@ abstract final class OperativePatternCombatRules {
 
   static int maxBlockingPointsFor(Battler player) {
     return initialMaxBlockingPoints +
-        Battler.evenLevelProgressionBonusFor(player.level);
+        Battler.evenLevelProgressionBonusFor(player.level) +
+        _itemBlockingPointBonus(player);
   }
 
   static int _archetypePatternPointBonus(Battler player) {
@@ -32,6 +33,12 @@ abstract final class OperativePatternCombatRules {
   static int _itemPatternPointBonus(Battler player) {
     return player.equippedItems
         .where((item) => item.id == ItemId.buzonVirtualAzul)
+        .length;
+  }
+
+  static int _itemBlockingPointBonus(Battler player) {
+    return player.equippedItems
+        .where((item) => item.id == ItemId.passCard)
         .length;
   }
 }
