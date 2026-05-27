@@ -505,6 +505,7 @@ class Battler {
   final List<Item> equippedItems;
   final Map<String, String> patternItemPointKeys;
   final List<OperativePatternWallSegment> combatWallSegments;
+  final Set<String> combatBlockedPointKeys;
   final List<OperativePatternWallSegment> temporaryCombatWallSegments;
   final List<OperativePatternWallSegment> queuedTemporaryCombatWallSegments;
   final int combatDestroyedWallCount;
@@ -542,6 +543,7 @@ class Battler {
     this.equippedItems = const [],
     this.patternItemPointKeys = const <String, String>{},
     this.combatWallSegments = const <OperativePatternWallSegment>[],
+    this.combatBlockedPointKeys = const <String>{},
     this.temporaryCombatWallSegments = const <OperativePatternWallSegment>[],
     this.queuedTemporaryCombatWallSegments =
         const <OperativePatternWallSegment>[],
@@ -661,6 +663,7 @@ class Battler {
     List<Item>? equippedItems,
     Map<String, String>? patternItemPointKeys,
     List<OperativePatternWallSegment>? combatWallSegments,
+    Set<String>? combatBlockedPointKeys,
     List<OperativePatternWallSegment>? temporaryCombatWallSegments,
     List<OperativePatternWallSegment>? queuedTemporaryCombatWallSegments,
     int? combatDestroyedWallCount,
@@ -685,6 +688,9 @@ class Battler {
     final resolvedCombatWallSegments =
         List<OperativePatternWallSegment>.unmodifiable(
       _deduplicateWallSegments(combatWallSegments ?? this.combatWallSegments),
+    );
+    final resolvedCombatBlockedPointKeys = Set<String>.unmodifiable(
+      combatBlockedPointKeys ?? this.combatBlockedPointKeys,
     );
     final resolvedTemporaryCombatWallSegments =
         List<OperativePatternWallSegment>.unmodifiable(
@@ -723,6 +729,7 @@ class Battler {
       equippedItems: resolvedEquippedItems,
       patternItemPointKeys: resolvedPatternItemPointKeys,
       combatWallSegments: resolvedCombatWallSegments,
+      combatBlockedPointKeys: resolvedCombatBlockedPointKeys,
       temporaryCombatWallSegments: resolvedTemporaryCombatWallSegments,
       queuedTemporaryCombatWallSegments:
           resolvedQueuedTemporaryCombatWallSegments,
@@ -857,6 +864,7 @@ class Battler {
     required List<Item> equippedItems,
     required Map<String, String> patternItemPointKeys,
     required List<OperativePatternWallSegment> combatWallSegments,
+    required Set<String> combatBlockedPointKeys,
     required List<OperativePatternWallSegment> temporaryCombatWallSegments,
     required List<OperativePatternWallSegment>
         queuedTemporaryCombatWallSegments,
@@ -887,6 +895,7 @@ class Battler {
       equippedItems: equippedItems,
       patternItemPointKeys: patternItemPointKeys,
       combatWallSegments: combatWallSegments,
+      combatBlockedPointKeys: combatBlockedPointKeys,
       temporaryCombatWallSegments: temporaryCombatWallSegments,
       queuedTemporaryCombatWallSegments: queuedTemporaryCombatWallSegments,
       combatDestroyedWallCount: combatDestroyedWallCount,
@@ -927,6 +936,7 @@ class Battler {
       equippedItems: equippedItems,
       patternItemPointKeys: patternItemPointKeys,
       combatWallSegments: combatWallSegments,
+      combatBlockedPointKeys: combatBlockedPointKeys,
       temporaryCombatWallSegments: temporaryCombatWallSegments,
       queuedTemporaryCombatWallSegments: queuedTemporaryCombatWallSegments,
       combatDestroyedWallCount: combatDestroyedWallCount,

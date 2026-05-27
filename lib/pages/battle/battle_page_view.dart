@@ -254,6 +254,8 @@ class _BattleSceneView extends StatelessWidget {
                             title: sceneController.turnTitle,
                             description: sceneController.turnDescription,
                             round: sceneController.currentRound,
+                            purgeDamage:
+                                sceneController.playerPurgeDamagePreview,
                             isEnemyTurn:
                                 sceneController.turn == BattleTurnState.enemy,
                             isCombatFinished: sceneController.isCombatFinished,
@@ -1216,6 +1218,7 @@ class _BattleCenterOverlay extends StatelessWidget {
   final String title;
   final String description;
   final int round;
+  final int purgeDamage;
   final bool isEnemyTurn;
   final bool isCombatFinished;
   final Future<void> Function()? onAdvancePressed;
@@ -1224,6 +1227,7 @@ class _BattleCenterOverlay extends StatelessWidget {
     required this.title,
     required this.description,
     required this.round,
+    required this.purgeDamage,
     required this.isEnemyTurn,
     required this.isCombatFinished,
     this.onAdvancePressed,
@@ -1242,7 +1246,10 @@ class _BattleCenterOverlay extends StatelessWidget {
           isCombatFinished: isCombatFinished,
         ),
         const SizedBox(width: 6),
-        _RoundCounterBadge(round: round),
+        _RoundCounterBadge(
+          round: round,
+          purgeDamage: purgeDamage,
+        ),
         if (onAdvancePressed != null) ...[
           const SizedBox(width: 6),
           EndpointActionButton(
@@ -1265,52 +1272,137 @@ class _BattleCenterOverlay extends StatelessWidget {
   }
 }
 
-class _RoundCounterBadge extends StatelessWidget {
+class _RoundCounterBadge extends StatefulWidget {
   final int round;
+  final int purgeDamage;
 
   const _RoundCounterBadge({
     required this.round,
+    required this.purgeDamage,
   });
 
   @override
+  State<_RoundCounterBadge> createState() => _RoundCounterBadgeState();
+}
+
+class _RoundCounterBadgeState extends State<_RoundCounterBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _flashController;
+  late final Animation<Color?> _flashColor;
+
+  bool get _shouldFlash => widget.round == 8 || widget.round == 9;
+
+  @override
+  void initState() {
+    super.initState();
+    _flashController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _flashColor = ColorTween(
+      begin: EndpointPalette.softForeground,
+      end: EndpointPalette.dangerAccent,
+    ).animate(
+      CurvedAnimation(parent: _flashController, curve: Curves.easeInOut),
+    );
+    _syncFlashAnimation();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RoundCounterBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.round != widget.round) {
+      _syncFlashAnimation();
+    }
+  }
+
+  @override
+  void dispose() {
+    _flashController.dispose();
+    super.dispose();
+  }
+
+  void _syncFlashAnimation() {
+    if (_shouldFlash) {
+      _flashController.repeat(reverse: true);
+      return;
+    }
+    _flashController
+      ..stop()
+      ..value = 0;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final round = widget.round;
+    final showPurgeDamage = round >= 10;
     final dangerBlend = ((round - 5) / 5).clamp(0.0, 1.0).toDouble();
     final roundColor = EndpointPalette.blend(
       EndpointPalette.softForeground,
       EndpointPalette.dangerAccent,
       dangerBlend,
     );
+    const purgeColor = Color(0xFFFFEA70);
 
     return SizedBox(
-      width: 62,
-      child: EndpointSectionPanel(
-        preset: _buildBattlePanelPreset(
-          roundColor,
-          glowOpacity: 0.04,
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            EndpointText(
-              'ROUND',
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground.withAlpha(194),
-                fontSize: 9,
-                letterSpacing: 1.2,
-              ),
+      width: showPurgeDamage ? 70 : 62,
+      child: AnimatedBuilder(
+        animation: _flashController,
+        builder: (context, child) {
+          final activeRoundColor =
+              _shouldFlash ? _flashColor.value ?? roundColor : roundColor;
+
+          return EndpointSectionPanel(
+            preset: _buildBattlePanelPreset(
+              showPurgeDamage ? purgeColor : activeRoundColor,
+              glowOpacity: showPurgeDamage ? 0.12 : 0.04,
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
             ),
-            const SizedBox(height: 2),
-            EndpointText(
-              '$round',
-              style: textTitleSmallBold.copyWith(
-                color: roundColor,
-                fontSize: 16,
-                letterSpacing: 1.1,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                EndpointText(
+                  'ROUND',
+                  style: textSmallBold.copyWith(
+                    color: activeRoundColor.withAlpha(214),
+                    fontSize: 9,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                EndpointText(
+                  '$round',
+                  style: textTitleSmallBold.copyWith(
+                    color: activeRoundColor,
+                    fontSize: 16,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                if (showPurgeDamage) ...[
+                  const SizedBox(height: 4),
+                  Tooltip(
+                    message: 'Purge damage',
+                    child: EndpointText(
+                      '${widget.purgeDamage}',
+                      style: textTitleSmallBold.copyWith(
+                        color: purgeColor,
+                        fontSize: 20,
+                        height: 0.95,
+                        letterSpacing: 0,
+                        shadows: [
+                          Shadow(
+                            color: purgeColor.withAlpha(120),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

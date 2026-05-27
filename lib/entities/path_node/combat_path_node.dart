@@ -82,12 +82,18 @@ abstract final class EnemyCombatScalingRules {
     final baseLevel = baseLevelFor(tier);
     final levelBonus = max(0, level - baseLevel);
     final baseStats = Map<BattlerStat, int>.from(enemy.baseStats);
-    final scaledHealth =
+    var scaledHealth =
         (baseStats[BattlerStat.health] ?? enemy.health) + (levelBonus * 5);
-    final scaledAttack =
+    var scaledAttack =
         (baseStats[BattlerStat.attack] ?? enemy.baseAttack) + levelBonus;
     final scaledBarrier =
         (baseStats[BattlerStat.barrier] ?? enemy.baseBarrier) + levelBonus;
+    if (tier == CombatNodeTier.blue ||
+        tier == CombatNodeTier.purple ||
+        tier == CombatNodeTier.yellow) {
+      scaledHealth = max(1, (scaledHealth * 0.75).round());
+      scaledAttack = max(1, (scaledAttack * 0.75).round());
+    }
 
     baseStats[BattlerStat.health] = scaledHealth;
     baseStats[BattlerStat.attack] = tier == CombatNodeTier.yellow

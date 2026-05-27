@@ -5,6 +5,8 @@ import '../entities/_exports.dart';
 abstract final class OperativePatternCombatRules {
   static const int initialMaxPatternPoints = 3;
   static const int initialMaxBlockingPoints = 2;
+  static const int wallBlockingPointCost = 3;
+  static const int pointBlockingPointCost = 1;
 
   static int maxPatternPointsFor(Battler player) {
     return initialMaxPatternPoints +

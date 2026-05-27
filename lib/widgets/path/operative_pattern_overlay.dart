@@ -350,6 +350,25 @@ OperativePatternWallSegment? operativePatternNearestWallSegmentFor({
   return nearestDistance <= maxDistance ? nearest : null;
 }
 
+OperativePatternPoint? operativePatternNearestPointFor({
+  required Size boardSize,
+  required Offset localPosition,
+  double maxDistanceFactor = 0.12,
+}) {
+  final layout = _OperativePatternGridLayout.fromBoardSize(boardSize);
+  OperativePatternPoint? nearest;
+  var nearestDistance = double.infinity;
+  for (final point in operativePatternPoints) {
+    final distance = (localPosition - layout.centerFor(point)).distance;
+    if (distance >= nearestDistance) continue;
+    nearestDistance = distance;
+    nearest = point;
+  }
+
+  final maxDistance = boardSize.shortestSide * maxDistanceFactor;
+  return nearestDistance <= maxDistance ? nearest : null;
+}
+
 class OperativePatternBoard extends StatefulWidget {
   final ValueChanged<OperativePatternPoint>? onPointTapped;
   final ValueChanged<OperativePatternPoint>? onPointLongPressed;
@@ -358,6 +377,7 @@ class OperativePatternBoard extends StatefulWidget {
   final List<OperativePatternWallSegment> wallSegments;
   final Set<String> disabledWallSegmentKeys;
   final OperativePatternWallSegment? previewWallSegment;
+  final String? previewBlockedPointKey;
   final Set<String> animatedWallSegmentKeys;
   final Color wallAccent;
   final double previewWallOpacity;
@@ -378,6 +398,7 @@ class OperativePatternBoard extends StatefulWidget {
     this.wallSegments = const <OperativePatternWallSegment>[],
     this.disabledWallSegmentKeys = const <String>{},
     this.previewWallSegment,
+    this.previewBlockedPointKey,
     this.animatedWallSegmentKeys = const <String>{},
     this.wallAccent = EndpointPalette.dangerAccent,
     this.previewWallOpacity = 0.5,
@@ -899,6 +920,15 @@ class _OperativePatternBoardState extends State<OperativePatternBoard>
                             accent: widget.accent,
                           ),
                         ),
+                        if (widget.previewBlockedPointKey != null)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: _OperativePatternPreviewBlockedPoint(
+                                layout: layout,
+                                pointKey: widget.previewBlockedPointKey!,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -908,6 +938,42 @@ class _OperativePatternBoardState extends State<OperativePatternBoard>
           },
         );
       },
+    );
+  }
+}
+
+class _OperativePatternPreviewBlockedPoint extends StatelessWidget {
+  final _OperativePatternGridLayout layout;
+  final String pointKey;
+
+  const _OperativePatternPreviewBlockedPoint({
+    required this.layout,
+    required this.pointKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final point = operativePatternPointsByKey[pointKey];
+    if (point == null) return const SizedBox.shrink();
+
+    final center = layout.centerFor(point);
+    final size = layout.dotSize * 1.1;
+    return Stack(
+      children: [
+        Positioned(
+          left: center.dx - size / 2,
+          top: center.dy - size / 2,
+          width: size,
+          height: size,
+          child: Opacity(
+            opacity: 0.5,
+            child: OperativePatternBlockedMark(
+              size: size,
+              counterRotate: true,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1547,7 +1613,7 @@ class OperativePatternBlockedMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final markSize = (size * 1.04).clamp(28.0, 54.0).toDouble();
+    final markSize = (size * 1.22).clamp(34.0, 64.0).toDouble();
     final mark = Stack(
       alignment: Alignment.center,
       children: [

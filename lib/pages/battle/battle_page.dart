@@ -502,7 +502,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.player)) {
       _sceneController.replacePlayer(patternLayout.player);
     }
-    _applyEnemyWallActionToPlayerBoard();
+    final pendingEnemyBlockAction = _planEnemyBlockActionForPlayerBoard();
     final availableBlockingPoints =
         OperativePatternCombatRules.maxBlockingPointsFor(
       _sceneController.player,
@@ -524,6 +524,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
           wallSegments: _sceneController.player.combatWallSegments,
+          blockedPointKeys: _sceneController.player.combatBlockedPointKeys,
+          pendingEnemyBlockAction: pendingEnemyBlockAction,
           enemyTier: widget.enemyTier,
           combatRound: _sceneController.currentRound,
           availableBlockingPoints: availableBlockingPoints,
@@ -548,6 +550,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
             didResolveTurn = true;
+            _sceneController.replacePlayer(
+              _sceneController.player.copyWith(
+                combatWallSegments: matchResult.playerWallSegments,
+                combatBlockedPointKeys: matchResult.playerBlockedPointKeys,
+              ),
+            );
             _recordPatternMatchResult(matchResult);
             await _sceneController.handlePlayerPatternMatch(
               actionBonus: BattleActionBonus(
@@ -585,7 +593,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.enemy)) {
       _sceneController.replaceEnemy(patternLayout.player);
     }
-    _applyEnemyWallActionToPlayerBoard();
     final playerWallCapacity = OperativePatternCombatRules.maxBlockingPointsFor(
       _sceneController.player,
     );
@@ -605,6 +612,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
           wallSegments: _sceneController.enemy.combatWallSegments,
+          blockedPointKeys: _sceneController.enemy.combatBlockedPointKeys,
           maxBlockingPoints: playerWallCapacity,
           maxWallActions:
               OperativePatternCombatRules.wallActionsPerBlockingTurnFor(
@@ -630,6 +638,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             _sceneController.replaceEnemy(
               _sceneController.enemy.copyWith(
                 combatWallSegments: matchResult.wallSegments,
+                combatBlockedPointKeys: matchResult.blockedPointKeys,
               ),
             );
             await _sceneController.handleEnemyPatternMatch(
@@ -647,63 +656,72 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     return mounted && (didResolveTurn || matchResult != null);
   }
 
-  void _applyEnemyWallActionToPlayerBoard() {
+  BattlePatternEnemyBlockAction? _planEnemyBlockActionForPlayerBoard() {
     final capacity = OperativePatternCombatRules.maxBlockingPointsFor(
       _sceneController.enemy,
     );
-    if (capacity <= 0) return;
+    if (capacity <= 0) return null;
 
-    var nextWalls = _sceneController.player.combatWallSegments;
-    final actionCount = max(
-      1,
-      OperativePatternCombatRules.wallActionsPerBlockingTurnFor(
-        _sceneController.enemy,
-      ),
-    );
-    for (var i = 0; i < actionCount; i++) {
-      nextWalls = _randomlyPlacedOrMovedWalls(
-        currentWalls: nextWalls,
-        capacity: capacity,
+    final currentWalls = _sceneController.player.combatWallSegments;
+    final currentBlockedPointKeys =
+        _sceneController.player.combatBlockedPointKeys;
+    final usedBlockingPoints =
+        (currentWalls.length *
+                OperativePatternCombatRules.wallBlockingPointCost) +
+            (currentBlockedPointKeys.length *
+                OperativePatternCombatRules.pointBlockingPointCost);
+    final remainingBlockingPoints = capacity - usedBlockingPoints;
+    if (remainingBlockingPoints <= 0) return null;
+
+    if (remainingBlockingPoints >=
+        OperativePatternCombatRules.wallBlockingPointCost) {
+      final wall = _randomWallCandidate(currentWalls: currentWalls);
+      if (wall != null) {
+        return BattlePatternEnemyBlockAction.wall(wall);
+      }
+    }
+
+    if (remainingBlockingPoints >=
+        OperativePatternCombatRules.pointBlockingPointCost) {
+      final point = _randomPointBlockCandidate(
+        currentBlockedPointKeys: currentBlockedPointKeys,
       );
-    }
-    if (_sameWallKeys(nextWalls, _sceneController.player.combatWallSegments)) {
-      return;
+      if (point != null) {
+        return BattlePatternEnemyBlockAction.point(point);
+      }
     }
 
-    _sceneController.replacePlayer(
-      _sceneController.player.copyWith(combatWallSegments: nextWalls),
-    );
+    return null;
   }
 
-  List<OperativePatternWallSegment> _randomlyPlacedOrMovedWalls({
+  OperativePatternWallSegment? _randomWallCandidate({
     required List<OperativePatternWallSegment> currentWalls,
-    required int capacity,
   }) {
     final candidates = _allPatternWallCandidates();
-    if (candidates.isEmpty) return currentWalls;
+    if (candidates.isEmpty) return null;
 
     final currentKeys = currentWalls.map((wall) => wall.key).toSet();
     final available = candidates
         .where((wall) => !currentKeys.contains(wall.key))
         .toList(growable: false);
-    if (available.isEmpty) return currentWalls;
+    if (available.isEmpty) return null;
 
-    final selected = available[_sceneController.randomizer.nextInt(
+    return available[_sceneController.randomizer.nextInt(
       available.length,
     )];
-    if (currentWalls.length < capacity) {
-      return List<OperativePatternWallSegment>.unmodifiable([
-        ...currentWalls,
-        selected,
-      ]);
-    }
+  }
 
-    final replacedIndex = _sceneController.randomizer.nextInt(
-      currentWalls.length,
-    );
-    final nextWalls = List<OperativePatternWallSegment>.from(currentWalls);
-    nextWalls[replacedIndex] = selected;
-    return List<OperativePatternWallSegment>.unmodifiable(nextWalls);
+  OperativePatternPoint? _randomPointBlockCandidate({
+    required Set<String> currentBlockedPointKeys,
+  }) {
+    final available = operativePatternPoints
+        .where((point) => !currentBlockedPointKeys.contains(point.key))
+        .toList(growable: false);
+    if (available.isEmpty) return null;
+
+    return available[_sceneController.randomizer.nextInt(
+      available.length,
+    )];
   }
 
   List<OperativePatternWallSegment> _allPatternWallCandidates() {
@@ -722,16 +740,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       }
     }
     return List<OperativePatternWallSegment>.unmodifiable(candidates);
-  }
-
-  bool _sameWallKeys(
-    List<OperativePatternWallSegment> first,
-    List<OperativePatternWallSegment> second,
-  ) {
-    final firstKeys = first.map((wall) => wall.key).toSet();
-    final secondKeys = second.map((wall) => wall.key).toSet();
-    return firstKeys.length == secondKeys.length &&
-        firstKeys.containsAll(secondKeys);
   }
 
   void _handlePatternAnimationTargetsChanged(

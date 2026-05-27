@@ -260,6 +260,7 @@ extension BattlerCombatRuntime on Battler {
 
   Battler clearCombatWalls() {
     if (combatWallSegments.isEmpty &&
+        combatBlockedPointKeys.isEmpty &&
         temporaryCombatWallSegments.isEmpty &&
         queuedTemporaryCombatWallSegments.isEmpty &&
         combatDestroyedWallCount == 0) {
@@ -268,6 +269,7 @@ extension BattlerCombatRuntime on Battler {
 
     return copyWith(
       combatWallSegments: const <OperativePatternWallSegment>[],
+      combatBlockedPointKeys: const <String>{},
       temporaryCombatWallSegments: const <OperativePatternWallSegment>[],
       queuedTemporaryCombatWallSegments: const <OperativePatternWallSegment>[],
       combatDestroyedWallCount: 0,
@@ -307,6 +309,20 @@ extension BattlerCombatRuntime on Battler {
     if (_sameWallKeys(combatWallSegments, nextWalls)) return this;
 
     return copyWith(combatWallSegments: nextWalls);
+  }
+
+  Battler addCombatBlockedPoints(Iterable<String> pointKeys) {
+    final nextPointKeys = Set<String>.from(combatBlockedPointKeys);
+    for (final pointKey in pointKeys) {
+      if (operativePatternPointsByKey.containsKey(pointKey)) {
+        nextPointKeys.add(pointKey);
+      }
+    }
+    if (_sameStringSets(combatBlockedPointKeys, nextPointKeys)) return this;
+
+    return copyWith(
+      combatBlockedPointKeys: Set<String>.unmodifiable(nextPointKeys),
+    );
   }
 
   Battler queueTemporaryCombatWalls(
@@ -462,6 +478,10 @@ extension BattlerCombatRuntime on Battler {
     final secondKeys = second.map((wall) => wall.key).toSet();
     return firstKeys.length == secondKeys.length &&
         firstKeys.containsAll(secondKeys);
+  }
+
+  bool _sameStringSets(Set<String> first, Set<String> second) {
+    return first.length == second.length && first.containsAll(second);
   }
 
   Set<String> _connectedCombatWallKeys(
