@@ -917,6 +917,242 @@ const constructionSealItem = Item(
   effect: ConstructionSealItemEffect(),
 );
 
+const shoppingChecklistItem = Item(
+  id: ItemId.shoppingChecklist,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaBarreraTags,
+  name: 'Shopping Checklist',
+  description:
+      'Al inicio de tu turno, si has gastado creditos este combate, recuperas Barrera.',
+  iconEmoji: '\u{1F5D2}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 2,
+  upgradeValue: 1,
+  effect: ShoppingChecklistItemEffect(),
+);
+
+const laCuentaItem = Item(
+  id: ItemId.laCuenta,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaAtaqueTags,
+  name: 'La Cuenta',
+  description:
+      'Las primeras veces que gastas creditos, tu siguiente ataque gana dano.',
+  iconEmoji: '\u{1F9FE}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  baseCost: 2,
+  value: 2,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+  },
+  effect: LaCuentaItemEffect(),
+);
+
+const seguroBolsilloItem = Item(
+  id: ItemId.seguroBolsillo,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaVidaTags,
+  name: 'Seguro de Bolsillo',
+  description:
+      'Una vez por combate, cuando fueras a perder HP, paga creditos para prevenir dano.',
+  iconEmoji: '\u{1F4DD}',
+  rarity: RarityTier.green,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 2,
+  patternRequirementOverride: _patternRightAngle,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 1,
+  effect: SeguroBolsilloItemEffect(),
+);
+
+const bolsoR33mItem = Item(
+  id: ItemId.bolsoR33m,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaVidaTags,
+  name: 'Bolso R33M',
+  description:
+      'Las primeras veces que gastas creditos durante combate, recuperas el gasto inmediatamente.',
+  iconEmoji: '\u{1F45C}',
+  rarity: RarityTier.green,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 2,
+  patternRequirementOverride: _patternMiddle,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 1,
+  incomePerValueUnit: 1,
+  effect: BolsoR33mItemEffect(),
+);
+
+const selloMercanteItem = Item(
+  id: ItemId.selloMercante,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaVidaTags,
+  name: 'Sello Mercante',
+  description: 'Cuando ganas creditos, restauras HP.',
+  iconEmoji: '\u{1F3F7}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjW,
+      EntityTag.vida,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.economia,
+      _adjBarrier,
+      1,
+    ),
+  ],
+  baseCost: 6,
+  value: 3,
+  upgradeValue: 2,
+  effect: SelloMercanteItemEffect(),
+);
+
+const compraAgresivaItem = Item(
+  id: ItemId.compraAgresiva,
+  archetypeAffinities: _mercanteAffinities,
+  tags: <EntityTag>[EntityTag.economia, EntityTag.barrera, EntityTag.muralla],
+  name: 'Compra agresiva',
+  description:
+      'Al final de tu turno, paga creditos para ganar Barrera. Tras tres pagos, ganas BP.',
+  iconEmoji: '\u{1F6D2}',
+  rarity: RarityTier.blue,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 3,
+  patternRequirementOverride: _patternSquare,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+        _adjN, EntityTag.barrera, _adjBarrier, 1),
+    OperativePatternAdjacencyBonus.match(
+        _adjS, EntityTag.economia, _adjBarrier, 1),
+    OperativePatternAdjacencyBonus.match(
+        _adjW, EntityTag.muralla, _adjBarrier, 1),
+  ],
+  baseCost: 6,
+  value: 4,
+  upgradeValue: -1,
+  statModifiers: {
+    BattlerStat.barrier: 1,
+  },
+  effect: CompraAgresivaItemEffect(),
+);
+
+const subastaRelampagoItem = Item(
+  id: ItemId.subastaRelampago,
+  archetypeAffinities: _mercanteAffinities,
+  tags: <EntityTag>[EntityTag.economia, EntityTag.buff],
+  name: 'Subasta Relampago',
+  description:
+      'Permite activar el mismo punto dos veces en un Patron y cobra por el primer reuso de cada turno.',
+  iconEmoji: '\u{1F528}',
+  rarity: RarityTier.blue,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 3,
+  patternRequirementOverride: _patternZigzag,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 1,
+  effect: SubastaRelampagoItemEffect(),
+);
+
+const bolsaRiesgoItem = Item(
+  id: ItemId.bolsaRiesgo,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaAtaqueTags,
+  name: 'Bolsa de Riesgo',
+  description:
+      'Al comienzo del combate ganas creditos y, al caer bajo media vida, los conviertes en dano.',
+  iconEmoji: '\u{1F4BC}',
+  rarity: RarityTier.purple,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 2,
+  patternRequirementOverride: _patternMiddle,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+        _adjN, EntityTag.economia, _adjBarrier, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjE, EntityTag.ataque, _adjAttack, 2),
+    OperativePatternAdjacencyBonus.match(_adjS, EntityTag.vida, _adjBarrier, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjW, EntityTag.accesorio, _adjBarrier, 2),
+  ],
+  baseCost: 8,
+  value: 3,
+  upgradeValue: 1,
+  incomePerValueUnit: 1,
+  maxHealthPercentPerValueUnit: -3,
+  effect: BolsaRiesgoItemEffect(),
+);
+
+const camaraArbitrajeItem = Item(
+  id: ItemId.camaraArbitraje,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaBarreraDebuffTags,
+  name: 'Camara de Arbitraje',
+  description: 'Reduce un debuff entrante pagando creditos y recupera Barrera.',
+  iconEmoji: '\u{2696}',
+  rarity: RarityTier.purple,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 4,
+  patternRequirementOverride: _patternRightAngle,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+        _adjE, EntityTag.barrera, _adjBarrier, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjS, EntityTag.economia, _adjBarrier, 2),
+  ],
+  baseCost: 8,
+  value: 2,
+  upgradeValue: 1,
+  effect: CamaraArbitrajeItemEffect(),
+);
+
+const bancoAmbulanteItem = Item(
+  id: ItemId.bancoAmbulante,
+  archetypeAffinities: _mercanteAffinities,
+  tags: <EntityTag>[
+    EntityTag.economia,
+    EntityTag.ataque,
+    EntityTag.barrera,
+  ],
+  name: 'Banco Ambulante',
+  description:
+      'Convierte caja alta en Barrera, invierte en Patrones grandes y genera creditos al final del turno.',
+  iconEmoji: '\u{1F3E6}',
+  rarity: RarityTier.yellow,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 5,
+  patternRequirementOverride: _patternDiamond,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+        _adjN, EntityTag.economia, _adjBarrier, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjE, EntityTag.ataque, _adjAttack, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjS, EntityTag.barrera, _adjBarrier, 2),
+    OperativePatternAdjacencyBonus.match(
+        _adjW, EntityTag.accesorio, _adjBarrier, 2),
+  ],
+  baseCost: 10,
+  value: 5,
+  upgradeValue: 0,
+  incomePerValueUnit: 1,
+  statModifiers: {
+    BattlerStat.barrier: 2,
+  },
+  effect: BancoAmbulanteItemEffect(),
+);
+
 const pilarAceroItem = Item(
   id: ItemId.pilarAcero,
   archetypeAffinities: _inamovibleAffinities,
@@ -2991,6 +3227,16 @@ const itemPresets = <Item>[
   passCardItem,
   tonfasEscudoItem,
   constructionSealItem,
+  shoppingChecklistItem,
+  laCuentaItem,
+  seguroBolsilloItem,
+  bolsoR33mItem,
+  selloMercanteItem,
+  compraAgresivaItem,
+  subastaRelampagoItem,
+  bolsaRiesgoItem,
+  camaraArbitrajeItem,
+  bancoAmbulanteItem,
   pilarAceroItem,
   duplicadorAtomosItem,
   cortinaHumoItem,

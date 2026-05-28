@@ -81,6 +81,10 @@ abstract final class OperativePatternResolutionService {
     }
 
     final seenPointKeys = <String>{};
+    final activationCountsByPointKey = <String, int>{};
+    final canActivateRepeatedItemPoints = equippedItemsByPointKey.values.any(
+      (item) => item.id == ItemId.subastaRelampago,
+    );
     final activatedPatternBonusesByPointKey = <String, OperativePatternBonus>{};
     final activatedAdjacencyBonusesByPointKey =
         <String, List<OperativePatternAdjacencyBonus>>{};
@@ -89,10 +93,18 @@ abstract final class OperativePatternResolutionService {
     var healthBonus = 0;
 
     for (final point in stablePatternPoints) {
-      if (!seenPointKeys.add(point.key)) continue;
+      final currentActivationCount = activationCountsByPointKey[point.key] ?? 0;
+      final isRepeatedActivation = currentActivationCount > 0;
+      if (isRepeatedActivation &&
+          (!canActivateRepeatedItemPoints || currentActivationCount >= 2)) {
+        continue;
+      }
+      seenPointKeys.add(point.key);
       if (blockedPointKeys.contains(point.key)) continue;
 
       final item = equippedItemsByPointKey[point.key];
+      if (isRepeatedActivation && item == null) continue;
+      activationCountsByPointKey[point.key] = currentActivationCount + 1;
       final bonus = item == null
           ? bonusesByPointKey[point.key]
           : _canUseAdaptationBonus(

@@ -151,6 +151,8 @@ enum BattlerCombatFlag {
   aTodoRiesgoTriggered,
   cargaViricaTriggeredThisTurn,
   barbedShieldPendingDamage,
+  creditsSpentThisCombat,
+  subastaRelampagoTriggeredThisTurn,
 }
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
@@ -189,6 +191,14 @@ enum ItemCombatFlagKind {
   passCardPendingPayment,
   passCardWallsDisabledNextTurn,
   passCardWallsDisabledThisTurn,
+  laCuentaSpendTriggered,
+  laCuentaPendingAttackBonus,
+  bolsoR33mRefundedSpend,
+  seguroBolsilloUsed,
+  compraAgresivaPaid,
+  compraAgresivaBpUnlocked,
+  bolsaRiesgoTriggered,
+  bancoAmbulantePatternSpendThisTurn,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.

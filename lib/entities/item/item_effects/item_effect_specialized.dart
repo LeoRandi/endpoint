@@ -1208,6 +1208,468 @@ class RoperaUnidaItemEffect extends ItemEffect {
   }
 }
 
+class ShoppingChecklistItemEffect extends ItemEffect {
+  const ShoppingChecklistItemEffect()
+      : super(
+          description:
+              'Al inicio de tu turno, si has gastado creditos este combate, recuperas Barrera.',
+          hooks: const {ItemEffectHook.turnStart},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, si has gastado creditos este combate, recuperas ${max(1, item.value)} de Barrera.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn ||
+        !owner.hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.creditsSpentThisCombat,
+          ),
+        )) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+    return ItemEffectResolution(
+      owner: _recoverBarrier(owner: owner, amount: max(1, item.value)),
+      opponent: opponent,
+    );
+  }
+}
+
+class LaCuentaItemEffect extends ItemEffect {
+  static const attackBonus = 3;
+
+  const LaCuentaItemEffect()
+      : super(
+          description:
+              'Las primeras veces que gastas creditos en combate preparas bonus de ataque.',
+          hooks: const {
+            ItemEffectHook.outgoingDamageModifier,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Las primeras ${max(1, item.value)} veces por combate que gastas creditos, tu siguiente ataque gana +$attackBonus dano.';
+  }
+
+  @override
+  int modifyOutgoingDamage({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damage,
+  }) {
+    final pending = owner.itemCombatFlagUseCount(
+      item: item,
+      kind: ItemCombatFlagKind.laCuentaPendingAttackBonus,
+    );
+    if (pending <= 0) return damage;
+    return damage + attackBonus;
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final matchingFlags = owner.combatFlags
+        .where(
+          (flag) =>
+              flag.itemFlag == ItemCombatFlagKind.laCuentaPendingAttackBonus &&
+              flag.itemId == item.id &&
+              flag.itemInstanceId == item.instanceId,
+        )
+        .toList(growable: false);
+    if (matchingFlags.isEmpty) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final updatedFlags = Set<CombatRuntimeFlag>.from(owner.combatFlags)
+      ..remove(matchingFlags.first);
+    return ItemEffectResolution(
+      owner: owner.copyWith(
+        combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
+      ),
+      opponent: target,
+    );
+  }
+}
+
+class SeguroBolsilloItemEffect extends ItemEffect {
+  const SeguroBolsilloItemEffect()
+      : super(
+          description:
+              'Una vez por combate, paga creditos para prevenir dano a la vida.',
+          hooks: const {ItemEffectHook.incomingDamageEffect},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final amount = max(1, item.value) * 2;
+    return 'Una vez por combate, cuando fueras a perder HP, paga hasta ${amount}C para prevenir esa cantidad de dano a la vida.';
+  }
+
+  @override
+  BattlerIncomingDamageResolution onIncomingDamage({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damage,
+    required DamageKind kind,
+  }) {
+    if (damage <= owner.currentBarrier ||
+        owner.hasCombatFlag(
+            _itemCombatFlag(item, ItemCombatFlagKind.seguroBolsilloUsed))) {
+      return BattlerIncomingDamageResolution(owner: owner, damage: damage);
+    }
+    final preventable =
+        min(max(1, item.value) * 2, damage - owner.currentBarrier);
+    final paid = min(preventable, owner.money);
+    if (paid <= 0) {
+      return BattlerIncomingDamageResolution(owner: owner, damage: damage);
+    }
+    return BattlerIncomingDamageResolution(
+      owner: owner.spendMoney(paid).addCombatFlag(
+          _itemCombatFlag(item, ItemCombatFlagKind.seguroBolsilloUsed)),
+      damage: max(0, damage - paid),
+    );
+  }
+}
+
+class BolsoR33mItemEffect extends ItemEffect {
+  const BolsoR33mItemEffect()
+      : super(
+          description:
+              'Las primeras veces que gastas creditos durante combate, recuperas el gasto inmediatamente.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Las primeras ${max(1, item.value)} veces por combate que gastas creditos durante combate, recuperas ese dinero inmediatamente.';
+  }
+}
+
+class SelloMercanteItemEffect extends ItemEffect {
+  const SelloMercanteItemEffect()
+      : super(
+          description: 'Cuando ganas creditos, restauras vida.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Cuando ganas creditos, restauras ${max(1, item.value)} HP.';
+  }
+}
+
+class CompraAgresivaItemEffect extends ItemEffect {
+  const CompraAgresivaItemEffect()
+      : super(
+          description:
+              'Al final de tu turno, paga creditos para ganar Barrera. Tras tres pagos, ganas BP.',
+          hooks: const {ItemEffectHook.turnEnd},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al final de tu turno, paga ${max(0, item.value)}C si es posible para ganar 3 Barrera. La primera vez por combate que este efecto se activa 3 veces, ganas +1 BP.';
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    final cost = max(0, item.value);
+    if (!isOwnerTurn || cost <= 0 || !owner.canAfford(cost)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner
+        .spendMoney(cost)
+        .addItemCombatFlagUse(
+          item: item,
+          kind: ItemCombatFlagKind.compraAgresivaPaid,
+        )
+        .gainCombatBarrier(3);
+    final paidCount = updatedOwner.itemCombatFlagUseCount(
+      item: item,
+      kind: ItemCombatFlagKind.compraAgresivaPaid,
+    );
+    final unlockFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.compraAgresivaBpUnlocked,
+      1,
+    );
+    if (paidCount >= 3 && !updatedOwner.hasCombatFlag(unlockFlag)) {
+      updatedOwner = updatedOwner.addCombatFlag(unlockFlag);
+    }
+
+    return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+  }
+}
+
+class SubastaRelampagoItemEffect extends ItemEffect {
+  const SubastaRelampagoItemEffect()
+      : super(
+          description:
+              'Permite activar un mismo punto dos veces y paga creditos la primera vez de cada turno.',
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Puedes activar el mismo punto dos veces en un Patron, repitiendo sus efectos Al usarse y sus bonus de ATK/Barrera. La primera vez de cada turno que repites un punto con item, ganas ${max(1, item.value)}C.';
+  }
+}
+
+class BolsaRiesgoItemEffect extends ItemEffect {
+  const BolsaRiesgoItemEffect()
+      : super(
+          description:
+              'Al comienzo del combate ganas creditos y, al caer bajo media vida, los conviertes en dano.',
+          hooks: const {
+            ItemEffectHook.combatStart,
+            ItemEffectHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al comienzo del combate, ganas ${max(1, item.value) * 2}C. La primera vez por combate que quedas por debajo del 50% HP, gastas hasta ${max(1, item.value) * 3}C para infligir ese dano directo.';
+  }
+
+  @override
+  ItemEffectResolution onCombatStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    RunRandomizer? randomizer,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.earnMoney(max(1, item.value) * 2),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required int damageTaken,
+  }) {
+    final triggerFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.bolsaRiesgoTriggered,
+    );
+    if (owner.hasCombatFlag(triggerFlag) ||
+        owner.health * 2 >= owner.maxHealth ||
+        owner.money <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: source);
+    }
+    final spent = min(owner.money, max(1, item.value) * 3);
+    return ItemEffectResolution(
+      owner: owner.spendMoney(spent).addCombatFlag(triggerFlag),
+      opponent: source.receiveDirectDamage(spent, source: owner),
+    );
+  }
+}
+
+class CamaraArbitrajeItemEffect extends ItemEffect {
+  const CamaraArbitrajeItemEffect()
+      : super(
+          description:
+              'Reduce un debuff entrante pagando creditos y recupera Barrera.',
+          hooks: const {ItemEffectHook.incomingStatusModifier},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Una vez por turno, cuando recibes un debuff, paga ${max(1, item.value) * 2}C para reducirlo en ${max(1, item.value)} y recuperar ${max(1, item.value) * 2} Barrera.';
+  }
+
+  @override
+  ItemIncomingStatusResolution onIncomingStatus({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required BattlerStatus status,
+  }) {
+    final cost = max(1, item.value) * 2;
+    final flag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.deflectiveCapacitorReflectedDebuff,
+      owner.combatRound,
+    );
+    if (status.type != BattlerStatusType.debuff ||
+        owner.hasCombatFlag(flag) ||
+        !owner.canAfford(cost)) {
+      return ItemIncomingStatusResolution(
+        owner: owner,
+        source: source,
+        status: status,
+      );
+    }
+
+    final reduction = max(1, item.value);
+    final reducedStatus = status.copyWith(
+      value: max(0, status.value - reduction),
+      remainingTurns: max(0, status.remainingTurns - reduction),
+    );
+    return ItemIncomingStatusResolution(
+      owner: owner.spendMoney(cost).gainCombatBarrier(cost).addCombatFlag(flag),
+      source: source,
+      status: reducedStatus.value <= 0 && reducedStatus.remainingTurns <= 0
+          ? null
+          : reducedStatus,
+    );
+  }
+}
+
+class BancoAmbulanteItemEffect extends ItemEffect {
+  static const requiredMoney = 20;
+
+  const BancoAmbulanteItemEffect()
+      : super(
+          description:
+              'Convierte caja alta en Barrera, invierte en Patrones grandes y genera creditos al final del turno.',
+          hooks: const {
+            ItemEffectHook.turnStart,
+            ItemEffectHook.prePatternAttack,
+            ItemEffectHook.attackResolved,
+            ItemEffectHook.turnEnd,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al inicio de tu turno, si tienes al menos ${requiredMoney}C, ganas ${max(1, item.value)} Barrera. Cuando usas un Patron con 5+ puntos de item, puedes gastar hasta ${max(1, item.value)}C para sumar ese valor dividido entre ATK y Barrera. Al final de tu turno, ganas ${max(1, item.value)}C.';
+  }
+
+  @override
+  ItemEffectResolution onTurnStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn || owner.money < requiredMoney) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+    return ItemEffectResolution(
+      owner: owner.gainCombatBarrier(max(1, item.value)),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onPrePatternAttack({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (pattern.usedItemPointCount < 5 || owner.money <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+    final spent = min(owner.money, max(1, item.value));
+    final attackBoost = (spent + 1) ~/ 2;
+    final barrierBoost = spent ~/ 2;
+    var updatedOwner = owner.spendMoney(spent).addItemCombatFlagUse(
+          item: item,
+          kind: ItemCombatFlagKind.bancoAmbulantePatternSpendThisTurn,
+        );
+    if (barrierBoost > 0) {
+      updatedOwner = updatedOwner.gainCombatBarrier(barrierBoost);
+    }
+    if (attackBoost > 0) {
+      updatedOwner = _boostItemAttackForCombat(
+        owner: updatedOwner,
+        item: item,
+        amount: attackBoost,
+      );
+    }
+    return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+  }
+
+  @override
+  ItemEffectResolution onTurnEnd({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required bool isOwnerTurn,
+    RunRandomizer? randomizer,
+  }) {
+    if (!isOwnerTurn) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+    return ItemEffectResolution(
+      owner: owner.earnMoney(max(1, item.value)),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    if (item.combatItemBonusBoost <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+    return ItemEffectResolution(
+      owner: _replaceOwnedItem(
+        owner: owner,
+        currentItem: item,
+        replacement: item.clearCombatAugments(),
+      ),
+      opponent: target,
+    );
+  }
+}
+
+Battler _boostItemAttackForCombat({
+  required Battler owner,
+  required Item item,
+  required int amount,
+}) {
+  final safeAmount = max(0, amount);
+  if (safeAmount <= 0) return owner;
+
+  final index = owner.equippedItems.indexOf(item);
+  if (index < 0) return owner;
+
+  final boostedStats = Map<BattlerStat, int>.from(item.statModifiers);
+  boostedStats.update(
+    BattlerStat.attack,
+    (current) => current + safeAmount,
+    ifAbsent: () => safeAmount,
+  );
+  final updatedItems = List<Item>.from(owner.equippedItems);
+  updatedItems[index] = item.copyWith(
+    statModifiers: boostedStats,
+    combatItemBonusBoost: item.combatItemBonusBoost + safeAmount,
+  );
+  return owner.copyWith(equippedItems: List<Item>.unmodifiable(updatedItems));
+}
+
 /// Alarga las Quemaduras aplicadas y a cambio quema al propio portador al final de turno.
 class PortableOvenItemEffect extends ItemEffect {
   /// Crea un efecto reutilizable para el Horno Portatil.

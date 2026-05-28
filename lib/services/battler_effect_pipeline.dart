@@ -154,8 +154,8 @@ class BattlerEffectPipeline {
       updatedSource = resolution.opponent;
     }
 
-    for (final item
-        in updatedTarget.equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
+    for (final item in updatedTarget
+        .equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -191,8 +191,8 @@ class BattlerEffectPipeline {
       updatedTarget = resolution.opponent;
     }
 
-    for (final item
-        in updatedSource.equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
+    for (final item in updatedSource
+        .equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
       final effect = item.effect;
       if (effect == null) continue;
 
@@ -1144,6 +1144,43 @@ class BattlerEffectPipeline {
           updatedOpponent = chainResolution.opponent;
         }
       }
+
+      if (_hasSubastaRelampago(updatedOwner) &&
+          pattern.repeatedItemPointKeys.contains(pointKey)) {
+        final extraDebuffPressureBefore = _debuffPressure(updatedOpponent);
+        final extraResolution = effect.onPatternUsed(
+          owner: updatedOwner,
+          opponent: updatedOpponent,
+          item: item,
+          pattern: pattern,
+        );
+        updatedOwner = extraResolution.owner;
+        updatedOpponent = extraResolution.opponent;
+        final extraDebuffPressureAfter = _debuffPressure(updatedOpponent);
+        if (extraDebuffPressureAfter > extraDebuffPressureBefore) {
+          final chainResolution = _applyCadenaNeurotoxicaDamage(
+            owner: updatedOwner,
+            opponent: updatedOpponent,
+          );
+          updatedOwner = chainResolution.owner;
+          updatedOpponent = chainResolution.opponent;
+        }
+      }
+    }
+
+    if (pattern.repeatedItemPointCount > 0) {
+      for (final item in updatedOwner.equippedItems) {
+        if (item.id != ItemId.subastaRelampago) continue;
+        final triggerFlag = CombatRuntimeFlag.battler(
+          BattlerCombatFlag.subastaRelampagoTriggeredThisTurn,
+          value: updatedOwner.combatRound,
+        );
+        if (updatedOwner.hasCombatFlag(triggerFlag)) continue;
+        updatedOwner = updatedOwner
+            .earnMoney(max(1, item.value))
+            .addCombatFlag(triggerFlag);
+        break;
+      }
     }
 
     return ItemEffectResolution(
@@ -1826,4 +1863,8 @@ Battler _clearCombatItemAugments(Battler owner) {
       owner.equippedItems.map((item) => item.clearCombatAugments()),
     ),
   );
+}
+
+bool _hasSubastaRelampago(Battler owner) {
+  return owner.equippedItems.any((item) => item.id == ItemId.subastaRelampago);
 }

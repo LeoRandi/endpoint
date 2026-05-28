@@ -57,6 +57,13 @@ abstract final class OperativePatternCombatRules {
             ItemId.passCard => 1,
             ItemId.tonfasEscudo => -1,
             ItemId.constructionSeal => 4,
+            ItemId.compraAgresiva => player.itemCombatFlagValue(
+                      item: item,
+                      kind: ItemCombatFlagKind.compraAgresivaBpUnlocked,
+                    ) !=
+                    null
+                ? 1
+                : 0,
             _ => 0,
           };
     });

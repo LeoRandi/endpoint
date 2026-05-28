@@ -114,6 +114,16 @@ enum ItemId {
   passCard,
   tonfasEscudo,
   constructionSeal,
+  shoppingChecklist,
+  laCuenta,
+  seguroBolsillo,
+  bolsoR33m,
+  selloMercante,
+  compraAgresiva,
+  subastaRelampago,
+  bolsaRiesgo,
+  camaraArbitraje,
+  bancoAmbulante,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -256,6 +266,16 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.literalPaywall,
   ItemId.passCard,
   ItemId.constructionSeal,
+  ItemId.shoppingChecklist,
+  ItemId.laCuenta,
+  ItemId.seguroBolsillo,
+  ItemId.bolsoR33m,
+  ItemId.selloMercante,
+  ItemId.compraAgresiva,
+  ItemId.subastaRelampago,
+  ItemId.bolsaRiesgo,
+  ItemId.camaraArbitraje,
+  ItemId.bancoAmbulante,
 };
 
 const _patternSquareRequirement = OperativePatternRequirement.exactShape(

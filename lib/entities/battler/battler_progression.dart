@@ -14,13 +14,31 @@ extension BattlerProgression on Battler {
 
   /// Suma dinero sin permitir cantidades negativas.
   Battler earnMoney(int amount) {
-    return copyWith(money: money + max(0, amount));
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0) return this;
+
+    return copyWith(money: money + safeAmount)
+        ._applyCreditGainItemEffects(safeAmount);
   }
 
   /// Resta dinero sin permitir que el total baje de cero.
   Battler spendMoney(int amount) {
     final safeAmount = max(0, amount);
-    return copyWith(money: max(0, money - safeAmount));
+    if (safeAmount <= 0) return this;
+
+    final paidAmount = min(money, safeAmount);
+    var updatedBattler = copyWith(money: max(0, money - safeAmount));
+    if (paidAmount <= 0) return updatedBattler;
+
+    if (updatedBattler.combatFlags.contains(Battler.combatActiveFlag)) {
+      updatedBattler = updatedBattler.addCombatFlag(
+        const CombatRuntimeFlag.battler(
+          BattlerCombatFlag.creditsSpentThisCombat,
+        ),
+      );
+    }
+
+    return updatedBattler._applyCreditSpendItemEffects(paidAmount);
   }
 
   /// Consume una subida de nivel pendiente, aplica la mejora base y la recompensa elegida.
@@ -84,5 +102,63 @@ extension BattlerProgression on Battler {
     }
 
     return updatedPlayer;
+  }
+
+  Battler _applyCreditGainItemEffects(int amount) {
+    if (amount <= 0 || equippedItems.isEmpty) return this;
+
+    var updatedBattler = this;
+    for (final item in equippedItems) {
+      if (item.id != ItemId.selloMercante) continue;
+      updatedBattler = updatedBattler.heal(max(1, item.value));
+    }
+    return updatedBattler;
+  }
+
+  Battler _applyCreditSpendItemEffects(int paidAmount) {
+    if (paidAmount <= 0 ||
+        equippedItems.isEmpty ||
+        !combatFlags.contains(Battler.combatActiveFlag)) {
+      return this;
+    }
+
+    var updatedBattler = this;
+    for (final item in equippedItems) {
+      switch (item.id) {
+        case ItemId.laCuenta:
+          final uses = updatedBattler.itemCombatFlagUseCount(
+            item: item,
+            kind: ItemCombatFlagKind.laCuentaSpendTriggered,
+          );
+          if (uses >= max(1, item.value)) break;
+          updatedBattler = updatedBattler
+              .addItemCombatFlagUse(
+                item: item,
+                kind: ItemCombatFlagKind.laCuentaSpendTriggered,
+              )
+              .addItemCombatFlagUse(
+                item: item,
+                kind: ItemCombatFlagKind.laCuentaPendingAttackBonus,
+              );
+          break;
+        case ItemId.bolsoR33m:
+          final uses = updatedBattler.itemCombatFlagUseCount(
+            item: item,
+            kind: ItemCombatFlagKind.bolsoR33mRefundedSpend,
+          );
+          if (uses >= max(1, item.value)) break;
+          updatedBattler = updatedBattler
+              .addItemCombatFlagUse(
+                item: item,
+                kind: ItemCombatFlagKind.bolsoR33mRefundedSpend,
+              )
+              .copyWith(money: updatedBattler.money + paidAmount)
+              ._applyCreditGainItemEffects(paidAmount);
+          break;
+        default:
+          break;
+      }
+    }
+    return updatedBattler;
   }
 }
