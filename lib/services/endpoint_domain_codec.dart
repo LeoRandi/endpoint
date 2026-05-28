@@ -283,6 +283,12 @@ BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
       value: value,
     );
   }
+  if (statusId == BattlerStatusId.mercadoFuturos) {
+    return MercadoFuturosStatus(
+      attack: EndpointJsonUtils.readInt(json['attack'], fallback: 1),
+      barrier: EndpointJsonUtils.readInt(json['barrier'], fallback: 1),
+    );
+  }
   final statusFactory = battlerStatusFactoryById[statusId];
   if (statusFactory == null) return null;
 
@@ -440,6 +446,10 @@ Map<String, Object?> _serializeStatus(BattlerStatus status) {
     'remainingTurns': status.remainingTurns,
     'value': status.value,
     if (status is CompensadorRutaStatus) 'stat': status.stat.name,
+    if (status is MercadoFuturosStatus) ...{
+      'attack': status.attack,
+      'barrier': status.barrier,
+    },
     'isIndefinite': status.isIndefinite,
     'canStack': status.canStack,
     'isPurgeable': status.isPurgeable,

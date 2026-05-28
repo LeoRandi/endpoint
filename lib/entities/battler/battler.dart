@@ -172,6 +172,7 @@ enum ItemCombatFlagKind {
   reboundLensTriggeredThisTurn,
   emergencyPlatingAutoBlockUsed,
   deflectiveCapacitorReflectedDebuff,
+  filtroRuidoReducedDebuff,
   nucleoPiezoelectricoTriggeredThisTurn,
   aislanteArmonicoLostHealthThisTurn,
   aislanteArmonicoTurnStartHealth,

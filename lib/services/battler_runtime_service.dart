@@ -115,8 +115,15 @@ extension BattlerRuntimeService on Battler {
   Battler prepareForCombat({
     RunHourPhase phase = RunHourPhase.day,
   }) {
-    final preparedOwner =
-        materializeOwnedItems().clearCombatFlags().clearCombatWalls();
+    final materializedOwner = materializeOwnedItems();
+    final queuedWalls = materializedOwner.queuedTemporaryCombatWallSegments;
+    final preparedOwner = queuedWalls.isEmpty
+        ? materializedOwner.clearCombatFlags().clearCombatWalls()
+        : materializedOwner
+            .clearCombatFlags()
+            .clearCombatWalls()
+            .queueTemporaryCombatWalls(queuedWalls)
+            .activateQueuedTemporaryCombatWalls();
     final cycleFlags = switch (phase) {
       RunHourPhase.day || RunHourPhase.sunrise => <CombatRuntimeFlag>{
           Battler.cycleDayContextFlag,

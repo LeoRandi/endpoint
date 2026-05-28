@@ -3,6 +3,7 @@ import '../../services/_exports.dart';
 import 'package:flutter/widgets.dart';
 
 import 'black_techno_market_event_page.dart';
+import 'archetype_special_event_page.dart';
 import 'pitonisa_quitapenas_event_page.dart';
 import 'secret_path_event_page.dart';
 import 'path_event_page.dart';
@@ -15,6 +16,7 @@ typedef PathEventPageBuilder = Widget Function({
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 });
 
 final pathEventPageBuilderById =
@@ -28,6 +30,14 @@ final pathEventPageBuilderById =
   PathEventId.sobreKar: _buildSobreKarEventPage,
   PathEventId.suBastaYa: _buildSuBastaYaEventPage,
   PathEventId.pitonisaQuitapenas: _buildPitonisaQuitapenasEventPage,
+  PathEventId.clinicaReflejos: _buildArchetypeSpecialEventPage,
+  PathEventId.viktorOperations: _buildArchetypeSpecialEventPage,
+  PathEventId.arquitecbrosSl: _buildArchetypeSpecialEventPage,
+  PathEventId.capillaStShieladurn: _buildArchetypeSpecialEventPage,
+  PathEventId.contratontos: _buildArchetypeSpecialEventPage,
+  PathEventId.hornoJuramentos: _buildArchetypeSpecialEventPage,
+  PathEventId.auditoriaCreativa: _buildArchetypeSpecialEventPage,
+  PathEventId.mercadoFuturos: _buildArchetypeSpecialEventPage,
   PathEventId.debtCollection: _buildDefaultPathEventPage,
 });
 
@@ -35,6 +45,7 @@ Widget buildPathEventPage({
   required Battler player,
   required EventPathNode node,
   required RunRandomizer randomizer,
+  int dayNumber = 1,
   PathEventService eventService = const PathEventService(),
 }) {
   final pageBuilder = pathEventPageBuilderById[node.id];
@@ -44,6 +55,7 @@ Widget buildPathEventPage({
       node: node,
       randomizer: randomizer,
       eventService: eventService,
+      dayNumber: dayNumber,
     );
   }
 
@@ -55,6 +67,7 @@ Widget _buildTechnosurgeonEventPage({
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 }) {
   return TechnosurgeonEventPage(
     player: player,
@@ -69,6 +82,7 @@ Widget _buildBlackTechnoMarketEventPage({
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 }) {
   return BlackTechnoMarketEventPage(
     player: player,
@@ -83,6 +97,7 @@ Widget _buildPasadizoSecretoEventPage({
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 }) {
   return SecretPassageEventPage(
     player: player,
@@ -97,6 +112,7 @@ Widget _buildSobreKarEventPage({
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 }) {
   return SobreKarEventPage(
     player: player,
@@ -111,6 +127,7 @@ Widget _buildSuBastaYaEventPage({
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 }) {
   return SuBastaYaEventPage(
     player: player,
@@ -125,6 +142,7 @@ Widget _buildPitonisaQuitapenasEventPage({
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 }) {
   return PitonisaQuitapenasEventPage(
     player: player,
@@ -133,11 +151,28 @@ Widget _buildPitonisaQuitapenasEventPage({
   );
 }
 
+Widget _buildArchetypeSpecialEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+  required int dayNumber,
+}) {
+  return ArchetypeSpecialEventPage(
+    player: player,
+    node: node,
+    randomizer: randomizer,
+    eventService: eventService,
+    dayNumber: dayNumber,
+  );
+}
+
 Widget _buildDefaultPathEventPage({
   required Battler player,
   required EventPathNode node,
   required RunRandomizer randomizer,
   required PathEventService eventService,
+  required int dayNumber,
 }) {
   return PathEventPage(
     player: player,

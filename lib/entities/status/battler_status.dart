@@ -34,6 +34,7 @@ enum BattlerStatusId {
   desafio,
   desafioExcitante,
   compensadorRuta,
+  mercadoFuturos,
   deuda,
 }
 

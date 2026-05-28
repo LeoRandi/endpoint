@@ -373,6 +373,9 @@ class RunSessionController extends ChangeNotifier {
     _completeScene(
       updatedPlayer: result.player,
       guaranteedNextNode: result.guaranteedNextNode,
+      defeatedEnemy: result.defeatedEnemy,
+      defeatedEnemyBattler: result.defeatedEnemyBattler,
+      defeatedEnemyRarity: result.defeatedEnemyRarity,
     );
   }
 

@@ -548,3 +548,69 @@ class CompensadorRutaStatus extends BattlerStatus {
     );
   }
 }
+
+class MercadoFuturosStatus extends BattlerStatus {
+  static const statusId = BattlerStatusId.mercadoFuturos;
+  final int attack;
+  final int barrier;
+
+  const MercadoFuturosStatus({
+    this.attack = 1,
+    this.barrier = 1,
+  }) : super(
+          id: statusId,
+          name: 'Mercado de Futuros',
+          type: BattlerStatusType.buff,
+          tags: _buffAtaqueStatusTags,
+          hooks: const {
+            BattlerStatusHook.calculatedStatModifier,
+            BattlerStatusHook.combatEnd,
+          },
+          icon: Icons.monetization_on_rounded,
+          description: 'Contrato de suerte activo para el siguiente combate.',
+          remainingTurns: 1,
+          value: 1,
+        );
+
+  @override
+  bool get isIndefinite => true;
+
+  @override
+  bool get persistsOutsideCombat => false;
+
+  @override
+  String descriptionFor(Battler owner) {
+    return '$description Bonus actual: +$attack ATK, +$barrier BAR.';
+  }
+
+  @override
+  int modifyCalculatedStat({
+    required Battler owner,
+    required BattlerStat stat,
+    required int value,
+  }) {
+    return switch (stat) {
+      BattlerStat.attack => value + attack,
+      BattlerStat.barrier => value + barrier,
+      _ => value,
+    };
+  }
+
+  @override
+  Battler onCombatEnd({
+    required Battler owner,
+  }) {
+    return owner.removeStatusInstance(this);
+  }
+
+  @override
+  BattlerStatus copyWith({
+    int? remainingTurns,
+    int? value,
+  }) {
+    return MercadoFuturosStatus(
+      attack: attack,
+      barrier: barrier,
+    );
+  }
+}

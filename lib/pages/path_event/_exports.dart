@@ -1,3 +1,4 @@
+export "archetype_special_event_page.dart";
 export "black_techno_market_event_page.dart";
 export "secret_path_event_page.dart";
 export "path_event_page.dart";

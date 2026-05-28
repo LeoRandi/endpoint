@@ -134,6 +134,11 @@ final battlerStatusFactoryById =
         stat: BattlerStat.attack,
         value: value,
       ),
+  BattlerStatusId.mercadoFuturos: ({
+    required int remainingTurns,
+    required int value,
+  }) =>
+      const MercadoFuturosStatus(),
   BattlerStatusId.deuda: ({
     required int remainingTurns,
     required int value,

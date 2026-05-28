@@ -690,6 +690,166 @@ final pitonisaQuitapenasNode = EventPathNode(
   ],
 );
 
+final clinicaReflejosNode = EventPathNode(
+  id: PathEventId.clinicaReflejos,
+  nodeId: 'event_clinica_reflejos',
+  label: 'Clinica de Reflejos',
+  tooltip: 'Aumento Veloz o 6 Quemadura por +1 ATK permanente',
+  iconEmoji: '\u{1F489}',
+  rarity: RarityTier.green,
+  accent: RarityTier.green.accent,
+  badgeLabel: 'VELOZ',
+  showTitle: 'Has encontrado la Clinica de Reflejos',
+  eventTitle: 'CLINICA DE REFLEJOS',
+  description:
+      'Una clinica de latencia mide tus parpadeos y ofrece acelerar tus protocolos. Puedes aceptar un aumento Veloz calibrado para esta fase de la run o una inyeccion ardiente por potencia permanente.',
+  outcomeText: 'Elige una intervencion.',
+  flavorTexts: [
+    'El visor de diagnostico sigue tus ojos antes de que termines de entrar.',
+    'La doctora no pregunta si corres rapido. Solo pregunta cuanto dolor cabe en ese margen.',
+  ],
+);
+
+final viktorOperationsNode = EventPathNode(
+  id: PathEventId.viktorOperations,
+  nodeId: 'event_viktor_operations',
+  label: 'Viktor Operations',
+  tooltip: 'Mejora a morado un item de Contagio, Debuff o Intoxicacion',
+  iconEmoji: '\u{1F9EA}',
+  rarity: RarityTier.purple,
+  accent: RarityTier.purple.accent,
+  badgeLabel: 'VELOZ',
+  showTitle: 'Viktor Operations abre la puerta',
+  eventTitle: 'VIKTOR OPERATIONS',
+  description:
+      'Un doctor impecablemente limpio ofrece mejorar uno de tus objetos "especialmente deliciosos". Solo acepta piezas de Contagio, Debuff o Intoxicacion que aun no sean moradas ni amarillas.',
+  outcomeText: 'Selecciona un objeto compatible para elevarlo a MORADO.',
+  flavorTexts: [
+    'La sala no tiene polvo, ni sangre, ni historia. Viktor sonrie como si eso fuera normal.',
+    'Sus guantes rozan el aire encima de tu inventario. "Este tiene sabor", dice.',
+  ],
+);
+
+final arquitecbrosSlNode = EventPathNode(
+  id: PathEventId.arquitecbrosSl,
+  nodeId: 'event_arquitecbros_sl',
+  label: 'Arquitecbros SL',
+  tooltip: 'Muralla futura y stats permanentes, o combate morado',
+  iconEmoji: '\u{1F3D7}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'INAMOV',
+  showTitle: 'Arquitecbros SL quiere presupuestar tu matriz',
+  eventTitle: 'ARQUITECBROS SL',
+  description:
+      'Dos hermanos con cascos demasiado limpios prometen construir una muralla en la matriz de tu proximo combate. Tambien mencionan, muy tarde, que hay un tercer hermano esperando si prefieres discutir.',
+  outcomeText: 'Acepta la obra o reta al tercer hermano.',
+  flavorTexts: [
+    'Uno habla de estabilidad. El otro de hormigon emocional.',
+    'Los dos senalan el contrato a la vez. En la letra pequena se oye respirar a alguien mas.',
+  ],
+);
+
+final capillaStShieladurnNode = EventPathNode(
+  id: PathEventId.capillaStShieladurn,
+  nodeId: 'event_capilla_st_shieladurn',
+  label: 'Capilla a St. Shieladurn',
+  tooltip: 'Ofrece un objeto para ganar Barrera permanente',
+  iconEmoji: '\u{1F6E1}',
+  rarity: RarityTier.green,
+  accent: RarityTier.green.accent,
+  badgeLabel: 'INAMOV',
+  showTitle: 'Has encontrado la Capilla a St. Shieladurn',
+  eventTitle: 'CAPILLA A ST. SHIELADURN',
+  description:
+      'Una capilla hecha de placas antiguas acepta una pieza de tu inventario. A cambio promete blindaje permanente, sin explicar que algunas ofrendas pesan mas que otras.',
+  outcomeText: 'Entrega un objeto como ofrenda.',
+  flavorTexts: [
+    'No hay sacerdote. Solo un escudo clavado en el altar y una ranura para donaciones.',
+    'La capilla vibra con un silencio metalico cuando acercas tus cosas.',
+  ],
+);
+
+final contratontosNode = EventPathNode(
+  id: PathEventId.contratontos,
+  nodeId: 'event_contratontos',
+  label: 'Contratontos',
+  tooltip: 'Entrenamientos Imparables con costes brutales',
+  iconEmoji: '\u{1F4AA}',
+  rarity: RarityTier.green,
+  accent: RarityTier.green.accent,
+  badgeLabel: 'IMPAR',
+  showTitle: 'Contratontos ofrece entrenamiento especial',
+  eventTitle: 'CONTRATONTOS',
+  description:
+      'El entrenador personal de un famoso luchador de holo-arena te vende una sesion especial. Todo el programa parece disenado por alguien que confunde dolor con metodologia.',
+  outcomeText: 'Elige una rutina.',
+  flavorTexts: [
+    'El entrenador aplaude demasiado fuerte, incluso cuando nadie ha hecho nada.',
+    'En la pizarra solo hay tres palabras: ARDE, APRENDE, REPITE.',
+  ],
+);
+
+final hornoJuramentosNode = EventPathNode(
+  id: PathEventId.hornoJuramentos,
+  nodeId: 'event_horno_juramentos',
+  label: 'Horno de Juramentos',
+  tooltip: 'Mejora un objeto a cambio de Quemadura y HP actual',
+  iconEmoji: '\u{1F525}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'IMPAR',
+  showTitle: 'Has encontrado el Horno de Juramentos',
+  eventTitle: 'HORNO DE JURAMENTOS',
+  description:
+      'El horno no mejora piezas sueltas. Exige que el portador entre con ellas. La salida deja mejor equipo, 3 Quemadura y una mordida de vida actual que nunca remata.',
+  outcomeText: 'Selecciona un objeto para entrar con el.',
+  flavorTexts: [
+    'La puerta del horno se abre desde dentro.',
+    'El metal canta nombres que no recuerdas haber prometido.',
+  ],
+);
+
+final auditoriaCreativaNode = EventPathNode(
+  id: PathEventId.auditoriaCreativa,
+  nodeId: 'event_auditoria_creativa',
+  label: 'Auditoria Creativa',
+  tooltip: 'Pierde HP maximo por creditos o acepta Deuda por un aumento verde',
+  iconEmoji: '\u{1F4CA}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'MERC',
+  showTitle: 'Auditoria Creativa revisa tus activos',
+  eventTitle: 'AUDITORIA CREATIVA',
+  description:
+      'Una auditora sonriente declara que tu futuro biologico esta infravalorado. Puede convertir salud maxima en liquidez inmediata o abrir deuda por un aumento verde.',
+  outcomeText: 'Elige una formula contable.',
+  flavorTexts: [
+    'Su calculadora imprime humo y recibos con tu pulso cardiaco.',
+    'Cada columna termina en beneficio. Ninguna parece tuya.',
+  ],
+);
+
+final mercadoFuturosNode = EventPathNode(
+  id: PathEventId.mercadoFuturos,
+  nodeId: 'event_mercado_futuros',
+  label: 'Mercado de Futuros',
+  tooltip: 'Apuesta una cara de moneda por XP y buff de combate',
+  iconEmoji: '\u{1FA99}',
+  rarity: RarityTier.yellow,
+  accent: RarityTier.yellow.accent,
+  badgeLabel: 'MERC',
+  showTitle: 'El Mercado de Futuros propone una apuesta',
+  eventTitle: 'MERCADO DE FUTUROS',
+  description:
+      'Un broker quiere jugar a suerte pura. Elige una cara, mira la moneda girar, y si aciertas recibes 2 XP y +1 ATK/+1 Barrera en el proximo combate.',
+  outcomeText: 'Escoge una cara antes de que caiga.',
+  flavorTexts: [
+    'El broker no ensena las dos caras de la moneda. Eso forma parte del encanto, dice.',
+    'Durante un segundo, el canto refleja rutas que todavia no has comprado.',
+  ],
+);
+
 /// Tienda morada nocturna centrada en armas mas agresivas.
 final afterHoursArsenalNode = ShopPathNode(
   nodeId: 'shop_after_hours_arsenal',
@@ -942,6 +1102,14 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
   strandedTrashNode,
   lostCacheNode,
   shadyTechnosurgeonNode,
+  clinicaReflejosNode,
+  viktorOperationsNode,
+  arquitecbrosSlNode,
+  capillaStShieladurnNode,
+  contratontosNode,
+  hornoJuramentosNode,
+  auditoriaCreativaNode,
+  mercadoFuturosNode,
   blackTechnoMarketNode,
   sobreKarNode,
   pasadizoSecretoNode,
@@ -969,6 +1137,14 @@ final List<ShopPathNode> nightShopNodes = List.unmodifiable([
 /// Eventos candidatos para la noche, incluida la deuda si aplica.
 final List<EventPathNode> nightEventNodes = List.unmodifiable([
   afterHoursTechnosurgeonNode,
+  clinicaReflejosNode,
+  viktorOperationsNode,
+  arquitecbrosSlNode,
+  capillaStShieladurnNode,
+  contratontosNode,
+  hornoJuramentosNode,
+  auditoriaCreativaNode,
+  mercadoFuturosNode,
   blackTechnoMarketNode,
   shadyTechnosurgeonNode,
   sobreKarNode,

@@ -1711,6 +1711,25 @@ const fundaAislanteItem = Item(
   },
 );
 
+/// Accesorio verde general que amortigua el primer debuff recibido en combate.
+const filtroRuidoItem = Item(
+  id: ItemId.filtroRuido,
+  archetypeAffinities: _generalAffinities,
+  tags: _barreraDebuffTags,
+  name: 'Filtro de Ruido',
+  description:
+      'La primera vez por combate que fueras a recibir un debuff, reduce su valor o duracion.',
+  iconEmoji: '\u{1F39A}',
+  rarity: RarityTier.green,
+  patternBonusKindOverride: _adjBarrier,
+  patternBonusAmountOverride: 2,
+  patternRequirementOverride: _patternRightAngle,
+  baseCost: 4,
+  value: 2,
+  upgradeValue: 2,
+  effect: FiltroRuidoItemEffect(),
+);
+
 /// Arma verde suicida que sobrecarga el primer golpe del turno a cambio de autodebuff.
 const clavoReactorItem = Item(
   id: ItemId.clavoReactor,
@@ -3250,6 +3269,7 @@ const itemPresets = <Item>[
   silbatoMudoItem,
   botiquinCompactoItem,
   fundaAislanteItem,
+  filtroRuidoItem,
   clavoReactorItem,
   ultimaMarchaItem,
   stunBatonItem,

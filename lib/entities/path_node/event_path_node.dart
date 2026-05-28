@@ -12,6 +12,14 @@ enum PathEventId {
   sobreKar,
   suBastaYa,
   pitonisaQuitapenas,
+  clinicaReflejos,
+  viktorOperations,
+  arquitecbrosSl,
+  capillaStShieladurn,
+  contratontos,
+  hornoJuramentos,
+  auditoriaCreativa,
+  mercadoFuturos,
 }
 
 /// Define un nodo de evento con su contenido base y el id que resuelve su efecto.

@@ -143,6 +143,9 @@ class RunNodeFlowCoordinator {
             player: session.player,
             node: eventNode,
             randomizer: session.randomizer,
+            dayNumber: PathNodeService.dayNumberForStageIndex(
+              session.currentHour.stageIndex,
+            ),
           ),
           onCompleted: session.completeEventVisit,
         );

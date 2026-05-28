@@ -65,6 +65,38 @@ final pathEventDefinitionById =
     canAppear: _canAppearForPitonisaQuitapenas,
     visit: _visitDefaultPathEvent,
   ),
+  PathEventId.clinicaReflejos: const PathEventDefinition(
+    canAppear: _canAppearForVeloz,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.viktorOperations: const PathEventDefinition(
+    canAppear: _canAppearForViktorOperations,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.arquitecbrosSl: const PathEventDefinition(
+    canAppear: _canAppearForInamovible,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.capillaStShieladurn: const PathEventDefinition(
+    canAppear: _canAppearForCapillaStShieladurn,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.contratontos: const PathEventDefinition(
+    canAppear: _canAppearForImparable,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.hornoJuramentos: const PathEventDefinition(
+    canAppear: _canAppearForHornoJuramentos,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.auditoriaCreativa: const PathEventDefinition(
+    canAppear: _canAppearForMercante,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.mercadoFuturos: const PathEventDefinition(
+    canAppear: _canAppearForMercante,
+    visit: _visitDefaultPathEvent,
+  ),
 });
 
 enum SuBastaYaStatReward {
@@ -586,6 +618,318 @@ class PathEventService {
     );
   }
 
+  List<Item> buildOwnedItems(Battler player) {
+    return List<Item>.unmodifiable([
+      ...player.equippedItems,
+      ...player.inventoryItems,
+    ]);
+  }
+
+  List<Item> buildViktorOperationsEligibleItems(Battler player) {
+    return List<Item>.unmodifiable(
+      buildOwnedItems(player).where(
+        (item) =>
+            item.rarity.index < RarityTier.purple.index &&
+            item.canUpgrade &&
+            (item.hasTag(EntityTag.contagio) ||
+                item.hasTag(EntityTag.debuff) ||
+                item.hasTag(EntityTag.intoxicacion)),
+      ),
+    );
+  }
+
+  List<Item> buildHornoJuramentosEligibleItems(Battler player) {
+    return List<Item>.unmodifiable(
+      buildOwnedItems(player).where(
+        (item) => item.rarity != RarityTier.yellow && item.canUpgrade,
+      ),
+    );
+  }
+
+  PathEventVisitResult resolveClinicaReflejosAbility({
+    required Battler player,
+    required RunRandomizer randomizer,
+    required int dayNumber,
+  }) {
+    final ability = _rollAbilityForArchetypeAndDay(
+      player: player,
+      archetypeId: ArchetypeId.veloz,
+      randomizer: randomizer,
+      dayNumber: dayNumber,
+    );
+    if (ability == null) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'La clinica no encuentra ningun aumento Veloz compatible.',
+      );
+    }
+
+    final updatedPlayer = player.addAbility(ability.resetState());
+    final resolvedAbility = updatedPlayer.abilityById(ability.id) ?? ability;
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'La Clinica de Reflejos integra ${resolvedAbility.displayName} (${resolvedAbility.rarity.label}).',
+      gainedAbility: resolvedAbility,
+    );
+  }
+
+  PathEventVisitResult resolveClinicaReflejosBurnTraining(Battler player) {
+    final updatedPlayer = _applyPermanentStatRewards(
+      player.applyStatus(
+        const QuemaduraStatus(remainingTurns: 6),
+        applyEquipmentModifiers: false,
+      ),
+      const {BattlerStat.attack: 1},
+    );
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Aceptas la inyeccion. Ganas +1 ATK permanente y 6 Quemadura.',
+    );
+  }
+
+  PathEventVisitResult? resolveViktorOperationsUpgrade({
+    required Battler player,
+    required Item selectedItem,
+  }) {
+    if (!buildViktorOperationsEligibleItems(player).contains(selectedItem)) {
+      return null;
+    }
+
+    final resolution = _upgradeOwnedItemToRarity(
+      player: player,
+      selectedItem: selectedItem,
+      targetRarity: RarityTier.purple,
+    );
+    if (resolution == null) return null;
+
+    return PathEventVisitResult(
+      player: resolution.updatedPlayer,
+      outcomeText:
+          'Viktor deja ${resolution.upgradedItem.displayName} en MORADO, limpio como un quirofano imposible.',
+      gainedItem: resolution.upgradedItem,
+    );
+  }
+
+  PathEventVisitResult resolveArquitecbrosWall({
+    required Battler player,
+    required RunRandomizer randomizer,
+  }) {
+    final wallSeed = player.seedRandomCombatWalls(
+      count: 1,
+      nextInt: randomizer.nextInt,
+    );
+    final updatedPlayer = _applyPermanentStatRewards(
+      player.queueTemporaryCombatWalls(wallSeed.combatWallSegments),
+      {
+        BattlerStat.barrier: 1,
+        BattlerStat.health: max(1, (player.maxHealth * 0.10).ceil()),
+      },
+    );
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Arquitecbros SL deja una muralla preparada para el proximo combate. Ganas +1 Barrera y +10% HP permanente.',
+    );
+  }
+
+  CombatPathNode buildArquitecbrosBrotherCombatNode({
+    required RunRandomizer randomizer,
+  }) {
+    final node =
+        purpleCombatNodes[randomizer.nextInt(purpleCombatNodes.length)];
+    final enemy = node.enemy;
+    final updatedStats = Map<BattlerStat, int>.from(enemy.baseStats);
+    updatedStats[BattlerStat.barrier] =
+        max(0, (updatedStats[BattlerStat.barrier] ?? 0) + 3);
+
+    return CombatPathNode(
+      nodeId: '${node.nodeId}_arquitecbros_third',
+      enemy: enemy.copyWith(
+        name: 'TERCER ${enemy.name}',
+        baseStats: Map<BattlerStat, int>.unmodifiable(updatedStats),
+      ),
+      tier: CombatNodeTier.purple,
+      label: 'TERCER ${node.label}',
+    );
+  }
+
+  PathEventVisitResult resolveCapillaOffering({
+    required Battler player,
+    required Item selectedItem,
+    required RunRandomizer randomizer,
+  }) {
+    if (!player.ownsItem(selectedItem)) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'La ofrenda ya no esta disponible.',
+      );
+    }
+
+    final barrierGain = selectedItem.isWeaponLike ? 2 : 1;
+    var updatedPlayer = _applyPermanentStatRewards(
+      player.removeItem(selectedItem),
+      {BattlerStat.barrier: barrierGain},
+    );
+    BattlerAbility? gainedAbility;
+    if (selectedItem.isWeaponLike) {
+      gainedAbility = _rollAbilityFromPoolForExactRarity(
+        pool: abilityPresets,
+        player: updatedPlayer,
+        targetRarity: RarityTier.green,
+        randomizer: randomizer,
+      );
+      if (gainedAbility != null) {
+        updatedPlayer = updatedPlayer.addAbility(gainedAbility.resetState());
+        gainedAbility = updatedPlayer.abilityById(gainedAbility.id);
+      }
+    }
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'La Capilla acepta ${selectedItem.displayName}. Ganas +$barrierGain Barrera permanente.',
+      gainedAbility: gainedAbility,
+    );
+  }
+
+  PathEventVisitResult resolveContratontosLight(Battler player) {
+    return PathEventVisitResult(
+      player: player
+          .applyStatus(
+            const QuemaduraStatus(remainingTurns: 4),
+            applyEquipmentModifiers: false,
+          )
+          .gainExperience(1),
+      outcomeText: 'Aceptas el entrenamiento suave: 4 Quemadura y +1 XP.',
+    );
+  }
+
+  PathEventVisitResult resolveContratontosBlueAugment({
+    required Battler player,
+    required RunRandomizer randomizer,
+  }) {
+    final ability = _rollAbilityFromPoolForExactRarity(
+      pool: abilityPoolForArchetype(ArchetypeId.imparable),
+      player: player,
+      targetRarity: RarityTier.blue,
+      randomizer: randomizer,
+    );
+    var updatedPlayer = player.applyStatus(
+      const QuemaduraStatus(remainingTurns: 8),
+      applyEquipmentModifiers: false,
+    );
+    BattlerAbility? gainedAbility;
+    if (ability != null) {
+      updatedPlayer = updatedPlayer.addAbility(ability.resetState());
+      gainedAbility = updatedPlayer.abilityById(ability.id) ?? ability;
+    }
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Aceptas el entrenamiento de holo-arena: 8 Quemadura y un aumento Imparable azul.',
+      gainedAbility: gainedAbility,
+    );
+  }
+
+  PathEventVisitResult resolveContratontosMaxHpLoss(Battler player) {
+    return PathEventVisitResult(
+      player:
+          _applyPermanentMaxHealthPercentLoss(player, 0.20).gainExperience(4),
+      outcomeText: 'Aceptas el entrenamiento absurdo: -20% HP maximo y +4 XP.',
+    );
+  }
+
+  PathEventVisitResult? resolveHornoJuramentosUpgrade({
+    required Battler player,
+    required Item selectedItem,
+  }) {
+    if (!buildHornoJuramentosEligibleItems(player).contains(selectedItem)) {
+      return null;
+    }
+
+    final resolution = _upgradeOwnedItem(
+      player: player,
+      selectedItem: selectedItem,
+    );
+    if (resolution == null) return null;
+
+    final selfDamage = max(1, (player.health * 0.15).ceil());
+    final damagedHealth = max(1, resolution.updatedPlayer.health - selfDamage);
+    final updatedPlayer =
+        resolution.updatedPlayer.copyWith(health: damagedHealth).applyStatus(
+              const QuemaduraStatus(remainingTurns: 3),
+              applyEquipmentModifiers: false,
+            );
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          '${resolution.upgradedItem.displayName} sube a ${resolution.upgradedItem.rarity.label}. Sales con 3 Quemadura y el horno te deja a ${updatedPlayer.health} HP.',
+      gainedItem: resolution.upgradedItem,
+    );
+  }
+
+  PathEventVisitResult resolveAuditoriaCreativaCredits(Battler player) {
+    return PathEventVisitResult(
+      player: _applyPermanentMaxHealthPercentLoss(player, 0.15).earnMoney(20),
+      outcomeText:
+          'La auditora liquida una parte de tu futuro biologico. Pierdes 15% HP maximo y cobras 20C.',
+    );
+  }
+
+  PathEventVisitResult resolveAuditoriaCreativaDebtAugment({
+    required Battler player,
+    required RunRandomizer randomizer,
+  }) {
+    final ability = _rollAbilityFromPoolForExactRarity(
+      pool: abilityPresets,
+      player: player,
+      targetRarity: RarityTier.green,
+      randomizer: randomizer,
+    );
+    var updatedPlayer = player.applyStatus(
+      const DeudaStatus(value: 20),
+      applyEquipmentModifiers: false,
+    );
+    BattlerAbility? gainedAbility;
+    if (ability != null) {
+      updatedPlayer = updatedPlayer.addAbility(ability.resetState());
+      gainedAbility = updatedPlayer.abilityById(ability.id) ?? ability;
+    }
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Firmas deuda operativa y recibes un aumento verde gratuito.',
+      gainedAbility: gainedAbility,
+    );
+  }
+
+  PathEventVisitResult resolveMercadoFuturosCoin({
+    required Battler player,
+    required bool didWin,
+  }) {
+    if (!didWin) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'La moneda cae del lado equivocado. El broker sonrie.',
+      );
+    }
+
+    final updatedPlayer = player.gainExperience(2).applyStatus(
+          const MercadoFuturosStatus(attack: 1, barrier: 1),
+          applyEquipmentModifiers: false,
+        );
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'La moneda obedece. Ganas +2 XP y +1 ATK/+1 Barrera en el proximo combate.',
+    );
+  }
+
   PathEventVisitResult _resolveDebtCollection(Battler player) {
     final debtStatus = player.statusById(DeudaStatus.statusId);
     if (debtStatus is! DeudaStatus) {
@@ -852,6 +1196,164 @@ class PathEventService {
     return null;
   }
 
+  _SobreKarUpgradedItemResolution? _upgradeOwnedItemToRarity({
+    required Battler player,
+    required Item selectedItem,
+    required RarityTier targetRarity,
+  }) {
+    if (selectedItem.rarity.index >= targetRarity.index) return null;
+
+    var resolution = _upgradeOwnedItem(
+      player: player,
+      selectedItem: selectedItem,
+    );
+    while (resolution != null &&
+        resolution.upgradedItem.rarity.index < targetRarity.index &&
+        resolution.upgradedItem.canUpgrade) {
+      resolution = _upgradeOwnedItem(
+        player: resolution.updatedPlayer,
+        selectedItem: resolution.upgradedItem,
+      );
+    }
+
+    if (resolution?.upgradedItem.rarity != targetRarity) return null;
+    return resolution;
+  }
+
+  Battler _applyPermanentMaxHealthPercentLoss(
+    Battler player,
+    double percent,
+  ) {
+    final loss = max(1, (player.maxHealth * percent).ceil());
+    final updatedBaseStats = Map<BattlerStat, int>.from(player.baseStats);
+    updatedBaseStats[BattlerStat.health] = max(
+      1,
+      (updatedBaseStats[BattlerStat.health] ?? player.baseMaxHealth) - loss,
+    );
+    final updatedPlayer = player.copyWith(
+      baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
+    );
+    return updatedPlayer.copyWith(
+      health: min(updatedPlayer.health, updatedPlayer.maxHealth),
+    );
+  }
+
+  BattlerAbility? _rollAbilityForArchetypeAndDay({
+    required Battler player,
+    required ArchetypeId archetypeId,
+    required RunRandomizer randomizer,
+    required int dayNumber,
+  }) {
+    final targetRarity = _rollEventAbilityRarityForDay(
+      randomizer: randomizer,
+      dayNumber: dayNumber,
+    );
+    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+      final ability = _rollAbilityFromPoolForExactRarity(
+        pool: abilityPoolForArchetype(archetypeId),
+        player: player,
+        targetRarity: rarity,
+        randomizer: randomizer,
+      );
+      if (ability != null) return ability;
+    }
+    return null;
+  }
+
+  BattlerAbility? _rollAbilityFromPoolForExactRarity({
+    required Iterable<BattlerAbility> pool,
+    required Battler player,
+    required RarityTier targetRarity,
+    required RunRandomizer randomizer,
+  }) {
+    final candidatesById = <BattlerAbilityId, BattlerAbility>{};
+    for (final ability in pool) {
+      final ownedAbility = player.abilityById(ability.id);
+      if (ownedAbility != null) {
+        if (ownedAbility.rarity == targetRarity && ownedAbility.canUpgrade) {
+          candidatesById.putIfAbsent(ability.id, () => ownedAbility);
+        }
+        continue;
+      }
+
+      final promotedAbility = _promoteAbilityToExactRarity(
+        ability,
+        targetRarity,
+      );
+      if (promotedAbility == null) continue;
+      candidatesById.putIfAbsent(ability.id, () => promotedAbility);
+    }
+    final candidates = candidatesById.values.toList(growable: false);
+    if (candidates.isEmpty) return null;
+    return candidates[randomizer.nextInt(candidates.length)].resetState();
+  }
+
+  BattlerAbility? _promoteAbilityToExactRarity(
+    BattlerAbility ability,
+    RarityTier targetRarity,
+  ) {
+    if (ability.rarity.index > targetRarity.index) return null;
+
+    var promotedAbility = ability.resetState();
+    while (promotedAbility.rarity.index < targetRarity.index &&
+        promotedAbility.canUpgrade) {
+      promotedAbility = promotedAbility.upgraded();
+    }
+    if (promotedAbility.rarity != targetRarity) return null;
+    return promotedAbility.resetState();
+  }
+
+  RarityTier _rollEventAbilityRarityForDay({
+    required RunRandomizer randomizer,
+    required int dayNumber,
+  }) {
+    final weights = switch (dayNumber) {
+      1 => const {
+          RarityTier.green: 1.00,
+          RarityTier.blue: 0.18,
+          RarityTier.purple: 0.03,
+        },
+      2 => const {
+          RarityTier.green: 0.70,
+          RarityTier.blue: 0.42,
+          RarityTier.purple: 0.08,
+        },
+      3 => const {
+          RarityTier.green: 0.35,
+          RarityTier.blue: 0.62,
+          RarityTier.purple: 0.22,
+        },
+      4 => const {
+          RarityTier.green: 0.14,
+          RarityTier.blue: 0.55,
+          RarityTier.purple: 0.46,
+          RarityTier.yellow: 0.08,
+        },
+      _ => const {
+          RarityTier.blue: 0.40,
+          RarityTier.purple: 0.72,
+          RarityTier.yellow: 0.20,
+        },
+    };
+    final totalWeight =
+        weights.values.fold<double>(0, (sum, value) => sum + value);
+    var roll = randomizer.nextDouble() * totalWeight;
+    for (final entry in weights.entries) {
+      roll -= entry.value;
+      if (roll <= 0) return entry.key;
+    }
+    return weights.keys.last;
+  }
+
+  List<RarityTier> _rarityFallbacksFrom(RarityTier targetRarity) {
+    return List<RarityTier>.unmodifiable(
+      RarityTier.values
+          .where((rarity) => rarity.index <= targetRarity.index)
+          .toList(growable: false)
+          .reversed,
+    );
+  }
+
   _SobreKarDebuffRoll _rollSobreKarDebuff(RunRandomizer randomizer) {
     switch (randomizer.nextInt(3)) {
       case 0:
@@ -997,6 +1499,65 @@ bool _canAppearForPitonisaQuitapenas(
       service.buildPitonisaItemOfferings(player).isNotEmpty ||
       (player.canAfford(service.pitonisaCooldownReductionCost) &&
           service.buildPitonisaCooldownAbilities(player).isNotEmpty);
+}
+
+bool _canAppearForVeloz(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return player?.archetypeId == ArchetypeId.veloz;
+}
+
+bool _canAppearForInamovible(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return player?.archetypeId == ArchetypeId.inamovible;
+}
+
+bool _canAppearForImparable(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return player?.archetypeId == ArchetypeId.imparable;
+}
+
+bool _canAppearForMercante(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return player?.archetypeId == ArchetypeId.mercante;
+}
+
+bool _canAppearForViktorOperations(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player?.archetypeId != ArchetypeId.veloz) return false;
+  return service.buildViktorOperationsEligibleItems(player!).isNotEmpty;
+}
+
+bool _canAppearForCapillaStShieladurn(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player?.archetypeId != ArchetypeId.inamovible) return false;
+  return service.buildOwnedItems(player!).isNotEmpty;
+}
+
+bool _canAppearForHornoJuramentos(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player?.archetypeId != ArchetypeId.imparable) return false;
+  return service.buildHornoJuramentosEligibleItems(player!).isNotEmpty;
 }
 
 PathEventVisitResult _visitDebtCollection(

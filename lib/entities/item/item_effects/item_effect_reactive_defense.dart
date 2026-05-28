@@ -71,6 +71,66 @@ class DeflectiveCapacitorItemEffect extends ItemEffect {
   }
 }
 
+/// Atenua el primer debuff entrante del combate antes de que entre al portador.
+class FiltroRuidoItemEffect extends ItemEffect {
+  /// Crea el efecto propio del Filtro de Ruido.
+  const FiltroRuidoItemEffect()
+      : super(
+          description: 'Reduce el primer debuff entrante de cada combate.',
+          hooks: const {
+            ItemEffectHook.incomingStatusModifier,
+          },
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    final amount = max(1, item.value);
+    return 'La primera vez por combate que fueras a recibir un debuff, reduce su valor o duracion en $amount.';
+  }
+
+  @override
+  ItemIncomingStatusResolution onIncomingStatus({
+    required Battler owner,
+    required Battler source,
+    required Item item,
+    required BattlerStatus status,
+  }) {
+    if (status.type != BattlerStatusType.debuff ||
+        owner.itemCombatFlagUseCount(
+              item: item,
+              kind: ItemCombatFlagKind.filtroRuidoReducedDebuff,
+            ) >
+            0) {
+      return ItemIncomingStatusResolution(
+        owner: owner,
+        source: source,
+        status: status,
+      );
+    }
+
+    final amount = max(1, item.value);
+    final isValueBased = status.value > 0;
+    final reducedStatus = isValueBased
+        ? status.copyWith(value: max(0, status.value - amount))
+        : status.copyWith(
+            remainingTurns: max(0, status.remainingTurns - amount),
+          );
+    final updatedOwner = owner.addItemCombatFlagUse(
+      item: item,
+      kind: ItemCombatFlagKind.filtroRuidoReducedDebuff,
+    );
+    final shouldCancelStatus = isValueBased
+        ? reducedStatus.value <= 0
+        : !reducedStatus.isIndefinite && reducedStatus.remainingTurns <= 0;
+
+    return ItemIncomingStatusResolution(
+      owner: updatedOwner,
+      source: source,
+      status: shouldCancelStatus ? null : reducedStatus,
+    );
+  }
+}
+
 /// Devuelve una descarga cuando la barrera del portador se rompe.
 class ContingencySealItemEffect extends ItemEffect {
   /// Crea el efecto propio del Sello de Contingencia.
