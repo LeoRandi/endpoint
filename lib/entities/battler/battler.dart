@@ -150,6 +150,8 @@ enum BattlerCombatFlag {
   reventaCircularTriggered,
   aTodoRiesgoTriggered,
   cargaViricaTriggeredThisTurn,
+  deudaSangreTriggeredThisTurn,
+  franquiciaTotalTriggered,
   barbedShieldPendingDamage,
   creditsSpentThisCombat,
   subastaRelampagoTriggeredThisTurn,

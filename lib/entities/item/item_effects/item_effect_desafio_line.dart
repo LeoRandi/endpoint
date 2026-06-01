@@ -449,7 +449,7 @@ class ArnesTacticoItemEffect extends ItemEffect {
   const ArnesTacticoItemEffect()
       : super(
           description:
-              'Al recibir dano de Quemadura: ganas Potencia. Una vez por turno, al gastar o purgar tu Potencia, recibes la mitad en Desafio.',
+              'Al recibir dano de Quemadura: ganas Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.',
           hooks: const {
             ItemEffectHook.incomingDamageEffect,
             ItemEffectHook.turnEnd,
@@ -458,7 +458,7 @@ class ArnesTacticoItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al recibir dano de Quemadura: ganas ${item.value} Potencia. Una vez por turno, al gastar o purgar tu Potencia, recibes la mitad en Desafio.';
+    return 'Al recibir dano de Quemadura: ganas ${item.value} Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.';
   }
 
   @override

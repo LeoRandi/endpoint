@@ -307,7 +307,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
         accent: _effectBuffAccent,
         icon: _HighlightIconSpec.material(Icons.bolt_rounded),
         tooltip:
-            'Potencia: buff. Aumenta el daño del siguiente golpe en su valor y luego se consume.',
+            'Potencia: buff. Aumenta el daño de tus golpes durante este combate.',
       );
     }
     if (normalizedToken.contains('calentando')) {

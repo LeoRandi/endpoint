@@ -17,12 +17,24 @@ extension BattlerProgression on Battler {
     final safeAmount = max(0, amount);
     if (safeAmount <= 0) return this;
 
+    final previousMoney = money;
     return copyWith(money: money + safeAmount)
-        ._applyCreditGainItemEffects(safeAmount);
+        ._applyCreditGainItemEffects(safeAmount)
+        ._applyCreditGainAbilityEffects(previousMoney: previousMoney);
   }
 
   /// Resta dinero sin permitir que el total baje de cero.
-  Battler spendMoney(int amount) {
+  Battler spendMoney(int amount) => _spendMoney(amount);
+
+  /// Resta dinero causado por un efecto de item.
+  Battler spendMoneyForItemEffect(int amount) {
+    return _spendMoney(amount, applyItemPaymentAbilities: true);
+  }
+
+  Battler _spendMoney(
+    int amount, {
+    bool applyItemPaymentAbilities = false,
+  }) {
     final safeAmount = max(0, amount);
     if (safeAmount <= 0) return this;
 
@@ -38,7 +50,12 @@ extension BattlerProgression on Battler {
       );
     }
 
-    return updatedBattler._applyCreditSpendItemEffects(paidAmount);
+    updatedBattler = updatedBattler._applyCreditSpendItemEffects(paidAmount);
+    if (applyItemPaymentAbilities) {
+      updatedBattler =
+          updatedBattler._applyCreditSpendAbilityEffects(paidAmount);
+    }
+    return updatedBattler;
   }
 
   /// Consume una subida de nivel pendiente, aplica la mejora base y la recompensa elegida.
@@ -115,6 +132,61 @@ extension BattlerProgression on Battler {
     return updatedBattler;
   }
 
+  Battler _applyCreditGainAbilityEffects({required int previousMoney}) {
+    if (!combatFlags.contains(Battler.combatActiveFlag) ||
+        previousMoney >= 20 ||
+        money < 20 ||
+        hasCombatFlag(
+          const CombatRuntimeFlag.battler(
+            BattlerCombatFlag.franquiciaTotalTriggered,
+          ),
+        ) ||
+        abilityById(BattlerAbilityId.franquiciaTotal) == null) {
+      return this;
+    }
+
+    final mercanteItems = equippedItems
+        .where(
+          (item) => item.hasArchetypeAffinity(ItemArchetypeAffinity.mercante),
+        )
+        .toList(growable: false);
+    if (mercanteItems.isEmpty) return this;
+
+    final selected = mercanteItems.reduce((best, item) {
+      if (item.rarity.index != best.rarity.index) {
+        return item.rarity.index < best.rarity.index ? item : best;
+      }
+      final bestIndex = equippedItems.indexOf(best);
+      final itemIndex = equippedItems.indexOf(item);
+      return itemIndex < bestIndex ? item : best;
+    });
+
+    return _replaceEquippedItemForCreditAbility(
+      currentItem: selected,
+      replacement: _boostItemForCreditAbility(item: selected, amount: 1),
+    ).addCombatFlag(
+      const CombatRuntimeFlag.battler(
+        BattlerCombatFlag.franquiciaTotalTriggered,
+      ),
+    );
+  }
+
+  Battler _applyCreditSpendAbilityEffects(int paidAmount) {
+    if (paidAmount <= 0 ||
+        !combatFlags.contains(Battler.combatActiveFlag) ||
+        money >= 10) {
+      return this;
+    }
+
+    final ability = abilityById(BattlerAbilityId.comisionRiesgo);
+    if (ability == null) return this;
+
+    return applyStatus(
+      PotenciaStatus(value: max(1, ability.currentValue)),
+      applyEquipmentModifiers: false,
+    );
+  }
+
   Battler _applyCreditSpendItemEffects(int paidAmount) {
     if (paidAmount <= 0 ||
         equippedItems.isEmpty ||
@@ -160,5 +232,51 @@ extension BattlerProgression on Battler {
       }
     }
     return updatedBattler;
+  }
+
+  Battler _replaceEquippedItemForCreditAbility({
+    required Item currentItem,
+    required Item replacement,
+  }) {
+    final equippedIndex = equippedItems.indexOf(currentItem);
+    if (equippedIndex < 0) return this;
+
+    final updatedEquippedItems = List<Item>.from(equippedItems);
+    updatedEquippedItems[equippedIndex] = replacement;
+    return copyWith(
+      equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+    );
+  }
+
+  Item _boostItemForCreditAbility({
+    required Item item,
+    required int amount,
+  }) {
+    final statModifiers = Map<BattlerStat, int>.from(item.statModifiers);
+    for (final entry in item.statModifiers.entries) {
+      if (entry.value <= 0) continue;
+      statModifiers[entry.key] = entry.value + amount;
+    }
+
+    final adjacencyBonuses = item.patternAdjacencyBonuses
+        .map(
+          (bonus) => OperativePatternAdjacencyBonus(
+            direction: bonus.direction,
+            requiredTag: bonus.requiredTag,
+            kind: bonus.kind,
+            amount: bonus.amount + amount,
+          ),
+        )
+        .toList(growable: false);
+
+    return item.copyWith(
+      value: item.effect != null && item.value > 0 ? item.value + amount : null,
+      statModifiers: statModifiers,
+      patternBonusAmountOverride:
+          item.hasPatternBonus ? item.patternBonusAmount + amount : null,
+      patternAdjacencyBonuses: adjacencyBonuses,
+      hasPatternAura: true,
+      combatItemBonusBoost: item.combatItemBonusBoost + amount,
+    );
   }
 }

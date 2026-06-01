@@ -52,7 +52,7 @@ const ritmoCircadianoAbility = BattlerAbility(
   description:
       'Pasiva. Al inicio de tu turno: de dia te curas y de noche ganas Potencia.',
   icon: Icons.av_timer_rounded,
-  value: 2,
+  value: 1,
   upgradeValue: 1,
   effect: RitmoCircadianoAbilityEffect(),
   isImplemented: true,
@@ -410,7 +410,7 @@ const polarizacionAbility = BattlerAbility(
   description:
       'Pasiva de Patron. El menor total entre ATK y Barrera del Patron polariza parte del mayor hacia el menor.',
   icon: Icons.compare_arrows_rounded,
-  value: 2,
+  value: 1,
   upgradeValue: 1,
   effect: PolarizacionAbilityEffect(),
   isImplemented: true,
@@ -442,7 +442,7 @@ const rutaContrabandoAbility = BattlerAbility(
   description:
       'Pasiva de Patron. Si activas items de otro arquetipo, ganas creditos, Potencia y Barrera.',
   icon: Icons.alt_route_rounded,
-  value: 2,
+  value: 1,
   upgradeValue: 1,
   effect: RutaContrabandoAbilityEffect(),
   isImplemented: true,
@@ -506,7 +506,7 @@ const combustionDirigidaAbility = BattlerAbility(
   description:
       'Pasiva de Patron. La primera vez por combate que usas un item, ganas Calentando. Si el item empuja ATK, ganas el doble.',
   icon: Icons.bolt_rounded,
-  value: 3,
+  value: 4,
   upgradeValue: 1,
   effect: CombustionDirigidaAbilityEffect(),
   isImplemented: true,
@@ -525,6 +525,22 @@ const puntoIgnicionAbility = BattlerAbility(
   value: 8,
   upgradeValue: -4,
   effect: PuntoIgnicionAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva imparable que convierte heridas recientes en Desafio.
+const deudaSangreAbility = BattlerAbility(
+  id: BattlerAbilityId.deudaSangre,
+  archetypeAffinities: _imparableAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _desafioAtaqueAbilityTags,
+  name: 'Deuda de Sangre',
+  description:
+      'Pasiva. La primera vez cada turno que pierdes HP, ganas Desafio segun tu HP faltante.',
+  icon: Icons.bloodtype_rounded,
+  value: 4,
+  upgradeValue: 1,
+  effect: DeudaSangreAbilityEffect(),
   isImplemented: true,
 );
 
@@ -573,6 +589,38 @@ const mercadoRecursivoAbility = BattlerAbility(
   value: 5,
   upgradeValue: 5,
   effect: MercadoRecursivoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva mercante que transforma pagos arriesgados de items en Potencia.
+const comisionRiesgoAbility = BattlerAbility(
+  id: BattlerAbilityId.comisionRiesgo,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.blue,
+  tags: _economiaAtaqueAbilityTags,
+  name: 'Comision de Riesgo',
+  description:
+      'Pasiva. Cuando un item te hace pagar creditos y quedas por debajo de 10C, ganas Potencia.',
+  icon: Icons.trending_down_rounded,
+  value: 1,
+  upgradeValue: 1,
+  effect: ComisionRiesgoAbilityEffect(),
+  isImplemented: true,
+);
+
+/// Pasiva mercante amarilla que escala con una plantilla llena de Mercante.
+const franquiciaTotalAbility = BattlerAbility(
+  id: BattlerAbilityId.franquiciaTotal,
+  archetypeAffinities: _mercanteAbilityAffinities,
+  rarity: RarityTier.yellow,
+  tags: _economiaAbilityTags,
+  name: 'Franquicia Total',
+  description:
+      'Pasiva. Al principio del combate, ganas creditos por item Mercante equipado. Al llegar a 20C, mejoras temporalmente el item Mercante de menor rareza.',
+  icon: Icons.storefront_rounded,
+  value: 2,
+  upgradeValue: 1,
+  effect: FranquiciaTotalAbilityEffect(),
   isImplemented: true,
 );
 
@@ -886,9 +934,12 @@ const abilityPresets = <BattlerAbility>[
   encendidoBrutalAbility,
   combustionDirigidaAbility,
   puntoIgnicionAbility,
+  deudaSangreAbility,
   reventaCircularAbility,
   contratoReusoAbility,
   mercadoRecursivoAbility,
+  comisionRiesgoAbility,
+  franquiciaTotalAbility,
   agujaToxicaAbility,
   rastroInestableAbility,
   cadenaNeurotoxicaAbility,

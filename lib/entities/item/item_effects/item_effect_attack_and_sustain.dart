@@ -532,13 +532,13 @@ class KunaiAnchoItemEffect extends ItemEffect {
   }
 }
 
-/// Convierte la defensa en una carga ofensiva para el siguiente golpe.
+/// Convierte la defensa en una carga ofensiva persistente.
 class MagnetiCHammerItemEffect extends ItemEffect {
   /// Crea el efecto propio de la M(agneti)C Hammer.
   const MagnetiCHammerItemEffect()
       : super(
           description:
-              'Al usarse, ganas Potencia igual a tu Barrera total actual.',
+              'Al usarse, ganas Potencia igual a la mitad de tu Barrera total actual.',
           hooks: const {
             ItemEffectHook.patternUsed,
           },
@@ -546,7 +546,7 @@ class MagnetiCHammerItemEffect extends ItemEffect {
 
   @override
   String descriptionFor(Item item) {
-    return 'Al usarse, ganas Potencia con un bonus de daño igual a tu Barrera total actual para el siguiente golpe.';
+    return 'Al usarse, ganas Potencia igual a la mitad de tu Barrera total actual.';
   }
 
   @override
@@ -555,7 +555,9 @@ class MagnetiCHammerItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
   }) {
-    final potencyValue = max(0, owner.currentBarrier);
+    final potencyValue = owner.currentBarrier <= 0
+        ? 0
+        : max(1, owner.currentBarrier ~/ 2);
     if (potencyValue <= 0) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }

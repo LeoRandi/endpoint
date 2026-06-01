@@ -90,6 +90,9 @@ enum BattlerAbilityId {
   cortesAgudos,
   rotoresDefensivos,
   polarizacion,
+  deudaSangre,
+  comisionRiesgo,
+  franquiciaTotal,
 }
 
 /// Define en que pantalla puede activarse manualmente una habilidad.
@@ -1068,7 +1071,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.arquitecturaPesada:
       return 'Pasiva de Patron. Si el patron no tiene angulos agudos, repites su bonus de Barrera y ganas $positiveAmount de Resonancia.';
     case BattlerAbilityId.rutaContrabando:
-      return 'Pasiva de Patron. Si activas items de otro arquetipo, ganas $positiveAmount C por item y sumas $positiveAmount de Potencia y Barrera.';
+      return 'Pasiva de Patron. Si activas items de otro arquetipo, ganas $positiveAmount C por item y sumas $positiveAmount de Potencia y $positiveAmount de Barrera.';
     case BattlerAbilityId.ecoSimetria:
       return 'Pasiva de Patron. Si el patron tiene simetria, repites su bonus dominante reducido en $positiveAmount. Al mejorar, esta reduccion baja.';
     case BattlerAbilityId.patronPerfecto:
@@ -1076,7 +1079,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.encendidoBrutal:
       return 'Pasiva. Cuando ganas Calentando, tambien recuperas vida igual a 1/$positiveAmount de ese Calentando. Al mejorar, esta division baja.';
     case BattlerAbilityId.combustionDirigida:
-      return 'Pasiva de Patron. La primera vez por combate que usas un item en Patron, ganas $positiveAmount Calentando. Si ese item tiene bonus de ATK, ganas el doble.';
+      return 'Pasiva de Patron. La primera vez por combate que usas un item en Patron, ganas $positiveAmount Calentando. Si ese item tiene bonus de ATK, ganas ${positiveAmount * 2}.';
     case BattlerAbilityId.puntoIgnicion:
       return 'Pasiva de Patron. Si el patron usa 3 o mas items, antes de atacar ganas Desafio igual a la mitad de tu Calentando y te aplicas Quemadura $positiveAmount. Al mejorar, la Quemadura baja.';
     case BattlerAbilityId.reventaCircular:
@@ -1125,6 +1128,12 @@ String _abilityDescriptionFor(BattlerAbility ability) {
       return 'Pasiva de Patron. Por cada angulo de 90 grados del Patron, recuperas $positiveAmount Barrera.';
     case BattlerAbilityId.polarizacion:
       return 'Pasiva de Patron. El menor total entre ATK y Barrera del Patron polariza hasta $positiveAmount del mayor hacia el menor.';
+    case BattlerAbilityId.deudaSangre:
+      return 'Pasiva. La primera vez cada turno que pierdes HP, ganas 1 Desafio por cada 5 HP faltantes, maximo $positiveAmount.';
+    case BattlerAbilityId.comisionRiesgo:
+      return 'Pasiva. Cuando un item te hace pagar creditos y quedas por debajo de 10C, ganas $positiveAmount de Potencia.';
+    case BattlerAbilityId.franquiciaTotal:
+      return 'Pasiva. Al principio del combate, ganas $positiveAmount creditos por item Mercante equipado. La primera vez que llegas a 20C, mejoras temporalmente el item Mercante de menor rareza.';
     case BattlerAbilityId.kilotonificacion:
       return 'Pasiva. Recibes $positiveAmount daño menos de la Purga.';
   }

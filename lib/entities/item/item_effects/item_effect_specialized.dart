@@ -617,7 +617,7 @@ class LiteralPaywallItemEffect extends ItemEffect {
       );
       if (walls.isEmpty) continue;
 
-      updatedOwner = updatedOwner.spendMoney(cost);
+      updatedOwner = updatedOwner.spendMoneyForItemEffect(cost);
       updatedOpponent = updatedOpponent.addCombatWalls(walls);
     }
 
@@ -728,7 +728,7 @@ class PassCardItemEffect extends ItemEffect {
       final cost = max(0, pendingPayment.secondaryValue ?? item.value);
       if (!updatedOwner.canAfford(cost)) continue;
 
-      updatedOwner = updatedOwner.spendMoney(cost).addCombatFlag(
+      updatedOwner = updatedOwner.spendMoneyForItemEffect(cost).addCombatFlag(
             CombatRuntimeFlag.item(
               itemFlag: ItemCombatFlagKind.passCardWallsDisabledNextTurn,
               itemId: item.id,
@@ -1341,7 +1341,7 @@ class SeguroBolsilloItemEffect extends ItemEffect {
       return BattlerIncomingDamageResolution(owner: owner, damage: damage);
     }
     return BattlerIncomingDamageResolution(
-      owner: owner.spendMoney(paid).addCombatFlag(
+      owner: owner.spendMoneyForItemEffect(paid).addCombatFlag(
           _itemCombatFlag(item, ItemCombatFlagKind.seguroBolsilloUsed)),
       damage: max(0, damage - paid),
     );
@@ -1400,7 +1400,7 @@ class CompraAgresivaItemEffect extends ItemEffect {
     }
 
     var updatedOwner = owner
-        .spendMoney(cost)
+        .spendMoneyForItemEffect(cost)
         .addItemCombatFlagUse(
           item: item,
           kind: ItemCombatFlagKind.compraAgresivaPaid,
@@ -1483,7 +1483,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
     }
     final spent = min(owner.money, max(1, item.value) * 3);
     return ItemEffectResolution(
-      owner: owner.spendMoney(spent).addCombatFlag(triggerFlag),
+      owner: owner.spendMoneyForItemEffect(spent).addCombatFlag(triggerFlag),
       opponent: source.receiveDirectDamage(spent, source: owner),
     );
   }
@@ -1531,7 +1531,10 @@ class CamaraArbitrajeItemEffect extends ItemEffect {
       remainingTurns: max(0, status.remainingTurns - reduction),
     );
     return ItemIncomingStatusResolution(
-      owner: owner.spendMoney(cost).gainCombatBarrier(cost).addCombatFlag(flag),
+      owner: owner
+          .spendMoneyForItemEffect(cost)
+          .gainCombatBarrier(cost)
+          .addCombatFlag(flag),
       source: source,
       status: reducedStatus.value <= 0 && reducedStatus.remainingTurns <= 0
           ? null
@@ -1590,10 +1593,11 @@ class BancoAmbulanteItemEffect extends ItemEffect {
     final spent = min(owner.money, max(1, item.value));
     final attackBoost = (spent + 1) ~/ 2;
     final barrierBoost = spent ~/ 2;
-    var updatedOwner = owner.spendMoney(spent).addItemCombatFlagUse(
-          item: item,
-          kind: ItemCombatFlagKind.bancoAmbulantePatternSpendThisTurn,
-        );
+    var updatedOwner =
+        owner.spendMoneyForItemEffect(spent).addItemCombatFlagUse(
+              item: item,
+              kind: ItemCombatFlagKind.bancoAmbulantePatternSpendThisTurn,
+            );
     if (barrierBoost > 0) {
       updatedOwner = updatedOwner.gainCombatBarrier(barrierBoost);
     }

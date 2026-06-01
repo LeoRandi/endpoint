@@ -97,7 +97,7 @@ class CalentandoStatus extends BattlerStatus {
   }
 }
 
-/// Buff explosivo que aumenta el siguiente golpe y luego se consume.
+/// Buff explosivo que aumenta los golpes durante el combate.
 class PotenciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.potencia;
   static const defaultValue = 1;
@@ -112,19 +112,18 @@ class PotenciaStatus extends BattlerStatus {
           tags: _buffAtaqueStatusTags,
           hooks: const {
             BattlerStatusHook.outgoingDamageModifier,
-            BattlerStatusHook.attackResolved,
             BattlerStatusHook.statusApplied,
           },
           icon: Icons.bolt_rounded,
           description:
-              'Aumenta el daño del siguiente golpe en su value y luego se consume.',
+              'Aumenta el dano de tus golpes en su value durante este combate.',
           remainingTurns: 1,
           value: value,
         );
 
   @override
 
-  /// Hace que Potencia espere hasta el siguiente impacto del portador.
+  /// Hace que Potencia dure hasta que termine el combate.
   bool get isIndefinite => true;
 
   @override
@@ -141,24 +140,13 @@ class PotenciaStatus extends BattlerStatus {
 
   @override
 
-  /// Suma su bonus al siguiente golpe del portador.
+  /// Suma su bonus a los golpes del portador.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
     required int damage,
   }) {
     return damage + resolved(owner).value;
-  }
-
-  @override
-
-  /// Consume la Potencia justo despues de resolver el primer golpe.
-  Battler onAttackResolved({
-    required Battler owner,
-    required Battler target,
-    required int damageDealt,
-  }) {
-    return owner.removeStatusInstance(this);
   }
 
   @override

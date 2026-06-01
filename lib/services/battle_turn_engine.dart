@@ -53,6 +53,11 @@ class BattleTurnEngine {
                 BattlerCombatFlag.cargaViricaTriggeredThisTurn,
               ),
             )
+            .removeCombatFlag(
+              const CombatRuntimeFlag.battler(
+                BattlerCombatFlag.deudaSangreTriggeredThisTurn,
+              ),
+            )
         : player;
     var updatedEnemy = isPlayerTurn
         ? enemy
@@ -72,6 +77,11 @@ class BattleTurnEngine {
       updatedEnemy = updatedEnemy.removeCombatFlag(
         const CombatRuntimeFlag.battler(
           BattlerCombatFlag.cargaViricaTriggeredThisTurn,
+        ),
+      );
+      updatedEnemy = updatedEnemy.removeCombatFlag(
+        const CombatRuntimeFlag.battler(
+          BattlerCombatFlag.deudaSangreTriggeredThisTurn,
         ),
       );
     }

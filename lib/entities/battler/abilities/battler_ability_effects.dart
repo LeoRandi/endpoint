@@ -707,6 +707,68 @@ class ATodoRiesgoAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
+class DeudaSangreAbilityEffect extends BattlerAbilityEffect {
+  const DeudaSangreAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.receiveDamageResolved,
+          },
+        );
+
+  @override
+  BattlerAbilityEffectResolution onReceiveDamageResolved({
+    required Battler owner,
+    required Battler source,
+    required BattlerAbility ability,
+    required int damageTaken,
+  }) {
+    const triggeredFlag = CombatRuntimeFlag.battler(
+      BattlerCombatFlag.deudaSangreTriggeredThisTurn,
+    );
+    if (damageTaken <= 0 ||
+        owner.healthLostThisHit <= 0 ||
+        owner.hasCombatFlag(triggeredFlag)) {
+      return BattlerAbilityEffectResolution(owner: owner, opponent: source);
+    }
+
+    final missingHp = max(0, owner.maxHealth - owner.health);
+    final desafio = min(max(1, ability.currentValue), missingHp ~/ 5);
+    final flaggedOwner = owner.addCombatFlag(triggeredFlag);
+    return BattlerAbilityEffectResolution(
+      owner: desafio <= 0 ? flaggedOwner : flaggedOwner.gainDesafio(desafio),
+      opponent: source,
+    );
+  }
+}
+
+class ComisionRiesgoAbilityEffect extends BattlerAbilityEffect {
+  const ComisionRiesgoAbilityEffect();
+}
+
+class FranquiciaTotalAbilityEffect extends BattlerAbilityEffect {
+  const FranquiciaTotalAbilityEffect()
+      : super(
+          hooks: const {
+            BattlerAbilityHook.combatStart,
+          },
+        );
+
+  @override
+  Battler onCombatStart({
+    required Battler owner,
+    required BattlerAbility ability,
+  }) {
+    final mercanteItemCount = owner.equippedItems
+        .where(
+          (item) => item.hasArchetypeAffinity(ItemArchetypeAffinity.mercante),
+        )
+        .length;
+    if (mercanteItemCount <= 0) return owner;
+
+    return owner.earnMoney(max(1, ability.currentValue) * mercanteItemCount);
+  }
+}
+
 class UltimaPiezaAbilityEffect extends BattlerAbilityEffect {
   const UltimaPiezaAbilityEffect()
       : super(
@@ -1976,7 +2038,9 @@ class EcoSimetriaAbilityEffect extends BattlerAbilityEffect {
     var updatedOwner = owner;
     if (pattern.attackBonus >= pattern.barrierBonus) {
       updatedOwner = updatedOwner.applyStatus(
-        PotenciaStatus(value: repeatedBonus),
+        PotenciaStatus(
+          value: repeatedBonus <= 0 ? 0 : max(1, repeatedBonus ~/ 2),
+        ),
         applyEquipmentModifiers: false,
       );
     }

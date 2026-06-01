@@ -312,7 +312,7 @@ const crackedBatteryItem = Item(
   rarity: RarityTier.gray,
   patternBonusAmountOverride: 0,
   baseCost: 2,
-  value: 2,
+  value: 3,
   upgradeValue: 1,
   effect: ThermalTurbineItemEffect(),
 );
@@ -548,15 +548,15 @@ const arnesTacticoItem = Item(
   tags: _desafioQuemaduraBuffTags,
   name: 'Arnes Tactico',
   description:
-      'Al recibir dano de Quemadura: ganas 2 Potencia. Una vez por turno, al gastar o purgar tu Potencia, recibes la mitad en Desafio.',
+      'Al recibir dano de Quemadura: ganas 1 Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.',
   iconEmoji: '\u{1F9BA}',
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
   patternBonusAmountOverride: 4,
   patternRequirementOverride: _patternRightAngle,
   baseCost: 8,
-  value: 2,
-  upgradeValue: 3,
+  value: 1,
+  upgradeValue: 1,
   effect: ArnesTacticoItemEffect(),
 );
 
@@ -1565,7 +1565,7 @@ const bateriaCrepuscularItem = Item(
   patternBonusAmountOverride: 2,
   patternRequirementOverride: _patternHourglass,
   baseCost: 4,
-  value: 2,
+  value: 1,
   upgradeValue: 1,
   statModifiers: {BattlerStat.barrier: 1},
   effect: BateriaCrepuscularItemEffect(),
@@ -1845,7 +1845,7 @@ const thermalTurbineItem = Item(
   patternBonusAmountOverride: 2,
   patternRequirementOverride: _patternMiddle,
   baseCost: 4,
-  value: 10,
+  value: 15,
   upgradeValue: 1,
   statModifiers: {BattlerStat.attack: 1},
   effect: ThermalTurbineItemEffect(),
@@ -2064,14 +2064,14 @@ const muestrarioContrabandoItem = Item(
   effect: MuestrarioContrabandoItemEffect(),
 );
 
-/// Arma azul que convierte tu defensa en un boost explosivo para el siguiente golpe.
+/// Arma azul que convierte tu defensa en Potencia persistente de combate.
 const magnetiCHammerItem = Item(
   id: ItemId.magnetiCHammer,
   archetypeAffinities: _inamovibleAffinities,
   tags: _ataqueBarreraTags,
   name: 'M(agneti)C Hammer',
   description:
-      'Al usarse, ganas Potencia para el siguiente golpe igual a tu Barrera total actual.',
+      'Al usarse, ganas Potencia igual a la mitad de tu Barrera total actual.',
   iconEmoji: '\u{1F528}',
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjAttack,
@@ -2988,8 +2988,8 @@ const overloadInjectorItem = Item(
     OperativePatternAdjacencyBonus.match(_adjS, EntityTag.arma, _adjAttack, 2),
   ],
   baseCost: 10,
-  value: 6,
-  upgradeValue: 2,
+  value: 9,
+  upgradeValue: 3,
   statModifiers: {BattlerStat.attack: 3},
   upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: ThermalTurbineItemEffect(),
