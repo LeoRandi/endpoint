@@ -202,6 +202,8 @@ enum ItemCombatFlagKind {
   compraAgresivaBpUnlocked,
   bolsaRiesgoTriggered,
   bancoAmbulantePatternSpendThisTurn,
+  mekaYunqueTriggered,
+  sonicaltropsOpeningPenalty,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.

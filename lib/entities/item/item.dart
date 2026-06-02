@@ -125,6 +125,9 @@ enum ItemId {
   bolsaRiesgo,
   camaraArbitraje,
   bancoAmbulante,
+  nivelPrecision,
+  mekaYunque,
+  sonicaltrops,
 }
 
 /// Identifica a que familias de arquetipo puede pertenecer un objeto.
@@ -278,6 +281,9 @@ const _accessoryTaggedItemIds = <ItemId>{
   ItemId.bolsaRiesgo,
   ItemId.camaraArbitraje,
   ItemId.bancoAmbulante,
+  ItemId.nivelPrecision,
+  ItemId.mekaYunque,
+  ItemId.sonicaltrops,
 };
 
 const _patternSquareRequirement = OperativePatternRequirement.exactShape(

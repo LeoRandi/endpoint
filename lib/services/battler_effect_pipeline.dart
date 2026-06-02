@@ -1196,8 +1196,29 @@ class BattlerEffectPipeline {
   }) {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
+    var attackBonusDelta = 0;
+    var barrierBonusDelta = 0;
     final usedPointKeys =
         pattern.patternPoints.map((point) => point.key).toSet();
+
+    final openingPenaltyFlags = updatedOwner.combatFlags
+        .where(
+          (flag) =>
+              flag.itemFlag == ItemCombatFlagKind.sonicaltropsOpeningPenalty,
+        )
+        .toList(growable: false);
+    if (openingPenaltyFlags.isNotEmpty) {
+      for (final flag in openingPenaltyFlags) {
+        final penalty = max(1, flag.secondaryValue ?? 1);
+        attackBonusDelta -= penalty;
+        barrierBonusDelta -= penalty;
+      }
+      final updatedFlags = Set<CombatRuntimeFlag>.from(updatedOwner.combatFlags)
+        ..removeAll(openingPenaltyFlags);
+      updatedOwner = updatedOwner.copyWith(
+        combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
+      );
+    }
 
     final activeItems = List<Item>.from(
       owner.equippedItemsForHook(ItemEffectHook.prePatternAttack),
@@ -1221,11 +1242,15 @@ class BattlerEffectPipeline {
       );
       updatedOwner = resolution.owner;
       updatedOpponent = resolution.opponent;
+      attackBonusDelta += resolution.attackBonusDelta;
+      barrierBonusDelta += resolution.barrierBonusDelta;
     }
 
     return ItemEffectResolution(
       owner: updatedOwner.pruneExpiredStatuses(),
       opponent: updatedOpponent.pruneExpiredStatuses(),
+      attackBonusDelta: attackBonusDelta,
+      barrierBonusDelta: barrierBonusDelta,
     );
   }
 

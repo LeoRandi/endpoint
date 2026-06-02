@@ -171,6 +171,9 @@ const _ataqueDebuffTags = <EntityTag>[
   EntityTag.ataque,
   EntityTag.debuff,
 ];
+const _debuffTags = <EntityTag>[
+  EntityTag.debuff,
+];
 const _debuffContagioTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.contagio,
@@ -1151,6 +1154,106 @@ const bancoAmbulanteItem = Item(
     BattlerStat.barrier: 2,
   },
   effect: BancoAmbulanteItemEffect(),
+);
+
+const nivelPrecisionItem = Item(
+  id: ItemId.nivelPrecision,
+  archetypeAffinities: _generalAffinities,
+  tags: _ataqueBarreraTags,
+  name: 'Nivel de Precision',
+  description:
+      'Al usarse, si el bonus final de ATK y Barrera del Patron son iguales, suma valor a ambos antes del ataque.',
+  iconEmoji: '\u{1F4CF}',
+  rarity: RarityTier.blue,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 3,
+  patternRequirementOverride: _patternLast,
+  baseCost: 6,
+  value: 2,
+  upgradeValue: 1,
+  effect: NivelPrecisionItemEffect(),
+);
+
+const sonicaltropsItem = Item(
+  id: ItemId.sonicaltrops,
+  archetypeAffinities: _generalAffinities,
+  tags: _debuffTags,
+  name: 'Sonicaltrops',
+  description:
+      'Durante el primer turno del oponente, reduce el bonus de ATK y Barrera de su Patron.',
+  iconEmoji: '\u{1F50A}',
+  rarity: RarityTier.blue,
+  patternBonusAmountOverride: 0,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.debuff,
+      _adjAttack,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjS,
+      EntityTag.debuff,
+      _adjBarrier,
+      1,
+    ),
+  ],
+  baseCost: 6,
+  value: 1,
+  upgradeValue: 1,
+  effect: SonicaltropsItemEffect(),
+);
+
+const mekaYunqueItem = Item(
+  id: ItemId.mekaYunque,
+  archetypeAffinities: _generalAffinities,
+  tags: _ataqueBarreraTags,
+  name: 'Meka-yunque',
+  description:
+      'La primera vez por combate que usas un Patron con 6+ puntos de item, mejora temporalmente el item General equipado de menor rareza.',
+  iconEmoji: '\u{1F528}',
+  rarity: RarityTier.yellow,
+  patternBonusKindOverride: _adjAttack,
+  patternBonusAmountOverride: 2,
+  patternRequirementOverride: _patternMiddle,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjN,
+      EntityTag.ataque,
+      _adjAttack,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjE,
+      EntityTag.barrera,
+      _adjBarrier,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjS,
+      EntityTag.ataque,
+      _adjAttack,
+      1,
+    ),
+    OperativePatternAdjacencyBonus.match(
+      _adjW,
+      EntityTag.barrera,
+      _adjBarrier,
+      1,
+    ),
+  ],
+  baseCost: 10,
+  value: 1,
+  upgradeValue: 1,
+  statModifiers: {
+    BattlerStat.attack: 1,
+    BattlerStat.barrier: 1,
+  },
+  upgradeStatModifiers: {
+    BattlerStat.attack: 1,
+    BattlerStat.barrier: 1,
+  },
+  effect: MekaYunqueItemEffect(),
 );
 
 const pilarAceroItem = Item(
@@ -3255,7 +3358,10 @@ const itemPresets = <Item>[
   subastaRelampagoItem,
   bolsaRiesgoItem,
   camaraArbitrajeItem,
+  nivelPrecisionItem,
+  sonicaltropsItem,
   bancoAmbulanteItem,
+  mekaYunqueItem,
   pilarAceroItem,
   duplicadorAtomosItem,
   cortinaHumoItem,

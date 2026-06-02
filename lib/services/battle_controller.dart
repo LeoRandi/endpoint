@@ -380,7 +380,7 @@ class BattleController extends ChangeNotifier {
     BattleActionBonus actionBonus = BattleActionBonus.empty,
   }) async {
     if (!canUseActions) return;
-    final resolvedActionBonus = actionBonus;
+    var resolvedActionBonus = actionBonus;
 
     if (resolvedActionBonus.healAmount > 0) {
       await _applyPlayerHealing(resolvedActionBonus.healAmount);
@@ -437,11 +437,7 @@ class BattleController extends ChangeNotifier {
     bool scheduleEnemyTurn = true,
   }) async {
     if (!canUseActions) return;
-    final resolvedActionBonus = actionBonus;
-    final countsAsAttack = resolvedActionBonus.attackBonus >=
-        resolvedActionBonus.immediateBarrierAmount;
-    final countsAsDefend = resolvedActionBonus.immediateBarrierAmount >=
-        resolvedActionBonus.attackBonus;
+    var resolvedActionBonus = actionBonus;
 
     if (resolvedActionBonus.healAmount > 0) {
       await _applyPlayerHealing(resolvedActionBonus.healAmount);
@@ -494,6 +490,18 @@ class BattleController extends ChangeNotifier {
 
       _player = preAttackItemResolution.owner;
       _enemy = preAttackItemResolution.opponent;
+      resolvedActionBonus = resolvedActionBonus.copyWith(
+        attackBonus: max(
+          0,
+          resolvedActionBonus.attackBonus +
+              preAttackItemResolution.attackBonusDelta,
+        ),
+        immediateBarrierAmount: max(
+          0,
+          resolvedActionBonus.immediateBarrierAmount +
+              preAttackItemResolution.barrierBonusDelta,
+        ),
+      );
       final preAttackItemFinish = _turnEngine.finishFor(
         player: _player,
         enemy: _enemy,
@@ -506,6 +514,11 @@ class BattleController extends ChangeNotifier {
         return;
       }
     }
+
+    final countsAsAttack = resolvedActionBonus.attackBonus >=
+        resolvedActionBonus.immediateBarrierAmount;
+    final countsAsDefend = resolvedActionBonus.immediateBarrierAmount >=
+        resolvedActionBonus.attackBonus;
 
     final attackerBefore = _player;
     final defenderBefore = _enemy;
@@ -604,7 +617,7 @@ class BattleController extends ChangeNotifier {
   }) async {
     if (!canResolveEnemyPattern) return;
 
-    final resolvedActionBonus = actionBonus;
+    var resolvedActionBonus = actionBonus;
     final resolvedPatternContext = patternContext;
 
     final preAttackPlayerBefore = _player;
@@ -684,6 +697,18 @@ class BattleController extends ChangeNotifier {
 
       _enemy = preAttackItemResolution.owner;
       _player = preAttackItemResolution.opponent;
+      resolvedActionBonus = resolvedActionBonus.copyWith(
+        attackBonus: max(
+          0,
+          resolvedActionBonus.attackBonus +
+              preAttackItemResolution.attackBonusDelta,
+        ),
+        immediateBarrierAmount: max(
+          0,
+          resolvedActionBonus.immediateBarrierAmount +
+              preAttackItemResolution.barrierBonusDelta,
+        ),
+      );
       final preAttackItemFinish = _turnEngine.finishFor(
         player: _player,
         enemy: _enemy,

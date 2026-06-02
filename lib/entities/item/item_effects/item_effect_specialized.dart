@@ -1649,6 +1649,175 @@ class BancoAmbulanteItemEffect extends ItemEffect {
   }
 }
 
+class NivelPrecisionItemEffect extends ItemEffect {
+  const NivelPrecisionItemEffect()
+      : super(
+          description:
+              'Al usarse, si el bonus final de ATK y Barrera del Patron son iguales, suma valor a ambos.',
+          hooks: const {ItemEffectHook.prePatternAttack},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: si el bonus final de ATK y Barrera del Patron son iguales, suma ${max(1, item.value)} a ambos antes del ataque.';
+  }
+
+  @override
+  ItemEffectResolution onPrePatternAttack({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (pattern.attackBonus != pattern.barrierBonus) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final amount = max(1, item.value);
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent,
+      attackBonusDelta: amount,
+      barrierBonusDelta: amount,
+    );
+  }
+}
+
+class MekaYunqueItemEffect extends ItemEffect {
+  const MekaYunqueItemEffect()
+      : super(
+          description:
+              'Al usarse con un Patron grande, mejora temporalmente un item General.',
+          hooks: const {ItemEffectHook.prePatternAttack},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'La primera vez por combate que usas un Patron con 6+ puntos de item, mejora temporalmente en ${max(1, item.value)} el item General equipado de menor rareza.';
+  }
+
+  @override
+  ItemEffectResolution onPrePatternAttack({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final triggerFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.mekaYunqueTriggered,
+    );
+    if (pattern.usedItemPointCount < 6 || owner.hasCombatFlag(triggerFlag)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final generalItems = owner.equippedItems
+        .where(
+          (equipped) =>
+              equipped.hasArchetypeAffinity(ItemArchetypeAffinity.general),
+        )
+        .toList(growable: false);
+    if (generalItems.isEmpty) {
+      return ItemEffectResolution(
+        owner: owner.addCombatFlag(triggerFlag),
+        opponent: opponent,
+      );
+    }
+
+    final selected = generalItems.reduce((best, equipped) {
+      if (equipped.rarity.index != best.rarity.index) {
+        return equipped.rarity.index < best.rarity.index ? equipped : best;
+      }
+      final bestIndex = owner.equippedItems.indexOf(best);
+      final equippedIndex = owner.equippedItems.indexOf(equipped);
+      return equippedIndex < bestIndex ? equipped : best;
+    });
+
+    return ItemEffectResolution(
+      owner: _replaceOwnedItem(
+        owner: owner.addCombatFlag(triggerFlag),
+        currentItem: selected,
+        replacement: _boostGeneralItemForCombat(
+          item: selected,
+          amount: max(1, item.value),
+        ),
+      ),
+      opponent: opponent,
+    );
+  }
+}
+
+class SonicaltropsItemEffect extends ItemEffect {
+  const SonicaltropsItemEffect()
+      : super(
+          description:
+              'Al inicio del combate, interfiere el primer Patron del rival.',
+          hooks: const {ItemEffectHook.combatStart},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Durante el primer turno del oponente, da -${max(1, item.value)} al bonus de ATK y Barrera de su Patron.';
+  }
+
+  @override
+  ItemEffectResolution onCombatStart({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    RunRandomizer? randomizer,
+  }) {
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent.addCombatFlag(
+        CombatRuntimeFlag.item(
+          itemFlag: ItemCombatFlagKind.sonicaltropsOpeningPenalty,
+          itemId: item.id,
+          itemInstanceId: item.instanceId,
+          secondaryValue: max(1, item.value),
+        ),
+      ),
+    );
+  }
+}
+
+Item _boostGeneralItemForCombat({
+  required Item item,
+  required int amount,
+}) {
+  final safeAmount = max(0, amount);
+  if (safeAmount <= 0) return item;
+
+  final statModifiers = Map<BattlerStat, int>.from(item.statModifiers);
+  for (final entry in item.statModifiers.entries) {
+    if (entry.value <= 0) continue;
+    statModifiers[entry.key] = entry.value + safeAmount;
+  }
+
+  final adjacencyBonuses = item.patternAdjacencyBonuses
+      .map(
+        (bonus) => OperativePatternAdjacencyBonus(
+          direction: bonus.direction,
+          requiredTag: bonus.requiredTag,
+          kind: bonus.kind,
+          amount: bonus.amount + safeAmount,
+        ),
+      )
+      .toList(growable: false);
+
+  return item.copyWith(
+    value: item.effect != null && item.value > 0
+        ? item.value + safeAmount
+        : null,
+    statModifiers: statModifiers,
+    patternBonusAmountOverride:
+        item.hasPatternBonus ? item.patternBonusAmount + safeAmount : null,
+    patternAdjacencyBonuses: adjacencyBonuses,
+    hasPatternAura: true,
+    combatItemBonusBoost: item.combatItemBonusBoost + safeAmount,
+  );
+}
+
 Battler _boostItemAttackForCombat({
   required Battler owner,
   required Item item,

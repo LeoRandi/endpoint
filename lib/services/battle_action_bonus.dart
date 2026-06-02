@@ -18,4 +18,19 @@ class BattleActionBonus {
       healAmount > 0 ||
       immediateBarrierAmount > 0 ||
       endTurnBarrierAmount > 0;
+
+  BattleActionBonus copyWith({
+    int? attackBonus,
+    int? healAmount,
+    int? immediateBarrierAmount,
+    int? endTurnBarrierAmount,
+  }) {
+    return BattleActionBonus(
+      attackBonus: attackBonus ?? this.attackBonus,
+      healAmount: healAmount ?? this.healAmount,
+      immediateBarrierAmount:
+          immediateBarrierAmount ?? this.immediateBarrierAmount,
+      endTurnBarrierAmount: endTurnBarrierAmount ?? this.endTurnBarrierAmount,
+    );
+  }
 }

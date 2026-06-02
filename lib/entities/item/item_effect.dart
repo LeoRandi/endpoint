@@ -13,11 +13,15 @@ part 'item_effects/item_effect_specialized.dart';
 class ItemEffectResolution {
   final Battler owner;
   final Battler opponent;
+  final int attackBonusDelta;
+  final int barrierBonusDelta;
 
   /// Crea una resolucion inmutable con ambos combatientes ya actualizados.
   const ItemEffectResolution({
     required this.owner,
     required this.opponent,
+    this.attackBonusDelta = 0,
+    this.barrierBonusDelta = 0,
   });
 }
 
