@@ -42,6 +42,8 @@ abstract final class EndpointCurrentRunSnapshotCodec {
         'currentDaySummary': state.currentDaySummary.toJson(),
         'pendingDaySummary': state.pendingDaySummary?.toJson(),
         'shownShopNodeIds': state.shownShopNodeIds,
+        'shopRarityDayOffset': state.shopRarityDayOffset,
+        'eventRarityDayOffset': state.eventRarityDayOffset,
         'currentHour': <String, Object?>{
           'stageIndex': state.currentHour.stageIndex,
           'phase': state.currentHour.phase.name,
@@ -184,6 +186,14 @@ abstract final class EndpointCurrentRunSnapshotCodec {
           ),
       pendingDaySummary: pendingDaySummary,
       shownShopNodeIds: _readStringList(runJson['shownShopNodeIds']),
+      shopRarityDayOffset: EndpointJsonUtils.readInt(
+        runJson['shopRarityDayOffset'],
+        fallback: 0,
+      ),
+      eventRarityDayOffset: EndpointJsonUtils.readInt(
+        runJson['eventRarityDayOffset'],
+        fallback: 0,
+      ),
       activeNode: activeNode,
     );
   }

@@ -78,7 +78,7 @@
 [--Texto de flavor a cada tienda]
 
 -Eventos
---Crear más eventos, al menos 40[16/40]
+--Crear más eventos, al menos 40[19/40]
 [--Texto de flavor a cada evento]
 
 -Enemigos

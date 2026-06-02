@@ -850,6 +850,66 @@ final mercadoFuturosNode = EventPathNode(
   ],
 );
 
+final tempografoNode = EventPathNode(
+  id: PathEventId.tempografo,
+  nodeId: 'event_tempografo',
+  label: 'Tempografo',
+  tooltip: 'Sesga la rareza de tiendas o eventos durante el resto del dia',
+  iconEmoji: '\u{1F570}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'TIEMPO',
+  showTitle: 'El Tempografo despliega sus herramientas',
+  eventTitle: 'TEMPOGRAFO',
+  description:
+      'Elige tiendas o eventos. La opcion elegida tirara rareza como si fuera el dia siguiente, y la otra como si fuera el dia anterior, hasta que termine el dia.',
+  outcomeText: 'Elige que parte de la ruta quieres adelantar.',
+  flavorTexts: [
+    'Un anciano con monoculo te detiene entre dos relojes abiertos. Sus herramientas no parecen medir la hora, sino la paciencia de la ciudad.',
+    'Insiste en demostrarlo gratis: con un ajuste minimo, asegura que encontraras lo que buscas con mas facilidad.',
+  ],
+);
+
+final sWitchCabinNode = EventPathNode(
+  id: PathEventId.sWitchCabin,
+  nodeId: 'event_s_witch_cabin',
+  label: "S. Witch's Cabin",
+  tooltip: 'Intercambia el bonus de Patron entre dos objetos propios',
+  iconEmoji: '\u{1F3DA}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'PATRON',
+  showTitle: "Has encontrado S. Witch's Cabin",
+  eventTitle: "S. WITCH'S CABIN",
+  description:
+      'Una cabina pequena brilla entre distritos, rodeada de niebla rosa. Dentro, una nina demasiado joven ofrece "cambiar como son las cosas".',
+  outcomeText: 'Elige dos objetos para intercambiar sus bonus de Patron.',
+  flavorTexts: [
+    'La cabina no figura en ningun mapa. La luz bajo la puerta late como si respirara.',
+    'La nina sonrie sin parpadear. Dice que cambiar las cosas es facil; lo raro es querer dejarlas igual.',
+  ],
+);
+
+final hackathonBoothNode = EventPathNode(
+  id: PathEventId.hackathonBooth,
+  nodeId: 'event_hackathon_booth',
+  label: 'Hackathon Booth',
+  tooltip: 'Supera un reto de patrones para ganar objetos y aumentos',
+  iconEmoji: '\u{1F4BB}',
+  rarity: RarityTier.blue,
+  accent: RarityTier.blue.accent,
+  badgeLabel: 'RETO',
+  showTitle: 'Hackathon Booth abre la cola',
+  eventTitle: 'HACKATHON BOOTH',
+  description:
+      'Un grupo de cyber-nerds presume de recompensas increibles para quien aguante su prueba de patrones.',
+  outcomeText: 'Acepta el reto y dibuja seis formas antes de que acabe el tiempo.',
+  flavorTexts: [
+    'El puesto esta lleno de pantallas, refrescos tibios y gente explicando reglas a la vez.',
+    'Prometen premios increibles si sobrevives a su trial. La palabra "trial" aparece en demasiados colores.',
+  ],
+);
+
 /// Tienda morada nocturna centrada en armas mas agresivas.
 final afterHoursArsenalNode = ShopPathNode(
   nodeId: 'shop_after_hours_arsenal',
@@ -1116,6 +1176,9 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
   suBastaYaNode,
   pitonisaQuitapenasNode,
   debtCollectionNode,
+  tempografoNode,
+  sWitchCabinNode,
+  hackathonBoothNode,
 ]);
 
 /// Tiendas posibles durante el tramo nocturno.
@@ -1152,6 +1215,9 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
   suBastaYaNode,
   pitonisaQuitapenasNode,
   debtCollectionNode,
+  tempografoNode,
+  sWitchCabinNode,
+  hackathonBoothNode,
 ]);
 
 /// Combates raros que pueden colarse de dia como amenaza extra.

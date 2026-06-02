@@ -97,6 +97,18 @@ final pathEventDefinitionById =
     canAppear: _canAppearForMercante,
     visit: _visitDefaultPathEvent,
   ),
+  PathEventId.tempografo: const PathEventDefinition(
+    canAppear: _canAppearAlways,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.sWitchCabin: const PathEventDefinition(
+    canAppear: _canAppearForSWitchCabin,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.hackathonBooth: const PathEventDefinition(
+    canAppear: _canAppearAlways,
+    visit: _visitDefaultPathEvent,
+  ),
 });
 
 enum SuBastaYaStatReward {
@@ -625,6 +637,161 @@ class PathEventService {
     ]);
   }
 
+  PathEventVisitResult resolveTempografoChoice({
+    required Battler player,
+    required bool preferShops,
+  }) {
+    return PathEventVisitResult(
+      player: player,
+      outcomeText: preferShops
+          ? 'El Tempografo adelanta las tiendas y retrasa los eventos hasta que termine el dia.'
+          : 'El Tempografo adelanta los eventos y retrasa las tiendas hasta que termine el dia.',
+      nextShopRarityDayOffset: preferShops ? 1 : -1,
+      nextEventRarityDayOffset: preferShops ? -1 : 1,
+    );
+  }
+
+  List<Item> buildSWitchCabinEligibleItems(Battler player) {
+    return List<Item>.unmodifiable(
+      buildOwnedItems(player).where((item) => item.hasPatternBonus),
+    );
+  }
+
+  PathEventVisitResult resolveSWitchPatternSwap({
+    required Battler player,
+    required Item firstItem,
+    required Item secondItem,
+  }) {
+    if (firstItem == secondItem ||
+        !_ownsItem(player, firstItem) ||
+        !_ownsItem(player, secondItem) ||
+        !firstItem.hasPatternBonus ||
+        !secondItem.hasPatternBonus) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'La cabina no encuentra dos patrones compatibles.',
+      );
+    }
+
+    final updatedFirst = firstItem.copyWith(
+      patternBonusKindOverride: secondItem.patternBonusKind,
+      patternBonusAmountOverride: secondItem.patternBonusAmount,
+      patternRequirementOverride: secondItem.patternRequirement,
+    );
+    final updatedSecond = secondItem.copyWith(
+      patternBonusKindOverride: firstItem.patternBonusKind,
+      patternBonusAmountOverride: firstItem.patternBonusAmount,
+      patternRequirementOverride: firstItem.patternRequirement,
+    );
+    final updatedPlayer = _replaceOwnedItems(
+      player: player,
+      replacements: {
+        firstItem: updatedFirst,
+        secondItem: updatedSecond,
+      },
+    );
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          '${firstItem.displayName} y ${secondItem.displayName} intercambian sus bonus de Patron.',
+    );
+  }
+
+  PathEventVisitResult resolveHackathonReward({
+    required Battler player,
+    required int score,
+    required RunRandomizer randomizer,
+  }) {
+    final cappedScore = score.clamp(0, 6).toInt();
+    if (cappedScore <= 1) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'Los cyber-nerds aplauden con educacion. No hay premio.',
+      );
+    }
+
+    if (cappedScore <= 3) {
+      final ability = _rollRewardAbility(
+        player: player,
+        rarity: RarityTier.green,
+        randomizer: randomizer,
+      );
+      if (ability == null) {
+        return PathEventVisitResult(
+          player: player,
+          outcomeText: 'El puesto no encuentra un aumento verde compatible.',
+        );
+      }
+      final updatedPlayer = player.addAbility(ability.resetState());
+      return PathEventVisitResult(
+        player: updatedPlayer,
+        outcomeText: 'Recibes un aumento verde: ${ability.displayName}.',
+        gainedAbility: updatedPlayer.abilityById(ability.id) ?? ability,
+      );
+    }
+
+    if (cappedScore <= 5) {
+      final ability = _rollRewardAbility(
+        player: player,
+        rarity: RarityTier.blue,
+        randomizer: randomizer,
+      );
+      final item = _rollRewardItem(
+        rarity: RarityTier.green,
+        randomizer: randomizer,
+      );
+      var updatedPlayer = player;
+      if (ability != null) {
+        updatedPlayer = updatedPlayer.addAbility(ability.resetState());
+      }
+      if (item != null) {
+        updatedPlayer = updatedPlayer.addItem(item);
+      }
+      return PathEventVisitResult(
+        player: updatedPlayer,
+        outcomeText:
+            'Recibes ${ability?.displayName ?? 'sin aumento'} y ${item?.displayName ?? 'sin objeto'}.',
+        gainedAbility:
+            ability == null ? null : updatedPlayer.abilityById(ability.id),
+        gainedItem: item == null
+            ? null
+            : updatedPlayer.inventoryItemOfType(item.id) ??
+                updatedPlayer.equippedItemOfType(item.id) ??
+                item,
+      );
+    }
+
+    final ability = _rollRewardAbility(
+      player: player,
+      rarity: RarityTier.yellow,
+      randomizer: randomizer,
+    );
+    final item = _rollRewardItem(
+      rarity: RarityTier.blue,
+      randomizer: randomizer,
+    );
+    var updatedPlayer = player;
+    if (ability != null) {
+      updatedPlayer = updatedPlayer.addAbility(ability.resetState());
+    }
+    if (item != null) {
+      updatedPlayer = updatedPlayer.addItem(item);
+    }
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Reclamas el premio completo: ${ability?.displayName ?? 'sin aumento'} y ${item?.displayName ?? 'sin objeto'}.',
+      gainedAbility:
+          ability == null ? null : updatedPlayer.abilityById(ability.id),
+      gainedItem: item == null
+          ? null
+          : updatedPlayer.inventoryItemOfType(item.id) ??
+              updatedPlayer.equippedItemOfType(item.id) ??
+              item,
+    );
+  }
+
   List<Item> buildViktorOperationsEligibleItems(Battler player) {
     return List<Item>.unmodifiable(
       buildOwnedItems(player).where(
@@ -1132,6 +1299,62 @@ class PathEventService {
         player.inventoryItems.contains(item);
   }
 
+  Battler _replaceOwnedItems({
+    required Battler player,
+    required Map<Item, Item> replacements,
+  }) {
+    if (replacements.isEmpty) return player;
+
+    final updatedEquippedItems = player.equippedItems
+        .map((item) => replacements[item] ?? item)
+        .toList(growable: false);
+    final updatedInventoryItems = player.inventoryItems
+        .map((item) => replacements[item] ?? item)
+        .toList(growable: false);
+
+    return player.copyWith(
+      equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+    );
+  }
+
+  BattlerAbility? _rollRewardAbility({
+    required Battler player,
+    required RarityTier rarity,
+    required RunRandomizer randomizer,
+  }) {
+    final candidatesById = <BattlerAbilityId, BattlerAbility>{};
+    for (final ability in abilityPresets) {
+      final ownedAbility = player.abilityById(ability.id);
+      if (ownedAbility != null) {
+        if (ownedAbility.rarity == rarity && ownedAbility.canUpgrade) {
+          candidatesById.putIfAbsent(ability.id, () => ownedAbility);
+        }
+        continue;
+      }
+
+      final promotedAbility = _promoteAbilityToExactRarity(ability, rarity);
+      if (promotedAbility == null) continue;
+      candidatesById.putIfAbsent(ability.id, () => promotedAbility);
+    }
+
+    final candidates = candidatesById.values.toList(growable: false);
+    if (candidates.isEmpty) return null;
+    return candidates[randomizer.nextInt(candidates.length)].resetState();
+  }
+
+  Item? _rollRewardItem({
+    required RarityTier rarity,
+    required RunRandomizer randomizer,
+  }) {
+    final candidates = itemPresets
+        .where((item) => item.rarity == rarity)
+        .toList(growable: false);
+    if (candidates.isEmpty) return null;
+
+    return candidates[randomizer.nextInt(candidates.length)];
+  }
+
   Battler _applyPermanentStatRewards(
     Battler player,
     Map<BattlerStat, int> rewards,
@@ -1411,6 +1634,26 @@ bool _canAppearForDebtCollection(
   required Battler? player,
 }) {
   return player?.statusById(DeudaStatus.statusId) is DeudaStatus;
+}
+
+bool _canAppearAlways(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  return true;
+}
+
+bool _canAppearForSWitchCabin(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) {
+    return itemPresets.where((item) => item.hasPatternBonus).length >= 2;
+  }
+
+  return service.buildSWitchCabinEligibleItems(player).length >= 2;
 }
 
 bool _canAppearForTechnosurgeon(

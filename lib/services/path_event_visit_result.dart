@@ -6,6 +6,8 @@ class PathEventVisitResult {
   final Item? gainedItem;
   final BattlerAbility? gainedAbility;
   final PathNode? guaranteedNextNode;
+  final int nextShopRarityDayOffset;
+  final int nextEventRarityDayOffset;
   final bool defeatedEnemy;
   final Battler? defeatedEnemyBattler;
   final RarityTier? defeatedEnemyRarity;
@@ -16,6 +18,8 @@ class PathEventVisitResult {
     this.gainedItem,
     this.gainedAbility,
     this.guaranteedNextNode,
+    this.nextShopRarityDayOffset = 0,
+    this.nextEventRarityDayOffset = 0,
     this.defeatedEnemy = false,
     this.defeatedEnemyBattler,
     this.defeatedEnemyRarity,

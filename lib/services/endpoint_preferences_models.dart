@@ -159,6 +159,8 @@ class EndpointCurrentRunSnapshot {
   final RunDaySummary currentDaySummary;
   final RunDaySummary? pendingDaySummary;
   final List<String> shownShopNodeIds;
+  final int shopRarityDayOffset;
+  final int eventRarityDayOffset;
   final PathNode? activeNode;
 
   const EndpointCurrentRunSnapshot({
@@ -178,6 +180,8 @@ class EndpointCurrentRunSnapshot {
     this.currentDaySummary = const RunDaySummary.empty(),
     this.pendingDaySummary,
     this.shownShopNodeIds = const <String>[],
+    this.shopRarityDayOffset = 0,
+    this.eventRarityDayOffset = 0,
     this.activeNode,
   });
 

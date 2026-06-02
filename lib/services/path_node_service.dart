@@ -3,11 +3,11 @@ import '_imports.dart';
 class PathNodeService {
   static const startStageIndex = 0;
   static const firstPlayableStageIndex = 1;
-  static const stagesPerDay = 12;
+  static const stagesPerDay = 8;
   static const maxDayNumber = 5;
-  static const dayStageCount = 5;
-  static const duskStageOffset = 5;
-  static const nightFirstStageOffset = 6;
+  static const dayStageCount = 3;
+  static const duskStageOffset = 3;
+  static const nightFirstStageOffset = 4;
   static const dailyBossStageOffset = stagesPerDay - 1;
   static const duskStageIndex = firstPlayableStageIndex + duskStageOffset;
   static const firstDayBossStageIndex =
@@ -20,8 +20,6 @@ class PathNodeService {
   static const _centerShopPremiumMultiplier = 1.2;
   static const _dayEventRelativeWeight = 0.82;
   static const _nightEventRelativeWeight = 0.5;
-  static const _dayCombatRelativeWeight = 0.72;
-  static const _nightCombatRelativeWeight = 1.45;
 
   final RunRandomizer _randomizer;
   final PathEventService _pathEventService;
@@ -106,6 +104,8 @@ class PathNodeService {
     List<PathNode>? availableNodes,
     Iterable<String> shownShopNodeIds = const <String>[],
     int nodeCount = 3,
+    int shopRarityDayOffset = 0,
+    int eventRarityDayOffset = 0,
   }) {
     final clampedStageIndex = stageIndex
         .clamp(
@@ -118,6 +118,8 @@ class PathNodeService {
       clampedStageIndex,
       player,
       shownShopNodeIds: shownShopNodeIds,
+      shopRarityDayOffset: shopRarityDayOffset,
+      eventRarityDayOffset: eventRarityDayOffset,
     );
 
     final resolvedNodes = _resolveNodes(
@@ -173,6 +175,8 @@ class PathNodeService {
     int stageIndex,
     Battler? player, {
     Iterable<String> shownShopNodeIds = const <String>[],
+    int shopRarityDayOffset = 0,
+    int eventRarityDayOffset = 0,
   }) {
     if (stageIndex == startStageIndex) {
       return _RunStageDefinition(
@@ -194,6 +198,8 @@ class PathNodeService {
           dayNumber,
           player,
           shownShopNodeIds: shownShopNodeIds,
+          shopRarityDayOffset: shopRarityDayOffset,
+          eventRarityDayOffset: eventRarityDayOffset,
         ),
       );
     }
@@ -216,7 +222,10 @@ class PathNodeService {
         nodes: _buildNightNodes(
           dayNumber,
           player,
+          guaranteedCamp: stageOffset == dailyBossStageOffset - 1,
           shownShopNodeIds: shownShopNodeIds,
+          shopRarityDayOffset: shopRarityDayOffset,
+          eventRarityDayOffset: eventRarityDayOffset,
         ),
       );
     }
@@ -254,12 +263,15 @@ class PathNodeService {
     int dayNumber,
     Battler? player, {
     Iterable<String> shownShopNodeIds = const <String>[],
+    int shopRarityDayOffset = 0,
+    int eventRarityDayOffset = 0,
   }) {
     final shopCandidates = _weightedShopCandidatesFor(
       dayNumber: dayNumber,
       phase: RunHourPhase.day,
       player: player,
       shownShopNodeIds: shownShopNodeIds,
+      rarityDayOffset: shopRarityDayOffset,
     );
 
     return _buildUniqueHourNodes(
@@ -268,6 +280,7 @@ class PathNodeService {
         phase: RunHourPhase.day,
         player: player,
         shopCandidates: shopCandidates,
+        eventRarityDayOffset: eventRarityDayOffset,
       ),
       shopCandidates: shopCandidates,
     );
@@ -276,13 +289,17 @@ class PathNodeService {
   List<PathNode> _buildNightNodes(
     int dayNumber,
     Battler? player, {
+    bool guaranteedCamp = false,
     Iterable<String> shownShopNodeIds = const <String>[],
+    int shopRarityDayOffset = 0,
+    int eventRarityDayOffset = 0,
   }) {
     final shopCandidates = _weightedShopCandidatesFor(
       dayNumber: dayNumber,
       phase: RunHourPhase.night,
       player: player,
       shownShopNodeIds: shownShopNodeIds,
+      rarityDayOffset: shopRarityDayOffset,
     );
 
     return _buildUniqueHourNodes(
@@ -291,8 +308,11 @@ class PathNodeService {
         phase: RunHourPhase.night,
         player: player,
         shopCandidates: shopCandidates,
+        eventRarityDayOffset: eventRarityDayOffset,
       ),
       shopCandidates: shopCandidates,
+      guaranteedCampCandidates:
+          guaranteedCamp ? _campCandidatesForDay(dayNumber) : const [],
     );
   }
 
@@ -398,34 +418,24 @@ class PathNodeService {
     required RunHourPhase phase,
     required Battler? player,
     required List<_WeightedPathNode> shopCandidates,
+    int eventRarityDayOffset = 0,
   }) {
     final shopTotalWeight = _totalWeight(shopCandidates);
     final eventRelativeWeight = phase == RunHourPhase.day
         ? _dayEventRelativeWeight
         : _nightEventRelativeWeight;
-    final combatRelativeWeight = phase == RunHourPhase.day
-        ? _dayCombatRelativeWeight
-        : _nightCombatRelativeWeight;
     final eventPool =
         phase == RunHourPhase.day ? dayEventNodes : nightEventNodes;
     final eventCandidates = _scaleWeightedNodes(
       _weightedEventCandidatesFor(
         dayNumber: dayNumber,
         nodes: _filterEventNodes(eventPool, player),
+        rarityDayOffset: eventRarityDayOffset,
       ),
       targetTotalWeight: shopTotalWeight * eventRelativeWeight,
     );
-    final combatCandidates = _scaleWeightedNodes(
-      _buildCombatCandidates(
-        phase == RunHourPhase.day
-            ? _dayCombatTierWeights(dayNumber)
-            : _nightCombatTierWeights(dayNumber),
-      ),
-      targetTotalWeight: shopTotalWeight * combatRelativeWeight,
-    );
 
     return [
-      ...combatCandidates,
       ...shopCandidates,
       ...eventCandidates,
       ..._campCandidatesForDay(dayNumber),
@@ -531,22 +541,29 @@ class PathNodeService {
   List<PathNode> _buildUniqueHourNodes({
     required List<_WeightedPathNode> sideCandidates,
     required List<_WeightedPathNode> shopCandidates,
+    List<_WeightedPathNode> guaranteedCampCandidates = const [],
   }) {
     final nonShopSideCandidates = sideCandidates
         .where((candidate) => candidate.node is! ShopPathNode)
         .toList(growable: false);
     if (shopCandidates.isEmpty) {
-      return _pickDistinctWeightedNodes(
-        nonShopSideCandidates,
-        count: 3,
+      return _ensureCampNode(
+        nodes: _pickDistinctWeightedNodes(
+          nonShopSideCandidates,
+          count: 3,
+        ),
+        campCandidates: guaranteedCampCandidates,
       );
     }
 
     final centerNode = _buildCenterShopNode(shopCandidates);
-    final sideNodes = _pickDistinctWeightedNodes(
-      nonShopSideCandidates,
-      count: 2,
-      excludedKeys: {_nodeKey(centerNode)},
+    final sideNodes = _ensureCampNode(
+      nodes: _pickDistinctWeightedNodes(
+        nonShopSideCandidates,
+        count: 2,
+        excludedKeys: {_nodeKey(centerNode)},
+      ),
+      campCandidates: guaranteedCampCandidates,
     );
 
     if (sideNodes.length < 2) {
@@ -574,16 +591,42 @@ class PathNodeService {
     return baseNode.withPriceMultiplier(_centerShopPremiumMultiplier);
   }
 
+  List<PathNode> _ensureCampNode({
+    required List<PathNode> nodes,
+    required List<_WeightedPathNode> campCandidates,
+  }) {
+    if (campCandidates.isEmpty ||
+        nodes.any((node) => node is CampSitePathNode)) {
+      return nodes;
+    }
+
+    final campNode = _pickWeightedNode(campCandidates);
+    final updatedNodes = List<PathNode>.from(nodes);
+    if (updatedNodes.isEmpty) return [campNode];
+
+    final replacementIndex = updatedNodes.indexWhere(
+      (node) => node is! ShopPathNode,
+    );
+    if (replacementIndex < 0) {
+      updatedNodes[updatedNodes.length - 1] = campNode;
+    } else {
+      updatedNodes[replacementIndex] = campNode;
+    }
+    return updatedNodes;
+  }
+
   List<_WeightedPathNode> _weightedShopCandidatesFor({
     required int dayNumber,
     required RunHourPhase phase,
     Battler? player,
     Iterable<String> shownShopNodeIds = const <String>[],
+    int rarityDayOffset = 0,
   }) {
     final candidates = _baseWeightedShopCandidatesFor(
       dayNumber: dayNumber,
       phase: phase,
       player: player,
+      rarityDayOffset: rarityDayOffset,
     );
     final shownIds = shownShopNodeIds.toSet();
     if (shownIds.isEmpty) return candidates;
@@ -598,21 +641,23 @@ class PathNodeService {
     required int dayNumber,
     required RunHourPhase phase,
     Battler? player,
+    int rarityDayOffset = 0,
   }) {
+    final effectiveDayNumber = _biasedDayNumber(dayNumber, rarityDayOffset);
     return _allShopNodes
         .where(
           (node) => _canShopAppearForPlayer(
             node,
             player,
             phase: phase,
-            dayNumber: dayNumber,
+            dayNumber: effectiveDayNumber,
           ),
         )
         .map(
           (node) => _WeightedPathNode(
             node: node,
             weight: node.rollWeight *
-                _rarityProgressionWeight(dayNumber, node.rarity) *
+                _rarityProgressionWeight(effectiveDayNumber, node.rarity) *
                 _shopPhaseAffinity(node, phase),
           ),
         )
@@ -647,40 +692,22 @@ class PathNodeService {
   List<_WeightedPathNode> _weightedEventCandidatesFor({
     required int dayNumber,
     required Iterable<EventPathNode> nodes,
+    int rarityDayOffset = 0,
   }) {
+    final effectiveDayNumber = _biasedDayNumber(dayNumber, rarityDayOffset);
     return nodes
         .map(
           (node) => _WeightedPathNode(
             node: node,
             weight: node.rollWeight *
-                _rarityProgressionWeight(dayNumber, node.rarity),
+                _rarityProgressionWeight(effectiveDayNumber, node.rarity),
           ),
         )
         .toList(growable: false);
   }
 
-  List<_WeightedPathNode> _buildCombatCandidates(
-    Map<CombatNodeTier, double> tierWeights,
-  ) {
-    final candidates = <_WeightedPathNode>[];
-    for (final entry in tierWeights.entries) {
-      if (entry.value <= 0) continue;
-
-      final pool = _combatPoolForTier(entry.key);
-      if (pool.isEmpty) continue;
-
-      final nodeWeight = entry.value / pool.length;
-      candidates.addAll(
-        pool.map(
-          (node) => _WeightedPathNode(
-            node: node,
-            weight: nodeWeight,
-          ),
-        ),
-      );
-    }
-
-    return candidates;
+  int _biasedDayNumber(int dayNumber, int offset) {
+    return (dayNumber + offset).clamp(1, maxDayNumber).toInt();
   }
 
   List<_WeightedPathNode> _campCandidatesForDay(int dayNumber) {
@@ -697,57 +724,6 @@ class PathNodeService {
         weight: _severeMedicationCandidate.weight * severePressure,
       ),
     ];
-  }
-
-  Map<CombatNodeTier, double> _dayCombatTierWeights(int dayNumber) {
-    return switch (dayNumber) {
-      1 => const {
-          CombatNodeTier.gray: 1,
-        },
-      2 => const {
-          CombatNodeTier.gray: 0.67,
-          CombatNodeTier.green: 0.33,
-        },
-      3 => const {
-          CombatNodeTier.gray: 0.10,
-          CombatNodeTier.green: 0.60,
-          CombatNodeTier.blue: 0.30,
-        },
-      4 => const {
-          CombatNodeTier.green: 0.20,
-          CombatNodeTier.blue: 0.80,
-        },
-      _ => const {
-          CombatNodeTier.blue: 0.67,
-          CombatNodeTier.purple: 0.33,
-        },
-    };
-  }
-
-  Map<CombatNodeTier, double> _nightCombatTierWeights(int dayNumber) {
-    return switch (dayNumber) {
-      1 => const {
-          CombatNodeTier.gray: 0.80,
-          CombatNodeTier.green: 0.20,
-        },
-      2 => const {
-          CombatNodeTier.gray: 0.25,
-          CombatNodeTier.green: 0.50,
-          CombatNodeTier.blue: 0.25,
-        },
-      3 => const {
-          CombatNodeTier.green: 0.67,
-          CombatNodeTier.blue: 0.33,
-        },
-      4 => const {
-          CombatNodeTier.green: 0.10,
-          CombatNodeTier.blue: 0.60,
-          CombatNodeTier.purple: 0.30,
-        },
-      _ => const {
-          CombatNodeTier.purple: 1,
-        },
-    };
   }
 
   double _rarityProgressionWeight(int dayNumber, RarityTier rarity) {

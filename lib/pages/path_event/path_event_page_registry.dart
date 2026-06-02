@@ -4,12 +4,15 @@ import 'package:flutter/widgets.dart';
 
 import 'black_techno_market_event_page.dart';
 import 'archetype_special_event_page.dart';
+import 'hackathon_booth_event_page.dart';
 import 'pitonisa_quitapenas_event_page.dart';
 import 'secret_path_event_page.dart';
 import 'path_event_page.dart';
+import 's_witch_cabin_event_page.dart';
 import 'sobre_kar_event_page.dart';
 import 'su_basta_ya_event_page.dart';
 import 'technosurgeon_event_page.dart';
+import 'tempografo_event_page.dart';
 
 typedef PathEventPageBuilder = Widget Function({
   required Battler player,
@@ -39,6 +42,9 @@ final pathEventPageBuilderById =
   PathEventId.auditoriaCreativa: _buildArchetypeSpecialEventPage,
   PathEventId.mercadoFuturos: _buildArchetypeSpecialEventPage,
   PathEventId.debtCollection: _buildDefaultPathEventPage,
+  PathEventId.tempografo: _buildTempografoEventPage,
+  PathEventId.sWitchCabin: _buildSWitchCabinEventPage,
+  PathEventId.hackathonBooth: _buildHackathonBoothEventPage,
 });
 
 Widget buildPathEventPage({
@@ -175,6 +181,49 @@ Widget _buildDefaultPathEventPage({
   required int dayNumber,
 }) {
   return PathEventPage(
+    player: player,
+    node: node,
+    randomizer: randomizer,
+    eventService: eventService,
+  );
+}
+
+Widget _buildTempografoEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+  required int dayNumber,
+}) {
+  return TempografoEventPage(
+    player: player,
+    node: node,
+    eventService: eventService,
+  );
+}
+
+Widget _buildSWitchCabinEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+  required int dayNumber,
+}) {
+  return SWitchCabinEventPage(
+    player: player,
+    node: node,
+    eventService: eventService,
+  );
+}
+
+Widget _buildHackathonBoothEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+  required int dayNumber,
+}) {
+  return HackathonBoothEventPage(
     player: player,
     node: node,
     randomizer: randomizer,

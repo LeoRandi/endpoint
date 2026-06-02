@@ -54,6 +54,8 @@ class RunSessionController extends ChangeNotifier {
             currentDaySummary: snapshot.currentDaySummary,
             pendingDaySummary: snapshot.pendingDaySummary,
             shownShopNodeIds: snapshot.shownShopNodeIds,
+            shopRarityDayOffset: snapshot.shopRarityDayOffset,
+            eventRarityDayOffset: snapshot.eventRarityDayOffset,
             isRunComplete: snapshot.isRunComplete,
             completionType: snapshot.completionType,
           ),
@@ -265,6 +267,8 @@ class RunSessionController extends ChangeNotifier {
           _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
       shownShopNodeIds: _state.shownShopNodeIds,
       nodeCount: _nodeCount,
+      shopRarityDayOffset: _state.shopRarityDayOffset,
+      eventRarityDayOffset: _state.eventRarityDayOffset,
     );
 
     _state = _state.copyWith(
@@ -292,6 +296,8 @@ class RunSessionController extends ChangeNotifier {
         isRunComplete: true,
         completionType: RunCompletionType.victory,
         pendingDaySummary: null,
+        shopRarityDayOffset: 0,
+        eventRarityDayOffset: 0,
       );
       notifyListeners();
       unawaited(clearPersistedRunSnapshot());
@@ -302,6 +308,8 @@ class RunSessionController extends ChangeNotifier {
     final nextRunStep = _buildRunStep(
       stageIndex: nextStageIndex,
       player: preparedPlayer,
+      shopRarityDayOffset: 0,
+      eventRarityDayOffset: 0,
     );
     final nextDayNumber = PathNodeService.dayNumberForStageIndex(
       nextStageIndex,
@@ -326,6 +334,8 @@ class RunSessionController extends ChangeNotifier {
       currentDaySummary: nextDaySummary,
       pendingDaySummary: null,
       shownShopNodeIds: nextRunStep.shownShopNodeIds,
+      shopRarityDayOffset: 0,
+      eventRarityDayOffset: 0,
     );
     _isResolvingNode = false;
     _activeNode = null;
@@ -373,6 +383,8 @@ class RunSessionController extends ChangeNotifier {
     _completeScene(
       updatedPlayer: result.player,
       guaranteedNextNode: result.guaranteedNextNode,
+      nextShopRarityDayOffset: result.nextShopRarityDayOffset,
+      nextEventRarityDayOffset: result.nextEventRarityDayOffset,
       defeatedEnemy: result.defeatedEnemy,
       defeatedEnemyBattler: result.defeatedEnemyBattler,
       defeatedEnemyRarity: result.defeatedEnemyRarity,
@@ -394,6 +406,8 @@ class RunSessionController extends ChangeNotifier {
     required Battler updatedPlayer,
     RunCompletionType? forcedCompletionType,
     PathNode? guaranteedNextNode,
+    int nextShopRarityDayOffset = 0,
+    int nextEventRarityDayOffset = 0,
     bool defeatedEnemy = false,
     Battler? defeatedEnemyBattler,
     RarityTier? defeatedEnemyRarity,
@@ -432,6 +446,8 @@ class RunSessionController extends ChangeNotifier {
         isRunComplete: true,
         completionType: resolvedCompletionType,
         pendingDaySummary: null,
+        shopRarityDayOffset: 0,
+        eventRarityDayOffset: 0,
       );
       _isResolvingNode = false;
       _activeNode = null;
@@ -450,6 +466,8 @@ class RunSessionController extends ChangeNotifier {
         pendingDaySummary: null,
         isRunComplete: true,
         completionType: RunCompletionType.victory,
+        shopRarityDayOffset: 0,
+        eventRarityDayOffset: 0,
       );
       _isResolvingNode = false;
       _activeNode = null;
@@ -465,6 +483,8 @@ class RunSessionController extends ChangeNotifier {
         currentDaySummary: updatedDaySummary,
         pendingDaySummary: updatedDaySummary,
         visibleNodes: const <PathNode>[],
+        shopRarityDayOffset: 0,
+        eventRarityDayOffset: 0,
       );
       _isResolvingNode = false;
       _activeNode = null;
@@ -473,10 +493,18 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
+    final activeShopRarityDayOffset = nextShopRarityDayOffset != 0
+        ? nextShopRarityDayOffset
+        : _state.shopRarityDayOffset;
+    final activeEventRarityDayOffset = nextEventRarityDayOffset != 0
+        ? nextEventRarityDayOffset
+        : _state.eventRarityDayOffset;
     final nextRunStep = _buildRunStep(
       stageIndex: nextStageIndex,
       player: updatedPlayer,
       guaranteedNextNode: guaranteedNextNode,
+      shopRarityDayOffset: activeShopRarityDayOffset,
+      eventRarityDayOffset: activeEventRarityDayOffset,
     );
     final nextDaySummary = _recordTransitionGains(
       summary: updatedDaySummary,
@@ -497,6 +525,8 @@ class RunSessionController extends ChangeNotifier {
       runSummary: nextRunSummary,
       currentDaySummary: nextDaySummary,
       shownShopNodeIds: nextRunStep.shownShopNodeIds,
+      shopRarityDayOffset: activeShopRarityDayOffset,
+      eventRarityDayOffset: activeEventRarityDayOffset,
     );
     _isResolvingNode = false;
     _activeNode = null;
@@ -527,7 +557,13 @@ class RunSessionController extends ChangeNotifier {
     required int stageIndex,
     required Battler player,
     PathNode? guaranteedNextNode,
+    int? shopRarityDayOffset,
+    int? eventRarityDayOffset,
   }) {
+    final activeShopRarityDayOffset =
+        shopRarityDayOffset ?? _state.shopRarityDayOffset;
+    final activeEventRarityDayOffset =
+        eventRarityDayOffset ?? _state.eventRarityDayOffset;
     var nextPlayer = _progressPathSelectionAbilityCooldowns(player);
     var nextHour = _pathNodeService.buildHourSnapshot(
       stageIndex: stageIndex,
@@ -536,6 +572,8 @@ class RunSessionController extends ChangeNotifier {
           _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
       shownShopNodeIds: _state.shownShopNodeIds,
       nodeCount: _nodeCount,
+      shopRarityDayOffset: activeShopRarityDayOffset,
+      eventRarityDayOffset: activeEventRarityDayOffset,
     );
     if (_shouldApplyHourStartEffects(nextHour)) {
       nextPlayer = nextPlayer.applyAbilityHourStartEffects();
@@ -546,6 +584,8 @@ class RunSessionController extends ChangeNotifier {
             _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
         shownShopNodeIds: _state.shownShopNodeIds,
         nodeCount: _nodeCount,
+        shopRarityDayOffset: activeShopRarityDayOffset,
+        eventRarityDayOffset: activeEventRarityDayOffset,
       );
     }
     nextHour = _injectGuaranteedNextNode(
@@ -718,6 +758,8 @@ class RunSessionController extends ChangeNotifier {
           _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
       shownShopNodeIds: _state.shownShopNodeIds,
       nodeCount: _nodeCount,
+      shopRarityDayOffset: _state.shopRarityDayOffset,
+      eventRarityDayOffset: _state.eventRarityDayOffset,
     );
 
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
@@ -730,6 +772,8 @@ class RunSessionController extends ChangeNotifier {
                   _availableNodesOverride,
               shownShopNodeIds: _state.shownShopNodeIds,
               nodeCount: _nodeCount,
+              shopRarityDayOffset: _state.shopRarityDayOffset,
+              eventRarityDayOffset: _state.eventRarityDayOffset,
             );
       latestSnapshot = candidateSnapshot;
 
