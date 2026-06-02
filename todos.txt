@@ -104,7 +104,9 @@
 
 ////
 ARREGLAR:
--El botón de equipar/desequipar en al tienda a veces desaparece al equipar/desequipar/vender en una tienda?
+-Diamante and Cuadrado son la misma forma. Cambiar el diamante a una forma con 6 puntos, como un cuadrado en el que dos de los lados se "amplían" hacia fuera para hacer dos ángulos rectos más
+-Mover un item en el equipamiento y dejarlo caer sobre otro item debe intercambiar de sitio los items.
+
 
 ////
 PROBAR:

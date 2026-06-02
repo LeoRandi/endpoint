@@ -507,9 +507,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         OperativePatternCombatRules.maxBlockingPointsFor(
       _sceneController.player,
     );
-    final availableEnemyBlockingPoints =
-        OperativePatternCombatRules.maxBlockingPointsFor(
-      _sceneController.enemy,
+    final availableEnemyBlockingPoints = max(
+      0,
+      OperativePatternCombatRules.maxBlockingPointsFor(
+            _sceneController.enemy,
+          ) -
+          _sceneController.player.removedWallBlockingPointDebt,
     );
     var didResolveTurn = false;
     final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
@@ -593,8 +596,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.enemy)) {
       _sceneController.replaceEnemy(patternLayout.player);
     }
-    final playerWallCapacity = OperativePatternCombatRules.maxBlockingPointsFor(
-      _sceneController.player,
+    final playerWallCapacity = max(
+      0,
+      OperativePatternCombatRules.maxBlockingPointsFor(
+            _sceneController.player,
+          ) -
+          _sceneController.enemy.removedWallBlockingPointDebt,
     );
     final enemyOverchargesPattern =
         playerWallCapacity > 0 && _sceneController.randomizer.nextInt(2) == 0;
@@ -657,8 +664,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   BattlePatternEnemyBlockAction? _planEnemyBlockActionForPlayerBoard() {
-    final capacity = OperativePatternCombatRules.maxBlockingPointsFor(
-      _sceneController.enemy,
+    final capacity = max(
+      0,
+      OperativePatternCombatRules.maxBlockingPointsFor(
+            _sceneController.enemy,
+          ) -
+          _sceneController.player.removedWallBlockingPointDebt,
     );
     if (capacity <= 0) return null;
 

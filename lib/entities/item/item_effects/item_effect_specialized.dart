@@ -411,13 +411,13 @@ class TaladronItemEffect extends ItemEffect {
   const TaladronItemEffect()
       : super(
           description:
-              'Al usarse: destruye las Murallas atravesadas despues de este punto.',
+              'Al usarse: destruye todas las Murallas de tu matriz.',
           hooks: const {ItemEffectHook.patternUsed},
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al usarse: Todas las Murallas atravesadas despues de este punto son destruidas.';
+    return 'Al usarse: todas las Murallas de tu matriz son destruidas.';
   }
 
   @override
@@ -427,30 +427,11 @@ class TaladronItemEffect extends ItemEffect {
     required Item item,
     required BattlePatternMatchContext pattern,
   }) {
-    final itemPointKey = _assignedPointKeyForItem(owner: owner, item: item);
-    if (itemPointKey == null) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final sequence = pattern.sequence;
-    final startIndex =
-        sequence.indexWhere((point) => point.key == itemPointKey);
-    if (startIndex < 0) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final crossedWalls = opponent.combatWallsCrossedBy(
-      sequence,
-      startIndex: startIndex,
-    );
-    if (crossedWalls.isEmpty) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    return _destroyOpponentWalls(
+    return _destroyOwnerBoardWalls(
       owner: owner,
       opponent: opponent,
-      walls: crossedWalls,
+      walls: owner.combatWallSegments,
+      countForOwner: true,
     );
   }
 }
@@ -459,13 +440,13 @@ class CuboDinamitalicoItemEffect extends ItemEffect {
   const CuboDinamitalicoItemEffect()
       : super(
           description:
-              'Al comienzo del combate, destruye cualquier Muralla adyacente a su posicion.',
+              'Al comienzo del combate, destruye cualquier Muralla de tu matriz adyacente a su posicion.',
           hooks: const {ItemEffectHook.combatStart},
         );
 
   @override
   String descriptionFor(Item item) {
-    return 'Al comienzo del combate, destruye cualquier Muralla adyacente a su posicion.';
+    return 'Al comienzo del combate, destruye cualquier Muralla de tu matriz adyacente a su posicion.';
   }
 
   @override
@@ -480,11 +461,12 @@ class CuboDinamitalicoItemEffect extends ItemEffect {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final adjacentWalls = opponent.combatWallsAdjacentTo(point);
-    return _destroyOpponentWalls(
+    final adjacentWalls = owner.combatWallsAdjacentTo(point);
+    return _destroyOwnerBoardWalls(
       owner: owner,
       opponent: opponent,
       walls: adjacentWalls,
+      countForOwner: true,
     );
   }
 }
@@ -629,17 +611,15 @@ class PassCardItemEffect extends ItemEffect {
   const PassCardItemEffect()
       : super(
           description:
-              'Al usarse, al final del turno paga creditos para desactivar las Murallas de tu matriz durante tu proximo turno.',
+              'Al usarse, paga creditos para desactivar las Murallas de tu matriz.',
           hooks: const {
             ItemEffectHook.patternUsed,
-            ItemEffectHook.turnStart,
-            ItemEffectHook.turnEnd,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return '+1 BP mientras este equipado. Al usarse: al final del turno, paga ${max(0, item.value)} creditos si es posible. Durante tu proximo turno, las Murallas de tu matriz quedan desactivadas: se ven atenuadas y puedes atravesarlas.';
+    return '+1 BP mientras este equipado. Al usarse: paga ${max(0, item.value)} creditos si es posible para desactivar todas las Murallas de tu matriz hasta el final del combate.';
   }
 
   @override
@@ -650,94 +630,17 @@ class PassCardItemEffect extends ItemEffect {
     required BattlePatternMatchContext pattern,
   }) {
     final cost = max(0, item.value);
-    return ItemEffectResolution(
-      owner: owner.addCombatFlag(
-        CombatRuntimeFlag.item(
-          itemFlag: ItemCombatFlagKind.passCardPendingPayment,
-          itemId: item.id,
-          itemInstanceId: item.instanceId,
-          secondaryValue: cost,
-        ),
-      ),
+    if (!owner.canAfford(cost)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final paidOwner = owner.spendMoneyForItemEffect(cost);
+    return _destroyOwnerBoardWalls(
+      owner: paidOwner,
       opponent: opponent,
+      walls: paidOwner.combatWallSegments,
+      countForOwner: false,
     );
-  }
-
-  @override
-  ItemEffectResolution onTurnStart({
-    required Battler owner,
-    required Battler opponent,
-    required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
-  }) {
-    if (!isOwnerTurn) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final pendingFlag = _itemCombatFlag(
-      item,
-      ItemCombatFlagKind.passCardWallsDisabledNextTurn,
-    );
-    if (!owner.hasCombatFlag(pendingFlag)) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    return ItemEffectResolution(
-      owner: owner.removeCombatFlag(pendingFlag).addCombatFlag(
-            _itemCombatFlag(
-              item,
-              ItemCombatFlagKind.passCardWallsDisabledThisTurn,
-            ),
-          ),
-      opponent: opponent,
-    );
-  }
-
-  @override
-  ItemEffectResolution onTurnEnd({
-    required Battler owner,
-    required Battler opponent,
-    required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
-  }) {
-    if (!isOwnerTurn) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    var updatedOwner = owner.removeItemCombatFlagsFor(
-      item: item,
-      kind: ItemCombatFlagKind.passCardWallsDisabledThisTurn,
-    );
-
-    final pendingPayments = updatedOwner.combatFlags.where((flag) {
-      return flag.itemFlag == ItemCombatFlagKind.passCardPendingPayment &&
-          flag.itemId == item.id &&
-          flag.itemInstanceId == item.instanceId;
-    }).toList(growable: false);
-    if (pendingPayments.isEmpty) {
-      return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
-    }
-
-    updatedOwner = updatedOwner.removeItemCombatFlagsFor(
-      item: item,
-      kind: ItemCombatFlagKind.passCardPendingPayment,
-    );
-    for (final pendingPayment in pendingPayments) {
-      final cost = max(0, pendingPayment.secondaryValue ?? item.value);
-      if (!updatedOwner.canAfford(cost)) continue;
-
-      updatedOwner = updatedOwner.spendMoneyForItemEffect(cost).addCombatFlag(
-            CombatRuntimeFlag.item(
-              itemFlag: ItemCombatFlagKind.passCardWallsDisabledNextTurn,
-              itemId: item.id,
-              itemInstanceId: item.instanceId,
-            ),
-          );
-    }
-
-    return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
   }
 }
 
@@ -761,16 +664,16 @@ class ConstructionSealItemEffect extends ItemEffect {
   const ConstructionSealItemEffect()
       : super(
           description:
-              'Al principio de turno, te curas segun tus BP restantes. Al usarse, destruye una Muralla al final de tu turno.',
+              'Al principio de turno, te curas segun tus BP restantes. Al usarse, destruye una Muralla.',
           hooks: const {
             ItemEffectHook.turnStart,
-            ItemEffectHook.turnEnd,
+            ItemEffectHook.patternUsed,
           },
         );
 
   @override
   String descriptionFor(Item item) {
-    return '+4 BP mientras este equipado. Al principio de turno: te curas ${max(0, item.value)} veces tus BP restantes. Al usarse: al final de tu turno, destruye una Muralla en tu tablero o en el de tu enemigo.';
+    return '+4 BP mientras este equipado. Al principio de turno: te curas ${max(0, item.value)} veces tus BP restantes. Al usarse: destruye una Muralla en tu tablero o en el de tu enemigo.';
   }
 
   @override
@@ -798,17 +701,12 @@ class ConstructionSealItemEffect extends ItemEffect {
   }
 
   @override
-  ItemEffectResolution onTurnEnd({
+  ItemEffectResolution onPatternUsed({
     required Battler owner,
     required Battler opponent,
     required Item item,
-    required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    required BattlePatternMatchContext pattern,
   }) {
-    if (!isOwnerTurn) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
     var updatedOwner = owner;
     var updatedOpponent = opponent;
     final candidates = <({bool ownerBoard, OperativePatternWallSegment wall})>[
@@ -824,14 +722,27 @@ class ConstructionSealItemEffect extends ItemEffect {
       );
     }
 
-    final nextInt = randomizer?.nextInt ?? Random().nextInt;
+    final nextInt = Random().nextInt;
     final selected = candidates[nextInt(candidates.length)];
     if (selected.ownerBoard) {
-      updatedOwner = updatedOwner.destroyCombatWalls([selected.wall]);
+      final resolution = _destroyOwnerBoardWalls(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        walls: [selected.wall],
+        countForOwner: true,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
     } else {
-      updatedOpponent = updatedOpponent.destroyCombatWalls([selected.wall]);
+      final resolution = _destroyOpponentBoardWalls(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        walls: [selected.wall],
+        countForOwner: true,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
     }
-    updatedOwner = updatedOwner.recordDestroyedCombatWalls(1);
 
     return ItemEffectResolution(
       owner: updatedOwner,
@@ -1031,10 +942,40 @@ class CortinaHumoItemEffect extends ItemEffect {
   }
 }
 
-ItemEffectResolution _destroyOpponentWalls({
+ItemEffectResolution _destroyOwnerBoardWalls({
   required Battler owner,
   required Battler opponent,
   required Iterable<OperativePatternWallSegment> walls,
+  bool countForOwner = false,
+}) {
+  final wallsToDestroy = walls.toList(growable: false);
+  if (wallsToDestroy.isEmpty) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  final beforeCount = owner.combatWallSegments.length;
+  var updatedOwner = owner.destroyCombatWalls(wallsToDestroy);
+  final destroyedCount = beforeCount - updatedOwner.combatWallSegments.length;
+  if (destroyedCount <= 0) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
+  updatedOwner =
+      updatedOwner.recordRemovedWallBlockingPointDebt(destroyedCount);
+  if (countForOwner) {
+    updatedOwner = updatedOwner.recordDestroyedCombatWalls(destroyedCount);
+  }
+
+  return ItemEffectResolution(
+    owner: updatedOwner,
+    opponent: opponent,
+  );
+}
+
+ItemEffectResolution _destroyOpponentBoardWalls({
+  required Battler owner,
+  required Battler opponent,
+  required Iterable<OperativePatternWallSegment> walls,
+  bool countForOwner = false,
 }) {
   final wallsToDestroy = walls.toList(growable: false);
   if (wallsToDestroy.isEmpty) {
@@ -1042,11 +983,20 @@ ItemEffectResolution _destroyOpponentWalls({
   }
 
   final beforeCount = opponent.combatWallSegments.length;
-  final updatedOpponent = opponent.destroyCombatWalls(wallsToDestroy);
+  var updatedOpponent = opponent.destroyCombatWalls(wallsToDestroy);
   final destroyedCount =
       beforeCount - updatedOpponent.combatWallSegments.length;
+  if (destroyedCount <= 0) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
+  updatedOpponent =
+      updatedOpponent.recordRemovedWallBlockingPointDebt(destroyedCount);
+  final updatedOwner = countForOwner
+      ? owner.recordDestroyedCombatWalls(destroyedCount)
+      : owner;
+
   return ItemEffectResolution(
-    owner: owner.recordDestroyedCombatWalls(destroyedCount),
+    owner: updatedOwner,
     opponent: updatedOpponent,
   );
 }

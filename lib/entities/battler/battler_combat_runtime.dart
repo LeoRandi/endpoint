@@ -32,6 +32,13 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// BP que siguen consumidos por Murallas destruidas o desactivadas en esta matriz.
+  int get removedWallBlockingPointDebt {
+    return _secondaryValueForBattlerFlag(
+      BattlerCombatFlag.removedWallBlockingPointDebt,
+    );
+  }
+
   /// Bonus plano que las pasivas de Resonancia anaden a su dano propio.
   int get resonanceDamageBonus {
     final ability = abilityById(BattlerAbilityId.masaCritica);
@@ -389,6 +396,18 @@ extension BattlerCombatRuntime on Battler {
 
     return copyWith(
       combatDestroyedWallCount: combatDestroyedWallCount + safeCount,
+    );
+  }
+
+  Battler recordRemovedWallBlockingPointDebt(int wallCount) {
+    final safeWallCount = max(0, wallCount);
+    if (safeWallCount <= 0) return this;
+
+    return addCombatFlag(
+      CombatRuntimeFlag.battler(
+        BattlerCombatFlag.removedWallBlockingPointDebt,
+        secondaryValue: safeWallCount * 3,
+      ),
     );
   }
 

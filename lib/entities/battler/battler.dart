@@ -140,6 +140,7 @@ enum BattlerCombatFlag {
   barrierLostThisHit,
   healthLostThisHit,
   fragilidadTriggeredThisHit,
+  removedWallBlockingPointDebt,
   cortafuegosPortatilBlockedDebuff,
   opresionTacticaTriggeredThisTurn,
   copiaSeguridadUsed,

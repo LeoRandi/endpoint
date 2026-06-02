@@ -699,8 +699,7 @@ const taladronItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueMurallaTags,
   name: 'Taladron',
-  description:
-      'Al usarse: Todas las Murallas atravesadas despues de este punto son destruidas.',
+  description: 'Al usarse: destruye todas las Murallas de tu matriz.',
   iconEmoji: '\u{1FA9B}',
   rarity: RarityTier.green,
   patternBonusAmountOverride: 0,
@@ -722,7 +721,7 @@ const cuboDinamitalicoItem = Item(
   tags: _barreraMurallaTags,
   name: 'Cubo Dinamitalico',
   description:
-      'Al comienzo del combate, destruye cualquier Muralla adyacente a su posicion.',
+      'Al comienzo del combate, destruye cualquier Muralla de tu matriz adyacente a su posicion.',
   iconEmoji: '\u{1F9F1}',
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjBarrier,
@@ -820,7 +819,7 @@ const passCardItem = Item(
   tags: _economiaMurallaTags,
   name: 'Pass-card',
   description:
-      '+1 BP. Al usarse: al final del turno, paga 5 creditos si es posible. Durante tu proximo turno, las Murallas de tu matriz quedan desactivadas.',
+      '+1 BP. Al usarse: paga 5 creditos si es posible para desactivar todas las Murallas de tu matriz hasta el final del combate.',
   iconEmoji: '\u{1F3AB}',
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjBarrier,
@@ -882,7 +881,7 @@ const constructionSealItem = Item(
   tags: _accesorioVidaTags,
   name: 'Construction Seal',
   description:
-      '+4 BP. Al principio de turno: te curas 2 veces tus BP restantes. Al usarse: al final de tu turno, destruye una Muralla en tu tablero o en el de tu enemigo.',
+      '+4 BP. Al principio de turno: te curas 2 veces tus BP restantes. Al usarse: destruye una Muralla en tu tablero o en el de tu enemigo.',
   iconEmoji: '\u{1F3D7}',
   rarity: RarityTier.yellow,
   patternBonusKindOverride: _adjAttack,
