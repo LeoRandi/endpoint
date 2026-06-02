@@ -542,6 +542,14 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           combatAnimationOverlay: _patternCombatAnimationOverlay,
           visualBattlers: _patternVisualBattlers,
           onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
+          onPlayerItemPressed: (item) => _handleOpenEquippedItemDetails(
+            _sceneController.player,
+            item,
+          ),
+          onEnemyItemPressed: (item) => _handleOpenEquippedItemDetails(
+            _sceneController.enemy,
+            item,
+          ),
           onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
             ability,
             canControlOwner: true,
@@ -631,6 +639,14 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           combatAnimationOverlay: _patternCombatAnimationOverlay,
           visualBattlers: _patternVisualBattlers,
           onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
+          onPlayerItemPressed: (item) => _handleOpenEquippedItemDetails(
+            _sceneController.player,
+            item,
+          ),
+          onEnemyItemPressed: (item) => _handleOpenEquippedItemDetails(
+            _sceneController.enemy,
+            item,
+          ),
           onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
             ability,
             canControlOwner: true,
@@ -676,11 +692,10 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final currentWalls = _sceneController.player.combatWallSegments;
     final currentBlockedPointKeys =
         _sceneController.player.combatBlockedPointKeys;
-    final usedBlockingPoints =
-        (currentWalls.length *
-                OperativePatternCombatRules.wallBlockingPointCost) +
-            (currentBlockedPointKeys.length *
-                OperativePatternCombatRules.pointBlockingPointCost);
+    final usedBlockingPoints = (currentWalls.length *
+            OperativePatternCombatRules.wallBlockingPointCost) +
+        (currentBlockedPointKeys.length *
+            OperativePatternCombatRules.pointBlockingPointCost);
     final remainingBlockingPoints = capacity - usedBlockingPoints;
     if (remainingBlockingPoints <= 0) return null;
 

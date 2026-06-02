@@ -230,10 +230,14 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     if (!item.isEquippable) return false;
 
     final itemAtPoint = _itemAssignedToPatternPoint(point);
-    if (itemAtPoint != null) return false;
+    if (_controller.player.equippedItems.contains(item)) {
+      if (itemAtPoint == null || itemAtPoint == item) return true;
+      return _patternAssignments[item] != null;
+    }
+    if (!_controller.player.inventoryItems.contains(item)) return false;
 
-    if (_controller.player.equippedItems.contains(item)) return true;
-    return _controller.isActionEnabled(item);
+    if (itemAtPoint == null) return _controller.isActionEnabled(item);
+    return itemAtPoint != item;
   }
 
   Item? _itemAssignedToPatternPoint(OperativePatternPoint point) {
@@ -246,17 +250,47 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
   void _placePatternItemOnPoint(Item item, OperativePatternPoint point) {
     if (!_canPlaceItemOnPatternPoint(item, point)) return;
 
+    final itemAtPoint = _itemAssignedToPatternPoint(point);
     if (_controller.player.equippedItems.contains(item)) {
+      final currentPoint = _patternAssignments[item];
       setState(() {
         _patternAssignments[item] = point;
+        if (itemAtPoint != null &&
+            currentPoint != null &&
+            itemAtPoint != item) {
+          _patternAssignments[itemAtPoint] = currentPoint;
+        }
       });
-      _controller.replacePlayer(
-        OperativePatternLayoutService.rememberItemPoint(
-          player: _controller.player,
-          item: item,
-          pointKey: point.key,
-        ),
+      var updatedPlayer = _controller.player;
+      if (itemAtPoint != null && currentPoint != null && itemAtPoint != item) {
+        updatedPlayer = OperativePatternLayoutService.rememberItemPoint(
+          player: updatedPlayer,
+          item: itemAtPoint,
+          pointKey: currentPoint.key,
+        );
+      }
+      updatedPlayer = OperativePatternLayoutService.rememberItemPoint(
+        player: updatedPlayer,
+        item: item,
+        pointKey: point.key,
       );
+      _controller.replacePlayer(updatedPlayer);
+      return;
+    }
+
+    if (itemAtPoint != null) {
+      final updatedPlayer = _replaceEquippedItemFromInventory(
+        inventoryItem: item,
+        equippedItem: itemAtPoint,
+        point: point,
+      );
+      if (updatedPlayer == null) return;
+
+      setState(() {
+        _patternAssignments.remove(itemAtPoint);
+        _patternAssignments[item] = point;
+      });
+      _controller.replacePlayer(updatedPlayer);
       return;
     }
 
@@ -272,6 +306,35 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
       _patternAssignments[item] = point;
     });
     _controller.replacePlayer(updatedPlayer);
+  }
+
+  Battler? _replaceEquippedItemFromInventory({
+    required Item inventoryItem,
+    required Item equippedItem,
+    required OperativePatternPoint point,
+  }) {
+    final player = _controller.player;
+    final inventoryIndex = player.inventoryItems.indexOf(inventoryItem);
+    final equippedIndex = player.equippedItems.indexOf(equippedItem);
+    if (inventoryIndex < 0 || equippedIndex < 0) return null;
+
+    final updatedInventoryItems = List<Item>.from(player.inventoryItems);
+    final updatedEquippedItems = List<Item>.from(player.equippedItems);
+    updatedInventoryItems[inventoryIndex] = equippedItem;
+    updatedEquippedItems[equippedIndex] = inventoryItem;
+
+    final withoutDisplacedAssignment = OperativePatternLayoutService.forgetItem(
+      player: player.copyWith(
+        inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+        equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+      ),
+      item: equippedItem,
+    );
+    return OperativePatternLayoutService.rememberItemPoint(
+      player: withoutDisplacedAssignment,
+      item: inventoryItem,
+      pointKey: point.key,
+    );
   }
 
   bool _canUnequipPatternItem(Item item) {

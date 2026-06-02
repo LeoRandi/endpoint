@@ -22,16 +22,6 @@ const _patternSquare = OperativePatternRequirement.exactShape(
     OperativePatternPoint(x: -1, y: -1),
   ],
 );
-const _patternDiamond = OperativePatternRequirement.exactShape(
-  labelOverride: 'Diamante',
-  shapeKind: OperativePatternShapeKind.diamond,
-  shapePoints: <OperativePatternPoint>[
-    OperativePatternPoint(x: 0, y: 1),
-    OperativePatternPoint(x: 1, y: 0),
-    OperativePatternPoint(x: 0, y: -1),
-    OperativePatternPoint(x: -1, y: 0),
-  ],
-);
 const _patternHourglass = OperativePatternRequirement.exactShape(
   labelOverride: 'Reloj arena',
   shapeKind: OperativePatternShapeKind.hourglass,
@@ -1134,7 +1124,7 @@ const bancoAmbulanteItem = Item(
   rarity: RarityTier.yellow,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 5,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
         _adjN, EntityTag.economia, _adjBarrier, 2),
@@ -1925,7 +1915,7 @@ const containmentCoilItem = Item(
   rarity: RarityTier.green,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 2,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
@@ -1965,7 +1955,7 @@ const nucleoPiezoelectricoItem = Item(
   rarity: RarityTier.green,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 2,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   baseCost: 4,
   value: 2,
   upgradeValue: 1,
@@ -2374,7 +2364,7 @@ const phaseVeilItem = Item(
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 3,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
       _adjS,
@@ -2432,7 +2422,7 @@ const contingencySealItem = Item(
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 3,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   baseCost: 6,
   value: 1,
   upgradeValue: 1,
@@ -2609,7 +2599,7 @@ const prismaCircadianoItem = Item(
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
   patternBonusAmountOverride: 4,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(_adjS, EntityTag.arma, _adjAttack, 2),
     OperativePatternAdjacencyBonus.match(
@@ -2743,7 +2733,7 @@ const concussionPrismItem = Item(
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 4,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
         _adjS, EntityTag.barrera, _adjBarrier, 2),
@@ -2917,7 +2907,7 @@ const prismaDeEcoItem = Item(
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
   patternBonusAmountOverride: 4,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(
         _adjN, EntityTag.resonancia, _adjBarrier, 2),
@@ -3165,7 +3155,7 @@ const dawnCharmItem = Item(
   rarity: RarityTier.yellow,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 6,
-  patternRequirementOverride: _patternDiamond,
+  patternRequirementOverride: _patternSquare,
   patternAdjacencyBonuses: [
     OperativePatternAdjacencyBonus.match(_adjE, EntityTag.vida, _adjBarrier, 2),
     OperativePatternAdjacencyBonus.match(

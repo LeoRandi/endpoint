@@ -196,6 +196,8 @@ class BattlePatternMatchOverlay extends StatefulWidget {
   final ValueListenable<Widget?>? combatAnimationOverlay;
   final ValueListenable<BattlePatternVisualBattlers>? visualBattlers;
   final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
+  final Future<void> Function(Item item)? onPlayerItemPressed;
+  final Future<void> Function(Item item)? onEnemyItemPressed;
   final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
   final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
@@ -220,6 +222,8 @@ class BattlePatternMatchOverlay extends StatefulWidget {
     this.combatAnimationOverlay,
     this.visualBattlers,
     this.onAnimationTargetsChanged,
+    this.onPlayerItemPressed,
+    this.onEnemyItemPressed,
     this.onPlayerAbilityPressed,
     this.onEnemyAbilityPressed,
   });
@@ -512,11 +516,10 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       );
 
   int get _enemyBlockingPointsRemaining {
-    final spentBlockingPoints =
-        (_wallSegments.length *
-                OperativePatternCombatRules.wallBlockingPointCost) +
-            (_blockedPointKeys.length *
-                OperativePatternCombatRules.pointBlockingPointCost);
+    final spentBlockingPoints = (_wallSegments.length *
+            OperativePatternCombatRules.wallBlockingPointCost) +
+        (_blockedPointKeys.length *
+            OperativePatternCombatRules.pointBlockingPointCost);
     return max(0, widget.enemyBlockingPoints - spentBlockingPoints);
   }
 
@@ -525,7 +528,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   }
 
   int get _displayedBlockingPoints {
-    return max(0, _availableBlockingPointsAtTurnStart);
+    return _availableBlockingPoints;
   }
 
   int get _effectiveMaxPatternPoints {
@@ -642,24 +645,9 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   void _handlePointLongPressed(OperativePatternPoint point) {
     final item = widget.equippedItemsByPointKey[point.key];
     if (item == null) return;
-    unawaited(_openPointItemDetails(item));
-  }
-
-  Future<void> _openPointItemDetails(Item item) async {
-    await showEndpointDialog<void>(
-      context: context,
-      barrierLabel: 'Detalle de objeto equipado',
-      barrierColor: EndpointPalette.overlayScrim,
-      builder: (context) {
-        return EndpointItemDetailsDialog(
-          item: item,
-          accent: item.rarity.accent,
-          price: item.sellValue,
-          priceLabel: 'VENTA',
-          statusText: 'Estado actual: equipado',
-        );
-      },
-    );
+    final handleItemPressed = widget.onPlayerItemPressed;
+    if (handleItemPressed == null) return;
+    unawaited(handleItemPressed(item));
   }
 
   Future<void> _submit() async {
@@ -778,11 +766,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
         OperativePatternCombatRules.maxPatternPointsFor(
       widget.enemy,
     );
-    final enemyBlockingPoints =
-        (_wallSegments.length *
-                OperativePatternCombatRules.wallBlockingPointCost) +
-            (_blockedPointKeys.length *
-                OperativePatternCombatRules.pointBlockingPointCost);
+    final enemyBlockingPoints = _enemyBlockingPointsRemaining;
     final enemyMaxBlockingPoints = max(widget.enemyBlockingPoints, 0);
 
     return _BattlePatternCombatPage(
@@ -807,6 +791,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
             .toList(growable: false),
         accent: EndpointPalette.dangerAccent,
         alignEnd: true,
+        items: widget.enemy.equippedItems,
+        onItemPressed: widget.onEnemyItemPressed,
         onAbilityPressed: widget.onEnemyAbilityPressed,
       ),
       matrix: _PatternMatrixCard(
@@ -913,6 +899,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
             )
             .toList(growable: false),
         accent: EndpointPalette.patternAccent,
+        items: widget.player.equippedItems,
+        onItemPressed: widget.onPlayerItemPressed,
         onAbilityPressed: widget.onPlayerAbilityPressed,
       ),
       bottom: _PatternVisualBattlerHeader(
@@ -957,6 +945,8 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
   final ValueListenable<Widget?>? combatAnimationOverlay;
   final ValueListenable<BattlePatternVisualBattlers>? visualBattlers;
   final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
+  final Future<void> Function(Item item)? onPlayerItemPressed;
+  final Future<void> Function(Item item)? onEnemyItemPressed;
   final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
   final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
@@ -976,6 +966,8 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
     this.combatAnimationOverlay,
     this.visualBattlers,
     this.onAnimationTargetsChanged,
+    this.onPlayerItemPressed,
+    this.onEnemyItemPressed,
     this.onPlayerAbilityPressed,
     this.onEnemyAbilityPressed,
   });
@@ -1214,6 +1206,14 @@ class _EnemyBattlePatternMatchOverlayState
         if (!widget.equippedItemsByPointKey.containsKey(entry.key))
           entry.key: OperativePatternPointContent(bonus: entry.value),
     };
+  }
+
+  void _handlePointLongPressed(OperativePatternPoint point) {
+    final item = widget.equippedItemsByPointKey[point.key];
+    if (item == null) return;
+    final handleItemPressed = widget.onEnemyItemPressed;
+    if (handleItemPressed == null) return;
+    unawaited(handleItemPressed(item));
   }
 
   void _toggleBlockPlacementMode() {
@@ -1515,10 +1515,8 @@ class _EnemyBattlePatternMatchOverlayState
             maxDistanceFactor: 0.26,
           )
         : null;
-    if (previewPoint != null &&
-        !_blockedPointKeys.contains(previewPoint.key)) {
-      if (_previewBlockedPoint == previewPoint &&
-          _previewWallSegment == null) {
+    if (previewPoint != null && !_blockedPointKeys.contains(previewPoint.key)) {
+      if (_previewBlockedPoint == previewPoint && _previewWallSegment == null) {
         return;
       }
       setState(() {
@@ -1688,9 +1686,11 @@ class _EnemyBattlePatternMatchOverlayState
         if (_isEnemyPatternSegmentBlocked(path.last, path.first)) return;
         final score = path.fold<int>(
           0,
-          (sum, point) => sum + _enemyPointPriority(
-            widget.equippedItemsByPointKey[point.key],
-          ),
+          (sum, point) =>
+              sum +
+              _enemyPointPriority(
+                widget.equippedItemsByPointKey[point.key],
+              ),
         );
         if (score > bestScore) {
           bestScore = score;
@@ -1893,6 +1893,8 @@ class _EnemyBattlePatternMatchOverlayState
             .toList(growable: false),
         accent: EndpointPalette.dangerAccent,
         alignEnd: true,
+        items: widget.enemy.equippedItems,
+        onItemPressed: widget.onEnemyItemPressed,
         onAbilityPressed: widget.onEnemyAbilityPressed,
       ),
       matrix: _PatternMatrixCard(
@@ -1954,8 +1956,7 @@ class _EnemyBattlePatternMatchOverlayState
             _canPlaceSelectedBlockMode ? _handleWallDragStart : null,
         onBlockDragUpdate:
             _canPlaceSelectedBlockMode ? _handleWallDragUpdate : null,
-        onBlockDragEnd:
-            _canPlaceSelectedBlockMode ? _handleWallDragEnd : null,
+        onBlockDragEnd: _canPlaceSelectedBlockMode ? _handleWallDragEnd : null,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -1992,6 +1993,9 @@ class _EnemyBattlePatternMatchOverlayState
                           animatedWallSegmentKeys: animatedWallSegmentKeys,
                           wallAccent: EndpointPalette.patternAccent,
                           accent: EndpointPalette.dangerAccent,
+                          longPressDuration:
+                              operativePatternQuickInspectHoldDuration,
+                          onPointLongPressed: _handlePointLongPressed,
                         ),
                       ),
                     ),
@@ -2011,6 +2015,8 @@ class _EnemyBattlePatternMatchOverlayState
             )
             .toList(growable: false),
         accent: EndpointPalette.patternAccent,
+        items: widget.player.equippedItems,
+        onItemPressed: widget.onPlayerItemPressed,
         onAbilityPressed: widget.onPlayerAbilityPressed,
       ),
       bottom: _PatternVisualBattlerHeader(
@@ -2871,12 +2877,16 @@ class _PatternAugmentStrip extends StatelessWidget {
   final List<BattlerAbility> abilities;
   final Color accent;
   final bool alignEnd;
+  final List<Item> items;
+  final Future<void> Function(Item item)? onItemPressed;
   final ValueChanged<BattlerAbility>? onAbilityPressed;
 
   const _PatternAugmentStrip({
     required this.abilities,
     required this.accent,
     this.alignEnd = false,
+    this.items = const <Item>[],
+    this.onItemPressed,
     this.onAbilityPressed,
   });
 
@@ -2886,36 +2896,276 @@ class _PatternAugmentStrip extends StatelessWidget {
       height: 42,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final row = Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment:
-                alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
-            textDirection: alignEnd ? TextDirection.rtl : TextDirection.ltr,
-            children: [
-              for (var index = 0; index < abilities.length; index++) ...[
-                if (index > 0) const SizedBox(width: 8),
-                _PatternAugmentDot(
-                  ability: abilities[index],
-                  accent: accent,
-                  onPressed: onAbilityPressed,
-                ),
-              ],
-            ],
-          );
-
-          return SingleChildScrollView(
+          final augmentRow = SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             reverse: alignEnd,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: Align(
-                alignment:
-                    alignEnd ? Alignment.centerRight : Alignment.centerLeft,
-                child: row,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment:
+                  alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+              textDirection: alignEnd ? TextDirection.rtl : TextDirection.ltr,
+              children: [
+                for (var index = 0; index < abilities.length; index++) ...[
+                  if (index > 0) const SizedBox(width: 8),
+                  _PatternAugmentDot(
+                    ability: abilities[index],
+                    accent: accent,
+                    onPressed: onAbilityPressed,
+                  ),
+                ],
+              ],
             ),
           );
+          final itemButton = _PatternItemsButton(
+            items: items,
+            accent: accent,
+            alignEnd: alignEnd,
+            onItemPressed: onItemPressed,
+          );
+
+          return Row(
+            children: alignEnd
+                ? <Widget>[
+                    itemButton,
+                    const SizedBox(width: 8),
+                    Expanded(child: augmentRow),
+                  ]
+                : <Widget>[
+                    Expanded(child: augmentRow),
+                    const SizedBox(width: 8),
+                    itemButton,
+                  ],
+          );
         },
+      ),
+    );
+  }
+}
+
+class _PatternItemsButton extends StatelessWidget {
+  final List<Item> items;
+  final Color accent;
+  final bool alignEnd;
+  final Future<void> Function(Item item)? onItemPressed;
+
+  const _PatternItemsButton({
+    required this.items,
+    required this.accent,
+    required this.alignEnd,
+    this.onItemPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Objetos equipados',
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: items.isEmpty ? null : () => _openItemsList(context),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: EndpointPalette.panelBackgroundBattleOpaque,
+              border: Border.all(color: accent.withAlpha(150), width: 2),
+            ),
+            child: SizedBox(
+              width: 38,
+              height: 38,
+              child: Icon(
+                Icons.inventory_2_rounded,
+                color: items.isEmpty
+                    ? EndpointPalette.softForeground.withAlpha(90)
+                    : accent,
+                size: 19,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openItemsList(BuildContext context) async {
+    await showEndpointDialog<void>(
+      context: context,
+      barrierLabel: 'Objetos equipados',
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (dialogContext) {
+        return _PatternItemsDialog(
+          items: items,
+          accent: accent,
+          alignEnd: alignEnd,
+          onItemPressed: onItemPressed,
+        );
+      },
+    );
+  }
+}
+
+class _PatternItemsDialog extends StatelessWidget {
+  final List<Item> items;
+  final Color accent;
+  final bool alignEnd;
+  final Future<void> Function(Item item)? onItemPressed;
+
+  const _PatternItemsDialog({
+    required this.items,
+    required this.accent,
+    required this.alignEnd,
+    this.onItemPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sortedItems = List<Item>.from(items)
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 420, maxHeight: 560),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.panelBackgroundBattleOpaque,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: accent.withAlpha(170), width: 1.4),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withAlpha(38),
+              blurRadius: 24,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment:
+                alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              EndpointText(
+                'Objetos equipados',
+                textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+                style: textSmallBold.copyWith(
+                  color: accent,
+                  fontSize: 16,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: sortedItems.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final item = sortedItems[index];
+                    return _PatternItemListTile(
+                      item: item,
+                      accent: accent,
+                      onPressed: onItemPressed == null
+                          ? null
+                          : () async {
+                              Navigator.of(context).pop();
+                              await onItemPressed!(item);
+                            },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PatternItemListTile extends StatelessWidget {
+  final Item item;
+  final Color accent;
+  final Future<void> Function()? onPressed;
+
+  const _PatternItemListTile({
+    required this.item,
+    required this.accent,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onPressed,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: EndpointPalette.panelBackgroundOpaque.withAlpha(190),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: item.rarity.accent.withAlpha(120)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            child: Row(
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: item.rarity.accent.withAlpha(36),
+                    border:
+                        Border.all(color: item.rarity.accent.withAlpha(150)),
+                  ),
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Center(
+                      child: EndpointText(
+                        item.iconEmoji,
+                        textAlign: TextAlign.center,
+                        style: textSmall.copyWith(fontSize: 15),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EndpointText(
+                        item.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmallBold.copyWith(
+                          color: EndpointPalette.softForeground,
+                          fontSize: 13,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                      EndpointText(
+                        item.rarity.label,
+                        overflow: TextOverflow.ellipsis,
+                        style: textSmall.copyWith(
+                          color: item.rarity.accent,
+                          fontSize: 10,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: accent.withAlpha(190),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -3101,6 +3351,7 @@ class _PatternMatrixCard extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           child: Tooltip(
             message: 'Pattern matrix: connect points to form a match.',
+            triggerMode: TooltipTriggerMode.manual,
             child: child,
           ),
         ),
@@ -3176,9 +3427,10 @@ class _PatternMatrixCard extends StatelessWidget {
             padding: const EdgeInsets.all(6),
             child: _PatternCornerTriangle(
               alignment: Alignment.bottomLeft,
-              color: const Color(0xFF24242A),
-              label: 'Round $round',
-              tooltip: 'Current combat round.',
+              color: _roundCornerColor,
+              label: _roundCornerLabel,
+              tooltip: _roundCornerTooltip,
+              textColor: _roundCornerTextColor,
             ),
           ),
         ),
@@ -3196,6 +3448,40 @@ class _PatternMatrixCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Color get _roundCornerColor {
+    if (round >= 10) return EndpointPalette.dangerAccent;
+    if (round >= 8) return const Color(0xFFFFEA70);
+    return const Color(0xFF24242A);
+  }
+
+  Color get _roundCornerTextColor {
+    if (round >= 8 && round < 10) return Colors.black;
+    return Colors.white;
+  }
+
+  String get _roundCornerLabel {
+    if (round >= 10) return 'Purga ${_purgeDamageForRound(round)}';
+    if (round >= 8) return 'Purga ${10 - round}';
+    return 'Round $round';
+  }
+
+  String get _roundCornerTooltip {
+    if (round >= 10) {
+      return 'Current combat round. Purga damage this round.';
+    }
+    if (round >= 8) {
+      return 'Current combat round. Purga starts after this countdown.';
+    }
+    return 'Current combat round.';
+  }
+
+  int _purgeDamageForRound(int round) {
+    if (round < 10) return 0;
+    final purgeCount = round - 9;
+    if (purgeCount <= 5) return purgeCount * 2;
+    return 10 + ((purgeCount - 5) * 4);
   }
 }
 

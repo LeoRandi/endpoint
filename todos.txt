@@ -104,8 +104,6 @@
 
 ////
 ARREGLAR:
--Diamante and Cuadrado son la misma forma. Cambiar el diamante a una forma con 6 puntos, como un cuadrado en el que dos de los lados se "amplían" hacia fuera para hacer dos ángulos rectos más
--Mover un item en el equipamiento y dejarlo caer sobre otro item debe intercambiar de sitio los items.
 
 
 ////
@@ -113,7 +111,6 @@ PROBAR:
 
 ///
 IDEAS:
--Evento de minijuego, obligatorio para un roguelike
 -mostrar si es habilidad o item en la recompensa(dejar como el resumen?)
 -Al activarse un efecto(hook) de item o habilidad, que haya una animación indicando de donde viene.
 

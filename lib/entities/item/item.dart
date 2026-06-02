@@ -297,17 +297,6 @@ const _patternSquareRequirement = OperativePatternRequirement.exactShape(
   ],
 );
 
-const _patternDiamondRequirement = OperativePatternRequirement.exactShape(
-  labelOverride: 'Diamante',
-  shapeKind: OperativePatternShapeKind.diamond,
-  shapePoints: <OperativePatternPoint>[
-    OperativePatternPoint(x: 0, y: 1),
-    OperativePatternPoint(x: 1, y: 0),
-    OperativePatternPoint(x: 0, y: -1),
-    OperativePatternPoint(x: -1, y: 0),
-  ],
-);
-
 const _patternHourglassRequirement = OperativePatternRequirement.exactShape(
   labelOverride: 'Reloj arena',
   shapeKind: OperativePatternShapeKind.hourglass,
@@ -335,9 +324,9 @@ const _exactPatternRequirementsByItemId = <ItemId, OperativePatternRequirement>{
   ItemId.bateriaCrepuscular: _patternHourglassRequirement,
   ItemId.relojDeTurno: _patternSquareRequirement,
   ItemId.faroNoctivago: _patternZigzagRequirement,
-  ItemId.prismaCircadiano: _patternDiamondRequirement,
+  ItemId.prismaCircadiano: _patternSquareRequirement,
   ItemId.muestrarioContrabando: _patternZigzagRequirement,
-  ItemId.contingencySeal: _patternDiamondRequirement,
+  ItemId.contingencySeal: _patternSquareRequirement,
   ItemId.operativeBlackBox: _patternSquareRequirement,
   ItemId.responseFrame: _patternSquareRequirement,
   ItemId.overloadAnchor: _patternZigzagRequirement,
