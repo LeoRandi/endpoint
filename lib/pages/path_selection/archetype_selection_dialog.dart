@@ -36,8 +36,8 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
     _tutorialShowcase = ShowcaseView.register(
       scope: _tutorialShowcaseScope,
       disableBarrierInteraction: true,
-      disableMovingAnimation: true,
-      disableScaleAnimation: true,
+      disableMovingAnimation: false,
+      disableScaleAnimation: false,
       blurValue: 0,
       skipIfTargetNotPresent: true,
       globalTooltipActionConfig: const TooltipActionConfig(
@@ -324,7 +324,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
       textColor: EndpointPalette.softForeground,
       disableDefaultTargetGestures: true,
       disableBarrierInteraction: true,
-      movingAnimationDuration: Duration.zero,
+      movingAnimationDuration: const Duration(milliseconds: 240),
       child: child,
     );
   }
@@ -376,7 +376,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
       textColor: EndpointPalette.softForeground,
       disableDefaultTargetGestures: false,
       disableBarrierInteraction: true,
-      movingAnimationDuration: Duration.zero,
+      movingAnimationDuration: const Duration(milliseconds: 240),
       onTargetClick: _confirmArchetype,
       disposeOnTap: true,
       tooltipActions: const [],

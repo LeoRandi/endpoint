@@ -51,8 +51,8 @@ class _MainMenuPageState extends State<MainMenuPage>
   ShowcaseView _registerMainMenuShowcase() {
     return ShowcaseView.register(
       disableBarrierInteraction: true,
-      disableMovingAnimation: true,
-      disableScaleAnimation: true,
+      disableMovingAnimation: false,
+      disableScaleAnimation: false,
       blurValue: 0,
       globalTooltipActionConfig: const TooltipActionConfig(
         alignment: MainAxisAlignment.end,
@@ -124,8 +124,8 @@ class _MainMenuPageState extends State<MainMenuPage>
 
   Future<void> _openNewRun() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PathSelectionPage(
+      buildEndpointSceneRoute<void>(
+        PathSelectionPage(
           initialSettings: _settings,
         ),
       ),
@@ -137,8 +137,8 @@ class _MainMenuPageState extends State<MainMenuPage>
 
   Future<void> _openTutorialRun() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PathSelectionPage.tutorial(
+      buildEndpointSceneRoute<void>(
+        PathSelectionPage.tutorial(
           initialSettings: _settings,
         ),
       ),
@@ -175,8 +175,8 @@ class _MainMenuPageState extends State<MainMenuPage>
     if (currentRunSnapshot == null) return;
 
     await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PathSelectionPage.continueRun(
+      buildEndpointSceneRoute<void>(
+        PathSelectionPage.continueRun(
           restoredRun: currentRunSnapshot,
           initialSettings: _settings,
         ),
@@ -480,7 +480,7 @@ class _MainMenuShowcaseStep extends StatelessWidget {
       textColor: EndpointPalette.softForeground,
       disableDefaultTargetGestures: true,
       disableBarrierInteraction: true,
-      movingAnimationDuration: Duration.zero,
+      movingAnimationDuration: const Duration(milliseconds: 240),
       child: child,
     );
   }

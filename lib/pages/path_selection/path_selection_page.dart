@@ -100,8 +100,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       _tutorialShowcase = ShowcaseView.register(
         scope: _pathTutorialShowcaseScope,
         disableBarrierInteraction: true,
-        disableMovingAnimation: true,
-        disableScaleAnimation: true,
+        disableMovingAnimation: false,
+        disableScaleAnimation: false,
         blurValue: 0,
         skipIfTargetNotPresent: true,
         globalTooltipActionConfig: const TooltipActionConfig(
@@ -735,7 +735,7 @@ class _PathShowcaseStep extends StatelessWidget {
       textColor: EndpointPalette.softForeground,
       disableDefaultTargetGestures: !allowTargetInteraction,
       disableBarrierInteraction: true,
-      movingAnimationDuration: Duration.zero,
+      movingAnimationDuration: const Duration(milliseconds: 240),
       onTargetClick: onTargetClick,
       disposeOnTap: onTargetClick == null ? null : true,
       tooltipActions: tooltipActions,

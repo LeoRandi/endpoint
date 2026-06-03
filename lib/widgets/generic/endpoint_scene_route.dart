@@ -11,7 +11,12 @@ Route<T> buildEndpointSceneRoute<T>(Widget page) {
       final curved = CurvedAnimation(
         parent: animation,
         curve: Curves.easeInOutCubic,
+        reverseCurve: Curves.easeInOutCubic,
       );
+      final incomingMotion = Tween<Offset>(
+        begin: const Offset(0, 0.015),
+        end: Offset.zero,
+      ).animate(curved);
       final blackoutOpacity = TweenSequence<double>([
         TweenSequenceItem(
           tween: Tween<double>(begin: 0, end: 1),
@@ -40,9 +45,12 @@ Route<T> buildEndpointSceneRoute<T>(Widget page) {
             opacity: blackoutOpacity,
             child: const ColoredBox(color: Colors.black),
           ),
-          FadeTransition(
-            opacity: childOpacity,
-            child: child,
+          SlideTransition(
+            position: incomingMotion,
+            child: FadeTransition(
+              opacity: childOpacity,
+              child: child,
+            ),
           ),
         ],
       );

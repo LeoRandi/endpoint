@@ -6,7 +6,7 @@ Future<T?> showEndpointOverlay<T>({
   String barrierLabel = 'Cerrar menu',
   bool barrierDismissible = true,
   Color barrierColor = Colors.transparent,
-  Duration transitionDuration = const Duration(milliseconds: 180),
+  Duration transitionDuration = const Duration(milliseconds: 240),
 }) {
   return showEndpointDialog<T>(
     context: context,
