@@ -153,6 +153,10 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
                         ),
                       ),
                     ],
+                    if (widget.item.isGhostly) ...[
+                      const SizedBox(height: 6),
+                      const _GhostItemDetailBadge(),
+                    ],
                   ],
                 ),
               ),
@@ -286,6 +290,42 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
     }
 
     return stat.shortLabel;
+  }
+}
+
+class _GhostItemDetailBadge extends StatelessWidget {
+  const _GhostItemDetailBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message:
+          'Objeto fantasma: debes devolverlo o pagar para fijarlo en la realidad.',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.blend(
+            EndpointPalette.panelBackgroundOpaque,
+            RarityTier.purple.accent,
+            0.2,
+          ),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: RarityTier.purple.accent.withValues(alpha: 0.72),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          child: EndpointText(
+            '\u{1F47B} FANTASMA',
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.soften(RarityTier.purple.accent),
+              fontSize: 9,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

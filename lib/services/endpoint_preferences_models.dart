@@ -4,6 +4,7 @@ import '../entities/_exports.dart';
 import 'run_completion_type.dart';
 import 'run_day_summary.dart';
 import 'run_hour_snapshot.dart';
+import 'ghost_item_lease.dart';
 
 enum EndpointGameMode {
   classic,
@@ -161,6 +162,7 @@ class EndpointCurrentRunSnapshot {
   final List<String> shownShopNodeIds;
   final int shopRarityDayOffset;
   final int eventRarityDayOffset;
+  final GhostItemLease? ghostItemLease;
   final PathNode? activeNode;
 
   const EndpointCurrentRunSnapshot({
@@ -182,6 +184,7 @@ class EndpointCurrentRunSnapshot {
     this.shownShopNodeIds = const <String>[],
     this.shopRarityDayOffset = 0,
     this.eventRarityDayOffset = 0,
+    this.ghostItemLease,
     this.activeNode,
   });
 
@@ -193,5 +196,7 @@ class EndpointCurrentRunSnapshot {
   bool get canContinue =>
       !isRunComplete &&
       completionType == null &&
-      (visibleNodes.isNotEmpty || pendingDaySummary != null);
+      (visibleNodes.isNotEmpty ||
+          pendingDaySummary != null ||
+          ghostItemLease != null);
 }

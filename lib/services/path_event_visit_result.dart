@@ -11,6 +11,7 @@ class PathEventVisitResult {
   final bool defeatedEnemy;
   final Battler? defeatedEnemyBattler;
   final RarityTier? defeatedEnemyRarity;
+  final GhostItemLease? ghostItemLease;
 
   const PathEventVisitResult({
     required this.player,
@@ -23,5 +24,6 @@ class PathEventVisitResult {
     this.defeatedEnemy = false,
     this.defeatedEnemyBattler,
     this.defeatedEnemyRarity,
+    this.ghostItemLease,
   });
 }

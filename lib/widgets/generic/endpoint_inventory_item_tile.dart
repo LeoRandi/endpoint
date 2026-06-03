@@ -62,6 +62,12 @@ class EndpointInventoryItemTile extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (item.isGhostly)
+                        const Positioned(
+                          top: 2,
+                          right: 2,
+                          child: _GhostItemBadge(compact: true),
+                        ),
                     ],
                   ),
                 ),
@@ -80,6 +86,51 @@ class EndpointInventoryItemTile extends StatelessWidget {
                   EndpointItemPatternBadges(item: item),
                 ],
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GhostItemBadge extends StatelessWidget {
+  final bool compact;
+
+  const _GhostItemBadge({
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Objeto fantasma: prestado por la Tintoreria Fantasma',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.panelBackgroundBattleOpaque,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: RarityTier.purple.accent.withValues(alpha: 0.78),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: RarityTier.purple.accent.withValues(alpha: 0.18),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 4 : 6,
+            vertical: compact ? 2 : 3,
+          ),
+          child: EndpointText(
+            compact ? '\u{1F47B}' : '\u{1F47B} FANTASMA',
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.soften(RarityTier.purple.accent),
+              fontSize: compact ? 10 : 9,
+              letterSpacing: compact ? 0 : 0.8,
+              height: 1,
             ),
           ),
         ),

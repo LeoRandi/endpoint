@@ -13,6 +13,7 @@ import 'sobre_kar_event_page.dart';
 import 'su_basta_ya_event_page.dart';
 import 'technosurgeon_event_page.dart';
 import 'tempografo_event_page.dart';
+import 'tintoreria_fantasma_event_page.dart';
 
 typedef PathEventPageBuilder = Widget Function({
   required Battler player,
@@ -45,6 +46,7 @@ final pathEventPageBuilderById =
   PathEventId.tempografo: _buildTempografoEventPage,
   PathEventId.sWitchCabin: _buildSWitchCabinEventPage,
   PathEventId.hackathonBooth: _buildHackathonBoothEventPage,
+  PathEventId.tintoreriaFantasma: _buildTintoreriaFantasmaEventPage,
 });
 
 Widget buildPathEventPage({
@@ -228,5 +230,21 @@ Widget _buildHackathonBoothEventPage({
     node: node,
     randomizer: randomizer,
     eventService: eventService,
+  );
+}
+
+Widget _buildTintoreriaFantasmaEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+  required int dayNumber,
+}) {
+  return TintoreriaFantasmaEventPage(
+    player: player,
+    node: node,
+    randomizer: randomizer,
+    eventService: eventService,
+    dayNumber: dayNumber,
   );
 }

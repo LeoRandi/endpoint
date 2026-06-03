@@ -11,6 +11,7 @@ export 'camp_site_service.dart';
 export 'codex_discovery_service.dart';
 export 'endpoint_preferences_models.dart';
 export 'endpoint_preferences_service.dart';
+export 'ghost_item_lease.dart';
 export 'level_up_reward_service.dart';
 export 'operative_pattern_adjacency_service.dart';
 export 'operative_pattern_bonus_service.dart';

@@ -421,6 +421,7 @@ class Item {
   final int? patternBonusAmountOverride;
   final OperativePatternRequirement? patternRequirementOverride;
   final bool hasPatternAura;
+  final bool isGhostly;
   final int combatItemBonusBoost;
   final bool combatGeneratedPatternBonus;
   final List<OperativePatternAdjacencyBonus> patternAdjacencyBonuses;
@@ -448,6 +449,7 @@ class Item {
     this.patternBonusAmountOverride,
     this.patternRequirementOverride,
     this.hasPatternAura = false,
+    this.isGhostly = false,
     this.combatItemBonusBoost = 0,
     this.combatGeneratedPatternBonus = false,
     this.patternAdjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
@@ -682,6 +684,7 @@ class Item {
       clearPatternRequirementOverride:
           upgradeTemplate.patternRequirementOverride == null,
       hasPatternAura: false,
+      isGhostly: isGhostly,
       combatItemBonusBoost: 0,
       combatGeneratedPatternBonus: false,
       patternAdjacencyBonuses: updatedAdjacencyBonuses,
@@ -714,6 +717,7 @@ class Item {
     OperativePatternRequirement? patternRequirementOverride,
     bool clearPatternRequirementOverride = false,
     bool? hasPatternAura,
+    bool? isGhostly,
     int? combatItemBonusBoost,
     bool? combatGeneratedPatternBonus,
     List<OperativePatternAdjacencyBonus>? patternAdjacencyBonuses,
@@ -747,6 +751,7 @@ class Item {
           ? null
           : patternRequirementOverride ?? this.patternRequirementOverride,
       hasPatternAura: hasPatternAura ?? this.hasPatternAura,
+      isGhostly: isGhostly ?? this.isGhostly,
       combatItemBonusBoost:
           max(0, combatItemBonusBoost ?? this.combatItemBonusBoost),
       combatGeneratedPatternBonus:
@@ -781,6 +786,7 @@ class Item {
       patternBonusKindOverride: patternBonusKindOverride,
       patternBonusAmountOverride: patternBonusAmountOverride,
       patternRequirementOverride: patternRequirementOverride,
+      isGhostly: isGhostly,
       patternAdjacencyBonuses: patternAdjacencyBonuses,
     );
   }

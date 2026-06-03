@@ -56,6 +56,7 @@ class RunSessionController extends ChangeNotifier {
             shownShopNodeIds: snapshot.shownShopNodeIds,
             shopRarityDayOffset: snapshot.shopRarityDayOffset,
             eventRarityDayOffset: snapshot.eventRarityDayOffset,
+            ghostItemLease: snapshot.ghostItemLease,
             isRunComplete: snapshot.isRunComplete,
             completionType: snapshot.completionType,
           ),
@@ -128,6 +129,11 @@ class RunSessionController extends ChangeNotifier {
   RunDaySummary get runSummary => _state.runSummary;
   RunDaySummary? get pendingDaySummary => _state.pendingDaySummary;
   bool get hasPendingDaySummary => _state.pendingDaySummary != null;
+  GhostItemLease? get ghostItemLease => _state.ghostItemLease;
+  bool get hasPendingGhostItemResolution =>
+      _state.ghostItemLease?.isDue == true &&
+      _ghostLeasedItem(_state.player) != null;
+  Item? get pendingGhostItem => _ghostLeasedItem(_state.player);
 
   /// Actualiza el jugador fuera de una escena y corta la run al instante si ya no sigue vivo.
   void updatePlayer(Battler player) {
@@ -232,6 +238,7 @@ class RunSessionController extends ChangeNotifier {
     required PathNode node,
   }) {
     if (_state.pendingDaySummary != null) return false;
+    if (hasPendingGhostItemResolution) return false;
     if (_isResolvingNode) return false;
     _activeNode = node;
     _isResolvingNode = true;
@@ -359,19 +366,23 @@ class RunSessionController extends ChangeNotifier {
     required BattleFlowResult result,
     required CombatPathNode node,
   }) {
-    final updatedPlayer = result.type == BattleFlowResultType.victory
+    var updatedPlayer = result.type == BattleFlowResultType.victory
         ? _applyEncounterExperience(
             player: result.player,
             node: node,
             isDailyBoss: PathNodeService.isDailyBossStage(_state.stageIndex),
           )
         : result.player;
+    final updatedGhostLease = result.type == BattleFlowResultType.victory
+        ? _advanceGhostItemLeaseAfterCombat(updatedPlayer)
+        : _state.ghostItemLease;
     _completeScene(
       updatedPlayer: updatedPlayer,
       forcedCompletionType: _completionTypeForBattleResult(result.type),
       defeatedEnemy: result.type == BattleFlowResultType.victory,
       defeatedEnemyBattler: node.enemy,
       defeatedEnemyRarity: node.tier.rarity,
+      ghostItemLease: updatedGhostLease,
     );
   }
 
@@ -388,7 +399,40 @@ class RunSessionController extends ChangeNotifier {
       defeatedEnemy: result.defeatedEnemy,
       defeatedEnemyBattler: result.defeatedEnemyBattler,
       defeatedEnemyRarity: result.defeatedEnemyRarity,
+      ghostItemLease: result.ghostItemLease,
     );
+  }
+
+  void resolveGhostItemLease({
+    required bool keepItem,
+  }) {
+    final lease = _state.ghostItemLease;
+    if (lease == null) return;
+
+    final ghostItem = _ghostLeasedItem(_state.player);
+    if (ghostItem == null) {
+      _state = _state.copyWith(ghostItemLease: null);
+      notifyListeners();
+      unawaited(_persistCurrentRun(trigger: 'ghostItemLeaseMissing'));
+      return;
+    }
+
+    final price = PathEventService().tintoreriaFantasmaPriceFor(ghostItem);
+    final updatedPlayer = keepItem && _state.player.canAfford(price)
+        ? _state.player
+            .spendMoney(price)
+            .replaceOwnedItem(
+              currentItem: ghostItem,
+              replacementItem: ghostItem.copyWith(isGhostly: false),
+            )
+        : _state.player.removeItem(ghostItem);
+
+    _state = _state.copyWith(
+      player: updatedPlayer,
+      ghostItemLease: null,
+    );
+    notifyListeners();
+    unawaited(_persistCurrentRun(trigger: 'ghostItemLeaseResolved'));
   }
 
   void completeArchetypeSelection(Battler player) {
@@ -411,6 +455,7 @@ class RunSessionController extends ChangeNotifier {
     bool defeatedEnemy = false,
     Battler? defeatedEnemyBattler,
     RarityTier? defeatedEnemyRarity,
+    GhostItemLease? ghostItemLease,
     bool includeSceneRewardsInDaySummary = true,
   }) {
     final resolvedCompletionType = forcedCompletionType ??
@@ -446,6 +491,7 @@ class RunSessionController extends ChangeNotifier {
         isRunComplete: true,
         completionType: resolvedCompletionType,
         pendingDaySummary: null,
+        ghostItemLease: null,
         shopRarityDayOffset: 0,
         eventRarityDayOffset: 0,
       );
@@ -466,6 +512,7 @@ class RunSessionController extends ChangeNotifier {
         pendingDaySummary: null,
         isRunComplete: true,
         completionType: RunCompletionType.victory,
+        ghostItemLease: null,
         shopRarityDayOffset: 0,
         eventRarityDayOffset: 0,
       );
@@ -483,6 +530,7 @@ class RunSessionController extends ChangeNotifier {
         currentDaySummary: updatedDaySummary,
         pendingDaySummary: updatedDaySummary,
         visibleNodes: const <PathNode>[],
+        ghostItemLease: ghostItemLease ?? _state.ghostItemLease,
         shopRarityDayOffset: 0,
         eventRarityDayOffset: 0,
       );
@@ -527,11 +575,29 @@ class RunSessionController extends ChangeNotifier {
       shownShopNodeIds: nextRunStep.shownShopNodeIds,
       shopRarityDayOffset: activeShopRarityDayOffset,
       eventRarityDayOffset: activeEventRarityDayOffset,
+      ghostItemLease: ghostItemLease ?? _state.ghostItemLease,
     );
     _isResolvingNode = false;
     _activeNode = null;
     notifyListeners();
     unawaited(_persistCurrentRun(trigger: 'exitNode'));
+  }
+
+  GhostItemLease? _advanceGhostItemLeaseAfterCombat(Battler player) {
+    final lease = _state.ghostItemLease;
+    if (lease == null) return null;
+    if (_ghostLeasedItem(player) == null) return null;
+
+    return lease.afterCombat();
+  }
+
+  Item? _ghostLeasedItem(Battler player) {
+    final lease = _state.ghostItemLease;
+    if (lease == null) return null;
+
+    final item = player.ownedItemByInstanceId(lease.itemInstanceId);
+    if (item == null || !item.isGhostly) return null;
+    return item;
   }
 
   bool _shouldRecordCurrentStageInDaySummary(bool includeSceneRewards) {

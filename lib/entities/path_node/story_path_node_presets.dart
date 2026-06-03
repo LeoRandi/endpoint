@@ -910,6 +910,27 @@ final hackathonBoothNode = EventPathNode(
   ],
 );
 
+final tintoreriaFantasmaNode = EventPathNode(
+  id: PathEventId.tintoreriaFantasma,
+  nodeId: 'event_tintoreria_fantasma',
+  label: 'Tintoreria Fantasma',
+  tooltip: 'Toma un objeto prestado de rareza adelantada durante dos combates',
+  iconEmoji: '\u{1F9FA}',
+  rarity: RarityTier.purple,
+  accent: RarityTier.purple.accent,
+  badgeLabel: 'FANTASMA',
+  showTitle: 'Has entrado en la Tintoreria Fantasma',
+  eventTitle: 'TINTORERIA FANTASMA',
+  description:
+      'Elige un objeto de rareza adelantada. Lo llevaras durante dos combates; despues tendras que devolverlo al tecno-eter o pagar para fijarlo en la realidad.',
+  outcomeText: 'Elige una prenda prestada.',
+  flavorTexts: [
+    'Sin darte cuenta has entrado en una tintoreria de las de antano. Una bruma te rodea y, aunque no ves bien su cara, un ser te atiende desde la barra.',
+    '<Oh, si, llevate algo prestado. Su verdadero dueno no volvera de todos modos...>',
+  ],
+  flavorEmoji: '\u{1F9FA}',
+);
+
 /// Tienda morada nocturna centrada en armas mas agresivas.
 final afterHoursArsenalNode = ShopPathNode(
   nodeId: 'shop_after_hours_arsenal',
@@ -1179,6 +1200,7 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
   tempografoNode,
   sWitchCabinNode,
   hackathonBoothNode,
+  tintoreriaFantasmaNode,
 ]);
 
 /// Tiendas posibles durante el tramo nocturno.
@@ -1218,6 +1240,7 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
   tempografoNode,
   sWitchCabinNode,
   hackathonBoothNode,
+  tintoreriaFantasmaNode,
 ]);
 
 /// Combates raros que pueden colarse de dia como amenaza extra.

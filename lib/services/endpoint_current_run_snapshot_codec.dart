@@ -9,6 +9,7 @@ import 'path_node_service.dart';
 import 'run_completion_type.dart';
 import 'run_day_summary.dart';
 import 'run_hour_snapshot.dart';
+import 'ghost_item_lease.dart';
 import 'run_randomizer.dart';
 import 'run_state.dart';
 
@@ -44,6 +45,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
         'shownShopNodeIds': state.shownShopNodeIds,
         'shopRarityDayOffset': state.shopRarityDayOffset,
         'eventRarityDayOffset': state.eventRarityDayOffset,
+        'ghostItemLease': state.ghostItemLease?.toJson(),
         'currentHour': <String, Object?>{
           'stageIndex': state.currentHour.stageIndex,
           'phase': state.currentHour.phase.name,
@@ -194,6 +196,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
         runJson['eventRarityDayOffset'],
         fallback: 0,
       ),
+      ghostItemLease: GhostItemLease.fromJson(runJson['ghostItemLease']),
       activeNode: activeNode,
     );
   }

@@ -109,6 +109,10 @@ final pathEventDefinitionById =
     canAppear: _canAppearAlways,
     visit: _visitDefaultPathEvent,
   ),
+  PathEventId.tintoreriaFantasma: const PathEventDefinition(
+    canAppear: _canAppearForTintoreriaFantasma,
+    visit: _visitDefaultPathEvent,
+  ),
 });
 
 enum SuBastaYaStatReward {
@@ -789,6 +793,82 @@ class PathEventService {
           : updatedPlayer.inventoryItemOfType(item.id) ??
               updatedPlayer.equippedItemOfType(item.id) ??
               item,
+    );
+  }
+
+  List<Item> buildTintoreriaFantasmaOffers({
+    required Battler player,
+    required RunRandomizer randomizer,
+    required int dayNumber,
+    int count = 3,
+  }) {
+    if (count <= 0) return const <Item>[];
+
+    final pool = itemPoolForArchetype(player.archetypeId);
+    if (pool.isEmpty) return const <Item>[];
+
+    final targetRarity = _rollEventItemRarityForDay(
+      randomizer: randomizer,
+      dayNumber: dayNumber + 1,
+    );
+    final selectedItems = <Item>[];
+    final selectedItemIds = <ItemId>{};
+    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+      final candidates = pool
+          .where(
+            (item) =>
+                item.rarity == rarity && !selectedItemIds.contains(item.id),
+          )
+          .toList(growable: false);
+      if (candidates.isEmpty) continue;
+
+      final pickedItems = randomizer.pickDistinct(
+        candidates,
+        min(count - selectedItems.length, candidates.length),
+      );
+      selectedItems.addAll(pickedItems);
+      selectedItemIds.addAll(pickedItems.map((item) => item.id));
+      if (selectedItems.length >= count) {
+        return List<Item>.unmodifiable(
+          selectedItems.take(count),
+        );
+      }
+    }
+
+    return List<Item>.unmodifiable(selectedItems);
+  }
+
+  int tintoreriaFantasmaPriceFor(Item item) {
+    return max(item.cost, item.rarity.factor * 5);
+  }
+
+  PathEventVisitResult resolveTintoreriaFantasmaBorrow({
+    required Battler player,
+    required Item selectedItem,
+  }) {
+    if (!player.hasInventorySpace) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'No tienes espacio para llevarte una prenda prestada.',
+      );
+    }
+
+    final ghostItem = selectedItem.copyWith(isGhostly: true).toOwnedInstance();
+    final updatedPlayer = player.addItemAsNewInstance(ghostItem);
+    final resolvedItem = updatedPlayer.inventoryItems.lastWhere(
+      (item) => item.instanceId == ghostItem.instanceId,
+      orElse: () => ghostItem,
+    );
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Te llevas ${resolvedItem.displayName}. La bruma promete volver a reclamarlo tras dos combates.',
+      gainedItem: resolvedItem,
+      ghostItemLease: GhostItemLease(
+        itemInstanceId: resolvedItem.instanceId ?? ghostItem.instanceId!,
+        combatsRemaining: 2,
+      ),
     );
   }
 
@@ -1568,6 +1648,49 @@ class PathEventService {
     return weights.keys.last;
   }
 
+  RarityTier _rollEventItemRarityForDay({
+    required RunRandomizer randomizer,
+    required int dayNumber,
+  }) {
+    final weights = switch (dayNumber) {
+      1 => const {
+          RarityTier.gray: 1.00,
+          RarityTier.green: 0.42,
+          RarityTier.blue: 0.08,
+        },
+      2 => const {
+          RarityTier.gray: 0.46,
+          RarityTier.green: 0.86,
+          RarityTier.blue: 0.22,
+          RarityTier.purple: 0.04,
+        },
+      3 => const {
+          RarityTier.green: 0.62,
+          RarityTier.blue: 0.68,
+          RarityTier.purple: 0.18,
+        },
+      4 => const {
+          RarityTier.green: 0.22,
+          RarityTier.blue: 0.62,
+          RarityTier.purple: 0.42,
+          RarityTier.yellow: 0.08,
+        },
+      _ => const {
+          RarityTier.blue: 0.36,
+          RarityTier.purple: 0.70,
+          RarityTier.yellow: 0.18,
+        },
+    };
+    final totalWeight =
+        weights.values.fold<double>(0, (sum, value) => sum + value);
+    var roll = randomizer.nextDouble() * totalWeight;
+    for (final entry in weights.entries) {
+      roll -= entry.value;
+      if (roll <= 0) return entry.key;
+    }
+    return weights.keys.last;
+  }
+
   List<RarityTier> _rarityFallbacksFrom(RarityTier targetRarity) {
     return List<RarityTier>.unmodifiable(
       RarityTier.values
@@ -1694,6 +1817,17 @@ bool _canAppearForBlackTechnoMarket(
     final ownedAbility = player.abilityById(ability.id);
     return ownedAbility == null || ownedAbility.canUpgrade;
   });
+}
+
+bool _canAppearForTintoreriaFantasma(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) return itemPresets.isNotEmpty;
+  if (!player.hasInventorySpace) return false;
+
+  return itemPoolForArchetype(player.archetypeId).isNotEmpty;
 }
 
 bool _canAppearForPasadizoSecreto(

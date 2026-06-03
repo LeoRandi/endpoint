@@ -23,6 +23,7 @@ enum PathEventId {
   tempografo,
   sWitchCabin,
   hackathonBooth,
+  tintoreriaFantasma,
 }
 
 /// Define un nodo de evento con su contenido base y el id que resuelve su efecto.

@@ -10,3 +10,4 @@ export "sobre_kar_event_page.dart";
 export "su_basta_ya_event_page.dart";
 export "technosurgeon_event_page.dart";
 export "tempografo_event_page.dart";
+export "tintoreria_fantasma_event_page.dart";

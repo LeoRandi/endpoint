@@ -2,6 +2,7 @@ import '../entities/_exports.dart';
 import 'run_completion_type.dart';
 import 'run_day_summary.dart';
 import 'run_hour_snapshot.dart';
+import 'ghost_item_lease.dart';
 
 const _copySentinel = Object();
 
@@ -18,6 +19,7 @@ class RunState {
   final List<String> shownShopNodeIds;
   final int shopRarityDayOffset;
   final int eventRarityDayOffset;
+  final GhostItemLease? ghostItemLease;
   final bool isRunComplete;
   final RunCompletionType? completionType;
 
@@ -34,6 +36,7 @@ class RunState {
     this.shownShopNodeIds = const <String>[],
     this.shopRarityDayOffset = 0,
     this.eventRarityDayOffset = 0,
+    this.ghostItemLease,
     this.isRunComplete = false,
     this.completionType,
   });
@@ -51,6 +54,7 @@ class RunState {
     List<String>? shownShopNodeIds,
     int? shopRarityDayOffset,
     int? eventRarityDayOffset,
+    Object? ghostItemLease = _copySentinel,
     bool? isRunComplete,
     RunCompletionType? completionType,
     bool clearCompletionType = false,
@@ -72,6 +76,9 @@ class RunState {
           shopRarityDayOffset ?? this.shopRarityDayOffset,
       eventRarityDayOffset:
           eventRarityDayOffset ?? this.eventRarityDayOffset,
+      ghostItemLease: identical(ghostItemLease, _copySentinel)
+          ? this.ghostItemLease
+          : ghostItemLease as GhostItemLease?,
       isRunComplete: isRunComplete ?? this.isRunComplete,
       completionType:
           clearCompletionType ? null : completionType ?? this.completionType,

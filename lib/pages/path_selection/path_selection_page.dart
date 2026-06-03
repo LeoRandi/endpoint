@@ -73,6 +73,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
   ShowcaseView? _tutorialShowcase;
   bool _isPresentingRunOutcome = false;
   bool _isPresentingDaySummary = false;
+  bool _isPresentingGhostItemResolution = false;
   bool _didResumeSavedNode = false;
   bool _didStartOpeningTutorial = false;
 
@@ -137,6 +138,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       });
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_maybePresentGhostItemResolution());
       unawaited(_maybePresentDaySummary());
     });
   }
@@ -173,7 +175,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
   Future<void> _handleOpenAbilities() async {
     if (_sessionController.isRunComplete ||
-        _sessionController.hasPendingDaySummary) {
+        _sessionController.hasPendingDaySummary ||
+        _sessionController.hasPendingGhostItemResolution) {
       return;
     }
 
@@ -190,6 +193,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
     if (!mounted) return;
 
+    await _maybePresentGhostItemResolution();
     await _maybePresentDaySummary();
     await _maybePresentRunOutcome();
   }
@@ -207,7 +211,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
   Future<void> _handleOpenOperatives() async {
     if (_sessionController.isRunComplete ||
-        _sessionController.hasPendingDaySummary) {
+        _sessionController.hasPendingDaySummary ||
+        _sessionController.hasPendingGhostItemResolution) {
       return;
     }
 
@@ -222,12 +227,17 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     );
     if (!mounted) return;
 
+    await _maybePresentGhostItemResolution();
     await _maybePresentDaySummary();
     await _maybePresentRunOutcome();
   }
 
   Future<void> _handleNodePressed(PathNode node) async {
     if (_sessionController.hasPendingDaySummary) return;
+    if (_sessionController.hasPendingGhostItemResolution) {
+      await _maybePresentGhostItemResolution();
+      return;
+    }
     if (!_sessionController.beginNodeResolution(node: node)) return;
     await _openNode(node);
   }
@@ -285,12 +295,14 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       await _maybePresentRunOutcome();
       return;
     }
+    await _maybePresentGhostItemResolution();
     await _maybePresentDaySummary();
   }
 
   Future<void> _handleOpenLevelUp() async {
     if (_sessionController.isRunComplete ||
         _sessionController.hasPendingDaySummary ||
+        _sessionController.hasPendingGhostItemResolution ||
         !_sessionController.player.canLevelUp) {
       return;
     }
@@ -315,7 +327,37 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     _sessionController.updatePlayerWithRewards(
       player.applyLevelReward(reward),
     );
+    await _maybePresentGhostItemResolution();
     await _maybePresentDaySummary();
+  }
+
+  Future<void> _maybePresentGhostItemResolution() async {
+    if (!mounted ||
+        _isPresentingGhostItemResolution ||
+        _sessionController.isRunComplete ||
+        _sessionController.hasPendingDaySummary ||
+        !_sessionController.hasPendingGhostItemResolution) {
+      return;
+    }
+
+    final item = _sessionController.pendingGhostItem;
+    if (item == null) return;
+
+    _isPresentingGhostItemResolution = true;
+    final price = const PathEventService().tintoreriaFantasmaPriceFor(item);
+    final keepItem = await Navigator.of(context).push<bool>(
+      buildEndpointSceneRoute<bool>(
+        GhostItemResolutionPage(
+          player: _sessionController.player,
+          item: item,
+          price: price,
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    _sessionController.resolveGhostItemLease(keepItem: keepItem == true);
+    _isPresentingGhostItemResolution = false;
   }
 
   Future<void> _maybePresentDaySummary() async {
@@ -344,6 +386,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
       _sessionController.continueToNextDay();
     }
     _isPresentingDaySummary = false;
+    await _maybePresentGhostItemResolution();
   }
 
   /// Presenta la pantalla final cuando la run ya se ha cerrado por victoria, derrota o retirada.
@@ -396,13 +439,16 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             final hasEndedRun = _sessionController.isRunComplete;
             final hasPendingDaySummary =
                 _sessionController.hasPendingDaySummary;
+            final hasPendingGhostItemResolution =
+                _sessionController.hasPendingGhostItemResolution;
             final isDailyBossStage = PathNodeService.isDailyBossStage(
               currentHour.stageIndex,
             );
             final canOpenLevelUp = player.canLevelUp &&
                 !isOpeningNode &&
                 !hasEndedRun &&
-                !hasPendingDaySummary;
+                !hasPendingDaySummary &&
+                !hasPendingGhostItemResolution;
             final tutorialKeys = widget.isTutorialRun ? _tutorialKeys : null;
             Widget pathHeader = _PathHeader(currentHour: currentHour);
             if (tutorialKeys != null) {
@@ -481,7 +527,8 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                                   isDailyBossStage,
                                               onPressed: isOpeningNode ||
                                                       hasEndedRun ||
-                                                      hasPendingDaySummary
+                                                      hasPendingDaySummary ||
+                                                      hasPendingGhostItemResolution
                                                   ? null
                                                   : () => _handleNodePressed(
                                                         nodes[index],

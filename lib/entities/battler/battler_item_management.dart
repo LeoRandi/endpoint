@@ -93,6 +93,56 @@ extension BattlerItemManagement on Battler {
     );
   }
 
+  /// Anade un item como copia nueva, sin fusionarlo con una copia existente.
+  Battler addItemAsNewInstance(Item item) {
+    if (!hasInventorySpace) return this;
+    if (!CodexDiscoveryHook.isSuppressed) {
+      CodexDiscoveryHook.onItemAdded?.call(item.id);
+    }
+
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable([
+        ...inventoryItems,
+        item.toOwnedInstance(),
+      ]),
+    );
+  }
+
+  /// Busca una copia poseida por id de instancia, equipada o en inventario.
+  Item? ownedItemByInstanceId(String instanceId) {
+    for (final item in equippedItems) {
+      if (item.instanceId == instanceId) return item;
+    }
+    for (final item in inventoryItems) {
+      if (item.instanceId == instanceId) return item;
+    }
+    return null;
+  }
+
+  /// Sustituye una copia poseida por otra conservando su ubicacion.
+  Battler replaceOwnedItem({
+    required Item currentItem,
+    required Item replacementItem,
+  }) {
+    final equippedIndex = equippedItems.indexOf(currentItem);
+    if (equippedIndex >= 0) {
+      final updatedEquippedItems = List<Item>.from(equippedItems);
+      updatedEquippedItems[equippedIndex] = replacementItem;
+      return copyWith(
+        equippedItems: List<Item>.unmodifiable(updatedEquippedItems),
+      );
+    }
+
+    final inventoryIndex = inventoryItems.indexOf(currentItem);
+    if (inventoryIndex < 0) return this;
+
+    final updatedInventoryItems = List<Item>.from(inventoryItems);
+    updatedInventoryItems[inventoryIndex] = replacementItem;
+    return copyWith(
+      inventoryItems: List<Item>.unmodifiable(updatedInventoryItems),
+    );
+  }
+
   /// Anade un item nuevo, usando equipo libre si no queda inventario.
   Battler addItemToInventoryOrEquipment(Item item) {
     if (canReceiveItem(item)) return addItem(item);

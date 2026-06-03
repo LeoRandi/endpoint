@@ -205,14 +205,25 @@ class _EndpointEquippedItemCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: Center(
-              child: EndpointText(
-                item.iconEmoji,
-                style: TextStyle(
-                  fontSize: emojiSize,
-                  height: 1,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Center(
+                  child: EndpointText(
+                    item.iconEmoji,
+                    style: TextStyle(
+                      fontSize: emojiSize,
+                      height: 1,
+                    ),
+                  ),
                 ),
-              ),
+                if (item.isGhostly)
+                  const Positioned(
+                    top: 0,
+                    right: 0,
+                    child: _EquippedGhostBadge(),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 4),
@@ -252,6 +263,37 @@ class _EndpointEquippedItemCard extends StatelessWidget {
                 ),
               ),
             ),
+    );
+  }
+}
+
+class _EquippedGhostBadge extends StatelessWidget {
+  const _EquippedGhostBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Objeto fantasma: prestado por la Tintoreria Fantasma',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.panelBackgroundBattleOpaque,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: RarityTier.purple.accent.withValues(alpha: 0.78),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: EndpointText(
+            '\u{1F47B}',
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.soften(RarityTier.purple.accent),
+              fontSize: 10,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

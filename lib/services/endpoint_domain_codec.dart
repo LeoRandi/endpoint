@@ -369,6 +369,10 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['hasPatternAura'],
       fallback: preset.hasPatternAura,
     ),
+    isGhostly: EndpointJsonUtils.readBool(
+      json['isGhostly'],
+      fallback: preset.isGhostly,
+    ),
     combatItemBonusBoost: EndpointJsonUtils.readInt(
       json['combatItemBonusBoost'],
       fallback: preset.combatItemBonusBoost,
@@ -498,6 +502,7 @@ Map<String, Object?> _serializeItem(Item item) {
         item.hasPatternBonus ? item.patternRequirement.shortLabel : null,
     'patternRequirementDescription':
         item.hasPatternBonus ? item.patternRequirement.description : null,
+    'isGhostly': item.isGhostly,
     'patternRequirementShape': item.hasPatternBonus
         ? item.patternRequirement.shapePoints
             .map((point) => point.key)
