@@ -141,6 +141,8 @@ class _BattleSceneView extends StatelessWidget {
                   final playerActionsEnabled = sceneController.canUseActions &&
                       !isPresentingPatternMatch &&
                       !isPlayingBattleAnimation;
+                  final detailButtonsEnabled = playerActionsEnabled &&
+                      !sceneController.hasPendingVictoryRewards;
                   final playerHealthAnimationDuration =
                       animatedHealthSides.contains(BattleCombatantSide.player)
                           ? _battleImpactBarDuration
@@ -188,9 +190,12 @@ class _BattleSceneView extends StatelessWidget {
                                   barrierAnimationReference:
                                       enemyBarrierAnimationReference,
                                   onOpenEquippedItemDetails:
-                                      onOpenEnemyItemDetails,
-                                  onOpenAbilityDetails:
-                                      onOpenEnemyAbilityDetails,
+                                      detailButtonsEnabled
+                                          ? onOpenEnemyItemDetails
+                                          : null,
+                                  onOpenAbilityDetails: detailButtonsEnabled
+                                      ? onOpenEnemyAbilityDetails
+                                      : null,
                                 ),
                               ),
                             ),
@@ -231,9 +236,12 @@ class _BattleSceneView extends StatelessWidget {
                                   actionPreview:
                                       sceneController.playerActionIntentPreview,
                                   onOpenEquippedItemDetails:
-                                      onOpenPlayerItemDetails,
-                                  onOpenAbilityDetails:
-                                      onOpenPlayerAbilityDetails,
+                                      detailButtonsEnabled
+                                          ? onOpenPlayerItemDetails
+                                          : null,
+                                  onOpenAbilityDetails: detailButtonsEnabled
+                                      ? onOpenPlayerAbilityDetails
+                                      : null,
                                   statusBarKey: playerStatusBarKey,
                                   healthAnimationDuration:
                                       playerHealthAnimationDuration,
@@ -1115,10 +1123,14 @@ class _RoundCounterBadge extends StatefulWidget {
 
 class _RoundCounterBadgeState extends State<_RoundCounterBadge>
     with SingleTickerProviderStateMixin {
+  static const int _purgeStartRound = 5;
+  static const int _purgeWarningRound = _purgeStartRound - 2;
+
   late final AnimationController _flashController;
   late final Animation<Color?> _flashColor;
 
-  bool get _shouldFlash => widget.round == 8 || widget.round == 9;
+  bool get _shouldFlash =>
+      widget.round >= _purgeWarningRound && widget.round < _purgeStartRound;
 
   @override
   void initState() {
@@ -1163,8 +1175,11 @@ class _RoundCounterBadgeState extends State<_RoundCounterBadge>
   @override
   Widget build(BuildContext context) {
     final round = widget.round;
-    final showPurgeDamage = round >= 10;
-    final dangerBlend = ((round - 5) / 5).clamp(0.0, 1.0).toDouble();
+    final showPurgeDamage = round >= _purgeStartRound;
+    final dangerBlend = ((round - _purgeWarningRound) /
+            (_purgeStartRound - _purgeWarningRound))
+        .clamp(0.0, 1.0)
+        .toDouble();
     final roundColor = EndpointPalette.blend(
       EndpointPalette.softForeground,
       EndpointPalette.dangerAccent,

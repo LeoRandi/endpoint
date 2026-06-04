@@ -583,8 +583,19 @@ class ResponseFrameItemEffect extends ItemEffect {
       item,
       ItemCombatFlagKind.responseFrameDamagedThisTurn,
     );
+    final turnStartHealthFlag = _itemCombatFlag(
+      item,
+      ItemCombatFlagKind.responseFrameTurnStartHealth,
+      owner.health,
+    );
     return ItemEffectResolution(
-      owner: owner.removeCombatFlag(damagedFlag),
+      owner: owner
+          .removeCombatFlag(damagedFlag)
+          .removeItemCombatFlagsFor(
+            item: item,
+            kind: ItemCombatFlagKind.responseFrameTurnStartHealth,
+          )
+          .addCombatFlag(turnStartHealthFlag),
       opponent: opponent,
     );
   }
@@ -626,7 +637,13 @@ class ResponseFrameItemEffect extends ItemEffect {
       item,
       ItemCombatFlagKind.responseFrameDamagedThisTurn,
     );
-    if (owner.hasCombatFlag(damagedFlag)) {
+    final turnStartHealth = owner.itemCombatFlagValue(
+      item: item,
+      kind: ItemCombatFlagKind.responseFrameTurnStartHealth,
+    );
+    final lostLifeSinceTurnStart =
+        turnStartHealth != null && owner.health < turnStartHealth;
+    if (owner.hasCombatFlag(damagedFlag) || lostLifeSinceTurnStart) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 

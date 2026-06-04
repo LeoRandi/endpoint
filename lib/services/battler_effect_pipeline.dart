@@ -798,7 +798,7 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedTarget = target;
 
-    final activeItems = List<Item>.from(
+    final activeItems = _deferContagioItems(
       owner.equippedItemsForHook(ItemEffectHook.attackResolved),
     );
 
@@ -827,7 +827,8 @@ class BattlerEffectPipeline {
     required Battler target,
     required int damageDealt,
   }) {
-    final activeAbilityIds = List<BattlerAbilityId>.from(
+    final activeAbilityIds = _deferContagioAbilityIds(
+      owner,
       owner.abilityIdsForHook(BattlerAbilityHook.attackResolved),
     );
     if (activeAbilityIds.isEmpty) {
@@ -1018,7 +1019,7 @@ class BattlerEffectPipeline {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
 
-    final activeItems = List<Item>.from(
+    final activeItems = _deferLowestPriorityTurnEndItems(
       owner.equippedItemsForHook(ItemEffectHook.turnEnd),
     );
 
@@ -1083,7 +1084,7 @@ class BattlerEffectPipeline {
     final usedPointKeys =
         pattern.patternPoints.map((point) => point.key).toSet();
 
-    final activeItems = List<Item>.from(
+    final activeItems = _deferContagioItems(
       owner.equippedItemsForHook(ItemEffectHook.patternUsed),
     );
     final contratoReuso = owner.abilityById(BattlerAbilityId.contratoReuso);
@@ -1266,7 +1267,7 @@ class BattlerEffectPipeline {
       barrierBonus: 0,
     );
 
-    final activeItems = List<Item>.from(
+    final activeItems = _deferContagioItems(
       owner.equippedItemsForHook(ItemEffectHook.patternUsed),
     );
 
@@ -1433,7 +1434,8 @@ class BattlerEffectPipeline {
     required Battler opponent,
     required BattlePatternMatchContext pattern,
   }) {
-    final activeAbilityIds = List<BattlerAbilityId>.from(
+    final activeAbilityIds = _deferContagioAbilityIds(
+      owner,
       owner.abilityIdsForHook(BattlerAbilityHook.patternMatchResolved),
     );
     if (activeAbilityIds.isEmpty) {
@@ -1892,4 +1894,59 @@ Battler _clearCombatItemAugments(Battler owner) {
 
 bool _hasSubastaRelampago(Battler owner) {
   return owner.equippedItems.any((item) => item.id == ItemId.subastaRelampago);
+}
+
+List<Item> _deferContagioItems(Iterable<Item> items) {
+  final immediateItems = <Item>[];
+  final contagioItems = <Item>[];
+  for (final item in items) {
+    if (item.hasTag(EntityTag.contagio)) {
+      contagioItems.add(item);
+    } else {
+      immediateItems.add(item);
+    }
+  }
+
+  return List<Item>.unmodifiable([
+    ...immediateItems,
+    ...contagioItems,
+  ]);
+}
+
+List<BattlerAbilityId> _deferContagioAbilityIds(
+  Battler owner,
+  Iterable<BattlerAbilityId> abilityIds,
+) {
+  final immediateAbilityIds = <BattlerAbilityId>[];
+  final contagioAbilityIds = <BattlerAbilityId>[];
+  for (final abilityId in abilityIds) {
+    final ability = owner.abilityById(abilityId);
+    if (ability?.hasTag(EntityTag.contagio) == true) {
+      contagioAbilityIds.add(abilityId);
+    } else {
+      immediateAbilityIds.add(abilityId);
+    }
+  }
+
+  return List<BattlerAbilityId>.unmodifiable([
+    ...immediateAbilityIds,
+    ...contagioAbilityIds,
+  ]);
+}
+
+List<Item> _deferLowestPriorityTurnEndItems(Iterable<Item> items) {
+  final immediateItems = <Item>[];
+  final lowPriorityItems = <Item>[];
+  for (final item in items) {
+    if (item.id == ItemId.responseFrame) {
+      lowPriorityItems.add(item);
+    } else {
+      immediateItems.add(item);
+    }
+  }
+
+  return List<Item>.unmodifiable([
+    ...immediateItems,
+    ...lowPriorityItems,
+  ]);
 }

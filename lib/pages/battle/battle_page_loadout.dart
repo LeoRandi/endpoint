@@ -14,7 +14,7 @@ class _BattleItemStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 58,
+      height: 50,
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
@@ -25,9 +25,9 @@ class _BattleItemStrip extends StatelessWidget {
                 child: EndpointEquipmentSlotsStrip(
                   battler: battler,
                   layout: EndpointEquipmentLayout.standard,
-                  tileExtent: 48,
-                  tileHeight: 54,
-                  emojiSize: 13,
+                  tileExtent: 42,
+                  tileHeight: 46,
+                  emojiSize: 12,
                   borderColor: accent.withAlpha(112),
                   onItemPressed: onItemPressed,
                 ),

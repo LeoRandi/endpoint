@@ -1587,7 +1587,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     Battler battler,
     Item item,
   ) async {
-    if (_sceneController.hasPendingVictoryRewards ||
+    if (!_sceneController.canUseActions ||
+        _isPresentingPatternMatch ||
+        _sceneController.hasPendingVictoryRewards ||
         _isPlayingBattleAnimation) {
       return;
     }
@@ -1612,7 +1614,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     BattlerAbility ability, {
     required bool canControlOwner,
   }) async {
-    if (_sceneController.hasPendingVictoryRewards ||
+    if (!_sceneController.canUseActions ||
+        _isPresentingPatternMatch ||
+        _sceneController.hasPendingVictoryRewards ||
         _isPlayingBattleAnimation) {
       return;
     }

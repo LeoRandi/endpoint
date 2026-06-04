@@ -172,6 +172,7 @@ enum ItemCombatFlagKind {
   clavoReactorTriggeredThisTurn,
   ultimaMarchaTriggeredThisTurn,
   responseFrameDamagedThisTurn,
+  responseFrameTurnStartHealth,
   reboundLensTriggeredThisTurn,
   emergencyPlatingAutoBlockUsed,
   deflectiveCapacitorReflectedDebuff,

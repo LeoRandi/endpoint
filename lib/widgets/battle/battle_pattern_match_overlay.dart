@@ -245,6 +245,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   late final Map<String, OperativePatternBonus> _bonusesByPointKey;
   late final int _maxPatternPoints;
   late final int _availableBlockingPointsAtTurnStart;
+  late final int _initialWallCount;
+  late final int _initialBlockedPointCount;
   late final BattlePatternBlockPlan _blockPlan;
   Timer? _blockStartTimer;
   List<Animation<Offset>> _blockMarkMotions = const <Animation<Offset>>[];
@@ -291,6 +293,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       widget.wallSegments,
     );
     _blockedPointKeys = Set<String>.unmodifiable(widget.blockedPointKeys);
+    _initialWallCount = _wallSegments.length;
+    _initialBlockedPointCount = _blockedPointKeys.length;
     if (widget.pendingEnemyBlockAction != null &&
         !widget.pendingEnemyBlockAction!.isEmpty) {
       _scheduleEnemyBoardBlockPreview();
@@ -516,10 +520,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       );
 
   int get _enemyBlockingPointsRemaining {
-    final spentBlockingPoints = (_wallSegments.length *
-            OperativePatternCombatRules.wallBlockingPointCost) +
-        (_blockedPointKeys.length *
-            OperativePatternCombatRules.pointBlockingPointCost);
+    final spentBlockingPoints =
+        (max(0, _wallSegments.length - _initialWallCount) *
+                OperativePatternCombatRules.wallBlockingPointCost) +
+            (max(0, _blockedPointKeys.length - _initialBlockedPointCount) *
+                OperativePatternCombatRules.pointBlockingPointCost);
     return max(0, widget.enemyBlockingPoints - spentBlockingPoints);
   }
 
@@ -989,6 +994,8 @@ class _EnemyBattlePatternMatchOverlayState
   late final Map<String, OperativePatternBonus> _bonusesByPointKey;
   late final int _maxPatternPoints;
   late final int Function(int max) _nextInt;
+  late final int _initialWallCount;
+  late final int _initialBlockedPointCount;
   late List<OperativePatternWallSegment> _wallSegments;
   List<OperativePatternWallSegment>? _wallSegmentsBeforeAction;
   late Set<String> _blockedPointKeys;
@@ -1024,6 +1031,8 @@ class _EnemyBattlePatternMatchOverlayState
       widget.wallSegments,
     );
     _blockedPointKeys = Set<String>.unmodifiable(widget.blockedPointKeys);
+    _initialWallCount = _wallSegments.length;
+    _initialBlockedPointCount = _blockedPointKeys.length;
   }
 
   @override
@@ -1051,10 +1060,11 @@ class _EnemyBattlePatternMatchOverlayState
       );
 
   int get _blockingPointsRemaining {
-    final spentBlockingPoints = (_wallSegments.length *
-            OperativePatternCombatRules.wallBlockingPointCost) +
-        (_blockedPointKeys.length *
-            OperativePatternCombatRules.pointBlockingPointCost);
+    final spentBlockingPoints =
+        (max(0, _wallSegments.length - _initialWallCount) *
+                OperativePatternCombatRules.wallBlockingPointCost) +
+            (max(0, _blockedPointKeys.length - _initialBlockedPointCount) *
+                OperativePatternCombatRules.pointBlockingPointCost);
     return max(0, widget.maxBlockingPoints - spentBlockingPoints);
   }
 
@@ -3450,38 +3460,57 @@ class _PatternMatrixCard extends StatelessWidget {
     );
   }
 
+  static const int _purgeStartRound = 5;
+  static const int _purgeWarningRound = _purgeStartRound - 2;
+  static const int _purgeRampRoundCount = 5;
+  static const int _purgeInitialDamage = 1;
+  static const int _purgeInitialDamagePerRound = 1;
+  static const int _purgeLateDamagePerRound = 2;
+
   Color get _roundCornerColor {
-    if (round >= 10) return EndpointPalette.dangerAccent;
-    if (round >= 8) return const Color(0xFFFFEA70);
+    if (round >= _purgeStartRound) return EndpointPalette.dangerAccent;
+    if (round >= _purgeWarningRound) return const Color(0xFFFFEA70);
     return const Color(0xFF24242A);
   }
 
   Color get _roundCornerTextColor {
-    if (round >= 8 && round < 10) return Colors.black;
+    if (round >= _purgeWarningRound && round < _purgeStartRound) {
+      return Colors.black;
+    }
     return Colors.white;
   }
 
   String get _roundCornerLabel {
-    if (round >= 10) return 'Purga ${_purgeDamageForRound(round)}';
-    if (round >= 8) return 'Purga ${10 - round}';
+    if (round >= _purgeStartRound) {
+      return 'Purga ${_purgeDamageForRound(round)}';
+    }
+    if (round >= _purgeWarningRound) {
+      return 'Purga ${_purgeStartRound - round}';
+    }
     return 'Round $round';
   }
 
   String get _roundCornerTooltip {
-    if (round >= 10) {
+    if (round >= _purgeStartRound) {
       return 'Current combat round. Purga damage this round.';
     }
-    if (round >= 8) {
+    if (round >= _purgeWarningRound) {
       return 'Current combat round. Purga starts after this countdown.';
     }
     return 'Current combat round.';
   }
 
   int _purgeDamageForRound(int round) {
-    if (round < 10) return 0;
-    final purgeCount = round - 9;
-    if (purgeCount <= 5) return purgeCount * 2;
-    return 10 + ((purgeCount - 5) * 4);
+    if (round < _purgeStartRound) return 0;
+    final purgeCount = round - _purgeStartRound + 1;
+    if (purgeCount <= _purgeRampRoundCount) {
+      return _purgeInitialDamage +
+          ((purgeCount - 1) * _purgeInitialDamagePerRound);
+    }
+    final rampEndDamage = _purgeInitialDamage +
+        ((_purgeRampRoundCount - 1) * _purgeInitialDamagePerRound);
+    return rampEndDamage +
+        ((purgeCount - _purgeRampRoundCount) * _purgeLateDamagePerRound);
   }
 }
 

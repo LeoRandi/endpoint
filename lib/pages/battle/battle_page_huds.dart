@@ -54,8 +54,8 @@ class _PlayerBattleHud extends StatelessWidget {
   final bool canOpenPreviewOperatives;
   final Future<void> Function() onOpenPreviewOperatives;
   final PlayerActionIntentPreview actionPreview;
-  final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
-  final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
+  final _OpenBattleItemDetailsCallback? onOpenEquippedItemDetails;
+  final _OpenBattleAbilityDetailsCallback? onOpenAbilityDetails;
   final Key? statusBarKey;
   final Duration healthAnimationDuration;
   final Duration barrierAnimationDuration;
@@ -656,8 +656,8 @@ class _ActionIntentMarqueeState extends State<_ActionIntentMarquee>
 class _EnemyBattleHud extends StatelessWidget {
   final Battler enemy;
   final List<BattlerAbility> visibleAbilities;
-  final _OpenBattleItemDetailsCallback onOpenEquippedItemDetails;
-  final _OpenBattleAbilityDetailsCallback onOpenAbilityDetails;
+  final _OpenBattleItemDetailsCallback? onOpenEquippedItemDetails;
+  final _OpenBattleAbilityDetailsCallback? onOpenAbilityDetails;
   final Key? statusBarKey;
   final Duration healthAnimationDuration;
   final Duration barrierAnimationDuration;

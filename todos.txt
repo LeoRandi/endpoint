@@ -1,5 +1,5 @@
 ﻿TODOs:
--Patrón
+[-Patrón]
 [--El equipamiento también va en 9 huecos como el patrón, dibujar encima hace que se active el objeto]
 [--Bonuses de adyacencia en 4 direcciones, dependiendo de la tag que tenga al lado activa efecto/da bonus]
 [--Bonus de patrón por el uso dentro del patrón(al principio/final, en ángulo recto, forma específica)]
@@ -104,7 +104,6 @@
 
 ////
 ARREGLAR:
-
 
 ////
 PROBAR:

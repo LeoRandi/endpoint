@@ -101,6 +101,13 @@ typedef BattleCombatAnimationCallback = Future<void> Function(
 );
 
 class BattleController extends ChangeNotifier {
+  static const int _purgeStartRound = 5;
+  static const int _purgeWarningRound = _purgeStartRound - 2;
+  static const int _purgeRampRoundCount = 5;
+  static const int _purgeInitialDamage = 1;
+  static const int _purgeInitialDamagePerRound = 1;
+  static const int _purgeLateDamagePerRound = 2;
+
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
   final BattlerEffectPipeline _effectPipeline;
@@ -202,17 +209,17 @@ class BattleController extends ChangeNotifier {
   bool get canResolveEnemyPattern => isEnemyTurn && !isCombatFinished;
   int get currentRound => _currentRound;
   int get currentPurgeDamageAmount => _purgeDamageForRound(
-        max(10, _currentRound),
+        max(_purgeStartRound, _currentRound),
       );
-  bool get isPurgeWarningVisible => _currentRound >= 8;
-  bool get isPurgeActive => _currentRound >= 10;
+  bool get isPurgeWarningVisible => _currentRound >= _purgeWarningRound;
+  bool get isPurgeActive => _currentRound >= _purgeStartRound;
   int get playerPurgeDamagePreview => _purgeDamageForBattler(
         battler: _player,
-        round: max(10, _currentRound),
+        round: max(_purgeStartRound, _currentRound),
       );
   int get enemyPurgeDamagePreview => _purgeDamageForBattler(
         battler: _enemy,
-        round: max(10, _currentRound),
+        round: max(_purgeStartRound, _currentRound),
       );
   int get playerBlockBarrierGain => _playerCurrentBlockBarrierGain();
   int get playerInitialBarrier => _playerInitialBlockBarrier;
@@ -3016,16 +3023,20 @@ class BattleController extends ChangeNotifier {
   }
 
   int _purgeDamageForRound(int round) {
-    if (round < 10) {
+    if (round < _purgeStartRound) {
       return 0;
     }
 
-    final purgeCount = round - 9;
-    if (purgeCount <= 5) {
-      return purgeCount * 2;
+    final purgeCount = round - _purgeStartRound + 1;
+    if (purgeCount <= _purgeRampRoundCount) {
+      return _purgeInitialDamage +
+          ((purgeCount - 1) * _purgeInitialDamagePerRound);
     }
 
-    return 10 + ((purgeCount - 5) * 4);
+    final rampEndDamage = _purgeInitialDamage +
+        ((_purgeRampRoundCount - 1) * _purgeInitialDamagePerRound);
+    return rampEndDamage +
+        ((purgeCount - _purgeRampRoundCount) * _purgeLateDamagePerRound);
   }
 
   Future<void> _applyActionBarrierToPlayer(int amount) async {
