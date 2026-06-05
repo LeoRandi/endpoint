@@ -750,6 +750,26 @@ final arquitecbrosSlNode = EventPathNode(
   ],
 );
 
+final barreraLibreNode = EventPathNode(
+  id: PathEventId.barreraLibre,
+  nodeId: 'event_barrera_libre',
+  label: 'Barrera Libre',
+  tooltip: 'Refuerza un punto del Patron para ganar Barrera al colocar Murallas adyacentes',
+  iconEmoji: '\u{1F6E1}',
+  rarity: RarityTier.green,
+  accent: RarityTier.green.accent,
+  badgeLabel: 'INAMOV',
+  showTitle: 'Has encontrado una protesta vecinal',
+  eventTitle: 'BARRERA LIBRE',
+  description:
+      'Acepta una placa improvisada para reforzar un punto aleatorio del Patron. Las Murallas colocadas junto a ese punto te dan +1 Barrera.',
+  outcomeText: 'Acepta el punto reforzado.',
+  flavorTexts: [
+    'La calle por la que pasas esta llena de personas, protestando en contra de desahucios y problemas de vivienda',
+    'Un hombre maltrecho entre la multitud se acerca a ti: <Toma, te protegera de esas malditas corporaciones>',
+  ],
+);
+
 final capillaStShieladurnNode = EventPathNode(
   id: PathEventId.capillaStShieladurn,
   nodeId: 'event_capilla_st_shieladurn',
@@ -847,6 +867,26 @@ final mercadoFuturosNode = EventPathNode(
   flavorTexts: [
     'El broker no ensena las dos caras de la moneda. Eso forma parte del encanto, dice.',
     'Durante un segundo, el canto refleja rutas que todavia no has comprado.',
+  ],
+);
+
+final thePurgameNode = EventPathNode(
+  id: PathEventId.thePurgame,
+  nodeId: 'event_the_purgame',
+  label: 'The Purgame',
+  tooltip: 'Elige como quieres alterar la Purga durante el resto de la run',
+  iconEmoji: '\u{26EA}',
+  rarity: RarityTier.purple,
+  accent: RarityTier.purple.accent,
+  badgeLabel: 'PURGA',
+  showTitle: 'The Purgame abre sus capillas',
+  eventTitle: 'THE PURGAME',
+  description:
+      'Dos capillas enfrentadas ofrecen caminos opuestos ante la Purga. Ninguno promete salvacion, solo una forma distinta de llegar al final.',
+  outcomeText: 'Elige tu camino ante la Purga.',
+  flavorTexts: [
+    'Una capilla enorme, decorada con estructuras post-post-post-modernistas, abre sus puertas a aquellos que deseen ayudar a ralentizar, futilmente, la Purga.',
+    'En la acera de enfrente, otra capilla, mucho mas pequena, esta repleta de fanaticos y adoradores de la Purga, que la aceptan como una purificacion divina',
   ],
 );
 
@@ -1186,11 +1226,13 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
   clinicaReflejosNode,
   viktorOperationsNode,
   arquitecbrosSlNode,
+  barreraLibreNode,
   capillaStShieladurnNode,
   contratontosNode,
   hornoJuramentosNode,
   auditoriaCreativaNode,
   mercadoFuturosNode,
+  thePurgameNode,
   blackTechnoMarketNode,
   sobreKarNode,
   pasadizoSecretoNode,
@@ -1225,11 +1267,13 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
   clinicaReflejosNode,
   viktorOperationsNode,
   arquitecbrosSlNode,
+  barreraLibreNode,
   capillaStShieladurnNode,
   contratontosNode,
   hornoJuramentosNode,
   auditoriaCreativaNode,
   mercadoFuturosNode,
+  thePurgameNode,
   blackTechnoMarketNode,
   shadyTechnosurgeonNode,
   sobreKarNode,

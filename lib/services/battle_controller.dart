@@ -101,8 +101,7 @@ typedef BattleCombatAnimationCallback = Future<void> Function(
 );
 
 class BattleController extends ChangeNotifier {
-  static const int _purgeStartRound = 5;
-  static const int _purgeWarningRound = _purgeStartRound - 2;
+  static const int _normalPurgeStartRound = 5;
   static const int _purgeRampRoundCount = 5;
   static const int _purgeInitialDamage = 1;
   static const int _purgeInitialDamagePerRound = 1;
@@ -209,17 +208,19 @@ class BattleController extends ChangeNotifier {
   bool get canResolveEnemyPattern => isEnemyTurn && !isCombatFinished;
   int get currentRound => _currentRound;
   int get currentPurgeDamageAmount => _purgeDamageForRound(
-        max(_purgeStartRound, _currentRound),
+        max(purgeStartRound, _currentRound),
       );
-  bool get isPurgeWarningVisible => _currentRound >= _purgeWarningRound;
-  bool get isPurgeActive => _currentRound >= _purgeStartRound;
+  int get purgeStartRound => _purgeConfig.startRound;
+  int get purgeWarningRound => _purgeConfig.warningRound;
+  bool get isPurgeWarningVisible => _currentRound >= purgeWarningRound;
+  bool get isPurgeActive => _currentRound >= purgeStartRound;
   int get playerPurgeDamagePreview => _purgeDamageForBattler(
         battler: _player,
-        round: max(_purgeStartRound, _currentRound),
+        round: max(purgeStartRound, _currentRound),
       );
   int get enemyPurgeDamagePreview => _purgeDamageForBattler(
         battler: _enemy,
-        round: max(_purgeStartRound, _currentRound),
+        round: max(purgeStartRound, _currentRound),
       );
   int get playerBlockBarrierGain => _playerCurrentBlockBarrierGain();
   int get playerInitialBarrier => _playerInitialBlockBarrier;
@@ -3023,11 +3024,22 @@ class BattleController extends ChangeNotifier {
   }
 
   int _purgeDamageForRound(int round) {
-    if (round < _purgeStartRound) {
+    final config = _purgeConfig;
+    if (round < config.startRound) {
       return 0;
     }
+    if (config.fixedDamageUntilRound10 != null && round < 10) {
+      return config.fixedDamageUntilRound10!;
+    }
 
-    final purgeCount = round - _purgeStartRound + 1;
+    return _normalPurgeDamageForRound(round);
+  }
+
+  int _normalPurgeDamageForRound(int round) {
+    if (round < _normalPurgeStartRound) {
+      return 0;
+    }
+    final purgeCount = round - _normalPurgeStartRound + 1;
     if (purgeCount <= _purgeRampRoundCount) {
       return _purgeInitialDamage +
           ((purgeCount - 1) * _purgeInitialDamagePerRound);
@@ -3037,6 +3049,23 @@ class BattleController extends ChangeNotifier {
         ((_purgeRampRoundCount - 1) * _purgeInitialDamagePerRound);
     return rampEndDamage +
         ((purgeCount - _purgeRampRoundCount) * _purgeLateDamagePerRound);
+  }
+
+  _BattlePurgeConfig get _purgeConfig {
+    switch (_player.purgeDoctrine) {
+      case PurgeDoctrine.embrace:
+        return const _BattlePurgeConfig(
+          startRound: 3,
+          fixedDamageUntilRound10: 6,
+        );
+      case PurgeDoctrine.wayOut:
+        return const _BattlePurgeConfig(
+          startRound: 7,
+          fixedDamageUntilRound10: 4,
+        );
+      case null:
+        return const _BattlePurgeConfig(startRound: _normalPurgeStartRound);
+    }
   }
 
   Future<void> _applyActionBarrierToPlayer(int amount) async {
@@ -3164,6 +3193,18 @@ class _BattleAttackHitResolution {
     required this.defenderAfter,
     required this.damageDealt,
   });
+}
+
+class _BattlePurgeConfig {
+  final int startRound;
+  final int? fixedDamageUntilRound10;
+
+  const _BattlePurgeConfig({
+    required this.startRound,
+    this.fixedDamageUntilRound10,
+  });
+
+  int get warningRound => max(1, startRound - 2);
 }
 
 enum _BattleAttackHitCombatant {

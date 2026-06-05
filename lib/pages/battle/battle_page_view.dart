@@ -262,6 +262,9 @@ class _BattleSceneView extends StatelessWidget {
                             title: sceneController.turnTitle,
                             description: sceneController.turnDescription,
                             round: sceneController.currentRound,
+                            purgeStartRound: sceneController.purgeStartRound,
+                            purgeWarningRound:
+                                sceneController.purgeWarningRound,
                             purgeDamage:
                                 sceneController.playerPurgeDamagePreview,
                             isEnemyTurn:
@@ -1054,6 +1057,8 @@ class _BattleCenterOverlay extends StatelessWidget {
   final String title;
   final String description;
   final int round;
+  final int purgeStartRound;
+  final int purgeWarningRound;
   final int purgeDamage;
   final bool isEnemyTurn;
   final bool isCombatFinished;
@@ -1063,6 +1068,8 @@ class _BattleCenterOverlay extends StatelessWidget {
     required this.title,
     required this.description,
     required this.round,
+    required this.purgeStartRound,
+    required this.purgeWarningRound,
     required this.purgeDamage,
     required this.isEnemyTurn,
     required this.isCombatFinished,
@@ -1084,6 +1091,8 @@ class _BattleCenterOverlay extends StatelessWidget {
         const SizedBox(width: 6),
         _RoundCounterBadge(
           round: round,
+          purgeStartRound: purgeStartRound,
+          purgeWarningRound: purgeWarningRound,
           purgeDamage: purgeDamage,
         ),
         if (onAdvancePressed != null) ...[
@@ -1110,10 +1119,14 @@ class _BattleCenterOverlay extends StatelessWidget {
 
 class _RoundCounterBadge extends StatefulWidget {
   final int round;
+  final int purgeStartRound;
+  final int purgeWarningRound;
   final int purgeDamage;
 
   const _RoundCounterBadge({
     required this.round,
+    required this.purgeStartRound,
+    required this.purgeWarningRound,
     required this.purgeDamage,
   });
 
@@ -1123,14 +1136,12 @@ class _RoundCounterBadge extends StatefulWidget {
 
 class _RoundCounterBadgeState extends State<_RoundCounterBadge>
     with SingleTickerProviderStateMixin {
-  static const int _purgeStartRound = 5;
-  static const int _purgeWarningRound = _purgeStartRound - 2;
-
   late final AnimationController _flashController;
   late final Animation<Color?> _flashColor;
 
   bool get _shouldFlash =>
-      widget.round >= _purgeWarningRound && widget.round < _purgeStartRound;
+      widget.round >= widget.purgeWarningRound &&
+      widget.round < widget.purgeStartRound;
 
   @override
   void initState() {
@@ -1175,9 +1186,10 @@ class _RoundCounterBadgeState extends State<_RoundCounterBadge>
   @override
   Widget build(BuildContext context) {
     final round = widget.round;
-    final showPurgeDamage = round >= _purgeStartRound;
-    final dangerBlend = ((round - _purgeWarningRound) /
-            (_purgeStartRound - _purgeWarningRound))
+    final purgeWarningSpan =
+        max(1, widget.purgeStartRound - widget.purgeWarningRound);
+    final showPurgeDamage = round >= widget.purgeStartRound;
+    final dangerBlend = ((round - widget.purgeWarningRound) / purgeWarningSpan)
         .clamp(0.0, 1.0)
         .toDouble();
     final roundColor = EndpointPalette.blend(

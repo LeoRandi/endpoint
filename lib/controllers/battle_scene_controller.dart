@@ -107,6 +107,8 @@ class BattleSceneController extends ChangeNotifier {
   /// Reexpone la descripcion corta del estado de turno para el banner central.
   String get turnDescription => _battleController.turnDescription;
   int get currentRound => _battleController.currentRound;
+  int get purgeStartRound => _battleController.purgeStartRound;
+  int get purgeWarningRound => _battleController.purgeWarningRound;
   bool get isPurgeWarningVisible => _battleController.isPurgeWarningVisible;
   bool get isPurgeActive => _battleController.isPurgeActive;
   int get playerPurgeDamagePreview =>

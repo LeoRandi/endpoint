@@ -166,12 +166,14 @@ class OperativePatternOverlay extends StatefulWidget {
   final Map<String, Item> equippedItemsByPointKey;
   final int playerLevel;
   final List<OperativePatternWallSegment> wallSegments;
+  final String? reinforcedPointKey;
 
   const OperativePatternOverlay({
     super.key,
     this.equippedItemsByPointKey = const <String, Item>{},
     this.playerLevel = Battler.initialLevel,
     this.wallSegments = const <OperativePatternWallSegment>[],
+    this.reinforcedPointKey,
   });
 
   static String pointKey(int x, int y) => operativePatternPointKey(x, y);
@@ -277,6 +279,7 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
                       onPointLongPressed: _handlePointLongPressed,
                       contentsByPointKey: _buildContentsByPointKey(),
                       wallSegments: widget.wallSegments,
+                      reinforcedPointKey: widget.reinforcedPointKey,
                     ),
                   ),
                 ),
@@ -383,6 +386,7 @@ class OperativePatternBoard extends StatefulWidget {
   final double previewWallOpacity;
   final Set<String> blockedPointKeys;
   final List<OperativePatternPoint>? displayedPatternPoints;
+  final String? reinforcedPointKey;
   final bool keepLineAfterPointerUp;
   final bool isPatternInputEnabled;
   final int? maxPatternPoints;
@@ -404,6 +408,7 @@ class OperativePatternBoard extends StatefulWidget {
     this.previewWallOpacity = 0.5,
     this.blockedPointKeys = const <String>{},
     this.displayedPatternPoints,
+    this.reinforcedPointKey,
     this.keepLineAfterPointerUp = false,
     this.isPatternInputEnabled = true,
     this.maxPatternPoints,
@@ -917,6 +922,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard>
                             activePoints: displayedPatternPoints.toSet(),
                             contentsByPointKey: widget.contentsByPointKey,
                             blockedPointKeys: widget.blockedPointKeys,
+                            reinforcedPointKey: widget.reinforcedPointKey,
                             accent: widget.accent,
                           ),
                         ),
@@ -983,6 +989,7 @@ class _OperativePatternGrid extends StatelessWidget {
   final Set<OperativePatternPoint> activePoints;
   final Map<String, OperativePatternPointContent> contentsByPointKey;
   final Set<String> blockedPointKeys;
+  final String? reinforcedPointKey;
   final Color accent;
 
   const _OperativePatternGrid({
@@ -990,6 +997,7 @@ class _OperativePatternGrid extends StatelessWidget {
     required this.activePoints,
     required this.contentsByPointKey,
     required this.blockedPointKeys,
+    required this.reinforcedPointKey,
     required this.accent,
   });
 
@@ -1004,6 +1012,7 @@ class _OperativePatternGrid extends StatelessWidget {
             size: layout.dotSize,
             isActive: activePoints.contains(point),
             isBlocked: blockedPointKeys.contains(point.key),
+            isReinforced: reinforcedPointKey == point.key,
             content: contentsByPointKey[point.key],
             accent: accent,
           ),
@@ -1018,6 +1027,7 @@ class _OperativePatternDot extends StatelessWidget {
   final double size;
   final bool isActive;
   final bool isBlocked;
+  final bool isReinforced;
   final OperativePatternPointContent? content;
   final Color accent;
 
@@ -1027,6 +1037,7 @@ class _OperativePatternDot extends StatelessWidget {
     required this.size,
     required this.isActive,
     required this.isBlocked,
+    required this.isReinforced,
     required this.content,
     required this.accent,
   });
@@ -1050,6 +1061,7 @@ class _OperativePatternDot extends StatelessWidget {
             size: size,
             isActive: isActive,
             isBlocked: isBlocked,
+            isReinforced: isReinforced,
             content: content,
             accent: accent,
           ),
@@ -1252,6 +1264,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
   final double size;
   final bool isActive;
   final bool isBlocked;
+  final bool isReinforced;
   final OperativePatternPointContent? content;
   final Color accent;
 
@@ -1259,6 +1272,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
     required this.size,
     required this.isActive,
     required this.isBlocked,
+    required this.isReinforced,
     required this.content,
     required this.accent,
   });
@@ -1324,6 +1338,8 @@ class _OperativePatternDotVisual extends StatelessWidget {
                 size: size,
                 accent: activeAccent,
               ),
+            if (isReinforced)
+              _OperativePatternReinforcedPointFrame(size: size),
             Center(
               child: Transform.rotate(
                 angle: _operativePatternContentCounterRotation,
@@ -1383,6 +1399,8 @@ class _OperativePatternDotVisual extends StatelessWidget {
                 size: size,
                 counterRotate: true,
               ),
+            if (isReinforced)
+              _OperativePatternReinforcedPointFrame(size: size),
             _OperativePatternActivationBurst(
               size: size,
               accent: activeAccent,
@@ -1441,6 +1459,8 @@ class _OperativePatternDotVisual extends StatelessWidget {
               size: size,
               counterRotate: true,
             ),
+          if (isReinforced)
+            _OperativePatternReinforcedPointFrame(size: size),
           _OperativePatternActivationBurst(
             size: size,
             accent: activeAccent,
@@ -1450,6 +1470,75 @@ class _OperativePatternDotVisual extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _OperativePatternReinforcedPointFrame extends StatelessWidget {
+  final double size;
+
+  const _OperativePatternReinforcedPointFrame({
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: size * 1.14,
+      child: Transform.rotate(
+        angle: _operativePatternContentCounterRotation,
+        child: CustomPaint(
+          painter: _OperativePatternReinforcedPointPainter(
+            accent: EndpointPalette.softForeground.withValues(alpha: 0.74),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OperativePatternReinforcedPointPainter extends CustomPainter {
+  final Color accent;
+
+  const _OperativePatternReinforcedPointPainter({
+    required this.accent,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.shortestSide * 0.45;
+    final ringPaint = Paint()
+      ..color = accent
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.1
+      ..strokeCap = StrokeCap.round;
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.64)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.6
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, shadowPaint);
+    canvas.drawCircle(center, radius, ringPaint);
+
+    for (final angle in const [0.0, pi / 2, pi, pi * 1.5]) {
+      final start = Offset(
+        center.dx + cos(angle) * radius * 0.72,
+        center.dy + sin(angle) * radius * 0.72,
+      );
+      final end = Offset(
+        center.dx + cos(angle) * radius * 1.12,
+        center.dy + sin(angle) * radius * 1.12,
+      );
+      canvas
+        ..drawLine(start, end, shadowPaint)
+        ..drawLine(start, end, ringPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _OperativePatternReinforcedPointPainter old) {
+    return old.accent != accent;
   }
 }
 

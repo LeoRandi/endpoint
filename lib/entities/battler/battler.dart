@@ -84,6 +84,11 @@ enum BattlerLevelRewardChoiceType {
   item,
 }
 
+enum PurgeDoctrine {
+  embrace,
+  wayOut,
+}
+
 /// Describe una opcion seleccionable de subida de nivel.
 class BattlerLevelRewardChoice {
   final BattlerLevelRewardChoiceType type;
@@ -521,6 +526,8 @@ class Battler {
   final List<Item> inventoryItems;
   final List<Item> equippedItems;
   final Map<String, String> patternItemPointKeys;
+  final String? reinforcedPatternPointKey;
+  final PurgeDoctrine? purgeDoctrine;
   final List<OperativePatternWallSegment> combatWallSegments;
   final Set<String> combatBlockedPointKeys;
   final List<OperativePatternWallSegment> temporaryCombatWallSegments;
@@ -559,6 +566,8 @@ class Battler {
     this.inventoryItems = const [],
     this.equippedItems = const [],
     this.patternItemPointKeys = const <String, String>{},
+    this.reinforcedPatternPointKey,
+    this.purgeDoctrine,
     this.combatWallSegments = const <OperativePatternWallSegment>[],
     this.combatBlockedPointKeys = const <String>{},
     this.temporaryCombatWallSegments = const <OperativePatternWallSegment>[],
@@ -679,6 +688,10 @@ class Battler {
     List<Item>? inventoryItems,
     List<Item>? equippedItems,
     Map<String, String>? patternItemPointKeys,
+    String? reinforcedPatternPointKey,
+    bool clearReinforcedPatternPointKey = false,
+    PurgeDoctrine? purgeDoctrine,
+    bool clearPurgeDoctrine = false,
     List<OperativePatternWallSegment>? combatWallSegments,
     Set<String>? combatBlockedPointKeys,
     List<OperativePatternWallSegment>? temporaryCombatWallSegments,
@@ -745,6 +758,12 @@ class Battler {
       inventoryItems: resolvedInventoryItems,
       equippedItems: resolvedEquippedItems,
       patternItemPointKeys: resolvedPatternItemPointKeys,
+      reinforcedPatternPointKey: clearReinforcedPatternPointKey
+          ? null
+          : reinforcedPatternPointKey ?? this.reinforcedPatternPointKey,
+      purgeDoctrine: clearPurgeDoctrine
+          ? null
+          : purgeDoctrine ?? this.purgeDoctrine,
       combatWallSegments: resolvedCombatWallSegments,
       combatBlockedPointKeys: resolvedCombatBlockedPointKeys,
       temporaryCombatWallSegments: resolvedTemporaryCombatWallSegments,
@@ -880,6 +899,8 @@ class Battler {
     required List<Item> inventoryItems,
     required List<Item> equippedItems,
     required Map<String, String> patternItemPointKeys,
+    required String? reinforcedPatternPointKey,
+    required PurgeDoctrine? purgeDoctrine,
     required List<OperativePatternWallSegment> combatWallSegments,
     required Set<String> combatBlockedPointKeys,
     required List<OperativePatternWallSegment> temporaryCombatWallSegments,
@@ -911,6 +932,10 @@ class Battler {
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,
       patternItemPointKeys: patternItemPointKeys,
+      reinforcedPatternPointKey: _validPatternPointKey(
+        reinforcedPatternPointKey,
+      ),
+      purgeDoctrine: purgeDoctrine,
       combatWallSegments: combatWallSegments,
       combatBlockedPointKeys: combatBlockedPointKeys,
       temporaryCombatWallSegments: temporaryCombatWallSegments,
@@ -952,6 +977,10 @@ class Battler {
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,
       patternItemPointKeys: patternItemPointKeys,
+      reinforcedPatternPointKey: _validPatternPointKey(
+        reinforcedPatternPointKey,
+      ),
+      purgeDoctrine: purgeDoctrine,
       combatWallSegments: combatWallSegments,
       combatBlockedPointKeys: combatBlockedPointKeys,
       temporaryCombatWallSegments: temporaryCombatWallSegments,
@@ -969,5 +998,10 @@ class Battler {
       byKey[wall.key] = wall;
     }
     return List<OperativePatternWallSegment>.unmodifiable(byKey.values);
+  }
+
+  static String? _validPatternPointKey(String? pointKey) {
+    if (pointKey == null) return null;
+    return operativePatternPointsByKey.containsKey(pointKey) ? pointKey : null;
   }
 }

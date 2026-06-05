@@ -1,3 +1,4 @@
+export "barrera_libre_event_page.dart";
 export "archetype_special_event_page.dart";
 export "black_techno_market_event_page.dart";
 export "hackathon_booth_event_page.dart";
@@ -10,4 +11,5 @@ export "sobre_kar_event_page.dart";
 export "su_basta_ya_event_page.dart";
 export "technosurgeon_event_page.dart";
 export "tempografo_event_page.dart";
+export "the_purgame_event_page.dart";
 export "tintoreria_fantasma_event_page.dart";

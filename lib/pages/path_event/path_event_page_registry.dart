@@ -2,6 +2,7 @@ import '../../entities/_exports.dart';
 import '../../services/_exports.dart';
 import 'package:flutter/widgets.dart';
 
+import 'barrera_libre_event_page.dart';
 import 'black_techno_market_event_page.dart';
 import 'archetype_special_event_page.dart';
 import 'hackathon_booth_event_page.dart';
@@ -13,6 +14,7 @@ import 'sobre_kar_event_page.dart';
 import 'su_basta_ya_event_page.dart';
 import 'technosurgeon_event_page.dart';
 import 'tempografo_event_page.dart';
+import 'the_purgame_event_page.dart';
 import 'tintoreria_fantasma_event_page.dart';
 
 typedef PathEventPageBuilder = Widget Function({
@@ -37,11 +39,13 @@ final pathEventPageBuilderById =
   PathEventId.clinicaReflejos: _buildArchetypeSpecialEventPage,
   PathEventId.viktorOperations: _buildArchetypeSpecialEventPage,
   PathEventId.arquitecbrosSl: _buildArchetypeSpecialEventPage,
+  PathEventId.barreraLibre: _buildBarreraLibreEventPage,
   PathEventId.capillaStShieladurn: _buildArchetypeSpecialEventPage,
   PathEventId.contratontos: _buildArchetypeSpecialEventPage,
   PathEventId.hornoJuramentos: _buildArchetypeSpecialEventPage,
   PathEventId.auditoriaCreativa: _buildArchetypeSpecialEventPage,
   PathEventId.mercadoFuturos: _buildArchetypeSpecialEventPage,
+  PathEventId.thePurgame: _buildThePurgameEventPage,
   PathEventId.debtCollection: _buildDefaultPathEventPage,
   PathEventId.tempografo: _buildTempografoEventPage,
   PathEventId.sWitchCabin: _buildSWitchCabinEventPage,
@@ -175,6 +179,21 @@ Widget _buildArchetypeSpecialEventPage({
   );
 }
 
+Widget _buildBarreraLibreEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+  required int dayNumber,
+}) {
+  return BarreraLibreEventPage(
+    player: player,
+    node: node,
+    randomizer: randomizer,
+    eventService: eventService,
+  );
+}
+
 Widget _buildDefaultPathEventPage({
   required Battler player,
   required EventPathNode node,
@@ -186,6 +205,20 @@ Widget _buildDefaultPathEventPage({
     player: player,
     node: node,
     randomizer: randomizer,
+    eventService: eventService,
+  );
+}
+
+Widget _buildThePurgameEventPage({
+  required Battler player,
+  required EventPathNode node,
+  required RunRandomizer randomizer,
+  required PathEventService eventService,
+  required int dayNumber,
+}) {
+  return ThePurgameEventPage(
+    player: player,
+    node: node,
     eventService: eventService,
   );
 }

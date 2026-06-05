@@ -841,6 +841,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                 _displayedBlockingPoints,
               ),
         round: widget.combatRound,
+        purgeDoctrine: widget.player.purgeDoctrine,
         finishEnabled: _blockAnimationCompleted &&
             OperativePatternRequirement.isClosedPattern(_patternPoints),
         onFinish: _submit,
@@ -872,6 +873,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                             resolution,
                           ),
                           blockedPointKeys: blockedPointKeys,
+                          reinforcedPointKey:
+                              widget.player.reinforcedPatternPointKey,
                           keepLineAfterPointerUp: true,
                           maxPatternPoints: _effectiveMaxPatternPoints,
                           wallSegments: _wallSegments,
@@ -1940,6 +1943,7 @@ class _EnemyBattlePatternMatchOverlayState
         rearMaxBlockingCount:
             isEnemyCornerFront ? widget.maxBlockingPoints : enemyBlockingPoints,
         round: widget.combatRound,
+        purgeDoctrine: widget.player.purgeDoctrine,
         finishEnabled: !_isAnimatingBlock &&
             !_isSwappingCorners &&
             !_isPlayingEnemyPattern,
@@ -1992,6 +1996,8 @@ class _EnemyBattlePatternMatchOverlayState
                           contentsByPointKey:
                               _buildContentsByPointKey(resolution),
                           blockedPointKeys: displayedBlockedPointKeys,
+                          reinforcedPointKey:
+                              widget.enemy.reinforcedPatternPointKey,
                           displayedPatternPoints: _displayedEnemyPatternPoints,
                           keepLineAfterPointerUp: true,
                           isPatternInputEnabled: !_canMovePlacedBlock,
@@ -3241,6 +3247,7 @@ class _PatternMatrixCard extends StatelessWidget {
   final int rearBlockingCount;
   final int rearMaxBlockingCount;
   final int round;
+  final PurgeDoctrine? purgeDoctrine;
   final bool finishEnabled;
   final bool dimPatternPoints;
   final bool dimBlockPoints;
@@ -3278,6 +3285,7 @@ class _PatternMatrixCard extends StatelessWidget {
     required this.rearBlockingCount,
     required this.rearMaxBlockingCount,
     required this.round,
+    this.purgeDoctrine,
     required this.finishEnabled,
     required this.dimPatternPoints,
     required this.dimBlockPoints,
@@ -3460,12 +3468,21 @@ class _PatternMatrixCard extends StatelessWidget {
     );
   }
 
-  static const int _purgeStartRound = 5;
-  static const int _purgeWarningRound = _purgeStartRound - 2;
+  static const int _normalPurgeStartRound = 5;
   static const int _purgeRampRoundCount = 5;
   static const int _purgeInitialDamage = 1;
   static const int _purgeInitialDamagePerRound = 1;
   static const int _purgeLateDamagePerRound = 2;
+
+  int get _purgeStartRound {
+    return switch (purgeDoctrine) {
+      PurgeDoctrine.embrace => 3,
+      PurgeDoctrine.wayOut => 7,
+      null => _normalPurgeStartRound,
+    };
+  }
+
+  int get _purgeWarningRound => max(1, _purgeStartRound - 2);
 
   Color get _roundCornerColor {
     if (round >= _purgeStartRound) return EndpointPalette.dangerAccent;
@@ -3502,7 +3519,15 @@ class _PatternMatrixCard extends StatelessWidget {
 
   int _purgeDamageForRound(int round) {
     if (round < _purgeStartRound) return 0;
-    final purgeCount = round - _purgeStartRound + 1;
+    final fixedDamage = switch (purgeDoctrine) {
+      PurgeDoctrine.embrace when round < 10 => 6,
+      PurgeDoctrine.wayOut when round < 10 => 4,
+      _ => null,
+    };
+    if (fixedDamage != null) return fixedDamage;
+
+    if (round < _normalPurgeStartRound) return 0;
+    final purgeCount = round - _normalPurgeStartRound + 1;
     if (purgeCount <= _purgeRampRoundCount) {
       return _purgeInitialDamage +
           ((purgeCount - 1) * _purgeInitialDamagePerRound);

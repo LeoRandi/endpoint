@@ -77,6 +77,10 @@ final pathEventDefinitionById =
     canAppear: _canAppearForInamovible,
     visit: _visitDefaultPathEvent,
   ),
+  PathEventId.barreraLibre: const PathEventDefinition(
+    canAppear: _canAppearForBarreraLibre,
+    visit: _visitDefaultPathEvent,
+  ),
   PathEventId.capillaStShieladurn: const PathEventDefinition(
     canAppear: _canAppearForCapillaStShieladurn,
     visit: _visitDefaultPathEvent,
@@ -95,6 +99,10 @@ final pathEventDefinitionById =
   ),
   PathEventId.mercadoFuturos: const PathEventDefinition(
     canAppear: _canAppearForMercante,
+    visit: _visitDefaultPathEvent,
+  ),
+  PathEventId.thePurgame: const PathEventDefinition(
+    canAppear: _canAppearForThePurgame,
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.tempografo: const PathEventDefinition(
@@ -1002,6 +1010,38 @@ class PathEventService {
     );
   }
 
+  PathEventVisitResult resolveBarreraLibre({
+    required Battler player,
+    required RunRandomizer randomizer,
+  }) {
+    if (player.reinforcedPatternPointKey != null) {
+      return PathEventVisitResult(
+        player: player,
+        outcomeText: 'Tu Patron ya tenia un punto reforzado.',
+      );
+    }
+
+    final point = _barreraLibrePointCandidates[
+        randomizer.nextInt(_barreraLibrePointCandidates.length)];
+    final updatedPlayer = player.copyWith(
+      reinforcedPatternPointKey: point.key,
+    );
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText:
+          'Refuerzas el punto ${point.label}. Cada Muralla colocada junto a el te dara +1 Barrera.',
+    );
+  }
+
+  static const List<OperativePatternPoint> _barreraLibrePointCandidates =
+      <OperativePatternPoint>[
+    OperativePatternPoint(x: 0, y: 1),
+    OperativePatternPoint(x: 0, y: -1),
+    OperativePatternPoint(x: 1, y: 0),
+    OperativePatternPoint(x: -1, y: 0),
+  ];
+
   PathEventVisitResult resolveCapillaOffering({
     required Battler player,
     required Item selectedItem,
@@ -1174,6 +1214,24 @@ class PathEventService {
       player: updatedPlayer,
       outcomeText:
           'La moneda obedece. Ganas +2 XP y +1 ATK/+1 Barrera en el proximo combate.',
+    );
+  }
+
+  PathEventVisitResult resolveThePurgameChoice({
+    required Battler player,
+    required PurgeDoctrine doctrine,
+  }) {
+    final updatedPlayer = player.copyWith(purgeDoctrine: doctrine);
+    final doctrineText = switch (doctrine) {
+      PurgeDoctrine.embrace =>
+        'Abrazas la Purga. Llegara en la ronda 3 e infligira 6 dano por ronda hasta la ronda 10.',
+      PurgeDoctrine.wayOut =>
+        'Crees en una salida. La Purga llegara en la ronda 7 e infligira 4 dano por ronda hasta la ronda 10.',
+    };
+
+    return PathEventVisitResult(
+      player: updatedPlayer,
+      outcomeText: doctrineText,
     );
   }
 
@@ -1894,6 +1952,15 @@ bool _canAppearForInamovible(
   return player?.archetypeId == ArchetypeId.inamovible;
 }
 
+bool _canAppearForBarreraLibre(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) return true;
+  return player.reinforcedPatternPointKey == null;
+}
+
 bool _canAppearForImparable(
   PathEventService service, {
   required EventPathNode node,
@@ -1908,6 +1975,15 @@ bool _canAppearForMercante(
   required Battler? player,
 }) {
   return player?.archetypeId == ArchetypeId.mercante;
+}
+
+bool _canAppearForThePurgame(
+  PathEventService service, {
+  required EventPathNode node,
+  required Battler? player,
+}) {
+  if (player == null) return true;
+  return player.purgeDoctrine == null;
 }
 
 bool _canAppearForViktorOperations(

@@ -98,6 +98,13 @@ abstract final class EndpointDomainCodec {
       inventoryItems: List<Item>.unmodifiable(inventoryItems),
       equippedItems: List<Item>.unmodifiable(equippedItems),
       patternItemPointKeys: patternItemPointKeys,
+      reinforcedPatternPointKey: EndpointJsonUtils.readNullableString(
+        json['reinforcedPatternPointKey'],
+      ),
+      purgeDoctrine: EndpointJsonUtils.parseEnumByName(
+        PurgeDoctrine.values,
+        json['purgeDoctrine'],
+      ),
       combatFlags: Set<CombatRuntimeFlag>.unmodifiable(combatFlags),
     );
   }
@@ -136,6 +143,8 @@ abstract final class EndpointDomainCodec {
           .map<Map<String, Object?>>(_serializeItem)
           .toList(growable: false),
       'patternItemPointKeys': battler.patternItemPointKeys,
+      'reinforcedPatternPointKey': battler.reinforcedPatternPointKey,
+      'purgeDoctrine': battler.purgeDoctrine?.name,
       'combatFlags': battler.combatFlags
           .map<Map<String, Object?>>(_serializeCombatFlag)
           .toList(growable: false),

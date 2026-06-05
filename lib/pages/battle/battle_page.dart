@@ -561,6 +561,11 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
             didResolveTurn = true;
+            final reinforcedBarrierBonus =
+                _reinforcedPatternBarrierBonusFor(
+              player: _sceneController.player,
+              nextWalls: matchResult.playerWallSegments,
+            );
             _sceneController.replacePlayer(
               _sceneController.player.copyWith(
                 combatWallSegments: matchResult.playerWallSegments,
@@ -572,7 +577,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
               actionBonus: BattleActionBonus(
                 attackBonus: matchResult.attackBonus,
                 healAmount: matchResult.healthBonus,
-                immediateBarrierAmount: matchResult.barrierBonus,
+                immediateBarrierAmount:
+                    matchResult.barrierBonus + reinforcedBarrierBonus,
               ),
               patternContext: matchResult.patternContext,
               scheduleEnemyTurn: false,
@@ -582,6 +588,29 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       ),
     );
     return mounted && (didResolveTurn || matchResult != null);
+  }
+
+  int _reinforcedPatternBarrierBonusFor({
+    required Battler player,
+    required List<OperativePatternWallSegment> nextWalls,
+  }) {
+    final reinforcedPointKey = player.reinforcedPatternPointKey;
+    if (reinforcedPointKey == null) return 0;
+
+    final reinforcedPoint = operativePatternPointsByKey[reinforcedPointKey];
+    if (reinforcedPoint == null) return 0;
+
+    final previousWallKeys =
+        player.combatWallSegments.map((wall) => wall.key).toSet();
+    var bonus = 0;
+    for (final wall in nextWalls) {
+      if (previousWallKeys.contains(wall.key)) continue;
+      if (wall.a == reinforcedPoint || wall.b == reinforcedPoint) {
+        bonus++;
+      }
+    }
+
+    return bonus;
   }
 
   void _recordPatternMatchResult(BattlePatternMatchResult result) {

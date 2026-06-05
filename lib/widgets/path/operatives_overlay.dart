@@ -723,6 +723,8 @@ class _PatternEquipmentBoard extends StatelessWidget {
                           point: point,
                           item: itemsByPoint[point],
                           center: _patternPointCenter(point, boardSide),
+                          isReinforced:
+                              battler.reinforcedPatternPointKey == point.key,
                           canAcceptItem: canAcceptItem,
                           onAcceptItem: onAcceptItem,
                           onItemPressed: onItemPressed,
@@ -958,6 +960,7 @@ class _PatternEquipmentPointTarget extends StatelessWidget {
   final OperativePatternPoint point;
   final Item? item;
   final Offset center;
+  final bool isReinforced;
   final bool Function(Item item, OperativePatternPoint point) canAcceptItem;
   final void Function(Item item, OperativePatternPoint point) onAcceptItem;
   final ValueChanged<Item>? onItemPressed;
@@ -966,6 +969,7 @@ class _PatternEquipmentPointTarget extends StatelessWidget {
     required this.point,
     required this.item,
     required this.center,
+    required this.isReinforced,
     required this.canAcceptItem,
     required this.onAcceptItem,
     this.onItemPressed,
@@ -992,17 +996,66 @@ class _PatternEquipmentPointTarget extends StatelessWidget {
           return Center(
             child: Transform.rotate(
               angle: -_operativesPatternDiamondRotation,
-              child: currentItem == null
-                  ? _PatternEquipmentEmptyPoint(isHighlighted: canDrop)
-                  : _PatternEquipmentDraggableItemPoint(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (currentItem == null)
+                    _PatternEquipmentEmptyPoint(isHighlighted: canDrop)
+                  else
+                    _PatternEquipmentDraggableItemPoint(
                       item: currentItem,
                       onPressed: onItemPressed == null
                           ? null
                           : () => onItemPressed!.call(currentItem),
                     ),
+                  if (isReinforced) const _PatternEquipmentReinforcedFrame(),
+                ],
+              ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _PatternEquipmentReinforcedFrame extends StatelessWidget {
+  const _PatternEquipmentReinforcedFrame();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: SizedBox.square(
+        dimension: _operativesPatternPointVisualSize * 1.18,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: EndpointPalette.softForeground.withValues(alpha: 0.72),
+              width: 2.1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color:
+                      EndpointPalette.softForeground.withValues(alpha: 0.32),
+                  width: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
