@@ -12,12 +12,14 @@ class GafasFotocromaticasItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'De dia: +$amount Barrera. De noche: +$amount ATK.';
   }
 
+  /// Ajusta una stat calculada del portador mientras el item este equipado.
   @override
   int modifyCalculatedStat({
     required Battler owner,
@@ -51,12 +53,14 @@ class BateriaCrepuscularItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'Al inicio de tu turno, de dia recuperas $amount de Barrera y de noche ganas Potencia (+$amount).';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -105,12 +109,14 @@ class RelojDeTurnoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'Al final de tu turno, de dia te curas $amount HP y de noche infliges $amount de daño directo.';
   }
 
+  /// Resuelve el disparo de final de turno para el portador del item.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -157,12 +163,14 @@ class FaroNoctivagoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'Al usarse: de dia aplica Conmocion ($amount). De noche acumula Fragilidad ($amount).';
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -182,6 +190,7 @@ class FaroNoctivagoItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador complete una defensa.
   @override
   ItemEffectResolution onDefendResolved({
     required Battler owner,
@@ -214,12 +223,14 @@ class PrismaCircadianoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'De dia reduces en $amount el daño recibido. De noche tus ataques infligen $amount de daño adicional.';
   }
 
+  /// Ajusta el dano saliente que el portador va a infligir.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -235,6 +246,7 @@ class PrismaCircadianoItemEffect extends ItemEffect {
     return damage + max(1, item.value);
   }
 
+  /// Ajusta el dano entrante que el portador va a recibir.
   @override
   int modifyIncomingDamage({
     required Battler owner,
@@ -264,12 +276,14 @@ class EclipseMantleItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'Cada turno propio alterna entre +$amount Barrera y +$amount ATK. Tus efectos de Ciclo siguen ese ritmo.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -307,6 +321,7 @@ class EclipseMantleItemEffect extends ItemEffect {
     );
   }
 
+  /// Ajusta una stat calculada del portador mientras el item este equipado.
   @override
   int modifyCalculatedStat({
     required Battler owner,

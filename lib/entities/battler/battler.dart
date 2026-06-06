@@ -18,6 +18,7 @@ enum BattlerStat {
 
 /// Expone etiquetas legibles y colores coherentes para cada stat visible.
 extension BattlerStatPresentation on BattlerStat {
+  /// Devuelve la etiqueta larga usada en paneles y tooltips de stats.
   String get label {
     switch (this) {
       case BattlerStat.health:
@@ -35,6 +36,7 @@ extension BattlerStatPresentation on BattlerStat {
     }
   }
 
+  /// Devuelve una abreviatura estable para espacios compactos de UI.
   String get shortLabel {
     switch (this) {
       case BattlerStat.health:
@@ -52,6 +54,7 @@ extension BattlerStatPresentation on BattlerStat {
     }
   }
 
+  /// Devuelve el color de acento asociado a la stat en la interfaz.
   Color get accent {
     switch (this) {
       case BattlerStat.health:
@@ -96,24 +99,28 @@ class BattlerLevelRewardChoice {
   final BattlerAbility? ability;
   final Item? item;
 
+  /// Crea una opcion que aplica una mejora permanente de stat.
   const BattlerLevelRewardChoice.stat(BattlerLevelReward reward)
       : type = BattlerLevelRewardChoiceType.stat,
         statReward = reward,
         ability = null,
         item = null;
 
+  /// Crea una opcion que entrega o mejora una habilidad.
   const BattlerLevelRewardChoice.ability(BattlerAbility reward)
       : type = BattlerLevelRewardChoiceType.ability,
         statReward = null,
         ability = reward,
         item = null;
 
+  /// Crea una opcion que entrega o mejora un item.
   const BattlerLevelRewardChoice.item(Item reward)
       : type = BattlerLevelRewardChoiceType.item,
         statReward = null,
         ability = null,
         item = reward;
 
+  /// Devuelve la rareza de la recompensa cuando la opcion trae contenido.
   RarityTier? get rarity => ability?.rarity ?? item?.rarity;
 }
 
@@ -124,6 +131,7 @@ class BattlerLevelRewardOffer {
   final RarityTier? rarity;
   final List<BattlerLevelRewardChoice> choices;
 
+  /// Crea una oferta inmutable de recompensas para el siguiente nivel.
   const BattlerLevelRewardOffer({
     required this.nextLevel,
     required this.type,
@@ -321,6 +329,10 @@ class _BattlerDerivedState {
     required this.hasItemEffects,
   });
 
+  /// Construye indices derivados para consultas frecuentes de combate y equipo.
+  ///
+  /// Mantiene el coste de agrupar hooks, ids y stats calculadas fuera de cada
+  /// getter publico del Battler.
   factory _BattlerDerivedState.build(Battler owner) {
     final statusesById = <BattlerStatusId, List<BattlerStatus>>{};
     final statusesByHook = <BattlerStatusHook, List<BattlerStatus>>{};
@@ -535,8 +547,10 @@ class Battler {
   final int combatDestroyedWallCount;
   final Set<CombatRuntimeFlag> combatFlags;
 
-  // Los presets de juego dependen de constructores const, asi que la cache de
-  // derivados vive fuera de la instancia y se rellena a demanda por identidad.
+  /// Devuelve los indices calculados de esta instancia usando cache por identidad.
+  ///
+  /// Los presets de juego dependen de constructores const, asi que la cache de
+  /// derivados vive fuera de la instancia y se rellena a demanda.
   _BattlerDerivedState get _derivedState {
     final cachedState = _derivedStateCache[this];
     if (cachedState != null) {
@@ -761,9 +775,8 @@ class Battler {
       reinforcedPatternPointKey: clearReinforcedPatternPointKey
           ? null
           : reinforcedPatternPointKey ?? this.reinforcedPatternPointKey,
-      purgeDoctrine: clearPurgeDoctrine
-          ? null
-          : purgeDoctrine ?? this.purgeDoctrine,
+      purgeDoctrine:
+          clearPurgeDoctrine ? null : purgeDoctrine ?? this.purgeDoctrine,
       combatWallSegments: resolvedCombatWallSegments,
       combatBlockedPointKeys: resolvedCombatBlockedPointKeys,
       temporaryCombatWallSegments: resolvedTemporaryCombatWallSegments,
@@ -864,6 +877,7 @@ class Battler {
         abilities: abilities,
       );
 
+  /// Detecta si equipo o habilidades activos reducen los bonus positivos.
   static bool _hasBonusDilution({
     required List<Item> equippedItems,
     required List<BattlerAbility> abilities,
@@ -879,6 +893,10 @@ class Battler {
     return initialLevelUpExperienceCost;
   }
 
+  /// Reconstruye una instancia aplicando invariantes derivadas de vida y barrera.
+  ///
+  /// Primero crea un candidato para poder calcular stats finales con equipo y
+  /// estados; despues ajusta HP y Barrera actual segun si el combate esta activo.
   static Battler _buildResolved({
     required String name,
     required String iconEmoji,
@@ -990,6 +1008,7 @@ class Battler {
     );
   }
 
+  /// Deduplica paredes de combate antes de fijarlas en una instancia inmutable.
   static List<OperativePatternWallSegment> _deduplicateWallSegments(
     Iterable<OperativePatternWallSegment> walls,
   ) {
@@ -1000,6 +1019,7 @@ class Battler {
     return List<OperativePatternWallSegment>.unmodifiable(byKey.values);
   }
 
+  /// Conserva solo claves de puntos que existen en el Patron operativo actual.
   static String? _validPatternPointKey(String? pointKey) {
     if (pointKey == null) return null;
     return operativePatternPointsByKey.containsKey(pointKey) ? pointKey : null;

@@ -27,26 +27,22 @@ class QuemaduraStatus extends BattlerStatus {
   /// Devuelve el daño efectivo que va a infligir ahora mismo.
   int currentDamage(Battler owner) => resolved(owner).value;
 
-  @override
-
   /// Permite que varias Quemaduras convivan y se resuelvan por separado.
+  @override
   bool get canStack => true;
 
-  @override
-
   /// Hace que el value del estado siempre coincida con sus turnos restantes.
+  @override
   int resolveValue(Battler owner) => remainingTurns;
 
-  @override
-
   /// Anade a la descripcion el daño actual ya resuelto.
+  @override
   String descriptionFor(Battler owner) {
     return '$description Daño actual: ${currentDamage(owner)}';
   }
 
-  @override
-
   /// Clona el estado manteniendo sincronizados value y remainingTurns.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
@@ -59,9 +55,8 @@ class QuemaduraStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Amplifica la Quemadura alargando su duracion total.
+  @override
   BattlerStatus amplifyValue(int factor) {
     if (factor <= 1) return this;
 
@@ -70,9 +65,8 @@ class QuemaduraStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Al inicio del turno propio inflige daño de debuff igual a su valor actual.
+  @override
   Battler onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -115,24 +109,21 @@ class IntoxicacionStatus extends BattlerStatus {
           value: value,
         );
 
-  @override
-
   /// Hace que la Intoxicacion no caduque por decremento normal de turnos.
+  @override
   bool get isIndefinite => true;
 
   /// Devuelve el daño fijo efectivo que inflige este estado.
   int currentDamage(Battler owner) => resolved(owner).value;
 
-  @override
-
   /// Anade a la descripcion el daño actual ya resuelto.
+  @override
   String descriptionFor(Battler owner) {
     return '$description Daño actual: ${currentDamage(owner)}';
   }
 
-  @override
-
   /// Clona el estado manteniendo el tipo concreto de Intoxicacion.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
@@ -143,9 +134,8 @@ class IntoxicacionStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Al final del turno propio reaplica su duracion y luego inflige daño fijo.
+  @override
   Battler onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -185,9 +175,8 @@ class IntoxicacionStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// La Intoxicacion no debe mantenerse cuando el combate ya ha terminado.
+  @override
   Battler onCombatEnd({
     required Battler owner,
   }) {
@@ -225,11 +214,13 @@ class ContagioStatus extends BattlerStatus {
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Battler owner) {
     return 'Cuando otro debuffo es aplicado al portador, aumenta su valor en $value y reduce Contagio en 1.';
   }
 
+  /// Limpia o transforma estado temporal al cerrar combate.
   @override
   Battler onCombatEnd({
     required Battler owner,
@@ -288,21 +279,18 @@ class CatalisisCruelStatus extends BattlerStatus {
           value: value,
         );
 
-  @override
-
   /// Hace que el estado espere indefinidamente hasta interceptar otro debuff.
+  @override
   bool get isIndefinite => true;
 
-  @override
-
   /// Anade a la descripcion el multiplicador activo actual.
+  @override
   String descriptionFor(Battler owner) {
     return '$description Multiplicador actual: x$value';
   }
 
-  @override
-
   /// Clona el estado manteniendo su multiplicador acumulado.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
@@ -312,9 +300,8 @@ class CatalisisCruelStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Acumula multiplicadores consigo mismo o amplifica el siguiente debuff que llegue.
+  @override
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
     required BattlerStatus appliedStatus,
@@ -371,26 +358,22 @@ class FragilidadStatus extends BattlerStatus {
           value: value,
         );
 
-  @override
-
   /// Limita el valor efectivo al maximo de acumulacion.
+  @override
   int resolveValue(Battler owner) => min(maxValue, max(0, value));
 
-  @override
-
   /// Muestra la acumulacion, no la duracion, porque es el dato tactico clave.
+  @override
   String badgeLabelFor(Battler owner) => '${resolved(owner).value}';
 
-  @override
-
   /// Anade a la descripcion la acumulacion actual.
+  @override
   String descriptionFor(Battler owner) {
     return '$description Acumulacion actual: ${resolved(owner).value}/$maxValue.';
   }
 
-  @override
-
   /// Fusiona nuevas aplicaciones de Fragilidad en una unica acumulacion.
+  @override
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
     required BattlerStatus appliedStatus,
@@ -422,9 +405,8 @@ class FragilidadStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Explota al recibir un golpe si la acumulacion ya esta al maximo.
+  @override
   Battler onReceiveDamageResolved({
     required Battler owner,
     required Battler source,
@@ -454,9 +436,8 @@ class FragilidadStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Clona el estado manteniendo limitada su acumulacion.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
@@ -492,14 +473,12 @@ class ConmocionStatus extends BattlerStatus {
           value: value,
         );
 
-  @override
-
   /// Hace que el estado espere hasta que el portador llegue a atacar.
+  @override
   bool get isIndefinite => true;
 
-  @override
-
   /// Resta daño al siguiente ataque sin permitir valores negativos.
+  @override
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -508,9 +487,8 @@ class ConmocionStatus extends BattlerStatus {
     return max(0, damage - value);
   }
 
-  @override
-
   /// Consume la Conmocion justo despues de que el ataque se resuelva.
+  @override
   Battler onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -523,9 +501,8 @@ class ConmocionStatus extends BattlerStatus {
     return owner.removeStatusInstance(this);
   }
 
-  @override
-
   /// Clona el estado manteniendo la penalizacion pendiente.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
@@ -560,19 +537,16 @@ class DeudaStatus extends BattlerStatus {
           value: value,
         );
 
-  @override
-
   /// Hace que la deuda siga viva hasta que un evento especifico la resuelva.
+  @override
   bool get isIndefinite => true;
 
-  @override
-
   /// Impide que efectos de purga convencionales eliminen la deuda.
+  @override
   bool get isPurgeable => false;
 
-  @override
-
   /// Limita el income efectivo del portador a un maximo de 1.
+  @override
   int modifyIncome({
     required Battler owner,
     required int income,
@@ -580,9 +554,8 @@ class DeudaStatus extends BattlerStatus {
     return min(income, 1);
   }
 
-  @override
-
   /// Anade a la descripcion el saldo pendiente y el income retenido actualmente.
+  @override
   String descriptionFor(Battler owner) {
     final potentialIncome = owner.baseIncome +
         owner.equippedItems.fold<int>(
@@ -598,9 +571,8 @@ class DeudaStatus extends BattlerStatus {
     return copyWith(value: max(0, value - max(0, payment))) as DeudaStatus;
   }
 
-  @override
-
   /// Hace que volver a aplicar Deuda no cree copias ni reinicie el saldo.
+  @override
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
     required BattlerStatus appliedStatus,
@@ -618,9 +590,8 @@ class DeudaStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Clona la deuda manteniendo el saldo pendiente.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,

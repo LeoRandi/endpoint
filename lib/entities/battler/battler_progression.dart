@@ -31,6 +31,10 @@ extension BattlerProgression on Battler {
     return _spendMoney(amount, applyItemPaymentAbilities: true);
   }
 
+  /// Aplica el pago real y dispara los efectos que reaccionan a gastar creditos.
+  ///
+  /// La cantidad pagada se limita al dinero disponible para que reembolsos y
+  /// umbrales usen lo que realmente salio de la cartera, no el coste pedido.
   Battler _spendMoney(
     int amount, {
     bool applyItemPaymentAbilities = false,
@@ -121,6 +125,7 @@ extension BattlerProgression on Battler {
     return updatedPlayer;
   }
 
+  /// Dispara efectos de items que reaccionan cuando el jugador gana creditos.
   Battler _applyCreditGainItemEffects(int amount) {
     if (amount <= 0 || equippedItems.isEmpty) return this;
 
@@ -132,6 +137,10 @@ extension BattlerProgression on Battler {
     return updatedBattler;
   }
 
+  /// Dispara habilidades que reaccionan al cruzar umbrales de creditos ganados.
+  ///
+  /// Actualmente `franquiciaTotal` se activa una sola vez por combate al llegar
+  /// a 20 creditos y mejora el item mercante equipado de menor rareza.
   Battler _applyCreditGainAbilityEffects({required int previousMoney}) {
     if (!combatFlags.contains(Battler.combatActiveFlag) ||
         previousMoney >= 20 ||
@@ -171,6 +180,7 @@ extension BattlerProgression on Battler {
     );
   }
 
+  /// Dispara habilidades que reaccionan a pagos de creditos hechos por items.
   Battler _applyCreditSpendAbilityEffects(int paidAmount) {
     if (paidAmount <= 0 ||
         !combatFlags.contains(Battler.combatActiveFlag) ||
@@ -187,6 +197,10 @@ extension BattlerProgression on Battler {
     );
   }
 
+  /// Dispara items equipados que reaccionan cuando se gastan creditos.
+  ///
+  /// Cada item conserva sus propios limites mediante flags de combate para que
+  /// multiples copias no compartan accidentalmente usos.
   Battler _applyCreditSpendItemEffects(int paidAmount) {
     if (paidAmount <= 0 ||
         equippedItems.isEmpty ||
@@ -234,6 +248,7 @@ extension BattlerProgression on Battler {
     return updatedBattler;
   }
 
+  /// Reemplaza una instancia equipada conservando la posicion visual del equipo.
   Battler _replaceEquippedItemForCreditAbility({
     required Item currentItem,
     required Item replacement,
@@ -248,6 +263,10 @@ extension BattlerProgression on Battler {
     );
   }
 
+  /// Aplica la mejora temporal que `franquiciaTotal` concede a un item mercante.
+  ///
+  /// El aumento se marca como aura de combate para que pueda limpiarse al salir
+  /// del encuentro sin tocar mejoras permanentes del objeto.
   Item _boostItemForCreditAbility({
     required Item item,
     required int amount,

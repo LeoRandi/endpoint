@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Shared color tokens for the whole Death at Sunrise interface.
+///
+/// Keeping these colors in one app-level palette lets pages, widgets, and
+/// overlays share the same visual language without depending on each other.
 abstract final class EndpointPalette {
   static const primaryAccent = Color(0xFF5AF78E);
   static const dangerAccent = Color(0xFFFF6B6B);
@@ -28,15 +32,28 @@ abstract final class EndpointPalette {
   static const overlayScrim = Color(0x9E000000);
   static const overlayScrimStrong = Color(0xBD000000);
 
+  /// Returns a readable foreground tint for [accent].
+  ///
+  /// Most combat and route surfaces are very dark, so this blends the accent
+  /// toward white instead of using the raw saturated color as body text.
   static Color soften(Color accent, {double amount = 0.32}) {
-    return Color.lerp(Colors.white, accent, amount) ?? Colors.white;
+    return Color.lerp(Colors.white, accent, amount.clamp(0.0, 1.0)) ??
+        Colors.white;
   }
 
+  /// Applies [opacity] to [color] through the project color compatibility API.
+  ///
+  /// This keeps callers away from deprecated opacity helpers while preserving
+  /// the compact `EndpointPalette.tint(color, value)` call sites.
   static Color tint(Color color, double opacity) {
-    return color.withOpacity(opacity);
+    return color.withValues(alpha: opacity.clamp(0.0, 1.0));
   }
 
+  /// Blends [base] toward [accent] by [amount].
+  ///
+  /// UI surfaces use this to derive accented panels while keeping their
+  /// underlying value close to the shared app palette.
   static Color blend(Color base, Color accent, double amount) {
-    return Color.lerp(base, accent, amount) ?? base;
+    return Color.lerp(base, accent, amount.clamp(0.0, 1.0)) ?? base;
   }
 }

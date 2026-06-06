@@ -12,11 +12,13 @@ class ThermalTurbineItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio del combate, ganas ${max(1, item.value)} Calentando. Solo ocurre una vez por combate.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onCombatStart({
     required Battler owner,
@@ -74,11 +76,13 @@ class SunExecutionBladeItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, si el objetivo tiene Quemadura, la consume e inflige dano directo extra igual a su dano actual total + ${max(1, item.value)}.';
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -126,17 +130,15 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando la duracion actual del objeto equipado.
+  @override
   String descriptionFor(Item item) {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
     return 'Al usarse: anade Quemadura durante $resolvedDuration turnos.';
   }
 
-  @override
-
   /// Tras atacar, aplica una Quemadura nueva con la duracion configurada.
+  @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -167,17 +169,15 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando la duracion actual del objeto equipado.
+  @override
   String descriptionFor(Item item) {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
     return 'Al recibir un ataque: anade Quemadura al agresor durante $resolvedDuration turnos.';
   }
 
-  @override
-
   /// Tras recibir un golpe, aplica Quemadura al enemigo que lo causo.
+  @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
     required Battler source,
@@ -205,16 +205,14 @@ class ImpactGlovesItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando el value real del item equipado.
+  @override
   String descriptionFor(Item item) {
     return 'Tus ataques infligen ${item.value} de daño adicional si el objetivo no tiene buffs.';
   }
 
-  @override
-
   /// Suma daño solo cuando el objetivo esta completamente sin buffs.
+  @override
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -242,16 +240,14 @@ class ChemicalFilterItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando el value real del item equipado.
+  @override
   String descriptionFor(Item item) {
     return 'Reduce la Quemadura e Intoxicacion recibidas en ${item.value} al aplicarse.';
   }
 
-  @override
-
   /// Resta duracion o value al estado recibido y puede cancelarlo si llega a cero.
+  @override
   BattlerStatus? modifyIncomingStatus({
     required Battler owner,
     required Battler source,
@@ -284,9 +280,8 @@ class BillingModuleItemEffect extends ItemEffect {
           description: 'Aumenta los ingresos, pero reduce la vida maxima.',
         );
 
-  @override
-
   /// Explica a la UI cuanto income gana y cuanto HP maximo pierde el portador.
+  @override
   String descriptionFor(Item item) {
     final healthPenalty = item.maxHealthPercentModifier.abs();
     final incomeGain = item.incomeModifier;
@@ -308,11 +303,13 @@ class PagareRevalorizableItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al terminar un combate equipado, aumenta su precio de venta en ${item.value}C.';
   }
 
+  /// Aplica los cambios pendientes del item al cerrar el combate.
   @override
   Battler onCombatEnd({
     required Battler owner,
@@ -342,11 +339,13 @@ class MochilaStronkboxItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, si tienes al menos ${requiredMoney}C, recuperas ${max(1, item.value)} de Barrera.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -378,6 +377,7 @@ class VirtualMailboxItemEffect extends ItemEffect {
               'Al ganar un combate, anade un item aleatorio de su categoria a las recompensas si tienes espacio.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     final focusLabel = _focusTagFor(item).label;
@@ -387,6 +387,7 @@ class VirtualMailboxItemEffect extends ItemEffect {
     return '${statLine}Al terminar un combate, si tienes espacio, ofrece un item ${item.rarity.label} aleatorio con tag $focusLabel en la pantalla de recompensas.';
   }
 
+  /// Decide que tag de recompensa debe buscar cada buzon segun su version.
   EntityTag _focusTagFor(Item item) {
     switch (item.id) {
       case ItemId.buzonVirtualAzul:
@@ -408,18 +409,20 @@ class VirtualMailboxItemEffect extends ItemEffect {
 }
 
 class TaladronItemEffect extends ItemEffect {
+  /// Crea el efecto de Taladron.
   const TaladronItemEffect()
       : super(
-          description:
-              'Al usarse: destruye todas las Murallas de tu matriz.',
+          description: 'Al usarse: destruye todas las Murallas de tu matriz.',
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: todas las Murallas de tu matriz son destruidas.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -437,6 +440,7 @@ class TaladronItemEffect extends ItemEffect {
 }
 
 class CuboDinamitalicoItemEffect extends ItemEffect {
+  /// Crea el efecto de CuboDinamitalico.
   const CuboDinamitalicoItemEffect()
       : super(
           description:
@@ -444,11 +448,13 @@ class CuboDinamitalicoItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.combatStart},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al comienzo del combate, destruye cualquier Muralla de tu matriz adyacente a su posicion.';
   }
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   ItemEffectResolution onCombatStart({
     required Battler owner,
@@ -472,17 +478,20 @@ class CuboDinamitalicoItemEffect extends ItemEffect {
 }
 
 class MedidorRoturaItemEffect extends ItemEffect {
+  /// Crea el efecto de MedidorRotura.
   const MedidorRoturaItemEffect()
       : super(
           description: 'Ganas ataque por cada Muralla destruida este combate.',
           hooks: const {ItemEffectHook.calculatedStatModifier},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Ganas +${max(1, item.value)} ataque por cada Muralla destruida este combate.';
   }
 
+  /// Ajusta una stat calculada mientras el efecto esta activo.
   @override
   int modifyCalculatedStat({
     required Battler owner,
@@ -497,6 +506,7 @@ class MedidorRoturaItemEffect extends ItemEffect {
 }
 
 class MurallaAutomaticaItemEffect extends ItemEffect {
+  /// Crea el efecto de MurallaAutomatica.
   const MurallaAutomaticaItemEffect()
       : super(
           description:
@@ -504,11 +514,13 @@ class MurallaAutomaticaItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.combatStart},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al comienzo del combate, crea ${max(1, item.value)} Murallas en la matriz enemiga.';
   }
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   ItemEffectResolution onCombatStart({
     required Battler owner,
@@ -529,6 +541,7 @@ class MurallaAutomaticaItemEffect extends ItemEffect {
 }
 
 class LiteralPaywallItemEffect extends ItemEffect {
+  /// Crea el efecto de LiteralPaywall.
   const LiteralPaywallItemEffect()
       : super(
           description:
@@ -536,11 +549,13 @@ class LiteralPaywallItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed, ItemEffectHook.turnEnd},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: al final del turno, paga ${max(0, item.value)} creditos si es posible para crear una Muralla para el enemigo.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -561,6 +576,7 @@ class LiteralPaywallItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -608,6 +624,7 @@ class LiteralPaywallItemEffect extends ItemEffect {
 }
 
 class PassCardItemEffect extends ItemEffect {
+  /// Crea el efecto de PassCard.
   const PassCardItemEffect()
       : super(
           description:
@@ -617,11 +634,13 @@ class PassCardItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return '+1 BP mientras este equipado. Al usarse: paga ${max(0, item.value)} creditos si es posible para desactivar todas las Murallas de tu matriz hasta el final del combate.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -645,6 +664,7 @@ class PassCardItemEffect extends ItemEffect {
 }
 
 class TonfasEscudoItemEffect extends ItemEffect {
+  /// Crea el efecto de TonfasEscudo.
   const TonfasEscudoItemEffect()
       : super(
           description:
@@ -654,6 +674,7 @@ class TonfasEscudoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Puedes poner o mover una Muralla mas por turno para bloquear a tu oponente, pero -1 BP maximo.';
@@ -661,6 +682,7 @@ class TonfasEscudoItemEffect extends ItemEffect {
 }
 
 class ConstructionSealItemEffect extends ItemEffect {
+  /// Crea el efecto de ConstructionSeal.
   const ConstructionSealItemEffect()
       : super(
           description:
@@ -671,11 +693,13 @@ class ConstructionSealItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return '+4 BP mientras este equipado. Al principio de turno: te curas ${max(0, item.value)} veces tus BP restantes. Al usarse: destruye una Muralla en tu tablero o en el de tu enemigo.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -700,6 +724,7 @@ class ConstructionSealItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -752,6 +777,7 @@ class ConstructionSealItemEffect extends ItemEffect {
 }
 
 class BarbedShieldItemEffect extends ItemEffect {
+  /// Crea el efecto de BarbedShield.
   const BarbedShieldItemEffect()
       : super(
           description:
@@ -759,11 +785,13 @@ class BarbedShieldItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed, ItemEffectHook.turnEnd},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: Hace dano al enemigo al final del turno igual a ${max(1, item.value)} veces el numero de Murallas en tu matriz y en la del enemigo.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -784,6 +812,7 @@ class BarbedShieldItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -825,6 +854,7 @@ class BarbedShieldItemEffect extends ItemEffect {
 }
 
 class PilarAceroItemEffect extends ItemEffect {
+  /// Crea el efecto de PilarAcero.
   const PilarAceroItemEffect()
       : super(
           description:
@@ -832,11 +862,13 @@ class PilarAceroItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed, ItemEffectHook.turnEnd},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: Crea Murallas al rededor de su punto al final del turno, que duran un turno, tanto en tu matriz como en la del enemigo.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -856,6 +888,7 @@ class PilarAceroItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -880,6 +913,7 @@ class PilarAceroItemEffect extends ItemEffect {
 }
 
 class DuplicadorAtomosItemEffect extends ItemEffect {
+  /// Crea el efecto de DuplicadorAtomos.
   const DuplicadorAtomosItemEffect()
       : super(
           description:
@@ -887,11 +921,13 @@ class DuplicadorAtomosItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: Copia ${max(1, item.value)} Murallas en tu matriz a la de tu enemigo.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -909,6 +945,7 @@ class DuplicadorAtomosItemEffect extends ItemEffect {
 }
 
 class CortinaHumoItemEffect extends ItemEffect {
+  /// Crea el efecto de CortinaHumo.
   const CortinaHumoItemEffect()
       : super(
           description:
@@ -916,11 +953,13 @@ class CortinaHumoItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: Mueve ${max(1, item.value)} Murallas de tu matriz a la del enemigo.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -991,9 +1030,8 @@ ItemEffectResolution _destroyOpponentBoardWalls({
   }
   updatedOpponent =
       updatedOpponent.recordRemovedWallBlockingPointDebt(destroyedCount);
-  final updatedOwner = countForOwner
-      ? owner.recordDestroyedCombatWalls(destroyedCount)
-      : owner;
+  final updatedOwner =
+      countForOwner ? owner.recordDestroyedCombatWalls(destroyedCount) : owner;
 
   return ItemEffectResolution(
     owner: updatedOwner,
@@ -1093,11 +1131,13 @@ class MuestrarioContrabandoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, te curas ${max(1, item.value)} HP por cada item de otro arquetipo en tu inventario, hasta $healCap HP.';
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -1135,11 +1175,13 @@ class RoperaUnidaItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Obtienes +ATK igual a ${max(1, item.value)} + el numero de items de otro arquetipo que posees, hasta $attackCap.';
   }
 
+  /// Ajusta una stat calculada del portador mientras el item este equipado.
   @override
   int modifyCalculatedStat({
     required Battler owner,
@@ -1159,6 +1201,7 @@ class RoperaUnidaItemEffect extends ItemEffect {
 }
 
 class ShoppingChecklistItemEffect extends ItemEffect {
+  /// Crea el efecto de ShoppingChecklist.
   const ShoppingChecklistItemEffect()
       : super(
           description:
@@ -1166,11 +1209,13 @@ class ShoppingChecklistItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.turnStart},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, si has gastado creditos este combate, recuperas ${max(1, item.value)} de Barrera.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -1197,6 +1242,7 @@ class ShoppingChecklistItemEffect extends ItemEffect {
 class LaCuentaItemEffect extends ItemEffect {
   static const attackBonus = 3;
 
+  /// Crea el efecto de LaCuenta.
   const LaCuentaItemEffect()
       : super(
           description:
@@ -1207,11 +1253,13 @@ class LaCuentaItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Las primeras ${max(1, item.value)} veces por combate que gastas creditos, tu siguiente ataque gana +$attackBonus dano.';
   }
 
+  /// Ajusta el dano saliente antes de aplicarlo.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1227,6 +1275,7 @@ class LaCuentaItemEffect extends ItemEffect {
     return damage + attackBonus;
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -1258,6 +1307,7 @@ class LaCuentaItemEffect extends ItemEffect {
 }
 
 class SeguroBolsilloItemEffect extends ItemEffect {
+  /// Crea el efecto de SeguroBolsillo.
   const SeguroBolsilloItemEffect()
       : super(
           description:
@@ -1265,12 +1315,14 @@ class SeguroBolsilloItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.incomingDamageEffect},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value) * 2;
     return 'Una vez por combate, cuando fueras a perder HP, paga hasta ${amount}C para prevenir esa cantidad de dano a la vida.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -1299,12 +1351,14 @@ class SeguroBolsilloItemEffect extends ItemEffect {
 }
 
 class BolsoR33mItemEffect extends ItemEffect {
+  /// Crea el efecto de BolsoR33m.
   const BolsoR33mItemEffect()
       : super(
           description:
               'Las primeras veces que gastas creditos durante combate, recuperas el gasto inmediatamente.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Las primeras ${max(1, item.value)} veces por combate que gastas creditos durante combate, recuperas ese dinero inmediatamente.';
@@ -1312,11 +1366,13 @@ class BolsoR33mItemEffect extends ItemEffect {
 }
 
 class SelloMercanteItemEffect extends ItemEffect {
+  /// Crea el efecto de SelloMercante.
   const SelloMercanteItemEffect()
       : super(
           description: 'Cuando ganas creditos, restauras vida.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Cuando ganas creditos, restauras ${max(1, item.value)} HP.';
@@ -1324,6 +1380,7 @@ class SelloMercanteItemEffect extends ItemEffect {
 }
 
 class CompraAgresivaItemEffect extends ItemEffect {
+  /// Crea el efecto de CompraAgresiva.
   const CompraAgresivaItemEffect()
       : super(
           description:
@@ -1331,11 +1388,13 @@ class CompraAgresivaItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.turnEnd},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al final de tu turno, paga ${max(0, item.value)}C si es posible para ganar 3 Barrera. La primera vez por combate que este efecto se activa 3 veces, ganas +1 BP.';
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -1374,12 +1433,14 @@ class CompraAgresivaItemEffect extends ItemEffect {
 }
 
 class SubastaRelampagoItemEffect extends ItemEffect {
+  /// Crea el efecto de SubastaRelampago.
   const SubastaRelampagoItemEffect()
       : super(
           description:
               'Permite activar un mismo punto dos veces y paga creditos la primera vez de cada turno.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Puedes activar el mismo punto dos veces en un Patron, repitiendo sus efectos Al usarse y sus bonus de ATK/Barrera. La primera vez de cada turno que repites un punto con item, ganas ${max(1, item.value)}C.';
@@ -1387,6 +1448,7 @@ class SubastaRelampagoItemEffect extends ItemEffect {
 }
 
 class BolsaRiesgoItemEffect extends ItemEffect {
+  /// Crea el efecto de BolsaRiesgo.
   const BolsaRiesgoItemEffect()
       : super(
           description:
@@ -1397,11 +1459,13 @@ class BolsaRiesgoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al comienzo del combate, ganas ${max(1, item.value) * 2}C. La primera vez por combate que quedas por debajo del 50% HP, gastas hasta ${max(1, item.value) * 3}C para infligir ese dano directo.';
   }
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   ItemEffectResolution onCombatStart({
     required Battler owner,
@@ -1415,6 +1479,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1440,6 +1505,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
 }
 
 class CamaraArbitrajeItemEffect extends ItemEffect {
+  /// Crea el efecto de CamaraArbitraje.
   const CamaraArbitrajeItemEffect()
       : super(
           description:
@@ -1447,11 +1513,13 @@ class CamaraArbitrajeItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.incomingStatusModifier},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Una vez por turno, cuando recibes un debuff, paga ${max(1, item.value) * 2}C para reducirlo en ${max(1, item.value)} y recuperar ${max(1, item.value) * 2} Barrera.';
   }
 
+  /// Intercepta un estado entrante antes de aplicarlo al portador.
   @override
   ItemIncomingStatusResolution onIncomingStatus({
     required Battler owner,
@@ -1496,6 +1564,7 @@ class CamaraArbitrajeItemEffect extends ItemEffect {
 class BancoAmbulanteItemEffect extends ItemEffect {
   static const requiredMoney = 20;
 
+  /// Crea el efecto de BancoAmbulante.
   const BancoAmbulanteItemEffect()
       : super(
           description:
@@ -1508,11 +1577,13 @@ class BancoAmbulanteItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, si tienes al menos ${requiredMoney}C, ganas ${max(1, item.value)} Barrera. Cuando usas un Patron con 5+ puntos de item, puedes gastar hasta ${max(1, item.value)}C para sumar ese valor dividido entre ATK y Barrera. Al final de tu turno, ganas ${max(1, item.value)}C.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -1530,6 +1601,7 @@ class BancoAmbulanteItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve efectos antes de aplicar el ataque generado por Patron.
   @override
   ItemEffectResolution onPrePatternAttack({
     required Battler owner,
@@ -1561,6 +1633,7 @@ class BancoAmbulanteItemEffect extends ItemEffect {
     return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -1578,6 +1651,7 @@ class BancoAmbulanteItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -1600,6 +1674,7 @@ class BancoAmbulanteItemEffect extends ItemEffect {
 }
 
 class NivelPrecisionItemEffect extends ItemEffect {
+  /// Crea el efecto de NivelPrecision.
   const NivelPrecisionItemEffect()
       : super(
           description:
@@ -1607,11 +1682,13 @@ class NivelPrecisionItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.prePatternAttack},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: si el bonus final de ATK y Barrera del Patron son iguales, suma ${max(1, item.value)} a ambos antes del ataque.';
   }
 
+  /// Resuelve efectos antes de aplicar el ataque generado por Patron.
   @override
   ItemEffectResolution onPrePatternAttack({
     required Battler owner,
@@ -1634,6 +1711,7 @@ class NivelPrecisionItemEffect extends ItemEffect {
 }
 
 class MekaYunqueItemEffect extends ItemEffect {
+  /// Crea el efecto de MekaYunque.
   const MekaYunqueItemEffect()
       : super(
           description:
@@ -1641,11 +1719,13 @@ class MekaYunqueItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.prePatternAttack},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'La primera vez por combate que usas un Patron con 6+ puntos de item, mejora temporalmente en ${max(1, item.value)} el item General equipado de menor rareza.';
   }
 
+  /// Resuelve efectos antes de aplicar el ataque generado por Patron.
   @override
   ItemEffectResolution onPrePatternAttack({
     required Battler owner,
@@ -1698,6 +1778,7 @@ class MekaYunqueItemEffect extends ItemEffect {
 }
 
 class SonicaltropsItemEffect extends ItemEffect {
+  /// Crea el efecto de Sonicaltrops.
   const SonicaltropsItemEffect()
       : super(
           description:
@@ -1705,11 +1786,13 @@ class SonicaltropsItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.combatStart},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Durante el primer turno del oponente, da -${max(1, item.value)} al bonus de ATK y Barrera de su Patron.';
   }
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   ItemEffectResolution onCombatStart({
     required Battler owner,
@@ -1731,6 +1814,10 @@ class SonicaltropsItemEffect extends ItemEffect {
   }
 }
 
+/// Aplica una mejora temporal de combate a cualquier item generalista.
+///
+/// El boost queda marcado en `combatItemBonusBoost` para que [Item.clearCombatAugments]
+/// pueda revertirlo al cerrar el encuentro.
 Item _boostGeneralItemForCombat({
   required Item item,
   required int amount,
@@ -1756,9 +1843,8 @@ Item _boostGeneralItemForCombat({
       .toList(growable: false);
 
   return item.copyWith(
-    value: item.effect != null && item.value > 0
-        ? item.value + safeAmount
-        : null,
+    value:
+        item.effect != null && item.value > 0 ? item.value + safeAmount : null,
     statModifiers: statModifiers,
     patternBonusAmountOverride:
         item.hasPatternBonus ? item.patternBonusAmount + safeAmount : null,
@@ -1768,6 +1854,10 @@ Item _boostGeneralItemForCombat({
   );
 }
 
+/// Mejora temporalmente el ATK de una instancia equipada concreta.
+///
+/// Solo reemplaza el item si sigue equipado en el owner actual, lo que evita
+/// tocar copias obsoletas conservadas por overlays o resoluciones previas.
 Battler _boostItemAttackForCombat({
   required Battler owner,
   required Item item,
@@ -1806,16 +1896,14 @@ class PortableOvenItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando el value real del item equipado.
+  @override
   String descriptionFor(Item item) {
     return 'Las Quemaduras que aplicas duran ${item.value} turno mas. Al final de tu turno te aplicas Quemadura (${item.value}).';
   }
 
-  @override
-
   /// Extiende solo las Quemaduras que el portador aplica a otros objetivos.
+  @override
   BattlerStatus? modifyOutgoingStatus({
     required Battler owner,
     required Battler target,
@@ -1829,9 +1917,8 @@ class PortableOvenItemEffect extends ItemEffect {
     );
   }
 
-  @override
-
   /// Al cerrar el turno propio, aplica una Quemadura al usuario.
+  @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -1866,16 +1953,14 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando la vida con la que deja al portador.
+  @override
   String descriptionFor(Item item) {
     return 'Una vez por combate evita la muerte y te deja en ${max(1, item.value)} HP.';
   }
 
-  @override
-
   /// Intercepta el daño letal y aplica la proteccion una sola vez por combate.
+  @override
   Battler onReceiveFatalDamage({
     required Battler owner,
     required Item item,
@@ -1905,9 +1990,8 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
         .addCombatFlag(protectionFlag);
   }
 
-  @override
-
   /// Limpia la proteccion temporal al inicio del siguiente turno propio.
+  @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -1935,17 +2019,20 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
 }
 
 class VialRotoItemEffect extends ItemEffect {
+  /// Crea el efecto de VialRoto.
   const VialRotoItemEffect()
       : super(
           description: 'Al principio del combate, aplica Contagio al enemigo.',
           hooks: const {ItemEffectHook.combatStart},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al principio del combate, aplica ${max(1, item.value)} Contagio al enemigo.';
   }
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   ItemEffectResolution onCombatStart({
     required Battler owner,
@@ -1962,17 +2049,20 @@ class VialRotoItemEffect extends ItemEffect {
 }
 
 class PlumaSepticaItemEffect extends ItemEffect {
+  /// Crea el efecto de PlumaSeptica.
   const PlumaSepticaItemEffect()
       : super(
           description: 'Al usarse: aplica debuffos aleatorios al enemigo.',
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: aplica ${max(1, item.value)} veces un debuff aleatorio al enemigo.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -2008,6 +2098,7 @@ class PlumaSepticaItemEffect extends ItemEffect {
 }
 
 class LanzaSuciaItemEffect extends ItemEffect {
+  /// Crea el efecto de LanzaSucia.
   const LanzaSuciaItemEffect()
       : super(
           description:
@@ -2015,11 +2106,13 @@ class LanzaSuciaItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse contra un enemigo con debuff, aplica ${max(1, item.value)} Contagio.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -2040,6 +2133,7 @@ class LanzaSuciaItemEffect extends ItemEffect {
 }
 
 class AmpollaInestableItemEffect extends ItemEffect {
+  /// Crea el efecto de AmpollaInestable.
   const AmpollaInestableItemEffect()
       : super(
           description:
@@ -2047,12 +2141,14 @@ class AmpollaInestableItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'Al usarse: aplica $amount Contagio. Si el enemigo ya tenia Contagio, aplica ${amount * 2} Fragilidad.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -2077,6 +2173,7 @@ class AmpollaInestableItemEffect extends ItemEffect {
 }
 
 class TuboCultivoItemEffect extends ItemEffect {
+  /// Crea el efecto de TuboCultivo.
   const TuboCultivoItemEffect()
       : super(
           description:
@@ -2084,11 +2181,13 @@ class TuboCultivoItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.turnEnd},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al final de tu turno: si el enemigo tiene 2+ debuffos, aplica ${max(1, item.value)} Contagio.';
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -2110,17 +2209,20 @@ class TuboCultivoItemEffect extends ItemEffect {
 }
 
 class CyberCerbatanaItemEffect extends ItemEffect {
+  /// Crea el efecto de CyberCerbatana.
   const CyberCerbatanaItemEffect()
       : super(
           description: 'Al usarse: aplica o aumenta Contagio al enemigo.',
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: aplica ${max(1, item.value)} Contagio al enemigo, o aumenta el Contagio enemigo en ${max(1, item.value)}.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -2137,6 +2239,7 @@ class CyberCerbatanaItemEffect extends ItemEffect {
 }
 
 class ProtocoloBroteItemEffect extends ItemEffect {
+  /// Crea el efecto de ProtocoloBrote.
   const ProtocoloBroteItemEffect()
       : super(
           description:
@@ -2144,11 +2247,13 @@ class ProtocoloBroteItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.contagioValueLost},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Cuando Contagio enemigo llega a 0 al activarse, aplica ${max(1, item.value)} Intoxicacion.';
   }
 
+  /// Reacciona cuando Contagio pierde valor durante el combate.
   @override
   ItemEffectResolution onContagioValueLost({
     required Battler owner,
@@ -2172,6 +2277,7 @@ class ProtocoloBroteItemEffect extends ItemEffect {
 }
 
 class IncubadoraPortatilItemEffect extends ItemEffect {
+  /// Crea el efecto de IncubadoraPortatil.
   const IncubadoraPortatilItemEffect()
       : super(
           description:
@@ -2182,11 +2288,13 @@ class IncubadoraPortatilItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al principio del combate, aplica ${max(1, item.value)} Contagio. Cada vez que Contagio enemigo se activa, recuperas 3 Barrera.';
   }
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   ItemEffectResolution onCombatStart({
     required Battler owner,
@@ -2201,6 +2309,7 @@ class IncubadoraPortatilItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona cuando Contagio pierde valor durante el combate.
   @override
   ItemEffectResolution onContagioValueLost({
     required Battler owner,
@@ -2222,6 +2331,7 @@ class IncubadoraPortatilItemEffect extends ItemEffect {
   }
 }
 
+/// Cuenta debuffs activos sin filtrar por purgabilidad.
 int _debuffCount(Battler battler) {
   return battler.statuses
       .where((status) => status.type == BattlerStatusType.debuff)
@@ -2273,6 +2383,7 @@ class StatusItemEffect extends ItemEffect {
                     },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final phrase = _statusPhrase(item);
@@ -2295,6 +2406,7 @@ class StatusItemEffect extends ItemEffect {
     }
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -2327,6 +2439,7 @@ class StatusItemEffect extends ItemEffect {
     }
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -2359,6 +2472,7 @@ class StatusItemEffect extends ItemEffect {
     }
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -2391,6 +2505,7 @@ class StatusItemEffect extends ItemEffect {
     }
   }
 
+  /// Aplica el estado construido al portador segun la politica del trigger.
   Battler _applyToOwner({
     required Battler owner,
     required Battler source,
@@ -2457,6 +2572,7 @@ class StatusItemEffect extends ItemEffect {
     }
   }
 
+  /// Construye la instancia concreta de estado usando el value actual del item.
   BattlerStatus _buildStatus(Item item) {
     final resolvedValue = max(1, item.value);
 
@@ -2470,6 +2586,7 @@ class StatusItemEffect extends ItemEffect {
     }
   }
 
+  /// Describe el estado en lenguaje compacto para la descripcion del item.
   String _statusPhrase(Item item) {
     final resolvedValue = max(1, item.value);
 

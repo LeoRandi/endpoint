@@ -21,6 +21,7 @@ enum EntityTag {
 
 /// Expone el texto visible y el color base de cada tag.
 extension EntityTagPresentation on EntityTag {
+  /// Devuelve la etiqueta legible usada por pills, filtros y detalles.
   String get label {
     switch (this) {
       case EntityTag.debuff:
@@ -56,6 +57,7 @@ extension EntityTagPresentation on EntityTag {
     }
   }
 
+  /// Devuelve el color semantico base para UI y resaltado de efectos.
   Color get accent {
     switch (this) {
       case EntityTag.debuff:

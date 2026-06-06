@@ -38,7 +38,7 @@ enum RarityTier {
   final int factor;
   final double rollWeight;
 
-  /// Crea una rareza con su color, factor y peso de aparicion asociados.
+  /// Crea una rareza con color, etiqueta, factor economico y peso de aparicion.
   const RarityTier({
     required this.accent,
     required this.label,

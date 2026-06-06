@@ -265,6 +265,10 @@ extension BattlerCombatRuntime on Battler {
     return copyWith(combatFlags: const <CombatRuntimeFlag>{});
   }
 
+  /// Elimina todas las paredes y bloqueos generados por el combate actual.
+  ///
+  /// Tambien limpia paredes temporales pendientes y el contador de paredes
+  /// destruidas para que el siguiente encuentro empiece sin deuda heredada.
   Battler clearCombatWalls() {
     if (combatWallSegments.isEmpty &&
         combatBlockedPointKeys.isEmpty &&
@@ -283,6 +287,10 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Genera paredes aleatorias entre puntos adyacentes del Patron operativo.
+  ///
+  /// Recibe la funcion de aleatoriedad desde fuera para mantener deterministas
+  /// los controladores que ya poseen la semilla del combate.
   Battler seedRandomCombatWalls({
     required int count,
     required int Function(int max) nextInt,
@@ -311,6 +319,7 @@ extension BattlerCombatRuntime on Battler {
     return addCombatWalls(picked);
   }
 
+  /// Agrega paredes al combate sin duplicar segmentos ya registrados.
   Battler addCombatWalls(Iterable<OperativePatternWallSegment> walls) {
     final nextWalls = _mergedWalls(combatWallSegments, walls);
     if (_sameWallKeys(combatWallSegments, nextWalls)) return this;
@@ -318,6 +327,10 @@ extension BattlerCombatRuntime on Battler {
     return copyWith(combatWallSegments: nextWalls);
   }
 
+  /// Bloquea puntos del Patron durante el combate si existen en la grilla.
+  ///
+  /// Las claves desconocidas se ignoran para que efectos generados por datos
+  /// antiguos no rompan la reconstruccion del Battler.
   Battler addCombatBlockedPoints(Iterable<String> pointKeys) {
     final nextPointKeys = Set<String>.from(combatBlockedPointKeys);
     for (final pointKey in pointKeys) {
@@ -332,6 +345,7 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Prepara paredes temporales para activarlas al inicio del siguiente tramo.
   Battler queueTemporaryCombatWalls(
     Iterable<OperativePatternWallSegment> walls,
   ) {
@@ -343,6 +357,10 @@ extension BattlerCombatRuntime on Battler {
     return copyWith(queuedTemporaryCombatWallSegments: nextWalls);
   }
 
+  /// Mueve las paredes temporales pendientes al conjunto activo del combate.
+  ///
+  /// Las paredes activadas tambien se conservan por separado para poder
+  /// retirarlas limpiamente cuando expire su ventana temporal.
   Battler activateQueuedTemporaryCombatWalls() {
     if (queuedTemporaryCombatWallSegments.isEmpty) return this;
 
@@ -355,6 +373,7 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Retira del combate las paredes marcadas como temporales.
   Battler expireTemporaryCombatWalls() {
     if (temporaryCombatWallSegments.isEmpty) return this;
 
@@ -368,6 +387,10 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Destruye paredes activas y las purga tambien de las listas temporales.
+  ///
+  /// El contador de destruccion se registra por separado para que el llamador
+  /// pueda decidir si un efecto debe convertir esas paredes en otro beneficio.
   Battler destroyCombatWalls(Iterable<OperativePatternWallSegment> walls) {
     final keysToDestroy = walls.map((wall) => wall.key).toSet();
     if (keysToDestroy.isEmpty) return this;
@@ -390,6 +413,7 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Acumula cuantas paredes fueron destruidas por efectos del combate.
   Battler recordDestroyedCombatWalls(int count) {
     final safeCount = max(0, count);
     if (safeCount <= 0) return this;
@@ -399,6 +423,10 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Registra la deuda de puntos bloqueados removidos al destruir paredes.
+  ///
+  /// Cada pared equivale a tres puntos para mantener la conversion centralizada
+  /// y evitar que cada habilidad replique la misma aritmetica.
   Battler recordRemovedWallBlockingPointDebt(int wallCount) {
     final safeWallCount = max(0, wallCount);
     if (safeWallCount <= 0) return this;
@@ -411,6 +439,7 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Devuelve las paredes activas que comparten extremo con el punto indicado.
   List<OperativePatternWallSegment> combatWallsAdjacentTo(
     OperativePatternPoint point,
   ) {
@@ -419,6 +448,10 @@ extension BattlerCombatRuntime on Battler {
     }).toList(growable: false);
   }
 
+  /// Busca paredes que el trayecto normalizado del Patron cruza.
+  ///
+  /// El indice inicial permite revisar solo el tramo recien agregado cuando la
+  /// interfaz construye el Patron paso a paso.
   List<OperativePatternWallSegment> combatWallsCrossedBy(
     List<OperativePatternPoint> points, {
     int startIndex = 0,
@@ -444,6 +477,7 @@ extension BattlerCombatRuntime on Battler {
     return List<OperativePatternWallSegment>.unmodifiable(crossed);
   }
 
+  /// Acumula la Barrera ganada en esta ronda para efectos reactivos posteriores.
   Battler _recordCombatBarrierGain(int amount) {
     final safeAmount = max(0, amount);
     if (safeAmount <= 0 || !hasCombatFlag(Battler.combatActiveFlag)) {
@@ -475,6 +509,7 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Une dos listas de paredes usando la clave estable de sus extremos.
   List<OperativePatternWallSegment> _mergedWalls(
     Iterable<OperativePatternWallSegment> first,
     Iterable<OperativePatternWallSegment> second,
@@ -489,6 +524,7 @@ extension BattlerCombatRuntime on Battler {
     return List<OperativePatternWallSegment>.unmodifiable(byKey.values);
   }
 
+  /// Compara dos colecciones de paredes sin depender de su orden.
   bool _sameWallKeys(
     Iterable<OperativePatternWallSegment> first,
     Iterable<OperativePatternWallSegment> second,
@@ -499,10 +535,15 @@ extension BattlerCombatRuntime on Battler {
         firstKeys.containsAll(secondKeys);
   }
 
+  /// Compara dos conjuntos de texto evitando crear colecciones intermedias.
   bool _sameStringSets(Set<String> first, Set<String> second) {
     return first.length == second.length && first.containsAll(second);
   }
 
+  /// Identifica paredes que forman parte de una cadena conectada.
+  ///
+  /// Las paredes conectadas usan un area de bloqueo ligeramente mas amplia para
+  /// que el jugador no pueda atravesar visualmente un cruce entre segmentos.
   Set<String> _connectedCombatWallKeys(
     Iterable<OperativePatternWallSegment> walls,
   ) {
@@ -521,6 +562,10 @@ extension BattlerCombatRuntime on Battler {
     };
   }
 
+  /// Suma el valor secundario de flags de combate del Battler indicadas.
+  ///
+  /// Cuando una flag antigua no trae valor secundario se usa su valor principal
+  /// como compatibilidad hacia atras.
   int _secondaryValueForBattlerFlag(BattlerCombatFlag kind) {
     var total = 0;
     for (final flag in combatFlags) {
@@ -530,6 +575,7 @@ extension BattlerCombatRuntime on Battler {
     return total;
   }
 
+  /// Convierte la primera ganancia de Barrera de cada ronda en Resonancia si procede.
   Battler _gainResonanceFromBarrierGain(int amount) {
     if (amount <= 0 || equippedItems.isEmpty) return this;
 

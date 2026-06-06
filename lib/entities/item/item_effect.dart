@@ -36,6 +36,9 @@ enum ItemAbilityResolutionContext {
 }
 
 /// Enumera los puntos del ciclo de combate en los que un item equipado puede intervenir.
+///
+/// Cada efecto declara sus hooks para que los servicios puedan evitar llamadas
+/// innecesarias y para que la UI sepa si un item participa en bonus de dibujo.
 enum ItemEffectHook {
   combatStart,
   turnStart,
@@ -113,6 +116,9 @@ abstract class ItemEffect {
   }
 
   /// Resuelve el efecto del item al inicio de turno.
+  ///
+  /// [isOwnerTurn] distingue si el portador esta empezando su propio turno o si
+  /// el efecto se esta evaluando al inicio del turno del rival.
   ItemEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -124,6 +130,9 @@ abstract class ItemEffect {
   }
 
   /// Resuelve el efecto del item al final de turno.
+  ///
+  /// [isOwnerTurn] permite efectos que solo se disparan cuando termina el turno
+  /// del portador, o que reaccionan simetricamente al cierre del turno enemigo.
   ItemEffectResolution onTurnEnd({
     required Battler owner,
     required Battler opponent,
@@ -164,6 +173,9 @@ abstract class ItemEffect {
   }
 
   /// Resuelve efectos puntuales al terminar el combate antes de limpiar flags y cooldowns.
+  ///
+  /// Se usa para objetos que se transforman, cobran deuda o limpian runtime
+  /// propio cuando la escena ya ha decidido el resultado.
   Battler onCombatEnd({
     required Battler owner,
     required Item item,
@@ -172,6 +184,9 @@ abstract class ItemEffect {
   }
 
   /// Ajusta el daño saliente del portador antes de que se aplique.
+  ///
+  /// Debe devolver siempre un valor seguro para el pipeline de combate; los
+  /// servicios posteriores se encargan de aplicar mitigacion y vida/barrera.
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -182,6 +197,8 @@ abstract class ItemEffect {
   }
 
   /// Ajusta el daño entrante del portador antes de que se aplique.
+  ///
+  /// Este hook modifica el numero del golpe, no aplica daño por si mismo.
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -371,6 +388,9 @@ Battler _recoverBarrier({
 }
 
 /// Suma barrera directa sin aplicar tope de barrera maxima.
+///
+/// Existe como alias semantico para efectos que expresan "recuperar" barrera
+/// aunque usen el mismo comportamiento que [_recoverBarrier].
 Battler _recoverBarrierWithoutCap({
   required Battler owner,
   required int amount,
@@ -388,10 +408,15 @@ bool _hasAnyDebuff(Battler battler) {
   );
 }
 
+/// Calcula la vida faltante sin permitir valores negativos.
 int _missingHealth(Battler battler) {
   return max(0, battler.maxHealth - battler.health);
 }
 
+/// Resta vida directa al portador sin pasar por mitigacion normal de daño.
+///
+/// Si la perdida resulta letal, aun permite que los items equipados intercepten
+/// daño fatal mediante sus hooks de supervivencia.
 Battler _loseHealthDirectly({
   required Battler owner,
   required int amount,
@@ -413,6 +438,10 @@ Battler _loseHealthDirectly({
   );
 }
 
+/// Sustituye [currentItem] por [replacement] en equipo o inventario del owner.
+///
+/// Se usa para efectos que transforman objetos conservando la posicion donde el
+/// jugador tenia la instancia original.
 Battler _replaceOwnedItem({
   required Battler owner,
   required Item currentItem,
@@ -439,6 +468,7 @@ Battler _replaceOwnedItem({
   return owner;
 }
 
+/// Devuelve debuffs que pueden reducirse o purgarse por efectos de item.
 List<BattlerStatus> _purgeableDebuffs(Battler battler) {
   return battler.statuses
       .where(
@@ -448,6 +478,7 @@ List<BattlerStatus> _purgeableDebuffs(Battler battler) {
       .toList(growable: false);
 }
 
+/// Reduce turnos de un debuff concreto y lo elimina si llega a cero.
 Battler _reduceDebuffTurns({
   required Battler owner,
   required BattlerStatus debuff,
@@ -464,6 +495,7 @@ Battler _reduceDebuffTurns({
   );
 }
 
+/// Reduce todos los debuffs purgables del portador en [amount] turnos.
 Battler _reduceAllPurgeableDebuffs({
   required Battler owner,
   required int amount,
@@ -481,6 +513,10 @@ Battler _reduceAllPurgeableDebuffs({
   return updatedOwner.pruneExpiredStatuses();
 }
 
+/// Reduce debuffs purgables aleatorios varias veces.
+///
+/// Si no hay randomizer se elige de forma determinista el primer debuff, lo que
+/// mantiene predecibles los efectos llamados fuera de una run con semilla.
 Battler _reduceRandomPurgeableDebuffs({
   required Battler owner,
   required int repetitions,
@@ -542,6 +578,10 @@ Battler _refreshMinimumBarrier({
   );
 }
 
+/// Aplica [status] al rival como si lo hubiera emitido el owner.
+///
+/// Devuelve tambien la posible version actualizada del owner, porque el pipeline
+/// de estados puede modificar la fuente mediante equipo o habilidades reactivas.
 ItemEffectResolution _applyStatusToOpponentFromOwner({
   required Battler owner,
   required Battler opponent,
@@ -559,7 +599,6 @@ ItemEffectResolution _applyStatusToOpponentFromOwner({
   );
 }
 
-/// Genera flags de combate estables para que cada item controle usos por instancia.
 /// Genera una flag runtime tipada para aislar usos de efectos por item o por instancia.
 CombatRuntimeFlag _itemCombatFlag(
   Item item,

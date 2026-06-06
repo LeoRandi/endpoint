@@ -1,5 +1,6 @@
 import '../entities/_exports.dart';
 import '../services/_exports.dart';
+import 'controller_ui_text.dart';
 import 'package:flutter/foundation.dart';
 
 /// Agrupa la salida de combate ya resuelta y las recompensas que deben presentarse antes de salir.
@@ -96,6 +97,8 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Indica si la vista puede ofrecer acciones manuales al jugador.
   bool get canUseActions => _battleController.canUseActions;
+
+  /// Indica si el enemigo tiene listo un Patron que debe resolverse desde la escena.
   bool get canResolveEnemyPattern => _battleController.canResolveEnemyPattern;
 
   /// Indica si el combate ya termino dentro del motor principal.
@@ -106,18 +109,40 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Reexpone la descripcion corta del estado de turno para el banner central.
   String get turnDescription => _battleController.turnDescription;
+
+  /// Reexpone la ronda actual para contadores y ayudas visuales de la escena.
   int get currentRound => _battleController.currentRound;
+
+  /// Ronda en la que la Purga empieza a aplicar dano automatico.
   int get purgeStartRound => _battleController.purgeStartRound;
+
+  /// Ronda en la que la escena debe empezar a advertir sobre la Purga.
   int get purgeWarningRound => _battleController.purgeWarningRound;
+
+  /// Indica si el aviso visual de Purga debe mostrarse en esta ronda.
   bool get isPurgeWarningVisible => _battleController.isPurgeWarningVisible;
+
+  /// Indica si la Purga ya esta activa y causando dano por ronda.
   bool get isPurgeActive => _battleController.isPurgeActive;
+
+  /// Dano de Purga previsto sobre el jugador si avanza la ronda actual.
   int get playerPurgeDamagePreview =>
       _battleController.playerPurgeDamagePreview;
+
+  /// Dano de Purga previsto sobre el enemigo si avanza la ronda actual.
   int get enemyPurgeDamagePreview => _battleController.enemyPurgeDamagePreview;
+
+  /// Barrera que ganara el jugador al ejecutar la accion de bloqueo.
   int get playerBlockBarrierGain => _battleController.playerBlockBarrierGain;
+
+  /// Reexpone la barrera base del jugador al inicio del combate.
   int get playerInitialBarrier => _battleController.playerInitialBarrier;
+
+  /// Reexpone la intencion prevista del enemigo para HUDs y ayudas de decision.
   EnemyTurnIntentPreview get enemyTurnIntentPreview =>
       _battleController.enemyTurnIntentPreview;
+
+  /// Reexpone la previsualizacion de la accion del jugador para los HUDs.
   PlayerActionIntentPreview get playerActionIntentPreview =>
       _battleController.playerActionIntentPreview;
 
@@ -141,10 +166,12 @@ class BattleSceneController extends ChangeNotifier {
         .toList(growable: false);
   }
 
+  /// Sustituye el jugador vivo del combate tras cambios externos como overlays.
   void replacePlayer(Battler player) {
     _battleController.replacePlayer(player);
   }
 
+  /// Sustituye el enemigo activo cuando un efecto externo rehace el encuentro.
   void replaceEnemy(Battler enemy) {
     _battleController.replaceEnemy(enemy);
   }
@@ -171,6 +198,10 @@ class BattleSceneController extends ChangeNotifier {
     );
   }
 
+  /// Ejecuta una coincidencia de Patron generada por el enemigo.
+  ///
+  /// Se mantiene separada de la ruta del jugador porque no agenda otro turno
+  /// enemigo y porque algunos efectos diferencian el origen de la accion.
   Future<void> handleEnemyPatternMatch({
     BattleActionBonus actionBonus = BattleActionBonus.empty,
     BattlePatternMatchContext? patternContext,
@@ -202,13 +233,7 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Devuelve el texto de estado que se muestra en el dialogo de un item equipado o inventariado.
   String statusLabelFor(Battler battler, Item item) {
-    if (battler.equippedItems.contains(item)) {
-      return 'Estado actual: equipado';
-    }
-    if (battler.inventoryItems.contains(item)) {
-      return 'Estado actual: en inventario';
-    }
-    return 'Estado actual: no disponible';
+    return ControllerUiText.itemStatusLabel(owner: battler, item: item);
   }
 
   /// Construye el texto de estado de una AUMENTO para el dialogo contextual de combate.
@@ -216,9 +241,12 @@ class BattleSceneController extends ChangeNotifier {
     BattlerAbility ability, {
     required bool canControlOwner,
   }) {
-    final ownershipText =
+    final ownershipSentence =
         canControlOwner ? 'Pertenece al jugador.' : 'Pertenece al enemigo.';
-    return 'Aumento pasivo. $ownershipText';
+    return ControllerUiText.abilityStatusText(
+      ability,
+      ownershipSentence: ownershipSentence,
+    );
   }
 
   /// Devuelve la etiqueta del boton principal del dialogo de AUMENTO si la accion existe.
@@ -229,7 +257,7 @@ class BattleSceneController extends ChangeNotifier {
     return null;
   }
 
-  /// Indica si la accion principal del dialogo de AUMENTO esta habilitada ahora mismo.
+  /// Indica si la accion principal del dialogo de habilidad esta habilitada ahora mismo.
   bool isAbilityActionEnabled(
     BattlerAbility ability, {
     required bool canControlOwner,
@@ -242,8 +270,22 @@ class BattleSceneController extends ChangeNotifier {
     BattlerAbility ability, {
     required bool canControlOwner,
   }) {
-    if (!ability.isImplemented) return 'El aumento aun no esta implementado';
-    return 'Los aumentos son pasivos';
+    if (!canControlOwner) return 'Solo puedes gestionar habilidades propias';
+    if (!_battleController.canUseActions) {
+      return 'Solo puedes gestionar habilidades en tu turno';
+    }
+    final blockReason =
+        _battleController.player.manualAbilityActivationBlockReason(
+      BattlerAbilityActivationContext.battle,
+    );
+    if (blockReason != null && !ability.isActive) {
+      return blockReason;
+    }
+    if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
+    if (ability.isOnCooldown) {
+      return 'Recarga restante: ${ability.remainingCooldownLabel}';
+    }
+    return 'No se puede activar desde esta pantalla';
   }
 
   /// Marca que el overlay de recompensas ya se esta presentando para evitar una segunda apertura.

@@ -1,6 +1,9 @@
 import '../_imports.dart';
 
 /// Describe las reglas que debe cumplir un objeto para aparecer en una tienda.
+///
+/// Un criterio puede expresar rareza, rango de rareza, stat positiva y tags. El
+/// servicio de stock lo aplica sobre `itemPresets` para construir inventarios.
 class ShopInventoryCriterion {
   final String label;
   final String description;
@@ -19,9 +22,10 @@ class ShopInventoryCriterion {
     this.minimumRarity,
     this.maximumRarity,
     this.requiredPositiveModifierStat,
-    this.requiredTags = const [],
+    List<EntityTag> requiredTags = const [],
     this.matchAnyRequiredTag = false,
-  })  : assert(
+  })  : requiredTags = List<EntityTag>.unmodifiable(requiredTags),
+        assert(
           exactRarity == null ||
               (minimumRarity == null && maximumRarity == null),
         ),
@@ -32,6 +36,9 @@ class ShopInventoryCriterion {
         );
 
   /// Comprueba si un objeto concreto cumple todas las reglas del criterio.
+  ///
+  /// La validacion sale pronto en la primera regla fallida para mantener barato
+  /// el filtrado de pools grandes de items.
   bool matches(Item item) {
     if (exactRarity != null && item.rarity != exactRarity) {
       return false;
@@ -60,6 +67,9 @@ class ShopInventoryCriterion {
 }
 
 /// Define una tienda de ruta con su criterio de stock y el multiplicador de precios aplicado.
+///
+/// El nodo describe que aparece en ruta y como se presenta la tienda; la pagina
+/// y los servicios se encargan de comprar, vender y resolver stock concreto.
 class ShopPathNode extends PathNode {
   final String showTitle;
   final String shopTitle;
@@ -81,9 +91,12 @@ class ShopPathNode extends PathNode {
     required this.shopTitle,
     required this.shopSubtitle,
     required this.stockCriterion,
-    this.possibleArchetypes = const [],
+    List<ArchetypeId> possibleArchetypes = const [],
     this.priceMultiplier = 1,
-  }) : super.base(
+  })  : possibleArchetypes = List<ArchetypeId>.unmodifiable(
+          possibleArchetypes,
+        ),
+        super.base(
           type: PathNodeType.shop,
           nodeId: nodeId ?? 'shop:$label',
           label: label,
@@ -95,6 +108,9 @@ class ShopPathNode extends PathNode {
         );
 
   /// Indica si la tienda puede aparecer para el arquetipo actual.
+  ///
+  /// Mercante ignora restricciones para preservar su fantasia de acceso
+  /// comercial, mientras que tiendas sin lista especifica son generalistas.
   bool canAppearForArchetype(ArchetypeId? archetypeId) {
     if (archetypeId == ArchetypeId.mercante) return true;
     if (possibleArchetypes.isEmpty) return true;
@@ -104,6 +120,9 @@ class ShopPathNode extends PathNode {
   }
 
   /// Clona el nodo cambiando solo el multiplicador para variantes premium o rebajadas.
+  ///
+  /// `PathNodeService` usa esta copia para tiendas de convencion o nodos
+  /// especiales sin mutar el preset canonico registrado por id.
   ShopPathNode withPriceMultiplier(double multiplier) {
     return ShopPathNode(
       nodeId: nodeId,

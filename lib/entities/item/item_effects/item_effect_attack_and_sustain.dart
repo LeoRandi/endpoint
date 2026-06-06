@@ -12,9 +12,11 @@ class SunglassesItemEffect extends ItemEffect {
           },
         );
 
+  /// Anade un ataque extra a cada accion de ataque basico.
   @override
 
-  /// Anade un ataque extra a cada accion de ataque basico.
+  /// Ajusta cuantas veces se resuelve el ataque basico.
+  @override
   int modifyBasicAttackCount({
     required Battler owner,
     required Item item,
@@ -33,6 +35,7 @@ class GuanteRetoItemEffect extends ItemEffect {
               'La primera vez por combate que atacas, ganas Desafio antes del ataque.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'La primera vez por combate que atacas, ganas ${max(1, item.value)} Desafio antes del ataque.';
@@ -48,6 +51,7 @@ class VisorAperturaItemEffect extends ItemEffect {
               'Los golpes directos de Desafio ignoran parte de la Barrera enemiga.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Los golpes directos de Desafio ignoran hasta ${max(1, item.value)} de Barrera enemiga.';
@@ -63,6 +67,7 @@ class SeguroRotoItemEffect extends ItemEffect {
               'Cuando un Desafio provoca un contraataque enemigo, tus siguientes Desafios mejoran durante este combate.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Cuando un Desafio provoca un contraataque enemigo, ganas Desafio Excitante (+${max(1, item.value)} a tus siguientes Desafios en este combate).';
@@ -78,6 +83,7 @@ class AceleradorRetoItemEffect extends ItemEffect {
               'Al sobrevivir a contraataques provocados por Desafio, mejora tus siguientes Desafios.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'La primera ${max(1, item.value)} vez por combate que sobrevives a un contraataque provocado por Desafio, ganas Desafio Excitante (+${max(1, item.value)}).';
@@ -93,6 +99,7 @@ class UltimaPalabraItemEffect extends ItemEffect {
               'Una vez por turno, despues de recibir un contraataque provocado por Desafio, atacas inmediatamente.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Una vez por turno, despues de recibir un contraataque provocado por Desafio, atacas inmediatamente al enemigo con +${max(0, item.value)} al ataque.';
@@ -114,17 +121,15 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando el valor actual del objeto equipado.
+  @override
   String descriptionFor(Item item) {
     final resolvedAmount = max(1, item.value > 0 ? item.value : amount);
     return 'Al usarse: aplica o aumenta Intoxicacion en $resolvedAmount.';
   }
 
-  @override
-
   /// Tras atacar, suma Intoxicacion existente o crea una nueva instancia.
+  @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -157,16 +162,14 @@ class RegenerativeShieldItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando el value real del item equipado.
+  @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, recuperas ${item.value} HP.';
   }
 
-  @override
-
   /// Cura al portador al comenzar su propio turno.
+  @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -196,16 +199,14 @@ class HealOnDefendItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando el value real del item equipado.
+  @override
   String descriptionFor(Item item) {
     return 'Al usarse, recuperas ${item.value} HP.';
   }
 
-  @override
-
   /// Cura al portador justo despues de resolver la accion de bloquear.
+  @override
   ItemEffectResolution onDefendResolved({
     required Battler owner,
     required Battler opponent,
@@ -233,16 +234,14 @@ class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
           },
         );
 
-  @override
-
   /// Genera la descripcion final usando la cantidad configurada para este item.
+  @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, recuperas $amount de Barrera.';
   }
 
-  @override
-
   /// Restaura barrera sin aplicar tope maximo.
+  @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
     required Battler opponent,
@@ -273,11 +272,13 @@ class RefreshMinimumBarrierOnTurnStartItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, si tienes menos de ${max(1, item.value)} de Barrera, la subes hasta esa cantidad.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -312,11 +313,13 @@ class RescueBladeItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, si el objetivo queda al 50% de HP o menos, recuperas ${item.value} HP.';
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -347,11 +350,13 @@ class ShockMeshItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al recibir daño mientras conservas Barrera, aplicas Conmocion (-${item.value} daño) al agresor.';
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -383,12 +388,14 @@ class ToxicScalpelItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final resolvedAmount = max(1, item.value);
     return 'Al usarse: aplica o aumenta Intoxicacion en $resolvedAmount. Si el objetivo ya estaba intoxicado, infliges $resolvedAmount daño directo extra.';
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -439,12 +446,14 @@ class SuccionaCreditosItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final resolvedValue = max(1, item.value);
     return 'Al usarse, una vez por turno, si el objetivo tiene un debuff, ganas ${resolvedValue}C y recuperas $resolvedValue de Barrera.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -467,6 +476,7 @@ class SuccionaCreditosItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -507,11 +517,13 @@ class KunaiAnchoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, si el enemigo tiene un debuff, recuperas ${max(1, item.value)} de Barrera.';
   }
 
+  /// Reacciona justo despues de que el portador complete una defensa.
   @override
   ItemEffectResolution onDefendResolved({
     required Battler owner,
@@ -544,20 +556,21 @@ class MagnetiCHammerItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, ganas Potencia igual a la mitad de tu Barrera total actual.';
   }
 
+  /// Reacciona justo despues de que el portador complete una defensa.
   @override
   ItemEffectResolution onDefendResolved({
     required Battler owner,
     required Battler opponent,
     required Item item,
   }) {
-    final potencyValue = owner.currentBarrier <= 0
-        ? 0
-        : max(1, owner.currentBarrier ~/ 2);
+    final potencyValue =
+        owner.currentBarrier <= 0 ? 0 : max(1, owner.currentBarrier ~/ 2);
     if (potencyValue <= 0) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
@@ -585,12 +598,14 @@ class ClavoReactorItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final resolvedValue = max(1, item.value);
     return 'Al usarse, una vez por turno, infliges ${resolvedValue * 2} de dano directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -613,6 +628,7 @@ class ClavoReactorItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -660,11 +676,13 @@ class UltimaMarchaItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, una vez por turno, infliges dano adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -687,6 +705,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
     );
   }
 
+  /// Ajusta el dano saliente que el portador va a infligir.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -709,6 +728,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
     return damage + bonusDamage;
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,

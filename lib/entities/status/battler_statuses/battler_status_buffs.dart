@@ -27,34 +27,29 @@ class CalentandoStatus extends BattlerStatus {
           value: value,
         );
 
-  @override
-
   /// Calentando no expira por turnos, solo por ataque o fin de combate.
+  @override
   bool get isIndefinite => true;
 
-  @override
-
   /// Calentando solo tiene sentido durante combate.
+  @override
   bool get persistsOutsideCombat => false;
 
   /// Devuelve el bonus de daño efectivo que tiene ahora mismo este estado.
   int currentDamageBonus(Battler owner) => resolved(owner).value;
 
-  @override
-
   /// Muestra el valor que se sumara al siguiente ataque.
+  @override
   String badgeLabelFor(Battler owner) => '${currentDamageBonus(owner)}';
 
-  @override
-
   /// Anade a la descripcion el bonus de daño actual ya resuelto.
+  @override
   String descriptionFor(Battler owner) {
     return '$description Daño del siguiente ataque: +${currentDamageBonus(owner)}';
   }
 
-  @override
-
   /// Clona el estado manteniendo el tipo concreto de Calentando.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
@@ -65,9 +60,8 @@ class CalentandoStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Suma su bonus al daño de cada ataque del portador.
+  @override
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -76,9 +70,8 @@ class CalentandoStatus extends BattlerStatus {
     return damage + currentDamageBonus(owner);
   }
 
-  @override
-
   /// Consume Calentando despues de resolver cualquier ataque del portador.
+  @override
   Battler onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -87,9 +80,8 @@ class CalentandoStatus extends BattlerStatus {
     return owner.removeStatusInstance(this);
   }
 
-  @override
-
   /// Calentando es un boost exclusivamente de combate y desaparece al salir.
+  @override
   Battler onCombatEnd({
     required Battler owner,
   }) {
@@ -121,26 +113,22 @@ class PotenciaStatus extends BattlerStatus {
           value: value,
         );
 
-  @override
-
   /// Hace que Potencia dure hasta que termine el combate.
+  @override
   bool get isIndefinite => true;
 
-  @override
-
   /// Potencia solo tiene sentido durante combate y se limpia al salir.
+  @override
   bool get persistsOutsideCombat => false;
 
-  @override
-
   /// Anade a la descripcion el bonus de daño actual ya resuelto.
+  @override
   String descriptionFor(Battler owner) {
     return '$description Daño extra actual: +${resolved(owner).value}';
   }
 
-  @override
-
   /// Suma su bonus a los golpes del portador.
+  @override
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -149,9 +137,9 @@ class PotenciaStatus extends BattlerStatus {
     return damage + resolved(owner).value;
   }
 
-  @override
-
   /// Si vuelve a aplicarse, acumula el daño pendiente.
+  @override
+  @override
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
     required BattlerStatus appliedStatus,
@@ -171,9 +159,8 @@ class PotenciaStatus extends BattlerStatus {
     );
   }
 
-  @override
-
   /// Clona el estado manteniendo su bonus pendiente.
+  @override
   BattlerStatus copyWith({
     int? remainingTurns,
     int? value,
@@ -204,9 +191,11 @@ class CicloEclipseStatus extends BattlerStatus {
           value: value,
         );
 
+  /// Hace que Eclipse Manual se limpie al terminar el combate.
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Clona el estado manteniendo duracion y valor de Eclipse Manual.
   @override
   BattlerStatus copyWith({
     int? remainingTurns,
@@ -239,14 +228,17 @@ class PuntoCiegoStatus extends BattlerStatus {
           value: value,
         );
 
+  /// Hace que Punto Ciego se limpie al terminar el combate.
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Explica cuanta proteccion visible conserva Punto Ciego.
   @override
   String descriptionFor(Battler owner) {
     return '$description Turnos protegidos: $value';
   }
 
+  /// Clona el estado manteniendo duracion y valor defensivo.
   @override
   BattlerStatus copyWith({
     int? remainingTurns,
@@ -282,18 +274,22 @@ class DesafioStatus extends BattlerStatus {
           value: value,
         );
 
+  /// Hace que Desafio espere indefinidamente hasta ataque o fin de combate.
   @override
   bool get isIndefinite => true;
 
+  /// Limpia Desafio al terminar el combate tras resolver su cura final.
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Explica el golpe reservado y la cura potencial si el combate termina.
   @override
   String descriptionFor(Battler owner) {
     final amount = resolved(owner).value;
     return '$description Desafio actual: $amount. Cura al final: ${amount * 2}.';
   }
 
+  /// Acumula nuevas aplicaciones de Desafio en una unica reserva.
   @override
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
@@ -312,6 +308,7 @@ class DesafioStatus extends BattlerStatus {
     );
   }
 
+  /// Consume Desafio al cerrar combate y cura si el portador sigue vivo.
   @override
   Battler onCombatEnd({
     required Battler owner,
@@ -322,6 +319,7 @@ class DesafioStatus extends BattlerStatus {
     return ownerWithoutStatus.heal(value * 2);
   }
 
+  /// Clona Desafio manteniendo el golpe reservado.
   @override
   BattlerStatus copyWith({
     int? remainingTurns,
@@ -356,17 +354,21 @@ class DesafioExcitanteStatus extends BattlerStatus {
           value: value,
         );
 
+  /// Hace que el bonus dure todo el combate hasta que se limpie explicitamente.
   @override
   bool get isIndefinite => true;
 
+  /// Limpia Desafio Excitante al terminar el combate.
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Explica cuanto aumenta cada nuevo Desafio recibido.
   @override
   String descriptionFor(Battler owner) {
     return '$description Bonus actual: +${resolved(owner).value}.';
   }
 
+  /// Acumula consigo mismo o mejora los Desafios entrantes.
   @override
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
@@ -394,6 +396,7 @@ class DesafioExcitanteStatus extends BattlerStatus {
     );
   }
 
+  /// Elimina el bonus temporal al cerrar combate.
   @override
   Battler onCombatEnd({
     required Battler owner,
@@ -401,6 +404,7 @@ class DesafioExcitanteStatus extends BattlerStatus {
     return owner.removeStatusInstance(this);
   }
 
+  /// Clona el bonus manteniendo su acumulacion actual.
   @override
   BattlerStatus copyWith({
     int? remainingTurns,
@@ -434,17 +438,21 @@ class ResonanciaStatus extends BattlerStatus {
           value: value,
         );
 
+  /// Hace que Resonancia permanezca hasta ser consumida o limpiar el combate.
   @override
   bool get isIndefinite => true;
 
+  /// Limpia Resonancia al terminar el combate.
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Explica la carga de Resonancia disponible para otros efectos.
   @override
   String descriptionFor(Battler owner) {
     return '$description Resonancia actual: ${resolved(owner).value}';
   }
 
+  /// Acumula nuevas aplicaciones de Resonancia en una unica carga.
   @override
   BattlerStatusApplicationResolution onStatusApplied({
     required Battler owner,
@@ -463,6 +471,7 @@ class ResonanciaStatus extends BattlerStatus {
     );
   }
 
+  /// Clona Resonancia manteniendo su carga acumulada.
   @override
   BattlerStatus copyWith({
     int? remainingTurns,
@@ -478,6 +487,7 @@ class CompensadorRutaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.compensadorRuta;
   final BattlerStat stat;
 
+  /// Crea una instancia de CompensadorRuta con sus valores actuales.
   const CompensadorRutaStatus({
     required this.stat,
     int value = 1,
@@ -503,11 +513,13 @@ class CompensadorRutaStatus extends BattlerStatus {
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Battler owner) {
     return '$description Bonus actual: +$value ${stat.shortLabel}.';
   }
 
+  /// Ajusta una stat calculada mientras el efecto esta activo.
   @override
   int modifyCalculatedStat({
     required Battler owner,
@@ -518,6 +530,7 @@ class CompensadorRutaStatus extends BattlerStatus {
     return value + this.value;
   }
 
+  /// Limpia o transforma estado temporal al cerrar combate.
   @override
   Battler onCombatEnd({
     required Battler owner,
@@ -542,6 +555,7 @@ class MercadoFuturosStatus extends BattlerStatus {
   final int attack;
   final int barrier;
 
+  /// Crea una instancia de MercadoFuturos con sus valores actuales.
   const MercadoFuturosStatus({
     this.attack = 1,
     this.barrier = 1,
@@ -566,11 +580,13 @@ class MercadoFuturosStatus extends BattlerStatus {
   @override
   bool get persistsOutsideCombat => false;
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Battler owner) {
     return '$description Bonus actual: +$attack ATK, +$barrier BAR.';
   }
 
+  /// Ajusta una stat calculada mientras el efecto esta activo.
   @override
   int modifyCalculatedStat({
     required Battler owner,
@@ -584,6 +600,7 @@ class MercadoFuturosStatus extends BattlerStatus {
     };
   }
 
+  /// Limpia o transforma estado temporal al cerrar combate.
   @override
   Battler onCombatEnd({
     required Battler owner,

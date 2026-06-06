@@ -1,6 +1,10 @@
 import '../entities/_exports.dart';
 import 'package:flutter/foundation.dart';
 
+/// Resolves an optional contextual reason that blocks manual ability activation.
+///
+/// The overlay owns generic cooldown and implementation checks; callers can add
+/// screen-specific constraints such as battle turn timing through this hook.
 typedef AbilityActivationBlockReason = String? Function(
   BattlerAbility ability,
 );

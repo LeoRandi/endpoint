@@ -103,7 +103,7 @@ extension BattlerStatusManagement on Battler {
       CodexDiscoveryHook.onStatusApplied?.call(status.id);
     }
     var updatedOwner = this;
-    BattlerStatus? instancedStatus = status.copyWith();
+    var instancedStatus = status.copyWith();
 
     if (instancedStatus.isExpired) {
       return updatedOwner;
@@ -114,8 +114,6 @@ extension BattlerStatusManagement on Battler {
     );
 
     for (final activeStatus in activeStatuses) {
-      if (instancedStatus == null) break;
-
       final resolvedStatus = activeStatus.resolved(updatedOwner);
       final resolution = resolvedStatus.onStatusApplied(
         owner: updatedOwner,
@@ -125,7 +123,7 @@ extension BattlerStatusManagement on Battler {
       instancedStatus = resolution.appliedStatus.copyWith();
     }
 
-    if (instancedStatus == null || instancedStatus.isExpired) {
+    if (instancedStatus.isExpired) {
       return updatedOwner._removeExpiredStatuses();
     }
 
@@ -169,6 +167,10 @@ extension BattlerStatusManagement on Battler {
         ._removeExpiredStatuses();
   }
 
+  /// Convierte nuevas cargas de Calentando en curacion cuando Encendido Brutal existe.
+  ///
+  /// Solo cuenta la diferencia entre el estado anterior y el nuevo para evitar
+  /// curar de nuevo por cargas que ya estaban aplicadas.
   Battler _healFromCalentandoGain({
     required BattlerStatus? previousStatus,
     required BattlerStatus nextStatus,
@@ -188,7 +190,7 @@ extension BattlerStatusManagement on Battler {
 
   /// Elimina todas las instancias del estado indicado.
   Battler removeStatus(BattlerStatusId statusId) {
-    if (!this.hasStatus(statusId)) return this;
+    if (!hasStatus(statusId)) return this;
 
     final updatedStatuses = statuses
         .where((status) => status.id != statusId)

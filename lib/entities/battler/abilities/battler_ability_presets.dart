@@ -695,8 +695,7 @@ const inmunizacionAbility = BattlerAbility(
   rarity: RarityTier.purple,
   tags: _vidaDebuffContagioAbilityTags,
   name: 'Inmunizacion',
-  description:
-      'Pasiva. Cuando Contagio pierde valor en ti, recuperas vida.',
+  description: 'Pasiva. Cuando Contagio pierde valor en ti, recuperas vida.',
   icon: Icons.vaccines_rounded,
   value: 4,
   upgradeValue: 4,

@@ -126,8 +126,10 @@ enum BattlerAbilityArchetypeAffinity {
 /// Traduce afinidades de habilidad a arquetipos jugables.
 extension BattlerAbilityArchetypeAffinityMapping
     on BattlerAbilityArchetypeAffinity {
+  /// Indica si la afinidad apunta a un arquetipo concreto y no al pool general.
   bool get isSpecific => this != BattlerAbilityArchetypeAffinity.general;
 
+  /// Devuelve el arquetipo jugable asociado a esta afinidad, si existe.
   ArchetypeId? get archetypeId {
     switch (this) {
       case BattlerAbilityArchetypeAffinity.general:
@@ -146,6 +148,7 @@ extension BattlerAbilityArchetypeAffinityMapping
 
 /// Traduce arquetipos jugables a la afinidad usada por las habilidades.
 extension ArchetypeIdAbilityAffinity on ArchetypeId {
+  /// Devuelve la afinidad de habilidades que debe consultar este arquetipo.
   BattlerAbilityArchetypeAffinity get abilityAffinity {
     switch (this) {
       case ArchetypeId.veloz:
@@ -193,6 +196,7 @@ class BattlePatternMatchContext {
   final bool firstUsedItemHasAttackBonus;
   final int activatedItemEffectCount;
 
+  /// Crea un resumen inmutable del Patron resuelto y de sus bonus asociados.
   const BattlePatternMatchContext({
     required this.patternPoints,
     required this.attackBonus,
@@ -205,15 +209,19 @@ class BattlePatternMatchContext {
     this.activatedItemEffectCount = 0,
   });
 
+  /// Devuelve el trazo sin repeticiones consecutivas irrelevantes.
   List<OperativePatternPoint> get sequence =>
       OperativePatternRequirement.normalizedSequence(patternPoints);
 
+  /// Indica si el ultimo punto vuelve al primero y forma una figura cerrada.
   bool get isClosed => OperativePatternRequirement.isClosedPattern(
         patternPoints,
       );
 
+  /// Indica si el trazo no visita dos veces el mismo punto normalizado.
   bool get hasNoRepeatedPoints => sequence.toSet().length == sequence.length;
 
+  /// Indica si el conjunto de puntos tiene simetria horizontal o vertical.
   bool get isSymmetric {
     final points = sequence.toSet();
     if (points.isEmpty) return false;
@@ -229,42 +237,52 @@ class BattlePatternMatchContext {
     return hasVerticalSymmetry || hasHorizontalSymmetry;
   }
 
+  /// Indica si todos los giros internos del Patron son angulos rectos.
   bool get hasOnlyRightAngles {
     final turns = _turnClassifications();
     return turns.isNotEmpty &&
         turns.every((turn) => turn == _PatternTurn.right);
   }
 
+  /// Indica si el trazo evita angulos agudos y obtusos.
   bool get hasNoAcuteOrObtuseAngles {
     return !_turnClassifications().any(
       (turn) => turn == _PatternTurn.acute || turn == _PatternTurn.obtuse,
     );
   }
 
+  /// Indica si ningun giro del Patron se clasifica como agudo.
   bool get hasNoAcuteAngles {
     return !_turnClassifications().any((turn) => turn == _PatternTurn.acute);
   }
 
+  /// Indica si el Patron tiene exactamente un giro agudo.
   bool get hasExactlyOneAcuteAngle {
     return acuteAngleCount == 1;
   }
 
+  /// Cuenta los giros agudos detectados en el trazo normalizado.
   int get acuteAngleCount =>
       _turnClassifications().where((turn) => turn == _PatternTurn.acute).length;
 
+  /// Cuenta los giros rectos detectados en el trazo normalizado.
   int get rightAngleCount =>
       _turnClassifications().where((turn) => turn == _PatternTurn.right).length;
 
+  /// Indica si el Patron cumple la condicion perfecta usada por aumentos raros.
   bool get hasPerfectPattern =>
       isClosed &&
       isSymmetric &&
       hasNoRepeatedPoints &&
       attackBonus == barrierBonus;
 
+  /// Cuenta puntos distintos del Patron que activaron items.
   int get usedItemPointCount => usedItemPointKeys.toSet().length;
 
+  /// Cuenta puntos de item repetidos durante la resolucion del Patron.
   int get repeatedItemPointCount => repeatedItemPointKeys.length;
 
+  /// Clasifica cada giro util del trazo para reglas basadas en geometria.
   List<_PatternTurn> _turnClassifications() {
     final points = sequence;
     if (points.length < 3) return const <_PatternTurn>[];
@@ -419,6 +437,7 @@ int _stableSelectionIndex({
   return seed.abs() % length;
 }
 
+/// Aplica [status] al rival conservando cambios que el pipeline haga al owner.
 BattlerAbilityEffectResolution _applyAbilityStatusToOpponentFromOwner({
   required Battler owner,
   required Battler opponent,
@@ -958,6 +977,7 @@ class BattlerAbility {
   }
 }
 
+/// Construye la descripcion visible de una habilidad usando sus valores runtime.
 String _abilityDescriptionFor(BattlerAbility ability) {
   final amount = max(0, ability.currentValue);
   final positiveAmount = max(1, ability.currentValue);

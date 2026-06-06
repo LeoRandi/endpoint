@@ -141,8 +141,10 @@ enum ItemArchetypeAffinity {
 
 /// Expone utilidades para convertir afinidades de item en arquetipos de run.
 extension ItemArchetypeAffinityMapping on ItemArchetypeAffinity {
+  /// Indica si la afinidad pertenece a un arquetipo concreto y no al pool general.
   bool get isSpecific => this != ItemArchetypeAffinity.general;
 
+  /// Devuelve el arquetipo jugable asociado a esta afinidad, si existe.
   ArchetypeId? get archetypeId {
     switch (this) {
       case ItemArchetypeAffinity.general:
@@ -161,6 +163,7 @@ extension ItemArchetypeAffinityMapping on ItemArchetypeAffinity {
 
 /// Traduce el arquetipo jugable a la afinidad equivalente usada por los items.
 extension ArchetypeIdItemAffinity on ArchetypeId {
+  /// Devuelve la afinidad de items que debe consultar un arquetipo.
   ItemArchetypeAffinity get itemAffinity {
     switch (this) {
       case ArchetypeId.veloz:
@@ -601,6 +604,7 @@ class Item {
   /// Devuelve la misma descripcion canonica para tooltips y tarjetas compactas.
   String get tooltipDescription => displayDescription;
 
+  /// Construye entradas de descripcion para modificadores planos de stats.
   List<String> _statModifierDescriptionEntries() {
     return [
       ...statModifiers.entries.map((entry) {
@@ -611,6 +615,7 @@ class Item {
     ];
   }
 
+  /// Construye la descripcion sintetica de todos los modificadores pasivos.
   List<String> _modifierDescriptionEntries() {
     final entries = <String>[
       ..._statModifierDescriptionEntries(),
@@ -791,6 +796,10 @@ class Item {
     );
   }
 
+  /// Limpia mejoras generadas solo durante combate sin tocar progreso permanente.
+  ///
+  /// Revierte boosts de valor, stats, bonus de Patron y auras visuales que se
+  /// marcaron con contadores temporales.
   Item clearCombatAugments() {
     var updatedItem = this;
 
@@ -873,6 +882,7 @@ class Item {
     );
   }
 
+  /// Devuelve una abreviatura estable para descripciones compactas de stats.
   static String _statLabel(BattlerStat stat) {
     switch (stat) {
       case BattlerStat.health:
@@ -890,6 +900,10 @@ class Item {
     }
   }
 
+  /// Deduce si el bonus de patron debe empujar ataque o barrera.
+  ///
+  /// La decision combina modificadores planos, tags y categoria visible para que
+  /// los presets no tengan que configurar manualmente cada item.
   OperativePatternBonusKind get _defaultPatternBonusKind {
     final attackScore = max(0, modifier(BattlerStat.attack)) +
         (hasTag(EntityTag.ataque) ? 1 : 0) +
@@ -902,6 +916,10 @@ class Item {
         : OperativePatternBonusKind.barrier;
   }
 
+  /// Deduce el requisito de patron cuando el item no lo declara explicitamente.
+  ///
+  /// Primero respeta figuras exactas por id; despues usa listas curadas de
+  /// posicion; por ultimo aplica heuristicas por barrera, arma y rareza.
   OperativePatternRequirement get _defaultPatternRequirement {
     final exactRequirement = _exactPatternRequirementsByItemId[id];
     if (exactRequirement != null) return exactRequirement;

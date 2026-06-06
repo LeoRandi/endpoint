@@ -19,6 +19,7 @@ int _incomingHpDamage({
 }
 
 class ClavoDuelistaItemEffect extends ItemEffect {
+  /// Crea el efecto de ClavoDuelista.
   const ClavoDuelistaItemEffect()
       : super(
           description:
@@ -26,11 +27,13 @@ class ClavoDuelistaItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: si tienes mas HP que el enemigo, ganas ${item.value} Desafio.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -50,6 +53,7 @@ class ClavoDuelistaItemEffect extends ItemEffect {
 }
 
 class VendasApretadasItemEffect extends ItemEffect {
+  /// Crea el efecto de VendasApretadas.
   const VendasApretadasItemEffect()
       : super(
           description:
@@ -60,11 +64,13 @@ class VendasApretadasItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al recibir dano: si perdiste HP, ganas ${item.value} Desafio. Una vez por turno.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -92,6 +98,7 @@ class VendasApretadasItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -111,6 +118,7 @@ class VendasApretadasItemEffect extends ItemEffect {
 }
 
 class MarcaRetadorItemEffect extends ItemEffect {
+  /// Crea el efecto de MarcaRetador.
   const MarcaRetadorItemEffect()
       : super(
           description:
@@ -118,11 +126,13 @@ class MarcaRetadorItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.turnStart},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno: si estas por debajo del 50% HP, ganas ${item.value} Desafio.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -143,6 +153,7 @@ class MarcaRetadorItemEffect extends ItemEffect {
 }
 
 class HemomedidorItemEffect extends ItemEffect {
+  /// Crea el efecto de Hemomedidor.
   const HemomedidorItemEffect()
       : super(
           description:
@@ -150,11 +161,13 @@ class HemomedidorItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: ganas ${item.value} Desafio por cada 10 HP faltantes, maximo ${item.value * 3}.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -176,17 +189,20 @@ class HemomedidorItemEffect extends ItemEffect {
 }
 
 class HeridaCarbonizadaItemEffect extends ItemEffect {
+  /// Crea el efecto de HeridaCarbonizada.
   const HeridaCarbonizadaItemEffect()
       : super(
           description: 'Al recibir dano de Quemadura a tu HP: ganas Desafio.',
           hooks: const {ItemEffectHook.incomingDamageEffect},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al recibir dano de Quemadura a tu HP: ganas ${item.value} Desafio.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -208,6 +224,7 @@ class HeridaCarbonizadaItemEffect extends ItemEffect {
 }
 
 class GuanteProvocacionItemEffect extends ItemEffect {
+  /// Crea el efecto de GuanteProvocacion.
   const GuanteProvocacionItemEffect()
       : super(
           description:
@@ -215,11 +232,13 @@ class GuanteProvocacionItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.patternUsed},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: ganas ${item.value} Desafio. Si el enemigo tiene un debuff, ganas el doble.';
   }
 
+  /// Reacciona cuando el item participa en el Patron usado.
   @override
   ItemEffectResolution onPatternUsed({
     required Battler owner,
@@ -236,6 +255,7 @@ class GuanteProvocacionItemEffect extends ItemEffect {
 }
 
 class ContratoDolorosoItemEffect extends ItemEffect {
+  /// Crea el efecto de ContratoDoloroso.
   const ContratoDolorosoItemEffect()
       : super(
           description:
@@ -246,11 +266,13 @@ class ContratoDolorosoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al final de tu turno: si recibiste dano a tu HP este turno, ganas ${item.value} Desafio y ${_halfUp(item.value)} Barrera.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -274,6 +296,7 @@ class ContratoDolorosoItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -302,6 +325,7 @@ class ContratoDolorosoItemEffect extends ItemEffect {
 }
 
 class YunqueCardiacoItemEffect extends ItemEffect {
+  /// Crea el efecto de YunqueCardiaco.
   const YunqueCardiacoItemEffect()
       : super(
           description:
@@ -312,11 +336,13 @@ class YunqueCardiacoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al recibir dano a HP: convierte hasta ${item.value} de ese dano en Desafio, evitando ese dano hacia ti. Una vez por turno.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -343,6 +369,7 @@ class YunqueCardiacoItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -362,6 +389,7 @@ class YunqueCardiacoItemEffect extends ItemEffect {
 }
 
 class RevanchadoraItemEffect extends ItemEffect {
+  /// Crea el efecto de Revanchadora.
   const RevanchadoraItemEffect()
       : super(
           description:
@@ -369,11 +397,13 @@ class RevanchadoraItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.incomingDamageEffect},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Cuando una Quemadura propia te hace dano, ganas Desafio igual a la mitad de esa Quemadura y te curas ${item.value}.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -399,6 +429,7 @@ class RevanchadoraItemEffect extends ItemEffect {
 }
 
 class EmbudoMejorasItemEffect extends ItemEffect {
+  /// Crea el efecto de EmbudoMejoras.
   const EmbudoMejorasItemEffect()
       : super(
           description:
@@ -406,11 +437,13 @@ class EmbudoMejorasItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.turnEnd},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al final de tu turno: elimina tus buffos y convierte su value en Desafio, en un ratio de ${item.value} a 1.';
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -446,6 +479,7 @@ class EmbudoMejorasItemEffect extends ItemEffect {
 }
 
 class ArnesTacticoItemEffect extends ItemEffect {
+  /// Crea el efecto de ArnesTactico.
   const ArnesTacticoItemEffect()
       : super(
           description:
@@ -456,11 +490,13 @@ class ArnesTacticoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al recibir dano de Quemadura: ganas ${item.value} Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -490,6 +526,7 @@ class ArnesTacticoItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -530,6 +567,7 @@ class ArnesTacticoItemEffect extends ItemEffect {
 }
 
 class MandibultimatumItemEffect extends ItemEffect {
+  /// Crea el efecto de Mandibultimatum.
   const MandibultimatumItemEffect()
       : super(
           description:
@@ -537,11 +575,13 @@ class MandibultimatumItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.prePatternAttack},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: consumes hasta ${item.value} Quemadura propia para recibir ese dano a la HP, y ganar el doble en Desafio ANTES de resolver el ataque.';
   }
 
+  /// Resuelve efectos antes de aplicar el ataque generado por Patron.
   @override
   ItemEffectResolution onPrePatternAttack({
     required Battler owner,
@@ -584,6 +624,7 @@ class MandibultimatumItemEffect extends ItemEffect {
 }
 
 class EstandarteUltimoSolItemEffect extends ItemEffect {
+  /// Crea el efecto de EstandarteUltimoSol.
   const EstandarteUltimoSolItemEffect()
       : super(
           description:
@@ -591,11 +632,13 @@ class EstandarteUltimoSolItemEffect extends ItemEffect {
           hooks: const {ItemEffectHook.turnStart},
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno: ganas ${item.value} Desafio por cada 5 HP faltantes. Si tienes Quemadura, ganas esa misma cantidad de Barrera.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -623,6 +666,7 @@ class EstandarteUltimoSolItemEffect extends ItemEffect {
 }
 
 class MotorMartirioItemEffect extends ItemEffect {
+  /// Crea el efecto de MotorMartirio.
   const MotorMartirioItemEffect()
       : super(
           description:
@@ -633,11 +677,13 @@ class MotorMartirioItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al recibir dano a HP, o dano de Quemadura: ganas Desafio igual al dano recibido, max ${item.value} por turno. Al final del turno, si tienes ${item.value}+ Desafio, te curas ${item.value} HP.';
   }
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -682,6 +728,7 @@ class MotorMartirioItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,

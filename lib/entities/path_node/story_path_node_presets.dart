@@ -118,6 +118,10 @@ final _merchantGreenPreviewItem = shieldItem.copyWith(
   clearEffect: true,
 );
 
+/// Construye el loadout aleatorio real del Mercante al confirmar arquetipo.
+///
+/// Los items de preview solo comunican rareza; esta funcion consume el randomizer
+/// de la run para entregar dos grises distintos y un verde distinto.
 List<Item> _buildMerchantStartingItems(RunRandomizer randomizer) {
   final grayItems = itemPresets
       .where((item) => item.rarity == RarityTier.gray)
@@ -754,7 +758,8 @@ final barreraLibreNode = EventPathNode(
   id: PathEventId.barreraLibre,
   nodeId: 'event_barrera_libre',
   label: 'Barrera Libre',
-  tooltip: 'Refuerza un punto del Patron para ganar Barrera al colocar Murallas adyacentes',
+  tooltip:
+      'Refuerza un punto del Patron para ganar Barrera al colocar Murallas adyacentes',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
   accent: RarityTier.green.accent,
@@ -943,7 +948,8 @@ final hackathonBoothNode = EventPathNode(
   eventTitle: 'HACKATHON BOOTH',
   description:
       'Un grupo de cyber-nerds presume de recompensas increibles para quien aguante su prueba de patrones.',
-  outcomeText: 'Acepta el reto y dibuja seis formas antes de que acabe el tiempo.',
+  outcomeText:
+      'Acepta el reto y dibuja seis formas antes de que acabe el tiempo.',
   flavorTexts: [
     'El puesto esta lleno de pantallas, refrescos tibios y gente explicando reglas a la vez.',
     'Prometen premios increibles si sobrevives a su trial. La palabra "trial" aparece en demasiados colores.',

@@ -160,6 +160,7 @@ extension BattlerItemManagement on Battler {
     );
   }
 
+  /// Busca una copia equipada que pueda mejorar con el item recibido.
   Item? _upgradeableEquippedItemFor(Item receivedItem) {
     for (final ownedItem in equippedItems) {
       if (_canUpgradeOwnedItemWith(
@@ -173,6 +174,7 @@ extension BattlerItemManagement on Battler {
     return null;
   }
 
+  /// Busca una copia en inventario que pueda mejorar con el item recibido.
   Item? _upgradeableInventoryItemFor(Item receivedItem) {
     for (final ownedItem in inventoryItems) {
       if (_canUpgradeOwnedItemWith(
@@ -186,6 +188,7 @@ extension BattlerItemManagement on Battler {
     return null;
   }
 
+  /// Comprueba identidad, rareza y capacidad de upgrade entre item propio y recibido.
   bool _canUpgradeOwnedItemWith({
     required Item ownedItem,
     required Item receivedItem,

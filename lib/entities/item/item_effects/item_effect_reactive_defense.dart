@@ -9,6 +9,7 @@ class EmergencyPlatingItemEffect extends ItemEffect {
               'Bloquea automaticamente al inicio de turno con poca vida.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
@@ -28,11 +29,13 @@ class DeflectiveCapacitorItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Las primeras ${max(1, item.value)} veces que fueras a recibir un debuff en combate, se lo aplicas al enemigo.';
   }
 
+  /// Intercepta un estado entrante y permite actualizar portador y fuente.
   @override
   ItemIncomingStatusResolution onIncomingStatus({
     required Battler owner,
@@ -82,12 +85,14 @@ class FiltroRuidoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value);
     return 'La primera vez por combate que fueras a recibir un debuff, reduce su valor o duracion en $amount.';
   }
 
+  /// Intercepta un estado entrante antes de aplicarlo al portador.
   @override
   ItemIncomingStatusResolution onIncomingStatus({
     required Battler owner,
@@ -143,12 +148,14 @@ class ContingencySealItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     final rounds = max(1, item.value);
     return 'Cuando se rompe tu Barrera, haces al agresor dano directo igual a la Barrera ganada en las ultimas $rounds rondas de este combate.';
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -186,6 +193,7 @@ class NucleoPiezoelectricoItemEffect extends ItemEffect {
               'La primera vez cada turno que ganas Barrera, acumulas Resonancia.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'La primera vez cada turno que ganas Barrera, ganas ${max(1, item.value)} de Resonancia.';
@@ -203,11 +211,13 @@ class PlacasCompresionItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Cuando recibes dano a Barrera, ganas 1 Resonancia por cada punto de Barrera perdido, hasta ${max(1, item.value)} por golpe.';
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -239,11 +249,13 @@ class TorreRetornoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, conviertes hasta ${max(1, item.value)} de tu Barrera actual en el doble de Resonancia.';
   }
 
+  /// Reacciona justo despues de que el portador complete una defensa.
   @override
   ItemEffectResolution onDefendResolved({
     required Battler owner,
@@ -276,11 +288,13 @@ class AislanteArmonicoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al final de tu turno, si no has perdido vida este turno, ganas ${max(1, item.value)} de Resonancia.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -312,6 +326,7 @@ class AislanteArmonicoItemEffect extends ItemEffect {
     return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -334,6 +349,7 @@ class AislanteArmonicoItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador del item.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -376,6 +392,7 @@ class CanonContrapresionItemEffect extends ItemEffect {
               'Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad.',
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad del dano infligido por Resonancia.';
@@ -394,11 +411,13 @@ class DescargaResonanteItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, consume toda tu Resonancia e inflige dano directo igual a la Resonancia consumida.';
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -437,11 +456,13 @@ class PrismaDeEcoItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Una vez por turno, al usarse, infliges dano directo igual a la mitad de tu Resonancia actual sin consumirla.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -463,6 +484,7 @@ class PrismaDeEcoItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -513,11 +535,13 @@ class InterferenceCannonItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse: aplica Conmocion ${max(1, item.value)}. Si el objetivo ya la tenia, ademas pierde 1 de Barrera.';
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   ItemEffectResolution onAttackResolved({
     required Battler owner,
@@ -562,11 +586,13 @@ class ResponseFrameItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al final de tu turno, si no has recibido daño, recuperas ${max(1, item.value)} de Barrera.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -600,6 +626,7 @@ class ResponseFrameItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -621,6 +648,7 @@ class ResponseFrameItemEffect extends ItemEffect {
     );
   }
 
+  /// Resuelve el disparo de final de turno para el portador del item.
   @override
   ItemEffectResolution onTurnEnd({
     required Battler owner,
@@ -668,11 +696,13 @@ class ContainmentCoilItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, recuperas ${max(1, item.value)} de Barrera.';
   }
 
+  /// Reacciona justo despues de que el portador complete una defensa.
   @override
   ItemEffectResolution onDefendResolved({
     required Battler owner,
@@ -700,11 +730,13 @@ class OverloadAnchorItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al usarse, si tienes Calentando, recuperas ${max(1, item.value)} de Barrera.';
   }
 
+  /// Reacciona justo despues de que el portador complete una defensa.
   @override
   ItemEffectResolution onDefendResolved({
     required Battler owner,
@@ -738,11 +770,13 @@ class ReboundLensItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'La primera vez que recibes daño cada turno, acumulas ${max(1, item.value)} de Fragilidad en el agresor.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -765,6 +799,7 @@ class ReboundLensItemEffect extends ItemEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -804,11 +839,13 @@ class CapaDelContrabandistaItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, si el enemigo tiene un debuff, recuperas Barrera igual a tu INCOME actual, hasta un maximo de ${max(1, item.value)}.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -847,11 +884,13 @@ class MamparaPortatilItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, reduces 1 turno de un debuff aleatorio ${max(1, item.value)} veces.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,
@@ -887,11 +926,13 @@ class CeramicaPurgadoraItemEffect extends ItemEffect {
           },
         );
 
+  /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
     return 'Al inicio de tu turno, reduces ${max(1, item.value)} turnos de todos tus debuffs purgables.';
   }
 
+  /// Resuelve el disparo de inicio de turno para el portador del item.
   @override
   ItemEffectResolution onTurnStart({
     required Battler owner,

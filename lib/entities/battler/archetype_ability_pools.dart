@@ -25,6 +25,7 @@ final List<BattlerAbility> mercanteAbilityPool = _abilitiesWithAffinity(
   BattlerAbilityArchetypeAffinity.mercante,
 );
 
+/// Relaciona cada arquetipo jugable con su pool de habilidades especifica.
 final Map<ArchetypeId, List<BattlerAbility>> archetypeSpecificAbilityPools =
     Map<ArchetypeId, List<BattlerAbility>>.unmodifiable({
   ArchetypeId.veloz: velozAbilityPool,
@@ -45,6 +46,7 @@ List<BattlerAbility> abilityPoolForArchetype(ArchetypeId? archetypeId) {
   ]);
 }
 
+/// Filtra los presets canonicos que declaran [affinity].
 List<BattlerAbility> _abilitiesWithAffinity(
   BattlerAbilityArchetypeAffinity affinity,
 ) {
@@ -54,6 +56,10 @@ List<BattlerAbility> _abilitiesWithAffinity(
   ]);
 }
 
+/// Elimina duplicados conservando la primera aparicion de cada habilidad.
+///
+/// Esto permite mezclar el pool general con el pool especifico sin repetir
+/// habilidades compartidas entre arquetipos.
 List<BattlerAbility> _deduplicateByAbilityId(
   Iterable<BattlerAbility> abilities,
 ) {

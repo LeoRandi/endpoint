@@ -1,5 +1,6 @@
 import 'operative_pattern_point.dart';
 
+/// Tipo de condicion espacial que debe cumplir un item dentro de un patron.
 enum OperativePatternRequirementKind {
   firstPoint,
   middlePoint,
@@ -25,24 +26,28 @@ class OperativePatternRequirement {
   final OperativePatternShapeKind shapeKind;
   final String? labelOverride;
 
+  /// Requiere que el item este en el primer punto del trazo normalizado.
   const OperativePatternRequirement.first()
       : kind = OperativePatternRequirementKind.firstPoint,
         shapePoints = const <OperativePatternPoint>[],
         shapeKind = OperativePatternShapeKind.literal,
         labelOverride = null;
 
+  /// Requiere que el item ocupe el punto central del recorrido.
   const OperativePatternRequirement.middle()
       : kind = OperativePatternRequirementKind.middlePoint,
         shapePoints = const <OperativePatternPoint>[],
         shapeKind = OperativePatternShapeKind.literal,
         labelOverride = null;
 
+  /// Requiere que el item este en el ultimo punto antes del cierre.
   const OperativePatternRequirement.last()
       : kind = OperativePatternRequirementKind.lastPoint,
         shapePoints = const <OperativePatternPoint>[],
         shapeKind = OperativePatternShapeKind.literal,
         labelOverride = null;
 
+  /// Requiere que el item sea vertice de un angulo recto dentro del trazo.
   const OperativePatternRequirement.rightAngle()
       : kind = OperativePatternRequirementKind.rightAngle,
         shapePoints = const <OperativePatternPoint>[],
@@ -55,12 +60,19 @@ class OperativePatternRequirement {
         shapeKind = OperativePatternShapeKind.literal,
         labelOverride = null;
 
+  /// Requiere que el patron cerrado coincida con una figura concreta.
+  ///
+  /// La comparacion acepta cualquier rotacion ciclica del punto inicial y
+  /// tambien la figura invertida, porque el jugador puede empezar y recorrer la
+  /// misma silueta desde distintos puntos. Mantener las figuras por debajo de
+  /// [maxExactShapePoints] evita patrones demasiado costosos para la UI.
   const OperativePatternRequirement.exactShape({
     required this.shapePoints,
     this.shapeKind = OperativePatternShapeKind.literal,
     this.labelOverride,
   }) : kind = OperativePatternRequirementKind.exactShape;
 
+  /// Devuelve la etiqueta larga visible para dialogs y ayudas de patron.
   String get label {
     final override = labelOverride;
     if (override != null && override.isNotEmpty) return override;
@@ -75,6 +87,7 @@ class OperativePatternRequirement {
     };
   }
 
+  /// Devuelve una etiqueta compacta para chips, badges y puntos pequenos.
   String get shortLabel {
     return switch (kind) {
       OperativePatternRequirementKind.firstPoint => 'INI',
@@ -86,6 +99,7 @@ class OperativePatternRequirement {
     };
   }
 
+  /// Explica la condicion que debe cumplir el item equipado.
   String get description {
     return switch (kind) {
       OperativePatternRequirementKind.firstPoint =>
@@ -103,6 +117,11 @@ class OperativePatternRequirement {
     };
   }
 
+  /// Comprueba si [itemPoint] satisface este requisito dentro del trazo actual.
+  ///
+  /// Los patrones cerrados llegan con el primer punto repetido al final; antes
+  /// de validar se normaliza la secuencia para que los indices correspondan solo
+  /// a vertices reales.
   bool isSatisfiedBy({
     required List<OperativePatternPoint> patternPoints,
     required OperativePatternPoint itemPoint,
@@ -126,11 +145,16 @@ class OperativePatternRequirement {
     };
   }
 
+  /// Indica si la secuencia trae cierre explicito repitiendo el primer punto.
   static bool isClosedPattern(List<OperativePatternPoint> patternPoints) {
     return patternPoints.length >= 4 &&
         patternPoints.first == patternPoints.last;
   }
 
+  /// Elimina el punto de cierre duplicado cuando existe.
+  ///
+  /// Devuelve siempre una lista inmodificable para que servicios y widgets no
+  /// alteren accidentalmente la secuencia que estan validando.
   static List<OperativePatternPoint> normalizedSequence(
     List<OperativePatternPoint> patternPoints,
   ) {
@@ -144,16 +168,19 @@ class OperativePatternRequirement {
     return List<OperativePatternPoint>.unmodifiable(patternPoints);
   }
 
+  /// Cuenta vertices distintos ignorando el punto de cierre duplicado.
   static int distinctPointCount(List<OperativePatternPoint> patternPoints) {
     return normalizedSequence(patternPoints).toSet().length;
   }
 
+  /// Deriva la etiqueta corta de una figura exacta cuando no hay override.
   String get _shortExactShapeLabel {
     final compactLabel = label.replaceAll(' ', '');
     if (compactLabel.length <= 3) return compactLabel.toUpperCase();
     return compactLabel.substring(0, 3).toUpperCase();
   }
 
+  /// Comprueba la figura exacta en sentido directo e inverso.
   bool _matchesExactShape(List<OperativePatternPoint> sequence) {
     return switch (shapeKind) {
       OperativePatternShapeKind.square ||
@@ -166,6 +193,7 @@ class OperativePatternRequirement {
     };
   }
 
+  /// Compara contra la silueta declarada sin reinterpretar su geometria.
   bool _matchesLiteralExactShape(List<OperativePatternPoint> sequence) {
     if (sequence.length != shapePoints.length) return false;
 
@@ -176,6 +204,7 @@ class OperativePatternRequirement {
         );
   }
 
+  /// Compara [sequence] contra [candidateShape] aceptando cualquier punto inicial.
   bool _matchesCyclicShape(
     List<OperativePatternPoint> sequence,
     List<OperativePatternPoint> candidateShape,
@@ -195,6 +224,7 @@ class OperativePatternRequirement {
     return false;
   }
 
+  /// Valida figuras cuadradas o romboides por lados iguales y angulos rectos.
   bool _matchesSquareLike(List<OperativePatternPoint> sequence) {
     final corners = _compressedClosedCorners(sequence);
     if (corners.length != 4) return false;
@@ -216,6 +246,7 @@ class OperativePatternRequirement {
     return true;
   }
 
+  /// Valida una figura tipo reloj de arena por bases paralelas y cruce central.
   bool _matchesHourglassLike(List<OperativePatternPoint> sequence) {
     final corners = _compressedClosedCorners(sequence);
     if (corners.length != 4) return false;
@@ -234,6 +265,10 @@ class OperativePatternRequirement {
     );
   }
 
+  /// Reduce un trazo cerrado a sus vertices significativos.
+  ///
+  /// Los puntos colineales que avanzan en la misma direccion no cambian la
+  /// silueta, asi que se descartan antes de validar figuras exactas genericas.
   List<OperativePatternPoint> _compressedClosedCorners(
     List<OperativePatternPoint> sequence,
   ) {
@@ -257,6 +292,7 @@ class OperativePatternRequirement {
     return List<OperativePatternPoint>.unmodifiable(corners);
   }
 
+  /// Elimina repeticiones consecutivas que no aportan movimiento al trazo.
   List<OperativePatternPoint> _removeConsecutiveDuplicates(
     List<OperativePatternPoint> points,
   ) {
@@ -268,6 +304,7 @@ class OperativePatternRequirement {
     return List<OperativePatternPoint>.unmodifiable(deduped);
   }
 
+  /// Convierte vertices cerrados en los vectores de cada lado consecutivo.
   List<OperativePatternPoint> _closedEdgeVectors(
     List<OperativePatternPoint> points,
   ) {
@@ -277,6 +314,7 @@ class OperativePatternRequirement {
     ]);
   }
 
+  /// Devuelve el vector entero que va desde [from] hasta [to].
   OperativePatternPoint _vectorBetween(
     OperativePatternPoint from,
     OperativePatternPoint to,
@@ -287,22 +325,27 @@ class OperativePatternRequirement {
     );
   }
 
+  /// Indica si un vector no representa movimiento.
   bool _isZeroVector(OperativePatternPoint vector) {
     return vector.x == 0 && vector.y == 0;
   }
 
+  /// Calcula el producto escalar para detectar paralelismo perpendicular.
   int _dot(OperativePatternPoint a, OperativePatternPoint b) {
     return a.x * b.x + a.y * b.y;
   }
 
+  /// Calcula el producto cruzado para detectar giro y colinealidad.
   int _cross(OperativePatternPoint a, OperativePatternPoint b) {
     return a.x * b.y - a.y * b.x;
   }
 
+  /// Calcula longitud al cuadrado para comparar lados sin usar raices.
   int _lengthSquared(OperativePatternPoint vector) {
     return vector.x * vector.x + vector.y * vector.y;
   }
 
+  /// Indica si dos segmentos se cruzan en su interior.
   bool _segmentsIntersect(
     OperativePatternPoint a,
     OperativePatternPoint b,
@@ -324,6 +367,7 @@ class OperativePatternRequirement {
         thirdSide.sign != fourthSide.sign;
   }
 
+  /// Comprueba si el punto ocupa una posicion central del trazo normalizado.
   bool _isMiddlePoint(
     List<OperativePatternPoint> sequence,
     OperativePatternPoint itemPoint,
@@ -337,6 +381,10 @@ class OperativePatternRequirement {
         sequence[middleIndex] == itemPoint;
   }
 
+  /// Determina si [itemPoint] forma un angulo recto con sus vecinos.
+  ///
+  /// El producto escalar de los vectores entrante y saliente debe ser cero; los
+  /// segmentos degenerados se ignoran para evitar falsos positivos.
   bool _isRightAngleVertex(
     List<OperativePatternPoint> sequence,
     OperativePatternPoint itemPoint,
@@ -366,6 +414,7 @@ class OperativePatternRequirement {
     return false;
   }
 
+  /// Determina si [itemPoint] forma un angulo llano con sus vecinos.
   bool _isStraightAngleVertex(
     List<OperativePatternPoint> sequence,
     OperativePatternPoint itemPoint,

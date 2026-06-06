@@ -4,6 +4,7 @@ const _fontFamilyBody = 'Exo2';
 const _fontFamilyDisplay = 'Pixeboy';
 const _fontFamilyNumeric = 'Rajdhani';
 
+/// Small body style for compact labels.
 const textSmall = TextStyle(
   fontSize: textSizeSmall,
   fontFamily: _fontFamilyBody,
@@ -11,6 +12,7 @@ const textSmall = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Medium body style for default interface text.
 const textMedium = TextStyle(
   fontSize: textSizeMedium,
   fontFamily: _fontFamilyBody,
@@ -18,6 +20,7 @@ const textMedium = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Large display style for headings and high-emphasis labels.
 const textLarge = TextStyle(
   fontSize: textSizeLarge,
   fontFamily: _fontFamilyDisplay,
@@ -25,6 +28,7 @@ const textLarge = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Extra-large display style for the most prominent text.
 const textExtraLarge = TextStyle(
   fontSize: textSizeExtraLarge,
   fontFamily: _fontFamilyDisplay,
@@ -32,6 +36,7 @@ const textExtraLarge = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Small bold body style for dense emphasized labels.
 const textSmallBold = TextStyle(
   fontSize: textSizeSmall,
   fontWeight: FontWeight.bold,
@@ -40,6 +45,7 @@ const textSmallBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Medium bold body style for emphasized default text.
 const textMediumBold = TextStyle(
   fontSize: textSizeMedium,
   fontWeight: FontWeight.bold,
@@ -48,6 +54,7 @@ const textMediumBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Large bold display style for strong headings.
 const textLargeBold = TextStyle(
   fontSize: textSizeLarge,
   fontWeight: FontWeight.bold,
@@ -56,6 +63,7 @@ const textLargeBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Extra-large bold display style for prominent headings.
 const textExtraLargeBold = TextStyle(
   fontSize: textSizeExtraLarge,
   fontWeight: FontWeight.bold,
@@ -64,6 +72,7 @@ const textExtraLargeBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Small bold title style using the display font.
 const textTitleSmallBold = TextStyle(
   fontSize: textSizeSmall,
   fontWeight: FontWeight.bold,
@@ -72,6 +81,7 @@ const textTitleSmallBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Medium bold title style using the display font.
 const textTitleMediumBold = TextStyle(
   fontSize: textSizeMedium,
   fontWeight: FontWeight.bold,
@@ -80,6 +90,7 @@ const textTitleMediumBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Small bold numeric style for compact counters.
 const textSmallNumericBold = TextStyle(
   fontSize: textSizeSmall,
   fontWeight: FontWeight.bold,
@@ -88,6 +99,7 @@ const textSmallNumericBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Medium bold numeric style for common counters and values.
 const textMediumNumericBold = TextStyle(
   fontSize: textSizeMedium,
   fontWeight: FontWeight.bold,
@@ -96,6 +108,7 @@ const textMediumNumericBold = TextStyle(
   decorationColor: Colors.transparent,
 );
 
+/// Large bold numeric style for prominent counters and values.
 const textLargeNumericBold = TextStyle(
   fontSize: textSizeLarge,
   fontWeight: FontWeight.bold,

@@ -1,6 +1,11 @@
 import '../services/endpoint_preferences_models.dart';
 import 'package:flutter/widgets.dart';
 
+/// Stable identifiers for localized UI copy.
+///
+/// These keys let migrated widgets ask for text by meaning instead of hardcoded
+/// strings, while unmigrated folders can continue using the legacy constants in
+/// [EndpointStrings] during the transition.
 enum EndpointTextKey {
   appTitle,
   continueRun,
@@ -58,6 +63,11 @@ enum EndpointTextKey {
   settingsLanguageEnglish,
 }
 
+/// App-level string registry and localization helpers.
+///
+/// The project is midway through migrating UI copy from direct Spanish strings
+/// to key-based bundles. This class keeps the old constants available and owns
+/// the newer localized maps used by settings and main-menu surfaces.
 abstract final class EndpointStrings {
   static const defaultLanguage = EndpointLanguage.spanish;
   static const defaultBundle = EndpointTextBundle(defaultLanguage);
@@ -213,6 +223,10 @@ abstract final class EndpointStrings {
 
   static final RegExp _paramPattern = RegExp(r'\{([A-Za-z0-9_]+)\}');
 
+  /// Returns the text key that labels [language] inside settings controls.
+  ///
+  /// Keeping this mapping beside the localized copy prevents settings widgets
+  /// from depending on enum names or duplicating presentation decisions.
   static EndpointTextKey languageKey(EndpointLanguage language) {
     return switch (language) {
       EndpointLanguage.spanish => EndpointTextKey.settingsLanguageSpanish,
@@ -220,6 +234,10 @@ abstract final class EndpointStrings {
     };
   }
 
+  /// Returns the text key that labels [gameMode] inside settings controls.
+  ///
+  /// Game-mode names belong to the app localization surface, while the service
+  /// model only needs to describe the saved preference value.
   static EndpointTextKey gameModeKey(EndpointGameMode gameMode) {
     return switch (gameMode) {
       EndpointGameMode.classic => EndpointTextKey.settingsGameModeClassic,
@@ -227,6 +245,11 @@ abstract final class EndpointStrings {
     };
   }
 
+  /// Resolves [key] into localized copy for [language].
+  ///
+  /// If a translation is missing, the method falls back to Spanish and finally
+  /// to the key name, so incomplete migrations fail visibly without crashing.
+  /// Placeholder tokens like `{amount}` are replaced from [params] when present.
   static String text(
     EndpointTextKey key, {
     EndpointLanguage language = defaultLanguage,
@@ -248,35 +271,48 @@ abstract final class EndpointStrings {
   }
 }
 
+/// Lightweight localized text facade passed through [EndpointTextScope].
+///
+/// Widgets receive one bundle per active language and can use either
+/// [text] or the callable form for compact build-method copy lookup.
 class EndpointTextBundle {
   final EndpointLanguage language;
 
+  /// Creates a text bundle pinned to [language].
   const EndpointTextBundle(this.language);
 
-  String text(
-    EndpointTextKey key, {
-    Map<String, Object?> params = const {},
-  }) {
+  /// Resolves [key] using this bundle's language.
+  ///
+  /// Parameters are forwarded to [EndpointStrings.text] so interpolated labels
+  /// stay consistent whether called from a context or directly from services.
+  String text(EndpointTextKey key, {Map<String, Object?> params = const {}}) {
     return EndpointStrings.text(key, language: language, params: params);
   }
 
-  String call(
-    EndpointTextKey key, {
-    Map<String, Object?> params = const {},
-  }) {
+  /// Shorthand for [text], useful where a local `strings` variable is present.
+  String call(EndpointTextKey key, {Map<String, Object?> params = const {}}) {
     return text(key, params: params);
   }
 }
 
+/// Inherited localization scope for migrated Endpoint UI.
+///
+/// The scope is intentionally simple: preferences decide the active language,
+/// and widgets below the scope rebuild only when that language changes.
 class EndpointTextScope extends InheritedWidget {
   final EndpointTextBundle strings;
 
+  /// Places localized Endpoint copy above [child] for the selected [language].
   EndpointTextScope({
     super.key,
     required EndpointLanguage language,
     required super.child,
   }) : strings = EndpointTextBundle(language);
 
+  /// Reads the closest text bundle, falling back to the default language.
+  ///
+  /// This keeps isolated widgets and tests usable even when they are rendered
+  /// outside the app shell that normally provides [EndpointTextScope].
   static EndpointTextBundle of(BuildContext context) {
     return context
             .dependOnInheritedWidgetOfExactType<EndpointTextScope>()
@@ -284,19 +320,23 @@ class EndpointTextScope extends InheritedWidget {
         EndpointStrings.defaultBundle;
   }
 
+  /// Rebuilds dependents only when the active language changes.
   @override
   bool updateShouldNotify(covariant EndpointTextScope oldWidget) {
     return strings.language != oldWidget.strings.language;
   }
 }
 
+/// Convenience localization accessors on Flutter build contexts.
 extension EndpointTextContext on BuildContext {
+  /// Returns the localized bundle for the nearest [EndpointTextScope].
   EndpointTextBundle get endpointText => EndpointTextScope.of(this);
 
-  String tr(
-    EndpointTextKey key, {
-    Map<String, Object?> params = const {},
-  }) {
+  /// Resolves [key] from the nearest [EndpointTextScope].
+  ///
+  /// This is the preferred form inside build methods because it registers the
+  /// widget as dependent on language changes.
+  String tr(EndpointTextKey key, {Map<String, Object?> params = const {}}) {
     return endpointText.text(key, params: params);
   }
 }

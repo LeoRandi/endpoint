@@ -1,6 +1,9 @@
 import '../_imports.dart';
 
 /// Separa los encuentros por escalon para reutilizar rareza, color y factor de recompensa.
+///
+/// El tier no es solo presentacion: tambien alimenta pools por dia, fuerza del
+/// aura visual de boss y multiplicadores de recompensa.
 enum CombatNodeTier {
   gray,
   green,
@@ -34,7 +37,12 @@ enum CombatNodeTier {
   int get factor => rarity.factor;
 }
 
+/// Centraliza como escalan los enemigos segun tier y dia de la run.
+///
+/// Mantener estas reglas fuera del preset permite que los pools de enemigos
+/// sigan siendo canonicos y que cada nodo proyecte la dificultad al mostrarse.
 abstract final class EnemyCombatScalingRules {
+  /// Devuelve el nivel inicial de un enemigo para el tier indicado.
   static int baseLevelFor(CombatNodeTier tier) {
     return switch (tier) {
       CombatNodeTier.gray => 1,
@@ -45,6 +53,7 @@ abstract final class EnemyCombatScalingRules {
     };
   }
 
+  /// Devuelve el nivel maximo permitido para un tier de combate.
   static int maxLevelFor(CombatNodeTier tier) {
     return switch (tier) {
       CombatNodeTier.gray => 1,
@@ -55,6 +64,10 @@ abstract final class EnemyCombatScalingRules {
     };
   }
 
+  /// Calcula el nivel objetivo del enemigo para el dia actual.
+  ///
+  /// Los tiers altos empiezan a progresar mas tarde y cada tier queda limitado
+  /// por su propio techo para no invadir el espacio de dificultad del siguiente.
   static int levelFor({
     required CombatNodeTier tier,
     required int dayNumber,
@@ -73,6 +86,10 @@ abstract final class EnemyCombatScalingRules {
     return min(maxLevelFor(tier), baseLevel + levelBonus);
   }
 
+  /// Devuelve una copia del enemigo ajustada al tier y dia pedidos.
+  ///
+  /// Se escala desde las stats base del preset para que repetir el proceso no
+  /// acumule incrementos sobre un enemigo ya escalado.
   static Battler scaleEnemy({
     required Battler enemy,
     required CombatNodeTier tier,
@@ -110,6 +127,9 @@ abstract final class EnemyCombatScalingRules {
 }
 
 /// Nodo de ruta que abre un combate concreto contra un enemigo prefijado.
+///
+/// Mantiene juntos el battler enemigo y su tier para que el coordinador pueda
+/// construir `BattlePage` sin conocer pools ni presets.
 class CombatPathNode extends PathNode {
   final Battler enemy;
   final CombatNodeTier tier;
@@ -136,6 +156,7 @@ class CombatPathNode extends PathNode {
   /// Devuelve el texto principal que se usa como titulo de la escena de combate.
   String get showTitle => label;
 
+  /// Devuelve un nodo equivalente con el enemigo proyectado al dia indicado.
   CombatPathNode scaledForDay(int dayNumber) {
     return CombatPathNode(
       nodeId: nodeId,

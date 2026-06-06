@@ -1,6 +1,9 @@
 import '../_imports.dart';
 
 /// Define una escena de descanso con su texto y sus reglas de recuperacion.
+///
+/// El nodo solo declara la propuesta de descanso; `CampSiteService` resuelve la
+/// curacion y la purga de debuffs cuando la escena devuelve resultado.
 class CampSitePathNode extends PathNode {
   final String showTitle;
   final String sceneTitle;

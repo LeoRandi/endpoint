@@ -6,6 +6,10 @@ enum ArchetypeId {
   mercante;
 }
 
+/// Traduce ids de arquetipo estables a copy visible.
+///
+/// Los ids se guardan en snapshots y pools; las pantallas deben depender de
+/// esta presentacion en vez de formatear directamente el nombre del enum.
 extension ArchetypeIdPresentation on ArchetypeId {
   /// Devuelve el nombre visible del arquetipo.
   String get label {

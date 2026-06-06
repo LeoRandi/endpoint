@@ -25,6 +25,7 @@ final List<Item> mercanteItemPool = _itemsWithAffinity(
   ItemArchetypeAffinity.mercante,
 );
 
+/// Relaciona cada arquetipo jugable con su pool de objetos especifica.
 final Map<ArchetypeId, List<Item>> archetypeSpecificItemPools =
     Map<ArchetypeId, List<Item>>.unmodifiable({
   ArchetypeId.veloz: velozItemPool,
@@ -47,6 +48,7 @@ List<Item> itemPoolForArchetype(ArchetypeId? archetypeId) {
   ]);
 }
 
+/// Filtra los presets canonicos que declaran [affinity].
 List<Item> _itemsWithAffinity(ItemArchetypeAffinity affinity) {
   return List<Item>.unmodifiable([
     for (final item in itemPresets)
@@ -54,6 +56,10 @@ List<Item> _itemsWithAffinity(ItemArchetypeAffinity affinity) {
   ]);
 }
 
+/// Elimina duplicados conservando la primera aparicion de cada [ItemId].
+///
+/// Esto permite mezclar el pool general con el pool de arquetipo sin repetir
+/// items que hayan sido etiquetados como generalistas y especificos a la vez.
 List<Item> _deduplicateByItemId(Iterable<Item> items) {
   final seen = <ItemId>{};
   final result = <Item>[];

@@ -1,6 +1,8 @@
 import '../_imports.dart';
 
 /// Identifica cada evento para que la logica pueda resolverlo sin depender del texto visible.
+///
+/// El id conecta presets, paginas de evento, codecs y servicios de resolucion.
 enum PathEventId {
   strandedTrash,
   lostCache,
@@ -29,6 +31,9 @@ enum PathEventId {
 }
 
 /// Define un nodo de evento con su contenido base y el id que resuelve su efecto.
+///
+/// Los eventos mantienen copy, rareza y flavor junto al id estable; la pagina
+/// concreta se decide despues en el registro de paginas de evento.
 class EventPathNode extends PathNode {
   final PathEventId id;
   final String showTitle;

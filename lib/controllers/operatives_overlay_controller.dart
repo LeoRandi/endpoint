@@ -1,11 +1,14 @@
 import '../entities/_exports.dart';
+import 'controller_ui_text.dart';
 import 'package:flutter/foundation.dart';
 
 /// Orquesta la seleccion de operativos y el intercambio de equipo dentro del overlay de operativos.
 class OperativesOverlayController extends ChangeNotifier {
+  static const _playerOperativeIndex = 0;
+
   final List<Battler> _companions;
   final ValueChanged<Battler>? onPlayerChanged;
-  int _selectedIndex = 0;
+  int _selectedIndex = _playerOperativeIndex;
   Battler _player;
 
   /// Crea el controlador del overlay y materializa los items poseidos por el jugador.
@@ -26,13 +29,20 @@ class OperativesOverlayController extends ChangeNotifier {
   List<Battler> get operatives => [_player, ..._companions];
 
   /// Devuelve el operativo actualmente seleccionado en el overlay.
-  Battler get selectedOperative => operatives[_selectedIndex];
+  Battler get selectedOperative {
+    if (_selectedIndex == _playerOperativeIndex) return _player;
+    return _companions[_selectedIndex - 1];
+  }
 
   /// Indica si el operativo seleccionado coincide con el jugador editable.
-  bool get isPlayerSelected => _selectedIndex == 0;
+  bool get isPlayerSelected => _selectedIndex == _playerOperativeIndex;
+
+  /// Devuelve el mayor indice seleccionable con la lista actual de operativos.
+  int get _lastOperativeIndex => _companions.length;
 
   /// Actualiza la seleccion activa del overlay y notifica solo cuando cambia de verdad.
   void selectOperative(int index) {
+    if (index < _playerOperativeIndex || index > _lastOperativeIndex) return;
     if (_selectedIndex == index) return;
 
     _selectedIndex = index;
@@ -46,21 +56,12 @@ class OperativesOverlayController extends ChangeNotifier {
 
   /// Devuelve el texto de estado visible para un item perteneciente a un battler concreto.
   String statusLabelForOwner(Battler owner, Item item) {
-    if (owner.equippedItems.contains(item)) {
-      return 'Estado actual: equipado';
-    }
-    if (owner.inventoryItems.contains(item)) {
-      return 'Estado actual: en inventario';
-    }
-    return 'Estado actual: no disponible';
+    return ControllerUiText.itemStatusLabel(owner: owner, item: item);
   }
 
   /// Devuelve la accion primaria visible para un item del jugador dentro del overlay.
   String? actionLabelFor(Item item) {
-    if (!item.isEquippable) return null;
-    if (_player.equippedItems.contains(item)) return 'Quitar';
-    if (_player.inventoryItems.contains(item)) return 'Equipar';
-    return null;
+    return ControllerUiText.itemToggleActionLabel(owner: _player, item: item);
   }
 
   /// Devuelve la accion de venta rapida disponible durante la seleccion de nodo.
@@ -97,7 +98,7 @@ class OperativesOverlayController extends ChangeNotifier {
   /// Explica por que un item del jugador no admite accion primaria.
   String disabledActionTooltipFor(Item item) {
     return _player.equipItemBlockReason(item) ??
-        'El objeto ya no esta disponible';
+        ControllerUiText.itemUnavailableTooltip;
   }
 
   /// Devuelve la etiqueta del boton de quitar cuando el item equipado puede volver al inventario.
@@ -175,9 +176,8 @@ class OperativesOverlayController extends ChangeNotifier {
     if (identical(_player, updatedPlayer)) return;
 
     _player = updatedPlayer;
-    final lastIndex = operatives.length - 1;
-    if (_selectedIndex > lastIndex) {
-      _selectedIndex = lastIndex;
+    if (_selectedIndex > _lastOperativeIndex) {
+      _selectedIndex = _lastOperativeIndex;
     }
     onPlayerChanged?.call(updatedPlayer);
     notifyListeners();

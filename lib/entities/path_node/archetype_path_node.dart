@@ -44,6 +44,9 @@ class ArchetypePathNode extends PathNode {
         );
 
   /// Clona el arquetipo con un loadout inicial ya materializado.
+  ///
+  /// Se usa cuando un builder aleatorio ya eligio items para esta run y la ruta
+  /// necesita conservar exactamente esa seleccion en snapshots.
   ArchetypePathNode withStartingItems(List<Item> items) {
     return ArchetypePathNode(
       archetypeId: archetypeId,
@@ -64,6 +67,9 @@ class ArchetypePathNode extends PathNode {
   }
 
   /// Genera el item verde propio y el item gris general para arquetipos sin builder propio.
+  ///
+  /// El metodo devuelve `this` si el arquetipo ya trae items fijos o un builder
+  /// propio, evitando que la ruta vuelva a tirar loot cuando no corresponde.
   ArchetypePathNode materializeRunStartingItems(RunRandomizer randomizer) {
     if (startingItemsBuilder != null || startingItems.isNotEmpty) return this;
 
@@ -92,6 +98,9 @@ class ArchetypePathNode extends PathNode {
   }
 
   /// Aplica el arquetipo al jugador manteniendo su estado previo y sumando el loadout inicial.
+  ///
+  /// La vista de confirmacion puede desactivar [resolveDynamicStartingItems]
+  /// para previsualizar stats sin consumir la tirada real de items aleatorios.
   Battler applyTo(
     Battler player, {
     RunRandomizer? randomizer,
@@ -145,6 +154,10 @@ class ArchetypePathNode extends PathNode {
     return updatedPlayer.copyWith(health: updatedPlayer.maxHealth);
   }
 
+  /// Devuelve candidatos iniciales por afinidad, rareza exacta y exclusiones.
+  ///
+  /// Esta busqueda mantiene las reglas de arquetipo cerca del nodo y deja los
+  /// pools globales de items como fuente canonica de contenido.
   static List<Item> _startingItemCandidatesForAffinity(
     ItemArchetypeAffinity affinity, {
     required RarityTier exactRarity,
@@ -160,6 +173,10 @@ class ArchetypePathNode extends PathNode {
         .toList(growable: false);
   }
 
+  /// Escoge un item inicial de [candidates] usando el randomizer de la run.
+  ///
+  /// Devuelve `null` si no hay candidatos para que los arquetipos degradados no
+  /// rompan la construccion de la ruta.
   static Item? _pickRandomStartingItem(
     List<Item> candidates,
     RunRandomizer randomizer,

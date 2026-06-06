@@ -11,9 +11,8 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  @override
-
   /// Suma el value actual solo mientras la habilidad siga activada.
+  @override
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -25,9 +24,8 @@ class CriticalScannerAbilityEffect extends BattlerAbilityEffect {
     return damage + ability.currentValue;
   }
 
-  @override
-
   /// Consume la activacion al resolver el golpe y arranca su cooldown.
+  @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -55,9 +53,8 @@ class WeaknessHunterAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  @override
-
   /// Suma daño solo si el objetivo ya tiene al menos un debuff.
+  @override
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -83,9 +80,8 @@ class GhostMeshAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  @override
-
   /// Divide el daño entrante por el value cuando el usuario esta intacto.
+  @override
   int modifyIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -108,6 +104,7 @@ class RitmoCircadianoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -145,6 +142,7 @@ class CambioDeGuardiaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Cambio de Guardia.
   const CambioDeGuardiaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -178,6 +176,7 @@ class ToqueDeQuedaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Toque de Queda.
   const ToqueDeQuedaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -227,6 +226,7 @@ class TurnoDeNocheAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -242,6 +242,7 @@ class TurnoDeNocheAbilityEffect extends BattlerAbilityEffect {
     return damage + max(1, ability.currentValue);
   }
 
+  /// Ajusta el dano entrante del portador mientras la habilidad aplique.
   @override
   int modifyIncomingDamage({
     required Battler owner,
@@ -268,6 +269,7 @@ class AmanecerSinteticoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -285,6 +287,7 @@ class AmanecerSinteticoAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
+  /// Limpia o transforma estado temporal de la habilidad al cerrar combate.
   @override
   Battler onCombatEnd({
     required Battler owner,
@@ -306,6 +309,7 @@ class LunaArtificialAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -323,6 +327,7 @@ class LunaArtificialAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
+  /// Limpia o transforma estado temporal de la habilidad al cerrar combate.
   @override
   Battler onCombatEnd({
     required Battler owner,
@@ -339,6 +344,7 @@ class EclipseManualAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto de Eclipse Manual.
   const EclipseManualAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -366,9 +372,8 @@ class CruelCatalysisAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Catalisis Cruel.
   const CruelCatalysisAbilityEffect();
 
-  @override
-
   /// Coloca el debuff en el rival y pone la habilidad en cooldown.
+  @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -399,9 +404,8 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  @override
-
   /// Al activarse no cambia nada todavia porque el bonus se consume al atacar.
+  @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -414,9 +418,8 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
-  @override
-
   /// Suma el value actual solo mientras la preparacion siga activa.
+  @override
   int modifyOutgoingDamage({
     required Battler owner,
     required Battler target,
@@ -428,9 +431,8 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
     return damage + ability.currentValue;
   }
 
-  @override
-
   /// Tras pegar, se aplica Quemadura propia y la habilidad entra en cooldown.
+  @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
     required Battler target,
@@ -461,9 +463,8 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para el preset de Reinicio en seco.
   const HardResetAbilityEffect();
 
-  @override
-
   /// Purga debuffs, luego hace daño propio y finalmente inicia el cooldown.
+  @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
     required Battler opponent,
@@ -509,6 +510,7 @@ class CashflowAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo pasivo al comenzar una nueva hora de run.
   @override
   Battler onHourStart({
     required Battler owner,
@@ -531,6 +533,7 @@ class PulsoRepLAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de final de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnEnd({
     required Battler owner,
@@ -554,6 +557,7 @@ class PulsoArmonicoAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto de Pulso Armonico.
   const PulsoArmonicoAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -588,6 +592,7 @@ class AceleracionFotovoltaicaAbilityEffect extends BattlerAbilityEffect {
           hooks: const {BattlerAbilityHook.basicAttackCountModifier},
         );
 
+  /// Ajusta cuantas veces se resuelve el ataque basico.
   @override
   int modifyBasicAttackCount({
     required Battler owner,
@@ -599,6 +604,7 @@ class AceleracionFotovoltaicaAbilityEffect extends BattlerAbilityEffect {
 }
 
 class B4r3B0n3DAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de B4r3B0n3D.
   const B4r3B0n3DAbilityEffect()
       : super(
           hooks: const {
@@ -606,6 +612,7 @@ class B4r3B0n3DAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -628,6 +635,7 @@ class B4r3B0n3DAbilityEffect extends BattlerAbilityEffect {
 }
 
 class CompensadorRutaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de CompensadorRuta.
   const CompensadorRutaAbilityEffect()
       : super(
           hooks: const {
@@ -635,6 +643,7 @@ class CompensadorRutaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   Battler onCombatStart({
     required Battler owner,
@@ -673,6 +682,7 @@ class CompensadorRutaAbilityEffect extends BattlerAbilityEffect {
 }
 
 class ATodoRiesgoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de ATodoRiesgo.
   const ATodoRiesgoAbilityEffect()
       : super(
           hooks: const {
@@ -680,6 +690,7 @@ class ATodoRiesgoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Intercepta dano entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -708,6 +719,7 @@ class ATodoRiesgoAbilityEffect extends BattlerAbilityEffect {
 }
 
 class DeudaSangreAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de DeudaSangre.
   const DeudaSangreAbilityEffect()
       : super(
           hooks: const {
@@ -715,6 +727,7 @@ class DeudaSangreAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -742,10 +755,12 @@ class DeudaSangreAbilityEffect extends BattlerAbilityEffect {
 }
 
 class ComisionRiesgoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de ComisionRiesgo.
   const ComisionRiesgoAbilityEffect();
 }
 
 class FranquiciaTotalAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de FranquiciaTotal.
   const FranquiciaTotalAbilityEffect()
       : super(
           hooks: const {
@@ -753,6 +768,7 @@ class FranquiciaTotalAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   Battler onCombatStart({
     required Battler owner,
@@ -770,6 +786,7 @@ class FranquiciaTotalAbilityEffect extends BattlerAbilityEffect {
 }
 
 class UltimaPiezaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de UltimaPieza.
   const UltimaPiezaAbilityEffect()
       : super(
           hooks: const {
@@ -777,6 +794,7 @@ class UltimaPiezaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   Battler onCombatStart({
     required Battler owner,
@@ -801,6 +819,7 @@ class UltimaPiezaAbilityEffect extends BattlerAbilityEffect {
 }
 
 class GeometriaBolsilloAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de GeometriaBolsillo.
   const GeometriaBolsilloAbilityEffect()
       : super(
           hooks: const {
@@ -808,6 +827,7 @@ class GeometriaBolsilloAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de combate para este efecto.
   @override
   Battler onCombatStart({
     required Battler owner,
@@ -850,6 +870,7 @@ class DescargaSismicaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Descarga Sismica.
   const DescargaSismicaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -904,6 +925,7 @@ class SustraccionAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -914,6 +936,7 @@ class SustraccionAbilityEffect extends BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
@@ -948,6 +971,7 @@ class LimpiezaCacheAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Limpieza de Cache.
   const LimpiezaCacheAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1001,6 +1025,7 @@ class HemostasiaAgresivaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
@@ -1037,6 +1062,7 @@ class MallaReboteAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -1054,6 +1080,7 @@ class MallaReboteAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1085,6 +1112,7 @@ class InyeccionCorrosivaAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Inyeccion Corrosiva.
   const InyeccionCorrosivaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1129,6 +1157,7 @@ class EscanerRupturaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1150,6 +1179,7 @@ class ReenrutadoInversoAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Reenrutado Inverso.
   const ReenrutadoInversoAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1217,6 +1247,7 @@ class JaulaSenalAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Jaula de Senal.
   const JaulaSenalAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1266,6 +1297,7 @@ class NucleoParasitarioAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -1283,6 +1315,7 @@ class NucleoParasitarioAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
@@ -1320,6 +1353,7 @@ class EspejoDolorAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1330,6 +1364,7 @@ class EspejoDolorAbilityEffect extends BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Ajusta el dano entrante del portador mientras la habilidad aplique.
   @override
   int modifyIncomingDamage({
     required Battler owner,
@@ -1342,6 +1377,7 @@ class EspejoDolorAbilityEffect extends BattlerAbilityEffect {
     return max(0, damage - max(0, ability.currentValue));
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1373,6 +1409,7 @@ class ProtocoloUsurpacionAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Protocolo de Usurpacion.
   const ProtocoloUsurpacionAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1415,6 +1452,7 @@ class RefactorizacionTimelineAbilityEffect extends BattlerAbilityEffect {
   /// Crea un efecto reutilizable para Refactorizacion de Timeline.
   const RefactorizacionTimelineAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1447,6 +1485,7 @@ class MonopolioAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -1476,6 +1515,7 @@ class CompraDeOportunidadAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1497,6 +1537,7 @@ class CompraDeOportunidadAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
+  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1509,6 +1550,7 @@ class CompraDeOportunidadAbilityEffect extends BattlerAbilityEffect {
     return damage + max(0, ability.currentValue);
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
@@ -1542,6 +1584,7 @@ class DiversificacionHostilAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1564,6 +1607,7 @@ class ConvencionRepentinaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Convencion repentina.
   const ConvencionRepentinaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1590,6 +1634,7 @@ class FuriaHematicaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -1607,6 +1652,7 @@ class FuriaHematicaAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
+  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1619,6 +1665,7 @@ class FuriaHematicaAbilityEffect extends BattlerAbilityEffect {
     return damage + _missingHealthStepBonus(owner, ability);
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
@@ -1648,6 +1695,7 @@ class MordidaDeAceroAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -1658,6 +1706,7 @@ class MordidaDeAceroAbilityEffect extends BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
+  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1670,6 +1719,7 @@ class MordidaDeAceroAbilityEffect extends BattlerAbilityEffect {
     return damage + max(0, ability.currentValue);
   }
 
+  /// Reacciona justo despues de que el portador resuelva un ataque.
   @override
   BattlerAbilityEffectResolution onAttackResolved({
     required Battler owner,
@@ -1706,6 +1756,7 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -1723,6 +1774,7 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1756,6 +1808,7 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
 
 /// Recompensa patrones construidos solo con angulos rectos.
 class GeometriaLimpiaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de GeometriaLimpia.
   const GeometriaLimpiaAbilityEffect()
       : super(
           hooks: const {
@@ -1763,6 +1816,7 @@ class GeometriaLimpiaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -1784,6 +1838,7 @@ class GeometriaLimpiaAbilityEffect extends BattlerAbilityEffect {
 
 /// Premia patrones sin angulos agudos ni obtusos.
 class PulsoIsometricoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de PulsoIsometrico.
   const PulsoIsometricoAbilityEffect()
       : super(
           hooks: const {
@@ -1791,6 +1846,7 @@ class PulsoIsometricoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -1812,6 +1868,7 @@ class PulsoIsometricoAbilityEffect extends BattlerAbilityEffect {
 
 /// Convierte un unico angulo agudo en dano directo adicional.
 class CorteTangencialAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de CorteTangencial.
   const CorteTangencialAbilityEffect()
       : super(
           hooks: const {
@@ -1819,6 +1876,7 @@ class CorteTangencialAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -1841,6 +1899,7 @@ class CorteTangencialAbilityEffect extends BattlerAbilityEffect {
 
 /// Convierte cada angulo agudo del Patron en Potencia para el ataque.
 class CortesAgudosAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de CortesAgudos.
   const CortesAgudosAbilityEffect()
       : super(
           hooks: const {
@@ -1848,6 +1907,7 @@ class CortesAgudosAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -1872,6 +1932,7 @@ class CortesAgudosAbilityEffect extends BattlerAbilityEffect {
 
 /// Convierte cada rotor de 90 grados del Patron en Barrera inmediata.
 class RotoresDefensivosAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de RotoresDefensivos.
   const RotoresDefensivosAbilityEffect()
       : super(
           hooks: const {
@@ -1879,6 +1940,7 @@ class RotoresDefensivosAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -1900,6 +1962,7 @@ class RotoresDefensivosAbilityEffect extends BattlerAbilityEffect {
 
 /// Reequilibra el Patron convirtiendo parte del bonus mayor hacia el menor.
 class PolarizacionAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Polarizacion.
   const PolarizacionAbilityEffect()
       : super(
           hooks: const {
@@ -1907,6 +1970,7 @@ class PolarizacionAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -1919,9 +1983,7 @@ class PolarizacionAbilityEffect extends BattlerAbilityEffect {
     final barrierBonus = max(0, pattern.barrierBonus);
     if (attackBonus == barrierBonus) {
       return BattlerAbilityEffectResolution(
-        owner: owner
-            .gainCombatBarrier(amount)
-            .applyStatus(
+        owner: owner.gainCombatBarrier(amount).applyStatus(
               PotenciaStatus(value: amount),
               applyEquipmentModifiers: false,
             ),
@@ -1947,6 +2009,7 @@ class PolarizacionAbilityEffect extends BattlerAbilityEffect {
 
 /// Duplica el peso defensivo de patrones amplios y estables.
 class ArquitecturaPesadaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de ArquitecturaPesada.
   const ArquitecturaPesadaAbilityEffect()
       : super(
           hooks: const {
@@ -1954,6 +2017,7 @@ class ArquitecturaPesadaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -1977,6 +2041,7 @@ class ArquitecturaPesadaAbilityEffect extends BattlerAbilityEffect {
 
 /// Premia patrones que activan equipamiento de otro arquetipo.
 class RutaContrabandoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de RutaContrabando.
   const RutaContrabandoAbilityEffect()
       : super(
           hooks: const {
@@ -1984,6 +2049,7 @@ class RutaContrabandoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2010,6 +2076,7 @@ class RutaContrabandoAbilityEffect extends BattlerAbilityEffect {
 
 /// Repite el bonus dominante cuando el patron tiene simetria.
 class EcoSimetriaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de EcoSimetria.
   const EcoSimetriaAbilityEffect()
       : super(
           hooks: const {
@@ -2017,6 +2084,7 @@ class EcoSimetriaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2057,6 +2125,7 @@ class EcoSimetriaAbilityEffect extends BattlerAbilityEffect {
 
 /// Convierte un Patron perfecto en una descarga completa de Resonancia.
 class PatronPerfectoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de PatronPerfecto.
   const PatronPerfectoAbilityEffect()
       : super(
           hooks: const {
@@ -2064,6 +2133,7 @@ class PatronPerfectoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2089,11 +2159,13 @@ class PatronPerfectoAbilityEffect extends BattlerAbilityEffect {
 
 /// Convierte Calentando entrante en una curacion proporcional.
 class EncendidoBrutalAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de EncendidoBrutal.
   const EncendidoBrutalAbilityEffect();
 }
 
 /// Abre el primer item usado en Patron con una carga de Calentando.
 class CombustionDirigidaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de CombustionDirigida.
   const CombustionDirigidaAbilityEffect()
       : super(
           hooks: const {
@@ -2101,6 +2173,7 @@ class CombustionDirigidaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2136,6 +2209,7 @@ class CombustionDirigidaAbilityEffect extends BattlerAbilityEffect {
 
 /// Convierte Calentando acumulado en Desafio y una Quemadura propia.
 class PuntoIgnicionAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de PuntoIgnicion.
   const PuntoIgnicionAbilityEffect()
       : super(
           hooks: const {
@@ -2143,6 +2217,7 @@ class PuntoIgnicionAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2170,6 +2245,7 @@ class PuntoIgnicionAbilityEffect extends BattlerAbilityEffect {
 
 /// Vende una ruta repetida de Patron una vez por combate.
 class ReventaCircularAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de ReventaCircular.
   const ReventaCircularAbilityEffect()
       : super(
           hooks: const {
@@ -2177,6 +2253,7 @@ class ReventaCircularAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2208,11 +2285,13 @@ class ReventaCircularAbilityEffect extends BattlerAbilityEffect {
 
 /// Marca la mejora de reuso que resuelve la pipeline de items usados.
 class ContratoReusoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de ContratoReuso.
   const ContratoReusoAbilityEffect();
 }
 
 /// Convierte creditos en dano por cada punto de item repetido.
 class MercadoRecursivoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de MercadoRecursivo.
   const MercadoRecursivoAbilityEffect()
       : super(
           hooks: const {
@@ -2220,6 +2299,7 @@ class MercadoRecursivoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2250,6 +2330,7 @@ class MercadoRecursivoAbilityEffect extends BattlerAbilityEffect {
 
 /// Aplica un debuff pseudoaleatorio al primer item usado en el Patron.
 class AgujaToxicaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de AgujaToxica.
   const AgujaToxicaAbilityEffect()
       : super(
           hooks: const {
@@ -2257,6 +2338,7 @@ class AgujaToxicaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2292,6 +2374,7 @@ class AgujaToxicaAbilityEffect extends BattlerAbilityEffect {
 
 /// Premia patrones largos de items con Fragilidad creciente.
 class RastroInestableAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de RastroInestable.
   const RastroInestableAbilityEffect()
       : super(
           hooks: const {
@@ -2299,6 +2382,7 @@ class RastroInestableAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2326,6 +2410,7 @@ class RastroInestableAbilityEffect extends BattlerAbilityEffect {
 
 /// Marca el payoff de debuffs que resuelve la pipeline al detectar debuffs.
 class CadenaNeurotoxicaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de CadenaNeurotoxica.
   const CadenaNeurotoxicaAbilityEffect()
       : super(
           hooks: const {
@@ -2336,11 +2421,13 @@ class CadenaNeurotoxicaAbilityEffect extends BattlerAbilityEffect {
 
 /// Marca el ajuste de Patron que resuelve el servicio de patrones.
 class AdaptacionAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Adaptacion.
   const AdaptacionAbilityEffect();
 }
 
 /// Quema a ambos combatientes al comienzo del turno del portador.
 class HornoSimetricoAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de HornoSimetrico.
   const HornoSimetricoAbilityEffect()
       : super(
           hooks: const {
@@ -2348,6 +2435,7 @@ class HornoSimetricoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno para el portador.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -2383,6 +2471,7 @@ class CortafuegosPortatilAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Intercepta un estado entrante antes de que se aplique al portador.
   @override
   BattlerAbilityIncomingStatusResolution onIncomingStatus({
     required Battler owner,
@@ -2422,6 +2511,7 @@ class MarcaDeCazaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Marca de Caza.
   const MarcaDeCazaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -2457,6 +2547,7 @@ class ExtrabloqueoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Ajusta el dano entrante del portador mientras la habilidad aplique.
   @override
   int modifyIncomingDamage({
     required Battler owner,
@@ -2469,6 +2560,7 @@ class ExtrabloqueoAbilityEffect extends BattlerAbilityEffect {
     return max(0, damage - max(0, ability.currentValue));
   }
 
+  /// Reacciona justo despues de que el portador reciba dano.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -2497,6 +2589,7 @@ class TriageAutomaticoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   BattlerAbilityEffectResolution onTurnStart({
     required Battler owner,
@@ -2530,6 +2623,7 @@ class SobrecargaReguladaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Sobrecarga Regulada.
   const SobrecargaReguladaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -2567,6 +2661,7 @@ class CopiaDeSeguridadAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Intercepta dano fatal antes de que el portador quede derrotado.
   @override
   Battler onReceiveFatalDamage({
     required Battler owner,
@@ -2590,6 +2685,7 @@ class PuntoCiegoAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto manual de Punto Ciego.
   const PuntoCiegoAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -2620,6 +2716,7 @@ class ProvocacionFrontalAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto de Provocacion Frontal.
   const ProvocacionFrontalAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -2641,6 +2738,7 @@ class CargaTemerariaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto de Carga Temeraria.
   const CargaTemerariaAbilityEffect();
 
+  /// Resuelve la activacion manual de la habilidad para el contexto actual.
   @override
   BattlerAbilityEffectResolution onManualActivation({
     required Battler owner,
@@ -2667,6 +2765,7 @@ class MandatoColiseoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de turno de esta habilidad.
   @override
   Battler onCombatStart({
     required Battler owner,
@@ -2691,6 +2790,7 @@ class MandatoColiseoAbilityEffect extends BattlerAbilityEffect {
 }
 
 class ArmaBiologicaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de ArmaBiologica.
   const ArmaBiologicaAbilityEffect()
       : super(
           hooks: const {
@@ -2698,6 +2798,7 @@ class ArmaBiologicaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona cuando Contagio pierde valor durante el combate.
   @override
   BattlerAbilityEffectResolution onContagioValueLost({
     required Battler owner,
@@ -2723,6 +2824,7 @@ class ArmaBiologicaAbilityEffect extends BattlerAbilityEffect {
 }
 
 class InmunizacionAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de Inmunizacion.
   const InmunizacionAbilityEffect()
       : super(
           hooks: const {
@@ -2730,6 +2832,7 @@ class InmunizacionAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona cuando Contagio pierde valor durante el combate.
   @override
   BattlerAbilityEffectResolution onContagioValueLost({
     required Battler owner,
@@ -2752,10 +2855,12 @@ class InmunizacionAbilityEffect extends BattlerAbilityEffect {
 }
 
 class CargaViricaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de CargaVirica.
   const CargaViricaAbilityEffect();
 }
 
 class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de EpidemiologiaTactica.
   const EpidemiologiaTacticaAbilityEffect()
       : super(
           hooks: const {
@@ -2763,6 +2868,7 @@ class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona despues de que el Patron final se resuelva correctamente.
   @override
   BattlerAbilityEffectResolution onPatternMatchResolved({
     required Battler owner,
@@ -2797,6 +2903,7 @@ class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
 }
 
 class SintomasCruzadosAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de SintomasCruzados.
   const SintomasCruzadosAbilityEffect()
       : super(
           hooks: const {
@@ -2804,6 +2911,7 @@ class SintomasCruzadosAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Reacciona cuando Contagio pierde valor durante el combate.
   @override
   BattlerAbilityEffectResolution onContagioValueLost({
     required Battler owner,
@@ -2839,6 +2947,7 @@ class SintomasCruzadosAbilityEffect extends BattlerAbilityEffect {
 }
 
 class PacienteCeroAbilityEffect extends BattlerAbilityEffect {
+  /// Crea el efecto de PacienteCero.
   const PacienteCeroAbilityEffect()
       : super(
           hooks: const {
@@ -2846,6 +2955,7 @@ class PacienteCeroAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
+  /// Resuelve el disparo de inicio de combate aplicado desde el rival.
   @override
   BattlerAbilityEffectResolution onCombatStartOpponent({
     required Battler owner,
@@ -2871,12 +2981,14 @@ class _DebuffBudgetReduction {
   final Battler owner;
   final int spentBudget;
 
+  /// Crea el resultado de gastar presupuesto curativo reduciendo debuffs.
   const _DebuffBudgetReduction({
     required this.owner,
     required this.spentBudget,
   });
 }
 
+/// Invierte presupuesto de curacion en reducir debuffs purgables del owner.
 _DebuffBudgetReduction _reducePurgeableDebuffsWithHealingBudget({
   required Battler owner,
   required Battler opponent,
@@ -2930,6 +3042,7 @@ _DebuffBudgetReduction _reducePurgeableDebuffsWithHealingBudget({
   );
 }
 
+/// Devuelve debuffs que pueden ser reducidos o eliminados por efectos normales.
 List<BattlerStatus> _purgeableDebuffs(Battler battler) {
   return battler.statuses
       .where(
@@ -2939,6 +3052,7 @@ List<BattlerStatus> _purgeableDebuffs(Battler battler) {
       .toList(growable: false);
 }
 
+/// Indica si el inventario/equipo solo contiene items generalistas o Mercante.
 bool _hasOnlyMercanteOrGeneralOwnedItems(Battler owner) {
   final ownedItems = <Item>[
     ...owner.inventoryItems,
@@ -2952,6 +3066,7 @@ bool _hasOnlyMercanteOrGeneralOwnedItems(Battler owner) {
   );
 }
 
+/// Extrae las afinidades especificas presentes en el equipo actual.
 Set<ItemArchetypeAffinity> _distinctEquippedSpecificArchetypes(
   Battler owner, {
   bool includeMercante = true,
@@ -2971,6 +3086,7 @@ Set<ItemArchetypeAffinity> _distinctEquippedSpecificArchetypes(
   return archetypes;
 }
 
+/// Calcula el bonus por tramos de vida faltante usado por habilidades Imparables.
 int _missingHealthStepBonus(Battler owner, BattlerAbility ability) {
   if (owner.maxHealth <= 0) return 0;
 
@@ -2981,6 +3097,7 @@ int _missingHealthStepBonus(Battler owner, BattlerAbility ability) {
   return max(0, ability.currentValue) * missingSteps;
 }
 
+/// Aplica Calentando o refuerza la copia ya activa sin duplicarla.
 Battler _applyOrIncreaseCalentando({
   required Battler owner,
   required int amount,
@@ -3020,6 +3137,7 @@ Battler _deactivateCycleRouteAbility({
   return owner.updateAbility(targetAbility.deactivate());
 }
 
+/// Reemplaza una instancia equipada conservando su posicion actual.
 Battler _replaceEquippedItem({
   required Battler owner,
   required Item currentItem,
@@ -3035,6 +3153,7 @@ Battler _replaceEquippedItem({
   );
 }
 
+/// Puntua cuantas vias de bonus trae un item para priorizar mejoras temporales.
 int _itemBonusComplexity(Item item) {
   var score = 0;
   if (item.statModifiers.values.any((value) => value > 0)) score++;
@@ -3044,6 +3163,7 @@ int _itemBonusComplexity(Item item) {
   return score;
 }
 
+/// Mejora temporalmente las partes positivas de un item elegido por Last Piece.
 Item _boostLastPieceItem({
   required Item item,
   required int amount,
@@ -3076,11 +3196,13 @@ Item _boostLastPieceItem({
   );
 }
 
+/// Genera una semilla estable para decisiones visualmente aleatorias de un item.
 int _stableItemSeed(Item item) {
   final instanceHash = item.instanceId?.hashCode ?? 0;
   return Object.hash(item.id, item.name, item.rarity, instanceHash).abs();
 }
 
+/// Traduce una semilla estable a un requisito de Patron pseudoaleatorio.
 OperativePatternRequirement _randomishPatternRequirement(int seed) {
   return switch (seed % 5) {
     0 => const OperativePatternRequirement.first(),

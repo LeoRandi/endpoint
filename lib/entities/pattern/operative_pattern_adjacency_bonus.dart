@@ -1,6 +1,7 @@
 import '../entity_tag.dart';
 import 'operative_pattern_bonus.dart';
 
+/// Direccion cardinal que debe ocupar el item vecino para activar un bonus.
 enum OperativePatternAdjacencyDirection {
   north(dx: 0, dy: 1, label: 'Norte', shortLabel: 'N'),
   east(dx: 1, dy: 0, label: 'Este', shortLabel: 'E'),
@@ -12,6 +13,7 @@ enum OperativePatternAdjacencyDirection {
   final String label;
   final String shortLabel;
 
+  /// Crea una direccion con desplazamiento de grilla y etiquetas visibles.
   const OperativePatternAdjacencyDirection({
     required this.dx,
     required this.dy,
@@ -20,12 +22,17 @@ enum OperativePatternAdjacencyDirection {
   });
 }
 
+/// Regla de bonus por adyacencia entre dos items del patron operativo.
+///
+/// Si el item situado en [direction] desde el item actual tiene [requiredTag],
+/// se concede un [bonus] del tipo y cantidad configurados.
 class OperativePatternAdjacencyBonus {
   final OperativePatternAdjacencyDirection direction;
   final EntityTag requiredTag;
   final OperativePatternBonusKind kind;
   final int amount;
 
+  /// Crea una regla de adyacencia con campos nombrados para configuraciones UI.
   const OperativePatternAdjacencyBonus({
     required this.direction,
     required this.requiredTag,
@@ -33,6 +40,7 @@ class OperativePatternAdjacencyBonus {
     required this.amount,
   });
 
+  /// Crea una regla compacta usada por presets grandes de items.
   const OperativePatternAdjacencyBonus.match(
     this.direction,
     this.requiredTag,
@@ -40,6 +48,7 @@ class OperativePatternAdjacencyBonus {
     this.amount,
   );
 
+  /// Materializa la regla como bonus operativo una vez validada la adyacencia.
   OperativePatternBonus get bonus => OperativePatternBonus(
         kind: kind,
         amount: amount,
