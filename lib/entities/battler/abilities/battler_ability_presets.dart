@@ -111,7 +111,7 @@ const masaCriticaAbility = BattlerAbility(
   tags: _resonanciaAtaqueBarreraAbilityTags,
   name: 'Masa Critica',
   description:
-      'Pasiva. Tus efectos de Resonancia infligen dano adicional si tu Barrera supera la mitad de tu vida maxima.',
+      'Pasiva. Tus efectos de Resonancia infligen daño adicional si tu Barrera supera la mitad de tu vida maxima.',
   icon: Icons.hub_rounded,
   value: 2,
   upgradeValue: 1,
@@ -352,7 +352,7 @@ const pulsoIsometricoAbility = BattlerAbility(
   isImplemented: true,
 );
 
-/// Pasiva de Patron que convierte un unico giro agresivo en dano directo.
+/// Pasiva de Patron que convierte un unico giro agresivo en daño directo.
 const corteTangencialAbility = BattlerAbility(
   id: BattlerAbilityId.corteTangencial,
   archetypeAffinities: [
@@ -363,7 +363,7 @@ const corteTangencialAbility = BattlerAbility(
   tags: _ataqueAbilityTags,
   name: 'Corte Tangencial',
   description:
-      'Pasiva de Patron. Si el patron tiene exactamente un angulo agudo, inflige dano directo segun este valor y el ATK del patron.',
+      'Pasiva de Patron. Si el patron tiene exactamente un angulo agudo, inflige daño directo segun este valor y el ATK del patron.',
   icon: Icons.swipe_rounded,
   value: 6,
   upgradeValue: 4,
@@ -464,7 +464,7 @@ const ecoSimetriaAbility = BattlerAbility(
   isImplemented: true,
 );
 
-/// Pasiva de Patron que convierte una figura perfecta en dano de Resonancia.
+/// Pasiva de Patron que convierte una figura perfecta en daño de Resonancia.
 const patronPerfectoAbility = BattlerAbility(
   id: BattlerAbilityId.patronPerfecto,
   archetypeAffinities: _inamovibleAbilityAffinities,
@@ -472,7 +472,7 @@ const patronPerfectoAbility = BattlerAbility(
   tags: _resonanciaAtaqueBarreraAbilityTags,
   name: 'Patron perfecto',
   description:
-      'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, inflige dano igual a toda tu Resonancia.',
+      'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, inflige daño igual a toda tu Resonancia.',
   icon: Icons.auto_awesome_rounded,
   value: 5,
   upgradeValue: 1,
@@ -584,7 +584,7 @@ const mercadoRecursivoAbility = BattlerAbility(
   tags: _economiaAtaqueAbilityTags,
   name: 'Mercado Recursivo',
   description:
-      'Pasiva de Patron. Cada punto con item repetido consume creditos para infligir dano directo.',
+      'Pasiva de Patron. Cada punto con item repetido consume creditos para infligir daño directo.',
   icon: Icons.currency_exchange_rounded,
   value: 5,
   upgradeValue: 5,
@@ -664,7 +664,7 @@ const cadenaNeurotoxicaAbility = BattlerAbility(
   tags: _ataqueDebuffAbilityTags,
   name: 'Cadena Neurotoxica',
   description:
-      'Pasiva de Patron. Los debuffs aplicados por items usados o aumentos infligen dano directo extra.',
+      'Pasiva de Patron. Los debuffs aplicados por items usados o aumentos infligen daño directo extra.',
   icon: Icons.hub_rounded,
   value: 3,
   upgradeValue: 2,
@@ -672,7 +672,7 @@ const cadenaNeurotoxicaAbility = BattlerAbility(
   isImplemented: true,
 );
 
-/// Pasiva veloz que castiga cada perdida de Contagio enemigo con dano directo.
+/// Pasiva veloz que castiga cada perdida de Contagio enemigo con daño directo.
 const armaBiologicaAbility = BattlerAbility(
   id: BattlerAbilityId.armaBiologica,
   archetypeAffinities: _velozAbilityAffinities,
@@ -680,7 +680,7 @@ const armaBiologicaAbility = BattlerAbility(
   tags: _ataqueDebuffContagioAbilityTags,
   name: 'Arma Biologica',
   description:
-      'Pasiva. Cuando Contagio enemigo pierde valor, infliges dano directo.',
+      'Pasiva. Cuando Contagio enemigo pierde valor, infliges daño directo.',
   icon: Icons.biotech_rounded,
   value: 1,
   upgradeValue: 2,

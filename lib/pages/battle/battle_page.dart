@@ -3,6 +3,7 @@ import '../_imports.dart';
 part 'battle_page_view.dart';
 part 'battle_page_huds.dart';
 part 'battle_page_loadout.dart';
+part 'battle_page_presenter.dart';
 
 const _battleAttackFlightDuration = Duration(milliseconds: 750);
 const _battleAttackFollowUpStagger = Duration(milliseconds: 330);
@@ -152,6 +153,7 @@ class BattlePage extends StatefulWidget {
 class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   late final BattleSceneController _sceneController;
   late final AnimationController _attackFlightController;
+  late final _BattleAnimationPresenter _animationPresenter;
   late final ValueNotifier<Widget?> _patternCombatAnimationOverlay;
   late final ValueNotifier<BattlePatternVisualBattlers> _patternVisualBattlers;
   final Random _statusEffectVisualRandom = Random();
@@ -161,21 +163,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   final GlobalKey _playerStatusBarKey = GlobalKey();
   final GlobalKey _enemyStatusBarKey = GlobalKey();
   EndpointSettingsSnapshot? _settingsSnapshot;
-  _BattleCombatIconMotion? _activeCombatIconMotion;
-  _BattleStatusEffectBurst? _activeStatusEffectBurst;
-  _BattleFloatingNumberBurst? _activeFloatingNumberBurst;
-  _BattleMoneyBurst? _activeMoneyBurst;
-  _BattleFragilidadBurst? _activeFragilidadBurst;
   BattlePatternAnimationTargets? _patternAnimationTargets;
-  Battler? _displayPlayerOverride;
-  Battler? _displayEnemyOverride;
   BattleFlowResult? _deferredPatternExitResult;
-  int? _playerBarrierAnimationReference;
-  int? _enemyBarrierAnimationReference;
-  Set<BattleCombatantSide> _animatedHealthSides = const {};
-  Set<BattleCombatantSide> _animatedBarrierSides = const {};
-  bool _isPlayingBattleAnimation = false;
-  bool _releaseDisplayOverrideOnNextSceneChange = false;
   bool _isPresentingPatternMatch = false;
   Map<String, int> _patternItemPointUseCounts = const <String, int>{};
   BattlePatternBlockMode? _previousYellowPatternBlockMode;
@@ -184,6 +173,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   int _moneyBurstSequence = 0;
   int _fragilidadBurstSequence = 0;
 
+  _BattleAnimationSnapshot get _animation => _animationPresenter.snapshot;
+  bool get _isPlayingBattleAnimation => _animation.isPlayingBattleAnimation;
+
   @override
   void initState() {
     super.initState();
@@ -191,6 +183,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       vsync: this,
       duration: _battleAttackFlightDuration,
     );
+    _animationPresenter = _BattleAnimationPresenter()
+      ..addListener(_handleAnimationPresentationChanged);
     _patternCombatAnimationOverlay = ValueNotifier<Widget?>(null);
     _patternVisualBattlers = ValueNotifier<BattlePatternVisualBattlers>(
       BattlePatternVisualBattlers(
@@ -221,31 +215,27 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       ..removeListener(_handleSceneChanged)
       ..dispose();
     _attackFlightController.dispose();
+    _animationPresenter
+      ..removeListener(_handleAnimationPresentationChanged)
+      ..dispose();
     _patternCombatAnimationOverlay.dispose();
     _patternVisualBattlers.dispose();
     super.dispose();
+  }
+
+  void _handleAnimationPresentationChanged() {
+    if (!mounted) return;
+
+    setState(() {});
+    _refreshPatternCombatAnimationOverlay();
   }
 
   /// Sincroniza la navegacion real con las salidas diferidas que publica el controlador de escena.
   void _handleSceneChanged() {
     if (!mounted) return;
 
-    if (_releaseDisplayOverrideOnNextSceneChange) {
-      setState(() {
-        _releaseDisplayOverrideOnNextSceneChange = false;
-        _displayPlayerOverride = null;
-        _displayEnemyOverride = null;
-        _activeCombatIconMotion = null;
-        _activeStatusEffectBurst = null;
-        _activeMoneyBurst = null;
-        _activeFragilidadBurst = null;
-        _playerBarrierAnimationReference = null;
-        _enemyBarrierAnimationReference = null;
-        _animatedHealthSides = const {};
-        _animatedBarrierSides = const {};
-        _isPlayingBattleAnimation = false;
-      });
-      _refreshPatternCombatAnimationOverlay();
+    if (_animation.releaseDisplayOverrideOnNextSceneChange) {
+      _animationPresenter.resetReleasedDisplayState();
     }
 
     final exitResult = _sceneController.consumeImmediateExitResult();
@@ -437,35 +427,35 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     }
 
     final layers = <Widget>[
-      if (_activeCombatIconMotion != null)
+      if (_animation.activeCombatIconMotion != null)
         Positioned.fill(
           child: _BattleCombatIconAnimationLayer(
             animation: _attackFlightController,
-            motion: _activeCombatIconMotion!,
+            motion: _animation.activeCombatIconMotion!,
           ),
         ),
-      if (_activeStatusEffectBurst != null)
+      if (_animation.activeStatusEffectBurst != null)
         Positioned.fill(
           child: _BattleStatusEffectAnimationLayer(
-            burst: _activeStatusEffectBurst!,
+            burst: _animation.activeStatusEffectBurst!,
           ),
         ),
-      if (_activeFloatingNumberBurst != null)
+      if (_animation.activeFloatingNumberBurst != null)
         Positioned.fill(
           child: _BattleFloatingNumberAnimationLayer(
-            burst: _activeFloatingNumberBurst!,
+            burst: _animation.activeFloatingNumberBurst!,
           ),
         ),
-      if (_activeMoneyBurst != null)
+      if (_animation.activeMoneyBurst != null)
         Positioned.fill(
           child: _BattleMoneyAnimationLayer(
-            burst: _activeMoneyBurst!,
+            burst: _animation.activeMoneyBurst!,
           ),
         ),
-      if (_activeFragilidadBurst != null)
+      if (_animation.activeFragilidadBurst != null)
         Positioned.fill(
           child: _BattleFragilidadBurstAnimationLayer(
-            burst: _activeFragilidadBurst!,
+            burst: _animation.activeFragilidadBurst!,
           ),
         ),
     ];
@@ -483,8 +473,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   void _refreshPatternVisualBattlers() {
     final next = BattlePatternVisualBattlers(
-      player: _displayPlayerOverride ?? _sceneController.player,
-      enemy: _displayEnemyOverride ?? _sceneController.enemy,
+      player: _animation.displayPlayerOverride ?? _sceneController.player,
+      enemy: _animation.displayEnemyOverride ?? _sceneController.enemy,
     );
     final current = _patternVisualBattlers.value;
     if (identical(current.player, next.player) &&
@@ -561,8 +551,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
             didResolveTurn = true;
-            final reinforcedBarrierBonus =
-                _reinforcedPatternBarrierBonusFor(
+            final reinforcedBarrierBonus = _reinforcedPatternBarrierBonusFor(
               player: _sceneController.player,
               nextWalls: matchResult.playerWallSegments,
             );
@@ -892,16 +881,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       );
     }
     if (!mounted) return;
-    setState(() {
-      _releaseDisplayOverrideOnNextSceneChange = false;
-      _displayPlayerOverride = null;
-      _displayEnemyOverride = null;
-      _animatedHealthSides = const {};
-      _animatedBarrierSides = const {};
-      _activeMoneyBurst = null;
-      _isPlayingBattleAnimation = false;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.clearInitialCombatPresentation();
   }
 
   Future<void> _playCombatMotionCue(BattleCombatAnimationCue cue) async {
@@ -916,18 +896,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         : _battleAttackFlightDuration;
     final assetPath = _assetPathForMotionCue(cue);
     _attackFlightController.duration = totalDuration;
-    setState(() {
-      _isPlayingBattleAnimation = true;
-      _releaseDisplayOverrideOnNextSceneChange = false;
-      _displayPlayerOverride = cue.playerBefore;
-      _displayEnemyOverride = cue.enemyBefore;
-      _animatedHealthSides = const {};
-      _animatedBarrierSides = const {};
-      _activeStatusEffectBurst = null;
-      _activeFloatingNumberBurst = null;
-      _activeMoneyBurst = null;
-      _activeFragilidadBurst = null;
-      _activeCombatIconMotion = _BattleCombatIconMotion(
+    _animationPresenter.startMotion(
+      cue: cue,
+      motion: _BattleCombatIconMotion(
         hook: cue.hook,
         start: start,
         end: end,
@@ -935,9 +906,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         assetPath: assetPath,
         effectCount: effectCount,
         totalDuration: totalDuration,
-      );
-    });
-    _refreshPatternCombatAnimationOverlay();
+      ),
+    );
 
     try {
       await _attackFlightController.forward(from: 0).orCancel;
@@ -946,11 +916,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     }
     if (!mounted) return;
 
-    setState(() {
-      _activeCombatIconMotion = null;
-      _isPlayingBattleAnimation = false;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.finishMotion();
   }
 
   String _assetPathForMotionCue(BattleCombatAnimationCue cue) {
@@ -972,43 +938,21 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (cue.effectCount <= 0) return;
 
     final burst = _buildStatusEffectBurst(cue);
-    setState(() {
-      _isPlayingBattleAnimation = true;
-      _releaseDisplayOverrideOnNextSceneChange = false;
-      _displayPlayerOverride = cue.playerBefore;
-      _displayEnemyOverride = cue.enemyBefore;
-      _animatedHealthSides = const {};
-      _animatedBarrierSides = const {};
-      _activeCombatIconMotion = null;
-      _activeFloatingNumberBurst = null;
-      _activeMoneyBurst = null;
-      _activeFragilidadBurst = null;
-      _activeStatusEffectBurst = burst;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.startStatusEffect(cue: cue, burst: burst);
 
     await Future<void>.delayed(_battleStatusEffectBurstDuration);
     if (!mounted) return;
 
-    setState(() {
-      if (_activeStatusEffectBurst?.id == burst.id) {
-        _activeStatusEffectBurst = null;
-      }
-      _isPlayingBattleAnimation = false;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.clearStatusEffectIfCurrent(burst);
   }
 
   Future<void> _clearFloatingNumberBurstAfterDelay(
     _BattleFloatingNumberBurst burst,
   ) async {
     await Future<void>.delayed(_battleFloatingNumberDuration);
-    if (!mounted || _activeFloatingNumberBurst?.id != burst.id) return;
+    if (!mounted) return;
 
-    setState(() {
-      _activeFloatingNumberBurst = null;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.clearFloatingNumberIfCurrent(burst);
   }
 
   _BattleStatusEffectBurst _buildStatusEffectBurst(
@@ -1057,41 +1001,17 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final moneyBurst = _buildMoneyBurst(cue);
     if (moneyBurst == null) return;
 
-    setState(() {
-      _isPlayingBattleAnimation = true;
-      _releaseDisplayOverrideOnNextSceneChange = false;
-      _displayPlayerOverride = cue.playerBefore;
-      _displayEnemyOverride = cue.enemyBefore;
-      _animatedHealthSides = const {};
-      _animatedBarrierSides = const {};
-      _activeStatusEffectBurst = null;
-      _activeCombatIconMotion = null;
-      _activeFloatingNumberBurst = null;
-      _activeFragilidadBurst = null;
-      _activeMoneyBurst = moneyBurst;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.startMoney(cue: cue, burst: moneyBurst);
 
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
 
-    setState(() {
-      _displayPlayerOverride = cue.playerAfter;
-      _displayEnemyOverride = cue.enemyAfter;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.revealCueAfter(cue);
 
     await Future<void>.delayed(_battleFloatingNumberDuration);
     if (!mounted) return;
 
-    setState(() {
-      if (_activeMoneyBurst?.id == moneyBurst.id) {
-        _activeMoneyBurst = null;
-      }
-      _isPlayingBattleAnimation = false;
-    });
-    _releaseDisplayOverrideOnNextSceneChange = true;
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.finishMoneyIfCurrent(moneyBurst);
   }
 
   _BattleMoneyBurst? _buildMoneyBurst(BattleCombatAnimationCue cue) {
@@ -1143,28 +1063,18 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         cue.hook == BattleCombatAnimationHook.barrierGain;
     final floatingNumberBurst = _buildFloatingNumberBurst(cue);
 
-    setState(() {
-      _isPlayingBattleAnimation = true;
-      _releaseDisplayOverrideOnNextSceneChange = false;
-      _displayPlayerOverride = cue.playerBefore;
-      _displayEnemyOverride = cue.enemyBefore;
-      _playerBarrierAnimationReference = _barrierAnimationReferenceFor(
+    _animationPresenter.startStatChange(
+      cue: cue,
+      floatingNumberBurst: floatingNumberBurst,
+      playerBarrierReference: _barrierAnimationReferenceFor(
         cue.playerBefore,
         cue.playerAfter,
-      );
-      _enemyBarrierAnimationReference = _barrierAnimationReferenceFor(
+      ),
+      enemyBarrierReference: _barrierAnimationReferenceFor(
         cue.enemyBefore,
         cue.enemyAfter,
-      );
-      _animatedHealthSides = const {};
-      _animatedBarrierSides = const {};
-      _activeStatusEffectBurst = null;
-      _activeCombatIconMotion = null;
-      _activeMoneyBurst = null;
-      _activeFragilidadBurst = null;
-      _activeFloatingNumberBurst = floatingNumberBurst;
-    });
-    _refreshPatternCombatAnimationOverlay();
+      ),
+    );
     if (floatingNumberBurst != null) {
       unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
     }
@@ -1172,22 +1082,19 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
 
-    setState(() {
-      _displayPlayerOverride = cue.playerAfter;
-      _displayEnemyOverride = cue.enemyAfter;
-      _animatedHealthSides = animatesHealth
+    _animationPresenter.revealStatChange(
+      cue: cue,
+      healthSides: animatesHealth
           ? <BattleCombatantSide>{animatedSide}
-          : const <BattleCombatantSide>{};
-      _animatedBarrierSides = animatesBarrier
+          : const <BattleCombatantSide>{},
+      barrierSides: animatesBarrier
           ? <BattleCombatantSide>{animatedSide}
-          : const <BattleCombatantSide>{};
-    });
-    _refreshPatternCombatAnimationOverlay();
+          : const <BattleCombatantSide>{},
+    );
 
     await Future<void>.delayed(_battleImpactBarDuration);
     if (!mounted) return;
-    _releaseDisplayOverrideOnNextSceneChange = true;
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.deferReleaseAfterStatChange();
   }
 
   Future<void> _playPurgeDamageCue(BattleCombatAnimationCue cue) async {
@@ -1205,28 +1112,18 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         BattleCombatantSide.enemy,
     };
 
-    setState(() {
-      _isPlayingBattleAnimation = true;
-      _releaseDisplayOverrideOnNextSceneChange = false;
-      _displayPlayerOverride = cue.playerBefore;
-      _displayEnemyOverride = cue.enemyBefore;
-      _playerBarrierAnimationReference = _barrierAnimationReferenceFor(
+    _animationPresenter.startStatChange(
+      cue: cue,
+      floatingNumberBurst: floatingNumberBurst,
+      playerBarrierReference: _barrierAnimationReferenceFor(
         cue.playerBefore,
         cue.playerAfter,
-      );
-      _enemyBarrierAnimationReference = _barrierAnimationReferenceFor(
+      ),
+      enemyBarrierReference: _barrierAnimationReferenceFor(
         cue.enemyBefore,
         cue.enemyAfter,
-      );
-      _animatedHealthSides = const {};
-      _animatedBarrierSides = const {};
-      _activeStatusEffectBurst = null;
-      _activeCombatIconMotion = null;
-      _activeMoneyBurst = null;
-      _activeFragilidadBurst = null;
-      _activeFloatingNumberBurst = floatingNumberBurst;
-    });
-    _refreshPatternCombatAnimationOverlay();
+      ),
+    );
     if (floatingNumberBurst != null) {
       unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
     }
@@ -1234,18 +1131,15 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
 
-    setState(() {
-      _displayPlayerOverride = cue.playerAfter;
-      _displayEnemyOverride = cue.enemyAfter;
-      _animatedHealthSides = healthSides;
-      _animatedBarrierSides = barrierSides;
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.revealStatChange(
+      cue: cue,
+      healthSides: healthSides,
+      barrierSides: barrierSides,
+    );
 
     await Future<void>.delayed(_battleImpactBarDuration);
     if (!mounted) return;
-    _releaseDisplayOverrideOnNextSceneChange = true;
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.deferReleaseAfterStatChange();
   }
 
   Future<void> _playFragilidadBurstCue(BattleCombatAnimationCue cue) async {
@@ -1255,28 +1149,19 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       center: _centerForSide(cue.primarySide),
     );
 
-    setState(() {
-      _isPlayingBattleAnimation = true;
-      _releaseDisplayOverrideOnNextSceneChange = false;
-      _displayPlayerOverride = cue.playerBefore;
-      _displayEnemyOverride = cue.enemyBefore;
-      _playerBarrierAnimationReference = _barrierAnimationReferenceFor(
+    _animationPresenter.startFragilidad(
+      cue: cue,
+      floatingNumberBurst: floatingNumberBurst,
+      fragilidadBurst: fragilidadBurst,
+      playerBarrierReference: _barrierAnimationReferenceFor(
         cue.playerBefore,
         cue.playerAfter,
-      );
-      _enemyBarrierAnimationReference = _barrierAnimationReferenceFor(
+      ),
+      enemyBarrierReference: _barrierAnimationReferenceFor(
         cue.enemyBefore,
         cue.enemyAfter,
-      );
-      _animatedHealthSides = const {};
-      _animatedBarrierSides = const {};
-      _activeStatusEffectBurst = null;
-      _activeCombatIconMotion = null;
-      _activeMoneyBurst = null;
-      _activeFloatingNumberBurst = floatingNumberBurst;
-      _activeFragilidadBurst = fragilidadBurst;
-    });
-    _refreshPatternCombatAnimationOverlay();
+      ),
+    );
     if (floatingNumberBurst != null) {
       unawaited(_clearFloatingNumberBurstAfterDelay(floatingNumberBurst));
     }
@@ -1284,23 +1169,16 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
 
-    setState(() {
-      _displayPlayerOverride = cue.playerAfter;
-      _displayEnemyOverride = cue.enemyAfter;
-      _animatedHealthSides = <BattleCombatantSide>{cue.primarySide};
-      _animatedBarrierSides = const <BattleCombatantSide>{};
-    });
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.revealStatChange(
+      cue: cue,
+      healthSides: <BattleCombatantSide>{cue.primarySide},
+      barrierSides: const <BattleCombatantSide>{},
+    );
 
     await Future<void>.delayed(_battleFragilidadBurstDuration);
     if (!mounted) return;
-    setState(() {
-      if (_activeFragilidadBurst?.id == fragilidadBurst.id) {
-        _activeFragilidadBurst = null;
-      }
-    });
-    _releaseDisplayOverrideOnNextSceneChange = true;
-    _refreshPatternCombatAnimationOverlay();
+    _animationPresenter.clearFragilidadIfCurrent(fragilidadBurst);
+    _animationPresenter.deferReleaseAfterStatChange();
   }
 
   _BattleFloatingNumberBurst? _buildFloatingNumberBurst(
@@ -1709,8 +1587,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     return _BattleSceneView(
       showTitle: widget.showTitle,
       sceneController: _sceneController,
-      displayPlayerOverride: _displayPlayerOverride,
-      displayEnemyOverride: _displayEnemyOverride,
+      displayPlayerOverride: _animation.displayPlayerOverride,
+      displayEnemyOverride: _animation.displayEnemyOverride,
       isPatternMode: _isPatternMode,
       isPresentingPatternMatch: _isPresentingPatternMatch,
       isPlayingBattleAnimation: _isPlayingBattleAnimation,
@@ -1720,15 +1598,16 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       playerStatusBarKey: _playerStatusBarKey,
       enemyStatusBarKey: _enemyStatusBarKey,
       attackFlightAnimation: _attackFlightController,
-      activeCombatIconMotion: _activeCombatIconMotion,
-      activeStatusEffectBurst: _activeStatusEffectBurst,
-      activeFloatingNumberBurst: _activeFloatingNumberBurst,
-      activeMoneyBurst: _activeMoneyBurst,
-      activeFragilidadBurst: _activeFragilidadBurst,
-      playerBarrierAnimationReference: _playerBarrierAnimationReference,
-      enemyBarrierAnimationReference: _enemyBarrierAnimationReference,
-      animatedHealthSides: _animatedHealthSides,
-      animatedBarrierSides: _animatedBarrierSides,
+      activeCombatIconMotion: _animation.activeCombatIconMotion,
+      activeStatusEffectBurst: _animation.activeStatusEffectBurst,
+      activeFloatingNumberBurst: _animation.activeFloatingNumberBurst,
+      activeMoneyBurst: _animation.activeMoneyBurst,
+      activeFragilidadBurst: _animation.activeFragilidadBurst,
+      playerBarrierAnimationReference:
+          _animation.playerBarrierAnimationReference,
+      enemyBarrierAnimationReference: _animation.enemyBarrierAnimationReference,
+      animatedHealthSides: _animation.animatedHealthSides,
+      animatedBarrierSides: _animation.animatedBarrierSides,
       onAttack: _handlePlayerAttack,
       onBlock: _handlePlayerBlock,
       canOpenPreviewOperatives: _canOpenPreviewOperatives,

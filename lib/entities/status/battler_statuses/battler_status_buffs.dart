@@ -108,7 +108,7 @@ class PotenciaStatus extends BattlerStatus {
           },
           icon: Icons.bolt_rounded,
           description:
-              'Aumenta el dano de tus golpes en su value durante este combate.',
+              'Aumenta el daño de tus golpes en su value durante este combate.',
           remainingTurns: 1,
           value: value,
         );
@@ -416,7 +416,7 @@ class DesafioExcitanteStatus extends BattlerStatus {
   }
 }
 
-/// Carga defensiva acumulada que otros efectos pueden convertir en dano.
+/// Carga defensiva acumulada que otros efectos pueden convertir en daño.
 class ResonanciaStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.resonancia;
 
@@ -433,7 +433,7 @@ class ResonanciaStatus extends BattlerStatus {
           },
           icon: Icons.graphic_eq_rounded,
           description:
-              'Carga defensiva acumulada. Algunos efectos la usan para infligir dano directo.',
+              'Carga defensiva acumulada. Algunos efectos la usan para infligir daño directo.',
           remainingTurns: 1,
           value: value,
         );

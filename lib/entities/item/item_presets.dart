@@ -379,7 +379,7 @@ const vendasApretadasItem = Item(
   tags: _desafioVidaBuffTags,
   name: 'Vendas Apretadas',
   description:
-      'Al recibir dano: si perdiste HP, ganas 2 Desafio. Una vez por turno.',
+      'Al recibir daño: si perdiste HP, ganas 2 Desafio. Una vez por turno.',
   iconEmoji: '\u{1FA79}',
   rarity: RarityTier.gray,
   patternBonusAmountOverride: 0,
@@ -427,7 +427,7 @@ const heridaCarbonizadaItem = Item(
   archetypeAffinities: _imparableAffinities,
   tags: _desafioQuemaduraBuffTags,
   name: 'Herida Carbonizada',
-  description: 'Al recibir dano de Quemadura a tu HP: ganas 3 Desafio.',
+  description: 'Al recibir daño de Quemadura a tu HP: ganas 3 Desafio.',
   iconEmoji: '\u{1FAE7}',
   rarity: RarityTier.green,
   patternBonusKindOverride: _adjAttack,
@@ -466,7 +466,7 @@ const contratoDolorosoItem = Item(
   tags: _desafioBarreraBuffTags,
   name: 'Contrato Doloroso',
   description:
-      'Al final de tu turno: si recibiste dano a tu HP este turno, ganas 2 Desafio y 1 Barrera.',
+      'Al final de tu turno: si recibiste daño a tu HP este turno, ganas 2 Desafio y 1 Barrera.',
   iconEmoji: '\u{1F4DC}',
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjBarrier,
@@ -484,7 +484,7 @@ const yunqueCardiacoItem = Item(
   tags: _desafioBarreraBuffTags,
   name: 'Yunque Cardiaco',
   description:
-      'Al recibir dano a HP: convierte hasta 2 de ese dano en Desafio, evitando ese dano hacia ti. Una vez por turno.',
+      'Al recibir daño a HP: convierte hasta 2 de ese daño en Desafio, evitando ese daño hacia ti. Una vez por turno.',
   iconEmoji: '\u{1F528}',
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjBarrier,
@@ -505,7 +505,7 @@ const revanchadoraItem = Item(
   tags: _desafioQuemaduraBuffTags,
   name: 'Revanchadora',
   description:
-      'Cuando una Quemadura propia te hace dano, ganas Desafio igual a la mitad de esa Quemadura y te curas 2.',
+      'Cuando una Quemadura propia te hace daño, ganas Desafio igual a la mitad de esa Quemadura y te curas 2.',
   iconEmoji: '\u{1F52A}',
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjAttack,
@@ -541,7 +541,7 @@ const arnesTacticoItem = Item(
   tags: _desafioQuemaduraBuffTags,
   name: 'Arnes Tactico',
   description:
-      'Al recibir dano de Quemadura: ganas 1 Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.',
+      'Al recibir daño de Quemadura: ganas 1 Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.',
   iconEmoji: '\u{1F9BA}',
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
@@ -559,7 +559,7 @@ const mandibultimatumItem = Item(
   tags: _desafioAtaqueBuffTags,
   name: 'Mandibultimatum',
   description:
-      'Al usarse: consumes hasta 2 Quemadura propia para recibir ese dano a la HP, y ganar el doble en Desafio ANTES de resolver el ataque.',
+      'Al usarse: consumes hasta 2 Quemadura propia para recibir ese daño a la HP, y ganar el doble en Desafio ANTES de resolver el ataque.',
   iconEmoji: '\u{1F9B7}',
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
@@ -598,7 +598,7 @@ const motorMartirioItem = Item(
   tags: _desafioVidaBuffTags,
   name: 'Motor de Martirio',
   description:
-      'Al recibir dano a HP, o dano de Quemadura: ganas Desafio igual al dano recibido, max 8 por turno. Al final del turno, si tienes 8+ Desafio, te curas 8 HP.',
+      'Al recibir daño a HP, o daño de Quemadura: ganas Desafio igual al daño recibido, max 8 por turno. Al final del turno, si tienes 8+ Desafio, te curas 8 HP.',
   iconEmoji: '\u{2699}',
   rarity: RarityTier.yellow,
   patternBonusKindOverride: _adjBarrier,
@@ -771,7 +771,7 @@ const barbedShieldItem = Item(
   tags: _ataqueBarreraMurallaTags,
   name: 'Barbed Shield',
   description:
-      'Al usarse: Hace dano al enemigo al final del turno igual a 1 veces el numero de Murallas en tu matriz y en la del enemigo.',
+      'Al usarse: Hace daño al enemigo al final del turno igual a 1 veces el numero de Murallas en tu matriz y en la del enemigo.',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.blue,
   patternBonusAmountOverride: 0,
@@ -931,7 +931,7 @@ const laCuentaItem = Item(
   tags: _economiaAtaqueTags,
   name: 'La Cuenta',
   description:
-      'Las primeras veces que gastas creditos, tu siguiente ataque gana dano.',
+      'Las primeras veces que gastas creditos, tu siguiente ataque gana daño.',
   iconEmoji: '\u{1F9FE}',
   rarity: RarityTier.gray,
   patternBonusAmountOverride: 0,
@@ -950,7 +950,7 @@ const seguroBolsilloItem = Item(
   tags: _economiaVidaTags,
   name: 'Seguro de Bolsillo',
   description:
-      'Una vez por combate, cuando fueras a perder HP, paga creditos para prevenir dano.',
+      'Una vez por combate, cuando fueras a perder HP, paga creditos para prevenir daño.',
   iconEmoji: '\u{1F4DD}',
   rarity: RarityTier.green,
   patternBonusKindOverride: _adjBarrier,
@@ -1063,7 +1063,7 @@ const bolsaRiesgoItem = Item(
   tags: _economiaAtaqueTags,
   name: 'Bolsa de Riesgo',
   description:
-      'Al comienzo del combate ganas creditos y, al caer bajo media vida, los conviertes en dano.',
+      'Al comienzo del combate ganas creditos y, al caer bajo media vida, los conviertes en daño.',
   iconEmoji: '\u{1F4BC}',
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
@@ -1829,7 +1829,7 @@ const clavoReactorItem = Item(
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Clavo Reactor',
   description:
-      '+2 ATK. Al usarse, una vez por turno, infliges dano directo extra y te aplicas Quemadura.',
+      '+2 ATK. Al usarse, una vez por turno, infliges daño directo extra y te aplicas Quemadura.',
   iconEmoji: '\u{1F529}',
   rarity: RarityTier.green,
   patternBonusKindOverride: _adjAttack,
@@ -1971,7 +1971,7 @@ const descargaResonanteItem = Item(
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Descarga Resonante',
   description:
-      '+1 ATK. Al usarse, consume toda tu Resonancia para infligir dano directo.',
+      '+1 ATK. Al usarse, consume toda tu Resonancia para infligir daño directo.',
   iconEmoji: '\u{1F4AB}',
   rarity: RarityTier.green,
   patternBonusKindOverride: _adjAttack,
@@ -2417,7 +2417,7 @@ const contingencySealItem = Item(
   tags: _barreraBuffTags,
   name: 'Sello de Contingencia',
   description:
-      'Cuando se rompe tu Barrera, haces dano al agresor igual a la Barrera ganada en la ultima ronda de este combate.',
+      'Cuando se rompe tu Barrera, haces daño al agresor igual a la Barrera ganada en la ultima ronda de este combate.',
   iconEmoji: '\u2726',
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjBarrier,
@@ -2436,7 +2436,7 @@ const placasCompresionItem = Item(
   tags: _resonanciaBarreraBuffTags,
   name: 'Placas de Compresion',
   description:
-      'Cuando recibes dano a Barrera, ganas Resonancia por la Barrera perdida.',
+      'Cuando recibes daño a Barrera, ganas Resonancia por la Barrera perdida.',
   iconEmoji: '\u{1F4BF}',
   rarity: RarityTier.blue,
   patternBonusKindOverride: _adjBarrier,
@@ -2473,7 +2473,7 @@ const interferenceCannonItem = Item(
   id: ItemId.interferenceCannon,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
-  name: 'Canon de Conmocion',
+  name: 'Cañón de Conmocion',
   description:
       'Al usarse: aplica Conmocion. Si el objetivo ya la tenia, pierde 1 de Barrera.',
   iconEmoji: '\u{1F4E1}',
@@ -2674,7 +2674,7 @@ const ultimaMarchaItem = Item(
   tags: _ataqueVidaTags,
   name: 'Ultima Marcha',
   description:
-      '+1 ATK. Al usarse, una vez por turno, infliges dano extra segun la vida que te falta.',
+      '+1 ATK. Al usarse, una vez por turno, infliges daño extra segun la vida que te falta.',
   iconEmoji: '\u{1FA78}',
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
@@ -2895,14 +2895,14 @@ const torreRetornoItem = Item(
   effect: TorreRetornoItemEffect(),
 );
 
-/// Accesorio morado que proyecta Resonancia como dano sin consumirla.
+/// Accesorio morado que proyecta Resonancia como daño sin consumirla.
 const prismaDeEcoItem = Item(
   id: ItemId.prismaDeEco,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Prisma de Eco',
   description:
-      'Una vez por turno, al usarse, infliges dano directo igual a la mitad de tu Resonancia actual.',
+      'Una vez por turno, al usarse, infliges daño directo igual a la mitad de tu Resonancia actual.',
   iconEmoji: '\u{1FA9E}',
   rarity: RarityTier.purple,
   patternBonusKindOverride: _adjAttack,
@@ -3087,14 +3087,14 @@ const overloadInjectorItem = Item(
   effect: ThermalTurbineItemEffect(),
 );
 
-/// Accesorio amarillo que devuelve Barrera cuando la Resonancia hace dano.
+/// Accesorio amarillo que devuelve Barrera cuando la Resonancia hace daño.
 const canonContrapresionItem = Item(
   id: ItemId.canonContrapresion,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaAtaqueBarreraTags,
-  name: 'Canon de Contrapresion',
+  name: 'Cañón de Contrapresion',
   description:
-      '+2 Barrera. Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad del dano infligido.',
+      '+2 Barrera. Cuando tu Resonancia inflige daño, ganas Barrera igual a la mitad del daño infligido.',
   iconEmoji: '\u{1F4E3}',
   rarity: RarityTier.yellow,
   patternBonusKindOverride: _adjBarrier,
@@ -3236,7 +3236,7 @@ const sunExecutionBladeItem = Item(
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Hoja de Ejecucion Solar',
   description:
-      '+4 ATK. Al usarse, si el objetivo tiene Quemadura, la consume y anade dano directo extra.',
+      '+4 ATK. Al usarse, si el objetivo tiene Quemadura, la consume y añade daño directo extra.',
   iconEmoji: '\u{1F506}',
   rarity: RarityTier.yellow,
   patternBonusKindOverride: _adjAttack,

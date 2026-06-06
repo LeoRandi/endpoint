@@ -64,13 +64,13 @@ class ThermalTurbineItemEffect extends ItemEffect {
   }
 }
 
-/// Consume Quemadura para convertirla en dano directo inmediato.
+/// Consume Quemadura para convertirla en daño directo inmediato.
 class SunExecutionBladeItemEffect extends ItemEffect {
   /// Crea el efecto propio de la Hoja de Ejecucion Solar.
   const SunExecutionBladeItemEffect()
       : super(
           description:
-              'Al usarse, consume la Quemadura del objetivo para infligir dano directo extra.',
+              'Al usarse, consume la Quemadura del objetivo para infligir daño directo extra.',
           hooks: const {
             ItemEffectHook.patternUsed,
           },
@@ -79,7 +79,7 @@ class SunExecutionBladeItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
-    return 'Al usarse, si el objetivo tiene Quemadura, la consume e inflige dano directo extra igual a su dano actual total + ${max(1, item.value)}.';
+    return 'Al usarse, si el objetivo tiene Quemadura, la consume e inflige daño directo extra igual a su daño actual total + ${max(1, item.value)}.';
   }
 
   /// Reacciona justo despues de que el portador resuelva un ataque.
@@ -119,12 +119,12 @@ class SunExecutionBladeItemEffect extends ItemEffect {
 class QuemaduraOnAttackItemEffect extends ItemEffect {
   final int duration;
 
-  /// Crea un efecto reutilizable que anade Quemadura al atacar.
+  /// Crea un efecto reutilizable que añade Quemadura al atacar.
   const QuemaduraOnAttackItemEffect({
     this.duration = QuemaduraStatus.defaultDuration,
   }) : super(
           description:
-              'Al usarse: anade un efecto de Quemadura de 3 turnos de duracion.',
+              'Al usarse: añade un efecto de Quemadura de 3 turnos de duracion.',
           hooks: const {
             ItemEffectHook.patternUsed,
           },
@@ -134,7 +134,7 @@ class QuemaduraOnAttackItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
-    return 'Al usarse: anade Quemadura durante $resolvedDuration turnos.';
+    return 'Al usarse: añade Quemadura durante $resolvedDuration turnos.';
   }
 
   /// Tras atacar, aplica una Quemadura nueva con la duracion configurada.
@@ -163,7 +163,7 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
     this.duration = 4,
   }) : super(
           description:
-              'Al recibir un ataque: anade un efecto de Quemadura de 4 turnos de duracion.',
+              'Al recibir un ataque: añade un efecto de Quemadura de 4 turnos de duracion.',
           hooks: const {
             ItemEffectHook.receiveDamageResolved,
           },
@@ -173,7 +173,7 @@ class QuemaduraOnHitReceivedItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedDuration = max(1, item.value > 0 ? item.value : duration);
-    return 'Al recibir un ataque: anade Quemadura al agresor durante $resolvedDuration turnos.';
+    return 'Al recibir un ataque: añade Quemadura al agresor durante $resolvedDuration turnos.';
   }
 
   /// Tras recibir un golpe, aplica Quemadura al enemigo que lo causo.
@@ -374,7 +374,7 @@ class VirtualMailboxItemEffect extends ItemEffect {
   const VirtualMailboxItemEffect()
       : super(
           description:
-              'Al ganar un combate, anade un item aleatorio de su categoria a las recompensas si tienes espacio.',
+              'Al ganar un combate, añade un item aleatorio de su categoria a las recompensas si tienes espacio.',
         );
 
   /// Construye la descripcion visible del efecto usando el valor actual.
@@ -781,14 +781,14 @@ class BarbedShieldItemEffect extends ItemEffect {
   const BarbedShieldItemEffect()
       : super(
           description:
-              'Al usarse: hace dano al enemigo al final del turno segun las Murallas en ambas matrices.',
+              'Al usarse: hace daño al enemigo al final del turno segun las Murallas en ambas matrices.',
           hooks: const {ItemEffectHook.patternUsed, ItemEffectHook.turnEnd},
         );
 
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al usarse: Hace dano al enemigo al final del turno igual a ${max(1, item.value)} veces el numero de Murallas en tu matriz y en la del enemigo.';
+    return 'Al usarse: Hace daño al enemigo al final del turno igual a ${max(1, item.value)} veces el numero de Murallas en tu matriz y en la del enemigo.';
   }
 
   /// Reacciona cuando el item participa en el Patron usado.
@@ -1256,10 +1256,10 @@ class LaCuentaItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Las primeras ${max(1, item.value)} veces por combate que gastas creditos, tu siguiente ataque gana +$attackBonus dano.';
+    return 'Las primeras ${max(1, item.value)} veces por combate que gastas creditos, tu siguiente ataque gana +$attackBonus daño.';
   }
 
-  /// Ajusta el dano saliente antes de aplicarlo.
+  /// Ajusta el daño saliente antes de aplicarlo.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1311,7 +1311,7 @@ class SeguroBolsilloItemEffect extends ItemEffect {
   const SeguroBolsilloItemEffect()
       : super(
           description:
-              'Una vez por combate, paga creditos para prevenir dano a la vida.',
+              'Una vez por combate, paga creditos para prevenir daño a la vida.',
           hooks: const {ItemEffectHook.incomingDamageEffect},
         );
 
@@ -1319,10 +1319,10 @@ class SeguroBolsilloItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final amount = max(1, item.value) * 2;
-    return 'Una vez por combate, cuando fueras a perder HP, paga hasta ${amount}C para prevenir esa cantidad de dano a la vida.';
+    return 'Una vez por combate, cuando fueras a perder HP, paga hasta ${amount}C para prevenir esa cantidad de daño a la vida.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -1452,7 +1452,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
   const BolsaRiesgoItemEffect()
       : super(
           description:
-              'Al comienzo del combate ganas creditos y, al caer bajo media vida, los conviertes en dano.',
+              'Al comienzo del combate ganas creditos y, al caer bajo media vida, los conviertes en daño.',
           hooks: const {
             ItemEffectHook.combatStart,
             ItemEffectHook.receiveDamageResolved,
@@ -1462,7 +1462,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al comienzo del combate, ganas ${max(1, item.value) * 2}C. La primera vez por combate que quedas por debajo del 50% HP, gastas hasta ${max(1, item.value) * 3}C para infligir ese dano directo.';
+    return 'Al comienzo del combate, ganas ${max(1, item.value) * 2}C. La primera vez por combate que quedas por debajo del 50% HP, gastas hasta ${max(1, item.value) * 3}C para infligir ese daño directo.';
   }
 
   /// Resuelve el disparo de inicio de combate para este efecto.
@@ -1479,7 +1479,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
     );
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -2472,7 +2472,7 @@ class StatusItemEffect extends ItemEffect {
     }
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,

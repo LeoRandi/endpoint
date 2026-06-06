@@ -51,24 +51,25 @@ extension BattlerAbilityManagement on Battler {
 
   /// Anade una habilidad nueva o mejora la existente si admite upgrade.
   Battler addAbility(BattlerAbility ability) {
+    final runtimeAbility = ability.toRuntimeInstance();
     if (!CodexDiscoveryHook.isSuppressed) {
-      CodexDiscoveryHook.onAbilityAdded?.call(ability.id);
+      CodexDiscoveryHook.onAbilityAdded?.call(runtimeAbility.id);
     }
     final existingIndex = abilities.indexWhere(
-      (activeAbility) => activeAbility.id == ability.id,
+      (activeAbility) => activeAbility.id == runtimeAbility.id,
     );
     if (existingIndex < 0) {
       return copyWith(
         abilities: List<BattlerAbility>.unmodifiable([
           ...abilities,
-          ability,
+          runtimeAbility,
         ]),
       ).enforceAbilityCooldownCap();
     }
 
     final updatedAbilities = List<BattlerAbility>.from(abilities);
     final existingAbility = updatedAbilities[existingIndex];
-    if (existingAbility.rarity != ability.rarity ||
+    if (existingAbility.rarity != runtimeAbility.rarity ||
         !existingAbility.canUpgrade) {
       return this;
     }
@@ -105,7 +106,7 @@ extension BattlerAbilityManagement on Battler {
     );
     if (existingIndex < 0) return addAbility(replacementAbility);
 
-    updatedAbilities[existingIndex] = replacementAbility.resetState();
+    updatedAbilities[existingIndex] = replacementAbility.toRuntimeInstance();
     return copyWith(
       abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
     ).enforceAbilityCooldownCap();

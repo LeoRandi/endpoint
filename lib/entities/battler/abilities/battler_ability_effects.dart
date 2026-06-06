@@ -215,7 +215,7 @@ class ToqueDeQuedaAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Protege de dia y anade presion ofensiva de noche.
+/// Protege de dia y añade presion ofensiva de noche.
 class TurnoDeNocheAbilityEffect extends BattlerAbilityEffect {
   /// Crea la pasiva de Turno de Noche.
   const TurnoDeNocheAbilityEffect()
@@ -226,7 +226,7 @@ class TurnoDeNocheAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
+  /// Ajusta el daño saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -242,7 +242,7 @@ class TurnoDeNocheAbilityEffect extends BattlerAbilityEffect {
     return damage + max(1, ability.currentValue);
   }
 
-  /// Ajusta el dano entrante del portador mientras la habilidad aplique.
+  /// Ajusta el daño entrante del portador mientras la habilidad aplique.
   @override
   int modifyIncomingDamage({
     required Battler owner,
@@ -578,13 +578,13 @@ class PulsoArmonicoAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Pasiva que aumenta el dano de Resonancia con Barrera alta.
+/// Pasiva que aumenta el daño de Resonancia con Barrera alta.
 class MasaCriticaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto pasivo de Masa Critica.
   const MasaCriticaAbilityEffect();
 }
 
-/// Pasiva que anade un impacto basico y activa la dilucion positiva compartida.
+/// Pasiva que añade un impacto basico y activa la dilucion positiva compartida.
 class AceleracionFotovoltaicaAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto de Aceleracion Fotovoltaica.
   const AceleracionFotovoltaicaAbilityEffect()
@@ -690,7 +690,7 @@ class ATodoRiesgoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -727,7 +727,7 @@ class DeudaSangreAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1080,7 +1080,7 @@ class MallaReboteAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1157,7 +1157,7 @@ class EscanerRupturaAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
+  /// Ajusta el daño saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1364,7 +1364,7 @@ class EspejoDolorAbilityEffect extends BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
-  /// Ajusta el dano entrante del portador mientras la habilidad aplique.
+  /// Ajusta el daño entrante del portador mientras la habilidad aplique.
   @override
   int modifyIncomingDamage({
     required Battler owner,
@@ -1377,7 +1377,7 @@ class EspejoDolorAbilityEffect extends BattlerAbilityEffect {
     return max(0, damage - max(0, ability.currentValue));
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1537,7 +1537,7 @@ class CompraDeOportunidadAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
-  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
+  /// Ajusta el daño saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1584,7 +1584,7 @@ class DiversificacionHostilAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
+  /// Ajusta el daño saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1652,7 +1652,7 @@ class FuriaHematicaAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
-  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
+  /// Ajusta el daño saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1706,7 +1706,7 @@ class MordidaDeAceroAbilityEffect extends BattlerAbilityEffect {
     return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
   }
 
-  /// Ajusta el dano saliente del portador mientras la habilidad aplique.
+  /// Ajusta el daño saliente del portador mientras la habilidad aplique.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -1774,7 +1774,7 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
     );
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -1866,7 +1866,7 @@ class PulsoIsometricoAbilityEffect extends BattlerAbilityEffect {
   }
 }
 
-/// Convierte un unico angulo agudo en dano directo adicional.
+/// Convierte un unico angulo agudo en daño directo adicional.
 class CorteTangencialAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto de CorteTangencial.
   const CorteTangencialAbilityEffect()
@@ -2289,7 +2289,7 @@ class ContratoReusoAbilityEffect extends BattlerAbilityEffect {
   const ContratoReusoAbilityEffect();
 }
 
-/// Convierte creditos en dano por cada punto de item repetido.
+/// Convierte creditos en daño por cada punto de item repetido.
 class MercadoRecursivoAbilityEffect extends BattlerAbilityEffect {
   /// Crea el efecto de MercadoRecursivo.
   const MercadoRecursivoAbilityEffect()
@@ -2547,7 +2547,7 @@ class ExtrabloqueoAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  /// Ajusta el dano entrante del portador mientras la habilidad aplique.
+  /// Ajusta el daño entrante del portador mientras la habilidad aplique.
   @override
   int modifyIncomingDamage({
     required Battler owner,
@@ -2560,7 +2560,7 @@ class ExtrabloqueoAbilityEffect extends BattlerAbilityEffect {
     return max(0, damage - max(0, ability.currentValue));
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   BattlerAbilityEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -2661,7 +2661,7 @@ class CopiaDeSeguridadAbilityEffect extends BattlerAbilityEffect {
           },
         );
 
-  /// Intercepta dano fatal antes de que el portador quede derrotado.
+  /// Intercepta daño fatal antes de que el portador quede derrotado.
   @override
   Battler onReceiveFatalDamage({
     required Battler owner,

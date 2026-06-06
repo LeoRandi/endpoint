@@ -1,4 +1,4 @@
-import '../services/endpoint_preferences_models.dart';
+import '../services/persistence/endpoint_preferences_models.dart';
 import 'package:flutter/widgets.dart';
 
 /// Stable identifiers for localized UI copy.

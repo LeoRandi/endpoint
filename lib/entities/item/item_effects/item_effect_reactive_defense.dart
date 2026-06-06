@@ -152,10 +152,10 @@ class ContingencySealItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final rounds = max(1, item.value);
-    return 'Cuando se rompe tu Barrera, haces al agresor dano directo igual a la Barrera ganada en las ultimas $rounds rondas de este combate.';
+    return 'Cuando se rompe tu Barrera, haces al agresor daño directo igual a la Barrera ganada en las ultimas $rounds rondas de este combate.';
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -214,10 +214,10 @@ class PlacasCompresionItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
-    return 'Cuando recibes dano a Barrera, ganas 1 Resonancia por cada punto de Barrera perdido, hasta ${max(1, item.value)} por golpe.';
+    return 'Cuando recibes daño a Barrera, ganas 1 Resonancia por cada punto de Barrera perdido, hasta ${max(1, item.value)} por golpe.';
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -326,7 +326,7 @@ class AislanteArmonicoItemEffect extends ItemEffect {
     return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -383,29 +383,29 @@ class AislanteArmonicoItemEffect extends ItemEffect {
   }
 }
 
-/// Recompensa el dano infligido por Resonancia con Barrera sin limite.
+/// Recompensa el daño infligido por Resonancia con Barrera sin limite.
 class CanonContrapresionItemEffect extends ItemEffect {
-  /// Crea el efecto propio del Canon de Contrapresion.
+  /// Crea el efecto propio del Cañón de Contrapresion.
   const CanonContrapresionItemEffect()
       : super(
           description:
-              'Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad.',
+              'Cuando tu Resonancia inflige daño, ganas Barrera igual a la mitad.',
         );
 
   /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
-    return 'Cuando tu Resonancia inflige dano, ganas Barrera igual a la mitad del dano infligido por Resonancia.';
+    return 'Cuando tu Resonancia inflige daño, ganas Barrera igual a la mitad del daño infligido por Resonancia.';
   }
 }
 
-/// Consume toda la Resonancia para convertirla en dano directo al atacar.
+/// Consume toda la Resonancia para convertirla en daño directo al atacar.
 class DescargaResonanteItemEffect extends ItemEffect {
   /// Crea el efecto propio de la Descarga Resonante.
   const DescargaResonanteItemEffect()
       : super(
           description:
-              'Al usarse, consume toda tu Resonancia para infligir dano directo.',
+              'Al usarse, consume toda tu Resonancia para infligir daño directo.',
           hooks: const {
             ItemEffectHook.patternUsed,
           },
@@ -414,7 +414,7 @@ class DescargaResonanteItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
-    return 'Al usarse, consume toda tu Resonancia e inflige dano directo igual a la Resonancia consumida.';
+    return 'Al usarse, consume toda tu Resonancia e inflige daño directo igual a la Resonancia consumida.';
   }
 
   /// Reacciona justo despues de que el portador resuelva un ataque.
@@ -443,13 +443,13 @@ class DescargaResonanteItemEffect extends ItemEffect {
   }
 }
 
-/// Proyecta una porcion de la Resonancia como dano una vez por turno.
+/// Proyecta una porcion de la Resonancia como daño una vez por turno.
 class PrismaDeEcoItemEffect extends ItemEffect {
   /// Crea el efecto propio del Prisma de Eco.
   const PrismaDeEcoItemEffect()
       : super(
           description:
-              'Una vez por turno, al usarse, tu Resonancia inflige dano directo parcial.',
+              'Una vez por turno, al usarse, tu Resonancia inflige daño directo parcial.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.patternUsed,
@@ -459,7 +459,7 @@ class PrismaDeEcoItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Una vez por turno, al usarse, infliges dano directo igual a la mitad de tu Resonancia actual sin consumirla.';
+    return 'Una vez por turno, al usarse, infliges daño directo igual a la mitad de tu Resonancia actual sin consumirla.';
   }
 
   /// Resuelve el disparo de inicio de turno para el portador.
@@ -525,7 +525,7 @@ class PrismaDeEcoItemEffect extends ItemEffect {
 
 /// Aplica Conmocion y erosiona barrera si el objetivo ya estaba debilitado.
 class InterferenceCannonItemEffect extends ItemEffect {
-  /// Crea el efecto propio del Canon de Conmocion.
+  /// Crea el efecto propio del Cañón de Conmocion.
   const InterferenceCannonItemEffect()
       : super(
           description:
@@ -626,7 +626,7 @@ class ResponseFrameItemEffect extends ItemEffect {
     );
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -799,7 +799,7 @@ class ReboundLensItemEffect extends ItemEffect {
     );
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,

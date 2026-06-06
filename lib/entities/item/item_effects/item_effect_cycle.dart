@@ -230,7 +230,7 @@ class PrismaCircadianoItemEffect extends ItemEffect {
     return 'De dia reduces en $amount el daño recibido. De noche tus ataques infligen $amount de daño adicional.';
   }
 
-  /// Ajusta el dano saliente que el portador va a infligir.
+  /// Ajusta el daño saliente que el portador va a infligir.
   @override
   int modifyOutgoingDamage({
     required Battler owner,
@@ -246,7 +246,7 @@ class PrismaCircadianoItemEffect extends ItemEffect {
     return damage + max(1, item.value);
   }
 
-  /// Ajusta el dano entrante que el portador va a recibir.
+  /// Ajusta el daño entrante que el portador va a recibir.
   @override
   int modifyIncomingDamage({
     required Battler owner,

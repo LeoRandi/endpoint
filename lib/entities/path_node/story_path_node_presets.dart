@@ -1,5 +1,5 @@
 import '../_imports.dart';
-import '../../services/run_randomizer.dart';
+import '../../services/run/run_randomizer.dart';
 
 const _scrapShopAccent = Color(0xFFB8C0CC);
 const _greenItemShopAccent = Color(0xFF3FE88F);
@@ -73,7 +73,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
-      '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y dano extra al pelear herido. Empieza con 8C y 3 income.',
+      '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y daño extra al pelear herido. Empieza con 8C y 3 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
   accent: const Color(0xFFFF5A5F),
@@ -218,7 +218,7 @@ final healthShopCriterion = ShopInventoryCriterion(
   ],
 );
 
-/// Criterio ofensivo por tag para tiendas de dano directo.
+/// Criterio ofensivo por tag para tiendas de daño directo.
 final attackShopCriterion = ShopInventoryCriterion(
   label: 'ATAQUE',
   description: 'Solo aparecen objetos grises con la tag de Ataque.',
@@ -378,7 +378,7 @@ final firstAidStandNode = ShopPathNode(
 final impActsNode = ShopPathNode(
   nodeId: 'shop_imp_acts',
   label: 'Imp Acts',
-  tooltip: 'Herramientas tempranas para hacer dano',
+  tooltip: 'Herramientas tempranas para hacer daño',
   iconEmoji: '\u{1F528}',
   rarity: RarityTier.gray,
   accent: _impActsAccent,
@@ -927,11 +927,11 @@ final sWitchCabinNode = EventPathNode(
   showTitle: "Has encontrado S. Witch's Cabin",
   eventTitle: "S. WITCH'S CABIN",
   description:
-      'Una cabina pequena brilla entre distritos, rodeada de niebla rosa. Dentro, una nina demasiado joven ofrece "cambiar como son las cosas".',
+      'Una cabina pequena brilla entre distritos, rodeada de niebla rosa. Dentro, una niña demasiado joven ofrece "cambiar como son las cosas".',
   outcomeText: 'Elige dos objetos para intercambiar sus bonus de Patron.',
   flavorTexts: [
     'La cabina no figura en ningun mapa. La luz bajo la puerta late como si respirara.',
-    'La nina sonrie sin parpadear. Dice que cambiar las cosas es facil; lo raro es querer dejarlas igual.',
+    'La niña sonrie sin parpadear. Dice que cambiar las cosas es facil; lo raro es querer dejarlas igual.',
   ],
 );
 

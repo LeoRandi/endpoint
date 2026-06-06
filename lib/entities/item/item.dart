@@ -767,8 +767,14 @@ class Item {
   }
 
   /// Materializa un objeto de preset como copia propia para poder diferenciarlo por instancia.
-  Item toOwnedInstance() {
-    if (isInstanced) return this;
+  Item toOwnedInstance() => toRuntimeInstance();
+
+  /// Materializa este item como estado runtime propio.
+  ///
+  /// Usa [forceNewInstance] cuando la copia recibida ya pertenecia a alguien
+  /// pero debe duplicarse como recompensa o compra independiente.
+  Item toRuntimeInstance({bool forceNewInstance = false}) {
+    if (isInstanced && !forceNewInstance) return this;
 
     return Item(
       id: id,
@@ -787,7 +793,7 @@ class Item {
       statModifiers: statModifiers,
       upgradeStatModifiers: upgradeStatModifiers,
       effect: effect,
-      instanceId: 'item_${_nextInstanceSequence++}',
+      instanceId: _nextOwnedInstanceId(),
       patternBonusKindOverride: patternBonusKindOverride,
       patternBonusAmountOverride: patternBonusAmountOverride,
       patternRequirementOverride: patternRequirementOverride,
@@ -795,6 +801,9 @@ class Item {
       patternAdjacencyBonuses: patternAdjacencyBonuses,
     );
   }
+
+  /// Reserva un id nuevo para una copia runtime diferenciable.
+  static String _nextOwnedInstanceId() => 'item_${_nextInstanceSequence++}';
 
   /// Limpia mejoras generadas solo durante combate sin tocar progreso permanente.
   ///

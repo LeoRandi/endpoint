@@ -356,7 +356,7 @@ class ShockMeshItemEffect extends ItemEffect {
     return 'Al recibir daño mientras conservas Barrera, aplicas Conmocion (-${item.value} daño) al agresor.';
   }
 
-  /// Reacciona justo despues de que el portador reciba dano.
+  /// Reacciona justo despues de que el portador reciba daño.
   @override
   ItemEffectResolution onReceiveDamageResolved({
     required Battler owner,
@@ -591,7 +591,7 @@ class ClavoReactorItemEffect extends ItemEffect {
   const ClavoReactorItemEffect()
       : super(
           description:
-              'Al usarse, una vez por turno, infliges dano directo extra y te aplicas Quemadura.',
+              'Al usarse, una vez por turno, infliges daño directo extra y te aplicas Quemadura.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.patternUsed,
@@ -602,7 +602,7 @@ class ClavoReactorItemEffect extends ItemEffect {
   @override
   String descriptionFor(Item item) {
     final resolvedValue = max(1, item.value);
-    return 'Al usarse, una vez por turno, infliges ${resolvedValue * 2} de dano directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
+    return 'Al usarse, una vez por turno, infliges ${resolvedValue * 2} de daño directo extra y te aplicas Quemadura durante $resolvedValue turnos.';
   }
 
   /// Resuelve el disparo de inicio de turno para el portador del item.
@@ -668,7 +668,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
   const UltimaMarchaItemEffect()
       : super(
           description:
-              'Al usarse, una vez por turno, infliges dano extra segun la vida que te falta.',
+              'Al usarse, una vez por turno, infliges daño extra segun la vida que te falta.',
           hooks: const {
             ItemEffectHook.turnStart,
             ItemEffectHook.outgoingDamageModifier,
@@ -679,7 +679,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual del item.
   @override
   String descriptionFor(Item item) {
-    return 'Al usarse, una vez por turno, infliges dano adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
+    return 'Al usarse, una vez por turno, infliges daño adicional igual al maximo entre ${max(1, item.value)} y un cuarto de tu vida faltante.';
   }
 
   /// Resuelve el disparo de inicio de turno para el portador del item.
@@ -705,7 +705,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
     );
   }
 
-  /// Ajusta el dano saliente que el portador va a infligir.
+  /// Ajusta el daño saliente que el portador va a infligir.
   @override
   int modifyOutgoingDamage({
     required Battler owner,

@@ -28,6 +28,8 @@ class BattleLootOverlay extends StatefulWidget {
 }
 
 class _BattleLootOverlayState extends State<BattleLootOverlay> {
+  static const _runtimeService = CatalogRuntimeService();
+
   late Battler _player;
   late Set<int> _collectedItemRewardIndexes;
   late bool _isAbilityCollected;
@@ -208,7 +210,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     if (widget.lootAbility == null || _isAbilityCollected) return;
 
     setState(() {
-      _player = _player.addAbility(widget.lootAbility!.resetState());
+      _player = _player.addAbility(
+        _runtimeService.runtimeAbility(widget.lootAbility!),
+      );
       _isAbilityCollected = true;
     });
   }
@@ -239,8 +243,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
       collectedIndexes.add(index);
     }
     if (widget.lootAbility != null && !_isAbilityCollected) {
-      updatedPlayer =
-          updatedPlayer.addAbility(widget.lootAbility!.resetState());
+      updatedPlayer = updatedPlayer.addAbility(
+        _runtimeService.runtimeAbility(widget.lootAbility!),
+      );
     }
     if (_hasPendingMoney) {
       updatedPlayer = updatedPlayer.earnMoney(widget.moneyReward);

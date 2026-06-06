@@ -114,7 +114,8 @@ extension BattlerProgression on Battler {
 
     final abilityReward = reward.ability;
     if (abilityReward != null) {
-      updatedPlayer = updatedPlayer.addAbility(abilityReward.resetState());
+      updatedPlayer =
+          updatedPlayer.addAbility(abilityReward.toRuntimeInstance());
     }
 
     final itemReward = reward.item;

@@ -1,6 +1,6 @@
 import '../_imports.dart';
-import '../../services/battler_runtime_service.dart';
-import '../../services/operative_pattern_layout_service.dart';
+import '../../services/pattern/operative_pattern_layout_service.dart';
+import '../../services/runtime/battler_runtime_service.dart';
 
 part 'abilities/battler_ability_effects.dart';
 part 'abilities/battler_ability_presets.dart';
@@ -573,7 +573,7 @@ abstract class BattlerAbilityEffect {
     return damage;
   }
 
-  /// Permite alterar el portador y el dano entrante justo antes de recibirlo.
+  /// Permite alterar el portador y el daño entrante justo antes de recibirlo.
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
     required Battler source,
@@ -896,6 +896,13 @@ class BattlerAbility {
     );
   }
 
+  /// Materializa esta habilidad como estado runtime limpio.
+  ///
+  /// Los presets de habilidades no tienen id de instancia porque son unicos por
+  /// battler, asi que materializar significa eliminar cooldowns y bonus
+  /// temporales antes de guardarla en una run.
+  BattlerAbility toRuntimeInstance() => resetState();
+
   /// Acumula un bonus temporal al value sin alterar el preset base.
   BattlerAbility addRuntimeValueBonus(int amount) {
     if (amount == 0) return this;
@@ -1021,11 +1028,11 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.cortafuegosPortatil:
       return 'Pasiva. La primera $positiveAmount vez por combate que fueras a recibir un debuff, lo ignoras y ganas 2 de Barrera.';
     case BattlerAbilityId.marcaDeCaza:
-      return 'Activacion manual en combate. Acumula $positiveAmount de Fragilidad en el enemigo. Si el enemigo no tenia debuffs, haces un ataque con $positiveAmount de dano inmediatamente despues.';
+      return 'Activacion manual en combate. Acumula $positiveAmount de Fragilidad en el enemigo. Si el enemigo no tenia debuffs, haces un ataque con $positiveAmount de daño inmediatamente despues.';
     case BattlerAbilityId.cadenciaRapida:
       return 'Pasiva. El maximo cooldown que pueden tener tus habilidades manuales es $positiveAmount.';
     case BattlerAbilityId.extrabloqueo:
-      return 'Activacion manual en combate. El siguiente dano que recibas se reduce en $amount.';
+      return 'Activacion manual en combate. El siguiente daño que recibas se reduce en $amount.';
     case BattlerAbilityId.triageAutomatico:
       return 'Pasiva. Al inicio de tu turno, si estas por debajo de la mitad de vida, te curas $positiveAmount HP. Si tienes algun debuff, reduces 1 turno de un debuff purgable por cada punto que fueras a curarte y conviertes el restante en vida.';
     case BattlerAbilityId.opresionTactica:
@@ -1035,11 +1042,11 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.copiaDeSeguridad:
       return 'Pasiva. Una vez por combate, si un ataque te dejaria a 0 HP, sobrevives con 1 HP y ganas $positiveAmount de Barrera.';
     case BattlerAbilityId.puntoCiego:
-      return 'Activacion manual en combate. Durante $positiveAmount turnos, el enemigo falla sus ataques contra ti, evitando su dano y los efectos aplicados sobre ti.';
+      return 'Activacion manual en combate. Durante $positiveAmount turnos, el enemigo falla sus ataques contra ti, evitando su daño y los efectos aplicados sobre ti.';
     case BattlerAbilityId.provocacionFrontal:
       return 'Activacion manual en combate. Ganas $positiveAmount Desafio.';
     case BattlerAbilityId.cargaTemeraria:
-      return 'Activacion manual en combate. Ganas $positiveAmount Desafio y haces un ataque inmediato. Si el enemigo sobrevive, el contraataque de Desafio hace +3 dano.';
+      return 'Activacion manual en combate. Ganas $positiveAmount Desafio y haces un ataque inmediato. Si el enemigo sobrevive, el contraataque de Desafio hace +3 daño.';
     case BattlerAbilityId.mandatoColiseo:
       return 'Pasiva. Al principio del combate ganas $positiveAmount Desafio. La primera vez por turno que consumes Desafio, no provoca contraataque.';
     case BattlerAbilityId.hemostasiaAgresiva:
@@ -1079,15 +1086,15 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.pulsoArmonico:
       return 'Activacion manual en combate. Ganas $positiveAmount de Barrera y $positiveAmount de Resonancia.';
     case BattlerAbilityId.masaCritica:
-      return 'Pasiva. Tus efectos de Resonancia infligen +$positiveAmount dano si tu Barrera es mayor que la mitad de tu vida maxima.';
+      return 'Pasiva. Tus efectos de Resonancia infligen +$positiveAmount daño si tu Barrera es mayor que la mitad de tu vida maxima.';
     case BattlerAbilityId.descargaSismica:
-      return 'Activacion manual en combate. Consume hasta $positiveAmount de tu Barrera e inflige esa cantidad como dano directo de Resonancia. Si consumes toda tu Barrera, aplica Conmocion ${max(1, positiveAmount ~/ 2)}.';
+      return 'Activacion manual en combate. Consume hasta $positiveAmount de tu Barrera e inflige esa cantidad como daño directo de Resonancia. Si consumes toda tu Barrera, aplica Conmocion ${max(1, positiveAmount ~/ 2)}.';
     case BattlerAbilityId.geometriaLimpia:
       return 'Pasiva de Patron. Si el patron solo tiene angulos rectos, ganas $positiveAmount de Barrera y $positiveAmount de Resonancia.';
     case BattlerAbilityId.pulsoIsometrico:
       return 'Pasiva de Patron. Si el patron no tiene angulos agudos ni obtusos, recuperas $positiveAmount HP y ganas $positiveAmount de Barrera.';
     case BattlerAbilityId.corteTangencial:
-      return 'Pasiva de Patron. Si el patron tiene exactamente un angulo agudo, infliges $positiveAmount + el bonus de ATK del patron como dano directo.';
+      return 'Pasiva de Patron. Si el patron tiene exactamente un angulo agudo, infliges $positiveAmount + el bonus de ATK del patron como daño directo.';
     case BattlerAbilityId.arquitecturaPesada:
       return 'Pasiva de Patron. Si el patron no tiene angulos agudos, repites su bonus de Barrera y ganas $positiveAmount de Resonancia.';
     case BattlerAbilityId.rutaContrabando:
@@ -1095,7 +1102,7 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.ecoSimetria:
       return 'Pasiva de Patron. Si el patron tiene simetria, repites su bonus dominante reducido en $positiveAmount. Al mejorar, esta reduccion baja.';
     case BattlerAbilityId.patronPerfecto:
-      return 'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, infliges dano igual a toda tu Resonancia.';
+      return 'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, infliges daño igual a toda tu Resonancia.';
     case BattlerAbilityId.encendidoBrutal:
       return 'Pasiva. Cuando ganas Calentando, tambien recuperas vida igual a 1/$positiveAmount de ese Calentando. Al mejorar, esta division baja.';
     case BattlerAbilityId.combustionDirigida:
@@ -1107,17 +1114,17 @@ String _abilityDescriptionFor(BattlerAbility ability) {
     case BattlerAbilityId.contratoReuso:
       return 'Pasiva de Patron. El primer punto con item repetido en cada patron dispara su efecto Al usarse una vez extra con +$positiveAmount al value del item.';
     case BattlerAbilityId.mercadoRecursivo:
-      return 'Pasiva de Patron. Por cada punto con item repetido, consumes hasta $positiveAmount creditos para infligir ese mismo dano directo.';
+      return 'Pasiva de Patron. Por cada punto con item repetido, consumes hasta $positiveAmount creditos para infligir ese mismo daño directo.';
     case BattlerAbilityId.agujaToxica:
       return 'Pasiva de Patron. El primer item usado en cada patron aplica o aumenta un debuff aleatorio con valor $positiveAmount.';
     case BattlerAbilityId.rastroInestable:
       return 'Pasiva de Patron. Si el patron usa ${positiveAmount + 1} puntos con item, aplica Fragilidad $positiveAmount. Si el enemigo tenia otro debuff, aplica el doble.';
     case BattlerAbilityId.cadenaNeurotoxica:
-      return 'Pasiva de Patron. Cuando aplicas o aumentas un debuff con un item Al usarse u otro aumento, infliges $positiveAmount dano directo una vez por item y aumento.';
+      return 'Pasiva de Patron. Cuando aplicas o aumentas un debuff con un item Al usarse u otro aumento, infliges $positiveAmount daño directo una vez por item y aumento.';
     case BattlerAbilityId.aceleracionFotovoltaica:
       return 'Pasiva. Cada ataque basico golpea una vez adicional, pero tus bonus de items, adyacencias y patrones se reducen a la mitad si no estaban ya reducidos.';
     case BattlerAbilityId.armaBiologica:
-      return 'Pasiva. Cuando Contagio enemigo pierde $positiveAmount, infliges $positiveAmount dano directo al enemigo.';
+      return 'Pasiva. Cuando Contagio enemigo pierde $positiveAmount, infliges $positiveAmount daño directo al enemigo.';
     case BattlerAbilityId.inmunizacion:
       return 'Pasiva. Cuando Contagio pierde $positiveAmount en ti, recuperas $positiveAmount vida.';
     case BattlerAbilityId.cargaVirica:

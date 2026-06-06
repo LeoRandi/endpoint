@@ -16,7 +16,7 @@ final RegExp _highlightedValuePattern = RegExp(
   r'x\d+|[+-]?\d+(?:[.,]\d+)?(?:%|C)?',
 );
 final RegExp _highlightedTermPattern = RegExp(
-  r'\b(?:al usarse|usarse|desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|ciclo|fragilidad|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|daÃ±o|dano|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
+  r'\b(?:al usarse|usarse|desafio|desafío|desafÃ­o|resonancia|intoxicacion|intoxicación|intoxicaciÃ³n|quemaduras?|debuffs?|buffs?|potencia|calentando|ciclo|fragilidad|conmocion|conmoción|curar|curas?|curacion|curación|curaciÃ³n|recuperas?|recupera|vida|hp|barrera|bloquear|bloqueas?|bloquea|bloqueo|daño|ataques?|atacar|atacas|atk|economia|economía|economÃ­a|income|creditos?|créditos?)\b',
   caseSensitive: false,
 );
 
@@ -171,8 +171,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
         .replaceAll('á', 'a')
         .replaceAll('é', 'e')
         .replaceAll('í', 'i')
-        .replaceAll('ú', 'u')
-        .replaceAll('ñ', 'n');
+        .replaceAll('ú', 'u');
 
     if (normalizedToken.contains('resonancia')) {
       return _effectResonanceAccent;
@@ -211,7 +210,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
       return _effectBarrierAccent;
     }
     if (normalizedToken == 'atk' ||
-        normalizedToken == 'dano' ||
+        normalizedToken == 'daño' ||
         normalizedToken.startsWith('atac')) {
       return _effectAttackAccent;
     }
@@ -365,7 +364,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
       );
     }
     if (normalizedToken == 'atk' ||
-        normalizedToken == 'dano' ||
+        normalizedToken == 'daño' ||
         normalizedToken.startsWith('atac')) {
       return const _HighlightTermMetadata(
         accent: _effectAttackAccent,
@@ -493,7 +492,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
       const _ValueAccentCandidate(
         color: _effectAttackAccent,
         patterns: [
-          'dano',
+          'daño',
           'atk',
           'ataque',
           'ataques',
@@ -666,7 +665,6 @@ extension _HighlightTextNormalization on String {
         .replaceAll('é', 'e')
         .replaceAll('í', 'i')
         .replaceAll('ú', 'u')
-        .replaceAll('ñ', 'n')
         .replaceAll('Ã³', 'o')
         .replaceAll('Ã¡', 'a')
         .replaceAll('Ã©', 'e')

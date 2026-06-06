@@ -1,11 +1,11 @@
 import '../_imports.dart';
 import 'package:flutter/foundation.dart';
-import '../../services/battler_effect_pipeline.dart';
-import '../../services/battle_controller.dart';
-import '../../services/battle_pattern_block_plan_service.dart';
-import '../../services/operative_pattern_bonus_service.dart';
-import '../../services/operative_pattern_combat_rules.dart';
-import '../../services/operative_pattern_resolution_service.dart';
+import '../../services/battle/battler_effect_pipeline.dart';
+import '../../services/battle/battle_controller.dart';
+import '../../services/battle/battle_pattern_block_plan_service.dart';
+import '../../services/pattern/operative_pattern_bonus_service.dart';
+import '../../services/pattern/operative_pattern_combat_rules.dart';
+import '../../services/pattern/operative_pattern_resolution_service.dart';
 
 class BattlePatternAnimationTargets {
   final Rect playerSpriteRect;

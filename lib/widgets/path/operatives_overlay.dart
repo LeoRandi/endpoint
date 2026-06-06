@@ -1,7 +1,7 @@
 import '../_imports.dart';
-import '../../services/endpoint_preferences_models.dart';
-import '../../services/operative_pattern_adjacency_service.dart';
-import '../../services/operative_pattern_layout_service.dart';
+import '../../services/persistence/endpoint_preferences_models.dart';
+import '../../services/pattern/operative_pattern_adjacency_service.dart';
+import '../../services/pattern/operative_pattern_layout_service.dart';
 import 'package:flutter/foundation.dart';
 
 const _operativeTileExtent = 70.0;
@@ -1048,8 +1048,7 @@ class _PatternEquipmentReinforcedFrame extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color:
-                      EndpointPalette.softForeground.withValues(alpha: 0.32),
+                  color: EndpointPalette.softForeground.withValues(alpha: 0.32),
                   width: 1,
                 ),
               ),

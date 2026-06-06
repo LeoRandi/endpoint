@@ -1,6 +1,6 @@
 import '../_imports.dart';
-import '../../services/operative_pattern_adjacency_service.dart';
-import '../../services/operative_pattern_bonus_service.dart';
+import '../../services/pattern/operative_pattern_adjacency_service.dart';
+import '../../services/pattern/operative_pattern_bonus_service.dart';
 
 const _operativePatternBoardRadius = 18.0;
 const _operativePatternAspectRatio = 1.0;
@@ -1338,8 +1338,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
                 size: size,
                 accent: activeAccent,
               ),
-            if (isReinforced)
-              _OperativePatternReinforcedPointFrame(size: size),
+            if (isReinforced) _OperativePatternReinforcedPointFrame(size: size),
             Center(
               child: Transform.rotate(
                 angle: _operativePatternContentCounterRotation,
@@ -1399,8 +1398,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
                 size: size,
                 counterRotate: true,
               ),
-            if (isReinforced)
-              _OperativePatternReinforcedPointFrame(size: size),
+            if (isReinforced) _OperativePatternReinforcedPointFrame(size: size),
             _OperativePatternActivationBurst(
               size: size,
               accent: activeAccent,
@@ -1459,8 +1457,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
               size: size,
               counterRotate: true,
             ),
-          if (isReinforced)
-            _OperativePatternReinforcedPointFrame(size: size),
+          if (isReinforced) _OperativePatternReinforcedPointFrame(size: size),
           _OperativePatternActivationBurst(
             size: size,
             accent: activeAccent,

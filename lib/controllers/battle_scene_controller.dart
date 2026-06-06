@@ -113,7 +113,7 @@ class BattleSceneController extends ChangeNotifier {
   /// Reexpone la ronda actual para contadores y ayudas visuales de la escena.
   int get currentRound => _battleController.currentRound;
 
-  /// Ronda en la que la Purga empieza a aplicar dano automatico.
+  /// Ronda en la que la Purga empieza a aplicar daño automatico.
   int get purgeStartRound => _battleController.purgeStartRound;
 
   /// Ronda en la que la escena debe empezar a advertir sobre la Purga.
@@ -122,14 +122,14 @@ class BattleSceneController extends ChangeNotifier {
   /// Indica si el aviso visual de Purga debe mostrarse en esta ronda.
   bool get isPurgeWarningVisible => _battleController.isPurgeWarningVisible;
 
-  /// Indica si la Purga ya esta activa y causando dano por ronda.
+  /// Indica si la Purga ya esta activa y causando daño por ronda.
   bool get isPurgeActive => _battleController.isPurgeActive;
 
-  /// Dano de Purga previsto sobre el jugador si avanza la ronda actual.
+  /// Daño de Purga previsto sobre el jugador si avanza la ronda actual.
   int get playerPurgeDamagePreview =>
       _battleController.playerPurgeDamagePreview;
 
-  /// Dano de Purga previsto sobre el enemigo si avanza la ronda actual.
+  /// Daño de Purga previsto sobre el enemigo si avanza la ronda actual.
   int get enemyPurgeDamagePreview => _battleController.enemyPurgeDamagePreview;
 
   /// Barrera que ganara el jugador al ejecutar la accion de bloqueo.

@@ -1,7 +1,7 @@
 import '../_imports.dart';
-import '../../services/battler_runtime_service.dart';
-import '../../services/operative_pattern_combat_rules.dart';
-import '../../services/run_randomizer.dart';
+import '../../services/pattern/operative_pattern_combat_rules.dart';
+import '../../services/run/run_randomizer.dart';
+import '../../services/runtime/battler_runtime_service.dart';
 
 part 'item_effects/item_effect_attack_and_sustain.dart';
 part 'item_effects/item_effect_cycle.dart';
@@ -208,7 +208,7 @@ abstract class ItemEffect {
     return damage;
   }
 
-  /// Permite alterar el portador y el dano entrante justo antes de recibirlo.
+  /// Permite alterar el portador y el daño entrante justo antes de recibirlo.
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
     required Battler source,

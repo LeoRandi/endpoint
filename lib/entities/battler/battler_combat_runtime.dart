@@ -25,7 +25,7 @@ extension BattlerCombatRuntime on Battler {
     return _secondaryValueForBattlerFlag(BattlerCombatFlag.healthLostThisHit);
   }
 
-  /// Devuelve el dano directo separado que ha causado Fragilidad en este golpe.
+  /// Devuelve el daño directo separado que ha causado Fragilidad en este golpe.
   int get fragilidadTriggeredThisHit {
     return _secondaryValueForBattlerFlag(
       BattlerCombatFlag.fragilidadTriggeredThisHit,
@@ -39,7 +39,7 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
-  /// Bonus plano que las pasivas de Resonancia anaden a su dano propio.
+  /// Bonus plano que las pasivas de Resonancia añaden a su daño propio.
   int get resonanceDamageBonus {
     final ability = abilityById(BattlerAbilityId.masaCritica);
     if (ability == null || currentBarrier * 2 <= maxHealth) return 0;
@@ -86,12 +86,12 @@ extension BattlerCombatRuntime on Battler {
         ._gainResonanceFromBarrierGain(safeAmount);
   }
 
-  /// Calcula dano de Resonancia aplicando bonuses pasivos relevantes.
+  /// Calcula daño de Resonancia aplicando bonuses pasivos relevantes.
   int resonanceDamageFor(int baseDamage) {
     return max(0, baseDamage + resonanceDamageBonus);
   }
 
-  /// Aplica efectos que recompensan el dano infligido por Resonancia.
+  /// Aplica efectos que recompensan el daño infligido por Resonancia.
   Battler gainBarrierFromResonanceDamage(int damage) {
     final safeDamage = max(0, damage);
     if (safeDamage <= 0 ||

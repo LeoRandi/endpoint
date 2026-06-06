@@ -100,7 +100,7 @@ class _ThePurgameEventPageState extends State<ThePurgameEventPage> {
                 EndpointActionButton(
                   label: 'ABRAZAR LA PURGA',
                   onPressed: () => _chooseDoctrine(PurgeDoctrine.embrace),
-                  tooltip: 'La Purga empieza en ronda 3 con 6 dano fijo',
+                  tooltip: 'La Purga empieza en ronda 3 con 6 daño fijo',
                   accent: EndpointPalette.dangerAccent,
                   backgroundColor: EndpointPalette.panelBackground,
                   foregroundColor: EndpointPalette.softForegroundWarm,
@@ -110,7 +110,7 @@ class _ThePurgameEventPageState extends State<ThePurgameEventPage> {
                 EndpointActionButton(
                   label: 'CREER EN UNA SALIDA',
                   onPressed: () => _chooseDoctrine(PurgeDoctrine.wayOut),
-                  tooltip: 'La Purga empieza en ronda 7 con 4 dano fijo',
+                  tooltip: 'La Purga empieza en ronda 7 con 4 daño fijo',
                   accent: widget.node.accent,
                   backgroundColor: EndpointPalette.panelBackground,
                   foregroundColor: EndpointPalette.softForegroundWarm,

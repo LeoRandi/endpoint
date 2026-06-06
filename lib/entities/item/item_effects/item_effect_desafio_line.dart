@@ -57,7 +57,7 @@ class VendasApretadasItemEffect extends ItemEffect {
   const VendasApretadasItemEffect()
       : super(
           description:
-              'Al recibir dano: si perdiste HP, ganas Desafio. Una vez por turno.',
+              'Al recibir daño: si perdiste HP, ganas Desafio. Una vez por turno.',
           hooks: const {
             ItemEffectHook.turnEnd,
             ItemEffectHook.incomingDamageEffect,
@@ -67,10 +67,10 @@ class VendasApretadasItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al recibir dano: si perdiste HP, ganas ${item.value} Desafio. Una vez por turno.';
+    return 'Al recibir daño: si perdiste HP, ganas ${item.value} Desafio. Una vez por turno.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -192,17 +192,17 @@ class HeridaCarbonizadaItemEffect extends ItemEffect {
   /// Crea el efecto de HeridaCarbonizada.
   const HeridaCarbonizadaItemEffect()
       : super(
-          description: 'Al recibir dano de Quemadura a tu HP: ganas Desafio.',
+          description: 'Al recibir daño de Quemadura a tu HP: ganas Desafio.',
           hooks: const {ItemEffectHook.incomingDamageEffect},
         );
 
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al recibir dano de Quemadura a tu HP: ganas ${item.value} Desafio.';
+    return 'Al recibir daño de Quemadura a tu HP: ganas ${item.value} Desafio.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -259,7 +259,7 @@ class ContratoDolorosoItemEffect extends ItemEffect {
   const ContratoDolorosoItemEffect()
       : super(
           description:
-              'Al final de tu turno: si recibiste dano a tu HP este turno, ganas Desafio y la mitad como Barrera.',
+              'Al final de tu turno: si recibiste daño a tu HP este turno, ganas Desafio y la mitad como Barrera.',
           hooks: const {
             ItemEffectHook.incomingDamageEffect,
             ItemEffectHook.turnEnd,
@@ -269,10 +269,10 @@ class ContratoDolorosoItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al final de tu turno: si recibiste dano a tu HP este turno, ganas ${item.value} Desafio y ${_halfUp(item.value)} Barrera.';
+    return 'Al final de tu turno: si recibiste daño a tu HP este turno, ganas ${item.value} Desafio y ${_halfUp(item.value)} Barrera.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -329,7 +329,7 @@ class YunqueCardiacoItemEffect extends ItemEffect {
   const YunqueCardiacoItemEffect()
       : super(
           description:
-              'Al recibir dano a HP: convierte parte de ese dano en Desafio, evitandolo. Una vez por turno.',
+              'Al recibir daño a HP: convierte parte de ese daño en Desafio, evitandolo. Una vez por turno.',
           hooks: const {
             ItemEffectHook.incomingDamageEffect,
             ItemEffectHook.turnEnd,
@@ -339,10 +339,10 @@ class YunqueCardiacoItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al recibir dano a HP: convierte hasta ${item.value} de ese dano en Desafio, evitando ese dano hacia ti. Una vez por turno.';
+    return 'Al recibir daño a HP: convierte hasta ${item.value} de ese daño en Desafio, evitando ese daño hacia ti. Una vez por turno.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -393,17 +393,17 @@ class RevanchadoraItemEffect extends ItemEffect {
   const RevanchadoraItemEffect()
       : super(
           description:
-              'Cuando una Quemadura propia te hace dano, ganas Desafio igual a la mitad de ese dano y te curas.',
+              'Cuando una Quemadura propia te hace daño, ganas Desafio igual a la mitad de ese daño y te curas.',
           hooks: const {ItemEffectHook.incomingDamageEffect},
         );
 
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Cuando una Quemadura propia te hace dano, ganas Desafio igual a la mitad de esa Quemadura y te curas ${item.value}.';
+    return 'Cuando una Quemadura propia te hace daño, ganas Desafio igual a la mitad de esa Quemadura y te curas ${item.value}.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -483,7 +483,7 @@ class ArnesTacticoItemEffect extends ItemEffect {
   const ArnesTacticoItemEffect()
       : super(
           description:
-              'Al recibir dano de Quemadura: ganas Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.',
+              'Al recibir daño de Quemadura: ganas Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.',
           hooks: const {
             ItemEffectHook.incomingDamageEffect,
             ItemEffectHook.turnEnd,
@@ -493,10 +493,10 @@ class ArnesTacticoItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al recibir dano de Quemadura: ganas ${item.value} Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.';
+    return 'Al recibir daño de Quemadura: ganas ${item.value} Potencia. Una vez por turno, al purgar tu Potencia, recibes la mitad en Desafio.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,
@@ -571,14 +571,14 @@ class MandibultimatumItemEffect extends ItemEffect {
   const MandibultimatumItemEffect()
       : super(
           description:
-              'Al usarse: consume Quemadura propia para recibir ese dano a la HP y ganar el doble en Desafio antes del ataque.',
+              'Al usarse: consume Quemadura propia para recibir ese daño a la HP y ganar el doble en Desafio antes del ataque.',
           hooks: const {ItemEffectHook.prePatternAttack},
         );
 
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al usarse: consumes hasta ${item.value} Quemadura propia para recibir ese dano a la HP, y ganar el doble en Desafio ANTES de resolver el ataque.';
+    return 'Al usarse: consumes hasta ${item.value} Quemadura propia para recibir ese daño a la HP, y ganar el doble en Desafio ANTES de resolver el ataque.';
   }
 
   /// Resuelve efectos antes de aplicar el ataque generado por Patron.
@@ -670,7 +670,7 @@ class MotorMartirioItemEffect extends ItemEffect {
   const MotorMartirioItemEffect()
       : super(
           description:
-              'Al recibir dano a HP o dano de Quemadura: ganas Desafio igual al dano, hasta un maximo por turno. Al final del turno, si tienes suficiente Desafio, te curas.',
+              'Al recibir daño a HP o daño de Quemadura: ganas Desafio igual al daño, hasta un maximo por turno. Al final del turno, si tienes suficiente Desafio, te curas.',
           hooks: const {
             ItemEffectHook.incomingDamageEffect,
             ItemEffectHook.turnEnd,
@@ -680,10 +680,10 @@ class MotorMartirioItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    return 'Al recibir dano a HP, o dano de Quemadura: ganas Desafio igual al dano recibido, max ${item.value} por turno. Al final del turno, si tienes ${item.value}+ Desafio, te curas ${item.value} HP.';
+    return 'Al recibir daño a HP, o daño de Quemadura: ganas Desafio igual al daño recibido, max ${item.value} por turno. Al final del turno, si tienes ${item.value}+ Desafio, te curas ${item.value} HP.';
   }
 
-  /// Intercepta dano entrante antes de que se aplique al portador.
+  /// Intercepta daño entrante antes de que se aplique al portador.
   @override
   BattlerIncomingDamageResolution onIncomingDamage({
     required Battler owner,

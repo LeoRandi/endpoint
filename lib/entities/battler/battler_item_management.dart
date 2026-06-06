@@ -88,7 +88,7 @@ extension BattlerItemManagement on Battler {
     return copyWith(
       inventoryItems: List<Item>.unmodifiable([
         ...inventoryItems,
-        item.toOwnedInstance(),
+        item.toRuntimeInstance(),
       ]),
     );
   }
@@ -103,7 +103,7 @@ extension BattlerItemManagement on Battler {
     return copyWith(
       inventoryItems: List<Item>.unmodifiable([
         ...inventoryItems,
-        item.toOwnedInstance(),
+        item.toRuntimeInstance(),
       ]),
     );
   }
@@ -155,7 +155,7 @@ extension BattlerItemManagement on Battler {
     return copyWith(
       equippedItems: List<Item>.unmodifiable([
         ...equippedItems,
-        item.toOwnedInstance(),
+        item.toRuntimeInstance(),
       ]),
     );
   }
@@ -230,10 +230,10 @@ extension BattlerItemManagement on Battler {
 
     return copyWith(
       inventoryItems: inventoryItems
-          .map((item) => item.toOwnedInstance())
+          .map((item) => item.toRuntimeInstance())
           .toList(growable: false),
       equippedItems: equippedItems
-          .map((item) => item.toOwnedInstance())
+          .map((item) => item.toRuntimeInstance())
           .toList(growable: false),
     );
   }
