@@ -1,11 +1,13 @@
 import '../_imports.dart';
 import 'package:flutter/foundation.dart';
+import '../../services/battle/battle_combat_animation.dart';
 import '../../services/battle/battler_effect_pipeline.dart';
 import '../../services/battle/battle_controller.dart';
 import '../../services/battle/battle_pattern_block_plan_service.dart';
 import '../../services/pattern/operative_pattern_bonus_service.dart';
 import '../../services/pattern/operative_pattern_combat_rules.dart';
 import '../../services/pattern/operative_pattern_resolution_service.dart';
+import 'battle_pattern_match_presenter.dart';
 
 class BattlePatternAnimationTargets {
   final Rect playerSpriteRect;
@@ -543,78 +545,12 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   BattlePatternMatchContext _currentPatternContext(
     OperativePatternResolution resolution,
   ) {
-    final usedItemPointKeys = _usedItemPointKeys();
-    return BattlePatternMatchContext(
-      patternPoints: List<OperativePatternPoint>.unmodifiable(_patternPoints),
-      attackBonus: resolution.attackBonus,
-      barrierBonus: resolution.barrierBonus,
+    return BattlePatternMatchPresenter.buildContext(
+      patternPoints: _patternPoints,
+      equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      resolution: resolution,
       otherArchetypeItemCount: _otherArchetypeActivatedItemCount(resolution),
-      usedItemPointKeys: List<String>.unmodifiable(usedItemPointKeys),
-      repeatedItemPointKeys: Set<String>.unmodifiable(
-        _repeatedItemPointKeys(usedItemPointKeys),
-      ),
-      firstRepeatedItemPointKey: _firstRepeatedItemPointKey(usedItemPointKeys),
-      firstUsedItemHasAttackBonus:
-          _firstUsedItemHasAttackBonus(usedItemPointKeys),
-      activatedItemEffectCount: _activatedItemEffectCount(usedItemPointKeys),
     );
-  }
-
-  List<String> _usedItemPointKeys() {
-    return [
-      for (final point in OperativePatternRequirement.normalizedSequence(
-        _patternPoints,
-      ))
-        if (widget.equippedItemsByPointKey.containsKey(point.key)) point.key,
-    ];
-  }
-
-  Set<String> _repeatedItemPointKeys(List<String> usedItemPointKeys) {
-    final seen = <String>{};
-    final repeated = <String>{};
-    for (final pointKey in usedItemPointKeys) {
-      if (!seen.add(pointKey)) {
-        repeated.add(pointKey);
-      }
-    }
-    return repeated;
-  }
-
-  String? _firstRepeatedItemPointKey(List<String> usedItemPointKeys) {
-    final seen = <String>{};
-    for (final pointKey in usedItemPointKeys) {
-      if (!seen.add(pointKey)) return pointKey;
-    }
-    return null;
-  }
-
-  bool _firstUsedItemHasAttackBonus(List<String> usedItemPointKeys) {
-    if (usedItemPointKeys.isEmpty) return false;
-
-    final item = widget.equippedItemsByPointKey[usedItemPointKeys.first];
-    if (item == null) return false;
-
-    return item.modifier(BattlerStat.attack) > 0 ||
-        (item.hasPatternBonus &&
-            item.patternBonus.kind == OperativePatternBonusKind.attack) ||
-        item.patternAdjacencyBonuses.any(
-          (bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack,
-        );
-  }
-
-  int _activatedItemEffectCount(List<String> usedItemPointKeys) {
-    var count = 0;
-    final seen = <String>{};
-    for (final pointKey in usedItemPointKeys) {
-      if (!seen.add(pointKey)) continue;
-      final effect = widget.equippedItemsByPointKey[pointKey]?.effect;
-      if (effect == null) continue;
-      if (effect.hooks.contains(ItemEffectHook.patternUsed) ||
-          effect.hooks.contains(ItemEffectHook.prePatternAttack)) {
-        count++;
-      }
-    }
-    return count;
   }
 
   int _otherArchetypeActivatedItemCount(OperativePatternResolution resolution) {
@@ -720,29 +656,12 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   Map<String, OperativePatternPointContent> _buildContentsByPointKey(
     OperativePatternResolution resolution,
   ) {
-    return <String, OperativePatternPointContent>{
-      for (final entry in widget.equippedItemsByPointKey.entries)
-        entry.key: OperativePatternPointContent(
-          item: entry.value,
-          bonus: entry.value.hasPatternBonus
-              ? entry.value.patternBonus
-              : _isAdaptationEligibleItem(entry.value)
-                  ? _bonusesByPointKey[entry.key]
-                  : null,
-          requirement: entry.value.hasPatternBonus
-              ? entry.value.patternRequirement
-              : null,
-          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
-          activatedAdjacencyBonuses:
-              resolution.activatedAdjacencyBonusesAt(entry.key),
-          isBonusEnabled: resolution.isItemBonusEnabledAt(entry.key),
-          isPatternBonusActivated: resolution.isItemBonusEnabledAt(entry.key),
-          hasAura: entry.value.hasPatternAura,
-        ),
-      for (final entry in _bonusesByPointKey.entries)
-        if (!widget.equippedItemsByPointKey.containsKey(entry.key))
-          entry.key: OperativePatternPointContent(bonus: entry.value),
-    };
+    return BattlePatternMatchPresenter.buildContentsByPointKey(
+      equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      bonusesByPointKey: _bonusesByPointKey,
+      resolution: resolution,
+      isFallbackBonusEligible: _isAdaptationEligibleItem,
+    );
   }
 
   @override
@@ -1119,106 +1038,21 @@ class _EnemyBattlePatternMatchOverlayState
   BattlePatternMatchContext _currentPatternContext(
     OperativePatternResolution resolution,
   ) {
-    final usedItemPointKeys = _usedItemPointKeys();
-    return BattlePatternMatchContext(
-      patternPoints: List<OperativePatternPoint>.unmodifiable(
-        _displayedEnemyPatternPoints,
-      ),
-      attackBonus: resolution.attackBonus,
-      barrierBonus: resolution.barrierBonus,
-      otherArchetypeItemCount: 0,
-      usedItemPointKeys: List<String>.unmodifiable(usedItemPointKeys),
-      repeatedItemPointKeys: Set<String>.unmodifiable(
-        _repeatedItemPointKeys(usedItemPointKeys),
-      ),
-      firstRepeatedItemPointKey: _firstRepeatedItemPointKey(usedItemPointKeys),
-      firstUsedItemHasAttackBonus:
-          _firstUsedItemHasAttackBonus(usedItemPointKeys),
-      activatedItemEffectCount: _activatedItemEffectCount(usedItemPointKeys),
+    return BattlePatternMatchPresenter.buildContext(
+      patternPoints: _displayedEnemyPatternPoints,
+      equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      resolution: resolution,
     );
-  }
-
-  List<String> _usedItemPointKeys() {
-    return [
-      for (final point in OperativePatternRequirement.normalizedSequence(
-        _displayedEnemyPatternPoints,
-      ))
-        if (widget.equippedItemsByPointKey.containsKey(point.key)) point.key,
-    ];
-  }
-
-  Set<String> _repeatedItemPointKeys(List<String> usedItemPointKeys) {
-    final seen = <String>{};
-    final repeated = <String>{};
-    for (final pointKey in usedItemPointKeys) {
-      if (!seen.add(pointKey)) {
-        repeated.add(pointKey);
-      }
-    }
-    return repeated;
-  }
-
-  String? _firstRepeatedItemPointKey(List<String> usedItemPointKeys) {
-    final seen = <String>{};
-    for (final pointKey in usedItemPointKeys) {
-      if (!seen.add(pointKey)) return pointKey;
-    }
-    return null;
-  }
-
-  bool _firstUsedItemHasAttackBonus(List<String> usedItemPointKeys) {
-    if (usedItemPointKeys.isEmpty) return false;
-
-    final item = widget.equippedItemsByPointKey[usedItemPointKeys.first];
-    if (item == null) return false;
-
-    return item.modifier(BattlerStat.attack) > 0 ||
-        (item.hasPatternBonus &&
-            item.patternBonus.kind == OperativePatternBonusKind.attack) ||
-        item.patternAdjacencyBonuses.any(
-          (bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack,
-        );
-  }
-
-  int _activatedItemEffectCount(List<String> usedItemPointKeys) {
-    var count = 0;
-    final seen = <String>{};
-    for (final pointKey in usedItemPointKeys) {
-      if (!seen.add(pointKey)) continue;
-      final effect = widget.equippedItemsByPointKey[pointKey]?.effect;
-      if (effect == null) continue;
-      if (effect.hooks.contains(ItemEffectHook.patternUsed) ||
-          effect.hooks.contains(ItemEffectHook.prePatternAttack)) {
-        count++;
-      }
-    }
-    return count;
   }
 
   Map<String, OperativePatternPointContent> _buildContentsByPointKey(
     OperativePatternResolution resolution,
   ) {
-    return <String, OperativePatternPointContent>{
-      for (final entry in widget.equippedItemsByPointKey.entries)
-        entry.key: OperativePatternPointContent(
-          item: entry.value,
-          bonus: entry.value.hasPatternBonus
-              ? entry.value.patternBonus
-              : _bonusesByPointKey[entry.key],
-          requirement: entry.value.hasPatternBonus
-              ? entry.value.patternRequirement
-              : null,
-          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
-          activatedAdjacencyBonuses:
-              resolution.activatedAdjacencyBonusesAt(entry.key),
-          isBonusEnabled: resolution.isItemBonusEnabledAt(entry.key),
-          isPatternBonusActivated: resolution.isItemBonusEnabledAt(entry.key),
-          hasAura: entry.value.hasPatternAura,
-        ),
-      for (final entry in _bonusesByPointKey.entries)
-        if (!widget.equippedItemsByPointKey.containsKey(entry.key))
-          entry.key: OperativePatternPointContent(bonus: entry.value),
-    };
+    return BattlePatternMatchPresenter.buildContentsByPointKey(
+      equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      bonusesByPointKey: _bonusesByPointKey,
+      resolution: resolution,
+    );
   }
 
   void _handlePointLongPressed(OperativePatternPoint point) {
@@ -1640,136 +1474,12 @@ class _EnemyBattlePatternMatchOverlayState
   }
 
   List<OperativePatternPoint> _buildClosedEnemyPatternOrPass() {
-    for (var attempt = 0; attempt < 3; attempt++) {
-      final pattern = _buildEnemyPattern();
-      if (OperativePatternRequirement.isClosedPattern(pattern)) {
-        return pattern;
-      }
-    }
-
-    return const <OperativePatternPoint>[];
-  }
-
-  List<OperativePatternPoint> _buildEnemyPattern() {
-    final maxDistinctPoints = max(3, _enemyEffectiveMaxPatternPoints);
-    final candidates = <OperativePatternPoint>[
-      for (final point in operativePatternPoints)
-        if (!_blockedPointKeys.contains(point.key)) point,
-    ];
-    if (candidates.length < 3) return const <OperativePatternPoint>[];
-
-    candidates.sort((a, b) {
-      final aItem = widget.equippedItemsByPointKey[a.key];
-      final bItem = widget.equippedItemsByPointKey[b.key];
-      final aScore = _enemyPointPriority(aItem);
-      final bScore = _enemyPointPriority(bItem);
-      return bScore.compareTo(aScore);
-    });
-
-    for (var targetLength = min(maxDistinctPoints, candidates.length);
-        targetLength >= 3;
-        targetLength--) {
-      final selected = _bestClosedEnemyPattern(
-        candidates: candidates,
-        targetLength: targetLength,
-      );
-      if (selected != null) {
-        return List<OperativePatternPoint>.unmodifiable([
-          ...selected,
-          selected.first,
-        ]);
-      }
-    }
-
-    return const <OperativePatternPoint>[];
-  }
-
-  List<OperativePatternPoint>? _bestClosedEnemyPattern({
-    required List<OperativePatternPoint> candidates,
-    required int targetLength,
-  }) {
-    List<OperativePatternPoint>? bestPattern;
-    var bestScore = -1;
-
-    void visit(
-      List<OperativePatternPoint> path,
-      Set<String> usedKeys,
-    ) {
-      if (path.length == targetLength) {
-        if (_isEnemyPatternSegmentBlocked(path.last, path.first)) return;
-        final score = path.fold<int>(
-          0,
-          (sum, point) =>
-              sum +
-              _enemyPointPriority(
-                widget.equippedItemsByPointKey[point.key],
-              ),
-        );
-        if (score > bestScore) {
-          bestScore = score;
-          bestPattern = List<OperativePatternPoint>.unmodifiable(path);
-        }
-        return;
-      }
-
-      for (final point in candidates) {
-        if (usedKeys.contains(point.key)) continue;
-        if (path.isNotEmpty &&
-            _isEnemyPatternSegmentBlocked(path.last, point)) {
-          continue;
-        }
-        usedKeys.add(point.key);
-        path.add(point);
-        visit(path, usedKeys);
-        path.removeLast();
-        usedKeys.remove(point.key);
-      }
-    }
-
-    for (final point in candidates) {
-      visit(<OperativePatternPoint>[point], <String>{point.key});
-    }
-    return bestPattern;
-  }
-
-  bool _isEnemyPatternSegmentBlocked(
-    OperativePatternPoint from,
-    OperativePatternPoint to,
-  ) {
-    final activeWalls = _activeWallSegmentsForEnemyPattern;
-    final connectedWallKeys = _connectedWallKeysFor(activeWalls);
-    return activeWalls.any(
-      (wall) => wall.blocks(
-        from,
-        to,
-        isConnected: connectedWallKeys.contains(wall.key),
-      ),
+    return BattlePatternEnemyPlanner.buildClosedPatternOrPass(
+      maxPatternPoints: _enemyEffectiveMaxPatternPoints,
+      blockedPointKeys: _blockedPointKeys,
+      equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      activeWalls: _activeWallSegmentsForEnemyPattern,
     );
-  }
-
-  Set<String> _connectedWallKeysFor(
-    Iterable<OperativePatternWallSegment> walls,
-  ) {
-    final endpointUseCounts = <String, int>{};
-    for (final wall in walls) {
-      endpointUseCounts.update(
-        wall.a.key,
-        (count) => count + 1,
-        ifAbsent: () => 1,
-      );
-      endpointUseCounts.update(
-        wall.b.key,
-        (count) => count + 1,
-        ifAbsent: () => 1,
-      );
-    }
-
-    return <String>{
-      for (final wall in walls)
-        if ((endpointUseCounts[wall.a.key] ?? 0) > 1 ||
-            (endpointUseCounts[wall.b.key] ?? 0) > 1)
-          wall.key,
-    };
   }
 
   List<OperativePatternWallSegment> get _activeWallSegmentsForEnemyPattern {
@@ -1780,19 +1490,6 @@ class _EnemyBattlePatternMatchOverlayState
 
   int get _enemyEffectiveMaxPatternPoints {
     return _maxPatternPoints + (widget.enemyOverchargesPattern ? 1 : 0);
-  }
-
-  int _enemyPointPriority(Item? item) {
-    if (item == null) return 0;
-    var score = item.modifier(BattlerStat.attack) * 3;
-    if (item.hasPatternBonus &&
-        item.patternBonus.kind == OperativePatternBonusKind.attack) {
-      score += item.patternBonus.amount * 4;
-    }
-    score += item.patternAdjacencyBonuses
-        .where((bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack)
-        .fold<int>(0, (sum, bonus) => sum + bonus.bonus.amount * 2);
-    return score;
   }
 
   int _estimatedHitDamageFor(int attackBonus) {
@@ -3532,7 +3229,7 @@ class _PatternMatrixCard extends StatelessWidget {
       return _purgeInitialDamage +
           ((purgeCount - 1) * _purgeInitialDamagePerRound);
     }
-    final rampEndDamage = _purgeInitialDamage +
+    const rampEndDamage = _purgeInitialDamage +
         ((_purgeRampRoundCount - 1) * _purgeInitialDamagePerRound);
     return rampEndDamage +
         ((purgeCount - _purgeRampRoundCount) * _purgeLateDamagePerRound);

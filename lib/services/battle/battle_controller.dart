@@ -1,88 +1,5 @@
 import '../_imports.dart';
 
-enum BattleCombatantSide {
-  player,
-  enemy,
-}
-
-enum BattleCombatAnimationHook {
-  attackMotion,
-  blockMotion,
-  burnDamage,
-  poisonDamage,
-  damageTaken,
-  healthLoss,
-  healthGain,
-  barrierGain,
-  barrierLoss,
-  fragilidadBurst,
-  moneyChange,
-  purgeDamage,
-}
-
-enum BattleCombatMotionAsset {
-  sword,
-  shield,
-  fist,
-}
-
-enum BattleCombatFloatingNumberTone {
-  healthDamage,
-  barrierDamage,
-  burnDamage,
-  poisonDamage,
-  healing,
-  barrierGain,
-  fragilidadDamage,
-  moneyGain,
-  moneyLoss,
-  purgeDamage,
-}
-
-class BattleCombatFloatingNumberCue {
-  final BattleCombatFloatingNumberTone tone;
-  final int amount;
-
-  const BattleCombatFloatingNumberCue({
-    required this.tone,
-    required this.amount,
-  }) : assert(amount > 0);
-}
-
-class BattleCombatAnimationCue {
-  final BattleCombatAnimationHook hook;
-  final BattleCombatantSide primarySide;
-  final BattleCombatantSide? secondarySide;
-  final Battler playerBefore;
-  final Battler enemyBefore;
-  final Battler playerAfter;
-  final Battler enemyAfter;
-  final int effectCount;
-  final BattleCombatMotionAsset motionAsset;
-  final List<BattleCombatFloatingNumberCue> floatingNumbers;
-  final Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
-      floatingNumbersBySide;
-
-  const BattleCombatAnimationCue({
-    required this.hook,
-    required this.primarySide,
-    this.secondarySide,
-    required this.playerBefore,
-    required this.enemyBefore,
-    required this.playerAfter,
-    required this.enemyAfter,
-    this.effectCount = 1,
-    this.motionAsset = BattleCombatMotionAsset.sword,
-    this.floatingNumbers = const <BattleCombatFloatingNumberCue>[],
-    this.floatingNumbersBySide =
-        const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{},
-  });
-}
-
-typedef BattleCombatAnimationCallback = Future<void> Function(
-  BattleCombatAnimationCue cue,
-);
-
 class BattleController extends ChangeNotifier {
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
@@ -2077,19 +1994,19 @@ class BattleController extends ChangeNotifier {
           : healthLoss
               ? BattleCombatAnimationHook.healthLoss
               : BattleCombatAnimationHook.barrierLoss;
-      final next = _buildVisualBattlerTransition(
+      final next = BattleCombatAnimationCueFactory.visualBattlerTransition(
         before: before,
         after: after,
         includeHealth: healthLoss,
         includeBarrier: barrierLoss,
       );
       final floatingNumbers = floatingNumbersBySide[side] ??
-          _buildLossFloatingNumbers(
+          BattleCombatAnimationCueFactory.lossFloatingNumbers(
             before: before,
             after: after,
           );
       await _playCombatAnimation(
-        _stateTransitionCue(
+        BattleCombatAnimationCueFactory.stateTransitionCue(
           hook: hook,
           side: side,
           playerBefore: visualPlayer,
@@ -2114,20 +2031,20 @@ class BattleController extends ChangeNotifier {
           : targetEnemyAfter;
       if (after.currentBarrier <= before.currentBarrier) continue;
 
-      final next = _buildVisualBattlerTransition(
+      final next = BattleCombatAnimationCueFactory.visualBattlerTransition(
         before: before,
         after: after,
         includeBarrier: true,
       );
       await _playCombatAnimation(
-        _stateTransitionCue(
+        BattleCombatAnimationCueFactory.stateTransitionCue(
           hook: BattleCombatAnimationHook.barrierGain,
           side: side,
           playerBefore: visualPlayer,
           enemyBefore: visualEnemy,
           playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
           enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
-          floatingNumbers: _buildGainFloatingNumbers(
+          floatingNumbers: BattleCombatAnimationCueFactory.gainFloatingNumbers(
             before: before,
             after: after,
             includeBarrier: true,
@@ -2149,20 +2066,20 @@ class BattleController extends ChangeNotifier {
           : targetEnemyAfter;
       if (after.health <= before.health) continue;
 
-      final next = _buildVisualBattlerTransition(
+      final next = BattleCombatAnimationCueFactory.visualBattlerTransition(
         before: before,
         after: after,
         includeHealth: true,
       );
       await _playCombatAnimation(
-        _stateTransitionCue(
+        BattleCombatAnimationCueFactory.stateTransitionCue(
           hook: BattleCombatAnimationHook.healthGain,
           side: side,
           playerBefore: visualPlayer,
           enemyBefore: visualEnemy,
           playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
           enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
-          floatingNumbers: _buildGainFloatingNumbers(
+          floatingNumbers: BattleCombatAnimationCueFactory.gainFloatingNumbers(
             before: before,
             after: after,
             includeHealth: true,
@@ -2183,7 +2100,7 @@ class BattleController extends ChangeNotifier {
       if (fragilidadDamage <= 0) continue;
 
       await _playCombatAnimation(
-        _stateTransitionCue(
+        BattleCombatAnimationCueFactory.stateTransitionCue(
           hook: BattleCombatAnimationHook.fragilidadBurst,
           side: side,
           playerBefore: visualPlayer,
@@ -2218,7 +2135,7 @@ class BattleController extends ChangeNotifier {
 
       final next = before.copyWith(money: after.money);
       await _playCombatAnimation(
-        _stateTransitionCue(
+        BattleCombatAnimationCueFactory.stateTransitionCue(
           hook: BattleCombatAnimationHook.moneyChange,
           side: side,
           playerBefore: visualPlayer,
@@ -2241,84 +2158,6 @@ class BattleController extends ChangeNotifier {
         visualEnemy = next;
       }
     }
-  }
-
-  BattleCombatAnimationCue _stateTransitionCue({
-    required BattleCombatAnimationHook hook,
-    required BattleCombatantSide side,
-    required Battler playerBefore,
-    required Battler enemyBefore,
-    required Battler playerAfter,
-    required Battler enemyAfter,
-    List<BattleCombatFloatingNumberCue> floatingNumbers =
-        const <BattleCombatFloatingNumberCue>[],
-  }) {
-    return BattleCombatAnimationCue(
-      hook: hook,
-      primarySide: side,
-      playerBefore: playerBefore,
-      enemyBefore: enemyBefore,
-      playerAfter: playerAfter,
-      enemyAfter: enemyAfter,
-      floatingNumbers: floatingNumbers,
-    );
-  }
-
-  List<BattleCombatFloatingNumberCue> _buildLossFloatingNumbers({
-    required Battler before,
-    required Battler after,
-  }) {
-    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
-    final healthLoss = max(0, before.health - after.health);
-    return List<BattleCombatFloatingNumberCue>.unmodifiable([
-      if (healthLoss > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.healthDamage,
-          amount: healthLoss,
-        ),
-      if (barrierLoss > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.barrierDamage,
-          amount: barrierLoss,
-        ),
-    ]);
-  }
-
-  List<BattleCombatFloatingNumberCue> _buildGainFloatingNumbers({
-    required Battler before,
-    required Battler after,
-    bool includeHealth = false,
-    bool includeBarrier = false,
-  }) {
-    final healthGain = includeHealth ? max(0, after.health - before.health) : 0;
-    final barrierGain = includeBarrier
-        ? max(0, after.currentBarrier - before.currentBarrier)
-        : 0;
-    return List<BattleCombatFloatingNumberCue>.unmodifiable([
-      if (healthGain > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.healing,
-          amount: healthGain,
-        ),
-      if (barrierGain > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.barrierGain,
-          amount: barrierGain,
-        ),
-    ]);
-  }
-
-  Battler _buildVisualBattlerTransition({
-    required Battler before,
-    required Battler after,
-    bool includeHealth = false,
-    bool includeBarrier = false,
-  }) {
-    return before.copyWith(
-      health: includeHealth ? after.health : before.health,
-      currentBarrier:
-          includeBarrier ? after.currentBarrier : before.currentBarrier,
-    );
   }
 
   Future<void> _playCombatAnimation(BattleCombatAnimationCue cue) async {

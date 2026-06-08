@@ -1,6 +1,8 @@
 export 'battler_effect_event.dart';
 export 'battler_effect_pipeline.dart';
 export 'battle_action_bonus.dart';
+export 'battle_combat_animation.dart';
+export 'battle_combat_animation_cue_factory.dart';
 export 'battle_controller.dart';
 export 'battle_enemy_ai_service.dart';
 export 'battle_flow_result.dart';
