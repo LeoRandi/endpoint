@@ -485,6 +485,8 @@ class _BattlerDerivedState {
 class Battler {
   static const defaultEquipmentCapacity = 3;
   static const maxInventoryItems = 10;
+  static const defaultEnemyImageAsset =
+      'assets/sprites/monsters/Solar executor128.png';
 
   /// Marca el nivel operativo inicial que tiene cualquier battler controlado por la run.
   static const initialLevel = 1;
@@ -524,6 +526,7 @@ class Battler {
 
   final String name;
   final String iconEmoji;
+  final String? imageAsset;
   final ArchetypeId? archetypeId;
   final int health;
   final int currentBarrier;
@@ -566,6 +569,7 @@ class Battler {
   const Battler({
     required this.name,
     this.iconEmoji = '\u{1F916}',
+    this.imageAsset = defaultEnemyImageAsset,
     this.archetypeId,
     required this.health,
     this.currentBarrier = 0,
@@ -687,6 +691,8 @@ class Battler {
   Battler copyWith({
     String? name,
     String? iconEmoji,
+    String? imageAsset,
+    bool clearImageAsset = false,
     ArchetypeId? archetypeId,
     bool clearArchetypeId = false,
     int? health,
@@ -755,6 +761,7 @@ class Battler {
     return _buildResolved(
       name: name ?? this.name,
       iconEmoji: iconEmoji ?? this.iconEmoji,
+      imageAsset: clearImageAsset ? null : imageAsset ?? this.imageAsset,
       archetypeId: clearArchetypeId ? null : archetypeId ?? this.archetypeId,
       health: max(0, health ?? this.health),
       explicitCurrentBarrier: currentBarrier,
@@ -900,6 +907,7 @@ class Battler {
   static Battler _buildResolved({
     required String name,
     required String iconEmoji,
+    required String? imageAsset,
     required ArchetypeId? archetypeId,
     required int health,
     required int? explicitCurrentBarrier,
@@ -934,6 +942,7 @@ class Battler {
     final candidate = Battler(
       name: name,
       iconEmoji: iconEmoji,
+      imageAsset: imageAsset,
       archetypeId: archetypeId,
       health: health,
       currentBarrier: seedBarrier,
@@ -979,6 +988,7 @@ class Battler {
     return Battler(
       name: name,
       iconEmoji: iconEmoji,
+      imageAsset: imageAsset,
       archetypeId: archetypeId,
       health: clampedHealth,
       currentBarrier: clampedCurrentBarrier,

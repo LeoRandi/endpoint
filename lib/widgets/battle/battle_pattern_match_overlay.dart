@@ -2400,6 +2400,7 @@ class _PatternSprite extends StatelessWidget {
         child: Center(
           child: EndpointEmojiSprite(
             emoji: battler.iconEmoji,
+            imageAsset: battler.imageAsset,
             accent: accent,
             size: 52,
             mirror: mirror,

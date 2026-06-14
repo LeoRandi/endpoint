@@ -130,6 +130,7 @@ class _PlayerBattleHud extends StatelessWidget {
             const SizedBox(width: 8),
             _BattleSpriteDock(
               emoji: player.iconEmoji,
+              imageAsset: player.imageAsset,
               accent: EndpointPalette.primaryAccent,
               mirror: true,
             ),
@@ -684,6 +685,7 @@ class _EnemyBattleHud extends StatelessWidget {
           children: [
             _BattleSpriteDock(
               emoji: enemy.iconEmoji,
+              imageAsset: enemy.imageAsset,
               accent: EndpointPalette.dangerAccent,
             ),
             const SizedBox(width: 8),

@@ -18,6 +18,9 @@ class PathNodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = node.accent;
     final tierAccent = node.rarity.accent;
+    final imageAsset = node is CombatPathNode
+        ? (node as CombatPathNode).enemy.imageAsset
+        : null;
     final hasSignatureBorder = node.hasSignatureBorder;
     final topRightBadge = _topRightBadgeForNode(node.type);
     final topColor =
@@ -78,6 +81,7 @@ class PathNodeCard extends StatelessWidget {
                             child: Center(
                               child: EndpointEmojiSprite(
                                 emoji: node.iconEmoji,
+                                imageAsset: imageAsset,
                                 accent: accent,
                                 borderAccent: tierAccent,
                                 size: 68,

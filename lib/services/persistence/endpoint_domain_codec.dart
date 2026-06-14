@@ -55,6 +55,7 @@ abstract final class EndpointDomainCodec {
         json['iconEmoji'],
         fallback: defaultPlayerBattler.iconEmoji,
       ),
+      imageAsset: EndpointJsonUtils.readNullableString(json['imageAsset']),
       archetypeId: EndpointJsonUtils.parseEnumByName(
         ArchetypeId.values,
         json['archetypeId'],
@@ -113,6 +114,7 @@ abstract final class EndpointDomainCodec {
     return {
       'name': battler.name,
       'iconEmoji': battler.iconEmoji,
+      'imageAsset': battler.imageAsset,
       'archetypeId': battler.archetypeId?.name,
       'level': battler.level,
       'experience': battler.experience,

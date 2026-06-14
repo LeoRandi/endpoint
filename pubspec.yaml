@@ -29,6 +29,7 @@ flutter:
     - assets/images/slots/
     - assets/images/tiles/
     - assets/sprites/
+    - assets/sprites/monsters/
   fonts:
     - family: Pixeboy
       fonts:

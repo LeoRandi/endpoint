@@ -82,11 +82,13 @@ class _BattleAbilityStrip extends StatelessWidget {
 
 class _BattleSpriteDock extends StatelessWidget {
   final String emoji;
+  final String? imageAsset;
   final Color accent;
   final bool mirror;
 
   const _BattleSpriteDock({
     required this.emoji,
+    this.imageAsset,
     required this.accent,
     this.mirror = false,
   });
@@ -105,6 +107,7 @@ class _BattleSpriteDock extends StatelessWidget {
         children: [
           EndpointEmojiSprite(
             emoji: emoji,
+            imageAsset: imageAsset,
             accent: accent,
             size: 58,
             mirror: mirror,

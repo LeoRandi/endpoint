@@ -848,14 +848,23 @@ class _CodexEntryTile extends StatelessWidget {
                       size: 30,
                     )
                   : entry.emojiIcon != null
-                      ? EndpointText(
-                          entry.emojiIcon!,
-                          style: const TextStyle(
-                            fontSize: 25,
-                            height: 1,
-                            decoration: TextDecoration.none,
-                          ),
-                        )
+                      ? entry.imageAsset != null
+                          ? Padding(
+                              padding: const EdgeInsets.all(7),
+                              child: Image.asset(
+                                entry.imageAsset!,
+                                fit: BoxFit.contain,
+                                filterQuality: FilterQuality.none,
+                              ),
+                            )
+                          : EndpointText(
+                              entry.emojiIcon!,
+                              style: const TextStyle(
+                                fontSize: 25,
+                                height: 1,
+                                decoration: TextDecoration.none,
+                              ),
+                            )
                       : Icon(
                           entry.icon,
                           color: EndpointPalette.soften(accent),
@@ -990,6 +999,7 @@ class _CodexEnemyDetailsDialog extends StatelessWidget {
             children: [
               EndpointEmojiSprite(
                 emoji: enemy.iconEmoji,
+                imageAsset: enemy.imageAsset,
                 accent: accent,
                 size: 72,
               ),
@@ -1614,6 +1624,20 @@ class _CodexEntry {
       case _CodexEntryKind.event:
         return event!.iconEmoji;
       case _CodexEntryKind.ability:
+      case _CodexEntryKind.status:
+        return null;
+    }
+  }
+
+  String? get imageAsset {
+    switch (kind) {
+      case _CodexEntryKind.enemy:
+        return enemy!.imageAsset;
+      case _CodexEntryKind.archetype:
+      case _CodexEntryKind.item:
+      case _CodexEntryKind.ability:
+      case _CodexEntryKind.shop:
+      case _CodexEntryKind.event:
       case _CodexEntryKind.status:
         return null;
     }
