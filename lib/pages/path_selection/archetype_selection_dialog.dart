@@ -406,21 +406,6 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
         accent: BattlerStat.barrier.accent,
       ),
       _ArchetypeImpactEntry(
-        label: 'ESPINAS',
-        currentValue: player.thorns,
-        nextValue: projectedPlayer.thorns,
-      ),
-      _ArchetypeImpactEntry(
-        label: 'RED. DAÑO',
-        currentValue: player.damageReduction,
-        nextValue: projectedPlayer.damageReduction,
-      ),
-      _ArchetypeImpactEntry(
-        label: 'VAMPIRISMO',
-        currentValue: player.vampirism,
-        nextValue: projectedPlayer.vampirism,
-      ),
-      _ArchetypeImpactEntry(
         label: 'CREDITOS',
         currentValue: player.money,
         nextValue: projectedPlayer.money,

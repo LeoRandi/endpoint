@@ -868,9 +868,6 @@ class _EnemyStatsPanel extends StatelessWidget {
           _statChip(BattlerStat.health, battler.maxHealth),
           _statChip(BattlerStat.attack, battler.attack),
           _statChip(BattlerStat.barrier, battler.barrier),
-          _statChip(BattlerStat.thorns, battler.thorns),
-          _statChip(BattlerStat.damageReduction, battler.damageReduction),
-          _statChip(BattlerStat.vampirism, battler.vampirism),
           EndpointValueChip(
             label: 'HITS',
             value: battler.basicAttackCount,

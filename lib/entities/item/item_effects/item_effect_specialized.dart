@@ -1306,6 +1306,40 @@ class LaCuentaItemEffect extends ItemEffect {
   }
 }
 
+class CoinLauncherItemEffect extends ItemEffect {
+  static const _creditCost = 2;
+
+  const CoinLauncherItemEffect()
+      : super(
+          description:
+              'Al usarse, gasta creditos para potenciar el ataque del Patron.',
+          hooks: const {ItemEffectHook.patternUsed},
+        );
+
+  @override
+  String descriptionFor(Item item) {
+    return 'Al usarse: paga $_creditCost creditos si es posible para dar +${max(1, item.value)} ataque al Patron.';
+  }
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (!owner.canAfford(_creditCost)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.spendMoneyForItemEffect(_creditCost),
+      opponent: opponent,
+      attackBonusDelta: max(1, item.value),
+    );
+  }
+}
+
 class SeguroBolsilloItemEffect extends ItemEffect {
   /// Crea el efecto de SeguroBolsillo.
   const SeguroBolsilloItemEffect()

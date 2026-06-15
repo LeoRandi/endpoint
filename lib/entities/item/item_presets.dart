@@ -305,8 +305,8 @@ const crackedBatteryItem = Item(
   rarity: RarityTier.gray,
   patternBonusAmountOverride: 0,
   baseCost: 2,
-  value: 3,
-  upgradeValue: 1,
+  value: 4,
+  upgradeValue: 4,
   effect: ThermalTurbineItemEffect(),
 );
 
@@ -942,6 +942,29 @@ const laCuentaItem = Item(
     BattlerStat.attack: 1,
   },
   effect: LaCuentaItemEffect(),
+);
+
+const coinLauncherItem = Item(
+  id: ItemId.coinLauncher,
+  archetypeAffinities: _mercanteAffinities,
+  tags: _economiaAtaqueTags,
+  name: 'Coin Launcher',
+  description: 'Al usarse: paga creditos para dar bonus de ataque al Patron.',
+  iconEmoji: '\u{1FA99}',
+  rarity: RarityTier.gray,
+  patternBonusAmountOverride: 0,
+  patternAdjacencyBonuses: [
+    OperativePatternAdjacencyBonus.match(
+      _adjS,
+      EntityTag.economia,
+      _adjBarrier,
+      1,
+    ),
+  ],
+  baseCost: 2,
+  value: 1,
+  upgradeValue: 1,
+  effect: CoinLauncherItemEffect(),
 );
 
 const seguroBolsilloItem = Item(
@@ -1812,12 +1835,12 @@ const filtroRuidoItem = Item(
   description:
       'La primera vez por combate que fueras a recibir un debuff, reduce su valor o duracion.',
   iconEmoji: '\u{1F39A}',
-  rarity: RarityTier.green,
+  rarity: RarityTier.gray,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 2,
   patternRequirementOverride: _patternRightAngle,
   baseCost: 4,
-  value: 2,
+  value: 1,
   upgradeValue: 2,
   effect: FiltroRuidoItemEffect(),
 );
@@ -1831,13 +1854,13 @@ const clavoReactorItem = Item(
   description:
       '+2 ATK. Al usarse, una vez por turno, infliges daño directo extra y te aplicas Quemadura.',
   iconEmoji: '\u{1F529}',
-  rarity: RarityTier.green,
+  rarity: RarityTier.gray,
   patternBonusKindOverride: _adjAttack,
   patternBonusAmountOverride: 2,
   patternRequirementOverride: _patternStraightAngle,
   baseCost: 4,
-  value: 2,
-  upgradeValue: 1,
+  value: 1,
+  upgradeValue: 2,
   statModifiers: {BattlerStat.attack: 2},
   upgradeStatModifiers: {BattlerStat.attack: 1},
   effect: ClavoReactorItemEffect(),
@@ -3340,6 +3363,7 @@ const itemPresets = <Item>[
   constructionSealItem,
   shoppingChecklistItem,
   laCuentaItem,
+  coinLauncherItem,
   seguroBolsilloItem,
   bolsoR33mItem,
   selloMercanteItem,

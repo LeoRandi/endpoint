@@ -82,7 +82,7 @@
 [--Texto de flavor a cada evento]
 
 -Enemigos
---Crear Presets(al menos 100 distintos)[33/100]
+--Crear Presets(al menos 100 distintos)[7/100]
 --Equipar adecuadamente
 --Modificar IA en torno al modo Patrón
 
@@ -98,7 +98,7 @@
 [--Botón de Continuar]
 --Cambio de avatar
 --Fucking música por favor
---Resumen de partida incluye board que se tiene en ese momento
+[--Resumen de partida incluye board que se tiene en ese momento]
 
 -Settings
 --Que funcionen las opciones please(sonido, vibración, cambiar avatar, etc)

@@ -117,6 +117,7 @@ enum ItemId {
   constructionSeal,
   shoppingChecklist,
   laCuenta,
+  coinLauncher,
   seguroBolsillo,
   bolsoR33m,
   selloMercante,
@@ -900,12 +901,6 @@ class Item {
         return 'ATK';
       case BattlerStat.barrier:
         return 'Barrera';
-      case BattlerStat.thorns:
-        return 'THORNS';
-      case BattlerStat.damageReduction:
-        return 'REDUCCION';
-      case BattlerStat.vampirism:
-        return 'VAMPIRISMO';
     }
   }
 

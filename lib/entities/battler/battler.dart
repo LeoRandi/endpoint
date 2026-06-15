@@ -11,9 +11,6 @@ enum BattlerStat {
   health,
   attack,
   barrier,
-  thorns,
-  damageReduction,
-  vampirism,
 }
 
 /// Expone etiquetas legibles y colores coherentes para cada stat visible.
@@ -27,12 +24,6 @@ extension BattlerStatPresentation on BattlerStat {
         return 'Ataque';
       case BattlerStat.barrier:
         return 'Barrera';
-      case BattlerStat.thorns:
-        return 'Espinas';
-      case BattlerStat.damageReduction:
-        return 'Red. daño';
-      case BattlerStat.vampirism:
-        return 'Vampirismo';
     }
   }
 
@@ -45,12 +36,6 @@ extension BattlerStatPresentation on BattlerStat {
         return 'ATK';
       case BattlerStat.barrier:
         return 'BAR';
-      case BattlerStat.thorns:
-        return 'ESP';
-      case BattlerStat.damageReduction:
-        return 'RED';
-      case BattlerStat.vampirism:
-        return 'VAMP';
     }
   }
 
@@ -63,12 +48,6 @@ extension BattlerStatPresentation on BattlerStat {
         return const Color(0xFFF3D35C);
       case BattlerStat.barrier:
         return const Color(0xFF59B7FF);
-      case BattlerStat.thorns:
-        return const Color(0xFF9EA7B3);
-      case BattlerStat.damageReduction:
-        return const Color(0xFF8BE9FD);
-      case BattlerStat.vampirism:
-        return const Color(0xFFFF6B6B);
     }
   }
 }
@@ -620,24 +599,6 @@ class Battler {
 
   /// Reexpone la Barrera maxima como stat visible del battler.
   int get barrier => maxBarrier;
-
-  /// Devuelve el thorns base sin modificadores de equipo ni estados.
-  int get baseThorns => baseStat(BattlerStat.thorns);
-
-  /// Devuelve el thorns ya calculado con equipo y estados.
-  int get thorns => calculatedStat(BattlerStat.thorns);
-
-  /// Devuelve la reduccion de daño base sin modificadores de equipo ni estados.
-  int get baseDamageReduction => baseStat(BattlerStat.damageReduction);
-
-  /// Devuelve la reduccion de daño ya calculada con equipo y estados.
-  int get damageReduction => calculatedStat(BattlerStat.damageReduction);
-
-  /// Devuelve el vampirismo base sin modificadores de equipo ni estados.
-  int get baseVampirism => baseStat(BattlerStat.vampirism);
-
-  /// Devuelve el vampirismo ya calculado con equipo y estados.
-  int get vampirism => calculatedStat(BattlerStat.vampirism);
 
   /// Indica cuantas veces se resuelve un ataque basico por cada accion.
   int get basicAttackCount => _derivedState.basicAttackCount;
