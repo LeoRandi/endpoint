@@ -26,13 +26,13 @@
 [--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.]
 [--Los arquetipos empiezan con un item aleatorio de su propio arquetipo + un item general. Se enseñan antes de elegir el arquetipo, se deben generar al empezar la run y guardarse aunque salgas de la app o cambies de página de arquetipo o lo que sea, para que sean siempre el mismo con la misma seed y tal.]
 
--Página de Selección de Camino
+[-Página de Selección de Camino]
 [--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
 [--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
 [--Aplicar el efecto día/noche a diferentes objetos y habilidades][Tag CICLO]
 [--Efecto de animación para bosses]
 
--Combate
+[-Combate]
 [--Que intoxicación pase a través de la barrera]
 [--Aumentar el tamaño del intent a algo legible]
 [--Permitir tener más barrera de la máxima]
@@ -98,6 +98,7 @@
 [--Botón de Continuar]
 --Cambio de avatar
 --Fucking música por favor
+--Resumen de partida incluye board que se tiene en ese momento
 
 -Settings
 --Que funcionen las opciones please(sonido, vibración, cambiar avatar, etc)

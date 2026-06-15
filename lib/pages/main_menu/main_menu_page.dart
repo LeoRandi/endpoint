@@ -1,14 +1,17 @@
 import '../_imports.dart';
+import 'package:flutter/foundation.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 class MainMenuPage extends StatefulWidget {
   final EndpointSettingsSnapshot initialSettings;
   final EndpointCurrentRunSnapshot? initialRunSnapshot;
+  final String appVersion;
 
   const MainMenuPage({
     super.key,
     this.initialSettings = const EndpointSettingsSnapshot.defaults(),
     this.initialRunSnapshot,
+    this.appVersion = 'unknown',
   });
 
   @override
@@ -195,6 +198,14 @@ class _MainMenuPageState extends State<MainMenuPage>
     );
   }
 
+  Future<void> _openDebugTools() async {
+    await Navigator.of(context).push(
+      buildEndpointSceneRoute<void>(
+        const MainMenuDebugToolsPage(),
+      ),
+    );
+  }
+
   Future<void> _refreshCurrentRunSnapshot() async {
     final restoredRun =
         await EndpointPreferencesService.loadCurrentRunSnapshot();
@@ -361,6 +372,14 @@ class _MainMenuPageState extends State<MainMenuPage>
                                   ),
                                   onPressed: _handleTutorialPressed,
                                 ),
+                                if (kDebugMode) ...[
+                                  const SizedBox(height: 6),
+                                  _MainMenuTinyButton(
+                                    label: 'Debug tests',
+                                    tooltip: 'Abrir herramientas de prueba',
+                                    onPressed: _openDebugTools,
+                                  ),
+                                ],
                                 const SeparatorFiori.half(),
                                 _MainMenuShowcaseStep(
                                   showcaseKey: _codexShowcaseKey,
@@ -399,6 +418,7 @@ class _MainMenuPageState extends State<MainMenuPage>
                                         buildEndpointSceneRoute(
                                           SettingsPage(
                                             initialSettings: _settings,
+                                            appVersion: widget.appVersion,
                                           ),
                                         ),
                                       );

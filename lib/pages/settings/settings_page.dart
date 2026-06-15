@@ -67,10 +67,12 @@ const _settingsOptionDisabledSectionPreset = EndpointSectionPreset(
 
 class SettingsPage extends StatefulWidget {
   final EndpointSettingsSnapshot initialSettings;
+  final String appVersion;
 
   const SettingsPage({
     super.key,
     this.initialSettings = const EndpointSettingsSnapshot.defaults(),
+    this.appVersion = 'unknown',
   });
 
   @override
@@ -385,6 +387,18 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ],
                               ),
                             ),
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
+                              title: 'App',
+                              caption: 'Informacion de la instalacion.',
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: _SettingsInfoBadge(
+                                  label: 'Version',
+                                  value: widget.appVersion,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -470,6 +484,55 @@ class _SettingsChoiceButton extends StatelessWidget {
         textStyle: textSmallBold.copyWith(
           fontSize: 12,
           letterSpacing: 0.9,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsInfoBadge extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _SettingsInfoBadge({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: _settingsButtonBackground,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: _settingsAccent.withValues(alpha: 0.5),
+          width: 1.4,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            EndpointText(
+              '$label:',
+              style: textSmallBold.copyWith(
+                color: _settingsForegroundMuted,
+                fontSize: 11,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(width: 6),
+            EndpointText(
+              value,
+              style: textSmallNumericBold.copyWith(
+                color: _settingsForeground,
+                fontSize: 12,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
         ),
       ),
     );

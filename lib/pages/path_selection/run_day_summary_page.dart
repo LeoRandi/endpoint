@@ -16,6 +16,10 @@ class RunDaySummaryPage extends StatefulWidget {
 
 class _RunDaySummaryPageState extends State<RunDaySummaryPage>
     with SingleTickerProviderStateMixin {
+  bool _areItemRewardsExpanded = false;
+  bool _areAbilityRewardsExpanded = false;
+  bool _areEnemiesExpanded = false;
+
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1050),
@@ -102,6 +106,13 @@ class _RunDaySummaryPageState extends State<RunDaySummaryPage>
                                   dayNumber: widget.summary.dayNumber,
                                   emptyText: 'No se han obtenido objetos.',
                                   accent: EndpointPalette.shopAccent,
+                                  isExpanded: _areItemRewardsExpanded,
+                                  onToggle: () {
+                                    setState(() {
+                                      _areItemRewardsExpanded =
+                                          !_areItemRewardsExpanded;
+                                    });
+                                  },
                                 ),
                               ),
                             ),
@@ -119,6 +130,13 @@ class _RunDaySummaryPageState extends State<RunDaySummaryPage>
                                   dayNumber: widget.summary.dayNumber,
                                   emptyText: 'No se han aprendido aumentos.',
                                   accent: EndpointPalette.infoAccent,
+                                  isExpanded: _areAbilityRewardsExpanded,
+                                  onToggle: () {
+                                    setState(() {
+                                      _areAbilityRewardsExpanded =
+                                          !_areAbilityRewardsExpanded;
+                                    });
+                                  },
                                 ),
                               ),
                             ),
@@ -130,6 +148,13 @@ class _RunDaySummaryPageState extends State<RunDaySummaryPage>
                                 index: 3,
                                 child: _SummaryEnemiesBlock(
                                   summary: widget.summary,
+                                  isExpanded: _areEnemiesExpanded,
+                                  onToggle: () {
+                                    setState(() {
+                                      _areEnemiesExpanded =
+                                          !_areEnemiesExpanded;
+                                    });
+                                  },
                                 ),
                               ),
                             ),
@@ -322,6 +347,8 @@ class _SummaryRewardsBlock extends StatelessWidget {
   final int dayNumber;
   final String emptyText;
   final Color accent;
+  final bool isExpanded;
+  final VoidCallback onToggle;
 
   const _SummaryRewardsBlock({
     required this.title,
@@ -331,6 +358,8 @@ class _SummaryRewardsBlock extends StatelessWidget {
     required this.dayNumber,
     required this.emptyText,
     required this.accent,
+    required this.isExpanded,
+    required this.onToggle,
   });
 
   @override
@@ -340,12 +369,18 @@ class _SummaryRewardsBlock extends StatelessWidget {
       caption: caption,
       icon: icon,
       accent: accent,
+      isExpanded: isExpanded,
+      onToggle: onToggle,
       child: rewards.isEmpty
           ? _SummaryEmptyState(message: emptyText)
-          : _RewardIconRail(
-              rewards: rewards,
-              dayNumber: dayNumber,
-            ),
+          : isExpanded
+              ? _RewardIconRail(
+                  rewards: rewards,
+                  dayNumber: dayNumber,
+                )
+              : _SummaryCollapsedState(
+                  message: '${rewards.length} entradas ocultas',
+                ),
     );
   }
 }
@@ -511,9 +546,13 @@ Future<void> _openAbilityDetails(
 
 class _SummaryEnemiesBlock extends StatelessWidget {
   final RunDaySummary summary;
+  final bool isExpanded;
+  final VoidCallback onToggle;
 
   const _SummaryEnemiesBlock({
     required this.summary,
+    required this.isExpanded,
+    required this.onToggle,
   });
 
   @override
@@ -523,17 +562,23 @@ class _SummaryEnemiesBlock extends StatelessWidget {
       caption: '${summary.enemiesKilled}',
       icon: Icons.sports_mma_rounded,
       accent: EndpointPalette.dangerAccent,
-      child: Row(
-        children: [
-          _SummaryEnemyTotals(summary: summary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: summary.defeatedEnemies.isEmpty
-                ? const _SummaryEmptyState(message: 'Sin datos de enemigos.')
-                : _EnemyIconRail(enemies: summary.defeatedEnemies),
-          ),
-        ],
-      ),
+      isExpanded: isExpanded,
+      onToggle: onToggle,
+      child: summary.defeatedEnemies.isEmpty
+          ? const _SummaryEmptyState(message: 'Sin datos de enemigos.')
+          : isExpanded
+              ? Row(
+                  children: [
+                    _SummaryEnemyTotals(summary: summary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _EnemyIconRail(enemies: summary.defeatedEnemies),
+                    ),
+                  ],
+                )
+              : _SummaryCollapsedState(
+                  message: '${summary.defeatedEnemies.length} entradas ocultas',
+                ),
     );
   }
 }
@@ -1071,6 +1116,8 @@ class _SummarySectionShell extends StatelessWidget {
   final IconData icon;
   final Color accent;
   final Widget child;
+  final bool isExpanded;
+  final VoidCallback onToggle;
 
   const _SummarySectionShell({
     required this.title,
@@ -1078,6 +1125,8 @@ class _SummarySectionShell extends StatelessWidget {
     required this.icon,
     required this.accent,
     required this.child,
+    required this.isExpanded,
+    required this.onToggle,
   });
 
   @override
@@ -1096,6 +1145,8 @@ class _SummarySectionShell extends StatelessWidget {
             caption: caption,
             icon: icon,
             accent: accent,
+            isExpanded: isExpanded,
+            onToggle: onToggle,
           ),
           const SizedBox(height: 7),
           Expanded(child: child),
@@ -1110,12 +1161,16 @@ class _SummarySectionHeader extends StatelessWidget {
   final String caption;
   final IconData icon;
   final Color accent;
+  final bool isExpanded;
+  final VoidCallback onToggle;
 
   const _SummarySectionHeader({
     required this.title,
     required this.caption,
     required this.icon,
     required this.accent,
+    required this.isExpanded,
+    required this.onToggle,
   });
 
   @override
@@ -1146,7 +1201,53 @@ class _SummarySectionHeader extends StatelessWidget {
             letterSpacing: 1.1,
           ),
         ),
+        const SizedBox(width: 4),
+        Tooltip(
+          message: isExpanded ? 'Ocultar lista' : 'Mostrar lista',
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onToggle,
+              customBorder: const CircleBorder(),
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  color: accent,
+                  size: 19,
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _SummaryCollapsedState extends StatelessWidget {
+  final String message;
+
+  const _SummaryCollapsedState({
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: EndpointText(
+        message,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: textSmallBold.copyWith(
+          color: EndpointPalette.softForeground.withAlpha(150),
+          fontSize: 10,
+          letterSpacing: 0.7,
+        ),
+      ),
     );
   }
 }
