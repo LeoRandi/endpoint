@@ -1,0 +1,47 @@
+Diseño de items:
+
+-Nombre:
+ -Descripción básica
+
+-Coin Launcher:
+ -Bazooka pero con una bolsa de monedas puesta encima
+
+-La Cuenta:
+ -Papel rollo ticket, poner texto rollo "TIP: 100% or DEATH"
+
+-Vial Roto:
+ -Tubito de cristal agrietado con líquido verde dentro, como muestra tóxica mal sellada
+
+-Pluma Séptica:
+ -Pluma gris sucia con punta afilada, gruesa y rezumando toxicidad, más arma que decoración
+
+-Interferidor de Bolsillo:
+ -Pequeño aparato de radio/antena, como un walkie roto que emite estática
+
+-Filtro de Ruido:
+ -Pieza circular tipo filtro de audio, con rejilla y ondas tachadas
+
+/////////////////////////////////////////////////////////////
+
+Diseño de enemigos:
+
+-Nombre:
+ -Descripción básica
+  -Item 1 y como se usa
+  -Item 2 y como se usa
+  -Item 3 y como se usa
+
+-DEBT ROACH:
+ -Insecto pequeño redondo y de color oscuro
+  -Lanzamonedas casi más grande que el propio en su hombro derecho
+  -La Cuenta es un papel que le sale del bolsillo
+
+-RUSTY STING:
+ -Avispa gris metálica, fina y oxidada, con postura agresiva y aguijón grande
+  -Vial Roto incrustado en el cuerpo como depósito tóxico
+  -Pluma Séptica integrada en la punta del aguijón, pero visualmente se debe notar como una punta de taladro que han puesto, como una broca que no termina de encajar
+
+-SIGNAL STAG:
+ -Escarabajo pequeño y gris, con caparazón duro y un gran cuerno que termina en antena de señal/radio
+  -Interferidor de Bolsillo integrado en la punta del cuerno, como el emisor principal de la antena
+  -Filtro de Ruido en el pecho o caparazón, como una rejilla que filtra las ondas entrantes

@@ -5,10 +5,14 @@ const _patternLeft = '-1,0';
 const _patternCenter = '0,0';
 const _patternRight = '1,0';
 const _patternBottom = '0,-1';
+const _patternLeftBottom = '-1,-1';
+const _patternRightBottom = '1,-1';
+const _patternLeftTop = '-1,1';
+const _patternRightTop = '1,1';
 
 /// Enemigo gris economico que convierte creditos en pequenos golpes de Patron.
-const debtMiteEnemyBattler = Battler(
-  name: 'DEBT MITE',
+const debtRoachEnemyBattler = Battler(
+  name: 'DEBT ROACH',
   health: 27,
   money: 10,
   income: 0,
@@ -25,6 +29,7 @@ const debtMiteEnemyBattler = Battler(
   patternItemPointKeys: {
     'laCuenta': _patternCenter,
     'coinLauncher': _patternTop,
+    'pagareRevalorizableItem': _patternLeftBottom,
   },
 );
 
@@ -36,7 +41,7 @@ const rustyStingEnemyBattler = Battler(
   income: 0,
   baseStats: {
     BattlerStat.health: 27,
-    BattlerStat.attack: 2,
+    BattlerStat.attack: 1,
     BattlerStat.barrier: 1,
   },
   equippedItems: [
@@ -47,17 +52,18 @@ const rustyStingEnemyBattler = Battler(
   patternItemPointKeys: {
     'vialRoto': _patternCenter,
     'plumaSeptica': _patternRight,
+    'pagareRevalorizableItem': _patternRightBottom,
   },
 );
 
 /// Enemigo gris duelista con mas vida y ataque, pero sin barrera inicial.
 const duelistHopperEnemyBattler = Battler(
   name: 'DUELIST HOPPER',
-  health: 31,
+  health: 27,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 31,
+    BattlerStat.health: 27,
     BattlerStat.attack: 4,
     BattlerStat.barrier: 0,
   },
@@ -69,6 +75,7 @@ const duelistHopperEnemyBattler = Battler(
   patternItemPointKeys: {
     'clavoDuelista': _patternCenter,
     'guanteReto': _patternRight,
+    'pagareRevalorizableItem': _patternLeftBottom,
   },
 );
 
@@ -91,17 +98,18 @@ const signalStagEnemyBattler = Battler(
   patternItemPointKeys: {
     'pocketJammer': _patternCenter,
     'filtroRuido': _patternRight,
+    'pagareRevalorizableItem': _patternLeftTop,
   },
 );
 
 /// Enemigo gris fragil que usa su equipo para alcanzar ataque medio.
 const reactorFleaEnemyBattler = Battler(
   name: 'REACTOR FLEA',
-  health: 23,
+  health: 20,
   money: 0,
   income: 0,
   baseStats: {
-    BattlerStat.health: 23,
+    BattlerStat.health: 20,
     BattlerStat.attack: 1,
     BattlerStat.barrier: 0,
   },
@@ -113,6 +121,7 @@ const reactorFleaEnemyBattler = Battler(
   patternItemPointKeys: {
     'crackedBattery': _patternCenter,
     'clavoReactor': _patternRight,
+    'pagareRevalorizableItem': _patternRightTop,
   },
 );
 
@@ -140,12 +149,12 @@ const cinderClawEnemyBattler = Battler(
 /// Enemigo final amarillo con el kit mas completo del roster actual.
 const yellowEnemyBattler = Battler(
   name: 'SOLAR EXECUTOR',
-  health: 104,
+  health: 204,
   money: 0,
   income: 0,
   equipmentCapacity: 5,
   baseStats: {
-    BattlerStat.health: 104,
+    BattlerStat.health: 204,
     BattlerStat.attack: 10,
     BattlerStat.barrier: 6,
   },
@@ -171,7 +180,7 @@ const yellowEnemyBattler = Battler(
 );
 
 /// Alias del enemigo por defecto usado en previews y valores fallback.
-const Battler defaultEnemyBattler = debtMiteEnemyBattler;
+const Battler defaultEnemyBattler = debtRoachEnemyBattler;
 
 /// Jugador base de la run antes de elegir arquetipo o conseguir equipo.
 const defaultPlayerBattler = Battler(

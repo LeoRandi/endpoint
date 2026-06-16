@@ -3,9 +3,9 @@ import '../_imports.dart';
 /// Nodo gris economico centrado en gastar creditos para atacar.
 final grayCombatNode = CombatPathNode(
   nodeId: 'combat_debt_mite',
-  enemy: debtMiteEnemyBattler,
+  enemy: debtRoachEnemyBattler,
   tier: CombatNodeTier.gray,
-  label: debtMiteEnemyBattler.name,
+  label: debtRoachEnemyBattler.name,
 );
 
 /// Alias explicito del nuevo encuentro gris base.
