@@ -465,7 +465,7 @@ class Battler {
   static const defaultEquipmentCapacity = 3;
   static const maxInventoryItems = 10;
   static const defaultEnemyImageAsset =
-      'assets/sprites/monsters/Solar executor128.png';
+      'assets/sprites/monsters/Debt roach128.png';
 
   /// Marca el nivel operativo inicial que tiene cualquier battler controlado por la run.
   static const initialLevel = 1;

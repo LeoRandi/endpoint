@@ -13,6 +13,7 @@ const _patternRightTop = '1,1';
 /// Enemigo gris economico que convierte creditos en pequenos golpes de Patron.
 const debtRoachEnemyBattler = Battler(
   name: 'DEBT ROACH',
+  imageAsset: 'assets/sprites/monsters/Debt roach128.png',
   health: 27,
   money: 10,
   income: 0,
@@ -128,6 +129,7 @@ const reactorFleaEnemyBattler = Battler(
 /// Variante verde de presion temprana centrada en quemar al objetivo.
 const cinderClawEnemyBattler = Battler(
   name: 'CINDER CLAW',
+  imageAsset: 'assets/sprites/monsters/Cinder claw128.png',
   health: 41,
   money: 0,
   income: 0,

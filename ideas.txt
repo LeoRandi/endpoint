@@ -16,7 +16,7 @@ Diseño de items:
  -Pluma gris sucia con punta afilada, gruesa y rezumando toxicidad, más arma que decoración
 
 -Interferidor de Bolsillo:
- -Pequeño aparato de radio/antena, como un walkie roto que emite estática
+ -Pequeño aparato amarillo y azul intenso de radio/antena, como un walkie roto que emite estática
 
 -Filtro de Ruido:
  -Pieza circular tipo filtro de audio, con rejilla y ondas tachadas
@@ -44,4 +44,4 @@ Diseño de enemigos:
 -SIGNAL STAG:
  -Escarabajo pequeño y gris, con caparazón duro y un gran cuerno que termina en antena de señal/radio
   -Interferidor de Bolsillo integrado en la punta del cuerno, como el emisor principal de la antena
-  -Filtro de Ruido en el pecho o caparazón, como una rejilla que filtra las ondas entrantes
+  -Filtro de Ruido son las alas bajo el caparazón del escarabajo, como rejillas de las de set de grabación
