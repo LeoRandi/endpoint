@@ -188,9 +188,9 @@ class HemomedidorItemEffect extends ItemEffect {
   }
 }
 
-class HeridaCarbonizadaItemEffect extends ItemEffect {
+class CarbonParaHeridasItemEffect extends ItemEffect {
   /// Crea el efecto de HeridaCarbonizada.
-  const HeridaCarbonizadaItemEffect()
+  const CarbonParaHeridasItemEffect()
       : super(
           description: 'Al recibir daño de Quemadura a tu HP: ganas Desafio.',
           hooks: const {ItemEffectHook.incomingDamageEffect},
@@ -223,9 +223,9 @@ class HeridaCarbonizadaItemEffect extends ItemEffect {
   }
 }
 
-class GuanteProvocacionItemEffect extends ItemEffect {
+class Juegosucio101ItemEffect extends ItemEffect {
   /// Crea el efecto de GuanteProvocacion.
-  const GuanteProvocacionItemEffect()
+  const Juegosucio101ItemEffect()
       : super(
           description:
               'Al usarse: ganas Desafio. Si el enemigo tiene un debuff, ganas el doble.',

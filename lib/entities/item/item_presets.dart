@@ -422,11 +422,11 @@ const hemomedidorItem = Item(
   effect: HemomedidorItemEffect(),
 );
 
-const heridaCarbonizadaItem = Item(
-  id: ItemId.heridaCarbonizada,
+const carbonParaHeridasItem = Item(
+  id: ItemId.carbonParaHeridas,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioQuemaduraBuffTags,
-  name: 'Herida Carbonizada',
+  name: 'Carbón para Heridas',
   description: 'Al recibir daño de Quemadura a tu HP: ganas 3 Desafio.',
   iconEmoji: '\u{1FAE7}',
   rarity: RarityTier.green,
@@ -436,14 +436,14 @@ const heridaCarbonizadaItem = Item(
   baseCost: 4,
   value: 3,
   upgradeValue: 2,
-  effect: HeridaCarbonizadaItemEffect(),
+  effect: CarbonParaHeridasItemEffect(),
 );
 
-const guanteProvocacionItem = Item(
-  id: ItemId.guanteProvocacion,
+const juegosucio101Item = Item(
+  id: ItemId.juegosucio101,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
-  name: 'Guante de Provocacion',
+  name: 'Juegosucio 101',
   description:
       'Al usarse: ganas 2 Desafio. Si el enemigo tiene un debuff, ganas doble Desafio.',
   iconEmoji: '\u{1F94A}',
@@ -457,7 +457,7 @@ const guanteProvocacionItem = Item(
   statModifiers: {
     BattlerStat.attack: 1,
   },
-  effect: GuanteProvocacionItemEffect(),
+  effect: Juegosucio101ItemEffect(),
 );
 
 const contratoDolorosoItem = Item(
@@ -3328,8 +3328,8 @@ const itemPresets = <Item>[
   vendasApretadasItem,
   marcaRetadorItem,
   hemomedidorItem,
-  heridaCarbonizadaItem,
-  guanteProvocacionItem,
+  carbonParaHeridasItem,
+  juegosucio101Item,
   contratoDolorosoItem,
   yunqueCardiacoItem,
   revanchadoraItem,
