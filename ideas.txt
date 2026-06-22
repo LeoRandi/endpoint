@@ -3,8 +3,8 @@ Diseño de items:
 -Nombre:
  -Descripción básica
 
--Palo
- -Un palo marrón de un árbol, con una hojita
+[-Palo
+ -Un palo marrón de un árbol, con una hojita]
 
 -Gafas de Sol
  -Unas gafas de sol futuristas, con una de las lentes con una pequeña marca de diana
