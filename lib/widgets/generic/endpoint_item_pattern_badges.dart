@@ -12,24 +12,51 @@ class EndpointItemPatternBadges extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!item.hasPatternBonus) return const SizedBox.shrink();
+    if (!item.hasPatternBonus && item.actionType == ItemActionType.none) {
+      return const SizedBox.shrink();
+    }
 
-    final bonus = item.patternBonus;
     return Wrap(
       alignment: alignment,
       spacing: 3,
       runSpacing: 3,
       children: [
-        _EndpointItemPatternBadge(
-          label: _requirementLabelFor(item.patternRequirement),
-          accent: EndpointPalette.patternAccent,
-        ),
-        _EndpointItemPatternBadge(
-          label: _bonusLabelFor(bonus),
-          accent: _bonusAccentFor(bonus.kind),
-        ),
+        if (item.actionType != ItemActionType.none)
+          _EndpointItemPatternBadge(
+            label: _actionLabelFor(item),
+            accent: _actionAccentFor(item.actionType),
+          ),
+        if (item.actionType == ItemActionType.none && item.hasPatternBonus) ...[
+          _EndpointItemPatternBadge(
+            label: _requirementLabelFor(item.patternRequirement),
+            accent: EndpointPalette.patternAccent,
+          ),
+          _EndpointItemPatternBadge(
+            label: _bonusLabelFor(item.patternBonus),
+            accent: _bonusAccentFor(item.patternBonusKind),
+          ),
+        ],
       ],
     );
+  }
+
+  String _actionLabelFor(Item item) {
+    final label = switch (item.actionType) {
+      ItemActionType.attack => 'ATACA',
+      ItemActionType.block => 'BLOQUEA',
+      ItemActionType.heal => 'CURA',
+      ItemActionType.none => 'PASIVO',
+    };
+    return '$label ${item.actionValue}';
+  }
+
+  Color _actionAccentFor(ItemActionType type) {
+    return switch (type) {
+      ItemActionType.attack => EndpointPalette.dangerAccent,
+      ItemActionType.block => BattlerStat.barrier.accent,
+      ItemActionType.heal => BattlerStat.health.accent,
+      ItemActionType.none => EndpointPalette.patternAccent,
+    };
   }
 
   String _requirementLabelFor(OperativePatternRequirement requirement) {

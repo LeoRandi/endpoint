@@ -7,6 +7,10 @@ Map<String, OperativePatternBonus> buildOperativePatternBonusesByPointKey({
   required Iterable<String> occupiedPointKeys,
   Iterable<String> adaptableOccupiedPointKeys = const <String>[],
   int maxAdaptableBonusAmount = 0,
+  Set<OperativePatternBonusKind> allowedKinds = const {
+    OperativePatternBonusKind.attack,
+    OperativePatternBonusKind.barrier,
+  },
   int Function(int max)? nextInt,
   Random? random,
 }) {
@@ -16,6 +20,8 @@ Map<String, OperativePatternBonus> buildOperativePatternBonusesByPointKey({
   final adaptableOccupied = adaptableOccupiedPointKeys.toSet();
   final maxAmount = max(Battler.initialLevel, playerLevel);
   final adaptationCap = max(0, maxAdaptableBonusAmount);
+  final availableKinds = allowedKinds.toList(growable: false);
+  if (availableKinds.isEmpty) return const <String, OperativePatternBonus>{};
 
   return <String, OperativePatternBonus>{
     for (final point in operativePatternPoints) ...{
@@ -25,6 +31,7 @@ Map<String, OperativePatternBonus> buildOperativePatternBonusesByPointKey({
           maxAmount: maxAmount,
           randomNextInt: randomNextInt,
           maxBonusAmount: occupied.contains(point.key) ? adaptationCap : 0,
+          allowedKinds: availableKinds,
         ),
     },
   };
@@ -34,12 +41,11 @@ OperativePatternBonus _buildPatternBonus({
   required int maxAmount,
   required int Function(int max) randomNextInt,
   required int maxBonusAmount,
+  required List<OperativePatternBonusKind> allowedKinds,
 }) {
   final amount = 1 + randomNextInt(maxAmount);
   return OperativePatternBonus(
-    kind: randomNextInt(2) == 0
-        ? OperativePatternBonusKind.attack
-        : OperativePatternBonusKind.barrier,
+    kind: allowedKinds[randomNextInt(allowedKinds.length)],
     amount: maxBonusAmount > 0 ? min(amount, maxBonusAmount) : amount,
   );
 }

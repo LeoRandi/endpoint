@@ -88,6 +88,9 @@ abstract final class OperativePatternResolutionService {
     final activatedPatternBonusesByPointKey = <String, OperativePatternBonus>{};
     final activatedAdjacencyBonusesByPointKey =
         <String, List<OperativePatternAdjacencyBonus>>{};
+    final allowedBonusKinds = _actionBonusKindsFor(
+      equippedItemsByPointKey.values,
+    );
     var attackBonus = 0;
     var barrierBonus = 0;
     var healthBonus = 0;
@@ -105,25 +108,35 @@ abstract final class OperativePatternResolutionService {
       final item = equippedItemsByPointKey[point.key];
       if (isRepeatedActivation && item == null) continue;
       activationCountsByPointKey[point.key] = currentActivationCount + 1;
-      final bonus = item == null
+      if (item != null && item.actionType != ItemActionType.none) {
+        itemActivationByPointKey[point.key] = true;
+      }
+      final resolvedBonus = item == null
           ? bonusesByPointKey[point.key]
-          : _canUseAdaptationBonus(
-              item: item,
-              adaptationMaxEmptyItemBonus: adaptationMaxEmptyItemBonus,
-            )
-              ? _resolveAdaptationBonus(
-                  pointKey: point.key,
-                  bonusesByPointKey: bonusesByPointKey,
-                  itemActivationByPointKey: itemActivationByPointKey,
+          : item.actionType != ItemActionType.none
+              ? null
+              : _canUseAdaptationBonus(
+                  item: item,
                   adaptationMaxEmptyItemBonus: adaptationMaxEmptyItemBonus,
                 )
-              : _resolveItemPatternBonus(
-                  item: item,
-                  point: point,
-                  patternPoints: stablePatternPoints,
-                  itemActivationByPointKey: itemActivationByPointKey,
-                  shouldHalveItemPatternBonuses: shouldDilutePositiveBonuses,
-                );
+                  ? _resolveAdaptationBonus(
+                      pointKey: point.key,
+                      bonusesByPointKey: bonusesByPointKey,
+                      itemActivationByPointKey: itemActivationByPointKey,
+                      adaptationMaxEmptyItemBonus: adaptationMaxEmptyItemBonus,
+                    )
+                  : _resolveItemPatternBonus(
+                      item: item,
+                      point: point,
+                      patternPoints: stablePatternPoints,
+                      itemActivationByPointKey: itemActivationByPointKey,
+                      shouldHalveItemPatternBonuses:
+                          shouldDilutePositiveBonuses,
+                    );
+      final bonus = resolvedBonus != null &&
+              allowedBonusKinds.contains(resolvedBonus.kind)
+          ? resolvedBonus
+          : null;
       if (bonus != null) {
         activatedPatternBonusesByPointKey[point.key] = bonus;
         switch (bonus.kind) {
@@ -144,7 +157,11 @@ abstract final class OperativePatternResolutionService {
         point: point,
         equippedItemsByPointKey: equippedItemsByPointKey,
         shouldHalveItemPatternBonuses: shouldDilutePositiveBonuses,
-      );
+      )
+          .where(
+            (bonus) => allowedBonusKinds.contains(bonus.bonus.kind),
+          )
+          .toList(growable: false);
       if (adjacencyBonuses.isEmpty) continue;
 
       activatedAdjacencyBonusesByPointKey[point.key] = adjacencyBonuses;
@@ -200,6 +217,28 @@ abstract final class OperativePatternResolutionService {
     return adaptationMaxEmptyItemBonus > 0 &&
         !item.hasPatternBonus &&
         item.patternAdjacencyBonuses.isEmpty;
+  }
+
+  static Set<OperativePatternBonusKind> _actionBonusKindsFor(
+    Iterable<Item> items,
+  ) {
+    final kinds = <OperativePatternBonusKind>{};
+    for (final item in items) {
+      switch (item.actionType) {
+        case ItemActionType.attack:
+          kinds.add(OperativePatternBonusKind.attack);
+          break;
+        case ItemActionType.block:
+          kinds.add(OperativePatternBonusKind.barrier);
+          break;
+        case ItemActionType.heal:
+          kinds.add(OperativePatternBonusKind.health);
+          break;
+        case ItemActionType.none:
+          break;
+      }
+    }
+    return kinds;
   }
 
   static OperativePatternBonus? _resolveAdaptationBonus({

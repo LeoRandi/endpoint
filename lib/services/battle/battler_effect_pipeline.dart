@@ -1191,6 +1191,40 @@ class BattlerEffectPipeline {
     );
   }
 
+  /// Ejecuta el efecto Al usarse de un unico item en el instante exacto en
+  /// que su punto se recorre. Esto evita que efectos de otros puntos se
+  /// mezclen con la accion actual.
+  ItemEffectResolution applyEquippedItemPatternUsedEffect({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final effect = item.effect;
+    if (effect == null || !effect.hooks.contains(ItemEffectHook.patternUsed)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final debuffPressureBefore = _debuffPressure(opponent);
+    final resolution = effect.onPatternUsed(
+      owner: owner,
+      opponent: opponent,
+      item: item,
+      pattern: pattern,
+    );
+    final pressureResolution = _resolveDebuffPressureTriggers(
+      owner: resolution.owner,
+      opponent: resolution.opponent,
+      debuffPressureBefore: debuffPressureBefore,
+    );
+    return ItemEffectResolution(
+      owner: pressureResolution.owner.pruneExpiredStatuses(),
+      opponent: pressureResolution.opponent.pruneExpiredStatuses(),
+      attackBonusDelta: resolution.attackBonusDelta,
+      barrierBonusDelta: resolution.barrierBonusDelta,
+    );
+  }
+
   ItemEffectResolution applyEquippedItemPrePatternAttackEffects({
     required Battler owner,
     required Battler opponent,

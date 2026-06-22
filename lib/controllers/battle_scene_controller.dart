@@ -112,6 +112,10 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Reexpone la ronda actual para contadores y ayudas visuales de la escena.
   int get currentRound => _battleController.currentRound;
+  List<List<String>> get playerBannedPatternPointKeys =>
+      _battleController.playerBannedPatternPointKeys;
+  List<List<String>> get enemyBannedPatternPointKeys =>
+      _battleController.enemyBannedPatternPointKeys;
 
   /// Ronda en la que la Purga empieza a aplicar daño automatico.
   int get purgeStartRound => _battleController.purgeStartRound;

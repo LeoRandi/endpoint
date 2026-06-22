@@ -260,6 +260,8 @@ const _mercanteAffinities = <ItemArchetypeAffinity>[
 /// Arma gris sencilla para encuentros y tiendas de bajo nivel.
 const woodenStickItem = Item(
   id: ItemId.woodenStick,
+  actionType: ItemActionType.attack,
+  actionValue: 1,
   archetypeAffinities: _generalAffinities,
   tags: _ataqueTags,
   name: 'Palo',
@@ -278,20 +280,22 @@ const woodenStickItem = Item(
   },
 );
 
-/// Accesorio agil que reduce el ATK total para convertir cada ataque en doble golpe.
+/// Accesorio amarillo que repite al final las acciones anteriores del Patron.
 const sunglassesItem = Item(
   id: ItemId.sunglasses,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueBarreraTags,
   name: 'Gafas de Sol',
   description:
-      'Cada ataque basico golpea dos veces, pero tus bonus de items se reducen a la mitad.',
+      'Al completar el Patron, repite todas las acciones trazadas antes de este item.',
   iconEmoji: '\u{1F453}',
-  rarity: RarityTier.gray,
+  rarity: RarityTier.yellow,
+  actionType: ItemActionType.none,
+  actionValue: 0,
   patternBonusAmountOverride: 0,
-  baseCost: 2,
-  value: 1,
-  upgradeValue: 1,
+  baseCost: 10,
+  value: 0,
+  upgradeValue: 0,
   effect: SunglassesItemEffect(),
 );
 
@@ -360,6 +364,8 @@ const guanteRetoItem = Item(
 
 const clavoDuelistaItem = Item(
   id: ItemId.clavoDuelista,
+  actionType: ItemActionType.attack,
+  actionValue: 1,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Clavo de Duelista',
@@ -686,6 +692,8 @@ const buzonVirtualVerdeItem = Item(
 
 const taladronItem = Item(
   id: ItemId.taladron,
+  actionType: ItemActionType.attack,
+  actionValue: 1,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueMurallaTags,
   name: 'Taladron',
@@ -1327,6 +1335,8 @@ const duplicadorAtomosItem = Item(
 
 const cortinaHumoItem = Item(
   id: ItemId.cortinaHumo,
+  actionType: ItemActionType.block,
+  actionValue: 1,
   archetypeAffinities: _velozAffinities,
   tags: _barreraMurallaTags,
   name: 'Cortina de Humo',
@@ -1401,10 +1411,12 @@ const pagareRevalorizableItem = Item(
 /// Accesorio gris de curacion menor y constante.
 const botiquinCompactoItem = Item(
   id: ItemId.botiquinCompacto,
+  actionType: ItemActionType.heal,
+  actionValue: 5,
   archetypeAffinities: _generalAffinities,
   tags: _vidaTags,
   name: 'Botiquin Compacto',
-  description: 'Al inicio de tu turno, recuperas 1 HP.',
+  description: 'Cura 5 HP al usarse. Al inicio de tu turno, recuperas 1 HP.',
   iconEmoji: '\u{1FA79}',
   rarity: RarityTier.gray,
   patternBonusAmountOverride: 0,
@@ -1417,6 +1429,8 @@ const botiquinCompactoItem = Item(
 /// Arma gris de control ligero que debilita el siguiente golpe enemigo.
 const stunBatonItem = Item(
   id: ItemId.stunBaton,
+  actionType: ItemActionType.attack,
+  actionValue: 1,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Porra de Aturdimiento',
@@ -1590,12 +1604,14 @@ const cyberWhipsItem = Item(
   iconEmoji: '\u{26D3}',
   rarity: RarityTier.green,
   patternBonusKindOverride: _adjAttack,
-  patternBonusAmountOverride: 1,
+  patternBonusAmountOverride: 0,
   patternRequirementOverride: OperativePatternRequirement.straightAngle(),
   baseCost: 4,
   value: 1,
   upgradeValue: 1,
-  effect: IntoxicarOnAttackItemEffect(),
+  actionType: ItemActionType.none,
+  actionValue: 0,
+  effect: CyberWhipsItemEffect(),
 );
 
 /// Accesorio verde que refuerza la Fragilidad cuando Contagio ya prendio.
@@ -1875,6 +1891,8 @@ const ironSwordItem = Item(
   description: '+3 ATK mientras este equipada.',
   iconEmoji: '\u2694',
   rarity: RarityTier.green,
+  actionType: ItemActionType.attack,
+  actionValue: 10,
   patternBonusKindOverride: _adjAttack,
   patternBonusAmountOverride: 3,
   patternRequirementOverride: _patternStraightAngle,
@@ -1894,6 +1912,8 @@ const guardShieldItem = Item(
   description: '+2 Barrera mientras este equipado.',
   iconEmoji: '\u{1F482}',
   rarity: RarityTier.green,
+  actionType: ItemActionType.block,
+  actionValue: 5,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 3,
   patternRequirementOverride: _patternSquare,
@@ -2018,6 +2038,8 @@ const toxicScalpelItem = Item(
       '+1 ATK. Al usarse: aplica o aumenta Intoxicacion. Si ya la tenia, infliges 1 daño directo extra.',
   iconEmoji: '\u{1F9A0}',
   rarity: RarityTier.green,
+  actionType: ItemActionType.attack,
+  actionValue: 2,
   patternBonusKindOverride: _adjAttack,
   patternBonusAmountOverride: 2,
   patternRequirementOverride: _patternLast,
@@ -2143,6 +2165,8 @@ const seguroRotoItem = Item(
 /// Accesorio azul que cura al portar mercancia ajena sin equipar.
 const muestrarioContrabandoItem = Item(
   id: ItemId.muestrarioContrabando,
+  actionType: ItemActionType.heal,
+  actionValue: 3,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaVidaTags,
   name: 'Muestrario de Contrabando',
@@ -3170,6 +3194,8 @@ const sunsteelBladeItem = Item(
 /// Accesorio amarillo centrado en vida maxima.
 const dawnCharmItem = Item(
   id: ItemId.dawnCharm,
+  actionType: ItemActionType.heal,
+  actionValue: 6,
   archetypeAffinities: _generalAffinities,
   tags: _vidaTags,
   name: 'Amuleto del Alba',

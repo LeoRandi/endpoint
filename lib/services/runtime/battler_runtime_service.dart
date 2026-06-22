@@ -441,6 +441,20 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
+  /// Ejecuta solamente el efecto Al usarse del item que se esta resolviendo.
+  ItemEffectResolution applyEquippedItemPatternUsedEffect({
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return _battlerEffectPipeline.applyEquippedItemPatternUsedEffect(
+      owner: this,
+      opponent: opponent,
+      item: item,
+      pattern: pattern,
+    );
+  }
+
   /// Ejecuta efectos de items usados por el Patron antes de resolver su ataque.
   ItemEffectResolution applyEquippedItemPrePatternAttackEffects({
     required Battler opponent,

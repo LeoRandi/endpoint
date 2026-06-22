@@ -23,6 +23,7 @@ class BattleResolver {
     required Battler attacker,
     required Battler defender,
     int flatAttackBonus = 0,
+    int? baseDamageOverride,
     bool triggerAttackResolvedEffects = true,
   }) {
     if (defender.hasStatus(PuntoCiegoStatus.statusId)) {
@@ -34,7 +35,9 @@ class BattleResolver {
     }
 
     final bonusDamage = max(0, flatAttackBonus).toInt();
-    final baseDamage = attacker.calculateDamageAgainst(defender) + bonusDamage;
+    final baseDamage = max(0,
+            baseDamageOverride ?? attacker.calculateDamageAgainst(defender)) +
+        bonusDamage;
     final outgoingStatusModifiedDamage =
         _effectPipeline.applyOutgoingDamageModifiers(
       owner: attacker,

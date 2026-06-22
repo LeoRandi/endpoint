@@ -64,6 +64,13 @@ class MainMenuDebugToolsPage extends StatelessWidget {
                       tooltip: 'Generar un resumen final aleatorio',
                       onPressed: () => _openGeneratedEndResult(context),
                     ),
+                    _DebugToolButton(
+                      label: 'pattern_item_actions_test',
+                      icon: Icons.gesture_rounded,
+                      tooltip:
+                          'Combate Patron contra un enemigo gris con acciones y Gafas de Sol',
+                      onPressed: () => _openPatternItemActionsTest(context),
+                    ),
                   ],
                 ),
               ),
@@ -82,6 +89,48 @@ class MainMenuDebugToolsPage extends StatelessWidget {
           completionType: fixture.completionType,
           player: fixture.player,
           runSummary: fixture.runSummary,
+        ),
+      ),
+    );
+  }
+
+  void _openPatternItemActionsTest(BuildContext context) {
+    final random = Random(DateTime.now().microsecondsSinceEpoch);
+    final enemyNode = grayCombatNodes[random.nextInt(grayCombatNodes.length)];
+    final equippedItems = <Item>[
+      ironSwordItem,
+      guardShieldItem,
+      sunglassesItem,
+      botiquinCompactoItem,
+    ].map((item) => item.toOwnedInstance()).toList(growable: false);
+    final rawPlayer = defaultPlayerBattler.copyWith(
+      name: 'ACTION TEST UNIT',
+      archetypeId: ArchetypeId.veloz,
+      health: 45,
+      equipmentCapacity: equippedItems.length,
+      equippedItems: equippedItems,
+      inventoryItems: const <Item>[],
+      patternItemPointKeys: const <String, String>{},
+    );
+    final layout = OperativePatternLayoutService.resolveForPlayer(
+      player: rawPlayer,
+      random: random,
+    );
+
+    Navigator.of(context).push(
+      buildEndpointSceneRoute<BattleFlowResult>(
+        BattlePage(
+          enemy: enemyNode.enemy,
+          player: layout.player,
+          randomizer: RunRandomizer(
+            seed: DateTime.now().microsecondsSinceEpoch,
+          ),
+          phase: RunHourPhase.day,
+          showTitle: 'PATTERN ACTION TEST',
+          victoryMoneyFactor: enemyNode.tier.factor,
+          enemyTier: enemyNode.tier.factor,
+          returnResultToCaller: true,
+          gameModeOverride: EndpointGameMode.pattern,
         ),
       ),
     );

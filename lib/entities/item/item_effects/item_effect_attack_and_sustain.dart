@@ -1,29 +1,12 @@
 part of '../item_effect.dart';
 
-/// Convierte el ataque basico en un doble golpe a cambio de diluir bonus de items.
+/// Marca el punto que repite al final del Patron todas las acciones anteriores.
 class SunglassesItemEffect extends ItemEffect {
-  /// Crea un efecto reutilizable para las Gafas de Sol.
   const SunglassesItemEffect()
       : super(
           description:
-              'Cada accion de ataque basico se resuelve dos veces, pero los bonus de items, adyacencias y patrones se reducen a la mitad, redondeando hacia arriba.',
-          hooks: const {
-            ItemEffectHook.basicAttackCountModifier,
-          },
+              'Al completar el Patron, repite una vez todas las acciones trazadas antes de este item.',
         );
-
-  /// Anade un ataque extra a cada accion de ataque basico.
-  @override
-
-  /// Ajusta cuantas veces se resuelve el ataque basico.
-  @override
-  int modifyBasicAttackCount({
-    required Battler owner,
-    required Item item,
-    required int count,
-  }) {
-    return count + 1;
-  }
 }
 
 /// Marca el objeto que concede Desafio antes del primer ataque del combate.
@@ -146,6 +129,67 @@ class IntoxicarOnAttackItemEffect extends ItemEffect {
               value: currentPoison.value + resolvedAmount,
             )
           : IntoxicacionStatus(value: resolvedAmount),
+    );
+  }
+}
+
+/// Prepara los ataques restantes del turno para que apliquen Intoxicacion.
+class CyberWhipsItemEffect extends ItemEffect {
+  const CyberWhipsItemEffect()
+      : super(
+          description:
+              'Al usarse, cada ataque posterior de este turno aplica Intoxicacion.',
+          hooks: const {
+            ItemEffectHook.patternUsed,
+            ItemEffectHook.attackResolved,
+          },
+        );
+
+  @override
+  ItemEffectResolution onPatternUsed({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(
+        CombatRuntimeFlag.item(
+          itemFlag: ItemCombatFlagKind.cyberWhipsActiveThisTurn,
+          itemId: item.id,
+          itemInstanceId: item.instanceId,
+          value: owner.combatRound,
+        ),
+      ),
+      opponent: opponent,
+    );
+  }
+
+  @override
+  ItemEffectResolution onAttackResolved({
+    required Battler owner,
+    required Battler target,
+    required Item item,
+    required int damageDealt,
+  }) {
+    final isActive = owner.combatFlags.any(
+      (flag) =>
+          flag.itemFlag == ItemCombatFlagKind.cyberWhipsActiveThisTurn &&
+          flag.itemId == item.id &&
+          flag.itemInstanceId == item.instanceId &&
+          flag.value == owner.combatRound,
+    );
+    if (!isActive) {
+      return ItemEffectResolution(owner: owner, opponent: target);
+    }
+
+    final currentPoison = target.statusById(IntoxicacionStatus.statusId);
+    return _applyStatusToOpponentFromOwner(
+      owner: owner,
+      opponent: target,
+      status: currentPoison is IntoxicacionStatus
+          ? currentPoison.copyWith(value: currentPoison.value + 1)
+          : const IntoxicacionStatus(value: 1),
     );
   }
 }

@@ -152,6 +152,7 @@ enum BattlerCombatFlag {
 
 /// Enumera las flags runtime que usan los items para limitar activaciones por combate.
 enum ItemCombatFlagKind {
+  cyberWhipsActiveThisTurn,
   crackedBatteryUsed,
   eclipseMantleUsed,
   eclipseMantleInitialized,
@@ -850,10 +851,9 @@ class Battler {
     required List<Item> equippedItems,
     required List<BattlerAbility> abilities,
   }) {
-    return equippedItems.any((item) => item.id == ItemId.sunglasses) ||
-        abilities.any(
-          (ability) => ability.id == BattlerAbilityId.aceleracionFotovoltaica,
-        );
+    return abilities.any(
+      (ability) => ability.id == BattlerAbilityId.aceleracionFotovoltaica,
+    );
   }
 
   /// Calcula el coste de XP del siguiente nivel sin escalado entre niveles.

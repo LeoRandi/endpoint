@@ -367,6 +367,15 @@ Item? _deserializeItem(Map<String, dynamic> json) {
       json['upgradeStatModifiers'],
       fallback: preset.upgradeStatModifiers,
     ),
+    actionType: EndpointJsonUtils.parseEnumByName(
+          ItemActionType.values,
+          json['actionType'],
+        ) ??
+        preset.actionType,
+    actionValue: EndpointJsonUtils.readInt(
+      json['actionValue'],
+      fallback: preset.actionValue,
+    ),
     instanceId: instanceId,
     patternBonusKindOverride: EndpointJsonUtils.parseEnumByName(
       OperativePatternBonusKind.values,
@@ -496,6 +505,8 @@ Map<String, Object?> _serializeItem(Item item) {
     'statModifiers': _serializeStatMap(item.statModifiers),
     'upgradeStatModifiers': _serializeStatMap(item.upgradeStatModifiers),
     'hasEffect': item.hasEffect,
+    'actionType': item.actionType.name,
+    'actionValue': item.actionValue,
     'hasPatternBonus': item.hasPatternBonus,
     'patternBonusKind':
         item.hasPatternBonus ? item.patternBonusKind.name : null,

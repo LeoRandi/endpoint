@@ -81,8 +81,11 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
       widget.accent,
       0.08,
     );
-    final shouldShowPatternBonus =
-        _gameMode == EndpointGameMode.pattern && widget.item.hasPatternBonus;
+    final shouldShowPatternBonus = _gameMode == EndpointGameMode.pattern &&
+        widget.item.actionType == ItemActionType.none &&
+        widget.item.hasPatternBonus;
+    final shouldShowPatternAction = _gameMode == EndpointGameMode.pattern &&
+        widget.item.actionType != ItemActionType.none;
 
     return EndpointDetailsDialogScaffold(
       accent: widget.accent,
@@ -194,6 +197,13 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
           if (shouldShowPatternBonus) ...[
             const SizedBox(height: 12),
             _ItemPatternBonusSection(item: widget.item),
+          ],
+          if (shouldShowPatternAction) ...[
+            const SizedBox(height: 12),
+            EndpointItemPatternBadges(
+              item: widget.item,
+              alignment: WrapAlignment.start,
+            ),
           ],
           if (widget.actionLabel != null ||
               widget.secondaryActionLabel != null) ...[

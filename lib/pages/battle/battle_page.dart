@@ -131,6 +131,7 @@ class BattlePage extends StatefulWidget {
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
   final bool returnResultToCaller;
+  final EndpointGameMode? gameModeOverride;
 
   const BattlePage({
     super.key,
@@ -144,6 +145,7 @@ class BattlePage extends StatefulWidget {
     this.enemyTurnDelay = const Duration(milliseconds: 900),
     this.combatEndDelay = const Duration(seconds: 2),
     this.returnResultToCaller = false,
+    this.gameModeOverride,
   });
 
   @override
@@ -295,7 +297,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   Future<void> _loadSettingsSnapshot() async {
-    final settings = await EndpointPreferencesService.loadSettingsSnapshot();
+    final loaded = await EndpointPreferencesService.loadSettingsSnapshot();
+    final settings = _settingsForBattle(loaded);
     if (!mounted) return;
     setState(() {
       _settingsSnapshot = settings;
@@ -306,8 +309,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     final currentSettings = _settingsSnapshot;
     if (currentSettings != null) return currentSettings;
 
-    final loadedSettings =
-        await EndpointPreferencesService.loadSettingsSnapshot();
+    final loadedSettings = _settingsForBattle(
+      await EndpointPreferencesService.loadSettingsSnapshot(),
+    );
     if (mounted) {
       setState(() {
         _settingsSnapshot = loadedSettings;
@@ -316,6 +320,13 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       _settingsSnapshot = loadedSettings;
     }
     return loadedSettings;
+  }
+
+  EndpointSettingsSnapshot _settingsForBattle(
+    EndpointSettingsSnapshot settings,
+  ) {
+    final override = widget.gameModeOverride;
+    return override == null ? settings : settings.copyWith(gameMode: override);
   }
 
   bool get _isPatternMode =>
@@ -492,18 +503,9 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.player)) {
       _sceneController.replacePlayer(patternLayout.player);
     }
-    final pendingEnemyBlockAction = _planEnemyBlockActionForPlayerBoard();
-    final availableBlockingPoints =
-        OperativePatternCombatRules.maxBlockingPointsFor(
-      _sceneController.player,
-    );
-    final availableEnemyBlockingPoints = max(
-      0,
-      OperativePatternCombatRules.maxBlockingPointsFor(
-            _sceneController.enemy,
-          ) -
-          _sceneController.player.removedWallBlockingPointDebt,
-    );
+    const BattlePatternEnemyBlockAction? pendingEnemyBlockAction = null;
+    const availableBlockingPoints = 0;
+    const availableEnemyBlockingPoints = 0;
     var didResolveTurn = false;
     final matchResult = await showEndpointOverlay<BattlePatternMatchResult>(
       context: context,
@@ -516,8 +518,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           player: _sceneController.player,
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
-          wallSegments: _sceneController.player.combatWallSegments,
-          blockedPointKeys: _sceneController.player.combatBlockedPointKeys,
+          wallSegments: const <OperativePatternWallSegment>[],
+          blockedPointKeys: const <String>{},
           pendingEnemyBlockAction: pendingEnemyBlockAction,
           enemyTier: widget.enemyTier,
           combatRound: _sceneController.currentRound,
@@ -528,6 +530,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
               _sceneController.playerActionIntentPreview.attackEffects,
           itemPointUseCounts: _patternItemPointUseCounts,
           previousYellowBlockMode: _previousYellowPatternBlockMode,
+          bannedPatternPointKeys: _sceneController.playerBannedPatternPointKeys,
           randomNextInt: _sceneController.randomizer.nextInt,
           combatAnimationOverlay: _patternCombatAnimationOverlay,
           visualBattlers: _patternVisualBattlers,
@@ -551,23 +554,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
             didResolveTurn = true;
-            final reinforcedBarrierBonus = _reinforcedPatternBarrierBonusFor(
-              player: _sceneController.player,
-              nextWalls: matchResult.playerWallSegments,
-            );
-            _sceneController.replacePlayer(
-              _sceneController.player.copyWith(
-                combatWallSegments: matchResult.playerWallSegments,
-                combatBlockedPointKeys: matchResult.playerBlockedPointKeys,
-              ),
-            );
             _recordPatternMatchResult(matchResult);
             await _sceneController.handlePlayerPatternMatch(
               actionBonus: BattleActionBonus(
                 attackBonus: matchResult.attackBonus,
                 healAmount: matchResult.healthBonus,
-                immediateBarrierAmount:
-                    matchResult.barrierBonus + reinforcedBarrierBonus,
+                immediateBarrierAmount: matchResult.barrierBonus,
               ),
               patternContext: matchResult.patternContext,
               scheduleEnemyTurn: false,
@@ -577,29 +569,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       ),
     );
     return mounted && (didResolveTurn || matchResult != null);
-  }
-
-  int _reinforcedPatternBarrierBonusFor({
-    required Battler player,
-    required List<OperativePatternWallSegment> nextWalls,
-  }) {
-    final reinforcedPointKey = player.reinforcedPatternPointKey;
-    if (reinforcedPointKey == null) return 0;
-
-    final reinforcedPoint = operativePatternPointsByKey[reinforcedPointKey];
-    if (reinforcedPoint == null) return 0;
-
-    final previousWallKeys =
-        player.combatWallSegments.map((wall) => wall.key).toSet();
-    var bonus = 0;
-    for (final wall in nextWalls) {
-      if (previousWallKeys.contains(wall.key)) continue;
-      if (wall.a == reinforcedPoint || wall.b == reinforcedPoint) {
-        bonus++;
-      }
-    }
-
-    return bonus;
   }
 
   void _recordPatternMatchResult(BattlePatternMatchResult result) {
@@ -622,15 +591,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.enemy)) {
       _sceneController.replaceEnemy(patternLayout.player);
     }
-    final playerWallCapacity = max(
-      0,
-      OperativePatternCombatRules.maxBlockingPointsFor(
-            _sceneController.player,
-          ) -
-          _sceneController.enemy.removedWallBlockingPointDebt,
-    );
-    final enemyOverchargesPattern =
-        playerWallCapacity > 0 && _sceneController.randomizer.nextInt(2) == 0;
+    const playerWallCapacity = 0;
+    const enemyOverchargesPattern = false;
     var didResolveTurn = false;
     final matchResult =
         await showEndpointOverlay<EnemyBattlePatternMatchResult>(
@@ -644,8 +606,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           player: _sceneController.player,
           enemy: _sceneController.enemy,
           equippedItemsByPointKey: patternLayout.itemsByPointKey,
-          wallSegments: _sceneController.enemy.combatWallSegments,
-          blockedPointKeys: _sceneController.enemy.combatBlockedPointKeys,
+          wallSegments: const <OperativePatternWallSegment>[],
+          blockedPointKeys: const <String>{},
           maxBlockingPoints: playerWallCapacity,
           maxWallActions:
               OperativePatternCombatRules.wallActionsPerBlockingTurnFor(
@@ -654,6 +616,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           enemyOverchargesPattern: enemyOverchargesPattern,
           combatRound: _sceneController.currentRound,
           randomNextInt: _sceneController.randomizer.nextInt,
+          bannedPatternPointKeys: _sceneController.enemyBannedPatternPointKeys,
           combatAnimationOverlay: _patternCombatAnimationOverlay,
           visualBattlers: _patternVisualBattlers,
           onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
@@ -676,12 +639,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
             didResolveTurn = true;
-            _sceneController.replaceEnemy(
-              _sceneController.enemy.copyWith(
-                combatWallSegments: matchResult.wallSegments,
-                combatBlockedPointKeys: matchResult.blockedPointKeys,
-              ),
-            );
             await _sceneController.handleEnemyPatternMatch(
               actionBonus: BattleActionBonus(
                 attackBonus: matchResult.attackBonus,
@@ -695,95 +652,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       ),
     );
     return mounted && (didResolveTurn || matchResult != null);
-  }
-
-  BattlePatternEnemyBlockAction? _planEnemyBlockActionForPlayerBoard() {
-    final capacity = max(
-      0,
-      OperativePatternCombatRules.maxBlockingPointsFor(
-            _sceneController.enemy,
-          ) -
-          _sceneController.player.removedWallBlockingPointDebt,
-    );
-    if (capacity <= 0) return null;
-
-    final currentWalls = _sceneController.player.combatWallSegments;
-    final currentBlockedPointKeys =
-        _sceneController.player.combatBlockedPointKeys;
-    final usedBlockingPoints = (currentWalls.length *
-            OperativePatternCombatRules.wallBlockingPointCost) +
-        (currentBlockedPointKeys.length *
-            OperativePatternCombatRules.pointBlockingPointCost);
-    final remainingBlockingPoints = capacity - usedBlockingPoints;
-    if (remainingBlockingPoints <= 0) return null;
-
-    if (remainingBlockingPoints >=
-        OperativePatternCombatRules.wallBlockingPointCost) {
-      final wall = _randomWallCandidate(currentWalls: currentWalls);
-      if (wall != null) {
-        return BattlePatternEnemyBlockAction.wall(wall);
-      }
-    }
-
-    if (remainingBlockingPoints >=
-        OperativePatternCombatRules.pointBlockingPointCost) {
-      final point = _randomPointBlockCandidate(
-        currentBlockedPointKeys: currentBlockedPointKeys,
-      );
-      if (point != null) {
-        return BattlePatternEnemyBlockAction.point(point);
-      }
-    }
-
-    return null;
-  }
-
-  OperativePatternWallSegment? _randomWallCandidate({
-    required List<OperativePatternWallSegment> currentWalls,
-  }) {
-    final candidates = _allPatternWallCandidates();
-    if (candidates.isEmpty) return null;
-
-    final currentKeys = currentWalls.map((wall) => wall.key).toSet();
-    final available = candidates
-        .where((wall) => !currentKeys.contains(wall.key))
-        .toList(growable: false);
-    if (available.isEmpty) return null;
-
-    return available[_sceneController.randomizer.nextInt(
-      available.length,
-    )];
-  }
-
-  OperativePatternPoint? _randomPointBlockCandidate({
-    required Set<String> currentBlockedPointKeys,
-  }) {
-    final available = operativePatternPoints
-        .where((point) => !currentBlockedPointKeys.contains(point.key))
-        .toList(growable: false);
-    if (available.isEmpty) return null;
-
-    return available[_sceneController.randomizer.nextInt(
-      available.length,
-    )];
-  }
-
-  List<OperativePatternWallSegment> _allPatternWallCandidates() {
-    final candidates = <OperativePatternWallSegment>[];
-    for (final point in operativePatternPoints) {
-      for (final delta in const [
-        (x: 1, y: 0),
-        (x: 0, y: 1),
-      ]) {
-        final neighbor = operativePatternPointAt(
-          x: point.x + delta.x,
-          y: point.y + delta.y,
-        );
-        if (neighbor == null) continue;
-        candidates.add(OperativePatternWallSegment(a: point, b: neighbor));
-      }
-    }
-    return List<OperativePatternWallSegment>.unmodifiable(candidates);
   }
 
   void _handlePatternAnimationTargetsChanged(
@@ -1584,6 +1452,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final showBaseSceneAnimationLayers = !_isPresentingPatternMatch;
     return _BattleSceneView(
       showTitle: widget.showTitle,
       sceneController: _sceneController,
@@ -1598,11 +1467,20 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       playerStatusBarKey: _playerStatusBarKey,
       enemyStatusBarKey: _enemyStatusBarKey,
       attackFlightAnimation: _attackFlightController,
-      activeCombatIconMotion: _animation.activeCombatIconMotion,
-      activeStatusEffectBurst: _animation.activeStatusEffectBurst,
-      activeFloatingNumberBurst: _animation.activeFloatingNumberBurst,
-      activeMoneyBurst: _animation.activeMoneyBurst,
-      activeFragilidadBurst: _animation.activeFragilidadBurst,
+      activeCombatIconMotion: showBaseSceneAnimationLayers
+          ? _animation.activeCombatIconMotion
+          : null,
+      activeStatusEffectBurst: showBaseSceneAnimationLayers
+          ? _animation.activeStatusEffectBurst
+          : null,
+      activeFloatingNumberBurst: showBaseSceneAnimationLayers
+          ? _animation.activeFloatingNumberBurst
+          : null,
+      activeMoneyBurst:
+          showBaseSceneAnimationLayers ? _animation.activeMoneyBurst : null,
+      activeFragilidadBurst: showBaseSceneAnimationLayers
+          ? _animation.activeFragilidadBurst
+          : null,
       playerBarrierAnimationReference:
           _animation.playerBarrierAnimationReference,
       enemyBarrierAnimationReference: _animation.enemyBarrierAnimationReference,

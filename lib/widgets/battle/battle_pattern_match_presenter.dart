@@ -76,7 +76,8 @@ abstract final class BattlePatternMatchPresenter {
     final item = equippedItemsByPointKey[usedItemPointKeys.first];
     if (item == null) return false;
 
-    return item.modifier(BattlerStat.attack) > 0 ||
+    return item.actionType == ItemActionType.attack ||
+        item.modifier(BattlerStat.attack) > 0 ||
         (item.hasPatternBonus &&
             item.patternBonus.kind == OperativePatternBonusKind.attack) ||
         item.patternAdjacencyBonuses.any(
@@ -108,19 +109,37 @@ abstract final class BattlePatternMatchPresenter {
     required OperativePatternResolution resolution,
     bool Function(Item item)? isFallbackBonusEligible,
   }) {
+    final allowedBonusKinds = <OperativePatternBonusKind>{
+      for (final item in equippedItemsByPointKey.values)
+        if (item.actionType == ItemActionType.attack)
+          OperativePatternBonusKind.attack
+        else if (item.actionType == ItemActionType.block)
+          OperativePatternBonusKind.barrier
+        else if (item.actionType == ItemActionType.heal)
+          OperativePatternBonusKind.health,
+    };
     return <String, OperativePatternPointContent>{
       for (final entry in equippedItemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
-          bonus: entry.value.hasPatternBonus
-              ? entry.value.patternBonus
-              : isFallbackBonusEligible?.call(entry.value) == false
-                  ? null
-                  : bonusesByPointKey[entry.key],
-          requirement: entry.value.hasPatternBonus
+          bonus: entry.value.actionType != ItemActionType.none
+              ? null
+              : entry.value.hasPatternBonus &&
+                      allowedBonusKinds.contains(entry.value.patternBonusKind)
+                  ? entry.value.patternBonus
+                  : isFallbackBonusEligible?.call(entry.value) == false
+                      ? null
+                      : bonusesByPointKey[entry.key],
+          requirement: entry.value.actionType == ItemActionType.none &&
+                  entry.value.hasPatternBonus &&
+                  allowedBonusKinds.contains(entry.value.patternBonusKind)
               ? entry.value.patternRequirement
               : null,
-          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
+          adjacencyBonuses: entry.value.patternAdjacencyBonuses
+              .where(
+                (bonus) => allowedBonusKinds.contains(bonus.bonus.kind),
+              )
+              .toList(growable: false),
           activatedAdjacencyBonuses:
               resolution.activatedAdjacencyBonusesAt(entry.key),
           isBonusEnabled: resolution.isItemBonusEnabledAt(entry.key),
@@ -140,6 +159,7 @@ abstract final class BattlePatternEnemyPlanner {
     required Set<String> blockedPointKeys,
     required Map<String, Item> equippedItemsByPointKey,
     required Iterable<OperativePatternWallSegment> activeWalls,
+    List<List<String>> bannedPatternPointKeys = const <List<String>>[],
   }) {
     for (var attempt = 0; attempt < 3; attempt++) {
       final pattern = buildPattern(
@@ -147,6 +167,7 @@ abstract final class BattlePatternEnemyPlanner {
         blockedPointKeys: blockedPointKeys,
         equippedItemsByPointKey: equippedItemsByPointKey,
         activeWalls: activeWalls,
+        bannedPatternPointKeys: bannedPatternPointKeys,
       );
       if (OperativePatternRequirement.isClosedPattern(pattern)) {
         return pattern;
@@ -161,6 +182,7 @@ abstract final class BattlePatternEnemyPlanner {
     required Set<String> blockedPointKeys,
     required Map<String, Item> equippedItemsByPointKey,
     required Iterable<OperativePatternWallSegment> activeWalls,
+    List<List<String>> bannedPatternPointKeys = const <List<String>>[],
   }) {
     final maxDistinctPoints = max(3, maxPatternPoints);
     final candidates = <OperativePatternPoint>[
@@ -183,6 +205,7 @@ abstract final class BattlePatternEnemyPlanner {
         targetLength: targetLength,
         equippedItemsByPointKey: equippedItemsByPointKey,
         activeWalls: activeWalls,
+        bannedPatternPointKeys: bannedPatternPointKeys,
       );
       if (selected != null) {
         return List<OperativePatternPoint>.unmodifiable([
@@ -200,6 +223,7 @@ abstract final class BattlePatternEnemyPlanner {
     required int targetLength,
     required Map<String, Item> equippedItemsByPointKey,
     required Iterable<OperativePatternWallSegment> activeWalls,
+    required List<List<String>> bannedPatternPointKeys,
   }) {
     List<OperativePatternPoint>? bestPattern;
     var bestScore = -1;
@@ -213,6 +237,15 @@ abstract final class BattlePatternEnemyPlanner {
           from: path.last,
           to: path.first,
           activeWalls: activeWalls,
+        )) {
+          return;
+        }
+        final closedPointKeys = <String>[
+          ...path.map((point) => point.key),
+          path.first.key,
+        ];
+        if (bannedPatternPointKeys.any(
+          (banned) => _sameOrderedPointKeys(banned, closedPointKeys),
         )) {
           return;
         }
@@ -267,6 +300,14 @@ abstract final class BattlePatternEnemyPlanner {
     );
   }
 
+  static bool _sameOrderedPointKeys(List<String> first, List<String> second) {
+    if (first.length != second.length) return false;
+    for (var index = 0; index < first.length; index++) {
+      if (first[index] != second[index]) return false;
+    }
+    return true;
+  }
+
   static Set<String> connectedWallKeysFor(
     Iterable<OperativePatternWallSegment> walls,
   ) {
@@ -294,7 +335,12 @@ abstract final class BattlePatternEnemyPlanner {
 
   static int pointPriority(Item? item) {
     if (item == null) return 0;
-    var score = item.modifier(BattlerStat.attack) * 3;
+    var score = switch (item.actionType) {
+      ItemActionType.attack => item.actionValue * 4,
+      ItemActionType.block => item.actionValue * 3,
+      ItemActionType.heal => item.actionValue * 2,
+      ItemActionType.none => item.modifier(BattlerStat.attack) * 3,
+    };
     if (item.hasPatternBonus &&
         item.patternBonus.kind == OperativePatternBonusKind.attack) {
       score += item.patternBonus.amount * 4;

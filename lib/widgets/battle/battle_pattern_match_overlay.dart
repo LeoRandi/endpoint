@@ -1,7 +1,6 @@
 import '../_imports.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/battle/battle_combat_animation.dart';
-import '../../services/battle/battler_effect_pipeline.dart';
 import '../../services/battle/battle_controller.dart';
 import '../../services/battle/battle_pattern_block_plan_service.dart';
 import '../../services/pattern/operative_pattern_bonus_service.dart';
@@ -33,11 +32,7 @@ class BattlePatternVisualBattlers {
   });
 }
 
-const _battlePatternBlockStartDelay = Duration(milliseconds: 500);
-const _battlePatternBlockTravelDuration = Duration(milliseconds: 500);
-const _battlePatternEnemyBlockPreviewDuration = Duration(seconds: 1);
 const _enemyPatternPointStepDuration = Duration(milliseconds: 750);
-const _battlePatternBlockMarkSize = 50.0;
 
 enum _BattlePatternBlockPlacementMode {
   wall,
@@ -62,6 +57,19 @@ bool _hasPassCardWallDisableActive(Battler battler) {
   return battler.combatFlags.any(
     (flag) => flag.itemFlag == ItemCombatFlagKind.passCardWallsDisabledThisTurn,
   );
+}
+
+bool _containsOrderedPattern(
+  List<List<String>> patterns,
+  List<String> candidate,
+) {
+  return patterns.any((pattern) {
+    if (pattern.length != candidate.length) return false;
+    for (var index = 0; index < pattern.length; index++) {
+      if (pattern[index] != candidate[index]) return false;
+    }
+    return true;
+  });
 }
 
 class BattlePatternMatchResult {
@@ -193,6 +201,7 @@ class BattlePatternMatchOverlay extends StatefulWidget {
   final List<PlayerActionEffectIntent> actionEffects;
   final Map<String, int> itemPointUseCounts;
   final BattlePatternBlockMode? previousYellowBlockMode;
+  final List<List<String>> bannedPatternPointKeys;
   final int Function(int max)? randomNextInt;
   final Future<void> Function(BattlePatternMatchResult result)? onResolve;
   final ValueListenable<Widget?>? combatAnimationOverlay;
@@ -219,6 +228,7 @@ class BattlePatternMatchOverlay extends StatefulWidget {
     this.actionEffects = const <PlayerActionEffectIntent>[],
     this.itemPointUseCounts = const <String, int>{},
     this.previousYellowBlockMode,
+    this.bannedPatternPointKeys = const <List<String>>[],
     this.randomNextInt,
     this.onResolve,
     this.combatAnimationOverlay,
@@ -235,29 +245,21 @@ class BattlePatternMatchOverlay extends StatefulWidget {
       _BattlePatternMatchOverlayState();
 }
 
-class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
-    with TickerProviderStateMixin {
+class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
   final GlobalKey _matchStackKey = GlobalKey();
   final GlobalKey _enemySpriteKey = GlobalKey();
   final GlobalKey _enemyStatusKey = GlobalKey();
   final GlobalKey _playerSpriteKey = GlobalKey();
   final GlobalKey _playerStatusKey = GlobalKey();
-  final GlobalKey _patternBoardKey = GlobalKey();
-  late final AnimationController _blockMotionController;
   late final Map<String, OperativePatternBonus> _bonusesByPointKey;
   late final int _maxPatternPoints;
   late final int _availableBlockingPointsAtTurnStart;
   late final int _initialWallCount;
   late final int _initialBlockedPointCount;
   late final BattlePatternBlockPlan _blockPlan;
-  Timer? _blockStartTimer;
-  List<Animation<Offset>> _blockMarkMotions = const <Animation<Offset>>[];
   late List<OperativePatternWallSegment> _wallSegments;
   late Set<String> _blockedPointKeys;
-  OperativePatternWallSegment? _previewEnemyWallSegment;
-  OperativePatternPoint? _previewEnemyBlockedPoint;
   List<OperativePatternPoint> _patternPoints = const <OperativePatternPoint>[];
-  bool _blockAnimationStarted = false;
   bool _blockAnimationCompleted = false;
   bool _hasSwappedToPlayerCorners = false;
   bool _hasSubmitted = false;
@@ -265,10 +267,6 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   @override
   void initState() {
     super.initState();
-    _blockMotionController = AnimationController(
-      vsync: this,
-      duration: _battlePatternBlockTravelDuration,
-    )..addStatusListener(_handleBlockMotionStatus);
     final randomNextInt = widget.randomNextInt ?? Random().nextInt;
     _blockPlan = BattlePatternBlockPlanService.resolve(
       enemyTier: widget.enemyTier,
@@ -284,6 +282,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       occupiedPointKeys: widget.equippedItemsByPointKey.keys,
       adaptableOccupiedPointKeys: _adaptationEligiblePointKeys(),
       maxAdaptableBonusAmount: _adaptationBonusCap(),
+      allowedKinds: _availableActionBonusKinds(widget.player),
       nextInt: randomNextInt,
     );
     _maxPatternPoints = OperativePatternCombatRules.maxPatternPointsFor(
@@ -291,193 +290,18 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     );
     _availableBlockingPointsAtTurnStart =
         max(0, widget.availableBlockingPoints);
-    _wallSegments = List<OperativePatternWallSegment>.unmodifiable(
-      widget.wallSegments,
-    );
-    _blockedPointKeys = Set<String>.unmodifiable(widget.blockedPointKeys);
+    _wallSegments = const <OperativePatternWallSegment>[];
+    _blockedPointKeys = const <String>{};
     _initialWallCount = _wallSegments.length;
     _initialBlockedPointCount = _blockedPointKeys.length;
-    if (widget.pendingEnemyBlockAction != null &&
-        !widget.pendingEnemyBlockAction!.isEmpty) {
-      _scheduleEnemyBoardBlockPreview();
-    } else if (_blockPlan.points.isEmpty) {
-      _blockAnimationStarted = true;
-      _scheduleUnblockedEnemyStepCompletion();
-    } else {
-      _scheduleBlockAnimationConfiguration();
-    }
+    _blockAnimationCompleted = true;
+    _hasSwappedToPlayerCorners = true;
   }
 
   @override
   void dispose() {
-    _blockStartTimer?.cancel();
-    _blockMotionController.dispose();
     widget.onAnimationTargetsChanged?.call(null);
     super.dispose();
-  }
-
-  void _scheduleEnemyBoardBlockPreview() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _blockAnimationCompleted) return;
-      final action = widget.pendingEnemyBlockAction;
-      if (action == null || action.isEmpty) {
-        _scheduleUnblockedEnemyStepCompletion();
-        return;
-      }
-
-      setState(() {
-        _blockAnimationStarted = true;
-        _previewEnemyWallSegment = action.wallSegment;
-        _previewEnemyBlockedPoint = action.point;
-      });
-
-      _blockStartTimer?.cancel();
-      _blockStartTimer = Timer(_battlePatternEnemyBlockPreviewDuration, () {
-        if (!mounted || _blockAnimationCompleted) return;
-        _commitEnemyBoardBlockAction(action);
-      });
-    });
-  }
-
-  void _commitEnemyBoardBlockAction(BattlePatternEnemyBlockAction action) {
-    final wall = action.wallSegment;
-    final point = action.point;
-    setState(() {
-      if (wall != null &&
-          !_wallSegments.any((segment) => segment.key == wall.key)) {
-        _wallSegments = List<OperativePatternWallSegment>.unmodifiable([
-          ..._wallSegments,
-          wall,
-        ]);
-      }
-      if (point != null && !_blockedPointKeys.contains(point.key)) {
-        _blockedPointKeys = Set<String>.unmodifiable({
-          ..._blockedPointKeys,
-          point.key,
-        });
-      }
-      _previewEnemyWallSegment = null;
-      _previewEnemyBlockedPoint = null;
-      _blockAnimationCompleted = true;
-      _hasSwappedToPlayerCorners = true;
-    });
-  }
-
-  void _scheduleBlockAnimationConfiguration() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _configureBlockAnimation();
-    });
-  }
-
-  void _scheduleUnblockedEnemyStepCompletion() {
-    _blockStartTimer?.cancel();
-    _blockStartTimer = Timer(_battlePatternBlockStartDelay, () {
-      if (!mounted || _blockAnimationCompleted) return;
-      _completeEnemyBlockingStep();
-    });
-  }
-
-  void _configureBlockAnimation() {
-    if (!mounted || _blockAnimationStarted) return;
-
-    final start = _localCenterFor(_enemySpriteKey);
-    final ends = <Offset>[];
-    for (final point in _blockPlan.points) {
-      final end = _localBlockedPointCenter(point);
-      if (end == null) {
-        _scheduleBlockAnimationConfiguration();
-        return;
-      }
-      ends.add(end);
-    }
-
-    if (start == null || ends.isEmpty) {
-      _scheduleBlockAnimationConfiguration();
-      return;
-    }
-
-    _blockMarkMotions = List<Animation<Offset>>.unmodifiable(
-      ends.map(
-        (end) => Tween<Offset>(
-          begin: start,
-          end: end,
-        ).animate(
-          CurvedAnimation(
-            parent: _blockMotionController,
-            curve: Curves.easeInOutCubic,
-          ),
-        ),
-      ),
-    );
-
-    setState(() {
-      _blockAnimationStarted = true;
-    });
-    _blockStartTimer?.cancel();
-    _blockStartTimer = Timer(_battlePatternBlockStartDelay, () {
-      if (!mounted || _blockAnimationCompleted) return;
-      _blockMotionController.forward();
-    });
-  }
-
-  Offset? _localCenterFor(GlobalKey key) {
-    final stackRenderObject = _matchStackKey.currentContext?.findRenderObject();
-    final targetRenderObject = key.currentContext?.findRenderObject();
-    if (stackRenderObject is! RenderBox ||
-        targetRenderObject is! RenderBox ||
-        !stackRenderObject.hasSize ||
-        !targetRenderObject.hasSize ||
-        targetRenderObject.size.width <= 0 ||
-        targetRenderObject.size.height <= 0) {
-      return null;
-    }
-
-    final targetCenter = Offset(
-      targetRenderObject.size.width / 2,
-      targetRenderObject.size.height / 2,
-    );
-    return stackRenderObject.globalToLocal(
-      targetRenderObject.localToGlobal(targetCenter),
-    );
-  }
-
-  Offset? _localBlockedPointCenter(OperativePatternPoint point) {
-    final stackRenderObject = _matchStackKey.currentContext?.findRenderObject();
-    final boardRenderObject =
-        _patternBoardKey.currentContext?.findRenderObject();
-    if (stackRenderObject is! RenderBox ||
-        boardRenderObject is! RenderBox ||
-        !stackRenderObject.hasSize ||
-        !boardRenderObject.hasSize ||
-        boardRenderObject.size.width <= 0 ||
-        boardRenderObject.size.height <= 0) {
-      return null;
-    }
-
-    final localPointCenter = operativePatternBoardLocalCenterFor(
-      boardSize: boardRenderObject.size,
-      point: point,
-    );
-    return stackRenderObject.globalToLocal(
-      boardRenderObject.localToGlobal(localPointCenter),
-    );
-  }
-
-  void _handleBlockMotionStatus(AnimationStatus status) {
-    if (status != AnimationStatus.completed ||
-        _blockAnimationCompleted ||
-        !mounted) {
-      return;
-    }
-
-    _completeEnemyBlockingStep();
-  }
-
-  void _completeEnemyBlockingStep() {
-    setState(() {
-      _blockAnimationCompleted = true;
-      _hasSwappedToPlayerCorners = true;
-    });
   }
 
   OperativePatternResolution get _currentResolution {
@@ -594,6 +418,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
   Future<void> _submit() async {
     if (_hasSubmitted || !_blockAnimationCompleted) return;
     if (!OperativePatternRequirement.isClosedPattern(_patternPoints)) return;
+    if (_isCurrentPatternBanned) return;
     _hasSubmitted = true;
     final result = _currentResult;
     await widget.onResolve?.call(result);
@@ -601,57 +426,10 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
     Navigator.of(context).pop(result);
   }
 
-  int _estimatedHitDamageFor(int attackBonus) {
-    if (widget.enemy.hasStatus(PuntoCiegoStatus.statusId)) return 0;
-
-    const effectPipeline = BattlerEffectPipeline();
-    final baseDamage = (widget.player.calculateDamageAgainst(widget.enemy) +
-            max(0, attackBonus))
-        .toInt();
-    final outgoingStatusModifiedDamage =
-        effectPipeline.applyOutgoingDamageModifiers(
-      owner: widget.player,
-      target: widget.enemy,
-      damage: baseDamage,
-    );
-    final outgoingAbilityModifiedDamage =
-        effectPipeline.applyAbilityOutgoingDamageModifiers(
-      owner: widget.player,
-      target: widget.enemy,
-      damage: outgoingStatusModifiedDamage,
-    );
-    final outgoingItemModifiedDamage =
-        effectPipeline.applyEquippedItemOutgoingDamageModifiers(
-      owner: widget.player,
-      target: widget.enemy,
-      damage: outgoingAbilityModifiedDamage,
-    );
-    final incomingStatusModifiedDamage =
-        effectPipeline.applyIncomingDamageModifiers(
-      owner: widget.enemy,
-      source: widget.player,
-      damage: outgoingItemModifiedDamage,
-    );
-    final incomingAbilityModifiedDamage =
-        effectPipeline.applyAbilityIncomingDamageModifiers(
-      owner: widget.enemy,
-      source: widget.player,
-      damage: incomingStatusModifiedDamage,
-    );
-    return effectPipeline.applyEquippedItemIncomingDamageModifiers(
-      owner: widget.enemy,
-      source: widget.player,
-      damage: incomingAbilityModifiedDamage,
-    );
-  }
-
-  String _estimatedTotalDamageLabelFor(int attackBonus) {
-    final hitDamage = _estimatedHitDamageFor(attackBonus);
-    final hitCount = max(1, widget.player.basicAttackCount);
-    if (hitCount <= 1) return '$hitDamage';
-
-    return '${max(0, hitDamage)}x$hitCount';
-  }
+  bool get _isCurrentPatternBanned => _containsOrderedPattern(
+        widget.bannedPatternPointKeys,
+        _patternPoints.map((point) => point.key).toList(growable: false),
+      );
 
   Map<String, OperativePatternPointContent> _buildContentsByPointKey(
     OperativePatternResolution resolution,
@@ -676,8 +454,6 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
       _wallSegments,
       _blockedPointKeys,
     );
-    final baseHitDamage = _estimatedHitDamageFor(0);
-    final totalDamageLabel = _estimatedTotalDamageLabelFor(result.attackBonus);
     final blockedPointKeys = _blockedPointKeys;
     final isBoardDimmed = !_blockAnimationCompleted;
     final disabledWallSegmentKeys = _hasPassCardWallDisableActive(
@@ -723,8 +499,6 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
         accent: EndpointPalette.patternAccent,
         entryAccent: EndpointPalette.dangerAccent,
         summary: _BattlePatternLiveSummary(
-          baseHitDamage: baseHitDamage,
-          totalDamageLabel: totalDamageLabel,
           attackBonus: result.attackBonus,
           barrierBonus: result.barrierBonus,
           healthBonus: result.healthBonus,
@@ -762,15 +536,20 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
         round: widget.combatRound,
         purgeDoctrine: widget.player.purgeDoctrine,
         finishEnabled: _blockAnimationCompleted &&
-            OperativePatternRequirement.isClosedPattern(_patternPoints),
+            OperativePatternRequirement.isClosedPattern(_patternPoints) &&
+            !_isCurrentPatternBanned,
+        finishTooltip: _isCurrentPatternBanned
+            ? 'Este Patron sigue bloqueado durante tres rondas.'
+            : 'Terminar turno y resolver el Patron.',
         onFinish: _submit,
         dimPatternPoints: false,
         dimBlockPoints: false,
-        dimFinishButton: isBoardDimmed,
+        dimFinishButton: isBoardDimmed || _isCurrentPatternBanned,
         isPatternCornerActive: !isBoardDimmed,
         isBlockCornerActive: false,
         isRearPatternCornerActive: false,
         isRearBlockCornerActive: false,
+        showBlockingCorners: false,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -787,7 +566,6 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                       child: Transform.rotate(
                         angle: pi / 4,
                         child: OperativePatternBoard(
-                          key: _patternBoardKey,
                           contentsByPointKey: _buildContentsByPointKey(
                             resolution,
                           ),
@@ -798,9 +576,8 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
                           maxPatternPoints: _effectiveMaxPatternPoints,
                           wallSegments: _wallSegments,
                           disabledWallSegmentKeys: disabledWallSegmentKeys,
-                          previewWallSegment: _previewEnemyWallSegment,
-                          previewBlockedPointKey:
-                              _previewEnemyBlockedPoint?.key,
+                          previewWallSegment: null,
+                          previewBlockedPointKey: null,
                           wallAccent: EndpointPalette.dangerAccent,
                           accent: EndpointPalette.patternAccent,
                           longPressDuration:
@@ -839,14 +616,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay>
         statusKey: _playerStatusKey,
         spriteOnLeft: false,
       ),
-      overlay: !_blockAnimationCompleted
-          ? Stack(
-              children: [
-                for (final animation in _blockMarkMotions)
-                  _BattlePatternBlockMotion(animation: animation),
-              ],
-            )
-          : null,
+      overlay: null,
       combatAnimationOverlay: widget.combatAnimationOverlay,
       onAnimationTargetsChanged: widget.onAnimationTargetsChanged,
       enemySpriteKey: _enemySpriteKey,
@@ -868,6 +638,7 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
   final bool enemyOverchargesPattern;
   final int combatRound;
   final int Function(int max)? randomNextInt;
+  final List<List<String>> bannedPatternPointKeys;
   final Future<void> Function(EnemyBattlePatternMatchResult result)? onResolve;
   final ValueListenable<Widget?>? combatAnimationOverlay;
   final ValueListenable<BattlePatternVisualBattlers>? visualBattlers;
@@ -889,6 +660,7 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
     required this.enemyOverchargesPattern,
     this.combatRound = 1,
     this.randomNextInt,
+    this.bannedPatternPointKeys = const <List<String>>[],
     this.onResolve,
     this.combatAnimationOverlay,
     this.visualBattlers,
@@ -944,17 +716,19 @@ class _EnemyBattlePatternMatchOverlayState
     _bonusesByPointKey = buildOperativePatternBonusesByPointKey(
       playerLevel: widget.enemy.level,
       occupiedPointKeys: widget.equippedItemsByPointKey.keys,
+      allowedKinds: _availableActionBonusKinds(widget.enemy),
       nextInt: _nextInt,
     );
     _maxPatternPoints = OperativePatternCombatRules.maxPatternPointsFor(
       widget.enemy,
     );
-    _wallSegments = List<OperativePatternWallSegment>.unmodifiable(
-      widget.wallSegments,
-    );
-    _blockedPointKeys = Set<String>.unmodifiable(widget.blockedPointKeys);
+    _wallSegments = const <OperativePatternWallSegment>[];
+    _blockedPointKeys = const <String>{};
     _initialWallCount = _wallSegments.length;
     _initialBlockedPointCount = _blockedPointKeys.length;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_playEnemyPattern());
+    });
   }
 
   @override
@@ -1479,6 +1253,7 @@ class _EnemyBattlePatternMatchOverlayState
       blockedPointKeys: _blockedPointKeys,
       equippedItemsByPointKey: widget.equippedItemsByPointKey,
       activeWalls: _activeWallSegmentsForEnemyPattern,
+      bannedPatternPointKeys: widget.bannedPatternPointKeys,
     );
   }
 
@@ -1492,64 +1267,10 @@ class _EnemyBattlePatternMatchOverlayState
     return _maxPatternPoints + (widget.enemyOverchargesPattern ? 1 : 0);
   }
 
-  int _estimatedHitDamageFor(int attackBonus) {
-    if (widget.player.hasStatus(PuntoCiegoStatus.statusId)) return 0;
-
-    const effectPipeline = BattlerEffectPipeline();
-    final baseDamage = (widget.enemy.calculateDamageAgainst(widget.player) +
-            max(0, attackBonus))
-        .toInt();
-    final outgoingStatusModifiedDamage =
-        effectPipeline.applyOutgoingDamageModifiers(
-      owner: widget.enemy,
-      target: widget.player,
-      damage: baseDamage,
-    );
-    final outgoingAbilityModifiedDamage =
-        effectPipeline.applyAbilityOutgoingDamageModifiers(
-      owner: widget.enemy,
-      target: widget.player,
-      damage: outgoingStatusModifiedDamage,
-    );
-    final outgoingItemModifiedDamage =
-        effectPipeline.applyEquippedItemOutgoingDamageModifiers(
-      owner: widget.enemy,
-      target: widget.player,
-      damage: outgoingAbilityModifiedDamage,
-    );
-    final incomingStatusModifiedDamage =
-        effectPipeline.applyIncomingDamageModifiers(
-      owner: widget.player,
-      source: widget.enemy,
-      damage: outgoingItemModifiedDamage,
-    );
-    final incomingAbilityModifiedDamage =
-        effectPipeline.applyAbilityIncomingDamageModifiers(
-      owner: widget.player,
-      source: widget.enemy,
-      damage: incomingStatusModifiedDamage,
-    );
-    return effectPipeline.applyEquippedItemIncomingDamageModifiers(
-      owner: widget.player,
-      source: widget.enemy,
-      damage: incomingAbilityModifiedDamage,
-    );
-  }
-
-  String _estimatedTotalDamageLabelFor(int attackBonus) {
-    final hitDamage = _estimatedHitDamageFor(attackBonus);
-    final hitCount = max(1, widget.enemy.basicAttackCount);
-    if (hitCount <= 1) return '$hitDamage';
-
-    return '${max(0, hitDamage)}x$hitCount';
-  }
-
   @override
   Widget build(BuildContext context) {
     final resolution = _currentResolution;
     final result = _currentResult;
-    final baseHitDamage = _estimatedHitDamageFor(0);
-    final totalDamageLabel = _estimatedTotalDamageLabelFor(result.attackBonus);
     final enemyBlockingPoints =
         OperativePatternCombatRules.maxBlockingPointsFor(
       widget.enemy,
@@ -1611,8 +1332,6 @@ class _EnemyBattlePatternMatchOverlayState
         accent: EndpointPalette.dangerAccent,
         entryAccent: EndpointPalette.patternAccent,
         summary: _BattlePatternLiveSummary(
-          baseHitDamage: baseHitDamage,
-          totalDamageLabel: totalDamageLabel,
           attackBonus: result.attackBonus,
           barrierBonus: result.barrierBonus,
           healthBonus: result.healthBonus,
@@ -1653,6 +1372,7 @@ class _EnemyBattlePatternMatchOverlayState
         isBlockCornerActive: !isEnemyCornerFront && waitingForBlocks,
         isRearPatternCornerActive: false,
         isRearBlockCornerActive: false,
+        showBlockingCorners: false,
         blockCornerWallAccent: EndpointPalette.patternAccent,
         blockPlacementMode: _blockPlacementMode,
         blockCornerWallEnabled: _canPlaceWall,
@@ -1752,9 +1472,27 @@ class _EnemyBattlePatternMatchOverlayState
   }
 }
 
+Set<OperativePatternBonusKind> _availableActionBonusKinds(Battler battler) {
+  final kinds = <OperativePatternBonusKind>{};
+  for (final item in battler.equippedItems) {
+    switch (item.actionType) {
+      case ItemActionType.attack:
+        kinds.add(OperativePatternBonusKind.attack);
+        break;
+      case ItemActionType.block:
+        kinds.add(OperativePatternBonusKind.barrier);
+        break;
+      case ItemActionType.heal:
+        kinds.add(OperativePatternBonusKind.health);
+        break;
+      case ItemActionType.none:
+        break;
+    }
+  }
+  return kinds;
+}
+
 class _BattlePatternLiveSummary extends StatelessWidget {
-  final int baseHitDamage;
-  final String totalDamageLabel;
   final int attackBonus;
   final int barrierBonus;
   final int healthBonus;
@@ -1762,8 +1500,6 @@ class _BattlePatternLiveSummary extends StatelessWidget {
   final int pointCount;
 
   const _BattlePatternLiveSummary({
-    required this.baseHitDamage,
-    required this.totalDamageLabel,
     required this.attackBonus,
     required this.barrierBonus,
     required this.healthBonus,
@@ -1793,9 +1529,7 @@ class _BattlePatternLiveSummary extends StatelessWidget {
           children: [
             Expanded(
               child: _BattlePatternDamageFormula(
-                baseHitDamage: baseHitDamage,
                 attackBonus: attackBonus,
-                totalDamageLabel: totalDamageLabel,
                 pointCount: pointCount,
               ),
             ),
@@ -1834,71 +1568,22 @@ class _BattlePatternLiveSummary extends StatelessWidget {
 }
 
 class _BattlePatternDamageFormula extends StatelessWidget {
-  final int baseHitDamage;
   final int attackBonus;
-  final String totalDamageLabel;
   final int pointCount;
 
   const _BattlePatternDamageFormula({
-    required this.baseHitDamage,
     required this.attackBonus,
-    required this.totalDamageLabel,
     required this.pointCount,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _BattlePatternMetricShell(
-            label: 'BA',
-            iconAssetPath: 'assets/images/icons/icon_sword.png',
-            valueLabel: '$baseHitDamage',
-            accent: EndpointPalette.dangerAccent,
-          ),
-        ),
-        const _BattlePatternFormulaOperator('+'),
-        Expanded(
-          child: _BattlePatternAnimatedMetric(
-            label: '+A',
-            iconAssetPath: 'assets/images/icons/icon_sword.png',
-            value: attackBonus,
-            accent: EndpointPalette.warningAccent,
-            pulseKey: pointCount,
-          ),
-        ),
-        const _BattlePatternFormulaOperator('='),
-        Expanded(
-          child: _BattlePatternLabelMetric(
-            label: 'DMG',
-            iconAssetPath: 'assets/images/icons/icon_sword.png',
-            valueLabel: totalDamageLabel,
-            accent: EndpointPalette.dangerAccent,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _BattlePatternFormulaOperator extends StatelessWidget {
-  final String label;
-
-  const _BattlePatternFormulaOperator(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: EndpointText(
-        label,
-        style: textMediumBold.copyWith(
-          color: EndpointPalette.dangerAccent,
-          fontSize: 17,
-          height: 1,
-        ),
-      ),
+    return _BattlePatternAnimatedMetric(
+      label: '+A/ACCION',
+      iconAssetPath: 'assets/images/icons/icon_sword.png',
+      value: attackBonus,
+      accent: EndpointPalette.warningAccent,
+      pulseKey: pointCount,
     );
   }
 }
@@ -2051,30 +1736,6 @@ class _BattlePatternAnimatedMetric extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _BattlePatternLabelMetric extends StatelessWidget {
-  final String label;
-  final String iconAssetPath;
-  final String valueLabel;
-  final Color accent;
-
-  const _BattlePatternLabelMetric({
-    required this.label,
-    required this.iconAssetPath,
-    required this.valueLabel,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _BattlePatternMetricShell(
-      label: label,
-      iconAssetPath: iconAssetPath,
-      valueLabel: valueLabel,
-      accent: accent,
     );
   }
 }
@@ -2947,6 +2608,8 @@ class _PatternMatrixCard extends StatelessWidget {
   final int round;
   final PurgeDoctrine? purgeDoctrine;
   final bool finishEnabled;
+  final String finishTooltip;
+  final bool showBlockingCorners;
   final bool dimPatternPoints;
   final bool dimBlockPoints;
   final bool dimFinishButton;
@@ -2985,6 +2648,8 @@ class _PatternMatrixCard extends StatelessWidget {
     required this.round,
     this.purgeDoctrine,
     required this.finishEnabled,
+    this.finishTooltip = 'Finish turn and resolve the pattern.',
+    this.showBlockingCorners = true,
     required this.dimPatternPoints,
     required this.dimBlockPoints,
     required this.dimFinishButton,
@@ -3085,19 +2750,20 @@ class _PatternMatrixCard extends StatelessWidget {
             hasAura: isRearPatternCornerActive,
           ),
         ),
-        _PatternFloatingCorner(
-          alignment: Alignment.topRight,
-          progress: swapProgress,
-          isRear: true,
-          child: _PatternCornerTriangle(
+        if (showBlockingCorners)
+          _PatternFloatingCorner(
             alignment: Alignment.topRight,
-            color: _blockingPointColor,
-            label: '$rearBlockingCount/$rearMaxBlockingCount',
-            tooltip: 'Inactive battler blocking points this turn.',
-            opacityScale: _rearCornerOpacity,
-            hasAura: isRearBlockCornerActive,
+            progress: swapProgress,
+            isRear: true,
+            child: _PatternCornerTriangle(
+              alignment: Alignment.topRight,
+              color: _blockingPointColor,
+              label: '$rearBlockingCount/$rearMaxBlockingCount',
+              tooltip: 'Inactive battler blocking points this turn.',
+              opacityScale: _rearCornerOpacity,
+              hasAura: isRearBlockCornerActive,
+            ),
           ),
-        ),
         _PatternFloatingCorner(
           alignment: Alignment.topLeft,
           progress: swapProgress,
@@ -3111,32 +2777,33 @@ class _PatternMatrixCard extends StatelessWidget {
             hasAura: isPatternCornerActive,
           ),
         ),
-        _PatternFloatingCorner(
-          alignment: Alignment.topRight,
-          progress: swapProgress,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: onBlockModeToggle,
-            onPanStart: onBlockDragStart,
-            onPanUpdate: onBlockDragUpdate,
-            onPanEnd: onBlockDragEnd,
-            child: _PatternCornerTriangle(
-              alignment: Alignment.topRight,
-              color: _blockingPointColor,
-              label: '$blockingCount/$maxBlockingCount',
-              tooltip: 'Walls available to place in the foe matrix.',
-              isDimmed: dimBlockPoints,
-              hasAura: isBlockCornerActive,
-              wallGlyphAccent: blockCornerWallAccent,
-              blockPlacementMode: blockPlacementMode,
-              isWallGlyphEnabled: blockCornerWallEnabled,
-              isPointGlyphEnabled: blockCornerPointEnabled,
-              animateWallGlyph: animateBlockCornerWall,
-              showRedoButton: showRedoButton,
-              onRedo: onRedo,
+        if (showBlockingCorners)
+          _PatternFloatingCorner(
+            alignment: Alignment.topRight,
+            progress: swapProgress,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: onBlockModeToggle,
+              onPanStart: onBlockDragStart,
+              onPanUpdate: onBlockDragUpdate,
+              onPanEnd: onBlockDragEnd,
+              child: _PatternCornerTriangle(
+                alignment: Alignment.topRight,
+                color: _blockingPointColor,
+                label: '$blockingCount/$maxBlockingCount',
+                tooltip: 'Walls available to place in the foe matrix.',
+                isDimmed: dimBlockPoints,
+                hasAura: isBlockCornerActive,
+                wallGlyphAccent: blockCornerWallAccent,
+                blockPlacementMode: blockPlacementMode,
+                isWallGlyphEnabled: blockCornerWallEnabled,
+                isPointGlyphEnabled: blockCornerPointEnabled,
+                animateWallGlyph: animateBlockCornerWall,
+                showRedoButton: showRedoButton,
+                onRedo: onRedo,
+              ),
             ),
           ),
-        ),
         Align(
           alignment: Alignment.bottomLeft,
           child: Padding(
@@ -3157,7 +2824,7 @@ class _PatternMatrixCard extends StatelessWidget {
             child: _PatternFinishCorner(
               enabled: finishEnabled,
               isDimmed: dimFinishButton,
-              tooltip: 'Finish turn and resolve the pattern.',
+              tooltip: finishTooltip,
               onPressed: onFinish,
             ),
           ),
@@ -3869,32 +3536,4 @@ Path _patternCornerTrianglePath(Alignment alignment, Size size) {
   }
   path.close();
   return path;
-}
-
-class _BattlePatternBlockMotion extends StatelessWidget {
-  final Animation<Offset> animation;
-
-  const _BattlePatternBlockMotion({
-    required this.animation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      child: const IgnorePointer(
-        child: OperativePatternBlockedMark(
-          size: _battlePatternBlockMarkSize,
-        ),
-      ),
-      builder: (context, child) {
-        final offset = animation.value;
-        return Positioned(
-          left: offset.dx - (_battlePatternBlockMarkSize / 2),
-          top: offset.dy - (_battlePatternBlockMarkSize / 2),
-          child: child!,
-        );
-      },
-    );
-  }
 }

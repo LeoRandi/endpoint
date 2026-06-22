@@ -140,6 +140,14 @@ enum ItemArchetypeAffinity {
   mercante,
 }
 
+/// Accion inmediata que ejecuta un item al recorrer su punto en Patron.
+enum ItemActionType {
+  attack,
+  block,
+  heal,
+  none,
+}
+
 /// Expone utilidades para convertir afinidades de item en arquetipos de run.
 extension ItemArchetypeAffinityMapping on ItemArchetypeAffinity {
   /// Indica si la afinidad pertenece a un arquetipo concreto y no al pool general.
@@ -420,6 +428,8 @@ class Item {
   final Map<BattlerStat, int> statModifiers;
   final Map<BattlerStat, int> upgradeStatModifiers;
   final ItemEffect? effect;
+  final ItemActionType? _actionType;
+  final int? _actionValue;
   final String? instanceId;
   final OperativePatternBonusKind? patternBonusKindOverride;
   final int? patternBonusAmountOverride;
@@ -448,6 +458,8 @@ class Item {
     this.statModifiers = const {},
     this.upgradeStatModifiers = const {},
     this.effect,
+    ItemActionType? actionType,
+    int? actionValue,
     this.instanceId,
     this.patternBonusKindOverride,
     this.patternBonusAmountOverride,
@@ -457,7 +469,9 @@ class Item {
     this.combatItemBonusBoost = 0,
     this.combatGeneratedPatternBonus = false,
     this.patternAdjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
-  }) : _declaredTags = tags;
+  })  : _declaredTags = tags,
+        _actionType = actionType,
+        _actionValue = actionValue;
 
   /// Indica si el objeto puede equiparse.
   bool get isEquippable => true;
@@ -467,6 +481,26 @@ class Item {
 
   /// Indica si el objeto tiene una logica activa mas alla de sus stats planos.
   bool get hasEffect => effect != null;
+
+  /// Accion efectiva del item. Los presets existentes heredan la intencion de
+  /// su bonus de Patron salvo que declaren una accion concreta.
+  ItemActionType get actionType {
+    if (_actionType != null) return _actionType;
+    if (!hasPatternBonus) return ItemActionType.none;
+
+    return switch (patternBonusKind) {
+      OperativePatternBonusKind.attack => ItemActionType.attack,
+      OperativePatternBonusKind.barrier => ItemActionType.block,
+      OperativePatternBonusKind.health => ItemActionType.heal,
+    };
+  }
+
+  /// Magnitud no negativa de la accion inmediata del item. Si el preset
+  /// declara una accion sin valor propio, reutiliza su parametro [value].
+  int get actionValue => max(
+        0,
+        _actionValue ?? (actionType == ItemActionType.none ? 0 : value),
+      );
 
   /// Indica si este objeto aporta su propio bonus de Patron.
   bool get hasPatternBonus => patternBonusAmount > 0;
@@ -680,6 +714,8 @@ class Item {
       statModifiers: updatedStatModifiers,
       upgradeStatModifiers: upgradeTemplate.upgradeStatModifiers,
       effect: upgradeTemplate.effect,
+      actionType: upgradeTemplate.actionType,
+      actionValue: upgradeTemplate.actionValue,
       patternBonusKindOverride: upgradeTemplate.patternBonusKindOverride,
       clearPatternBonusKindOverride:
           upgradeTemplate.patternBonusKindOverride == null,
@@ -715,6 +751,8 @@ class Item {
     Map<BattlerStat, int>? upgradeStatModifiers,
     ItemEffect? effect,
     bool clearEffect = false,
+    ItemActionType? actionType,
+    int? actionValue,
     String? instanceId,
     OperativePatternBonusKind? patternBonusKindOverride,
     bool clearPatternBonusKindOverride = false,
@@ -746,6 +784,8 @@ class Item {
       statModifiers: statModifiers ?? this.statModifiers,
       upgradeStatModifiers: upgradeStatModifiers ?? this.upgradeStatModifiers,
       effect: clearEffect ? null : effect ?? this.effect,
+      actionType: actionType ?? this.actionType,
+      actionValue: max(0, actionValue ?? this.actionValue),
       instanceId: instanceId ?? this.instanceId,
       patternBonusKindOverride: clearPatternBonusKindOverride
           ? null
@@ -794,6 +834,8 @@ class Item {
       statModifiers: statModifiers,
       upgradeStatModifiers: upgradeStatModifiers,
       effect: effect,
+      actionType: actionType,
+      actionValue: actionValue,
       instanceId: _nextOwnedInstanceId(),
       patternBonusKindOverride: patternBonusKindOverride,
       patternBonusAmountOverride: patternBonusAmountOverride,
