@@ -261,7 +261,7 @@ const _mercanteAffinities = <ItemArchetypeAffinity>[
 const woodenStickItem = Item(
   id: ItemId.woodenStick,
   actionType: ItemActionType.attack,
-  actionValue: 1,
+  actionValue: 4,
   archetypeAffinities: _generalAffinities,
   tags: _ataqueTags,
   name: 'Palo',
@@ -1486,6 +1486,8 @@ const aislanteArmonicoItem = Item(
 /// Arma gris oportunista que ayuda a sostenerse durante remates.
 const rescueBladeItem = Item(
   id: ItemId.rescueBlade,
+  actionType: ItemActionType.attack,
+  actionValue: 7,
   archetypeAffinities: _generalAffinities,
   tags: _ataqueVidaTags,
   name: 'Cuchilla de Rescate',
@@ -1799,6 +1801,8 @@ const billingModuleItem = Item(
 /// Arma verde equilibrada que aporta un poco de ataque y barrera a la vez.
 const placaBisagraItem = Item(
   id: ItemId.placaBisagra,
+  actionType: ItemActionType.attack,
+  actionValue: 6,
   archetypeAffinities: _generalAffinities,
   tags: _ataqueBarreraTags,
   name: 'Placa Bisagra',
@@ -1822,6 +1826,8 @@ const placaBisagraItem = Item(
 /// Accesorio verde defensivo simple que mezcla un poco de vida y barrera.
 const fundaAislanteItem = Item(
   id: ItemId.fundaAislante,
+  actionType: ItemActionType.block,
+  actionValue: 5,
   archetypeAffinities: _generalAffinities,
   tags: _vidaBarreraTags,
   name: 'Funda Aislante',
@@ -1913,7 +1919,7 @@ const guardShieldItem = Item(
   iconEmoji: '\u{1F482}',
   rarity: RarityTier.green,
   actionType: ItemActionType.block,
-  actionValue: 5,
+  actionValue: 8,
   patternBonusKindOverride: _adjBarrier,
   patternBonusAmountOverride: 3,
   patternRequirementOverride: _patternSquare,
@@ -2441,6 +2447,8 @@ const phaseVeilItem = Item(
 /// Blindaje azul de barrera plana alta.
 const platedJacketItem = Item(
   id: ItemId.platedJacket,
+  actionType: ItemActionType.block,
+  actionValue: 8,
   archetypeAffinities: _generalAffinities,
   tags: _barreraTags,
   name: 'Chaqueta Blindada',
@@ -2803,6 +2811,8 @@ const concussionPrismItem = Item(
 /// Soporte morado defensivo simple y consistente.
 const midnightCloakItem = Item(
   id: ItemId.midnightCloak,
+  actionType: ItemActionType.block,
+  actionValue: 14,
   archetypeAffinities: _generalAffinities,
   tags: _barreraTags,
   name: 'Capa de Medianoche',
@@ -2889,6 +2899,8 @@ const succionaCreditosItem = Item(
 /// Accesorio morado mixto de ataque y vida maxima.
 const voidInjectorItem = Item(
   id: ItemId.voidInjector,
+  actionType: ItemActionType.attack,
+  actionValue: 16,
   archetypeAffinities: _generalAffinities,
   tags: _ataqueVidaTags,
   name: 'Inyector del Vacio',
@@ -3167,6 +3179,8 @@ const canonContrapresionItem = Item(
 /// Arma amarilla de daño alto para el tramo final.
 const sunsteelBladeItem = Item(
   id: ItemId.sunsteelBlade,
+  actionType: ItemActionType.attack,
+  actionValue: 26,
   archetypeAffinities: _generalAffinities,
   tags: _ataqueTags,
   name: 'Filo Solar',
@@ -3195,7 +3209,7 @@ const sunsteelBladeItem = Item(
 const dawnCharmItem = Item(
   id: ItemId.dawnCharm,
   actionType: ItemActionType.heal,
-  actionValue: 6,
+  actionValue: 18,
   archetypeAffinities: _generalAffinities,
   tags: _vidaTags,
   name: 'Amuleto del Alba',
@@ -3253,6 +3267,8 @@ const eclipseMantleItem = Item(
 /// Accesorio amarillo que evita una muerte por combate.
 const operativeBlackBoxItem = Item(
   id: ItemId.operativeBlackBox,
+  actionType: ItemActionType.heal,
+  actionValue: 10,
   archetypeAffinities: _generalAffinities,
   tags: _vidaTags,
   name: 'Caja Negra del Operativo',

@@ -929,13 +929,12 @@ class _BattleCombatIconAnimationLayer extends StatelessWidget {
         ? EndpointPalette.primaryAccent
         : EndpointPalette.dangerAccent;
     final delta = motion.end - motion.start;
-    final angle = motion.hook == BattleCombatAnimationHook.blockMotion
-        ? 0.0
-        : atan2(delta.dy, delta.dx) + pi / 4;
+    final usesReturnMotion =
+        motion.hook == BattleCombatAnimationHook.blockMotion ||
+            motion.hook == BattleCombatAnimationHook.healthGain;
+    final angle = usesReturnMotion ? 0.0 : atan2(delta.dy, delta.dx) + pi / 4;
     const swordSize = _battleSwordAnimationSize;
-    final progressTween = motion.hook == BattleCombatAnimationHook.blockMotion
-        ? _blockProgress
-        : _attackProgress;
+    final progressTween = usesReturnMotion ? _blockProgress : _attackProgress;
     final totalMs = max(1, motion.totalDuration.inMilliseconds);
     final flightMs = max(1, _battleAttackFlightDuration.inMilliseconds);
     final staggerMs = _battleAttackFollowUpStagger.inMilliseconds;

@@ -1551,7 +1551,7 @@ class _BattlePatternLiveSummary extends StatelessWidget {
                 label: '+H',
                 iconAssetPath: 'assets/images/icons/icon_health.png',
                 value: healthBonus,
-                accent: BattlerStat.health.accent,
+                accent: endpointItemActionAccent(ItemActionType.heal),
                 pulseKey: pointCount,
               ),
             ),

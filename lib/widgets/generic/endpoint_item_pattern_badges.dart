@@ -41,22 +41,12 @@ class EndpointItemPatternBadges extends StatelessWidget {
   }
 
   String _actionLabelFor(Item item) {
-    final label = switch (item.actionType) {
-      ItemActionType.attack => 'ATACA',
-      ItemActionType.block => 'BLOQUEA',
-      ItemActionType.heal => 'CURA',
-      ItemActionType.none => 'PASIVO',
-    };
+    final label = endpointItemActionShortLabel(item.actionType);
     return '$label ${item.actionValue}';
   }
 
   Color _actionAccentFor(ItemActionType type) {
-    return switch (type) {
-      ItemActionType.attack => EndpointPalette.dangerAccent,
-      ItemActionType.block => BattlerStat.barrier.accent,
-      ItemActionType.heal => BattlerStat.health.accent,
-      ItemActionType.none => EndpointPalette.patternAccent,
-    };
+    return endpointItemActionAccent(type);
   }
 
   String _requirementLabelFor(OperativePatternRequirement requirement) {
@@ -85,6 +75,95 @@ class EndpointItemPatternBadges extends StatelessWidget {
       OperativePatternBonusKind.barrier => BattlerStat.barrier.accent,
       OperativePatternBonusKind.health => BattlerStat.health.accent,
     };
+  }
+}
+
+Color endpointItemActionAccent(ItemActionType type) {
+  return switch (type) {
+    ItemActionType.attack => EndpointPalette.dangerAccent,
+    ItemActionType.block => BattlerStat.barrier.accent,
+    ItemActionType.heal => const Color(0xFF5AF78E),
+    ItemActionType.none => EndpointPalette.patternAccent,
+  };
+}
+
+String endpointItemActionShortLabel(ItemActionType type) {
+  return switch (type) {
+    ItemActionType.attack => 'ATACA',
+    ItemActionType.block => 'BLOQUEA',
+    ItemActionType.heal => 'CURA',
+    ItemActionType.none => 'PASIVO',
+  };
+}
+
+String endpointItemActionDescription(Item item) {
+  return switch (item.actionType) {
+    ItemActionType.attack => 'Acción: realiza ${item.actionValue} de daño.',
+    ItemActionType.block => 'Acción: gana ${item.actionValue} de barrera.',
+    ItemActionType.heal => 'Acción: cura ${item.actionValue} de vida.',
+    ItemActionType.none => '',
+  };
+}
+
+class EndpointItemActionPointBadge extends StatelessWidget {
+  final Item item;
+  final double size;
+
+  const EndpointItemActionPointBadge({
+    super.key,
+    required this.item,
+    this.size = 20,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (item.actionType == ItemActionType.none) {
+      return const SizedBox.shrink();
+    }
+
+    final accent = endpointItemActionAccent(item.actionType);
+    return SizedBox(
+      width: size * 1.32,
+      height: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.blend(
+            EndpointPalette.panelBackgroundBattleOpaque,
+            accent,
+            0.42,
+          ),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.94),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.42),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Center(
+          child: EndpointText(
+            '${item.actionValue}',
+            maxLines: 1,
+            style: textSmallNumericBold.copyWith(
+              color: EndpointPalette.softForeground,
+              fontSize: (size * 0.52).clamp(8.0, 11.0).toDouble(),
+              letterSpacing: 0,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

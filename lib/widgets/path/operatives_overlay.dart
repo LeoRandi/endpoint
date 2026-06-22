@@ -1188,6 +1188,18 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
                 requirement: requirement,
               ),
             ),
+          if (item.actionType != ItemActionType.none)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 1,
+              child: Center(
+                child: EndpointItemActionPointBadge(
+                  item: item,
+                  size: 18,
+                ),
+              ),
+            ),
         ],
       ),
     );

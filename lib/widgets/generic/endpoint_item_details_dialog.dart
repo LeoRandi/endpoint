@@ -166,6 +166,19 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
             ],
           ),
           const SizedBox(height: 12),
+          if (widget.item.actionType != ItemActionType.none) ...[
+            EndpointHighlightedValueText(
+              endpointItemActionDescription(widget.item),
+              tags: widget.item.tags,
+              maxLines: null,
+              style: textMediumBold.copyWith(
+                fontSize: 13,
+                color: endpointItemActionAccent(widget.item.actionType),
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(height: 7),
+          ],
           EndpointHighlightedValueText(
             widget.item.displayDescription,
             tags: widget.item.tags,

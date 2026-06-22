@@ -531,11 +531,12 @@ class BattleController extends ChangeNotifier {
           final playerBefore = _player;
           final enemyBefore = _enemy;
           _player = _player.heal(item.actionValue + healModifier);
-          await _playCombatStateTransitionAnimations(
-            playerBefore: playerBefore,
-            enemyBefore: enemyBefore,
-            playerAfter: _player,
-            enemyAfter: _enemy,
+          await _playHealingActionAnimation(
+            healerSide: BattleCombatantSide.player,
+            healerBefore: playerBefore,
+            opponentBefore: enemyBefore,
+            healerAfter: _player,
+            opponentAfter: _enemy,
           );
           if (_isDisposed || !canUseActions) return true;
           break;
@@ -855,11 +856,12 @@ class BattleController extends ChangeNotifier {
           final enemyBefore = _enemy;
           final playerBefore = _player;
           _enemy = _enemy.heal(item.actionValue + healModifier);
-          await _playCombatStateTransitionAnimations(
-            playerBefore: playerBefore,
-            enemyBefore: enemyBefore,
-            playerAfter: _player,
-            enemyAfter: _enemy,
+          await _playHealingActionAnimation(
+            healerSide: BattleCombatantSide.enemy,
+            healerBefore: enemyBefore,
+            opponentBefore: playerBefore,
+            healerAfter: _enemy,
+            opponentAfter: _player,
           );
           if (_isDisposed || _turn != BattleTurnState.enemy) return true;
           break;
@@ -2203,6 +2205,40 @@ class BattleController extends ChangeNotifier {
     );
   }
 
+  Future<void> _playHealingActionAnimation({
+    required BattleCombatantSide healerSide,
+    required Battler healerBefore,
+    required Battler opponentBefore,
+    required Battler healerAfter,
+    required Battler opponentAfter,
+  }) async {
+    final playerBefore = healerSide == BattleCombatantSide.player
+        ? healerBefore
+        : opponentBefore;
+    final enemyBefore =
+        healerSide == BattleCombatantSide.enemy ? healerBefore : opponentBefore;
+    final playerAfter =
+        healerSide == BattleCombatantSide.player ? healerAfter : opponentAfter;
+    final enemyAfter =
+        healerSide == BattleCombatantSide.enemy ? healerAfter : opponentAfter;
+
+    await _playCombatAnimation(
+      BattleCombatAnimationCueFactory.stateTransitionCue(
+        hook: BattleCombatAnimationHook.healthGain,
+        side: healerSide,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: playerAfter,
+        enemyAfter: enemyAfter,
+        floatingNumbers: BattleCombatAnimationCueFactory.gainFloatingNumbers(
+          before: healerBefore,
+          after: healerAfter,
+          includeHealth: true,
+        ),
+      ),
+    );
+  }
+
   Future<void> _playCombatStateTransitionAnimations({
     required Battler playerBefore,
     required Battler enemyBefore,
@@ -3089,11 +3125,12 @@ class BattleController extends ChangeNotifier {
     final playerBefore = _player;
     final enemyBefore = _enemy;
     final playerAfter = _player.heal(amount);
-    await _playCombatStateTransitionAnimations(
-      playerBefore: playerBefore,
-      enemyBefore: enemyBefore,
-      playerAfter: playerAfter,
-      enemyAfter: enemyBefore,
+    await _playHealingActionAnimation(
+      healerSide: BattleCombatantSide.player,
+      healerBefore: playerBefore,
+      opponentBefore: enemyBefore,
+      healerAfter: playerAfter,
+      opponentAfter: enemyBefore,
     );
     if (_isDisposed) return;
     _player = playerAfter;

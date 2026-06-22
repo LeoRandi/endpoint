@@ -16,6 +16,7 @@ const _battleFragilidadBurstDuration = Duration(milliseconds: 620);
 const _battleSwordAssetPath = 'assets/images/icons/icon_sword.png';
 const _battleShieldAssetPath = 'assets/images/icons/icon_shield.png';
 const _battleFistAssetPath = 'assets/images/icons/icon_unarmed.png';
+const _battleHealthAssetPath = 'assets/images/icons/icon_health.png';
 const _battleSwordAnimationSize = 46.0;
 
 class _BattleCombatIconMotion {
@@ -699,10 +700,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         break;
       case BattleCombatAnimationHook.damageTaken:
       case BattleCombatAnimationHook.healthLoss:
-      case BattleCombatAnimationHook.healthGain:
       case BattleCombatAnimationHook.barrierGain:
       case BattleCombatAnimationHook.barrierLoss:
         await _playCombatStatCue(cue);
+        break;
+      case BattleCombatAnimationHook.healthGain:
+        await _playHealingCue(cue);
         break;
       case BattleCombatAnimationHook.moneyChange:
         await _playMoneyCue(cue);
@@ -791,15 +794,26 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (cue.hook == BattleCombatAnimationHook.blockMotion) {
       return _battleShieldAssetPath;
     }
+    if (cue.hook == BattleCombatAnimationHook.healthGain) {
+      return _battleHealthAssetPath;
+    }
 
     switch (cue.motionAsset) {
       case BattleCombatMotionAsset.fist:
         return _battleFistAssetPath;
+      case BattleCombatMotionAsset.health:
+        return _battleHealthAssetPath;
       case BattleCombatMotionAsset.shield:
         return _battleShieldAssetPath;
       case BattleCombatMotionAsset.sword:
         return _battleSwordAssetPath;
     }
+  }
+
+  Future<void> _playHealingCue(BattleCombatAnimationCue cue) async {
+    await _playCombatMotionCue(cue);
+    if (!mounted) return;
+    await _playCombatStatCue(cue);
   }
 
   Future<void> _playStatusEffectCue(BattleCombatAnimationCue cue) async {
@@ -911,7 +925,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   Offset? _motionEndForCue(BattleCombatAnimationCue cue) {
-    if (cue.hook == BattleCombatAnimationHook.blockMotion) {
+    if (cue.hook == BattleCombatAnimationHook.blockMotion ||
+        cue.hook == BattleCombatAnimationHook.healthGain) {
       return _centerOfBattleArea();
     }
 

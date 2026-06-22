@@ -1393,6 +1393,21 @@ class _OperativePatternDotVisual extends StatelessWidget {
                   ),
                 ),
               ),
+            if (currentItem.actionType != ItemActionType.none)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: size * 0.02,
+                child: Center(
+                  child: Transform.rotate(
+                    angle: _operativePatternContentCounterRotation,
+                    child: EndpointItemActionPointBadge(
+                      item: currentItem,
+                      size: (size * 0.46).clamp(16.0, 20.0).toDouble(),
+                    ),
+                  ),
+                ),
+              ),
             if (isBlocked)
               OperativePatternBlockedMark(
                 size: size,

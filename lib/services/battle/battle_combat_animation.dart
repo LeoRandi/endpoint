@@ -24,6 +24,7 @@ enum BattleCombatMotionAsset {
   sword,
   shield,
   fist,
+  health,
 }
 
 enum BattleCombatFloatingNumberTone {
