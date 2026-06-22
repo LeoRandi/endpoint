@@ -333,6 +333,8 @@ const gafasFotocromaticasItem = Item(
 /// Arma gris que castiga a objetivos sin buffs activos.
 const impactGlovesItem = Item(
   id: ItemId.impactGloves,
+  actionType: ItemActionType.attack,
+  actionValue: 4,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Guantes de Impacto',
@@ -349,6 +351,8 @@ const impactGlovesItem = Item(
 /// Arma gris que abre el primer intercambio con Desafio.
 const guanteRetoItem = Item(
   id: ItemId.guanteReto,
+  actionType: ItemActionType.attack,
+  actionValue: 4,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Guante de Reto',
@@ -365,7 +369,7 @@ const guanteRetoItem = Item(
 const clavoDuelistaItem = Item(
   id: ItemId.clavoDuelista,
   actionType: ItemActionType.attack,
-  actionValue: 1,
+  actionValue: 3,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Clavo de Duelista',
@@ -413,6 +417,8 @@ const marcaRetadorItem = Item(
 
 const hemomedidorItem = Item(
   id: ItemId.hemomedidor,
+  actionType: ItemActionType.heal,
+  actionValue: 6,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioVidaBuffTags,
   name: 'Hemomedidor',
@@ -447,6 +453,8 @@ const carbonParaHeridasItem = Item(
 
 const juegosucio101Item = Item(
   id: ItemId.juegosucio101,
+  actionType: ItemActionType.attack,
+  actionValue: 6,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Juegosucio 101',
@@ -486,6 +494,8 @@ const contratoDolorosoItem = Item(
 
 const yunqueCardiacoItem = Item(
   id: ItemId.yunqueCardiaco,
+  actionType: ItemActionType.block,
+  actionValue: 9,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioBarreraBuffTags,
   name: 'Yunque Cardiaco',
@@ -561,6 +571,8 @@ const arnesTacticoItem = Item(
 
 const mandibultimatumItem = Item(
   id: ItemId.mandibultimatum,
+  actionType: ItemActionType.attack,
+  actionValue: 13,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Mandibultimatum',
@@ -653,6 +665,8 @@ const buzonVirtualAzulItem = Item(
 /// Buzon gris de Imparable que trae ataque y, al mejorar, Quemadura.
 const buzonVirtualRojoItem = Item(
   id: ItemId.buzonVirtualRojo,
+  actionType: ItemActionType.attack,
+  actionValue: 5,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaAtaqueTags,
   name: 'Buzon Virtual Rojo',
@@ -673,6 +687,8 @@ const buzonVirtualRojoItem = Item(
 /// Buzon gris de Inamovible que trae Barrera y, al mejorar, Resonancia.
 const buzonVirtualVerdeItem = Item(
   id: ItemId.buzonVirtualVerde,
+  actionType: ItemActionType.block,
+  actionValue: 5,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaBarreraTags,
   name: 'Buzon Virtual Verde',
@@ -693,7 +709,7 @@ const buzonVirtualVerdeItem = Item(
 const taladronItem = Item(
   id: ItemId.taladron,
   actionType: ItemActionType.attack,
-  actionValue: 1,
+  actionValue: 7,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueMurallaTags,
   name: 'Taladron',
@@ -715,6 +731,8 @@ const taladronItem = Item(
 
 const cuboDinamitalicoItem = Item(
   id: ItemId.cuboDinamitalico,
+  actionType: ItemActionType.block,
+  actionValue: 8,
   archetypeAffinities: _imparableAffinities,
   tags: _barreraMurallaTags,
   name: 'Cubo Dinamitalico',
@@ -733,6 +751,8 @@ const cuboDinamitalicoItem = Item(
 
 const medidorRoturaItem = Item(
   id: ItemId.medidorRotura,
+  actionType: ItemActionType.attack,
+  actionValue: 8,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueMurallaTags,
   name: 'Medidor de Rotura',
@@ -754,6 +774,8 @@ const medidorRoturaItem = Item(
 
 const murallaAutomaticaItem = Item(
   id: ItemId.murallaAutomatica,
+  actionType: ItemActionType.block,
+  actionValue: 6,
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraMurallaTags,
   name: 'Muralla automatica',
@@ -775,6 +797,8 @@ const murallaAutomaticaItem = Item(
 
 const barbedShieldItem = Item(
   id: ItemId.barbedShield,
+  actionType: ItemActionType.attack,
+  actionValue: 8,
   archetypeAffinities: _inamovibleAffinities,
   tags: _ataqueBarreraMurallaTags,
   name: 'Barbed Shield',
@@ -797,6 +821,8 @@ const barbedShieldItem = Item(
 
 const literalPaywallItem = Item(
   id: ItemId.literalPaywall,
+  actionType: ItemActionType.block,
+  actionValue: 6,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaMurallaTags,
   name: 'Literal Paywall',
@@ -813,6 +839,8 @@ const literalPaywallItem = Item(
 
 const passCardItem = Item(
   id: ItemId.passCard,
+  actionType: ItemActionType.block,
+  actionValue: 10,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaMurallaTags,
   name: 'Pass-card',
@@ -875,6 +903,8 @@ const tonfasEscudoItem = Item(
 
 const constructionSealItem = Item(
   id: ItemId.constructionSeal,
+  actionType: ItemActionType.heal,
+  actionValue: 12,
   archetypeAffinities: _inamovibleAffinities,
   tags: _accesorioVidaTags,
   name: 'Construction Seal',
@@ -919,6 +949,8 @@ const constructionSealItem = Item(
 
 const shoppingChecklistItem = Item(
   id: ItemId.shoppingChecklist,
+  actionType: ItemActionType.block,
+  actionValue: 4,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaBarreraTags,
   name: 'Shopping Checklist',
@@ -935,6 +967,8 @@ const shoppingChecklistItem = Item(
 
 const laCuentaItem = Item(
   id: ItemId.laCuenta,
+  actionType: ItemActionType.attack,
+  actionValue: 4,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaAtaqueTags,
   name: 'La Cuenta',
@@ -977,6 +1011,8 @@ const coinLauncherItem = Item(
 
 const seguroBolsilloItem = Item(
   id: ItemId.seguroBolsillo,
+  actionType: ItemActionType.block,
+  actionValue: 6,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaVidaTags,
   name: 'Seguro de Bolsillo',
@@ -1014,6 +1050,8 @@ const bolsoR33mItem = Item(
 
 const selloMercanteItem = Item(
   id: ItemId.selloMercante,
+  actionType: ItemActionType.heal,
+  actionValue: 6,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaVidaTags,
   name: 'Sello Mercante',
@@ -1043,6 +1081,8 @@ const selloMercanteItem = Item(
 
 const compraAgresivaItem = Item(
   id: ItemId.compraAgresiva,
+  actionType: ItemActionType.block,
+  actionValue: 8,
   archetypeAffinities: _mercanteAffinities,
   tags: <EntityTag>[EntityTag.economia, EntityTag.barrera, EntityTag.muralla],
   name: 'Compra agresiva',
@@ -1090,6 +1130,8 @@ const subastaRelampagoItem = Item(
 
 const bolsaRiesgoItem = Item(
   id: ItemId.bolsaRiesgo,
+  actionType: ItemActionType.attack,
+  actionValue: 10,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaAtaqueTags,
   name: 'Bolsa de Riesgo',
@@ -1119,6 +1161,8 @@ const bolsaRiesgoItem = Item(
 
 const camaraArbitrajeItem = Item(
   id: ItemId.camaraArbitraje,
+  actionType: ItemActionType.block,
+  actionValue: 10,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaBarreraDebuffTags,
   name: 'Camara de Arbitraje',
@@ -1278,6 +1322,8 @@ const mekaYunqueItem = Item(
 
 const pilarAceroItem = Item(
   id: ItemId.pilarAcero,
+  actionType: ItemActionType.block,
+  actionValue: 10,
   archetypeAffinities: _inamovibleAffinities,
   tags: _murallaTags,
   name: 'Pilar de Acero',
@@ -1310,6 +1356,8 @@ const pilarAceroItem = Item(
 
 const duplicadorAtomosItem = Item(
   id: ItemId.duplicadorAtomos,
+  actionType: ItemActionType.block,
+  actionValue: 10,
   archetypeAffinities: _velozAffinities,
   tags: _murallaTags,
   name: 'Duplicador de atomos',
@@ -1336,7 +1384,7 @@ const duplicadorAtomosItem = Item(
 const cortinaHumoItem = Item(
   id: ItemId.cortinaHumo,
   actionType: ItemActionType.block,
-  actionValue: 1,
+  actionValue: 14,
   archetypeAffinities: _velozAffinities,
   tags: _barreraMurallaTags,
   name: 'Cortina de Humo',
@@ -1430,7 +1478,7 @@ const botiquinCompactoItem = Item(
 const stunBatonItem = Item(
   id: ItemId.stunBaton,
   actionType: ItemActionType.attack,
-  actionValue: 1,
+  actionValue: 3,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Porra de Aturdimiento',
@@ -1559,6 +1607,8 @@ const vialRotoItem = Item(
 /// Arma gris de Veloz que siembra debuffs aleatorios en cada uso.
 const plumaSepticaItem = Item(
   id: ItemId.plumaSeptica,
+  actionType: ItemActionType.attack,
+  actionValue: 3,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Pluma Septica',
@@ -1577,6 +1627,8 @@ const plumaSepticaItem = Item(
 /// Arma gris que convierte enemigos ya debilitados en focos de Contagio.
 const lanzaSuciaItem = Item(
   id: ItemId.lanzaSucia,
+  actionType: ItemActionType.attack,
+  actionValue: 3,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffContagioTags,
   name: 'Lanza Sucia',
@@ -1619,6 +1671,8 @@ const cyberWhipsItem = Item(
 /// Accesorio verde que refuerza la Fragilidad cuando Contagio ya prendio.
 const ampollaInestableItem = Item(
   id: ItemId.ampollaInestable,
+  actionType: ItemActionType.attack,
+  actionValue: 6,
   archetypeAffinities: _velozAffinities,
   tags: _debuffContagioTags,
   name: 'Ampolla Inestable',
@@ -1638,6 +1692,8 @@ const ampollaInestableItem = Item(
 /// Soporte defensivo verde para builds de aguante.
 const shieldItem = Item(
   id: ItemId.shield,
+  actionType: ItemActionType.block,
+  actionValue: 6,
   archetypeAffinities: _inamovibleAffinities,
   tags: _vidaBarreraTags,
   name: 'Escudo',
@@ -1662,6 +1718,8 @@ const shieldItem = Item(
 /// Accesorio verde que sube vida maxima y barrera a la vez.
 const bulwarkAmuletItem = Item(
   id: ItemId.bulwarkAmulet,
+  actionType: ItemActionType.block,
+  actionValue: 7,
   archetypeAffinities: _inamovibleAffinities,
   tags: _vidaBarreraTags,
   name: 'Amuleto de Bastion',
@@ -1725,6 +1783,8 @@ const visorAperturaItem = Item(
 /// Accesorio verde ofensivo que aplica Intoxicacion al atacar.
 const toxicCatalystItem = Item(
   id: ItemId.toxicCatalyst,
+  actionType: ItemActionType.attack,
+  actionValue: 5,
   archetypeAffinities: _velozAffinities,
   tags: _debuffIntoxicacionTags,
   name: 'Catalizador Toxico',
@@ -1744,6 +1804,8 @@ const toxicCatalystItem = Item(
 /// Accesorio verde ofensivo que aplica Quemadura al atacar.
 const emberCharmItem = Item(
   id: ItemId.emberCharm,
+  actionType: ItemActionType.attack,
+  actionValue: 5,
   archetypeAffinities: _imparableAffinities,
   tags: _debuffQuemaduraTags,
   name: 'Amuleto de Ascuas',
@@ -1763,6 +1825,8 @@ const emberCharmItem = Item(
 /// Accesorio verde defensivo contra Quemadura e Intoxicacion.
 const chemicalFilterItem = Item(
   id: ItemId.chemicalFilter,
+  actionType: ItemActionType.block,
+  actionValue: 5,
   archetypeAffinities: _inamovibleAffinities,
   tags: _debuffQuemaduraIntoxicacionTags,
   name: 'Filtro Quimico',
@@ -1870,6 +1934,8 @@ const filtroRuidoItem = Item(
 /// Arma verde suicida que sobrecarga el primer golpe del turno a cambio de autodebuff.
 const clavoReactorItem = Item(
   id: ItemId.clavoReactor,
+  actionType: ItemActionType.attack,
+  actionValue: 6,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Clavo Reactor',
@@ -1933,6 +1999,8 @@ const guardShieldItem = Item(
 /// Arma verde orientada a abrir ventanas de daño de forma estable.
 const serratedEdgeItem = Item(
   id: ItemId.serratedEdge,
+  actionType: ItemActionType.attack,
+  actionValue: 6,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Sierra Dentada',
@@ -1956,6 +2024,8 @@ const serratedEdgeItem = Item(
 /// Armadura verde que recompone una pequena porcion de barrera al defender.
 const containmentCoilItem = Item(
   id: ItemId.containmentCoil,
+  actionType: ItemActionType.block,
+  actionValue: 6,
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Bobina de Contencion',
@@ -1976,6 +2046,8 @@ const containmentCoilItem = Item(
 /// Accesorio verde que acelera el escalado ofensivo golpe a golpe.
 const thermalTurbineItem = Item(
   id: ItemId.thermalTurbine,
+  actionType: ItemActionType.attack,
+  actionValue: 5,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Turbina Termica',
@@ -1995,6 +2067,8 @@ const thermalTurbineItem = Item(
 /// Accesorio verde que convierte las recargas de Barrera en Resonancia.
 const nucleoPiezoelectricoItem = Item(
   id: ItemId.nucleoPiezoelectrico,
+  actionType: ItemActionType.block,
+  actionValue: 7,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaBarreraBuffTags,
   name: 'Nucleo Piezoelectrico',
@@ -2016,6 +2090,8 @@ const nucleoPiezoelectricoItem = Item(
 /// Arma verde que descarga toda la Resonancia acumulada en un golpe.
 const descargaResonanteItem = Item(
   id: ItemId.descargaResonante,
+  actionType: ItemActionType.attack,
+  actionValue: 6,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Descarga Resonante',
@@ -2045,7 +2121,7 @@ const toxicScalpelItem = Item(
   iconEmoji: '\u{1F9A0}',
   rarity: RarityTier.green,
   actionType: ItemActionType.attack,
-  actionValue: 2,
+  actionValue: 6,
   patternBonusKindOverride: _adjAttack,
   patternBonusAmountOverride: 2,
   patternRequirementOverride: _patternLast,
@@ -2081,6 +2157,8 @@ const tuboCultivoItem = Item(
 /// Arma azul que inyecta Contagio desde patrones rectos.
 const cyberCerbatanaItem = Item(
   id: ItemId.cyberCerbatana,
+  actionType: ItemActionType.attack,
+  actionValue: 9,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffContagioTags,
   name: 'Cyber-cerbatana',
@@ -2152,6 +2230,8 @@ const faroNoctivagoItem = Item(
 /// Accesorio azul que convierte el riesgo de Desafio en escalado posterior.
 const seguroRotoItem = Item(
   id: ItemId.seguroRoto,
+  actionType: ItemActionType.attack,
+  actionValue: 8,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Seguro Roto',
@@ -2172,7 +2252,7 @@ const seguroRotoItem = Item(
 const muestrarioContrabandoItem = Item(
   id: ItemId.muestrarioContrabando,
   actionType: ItemActionType.heal,
-  actionValue: 3,
+  actionValue: 7,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaVidaTags,
   name: 'Muestrario de Contrabando',
@@ -2212,6 +2292,8 @@ const muestrarioContrabandoItem = Item(
 /// Arma azul que convierte tu defensa en Potencia persistente de combate.
 const magnetiCHammerItem = Item(
   id: ItemId.magnetiCHammer,
+  actionType: ItemActionType.block,
+  actionValue: 8,
   archetypeAffinities: _inamovibleAffinities,
   tags: _ataqueBarreraTags,
   name: 'M(agneti)C Hammer',
@@ -2330,6 +2412,8 @@ const reactiveCasingItem = Item(
 /// Arma azul oportunista que protege al portador al defender contra rivales ya tocados.
 const kunaiAnchoItem = Item(
   id: ItemId.kunaiAncho,
+  actionType: ItemActionType.block,
+  actionValue: 8,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueBarreraDebuffTags,
   name: 'Kunai Ancho',
@@ -2368,6 +2452,8 @@ const kunaiAnchoItem = Item(
 /// Arma azul que castiga el siguiente ataque del rival.
 const pulseCarbineItem = Item(
   id: ItemId.pulseCarbine,
+  actionType: ItemActionType.attack,
+  actionValue: 9,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Carabina de Pulsos',
@@ -2409,6 +2495,8 @@ const pulseCarbineItem = Item(
 /// Armadura azul que recompone una buena porcion de barrera cada turno.
 const phaseVeilItem = Item(
   id: ItemId.phaseVeil,
+  actionType: ItemActionType.block,
+  actionValue: 9,
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Velo de Fase',
@@ -2468,6 +2556,8 @@ const platedJacketItem = Item(
 /// Accesorio azul que descarga la barrera ganada cuando se rompe.
 const contingencySealItem = Item(
   id: ItemId.contingencySeal,
+  actionType: ItemActionType.block,
+  actionValue: 8,
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Sello de Contingencia',
@@ -2487,6 +2577,8 @@ const contingencySealItem = Item(
 /// Accesorio azul que transforma impactos sobre Barrera en carga acumulada.
 const placasCompresionItem = Item(
   id: ItemId.placasCompresion,
+  actionType: ItemActionType.block,
+  actionValue: 9,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaBarreraBuffTags,
   name: 'Placas de Compresion',
@@ -2526,6 +2618,8 @@ const placasCompresionItem = Item(
 /// Arma azul de control que castiga las barreras de objetivos ya aturdidos.
 const interferenceCannonItem = Item(
   id: ItemId.interferenceCannon,
+  actionType: ItemActionType.attack,
+  actionValue: 9,
   archetypeAffinities: _velozAffinities,
   tags: _ataqueDebuffTags,
   name: 'Cañón de Conmocion',
@@ -2565,6 +2659,8 @@ const interferenceCannonItem = Item(
 /// Armadura azul de respuesta que recompone barrera solo si no la castigan.
 const responseFrameItem = Item(
   id: ItemId.responseFrame,
+  actionType: ItemActionType.block,
+  actionValue: 8,
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraBuffTags,
   name: 'Bastidor de Respuesta',
@@ -2671,6 +2767,8 @@ const prismaCircadianoItem = Item(
 /// Accesorio morado que cambia sobrevivir contraataques por mejores Desafios.
 const aceleradorRetoItem = Item(
   id: ItemId.aceleradorReto,
+  actionType: ItemActionType.attack,
+  actionValue: 11,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Acelerador de Reto',
@@ -2699,6 +2797,8 @@ const aceleradorRetoItem = Item(
 /// Arma morada que convierte el catalogo ajeno acumulado en ataque estable.
 const roperaUnidaItem = Item(
   id: ItemId.roperaUnida,
+  actionType: ItemActionType.attack,
+  actionValue: 12,
   archetypeAffinities: _mercanteAffinities,
   tags: _economiaAtaqueTags,
   name: 'Ropera Unida',
@@ -2725,6 +2825,8 @@ const roperaUnidaItem = Item(
 /// Accesorio morado que convierte la vida faltante en daño explosivo para el primer ataque del turno.
 const ultimaMarchaItem = Item(
   id: ItemId.ultimaMarcha,
+  actionType: ItemActionType.attack,
+  actionValue: 12,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueVidaTags,
   name: 'Ultima Marcha',
@@ -2842,6 +2944,8 @@ const midnightCloakItem = Item(
 /// Soporte morado que potencia Quemaduras y las devuelve al portador cada turno.
 const portableOvenItem = Item(
   id: ItemId.portableOven,
+  actionType: ItemActionType.attack,
+  actionValue: 11,
   archetypeAffinities: _imparableAffinities,
   tags: _debuffQuemaduraTags,
   name: 'Horno Portatil',
@@ -2870,6 +2974,8 @@ const portableOvenItem = Item(
 /// Accesorio morado oportunista que roba liquidez y la convierte en aguante.
 const succionaCreditosItem = Item(
   id: ItemId.succionaCreditos,
+  actionType: ItemActionType.attack,
+  actionValue: 11,
   archetypeAffinities: _velozAffinities,
   tags: _economiaBarreraDebuffTags,
   name: 'SuccionaCreditos',
@@ -2929,6 +3035,8 @@ const voidInjectorItem = Item(
 /// Accesorio morado que sacrifica Barrera al defender para cargar Resonancia.
 const torreRetornoItem = Item(
   id: ItemId.torreRetorno,
+  actionType: ItemActionType.block,
+  actionValue: 12,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaBarreraBuffTags,
   name: 'Torre de Retorno',
@@ -2957,6 +3065,8 @@ const torreRetornoItem = Item(
 /// Accesorio morado que proyecta Resonancia como daño sin consumirla.
 const prismaDeEcoItem = Item(
   id: ItemId.prismaDeEco,
+  actionType: ItemActionType.attack,
+  actionValue: 11,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Prisma de Eco',
@@ -2986,6 +3096,8 @@ const prismaDeEcoItem = Item(
 /// Accesorio morado que traduce el sobrecalentamiento en defensa inmediata.
 const overloadAnchorItem = Item(
   id: ItemId.overloadAnchor,
+  actionType: ItemActionType.block,
+  actionValue: 12,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBarreraBuffTags,
   name: 'Ancla de Sobrecarga',
@@ -3013,6 +3125,8 @@ const overloadAnchorItem = Item(
 /// Accesorio morado reactivo que solo devuelve una penalizacion por turno.
 const reboundLensItem = Item(
   id: ItemId.reboundLens,
+  actionType: ItemActionType.block,
+  actionValue: 11,
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraDebuffTags,
   name: 'Lente de Rebote',
@@ -3063,6 +3177,8 @@ const incubadoraPortatilItem = Item(
 /// Arma amarilla que remata tras recibir el castigo de Desafio.
 const ultimaPalabraItem = Item(
   id: ItemId.ultimaPalabra,
+  actionType: ItemActionType.attack,
+  actionValue: 18,
   archetypeAffinities: _imparableAffinities,
   tags: _desafioAtaqueBuffTags,
   name: 'Ultima Palabra',
@@ -3091,6 +3207,8 @@ const ultimaPalabraItem = Item(
 /// Accesorio amarillo que purga con fuerza cualquier debuff purgable.
 const ceramicaPurgadoraItem = Item(
   id: ItemId.ceramicaPurgadora,
+  actionType: ItemActionType.block,
+  actionValue: 16,
   archetypeAffinities: _inamovibleAffinities,
   tags: _barreraDebuffTags,
   name: 'Ceramica Purgadora',
@@ -3121,6 +3239,8 @@ const ceramicaPurgadoraItem = Item(
 /// Arma amarilla que acelera de verdad las cadenas de Calentando.
 const overloadInjectorItem = Item(
   id: ItemId.overloadInjector,
+  actionType: ItemActionType.attack,
+  actionValue: 18,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueBuffTags,
   name: 'Inyector de Sobrecarga',
@@ -3149,6 +3269,8 @@ const overloadInjectorItem = Item(
 /// Accesorio amarillo que devuelve Barrera cuando la Resonancia hace daño.
 const canonContrapresionItem = Item(
   id: ItemId.canonContrapresion,
+  actionType: ItemActionType.block,
+  actionValue: 16,
   archetypeAffinities: _inamovibleAffinities,
   tags: _resonanciaAtaqueBarreraTags,
   name: 'Cañón de Contrapresion',
@@ -3297,6 +3419,8 @@ const operativeBlackBoxItem = Item(
 /// Arma amarilla de remate que convierte la Quemadura acumulada en daño inmediato.
 const sunExecutionBladeItem = Item(
   id: ItemId.sunExecutionBlade,
+  actionType: ItemActionType.attack,
+  actionValue: 18,
   archetypeAffinities: _imparableAffinities,
   tags: _ataqueDebuffQuemaduraTags,
   name: 'Hoja de Ejecucion Solar',
