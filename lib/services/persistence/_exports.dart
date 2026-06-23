@@ -5,3 +5,4 @@ export 'endpoint_preferences_models.dart';
 export 'endpoint_preferences_service.dart';
 export 'endpoint_preferences_store.dart';
 export 'endpoint_settings_snapshot_codec.dart';
+export 'preferences_run_snapshot_repository.dart';

@@ -1,4 +1,5 @@
 import '_imports.dart';
+import '../persistence/endpoint_preferences_models.dart';
 
 class RunSessionController extends ChangeNotifier {
   final RunRandomizer _randomizer;
@@ -7,6 +8,7 @@ class RunSessionController extends ChangeNotifier {
   final Map<int, List<PathNode>>? _scriptedNodesByStage;
   final int _nodeCount;
   final bool _persistRun;
+  final RunSnapshotRepository _snapshotRepository;
   RunState _state;
   bool _isResolvingNode = false;
   PathNode? _activeNode;
@@ -20,6 +22,8 @@ class RunSessionController extends ChangeNotifier {
     int nodeCount = 3,
     int? randomSeed,
     bool persistRun = true,
+    RunSnapshotRepository snapshotRepository =
+        const NoopRunSnapshotRepository(),
   }) : this._(
           player: player,
           battleEnemyTurnDelay: battleEnemyTurnDelay,
@@ -29,11 +33,14 @@ class RunSessionController extends ChangeNotifier {
           nodeCount: nodeCount,
           randomizer: RunRandomizer(seed: randomSeed),
           persistRun: persistRun,
+          snapshotRepository: snapshotRepository,
         );
 
   RunSessionController.resume({
     required EndpointCurrentRunSnapshot snapshot,
     bool persistRun = true,
+    RunSnapshotRepository snapshotRepository =
+        const NoopRunSnapshotRepository(),
   }) : this._(
           player: snapshot.player,
           battleEnemyTurnDelay: snapshot.battleEnemyTurnDelay,
@@ -63,6 +70,7 @@ class RunSessionController extends ChangeNotifier {
           initialIsResolvingNode: snapshot.isResolvingNode,
           initialActiveNode: snapshot.activeNode,
           persistRun: persistRun,
+          snapshotRepository: snapshotRepository,
         );
 
   RunSessionController._({
@@ -77,6 +85,7 @@ class RunSessionController extends ChangeNotifier {
     bool initialIsResolvingNode = false,
     PathNode? initialActiveNode,
     bool persistRun = true,
+    required RunSnapshotRepository snapshotRepository,
   })  : _randomizer = randomizer,
         _pathNodeService = PathNodeService(
           randomizer: randomizer,
@@ -92,6 +101,7 @@ class RunSessionController extends ChangeNotifier {
               }),
         _nodeCount = max(1, nodeCount),
         _persistRun = persistRun,
+        _snapshotRepository = snapshotRepository,
         _state = restoredState ??
             RunState(
               player: player.materializeOwnedItems(),
@@ -930,20 +940,22 @@ class RunSessionController extends ChangeNotifier {
   }) {
     if (!_persistRun) return Future<void>.value();
 
-    return EndpointPreferencesService.saveCurrentRunSnapshot(
-      state: _state,
-      randomizer: _randomizer,
-      isResolvingNode: _isResolvingNode,
-      trigger: trigger,
-      nodeCount: _nodeCount,
-      activeNode: activeNodeOverride ?? _activeNode,
+    return _snapshotRepository.save(
+      RunSnapshotWriteRequest(
+        state: _state,
+        randomizer: _randomizer,
+        isResolvingNode: _isResolvingNode,
+        trigger: trigger,
+        nodeCount: _nodeCount,
+        activeNode: activeNodeOverride ?? _activeNode,
+      ),
     );
   }
 
   Future<void> clearPersistedRunSnapshot() {
     if (!_persistRun) return Future<void>.value();
 
-    return EndpointPreferencesService.clearCurrentRunSnapshot();
+    return _snapshotRepository.clear();
   }
 
   List<PathNode>? _scriptedNodesForStage(int stageIndex) {

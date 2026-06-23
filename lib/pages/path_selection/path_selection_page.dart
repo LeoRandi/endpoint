@@ -90,9 +90,11 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             nodeCount: widget.nodeCount,
             randomSeed: widget.randomSeed,
             persistRun: widget.persistRun,
+            snapshotRepository: const PreferencesRunSnapshotRepository(),
           )
         : RunSessionController.resume(
             snapshot: widget.restoredRun!,
+            snapshotRepository: const PreferencesRunSnapshotRepository(),
           );
 
     _tutorialKeys = _PathTutorialShowcaseKeys();

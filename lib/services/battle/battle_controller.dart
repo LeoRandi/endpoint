@@ -8,6 +8,11 @@ class BattleController extends ChangeNotifier {
   final BattlePurgeService _purgeService;
   final BattleEnemyAiService _enemyAi;
   final RunRandomizer _randomizer;
+  final BattleTurnCoordinator _turnCoordinator;
+  final BattleActionHandlers _actionHandlers;
+  final BattleActionIntentProducer _actionIntentProducer;
+  final BattleCombatStateReducer _stateReducer;
+  final BattleAnimationCueProducer _animationCueProducer;
   final Duration enemyTurnDelay;
   final Duration combatEndDelay;
   final BattleCombatAnimationCallback? onCombatAnimation;
@@ -15,9 +20,6 @@ class BattleController extends ChangeNotifier {
   Battler _enemy;
   Battler _player;
   EnemyTurnAction _enemyNextAction = EnemyTurnAction.attack;
-  int _currentRound = 1;
-  int _completedTurnsInCurrentRound = 0;
-  BattleTurnState _turn = BattleTurnState.player;
   String? _resultText;
   BattleFlowResult? _pendingExitResult;
   int _playerBlockUseCount = 0;
@@ -43,6 +45,13 @@ class BattleController extends ChangeNotifier {
     BattleTurnEngine turnEngine = const BattleTurnEngine(),
     BattlePurgeService purgeService = const BattlePurgeService(),
     BattleEnemyAiService? enemyAi,
+    BattleTurnCoordinator? turnCoordinator,
+    BattleActionHandlers? actionHandlers,
+    BattleActionIntentProducer actionIntentProducer =
+        const BattleActionIntentProducer(),
+    BattleCombatStateReducer stateReducer = const BattleCombatStateReducer(),
+    BattleAnimationCueProducer animationCueProducer =
+        const BattleAnimationCueProducer(),
     this.onCombatAnimation,
   })  : _enemy = enemy.prepareForCombat(
           phase: phase,
@@ -55,6 +64,12 @@ class BattleController extends ChangeNotifier {
         _purgeService = purgeService,
         _randomizer = randomizer ?? RunRandomizer(),
         _enemyAi = enemyAi ?? BattleEnemyAiService.forEnemyTier(enemyTier),
+        _turnCoordinator = turnCoordinator ?? BattleTurnCoordinator(),
+        _actionHandlers =
+            actionHandlers ?? BattleActionHandlers(stateReducer: stateReducer),
+        _actionIntentProducer = actionIntentProducer,
+        _stateReducer = stateReducer,
+        _animationCueProducer = animationCueProducer,
         _turnEngine = turnEngine {
     final playerItemCombatStart =
         _effectPipeline.applyEquippedItemCombatStartEffects(
@@ -99,6 +114,16 @@ class BattleController extends ChangeNotifier {
 
   Battler get enemy => _enemy;
   Battler get player => _player;
+  BattleTurnState get _turn => _turnCoordinator.turn;
+  set _turn(BattleTurnState value) {
+    if (value == BattleTurnState.finished) {
+      _turnCoordinator.finish();
+    } else {
+      _turnCoordinator.begin(value);
+    }
+  }
+
+  int get _currentRound => _turnCoordinator.currentRound;
   BattleTurnState get turn => _turn;
   bool get isPlayerTurn => _turn == BattleTurnState.player;
   bool get isEnemyTurn => _turn == BattleTurnState.enemy;
@@ -1236,8 +1261,8 @@ class BattleController extends ChangeNotifier {
 
     final damage = max(
         0,
-        _combatDurabilityOf(initialPlayer) -
-            _combatDurabilityOf(predictedPlayer));
+        _actionIntentProducer.combatDurabilityOf(initialPlayer) -
+            _actionIntentProducer.combatDurabilityOf(predictedPlayer));
     final barrierGain =
         max(0, predictedEnemy.currentBarrier - initialEnemy.currentBarrier);
 
@@ -1248,7 +1273,7 @@ class BattleController extends ChangeNotifier {
       attackHitDamage: attackBreakdown?.damagePerHit ?? damage,
       attackHitCount: attackBreakdown?.hitCount ?? 1,
       barrierGain: barrierGain,
-      appliedDebuffs: _buildAppliedDebuffIntents(
+      appliedDebuffs: _actionIntentProducer.appliedDebuffs(
         before: initialPlayer,
         after: predictedPlayer,
       ),
@@ -1269,8 +1294,8 @@ class BattleController extends ChangeNotifier {
     final attackBreakdown = _buildAttackIntentBreakdown(attackResolution);
     final attackDamage = max(
       0,
-      _combatDurabilityOf(_enemy) -
-          _combatDurabilityOf(attackResolution.defender),
+      _actionIntentProducer.combatDurabilityOf(_enemy) -
+          _actionIntentProducer.combatDurabilityOf(attackResolution.defender),
     );
 
     final defendResolution = _resolveDefendAction(
@@ -1288,14 +1313,14 @@ class BattleController extends ChangeNotifier {
       attackHitDamage: attackBreakdown.damagePerHit,
       attackHitCount: attackBreakdown.hitCount,
       blockBarrierGain: blockBarrierGain,
-      attackEffects: _buildPlayerActionEffectIntents(
+      attackEffects: _actionIntentProducer.playerActionEffects(
         ownerBefore: _player,
         ownerAfter: attackResolution.attacker,
         opponentBefore: _enemy,
         opponentAfter: attackResolution.defender,
         includeAttackResolvedAbilities: true,
       ),
-      blockEffects: _buildPlayerActionEffectIntents(
+      blockEffects: _actionIntentProducer.playerActionEffects(
         ownerBefore: _player,
         ownerAfter: defendResolution.defender,
         opponentBefore: _enemy,
@@ -1303,170 +1328,6 @@ class BattleController extends ChangeNotifier {
         includeAttackResolvedAbilities: false,
       ),
     );
-  }
-
-  int _combatDurabilityOf(Battler battler) {
-    return max(0, battler.health) + max(0, battler.currentBarrier);
-  }
-
-  List<PlayerActionEffectIntent> _buildPlayerActionEffectIntents({
-    required Battler ownerBefore,
-    required Battler ownerAfter,
-    required Battler opponentBefore,
-    required Battler opponentAfter,
-    required bool includeAttackResolvedAbilities,
-  }) {
-    final intents = <PlayerActionEffectIntent>[];
-    final ownerHealthGain = max(0, ownerAfter.health - ownerBefore.health);
-    if (ownerHealthGain > 0) {
-      intents.add(PlayerActionEffectIntent.heal(ownerHealthGain));
-    }
-
-    intents.addAll(
-      _buildStatusDeltaIntents(
-        before: ownerBefore,
-        after: ownerAfter,
-      ),
-    );
-    intents.addAll(
-      _buildStatusDeltaIntents(
-        before: opponentBefore,
-        after: opponentAfter,
-      ),
-    );
-
-    final abilityIntents = _buildAbilityEffectIntents(
-      before: ownerBefore,
-      after: ownerAfter,
-      includeAttackResolvedAbilities: includeAttackResolvedAbilities,
-      hasVisibleActionDelta: intents.isNotEmpty,
-    );
-    intents.addAll(abilityIntents);
-
-    return List<PlayerActionEffectIntent>.unmodifiable(intents);
-  }
-
-  List<PlayerActionEffectIntent> _buildStatusDeltaIntents({
-    required Battler before,
-    required Battler after,
-  }) {
-    final beforeById = _statusIntentAmountsById(before);
-    final afterById = _statusIntentAmountsById(after);
-    final intents = <PlayerActionEffectIntent>[];
-
-    for (final entry in afterById.entries) {
-      final beforeAmount = beforeById[entry.key] ?? 0;
-      final delta = entry.value - beforeAmount;
-      if (delta <= 0) continue;
-
-      final status = after.statusById(entry.key)?.resolved(after);
-      if (status == null) continue;
-      intents.add(PlayerActionEffectIntent.status(status, amount: delta));
-    }
-
-    return List<PlayerActionEffectIntent>.unmodifiable(intents);
-  }
-
-  Map<BattlerStatusId, int> _statusIntentAmountsById(Battler battler) {
-    final amounts = <BattlerStatusId, int>{};
-    for (final status in battler.statuses) {
-      final resolvedStatus = status.resolved(battler);
-      amounts.update(
-        resolvedStatus.id,
-        (value) => value + _statusIntentAmount(resolvedStatus),
-        ifAbsent: () => _statusIntentAmount(resolvedStatus),
-      );
-    }
-    return amounts;
-  }
-
-  int _statusIntentAmount(BattlerStatus status) {
-    if (status.value > 0) return status.value;
-    if (!status.isIndefinite && status.remainingTurns > 0) {
-      return status.remainingTurns;
-    }
-    return 1;
-  }
-
-  List<PlayerActionEffectIntent> _buildAbilityEffectIntents({
-    required Battler before,
-    required Battler after,
-    required bool includeAttackResolvedAbilities,
-    required bool hasVisibleActionDelta,
-  }) {
-    final intents = <PlayerActionEffectIntent>[];
-    final addedAbilityIds = <BattlerAbilityId>{};
-
-    for (final ability in before.abilities) {
-      final updatedAbility = after.abilityById(ability.id);
-      if (updatedAbility == null) continue;
-      if (!_didAbilityRuntimeChange(ability, updatedAbility)) continue;
-
-      intents.add(PlayerActionEffectIntent.ability(ability));
-      addedAbilityIds.add(ability.id);
-    }
-
-    if (!includeAttackResolvedAbilities || !hasVisibleActionDelta) {
-      return List<PlayerActionEffectIntent>.unmodifiable(intents);
-    }
-
-    for (final abilityId in before.abilityIdsForHook(
-      BattlerAbilityHook.attackResolved,
-    )) {
-      if (addedAbilityIds.contains(abilityId)) continue;
-      final ability = before.abilityById(abilityId);
-      if (ability == null || !ability.isPassive || !ability.isImplemented) {
-        continue;
-      }
-
-      intents.add(PlayerActionEffectIntent.ability(ability));
-      addedAbilityIds.add(ability.id);
-    }
-
-    return List<PlayerActionEffectIntent>.unmodifiable(intents);
-  }
-
-  bool _didAbilityRuntimeChange(
-    BattlerAbility before,
-    BattlerAbility after,
-  ) {
-    return before.isActive != after.isActive ||
-        before.remainingCooldownTurns != after.remainingCooldownTurns ||
-        before.runtimeValueBonus != after.runtimeValueBonus;
-  }
-
-  List<EnemyTurnDebuffIntent> _buildAppliedDebuffIntents({
-    required Battler before,
-    required Battler after,
-  }) {
-    final beforeCounts = <String, int>{};
-    for (final status in before.statuses) {
-      if (status.type != BattlerStatusType.debuff) continue;
-      final resolvedStatus = status.resolved(before);
-      final key = _statusIntentKey(resolvedStatus);
-      beforeCounts[key] = (beforeCounts[key] ?? 0) + 1;
-    }
-
-    final intents = <EnemyTurnDebuffIntent>[];
-    for (final status in after.statuses) {
-      if (status.type != BattlerStatusType.debuff) continue;
-      final resolvedStatus = status.resolved(after);
-      final key = _statusIntentKey(resolvedStatus);
-      final previousCount = beforeCounts[key] ?? 0;
-      if (previousCount > 0) {
-        beforeCounts[key] = previousCount - 1;
-        continue;
-      }
-
-      intents.add(
-        EnemyTurnDebuffIntent(
-          status: resolvedStatus,
-          amountLabel: resolvedStatus.badgeLabelFor(after),
-        ),
-      );
-    }
-
-    return List<EnemyTurnDebuffIntent>.unmodifiable(intents);
   }
 
   _EnemyIntentAttackBreakdown _buildEnemyIntentAttackBreakdown(
@@ -1505,10 +1366,6 @@ class BattleController extends ChangeNotifier {
             ),
       hitCount: hasUniformDamage ? attackHits.length : 1,
     );
-  }
-
-  String _statusIntentKey(BattlerStatus status) {
-    return '${status.id.name}|${status.remainingTurns}|${status.value}';
   }
 
   _EnemyActionResolution _resolveEnemyAction({
@@ -1576,24 +1433,15 @@ class BattleController extends ChangeNotifier {
     );
   }
 
-  _DefendActionResolution _resolveDefendAction({
+  BattleDefendActionResolution _resolveDefendAction({
     required Battler defender,
     required Battler opponent,
     required int barrierGain,
   }) {
-    final updatedDefender = barrierGain > 0
-        ? _applyBarrierGain(
-            defender,
-            barrierGain,
-          )
-        : defender;
-    final itemResolution =
-        updatedDefender.applyEquippedItemDefendResolvedEffects(
+    return _actionHandlers.resolveDefend(
+      defender: defender,
       opponent: opponent,
-    );
-    return _DefendActionResolution(
-      defender: itemResolution.owner,
-      opponent: itemResolution.opponent,
+      barrierGain: barrierGain,
     );
   }
 
@@ -2012,65 +1860,10 @@ class BattleController extends ChangeNotifier {
     required int damage,
     int barrierIgnore = 0,
   }) {
-    final safeDamage = max(0, damage);
-    if (safeDamage <= 0) return owner;
-
-    final ownerBeforeDamage = owner
-        .removeCombatFlagsFor(BattlerCombatFlag.barrierBrokenThisHit)
-        .removeCombatFlagsFor(BattlerCombatFlag.barrierLostThisHit)
-        .removeCombatFlagsFor(BattlerCombatFlag.healthLostThisHit)
-        .removeCombatFlagsFor(BattlerCombatFlag.fragilidadTriggeredThisHit);
-    final bypassDamage = min(
-      safeDamage,
-      min(max(0, barrierIgnore), ownerBeforeDamage.currentBarrier),
-    ).toInt();
-    final blockableDamage = max(0, safeDamage - bypassDamage).toInt();
-    final absorbedByBarrier = min(
-      ownerBeforeDamage.currentBarrier,
-      blockableDamage,
-    ).toInt();
-    final healthDamage =
-        (bypassDamage + max(0, blockableDamage - absorbedByBarrier)).toInt();
-
-    var updatedOwner = ownerBeforeDamage;
-    if (absorbedByBarrier > 0) {
-      updatedOwner = updatedOwner
-          .copyWith(
-            currentBarrier: max(
-              0,
-              updatedOwner.currentBarrier - absorbedByBarrier,
-            ),
-          )
-          .addCombatFlag(
-            CombatRuntimeFlag.battler(
-              BattlerCombatFlag.barrierLostThisHit,
-              secondaryValue: absorbedByBarrier,
-            ),
-          );
-      if (ownerBeforeDamage.currentBarrier > 0 &&
-          updatedOwner.currentBarrier <= 0) {
-        updatedOwner = updatedOwner.addCombatFlag(
-          Battler.barrierBrokenThisHitFlag,
-        );
-      }
-    }
-
-    if (healthDamage <= 0) return updatedOwner;
-
-    final damagedOwner = updatedOwner
-        .copyWith(
-          health: max(0, updatedOwner.health - healthDamage).toInt(),
-        )
-        .addCombatFlag(
-          CombatRuntimeFlag.battler(
-            BattlerCombatFlag.healthLostThisHit,
-            secondaryValue: healthDamage,
-          ),
-        );
-    if (damagedOwner.health > 0) return damagedOwner;
-
-    return damagedOwner.applyEquippedItemFatalDamageEffects(
-      incomingDamage: healthDamage,
+    return _stateReducer.receiveDamageWithBarrierIgnore(
+      owner: owner,
+      damage: damage,
+      barrierIgnore: barrierIgnore,
     );
   }
 
@@ -2250,207 +2043,15 @@ class BattleController extends ChangeNotifier {
     Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>> floatingNumbersBySide =
         const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{},
   }) async {
-    var visualPlayer = playerBefore;
-    var visualEnemy = enemyBefore;
-    final playerFragilidadDamage = playerBefore.health > playerAfter.health
-        ? playerAfter.fragilidadTriggeredThisHit
-        : 0;
-    final enemyFragilidadDamage = enemyBefore.health > enemyAfter.health
-        ? enemyAfter.fragilidadTriggeredThisHit
-        : 0;
-    final targetPlayerAfter = playerFragilidadDamage > 0
-        ? playerAfter.copyWith(
-            health: min(playerBefore.health,
-                playerAfter.health + playerFragilidadDamage),
-            statuses: playerBefore.statuses,
-          )
-        : playerAfter;
-    final targetEnemyAfter = enemyFragilidadDamage > 0
-        ? enemyAfter.copyWith(
-            health: min(
-                enemyBefore.health, enemyAfter.health + enemyFragilidadDamage),
-            statuses: enemyBefore.statuses,
-          )
-        : enemyAfter;
-
-    for (final side in BattleCombatantSide.values) {
-      final before =
-          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
-      final after = side == BattleCombatantSide.player
-          ? targetPlayerAfter
-          : targetEnemyAfter;
-      final barrierLoss = after.currentBarrier < before.currentBarrier;
-      final healthLoss = after.health < before.health;
-      if (!barrierLoss && !healthLoss) continue;
-
-      final hook = barrierLoss && healthLoss
-          ? BattleCombatAnimationHook.damageTaken
-          : healthLoss
-              ? BattleCombatAnimationHook.healthLoss
-              : BattleCombatAnimationHook.barrierLoss;
-      final next = BattleCombatAnimationCueFactory.visualBattlerTransition(
-        before: before,
-        after: after,
-        includeHealth: healthLoss,
-        includeBarrier: barrierLoss,
-      );
-      final floatingNumbers = floatingNumbersBySide[side] ??
-          BattleCombatAnimationCueFactory.lossFloatingNumbers(
-            before: before,
-            after: after,
-          );
-      await _playCombatAnimation(
-        BattleCombatAnimationCueFactory.stateTransitionCue(
-          hook: hook,
-          side: side,
-          playerBefore: visualPlayer,
-          enemyBefore: visualEnemy,
-          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
-          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
-          floatingNumbers: floatingNumbers,
-        ),
-      );
-      if (side == BattleCombatantSide.player) {
-        visualPlayer = next;
-      } else {
-        visualEnemy = next;
-      }
-    }
-
-    for (final side in BattleCombatantSide.values) {
-      final before =
-          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
-      final after = side == BattleCombatantSide.player
-          ? targetPlayerAfter
-          : targetEnemyAfter;
-      if (after.currentBarrier <= before.currentBarrier) continue;
-
-      final next = BattleCombatAnimationCueFactory.visualBattlerTransition(
-        before: before,
-        after: after,
-        includeBarrier: true,
-      );
-      await _playCombatAnimation(
-        BattleCombatAnimationCueFactory.stateTransitionCue(
-          hook: BattleCombatAnimationHook.barrierGain,
-          side: side,
-          playerBefore: visualPlayer,
-          enemyBefore: visualEnemy,
-          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
-          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
-          floatingNumbers: BattleCombatAnimationCueFactory.gainFloatingNumbers(
-            before: before,
-            after: after,
-            includeBarrier: true,
-          ),
-        ),
-      );
-      if (side == BattleCombatantSide.player) {
-        visualPlayer = next;
-      } else {
-        visualEnemy = next;
-      }
-    }
-
-    for (final side in BattleCombatantSide.values) {
-      final before =
-          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
-      final after = side == BattleCombatantSide.player
-          ? targetPlayerAfter
-          : targetEnemyAfter;
-      if (after.health <= before.health) continue;
-
-      final next = BattleCombatAnimationCueFactory.visualBattlerTransition(
-        before: before,
-        after: after,
-        includeHealth: true,
-      );
-      await _playCombatAnimation(
-        BattleCombatAnimationCueFactory.stateTransitionCue(
-          hook: BattleCombatAnimationHook.healthGain,
-          side: side,
-          playerBefore: visualPlayer,
-          enemyBefore: visualEnemy,
-          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
-          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
-          floatingNumbers: BattleCombatAnimationCueFactory.gainFloatingNumbers(
-            before: before,
-            after: after,
-            includeHealth: true,
-          ),
-        ),
-      );
-      if (side == BattleCombatantSide.player) {
-        visualPlayer = next;
-      } else {
-        visualEnemy = next;
-      }
-    }
-
-    for (final side in BattleCombatantSide.values) {
-      final fragilidadDamage = side == BattleCombatantSide.player
-          ? playerFragilidadDamage
-          : enemyFragilidadDamage;
-      if (fragilidadDamage <= 0) continue;
-
-      await _playCombatAnimation(
-        BattleCombatAnimationCueFactory.stateTransitionCue(
-          hook: BattleCombatAnimationHook.fragilidadBurst,
-          side: side,
-          playerBefore: visualPlayer,
-          enemyBefore: visualEnemy,
-          playerAfter:
-              side == BattleCombatantSide.player ? playerAfter : visualPlayer,
-          enemyAfter:
-              side == BattleCombatantSide.enemy ? enemyAfter : visualEnemy,
-          floatingNumbers: <BattleCombatFloatingNumberCue>[
-            BattleCombatFloatingNumberCue(
-              tone: BattleCombatFloatingNumberTone.fragilidadDamage,
-              amount: fragilidadDamage,
-            ),
-          ],
-        ),
-      );
-      if (side == BattleCombatantSide.player) {
-        visualPlayer = playerAfter;
-      } else {
-        visualEnemy = enemyAfter;
-      }
-    }
-
-    for (final side in BattleCombatantSide.values) {
-      final before =
-          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
-      final after = side == BattleCombatantSide.player
-          ? targetPlayerAfter
-          : targetEnemyAfter;
-      final moneyDelta = after.money - before.money;
-      if (moneyDelta == 0) continue;
-
-      final next = before.copyWith(money: after.money);
-      await _playCombatAnimation(
-        BattleCombatAnimationCueFactory.stateTransitionCue(
-          hook: BattleCombatAnimationHook.moneyChange,
-          side: side,
-          playerBefore: visualPlayer,
-          enemyBefore: visualEnemy,
-          playerAfter: side == BattleCombatantSide.player ? next : visualPlayer,
-          enemyAfter: side == BattleCombatantSide.enemy ? next : visualEnemy,
-          floatingNumbers: <BattleCombatFloatingNumberCue>[
-            BattleCombatFloatingNumberCue(
-              tone: moneyDelta > 0
-                  ? BattleCombatFloatingNumberTone.moneyGain
-                  : BattleCombatFloatingNumberTone.moneyLoss,
-              amount: moneyDelta.abs(),
-            ),
-          ],
-        ),
-      );
-      if (side == BattleCombatantSide.player) {
-        visualPlayer = next;
-      } else {
-        visualEnemy = next;
-      }
+    final cues = _animationCueProducer.stateTransitionCues(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyAfter,
+      floatingNumbersBySide: floatingNumbersBySide,
+    );
+    for (final cue in cues) {
+      await _playCombatAnimation(cue);
     }
   }
 
@@ -2565,7 +2166,7 @@ class BattleController extends ChangeNotifier {
     );
   }
 
-  _DefendActionResolution _resolveEmergencyPlatingAutoBlock({
+  BattleDefendActionResolution _resolveEmergencyPlatingAutoBlock({
     required Battler defender,
     required Battler opponent,
     required BattleCombatantSide side,
@@ -2576,7 +2177,7 @@ class BattleController extends ChangeNotifier {
       opponent: opponent,
       barrierGain: _blockBarrierGainForSide(side),
     );
-    return _DefendActionResolution(
+    return BattleDefendActionResolution(
       defender: defendResolution.defender.addItemCombatFlagUse(
         item: item,
         kind: ItemCombatFlagKind.emergencyPlatingAutoBlockUsed,
@@ -2626,7 +2227,7 @@ class BattleController extends ChangeNotifier {
 
   void _applyDefendResolutionForSide({
     required BattleCombatantSide side,
-    required _DefendActionResolution resolution,
+    required BattleDefendActionResolution resolution,
   }) {
     if (side == BattleCombatantSide.player) {
       _player = resolution.defender;
@@ -2876,18 +2477,11 @@ class BattleController extends ChangeNotifier {
   }
 
   int _burnApplicationCountFor(Battler battler) {
-    return battler.statuses.whereType<QuemaduraStatus>().where((status) {
-      return !status.isExpired && status.currentDamage(battler) > 0;
-    }).length;
+    return _animationCueProducer.burnApplicationCountFor(battler);
   }
 
   int _poisonStackCountFor(Battler battler) {
-    final poison = battler.statusById(IntoxicacionStatus.statusId);
-    if (poison is! IntoxicacionStatus || poison.isExpired) {
-      return 0;
-    }
-
-    return max(0, poison.currentDamage(battler));
+    return _animationCueProducer.poisonStackCountFor(battler);
   }
 
   Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
@@ -2898,41 +2492,13 @@ class BattleController extends ChangeNotifier {
     required Battler playerAfter,
     required Battler enemyAfter,
   }) {
-    final affectedSide = activeTurn == BattleTurnState.player
-        ? BattleCombatantSide.player
-        : BattleCombatantSide.enemy;
-    final before =
-        affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
-    final after =
-        affectedSide == BattleCombatantSide.player ? playerAfter : enemyAfter;
-    if (_burnApplicationCountFor(before) <= 0) {
-      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
-    }
-
-    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
-    final healthLoss = max(0, before.health - after.health);
-    if (barrierLoss <= 0 && healthLoss <= 0) {
-      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
-    }
-
-    final floatingNumbers = <BattleCombatFloatingNumberCue>[
-      if (healthLoss > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.burnDamage,
-          amount: healthLoss,
-        ),
-      if (barrierLoss > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.barrierDamage,
-          amount: barrierLoss,
-        ),
-    ];
-
-    return <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{
-      affectedSide: List<BattleCombatFloatingNumberCue>.unmodifiable(
-        floatingNumbers,
-      ),
-    };
+    return _animationCueProducer.turnStartDebuffFloatingNumbers(
+      activeTurn: activeTurn,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyAfter,
+    );
   }
 
   Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
@@ -2943,71 +2509,17 @@ class BattleController extends ChangeNotifier {
     required Battler playerAfter,
     required Battler enemyAfter,
   }) {
-    final affectedSide = completedTurn == BattleTurnState.player
-        ? BattleCombatantSide.player
-        : BattleCombatantSide.enemy;
-    final before =
-        affectedSide == BattleCombatantSide.player ? playerBefore : enemyBefore;
-    final after =
-        affectedSide == BattleCombatantSide.player ? playerAfter : enemyAfter;
-    final poisonDamage = _poisonStackCountFor(before);
-    if (poisonDamage <= 0) {
-      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
-    }
-
-    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
-    final healthLoss = max(0, before.health - after.health);
-    if (barrierLoss <= 0 && healthLoss <= 0) {
-      return const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{};
-    }
-
-    final floatingNumbers = <BattleCombatFloatingNumberCue>[];
-
-    var remainingHealthLoss = healthLoss;
-    if (poisonDamage > 0 && remainingHealthLoss > 0) {
-      final poisonShown = min(poisonDamage, remainingHealthLoss);
-      floatingNumbers.add(
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.poisonDamage,
-          amount: poisonShown,
-        ),
-      );
-      remainingHealthLoss -= poisonShown;
-    }
-    if (remainingHealthLoss > 0) {
-      floatingNumbers.add(
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.healthDamage,
-          amount: remainingHealthLoss,
-        ),
-      );
-    }
-    if (barrierLoss > 0) {
-      floatingNumbers.add(
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.barrierDamage,
-          amount: barrierLoss,
-        ),
-      );
-    }
-
-    return <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{
-      affectedSide: List<BattleCombatFloatingNumberCue>.unmodifiable(
-        floatingNumbers,
-      ),
-    };
+    return _animationCueProducer.turnEndDebuffFloatingNumbers(
+      completedTurn: completedTurn,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyAfter,
+    );
   }
 
   int? _registerCompletedTurn() {
-    _completedTurnsInCurrentRound++;
-    if (_completedTurnsInCurrentRound < 2) {
-      return null;
-    }
-
-    final completedRound = _currentRound;
-    _completedTurnsInCurrentRound = 0;
-    _currentRound++;
-    return completedRound;
+    return _turnCoordinator.registerCompletedTurn();
   }
 
   Future<bool> _applyPurgeDamageForCompletedRound(int completedRound) async {
@@ -3094,20 +2606,10 @@ class BattleController extends ChangeNotifier {
     required Battler before,
     required Battler after,
   }) {
-    final barrierLoss = max(0, before.currentBarrier - after.currentBarrier);
-    final healthLoss = max(0, before.health - after.health);
-    return List<BattleCombatFloatingNumberCue>.unmodifiable([
-      if (healthLoss > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.purgeDamage,
-          amount: healthLoss,
-        ),
-      if (barrierLoss > 0)
-        BattleCombatFloatingNumberCue(
-          tone: BattleCombatFloatingNumberTone.purgeDamage,
-          amount: barrierLoss,
-        ),
-    ]);
+    return _animationCueProducer.purgeFloatingNumbers(
+      before: before,
+      after: after,
+    );
   }
 
   Future<void> _applyActionBarrierToPlayer(int amount) async {
@@ -3140,13 +2642,11 @@ class BattleController extends ChangeNotifier {
   }
 
   Battler _applyActionBarrier(Battler battler, int amount) {
-    // Los bonus de accion representan barrera temporal y no deben anularse
-    // solo porque el tope base del battler sea cero.
-    return battler.gainCombatBarrier(amount);
+    return _stateReducer.gainActionBarrier(battler, amount);
   }
 
   Battler _applyBarrierGain(Battler battler, int amount) {
-    return battler.gainCombatBarrier(amount);
+    return _stateReducer.gainBarrier(battler, amount);
   }
 
   int _playerCurrentBlockBarrierGain() {
@@ -3268,137 +2768,6 @@ class _BattleAttackActionResolution {
     required this.damageDealt,
     required this.hits,
   });
-}
-
-class _DefendActionResolution {
-  final Battler defender;
-  final Battler opponent;
-
-  const _DefendActionResolution({
-    required this.defender,
-    required this.opponent,
-  });
-}
-
-class EnemyTurnDebuffIntent {
-  final BattlerStatus status;
-  final String amountLabel;
-
-  const EnemyTurnDebuffIntent({
-    required this.status,
-    required this.amountLabel,
-  });
-}
-
-enum PlayerActionEffectIntentKind {
-  heal,
-  buff,
-  debuff,
-  ability,
-}
-
-class PlayerActionEffectIntent {
-  final PlayerActionEffectIntentKind kind;
-  final BattlerStatus? status;
-  final BattlerAbility? ability;
-  final int amount;
-
-  const PlayerActionEffectIntent._({
-    required this.kind,
-    this.status,
-    this.ability,
-    this.amount = 0,
-  });
-
-  factory PlayerActionEffectIntent.heal(int amount) {
-    return PlayerActionEffectIntent._(
-      kind: PlayerActionEffectIntentKind.heal,
-      amount: max(0, amount),
-    );
-  }
-
-  factory PlayerActionEffectIntent.status(
-    BattlerStatus status, {
-    required int amount,
-  }) {
-    return PlayerActionEffectIntent._(
-      kind: status.type == BattlerStatusType.buff
-          ? PlayerActionEffectIntentKind.buff
-          : PlayerActionEffectIntentKind.debuff,
-      status: status,
-      amount: max(0, amount),
-    );
-  }
-
-  factory PlayerActionEffectIntent.ability(BattlerAbility ability) {
-    return PlayerActionEffectIntent._(
-      kind: PlayerActionEffectIntentKind.ability,
-      ability: ability,
-    );
-  }
-}
-
-class PlayerActionIntentPreview {
-  final int attackDamage;
-  final int attackHitDamage;
-  final int attackHitCount;
-  final int blockBarrierGain;
-  final List<PlayerActionEffectIntent> attackEffects;
-  final List<PlayerActionEffectIntent> blockEffects;
-
-  const PlayerActionIntentPreview({
-    this.attackDamage = 0,
-    this.attackHitDamage = 0,
-    this.attackHitCount = 1,
-    this.blockBarrierGain = 0,
-    this.attackEffects = const <PlayerActionEffectIntent>[],
-    this.blockEffects = const <PlayerActionEffectIntent>[],
-  });
-
-  String get attackDamageLabel {
-    final resolvedHitCount = max(1, attackHitCount);
-    if (resolvedHitCount > 1 && attackHitDamage > 0) {
-      return '${max(0, attackHitDamage)}x$resolvedHitCount';
-    }
-
-    return '${max(0, attackDamage)}';
-  }
-}
-
-class EnemyTurnIntentPreview {
-  final EnemyTurnAction action;
-  final BattlerAbility? activatedBattleAbility;
-  final int damage;
-  final int attackHitDamage;
-  final int attackHitCount;
-  final int barrierGain;
-  final List<EnemyTurnDebuffIntent> appliedDebuffs;
-
-  const EnemyTurnIntentPreview({
-    this.action = EnemyTurnAction.attack,
-    this.activatedBattleAbility,
-    this.damage = 0,
-    this.attackHitDamage = 0,
-    this.attackHitCount = 1,
-    this.barrierGain = 0,
-    this.appliedDebuffs = const <EnemyTurnDebuffIntent>[],
-  });
-
-  String get damageLabel {
-    final resolvedDamage =
-        max(0, attackHitDamage > 0 ? attackHitDamage : damage);
-    final resolvedHitCount = max(1, attackHitCount);
-    if (resolvedHitCount <= 1) return '$resolvedDamage';
-
-    return '${resolvedDamage}x$resolvedHitCount';
-  }
-
-  bool get hasAnyEffect {
-    return activatedBattleAbility != null ||
-        damage > 0 ||
-        barrierGain > 0 ||
-        appliedDebuffs.isNotEmpty;
-  }
 }
 
 class _EnemyIntentAttackBreakdown {
