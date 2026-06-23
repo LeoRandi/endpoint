@@ -1216,7 +1216,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       BattleCombatFloatingNumberTone.moneyGain => const Color(0xFFFFD76A),
       BattleCombatFloatingNumberTone.moneyLoss => EndpointPalette.dangerAccent,
       BattleCombatFloatingNumberTone.purgeDamage => const Color(0xFFFFEA70),
-      BattleCombatFloatingNumberTone.healing => const Color(0xFF8DFFB2),
+      BattleCombatFloatingNumberTone.healing => EndpointPalette.healthAccent,
     };
   }
 

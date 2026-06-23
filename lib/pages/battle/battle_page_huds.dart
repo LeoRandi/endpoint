@@ -823,7 +823,6 @@ class _BattleStatusBar extends StatelessWidget {
               EndpointHealthBarWithStatuses(
                 battler: battler,
                 value: healthFactor,
-                accent: accent,
                 height: 10,
                 badgeSize: 20,
                 badgeOverlap: 6,

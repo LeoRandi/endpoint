@@ -3,7 +3,6 @@ import '_imports.dart';
 class EndpointHealthBarWithStatuses extends StatelessWidget {
   final Battler battler;
   final double value;
-  final Color accent;
   final double height;
   final double badgeSize;
   final double badgeOverlap;
@@ -16,7 +15,6 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
     super.key,
     required this.battler,
     required this.value,
-    required this.accent,
     this.height = 12,
     this.badgeSize = 28,
     this.badgeOverlap = 6,
@@ -93,7 +91,6 @@ class EndpointHealthBarWithStatuses extends StatelessWidget {
         ],
         EndpointHealthBar(
           value: value,
-          accent: accent,
           height: height,
           animationDuration: healthAnimationDuration,
         ),

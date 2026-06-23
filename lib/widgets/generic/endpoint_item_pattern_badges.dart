@@ -82,7 +82,7 @@ Color endpointItemActionAccent(ItemActionType type) {
   return switch (type) {
     ItemActionType.attack => EndpointPalette.dangerAccent,
     ItemActionType.block => BattlerStat.barrier.accent,
-    ItemActionType.heal => const Color(0xFF5AF78E),
+    ItemActionType.heal => EndpointPalette.healthAccent,
     ItemActionType.none => EndpointPalette.patternAccent,
   };
 }

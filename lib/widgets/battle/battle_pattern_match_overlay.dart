@@ -2122,7 +2122,7 @@ class _PatternStatusBars extends StatelessWidget {
                   const SizedBox(height: 4),
                   _PatternMeterRow(
                     value: health,
-                    color: EndpointPalette.dangerAccent,
+                    color: EndpointPalette.healthAccent,
                     label: '${max(0, battler.health)}/$healthMax',
                   ),
                   const SizedBox(height: 4),

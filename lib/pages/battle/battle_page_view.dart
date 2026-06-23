@@ -925,9 +925,11 @@ class _BattleCombatIconAnimationLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = motion.primarySide == BattleCombatantSide.player
-        ? EndpointPalette.primaryAccent
-        : EndpointPalette.dangerAccent;
+    final accent = motion.hook == BattleCombatAnimationHook.healthGain
+        ? EndpointPalette.healthAccent
+        : motion.primarySide == BattleCombatantSide.player
+            ? EndpointPalette.primaryAccent
+            : EndpointPalette.dangerAccent;
     final delta = motion.end - motion.start;
     final usesReturnMotion =
         motion.hook == BattleCombatAnimationHook.blockMotion ||

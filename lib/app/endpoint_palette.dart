@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 /// overlays share the same visual language without depending on each other.
 abstract final class EndpointPalette {
   static const primaryAccent = Color(0xFF5AF78E);
+  static const healthAccent = Color(0xFF5AF78E);
   static const dangerAccent = Color(0xFFFF6B6B);
   static const warningAccent = Color(0xFFF3D35C);
   static const patternAccent = Color(0xFFFF8A1F);

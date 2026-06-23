@@ -2,7 +2,6 @@ import '_imports.dart';
 
 class EndpointHealthBar extends StatelessWidget {
   final double value;
-  final Color accent;
   final double height;
   final Color? trackColor;
   final double trackOpacity;
@@ -13,7 +12,6 @@ class EndpointHealthBar extends StatelessWidget {
   const EndpointHealthBar({
     super.key,
     required this.value,
-    required this.accent,
     this.height = 12,
     this.trackColor,
     this.trackOpacity = 0.35,
@@ -45,8 +43,10 @@ class EndpointHealthBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        accent.withAlpha(_opacityToAlpha(fillStartOpacity)),
-                        accent.withAlpha(_opacityToAlpha(fillEndOpacity)),
+                        EndpointPalette.healthAccent
+                            .withAlpha(_opacityToAlpha(fillStartOpacity)),
+                        EndpointPalette.healthAccent
+                            .withAlpha(_opacityToAlpha(fillEndOpacity)),
                       ],
                     ),
                   ),

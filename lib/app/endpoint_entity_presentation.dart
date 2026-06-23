@@ -1,6 +1,8 @@
 import '../entities/_exports.dart';
 import 'package:flutter/material.dart';
 
+import 'endpoint_palette.dart';
+
 /// UI-only copy and visual tokens for domain entities.
 ///
 /// Keeping these mappings outside `entities` lets the domain remain usable by
@@ -40,7 +42,7 @@ extension EntityTagPresentation on EntityTag {
         EntityTag.intoxicacion => const Color(0xFF74D66A),
         EntityTag.contagio => const Color(0xFFB56DFF),
         EntityTag.ciclo => const Color(0xFFC0C0C0),
-        EntityTag.vida => const Color(0xFFFF8BA7),
+        EntityTag.vida => EndpointPalette.healthAccent,
         EntityTag.ataque => const Color(0xFFF3D35C),
         EntityTag.barrera => const Color(0xFF59B7FF),
         EntityTag.resonancia => const Color(0xFFD0D5DE),
@@ -84,7 +86,7 @@ extension BattlerStatPresentation on BattlerStat {
       };
 
   Color get accent => switch (this) {
-        BattlerStat.health => const Color(0xFFFF8BA7),
+        BattlerStat.health => EndpointPalette.healthAccent,
         BattlerStat.attack => const Color(0xFFF3D35C),
         BattlerStat.barrier => const Color(0xFF59B7FF),
       };
@@ -231,9 +233,8 @@ extension ItemPresentation on Item {
           : EntityTag.resonancia,
       _ => EntityTag.economia,
     };
-    final statLine = id == ItemId.buzonVirtualAzul
-        ? '+1 PP mientras este equipado. '
-        : '';
+    final statLine =
+        id == ItemId.buzonVirtualAzul ? '+1 PP mientras este equipado. ' : '';
     final localizedEffect =
         '${statLine}Al terminar un combate, si tienes espacio, ofrece un item ${rarity.label} aleatorio con tag ${focusTag.label} en la pantalla de recompensas.';
     final technicalEffect = effect?.descriptionFor(this);
@@ -328,7 +329,8 @@ extension PathNodePresentation on PathNode {
         'shop_first_aid_stand' => const Color(0xFFFF8BA7),
         'shop_imp_acts' => const Color(0xFFF3D35C),
         'shop_remiendos_and_donts' => const Color(0xFF59B7FF),
-        'shop_ganganancias' || 'shop_cambient_gold_seller' =>
+        'shop_ganganancias' ||
+        'shop_cambient_gold_seller' =>
           const Color(0xFFEBCB5A),
         'shop_bulwark_workshop' => const Color(0xFF3FE88F),
         'shop_routine_market' => const Color(0xFFC0C0C0),
@@ -336,7 +338,8 @@ extension PathNodePresentation on PathNode {
         'shop_ember_foundry' => const Color(0xFFFF6A2A),
         'shop_toxin_lab' => const Color(0xFFB9F25C),
         'shop_after_hours_arsenal' => const Color(0xFFFF4D6D),
-        'shop_velvet_armory' || 'shop_tactics_and_treasures' =>
+        'shop_velvet_armory' ||
+        'shop_tactics_and_treasures' =>
           const Color(0xFFA95CFF),
         'shop_chemical_exchange' => const Color(0xFF4DE7D2),
         'shop_debuff_broker' => const Color(0xFFFF5A5F),
