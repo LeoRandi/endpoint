@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Fuerza a resolver la recompensa de nivel antes de volver a la pantalla de ruta.
 class LevelUpRewardDialog extends StatelessWidget {

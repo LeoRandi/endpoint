@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Identifica cada evento para que la logica pueda resolverlo sin depender del texto visible.
 ///

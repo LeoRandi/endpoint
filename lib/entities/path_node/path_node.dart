@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Resume los tipos de escena que puede ofrecer un nodo de ruta.
 ///

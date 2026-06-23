@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 const _adjN = OperativePatternAdjacencyDirection.north;
 const _adjE = OperativePatternAdjacencyDirection.east;

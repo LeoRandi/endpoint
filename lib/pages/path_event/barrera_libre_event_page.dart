@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class BarreraLibreEventPage extends StatefulWidget {
   final Battler player;

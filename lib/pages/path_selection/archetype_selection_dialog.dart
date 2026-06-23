@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 /// Muestra el detalle completo de un arquetipo antes de aplicarlo al jugador.

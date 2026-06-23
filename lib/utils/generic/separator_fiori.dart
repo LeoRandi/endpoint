@@ -1,6 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors
 
-import '../_imports.dart';
+import '_imports.dart';
 
 const _baseSeparatorHeight = 25.0;
 

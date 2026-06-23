@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Centraliza el paso de presets compartidos a instancias runtime.
 ///

@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Overlay de introduccion para eventos con paginas de texto y avance manual.
 class EndpointEventFlavorIntroOverlay extends StatelessWidget {

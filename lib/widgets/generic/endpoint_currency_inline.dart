@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class EndpointCurrencyInline extends StatelessWidget {
   final int value;

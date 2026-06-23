@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Identifica cada tipo de objeto sin depender de la instancia concreta que posea el jugador.
 enum ItemId {

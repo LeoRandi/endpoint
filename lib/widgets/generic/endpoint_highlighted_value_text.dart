@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 const _effectHealingAccent = EndpointPalette.primaryAccent;
 const _effectAttackAccent = EndpointPalette.dangerAccent;

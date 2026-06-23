@@ -1,5 +1,4 @@
-import '../_imports.dart';
-import '../../services/_exports.dart';
+import '_imports.dart';
 
 class EndpointItemDetailsDialog extends StatefulWidget {
   final Item item;

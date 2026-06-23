@@ -1,6 +1,4 @@
-import '../_imports.dart';
-import '../../services/pattern/operative_pattern_adjacency_service.dart';
-import '../../services/pattern/operative_pattern_bonus_service.dart';
+import '_imports.dart';
 
 const _operativePatternBoardRadius = 18.0;
 const _operativePatternAspectRatio = 1.0;

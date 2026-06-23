@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class RunDaySummaryPage extends StatefulWidget {
   final RunDaySummary summary;

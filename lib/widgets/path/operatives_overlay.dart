@@ -1,7 +1,4 @@
-import '../_imports.dart';
-import '../../services/persistence/endpoint_preferences_models.dart';
-import '../../services/pattern/operative_pattern_adjacency_service.dart';
-import '../../services/pattern/operative_pattern_layout_service.dart';
+import '_imports.dart';
 import 'package:flutter/foundation.dart';
 
 const _operativeTileExtent = 70.0;

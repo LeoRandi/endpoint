@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Separa los encuentros por escalon para reutilizar rareza, color y factor de recompensa.
 ///

@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class SobreKarEventPage extends StatefulWidget {
   final Battler player;

@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 import '../../services/run/run_randomizer.dart';
 
 const _scrapShopAccent = Color(0xFFB8C0CC);

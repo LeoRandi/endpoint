@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 Route<T> buildEndpointSceneRoute<T>(Widget page) {
   return PageRouteBuilder<T>(

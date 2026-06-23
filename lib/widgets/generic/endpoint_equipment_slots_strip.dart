@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Mantiene compatibilidad con las llamadas existentes aunque ya no existan slots visibles.
 enum EndpointEquipmentLayout {

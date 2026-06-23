@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Nodo gris economico centrado en gastar creditos para atacar.
 final grayCombatNode = CombatPathNode(

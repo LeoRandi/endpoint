@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 const _settingsAccent = Color(0xFFB8C0C8);
 const _settingsAccentMuted = Color(0xFF6E767E);

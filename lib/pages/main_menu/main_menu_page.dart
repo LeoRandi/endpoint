@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 import 'package:flutter/foundation.dart';
 import 'package:showcaseview/showcaseview.dart';
 

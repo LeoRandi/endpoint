@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Objetos neutros que cualquier arquetipo puede encontrar en tiendas.
 final List<Item> generalItemPool = _itemsWithAffinity(

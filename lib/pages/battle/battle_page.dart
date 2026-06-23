@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 part 'battle_page_view.dart';
 part 'battle_page_huds.dart';

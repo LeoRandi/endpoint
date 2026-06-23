@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Describe las reglas que debe cumplir un objeto para aparecer en una tienda.
 ///

@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 import '../../services/pattern/operative_pattern_combat_rules.dart';
 import '../../services/run/run_randomizer.dart';
 import '../../services/runtime/battler_runtime_service.dart';

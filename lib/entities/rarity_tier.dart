@@ -1,4 +1,6 @@
-import '_imports.dart';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
 
 /// Agrupa el color, el peso de aparicion y el factor economico de cada rareza.
 enum RarityTier {

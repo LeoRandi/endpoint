@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 import '../../services/run/run_randomizer.dart';
 
 /// Describe un arquetipo inicial que altera stats, economia, items y AUMENTOS del jugador.

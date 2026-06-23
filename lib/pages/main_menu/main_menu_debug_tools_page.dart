@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 const _debugToolsAccent = EndpointPalette.infoAccent;
 const _debugToolsForeground = EndpointPalette.softForeground;

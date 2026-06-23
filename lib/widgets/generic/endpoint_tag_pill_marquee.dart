@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class EndpointTagPillMarquee extends StatefulWidget {
   final List<EntityTag> tags;

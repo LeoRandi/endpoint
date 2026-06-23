@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Preset rapido del buff Calentando con su bonus por defecto.
 const calentandoStatus = CalentandoStatus();

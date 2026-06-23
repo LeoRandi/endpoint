@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 part 'battler_ability_management.dart';
 part 'battler_combat_runtime.dart';

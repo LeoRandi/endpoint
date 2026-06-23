@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Define una escena de descanso con su texto y sus reglas de recuperacion.
 ///

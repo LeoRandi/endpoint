@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 typedef PathEventAvailabilityResolver = bool Function(
   PathEventService service, {

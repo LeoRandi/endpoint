@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class SecretPassageEventPage extends StatefulWidget {
   final Battler player;
@@ -15,8 +15,7 @@ class SecretPassageEventPage extends StatefulWidget {
   });
 
   @override
-  State<SecretPassageEventPage> createState() =>
-      _SecretPassageEventPageState();
+  State<SecretPassageEventPage> createState() => _SecretPassageEventPageState();
 }
 
 class _SecretPassageEventPageState extends State<SecretPassageEventPage> {

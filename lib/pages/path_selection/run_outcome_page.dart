@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Pantalla final de la run que muestra el cierre de victoria o derrota antes de volver al menu.
 class RunOutcomePage extends StatefulWidget {

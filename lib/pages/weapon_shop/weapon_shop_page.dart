@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 const _shopOwnedTileHeight = 48.0;
 const _shopOfferHeight = 64.0;

@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class BattleController extends ChangeNotifier {
   static const int patternBanRoundCount = 3;

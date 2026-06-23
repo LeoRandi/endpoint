@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class EndpointItemPatternBadges extends StatelessWidget {
   final Item item;

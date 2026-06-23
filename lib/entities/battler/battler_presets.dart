@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 const _patternTop = '0,1';
 const _patternLeft = '-1,0';

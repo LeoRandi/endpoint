@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 const endpointUpgradeIndicatorNeonYellow = Color(0xFFDFFF00);
 

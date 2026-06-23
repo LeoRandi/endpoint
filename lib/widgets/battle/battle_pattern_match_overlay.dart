@@ -1,11 +1,5 @@
-import '../_imports.dart';
+import '_imports.dart';
 import 'package:flutter/foundation.dart';
-import '../../services/battle/battle_combat_animation.dart';
-import '../../services/battle/battle_controller.dart';
-import '../../services/battle/battle_pattern_block_plan_service.dart';
-import '../../services/pattern/operative_pattern_bonus_service.dart';
-import '../../services/pattern/operative_pattern_combat_rules.dart';
-import '../../services/pattern/operative_pattern_resolution_service.dart';
 import 'battle_pattern_match_presenter.dart';
 
 class BattlePatternAnimationTargets {

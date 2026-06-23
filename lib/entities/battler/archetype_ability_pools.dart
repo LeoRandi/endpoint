@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 /// Habilidades generales accesibles a cualquier arquetipo.
 final List<BattlerAbility> generalAbilityPool = _abilitiesWithAffinity(

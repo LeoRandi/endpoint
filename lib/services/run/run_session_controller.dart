@@ -1,4 +1,4 @@
-import '../_imports.dart';
+import '_imports.dart';
 
 class RunSessionController extends ChangeNotifier {
   final RunRandomizer _randomizer;
