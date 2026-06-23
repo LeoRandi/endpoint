@@ -518,12 +518,6 @@ Map<String, Object?> _serializeItem(Item item) {
         item.hasPatternBonus ? item.patternRequirement.kind.name : null,
     'patternRequirementShapeKind':
         item.hasPatternBonus ? item.patternRequirement.shapeKind.name : null,
-    'patternRequirementLabel':
-        item.hasPatternBonus ? item.patternRequirement.label : null,
-    'patternRequirementShortLabel':
-        item.hasPatternBonus ? item.patternRequirement.shortLabel : null,
-    'patternRequirementDescription':
-        item.hasPatternBonus ? item.patternRequirement.description : null,
     'isGhostly': item.isGhostly,
     'patternRequirementShape': item.hasPatternBonus
         ? item.patternRequirement.shapePoints
@@ -588,9 +582,6 @@ OperativePatternRequirement? _deserializePatternRequirement(
                 json['patternRequirementLabel'],
               ),
             ),
-        labelOverride: EndpointJsonUtils.readNullableString(
-          json['patternRequirementLabel'],
-        ),
       );
   }
 }

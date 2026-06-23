@@ -299,7 +299,6 @@ const _accessoryTaggedItemIds = <ItemId>{
 };
 
 const _patternSquareRequirement = OperativePatternRequirement.exactShape(
-  labelOverride: 'Cuadrado',
   shapeKind: OperativePatternShapeKind.square,
   shapePoints: <OperativePatternPoint>[
     OperativePatternPoint(x: -1, y: 1),
@@ -310,7 +309,6 @@ const _patternSquareRequirement = OperativePatternRequirement.exactShape(
 );
 
 const _patternHourglassRequirement = OperativePatternRequirement.exactShape(
-  labelOverride: 'Reloj arena',
   shapeKind: OperativePatternShapeKind.hourglass,
   shapePoints: <OperativePatternPoint>[
     OperativePatternPoint(x: -1, y: 1),
@@ -321,7 +319,6 @@ const _patternHourglassRequirement = OperativePatternRequirement.exactShape(
 );
 
 const _patternZigzagRequirement = OperativePatternRequirement.exactShape(
-  labelOverride: 'Zigzag',
   shapeKind: OperativePatternShapeKind.zigzag,
   shapePoints: <OperativePatternPoint>[
     OperativePatternPoint(x: -1, y: 1),

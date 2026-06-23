@@ -219,7 +219,7 @@ class RegenerativeShieldItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -291,7 +291,7 @@ class RecoverBarrierOnTurnStartItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -329,7 +329,7 @@ class RefreshMinimumBarrierOnTurnStartItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -464,7 +464,7 @@ class ToxicScalpelItemEffect extends ItemEffect {
     var updatedTarget = resolution.opponent;
 
     if (hadPoison) {
-      updatedTarget = updatedTarget.receiveDirectDamage(
+      updatedTarget = updatedTarget.runtimeReceiveDirectDamage(
         resolvedAmount,
         source: updatedOwner,
       );
@@ -504,7 +504,7 @@ class SuccionaCreditosItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -620,7 +620,7 @@ class MagnetiCHammerItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: owner.applyStatusFromSource(
+      owner: owner.runtimeApplyStatusFromSource(
         PotenciaStatus(value: potencyValue),
         source: owner,
       ),
@@ -656,7 +656,7 @@ class ClavoReactorItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -690,11 +690,11 @@ class ClavoReactorItemEffect extends ItemEffect {
 
     final resolvedValue = max(1, item.value);
     final updatedOwner =
-        owner.addCombatFlag(triggeredFlag).applyStatusFromSource(
+        owner.addCombatFlag(triggeredFlag).runtimeApplyStatusFromSource(
               QuemaduraStatus(remainingTurns: resolvedValue),
               source: owner,
             );
-    final updatedTarget = target.receiveDirectDamage(
+    final updatedTarget = target.runtimeReceiveDirectDamage(
       resolvedValue * 2,
       source: owner,
     );
@@ -733,7 +733,7 @@ class UltimaMarchaItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);

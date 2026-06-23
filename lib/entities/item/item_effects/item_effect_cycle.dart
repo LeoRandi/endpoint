@@ -67,7 +67,7 @@ class BateriaCrepuscularItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -84,7 +84,7 @@ class BateriaCrepuscularItemEffect extends ItemEffect {
       );
     }
     if (cycleContext.isNight) {
-      updatedOwner = updatedOwner.applyStatusFromSource(
+      updatedOwner = updatedOwner.runtimeApplyStatusFromSource(
         PotenciaStatus(value: amount),
         source: updatedOwner,
       );
@@ -123,7 +123,7 @@ class RelojDeTurnoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -138,7 +138,7 @@ class RelojDeTurnoItemEffect extends ItemEffect {
       updatedOwner = updatedOwner.heal(amount);
     }
     if (cycleContext.isNight) {
-      updatedOpponent = updatedOpponent.receiveDirectDamage(
+      updatedOpponent = updatedOpponent.runtimeReceiveDirectDamage(
         amount,
         source: updatedOwner,
       );
@@ -290,7 +290,7 @@ class EclipseMantleItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);

@@ -176,7 +176,7 @@ class ContingencySealItemEffect extends ItemEffect {
 
     return ItemEffectResolution(
       owner: owner,
-      opponent: source.receiveDirectDamage(
+      opponent: source.runtimeReceiveDirectDamage(
         reflectedDamage,
         source: owner,
       ),
@@ -301,7 +301,7 @@ class AislanteArmonicoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -356,7 +356,7 @@ class AislanteArmonicoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -435,7 +435,7 @@ class DescargaResonanteItemEffect extends ItemEffect {
         owner.clearResonance().gainBarrierFromResonanceDamage(resonanceDamage);
     return ItemEffectResolution(
       owner: updatedOwner,
-      opponent: target.receiveDirectDamage(
+      opponent: target.runtimeReceiveDirectDamage(
         resonanceDamage,
         source: updatedOwner,
       ),
@@ -469,7 +469,7 @@ class PrismaDeEcoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -515,7 +515,7 @@ class PrismaDeEcoItemEffect extends ItemEffect {
         .gainBarrierFromResonanceDamage(resonanceDamage);
     return ItemEffectResolution(
       owner: updatedOwner,
-      opponent: target.receiveDirectDamage(
+      opponent: target.runtimeReceiveDirectDamage(
         resonanceDamage,
         source: updatedOwner,
       ),
@@ -599,7 +599,7 @@ class ResponseFrameItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -655,7 +655,7 @@ class ResponseFrameItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -783,7 +783,7 @@ class ReboundLensItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -852,7 +852,7 @@ class CapaDelContrabandistaItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn || !_hasAnyDebuff(opponent)) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -897,7 +897,7 @@ class MamparaPortatilItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -939,7 +939,7 @@ class CeramicaPurgadoraItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);

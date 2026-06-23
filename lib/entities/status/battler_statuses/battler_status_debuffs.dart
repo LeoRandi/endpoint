@@ -17,7 +17,6 @@ class QuemaduraStatus extends BattlerStatus {
           hooks: const {
             BattlerStatusHook.turnStart,
           },
-          icon: Icons.whatshot_rounded,
           description:
               'Al inicio del turno del objetivo, este estado inflige daño igual a su duracion restante.',
           remainingTurns: remainingTurns,
@@ -71,12 +70,12 @@ class QuemaduraStatus extends BattlerStatus {
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) return owner;
 
     final currentStatus = resolved(owner);
-    return owner.receiveDebuffDamage(
+    return owner.runtimeReceiveDebuffDamage(
       currentStatus.value,
       source: opponent,
     );
@@ -102,7 +101,6 @@ class IntoxicacionStatus extends BattlerStatus {
             BattlerStatusHook.turnEnd,
             BattlerStatusHook.combatEnd,
           },
-          icon: Icons.science_rounded,
           description:
               'Al final del turno del objetivo, este estado inflige daño fijo igual a su value directamente a la vida (ignora Barrera) y renueva su duracion.',
           remainingTurns: remainingTurns,
@@ -140,7 +138,7 @@ class IntoxicacionStatus extends BattlerStatus {
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) return owner;
 
@@ -153,7 +151,7 @@ class IntoxicacionStatus extends BattlerStatus {
       applyEquipmentModifiers: false,
     );
     final incomingResolution =
-        ownerWithRenewedStatus.applyIncomingDamageEffects(
+        ownerWithRenewedStatus.runtimeApplyIncomingDamageEffects(
       source: opponent,
       damage: currentStatus.value,
       kind: DamageKind.debuff,
@@ -170,7 +168,7 @@ class IntoxicacionStatus extends BattlerStatus {
       return damagedOwner;
     }
 
-    return damagedOwner.applyEquippedItemFatalDamageEffects(
+    return damagedOwner.runtimeApplyFatalDamageEffects(
       incomingDamage: incomingResolution.damage,
     );
   }
@@ -201,7 +199,6 @@ class ContagioStatus extends BattlerStatus {
             BattlerStatusHook.combatEnd,
             BattlerStatusHook.statusApplied,
           },
-          icon: Icons.coronavirus_rounded,
           description:
               'Cuando otro debuffo es aplicado al portador, aumenta su valor en value y reduce Contagio en 1.',
           remainingTurns: 1,
@@ -272,7 +269,6 @@ class CatalisisCruelStatus extends BattlerStatus {
           hooks: const {
             BattlerStatusHook.statusApplied,
           },
-          icon: Icons.biotech_rounded,
           description:
               'La proxima desventaja recibida multiplica su valor y consume este estado. Volver a aplicarlo acumula multiplicador.',
           remainingTurns: 1,
@@ -351,7 +347,6 @@ class FragilidadStatus extends BattlerStatus {
             BattlerStatusHook.receiveDamageResolved,
             BattlerStatusHook.statusApplied,
           },
-          icon: Icons.flash_on_outlined,
           description:
               'Se acumula hasta 10. Si recibe un ataque con 10 Fragilidad, se consume e inflige 10 daño directo que ignora Barrera.',
           remainingTurns: remainingTurns,
@@ -431,7 +426,7 @@ class FragilidadStatus extends BattlerStatus {
       return damagedOwner;
     }
 
-    return damagedOwner.applyEquippedItemFatalDamageEffects(
+    return damagedOwner.runtimeApplyFatalDamageEffects(
       incomingDamage: triggerDamage,
     );
   }
@@ -466,7 +461,6 @@ class ConmocionStatus extends BattlerStatus {
             BattlerStatusHook.outgoingDamageModifier,
             BattlerStatusHook.attackResolved,
           },
-          icon: Icons.flash_off_rounded,
           description:
               'Reduce el daño del siguiente ataque del portador y luego desaparece.',
           remainingTurns: 1,
@@ -530,7 +524,6 @@ class DeudaStatus extends BattlerStatus {
             BattlerStatusHook.incomeModifier,
             BattlerStatusHook.statusApplied,
           },
-          icon: Icons.receipt_long_rounded,
           description:
               'Limita el income efectivo a 1 hasta saldarse. No puede purgarse de forma convencional.',
           remainingTurns: 1,

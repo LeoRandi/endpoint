@@ -24,7 +24,6 @@ class PathNode {
   final String tooltip;
   final String iconEmoji;
   final RarityTier rarity;
-  final Color accent;
   final String badgeLabel;
   final bool hasSignatureBorder;
 
@@ -37,7 +36,7 @@ class PathNode {
   /// Construye la forma mas generica de un nodo sin imponer un subtipo concreto.
   ///
   /// Los constructores de subclases deben llamar a este punto para mantener ids,
-  /// rareza, color y copy visibles consistentes en toda la ruta.
+  /// rareza y contenido consistentes en toda la ruta.
   const PathNode.base({
     required this.type,
     required this.nodeId,
@@ -45,7 +44,6 @@ class PathNode {
     required this.tooltip,
     required this.iconEmoji,
     required this.rarity,
-    required this.accent,
     required this.badgeLabel,
     this.hasSignatureBorder = false,
   });
@@ -61,7 +59,6 @@ class PathNode {
     String tooltip = 'Tienda de armas',
     String iconEmoji = '\u{2694}',
     RarityTier rarity = RarityTier.gray,
-    Color accent = const Color(0xFF9EA7B3),
     String badgeLabel = 'TIENDA',
   }) : this.base(
           type: PathNodeType.shop,
@@ -70,7 +67,6 @@ class PathNode {
           tooltip: tooltip,
           iconEmoji: iconEmoji,
           rarity: rarity,
-          accent: accent,
           badgeLabel: badgeLabel,
           hasSignatureBorder: false,
         );
@@ -91,7 +87,6 @@ class PathNode {
           tooltip: tooltip,
           iconEmoji: iconEmoji,
           rarity: RarityTier.green,
-          accent: const Color(0xFF5AF78E),
           badgeLabel: 'DESCANSO',
           hasSignatureBorder: false,
         );

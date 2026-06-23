@@ -85,7 +85,6 @@ class ShopPathNode extends PathNode {
     required String tooltip,
     required String iconEmoji,
     required RarityTier rarity,
-    required Color accent,
     required String badgeLabel,
     required this.showTitle,
     required this.shopTitle,
@@ -103,7 +102,6 @@ class ShopPathNode extends PathNode {
           tooltip: tooltip,
           iconEmoji: iconEmoji,
           rarity: rarity,
-          accent: accent,
           badgeLabel: badgeLabel,
         );
 
@@ -130,7 +128,6 @@ class ShopPathNode extends PathNode {
       tooltip: tooltip,
       iconEmoji: iconEmoji,
       rarity: rarity,
-      accent: accent,
       badgeLabel: badgeLabel,
       showTitle: showTitle,
       shopTitle: shopTitle,

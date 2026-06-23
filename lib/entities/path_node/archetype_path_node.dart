@@ -1,12 +1,11 @@
 import '_imports.dart';
-import '../../services/run/run_randomizer.dart';
 
 /// Describe un arquetipo inicial que altera stats, economia, items y AUMENTOS del jugador.
 class ArchetypePathNode extends PathNode {
   final ArchetypeId archetypeId;
   final String playerIconEmoji;
   final List<Item> startingItems;
-  final List<Item> Function(RunRandomizer randomizer)? startingItemsBuilder;
+  final List<Item> Function(RandomSource randomizer)? startingItemsBuilder;
   final List<BattlerAbility> startingAbilities;
   final Map<BattlerStat, int> baseStatModifiers;
   final int moneyModifier;
@@ -19,7 +18,6 @@ class ArchetypePathNode extends PathNode {
     required String label,
     required String tooltip,
     required String iconEmoji,
-    required Color accent,
     required RarityTier rarity,
     this.playerIconEmoji = '\u{1F916}',
     required List<Item> startingItems,
@@ -38,7 +36,6 @@ class ArchetypePathNode extends PathNode {
           tooltip: tooltip,
           iconEmoji: iconEmoji,
           rarity: rarity,
-          accent: accent,
           badgeLabel: 'ARQUETIPO',
           hasSignatureBorder: true,
         );
@@ -54,7 +51,6 @@ class ArchetypePathNode extends PathNode {
       label: label,
       tooltip: tooltip,
       iconEmoji: iconEmoji,
-      accent: accent,
       rarity: rarity,
       playerIconEmoji: playerIconEmoji,
       startingItems: List<Item>.unmodifiable(items),
@@ -70,7 +66,7 @@ class ArchetypePathNode extends PathNode {
   ///
   /// El metodo devuelve `this` si el arquetipo ya trae items fijos o un builder
   /// propio, evitando que la ruta vuelva a tirar loot cuando no corresponde.
-  ArchetypePathNode materializeRunStartingItems(RunRandomizer randomizer) {
+  ArchetypePathNode materializeRunStartingItems(RandomSource randomizer) {
     if (startingItemsBuilder != null || startingItems.isNotEmpty) return this;
 
     final archetypeItem = _pickRandomStartingItem(
@@ -103,19 +99,21 @@ class ArchetypePathNode extends PathNode {
   /// para previsualizar stats sin consumir la tirada real de items aleatorios.
   Battler applyTo(
     Battler player, {
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
     bool resolveDynamicStartingItems = true,
     bool suppressCodexDiscovery = false,
   }) {
     final updatedBaseStats = Map<BattlerStat, int>.from(player.baseStats);
+    final builder = startingItemsBuilder;
+    if (builder != null && resolveDynamicStartingItems && randomizer == null) {
+      throw StateError(
+        'A RandomSource is required to resolve dynamic starting items.',
+      );
+    }
     final resolvedStartingItems =
-        startingItemsBuilder == null || !resolveDynamicStartingItems
+        builder == null || !resolveDynamicStartingItems
             ? startingItems
-            : List<Item>.unmodifiable(
-                startingItemsBuilder!(
-                  randomizer ?? RunRandomizer(),
-                ),
-              );
+            : List<Item>.unmodifiable(builder(randomizer!));
 
     for (final entry in baseStatModifiers.entries) {
       updatedBaseStats[entry.key] = max(
@@ -179,7 +177,7 @@ class ArchetypePathNode extends PathNode {
   /// rompan la construccion de la ruta.
   static Item? _pickRandomStartingItem(
     List<Item> candidates,
-    RunRandomizer randomizer,
+    RandomSource randomizer,
   ) {
     if (candidates.isEmpty) return null;
 

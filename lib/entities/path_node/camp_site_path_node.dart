@@ -18,7 +18,6 @@ class CampSitePathNode extends PathNode {
     required String tooltip,
     required String iconEmoji,
     required RarityTier rarity,
-    required Color accent,
     String badgeLabel = 'DESCANSO',
     required this.showTitle,
     required this.sceneTitle,
@@ -32,7 +31,6 @@ class CampSitePathNode extends PathNode {
           tooltip: tooltip,
           iconEmoji: iconEmoji,
           rarity: rarity,
-          accent: accent,
           badgeLabel: badgeLabel,
         );
 }

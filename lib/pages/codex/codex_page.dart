@@ -1441,7 +1441,7 @@ class _CodexStatusDetailsDialog extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           EndpointHighlightedValueText(
-            status.descriptionFor(previewBattler),
+            status.localizedDescriptionFor(previewBattler),
             tags: status.tags,
             maxLines: null,
             style: textMedium.copyWith(

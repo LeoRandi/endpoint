@@ -1,7 +1,4 @@
 import '_imports.dart';
-import '../../services/pattern/operative_pattern_combat_rules.dart';
-import '../../services/run/run_randomizer.dart';
-import '../../services/runtime/battler_runtime_service.dart';
 
 part 'item_effects/item_effect_attack_and_sustain.dart';
 part 'item_effects/item_effect_cycle.dart';
@@ -110,7 +107,7 @@ abstract class ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
@@ -124,7 +121,7 @@ abstract class ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
@@ -138,7 +135,7 @@ abstract class ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return ItemEffectResolution(owner: owner, opponent: opponent);
   }
@@ -433,7 +430,7 @@ Battler _loseHealthDirectly({
     return damagedOwner;
   }
 
-  return damagedOwner.applyEquippedItemFatalDamageEffects(
+  return damagedOwner.runtimeApplyFatalDamageEffects(
     incomingDamage: safeAmount,
   );
 }
@@ -520,7 +517,7 @@ Battler _reduceAllPurgeableDebuffs({
 Battler _reduceRandomPurgeableDebuffs({
   required Battler owner,
   required int repetitions,
-  RunRandomizer? randomizer,
+  RandomSource? randomizer,
 }) {
   var updatedOwner = owner;
 
@@ -588,7 +585,7 @@ ItemEffectResolution _applyStatusToOpponentFromOwner({
   required BattlerStatus status,
   bool applyEquipmentModifiers = true,
 }) {
-  final resolution = opponent.applyStatusFromSourceResolved(
+  final resolution = opponent.runtimeApplyStatusFromSourceResolved(
     status,
     source: owner,
     applyEquipmentModifiers: applyEquipmentModifiers,

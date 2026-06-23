@@ -3,22 +3,18 @@ import 'operative_pattern_bonus.dart';
 
 /// Direccion cardinal que debe ocupar el item vecino para activar un bonus.
 enum OperativePatternAdjacencyDirection {
-  north(dx: 0, dy: 1, label: 'Norte', shortLabel: 'N'),
-  east(dx: 1, dy: 0, label: 'Este', shortLabel: 'E'),
-  south(dx: 0, dy: -1, label: 'Sur', shortLabel: 'S'),
-  west(dx: -1, dy: 0, label: 'Oeste', shortLabel: 'O');
+  north(dx: 0, dy: 1),
+  east(dx: 1, dy: 0),
+  south(dx: 0, dy: -1),
+  west(dx: -1, dy: 0);
 
   final int dx;
   final int dy;
-  final String label;
-  final String shortLabel;
 
-  /// Crea una direccion con desplazamiento de grilla y etiquetas visibles.
+  /// Crea una direccion con su desplazamiento logico de grilla.
   const OperativePatternAdjacencyDirection({
     required this.dx,
     required this.dy,
-    required this.label,
-    required this.shortLabel,
   });
 }
 

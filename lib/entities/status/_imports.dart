@@ -2,5 +2,5 @@ export 'dart:math';
 
 export '../battler/_exports.dart';
 export '../entity_tag.dart';
-export 'package:flutter/material.dart';
+export '../random_source.dart';
 export '_exports.dart';

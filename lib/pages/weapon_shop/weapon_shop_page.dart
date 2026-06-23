@@ -713,7 +713,7 @@ class _ShopOfferRow extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: EndpointMarqueeText(
-                    '${item.displayName}: ${item.tooltipDescription}',
+                    '${item.displayName}: ${item.localizedTooltipDescription}',
                     style: textSmallBold.copyWith(
                       color: foreground,
                       fontSize: 12,
@@ -958,7 +958,7 @@ class _OwnedShopTile extends StatelessWidget {
     final accent = item.rarity.accent;
 
     return HoldTooltip(
-      message: item.tooltipDescription,
+      message: item.localizedTooltipDescription,
       child: Material(
         color: Colors.transparent,
         child: InkWell(

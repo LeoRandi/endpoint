@@ -373,7 +373,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                         if (index > 0) const SizedBox(height: 12),
                         _BattleLootRewardCard(
                           title: _itemRewards[index].item.displayName,
-                          subtitle: _itemRewards[index].item.tooltipDescription,
+                          subtitle: _itemRewards[index]
+                              .item
+                              .localizedTooltipDescription,
                           tags: _itemRewards[index].item.tags,
                           accent: _itemRewards[index].item.rarity.accent,
                           emoji: _itemRewards[index].item.iconEmoji,

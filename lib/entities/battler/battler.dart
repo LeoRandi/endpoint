@@ -1,5 +1,6 @@
 import '_imports.dart';
 
+part '../battler_runtime_port.dart';
 part 'battler_ability_management.dart';
 part 'battler_combat_runtime.dart';
 part 'battler_item_management.dart';
@@ -11,45 +12,6 @@ enum BattlerStat {
   health,
   attack,
   barrier,
-}
-
-/// Expone etiquetas legibles y colores coherentes para cada stat visible.
-extension BattlerStatPresentation on BattlerStat {
-  /// Devuelve la etiqueta larga usada en paneles y tooltips de stats.
-  String get label {
-    switch (this) {
-      case BattlerStat.health:
-        return 'Vida';
-      case BattlerStat.attack:
-        return 'Ataque';
-      case BattlerStat.barrier:
-        return 'Barrera';
-    }
-  }
-
-  /// Devuelve una abreviatura estable para espacios compactos de UI.
-  String get shortLabel {
-    switch (this) {
-      case BattlerStat.health:
-        return 'HP';
-      case BattlerStat.attack:
-        return 'ATK';
-      case BattlerStat.barrier:
-        return 'BAR';
-    }
-  }
-
-  /// Devuelve el color de acento asociado a la stat en la interfaz.
-  Color get accent {
-    switch (this) {
-      case BattlerStat.health:
-        return const Color(0xFFFF8BA7);
-      case BattlerStat.attack:
-        return const Color(0xFFF3D35C);
-      case BattlerStat.barrier:
-        return const Color(0xFF59B7FF);
-    }
-  }
 }
 
 /// Enumera las recompensas permanentes que el jugador puede escoger al subir de nivel.

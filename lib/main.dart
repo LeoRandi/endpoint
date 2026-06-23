@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  BattlerRuntimeGateway.configure(const ServiceBattlerRuntimePort());
   CodexDiscoveryService.registerHooks();
   final initialSettings =
       await EndpointPreferencesService.loadSettingsSnapshot();

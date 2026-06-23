@@ -179,7 +179,7 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
             const SizedBox(height: 7),
           ],
           EndpointHighlightedValueText(
-            widget.item.displayDescription,
+            widget.item.localizedDisplayDescription,
             tags: widget.item.tags,
             maxLines: null,
             style: textMedium.copyWith(

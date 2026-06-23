@@ -278,7 +278,7 @@ class _LevelUpRewardCard extends StatelessWidget {
     final ability = choice.ability;
     if (ability != null) return ability.displayDescription;
 
-    return choice.item?.tooltipDescription ?? '';
+    return choice.item?.localizedTooltipDescription ?? '';
   }
 
   String get _meta {

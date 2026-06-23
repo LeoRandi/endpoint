@@ -1,4 +1,5 @@
 import '../entities/_exports.dart';
+import '../app/endpoint_entity_presentation.dart';
 
 /// Shared UI copy helpers for controller-level dialog labels and tooltips.
 ///

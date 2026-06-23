@@ -1202,7 +1202,7 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
     );
 
     return HoldTooltip(
-      message: item.tooltipDescription,
+      message: item.localizedTooltipDescription,
       child: onPressed == null
           ? content
           : Material(

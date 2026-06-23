@@ -1,6 +1,4 @@
 import '_imports.dart';
-import '../../services/pattern/operative_pattern_layout_service.dart';
-import '../../services/runtime/battler_runtime_service.dart';
 
 part 'abilities/battler_ability_effects.dart';
 part 'abilities/battler_ability_presets.dart';
@@ -99,19 +97,7 @@ enum BattlerAbilityId {
 enum BattlerAbilityActivationContext {
   battle,
   pathSelection,
-  shop;
-
-  /// Devuelve la etiqueta corta que usa la UI para mostrar este contexto.
-  String get label {
-    switch (this) {
-      case BattlerAbilityActivationContext.battle:
-        return 'Combate';
-      case BattlerAbilityActivationContext.pathSelection:
-        return 'Ruta';
-      case BattlerAbilityActivationContext.shop:
-        return 'Tienda';
-    }
-  }
+  shop,
 }
 
 /// Identifica a que arquetipos pertenece una habilidad para ofertas y contenido.
@@ -195,6 +181,7 @@ class BattlePatternMatchContext {
   final String? firstRepeatedItemPointKey;
   final bool firstUsedItemHasAttackBonus;
   final int activatedItemEffectCount;
+  final RandomSource? randomSource;
 
   /// Crea un resumen inmutable del Patron resuelto y de sus bonus asociados.
   const BattlePatternMatchContext({
@@ -207,7 +194,23 @@ class BattlePatternMatchContext {
     this.firstRepeatedItemPointKey,
     this.firstUsedItemHasAttackBonus = false,
     this.activatedItemEffectCount = 0,
+    this.randomSource,
   });
+
+  BattlePatternMatchContext withRandomSource(RandomSource source) {
+    return BattlePatternMatchContext(
+      patternPoints: patternPoints,
+      attackBonus: attackBonus,
+      barrierBonus: barrierBonus,
+      otherArchetypeItemCount: otherArchetypeItemCount,
+      usedItemPointKeys: usedItemPointKeys,
+      repeatedItemPointKeys: repeatedItemPointKeys,
+      firstRepeatedItemPointKey: firstRepeatedItemPointKey,
+      firstUsedItemHasAttackBonus: firstUsedItemHasAttackBonus,
+      activatedItemEffectCount: activatedItemEffectCount,
+      randomSource: source,
+    );
+  }
 
   /// Devuelve el trazo sin repeticiones consecutivas irrelevantes.
   List<OperativePatternPoint> get sequence =>
@@ -444,7 +447,7 @@ BattlerAbilityEffectResolution _applyAbilityStatusToOpponentFromOwner({
   required BattlerStatus status,
   bool applyEquipmentModifiers = true,
 }) {
-  final resolution = opponent.applyStatusFromSourceResolved(
+  final resolution = opponent.runtimeApplyStatusFromSourceResolved(
     status,
     source: owner,
     applyEquipmentModifiers: applyEquipmentModifiers,
@@ -685,7 +688,6 @@ class BattlerAbility {
   final List<EntityTag> tags;
   final String name;
   final String description;
-  final IconData icon;
   final int cooldownTurns;
   final int remainingCooldownTurns;
   final int value;
@@ -706,7 +708,6 @@ class BattlerAbility {
     this.tags = const [],
     required this.name,
     required this.description,
-    required this.icon,
     this.cooldownTurns = 0,
     this.remainingCooldownTurns = 0,
     this.value = 0,
@@ -748,9 +749,6 @@ class BattlerAbility {
     }
     return false;
   }
-
-  /// Reexpone el color de rareza para que la UI no tenga que duplicar este lookup.
-  Color get accent => rarity.accent;
 
   /// Indica si la habilidad puede activarse desde alguna pantalla.
   bool get canManuallyActivate => manualActivationContext != null;
@@ -850,7 +848,6 @@ class BattlerAbility {
       tags: upgradeTemplate.tags,
       name: upgradeTemplate.name,
       description: upgradeTemplate.description,
-      icon: upgradeTemplate.icon,
       cooldownTurns: upgradeTemplate.cooldownTurns,
       value: value + upgradeTemplate.upgradeValue,
       upgradeValue: upgradeTemplate.upgradeValue,
@@ -926,7 +923,6 @@ class BattlerAbility {
     List<EntityTag>? tags,
     String? name,
     String? description,
-    IconData? icon,
     int? cooldownTurns,
     int? remainingCooldownTurns,
     int? value,
@@ -946,7 +942,6 @@ class BattlerAbility {
       tags: tags ?? this.tags,
       name: name ?? this.name,
       description: description ?? this.description,
-      icon: icon ?? this.icon,
       cooldownTurns: max(0, cooldownTurns ?? this.cooldownTurns),
       remainingCooldownTurns: max(
         0,

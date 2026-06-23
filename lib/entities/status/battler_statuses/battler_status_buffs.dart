@@ -20,7 +20,6 @@ class CalentandoStatus extends BattlerStatus {
             BattlerStatusHook.attackResolved,
             BattlerStatusHook.combatEnd,
           },
-          icon: Icons.local_fire_department_rounded,
           description:
               'El usuario suma su value al daño del siguiente ataque y luego se consume.',
           remainingTurns: remainingTurns,
@@ -106,7 +105,6 @@ class PotenciaStatus extends BattlerStatus {
             BattlerStatusHook.outgoingDamageModifier,
             BattlerStatusHook.statusApplied,
           },
-          icon: Icons.bolt_rounded,
           description:
               'Aumenta el daño de tus golpes en su value durante este combate.',
           remainingTurns: 1,
@@ -184,7 +182,6 @@ class CicloEclipseStatus extends BattlerStatus {
           name: 'Eclipse Manual',
           type: BattlerStatusType.buff,
           tags: _buffCicloStatusTags,
-          icon: Icons.brightness_medium_rounded,
           description:
               'Tus efectos de Ciclo cuentan como dia y noche a la vez.',
           remainingTurns: remainingTurns,
@@ -221,7 +218,6 @@ class PuntoCiegoStatus extends BattlerStatus {
           name: 'Punto Ciego',
           type: BattlerStatusType.buff,
           tags: _buffStatusTags,
-          icon: Icons.visibility_off_rounded,
           description:
               'Los ataques enemigos fallan contra el portador mientras permanezca activo.',
           remainingTurns: remainingTurns,
@@ -267,7 +263,6 @@ class DesafioStatus extends BattlerStatus {
             BattlerStatusHook.statusApplied,
             BattlerStatusHook.combatEnd,
           },
-          icon: Icons.sports_mma_rounded,
           description:
               'Antes del siguiente ataque, se consume e inflige un golpe directo igual a su value. Si permanece hasta el final del combate, cura el doble de su value.',
           remainingTurns: 1,
@@ -347,7 +342,6 @@ class DesafioExcitanteStatus extends BattlerStatus {
             BattlerStatusHook.statusApplied,
             BattlerStatusHook.combatEnd,
           },
-          icon: Icons.local_activity_rounded,
           description:
               'Durante este combate, cada nuevo Desafio gana value adicional.',
           remainingTurns: 1,
@@ -431,7 +425,6 @@ class ResonanciaStatus extends BattlerStatus {
           hooks: const {
             BattlerStatusHook.statusApplied,
           },
-          icon: Icons.graphic_eq_rounded,
           description:
               'Carga defensiva acumulada. Algunos efectos la usan para infligir daño directo.',
           remainingTurns: 1,
@@ -500,7 +493,6 @@ class CompensadorRutaStatus extends BattlerStatus {
             BattlerStatusHook.calculatedStatModifier,
             BattlerStatusHook.combatEnd,
           },
-          icon: Icons.route_rounded,
           description:
               'Aumenta temporalmente la stat menos cubierta por tus items.',
           remainingTurns: 1,
@@ -516,7 +508,7 @@ class CompensadorRutaStatus extends BattlerStatus {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Battler owner) {
-    return '$description Bonus actual: +$value ${stat.shortLabel}.';
+    return '$description Bonus actual: +$value ${stat.name.toUpperCase()}.';
   }
 
   /// Ajusta una stat calculada mientras el efecto esta activo.
@@ -568,7 +560,6 @@ class MercadoFuturosStatus extends BattlerStatus {
             BattlerStatusHook.calculatedStatModifier,
             BattlerStatusHook.combatEnd,
           },
-          icon: Icons.monetization_on_rounded,
           description: 'Contrato de suerte activo para el siguiente combate.',
           remainingTurns: 1,
           value: 1,

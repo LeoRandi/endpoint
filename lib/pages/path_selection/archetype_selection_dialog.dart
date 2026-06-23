@@ -134,7 +134,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
                             const SizedBox(height: 12),
                             _ArchetypeSectionHeader(
                               title: 'DESCRIPCION',
-                              caption: archetype.badgeLabel,
+                              caption: archetype.localizedBadgeLabel,
                               accent: accent,
                             ),
                             const SizedBox(height: 6),
@@ -683,7 +683,7 @@ class _ArchetypeItemCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 EndpointHighlightedValueText(
-                  item.displayDescription,
+                  item.localizedDisplayDescription,
                   tags: item.tags,
                   maxLines: null,
                   style: textSmallBold.copyWith(

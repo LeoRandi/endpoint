@@ -1,24 +1,4 @@
 import '_imports.dart';
-import '../../services/run/run_randomizer.dart';
-
-const _scrapShopAccent = Color(0xFFB8C0CC);
-const _greenItemShopAccent = Color(0xFF3FE88F);
-const _luxuryShopAccent = Color(0xFFFFD56B);
-const _emberShopAccent = Color(0xFFFF6A2A);
-const _toxinShopAccent = Color(0xFFB9F25C);
-const _afterHoursArsenalAccent = Color(0xFFFF4D6D);
-const _velvetArmoryAccent = Color(0xFFA95CFF);
-const _chemicalExchangeAccent = Color(0xFF4DE7D2);
-const _debuffBrokerAccent = Color(0xFFFF5A5F);
-const _buffParlorAccent = Color(0xFFFF8BE8);
-const _impActsAccent = Color(0xFFF3D35C);
-const _firstAidAccent = Color(0xFFFF8BA7);
-const _mendingAccent = Color(0xFF59B7FF);
-const _gangananciasAccent = Color(0xFFEBCB5A);
-const _routineMarketAccent = Color(0xFFC0C0C0);
-const _resonanceBankAccent = Color(0xFFD0D5DE);
-const _duelowPricesAccent = Color(0xFF55D6C2);
-const _contagionCompanyAccent = Color(0xFFB56DFF);
 
 /// Arquetipo agil orientado a ataque ligero y economia temprana.
 final velozArchetypeNode = ArchetypePathNode(
@@ -29,7 +9,6 @@ final velozArchetypeNode = ArchetypePathNode(
       '1 item Veloz verde + 1 item general gris. Perfil agil de doble golpe que castiga objetivos debilitados. Empieza con 8C y 4 income.',
   iconEmoji: cyberWhipsItem.iconEmoji,
   playerIconEmoji: cyberWhipsItem.iconEmoji,
-  accent: const Color(0xFF59B7FF),
   rarity: RarityTier.blue,
   baseStatModifiers: const {
     BattlerStat.attack: 1,
@@ -52,7 +31,6 @@ final inamovibleArchetypeNode = ArchetypePathNode(
       '1 item Inamovible verde + 1 item general gris. Perfil resistente con regeneracion pasiva y barrera sostenida. Empieza con 12C y 3 income.',
   iconEmoji: shieldItem.iconEmoji,
   playerIconEmoji: shieldItem.iconEmoji,
-  accent: const Color(0xFF5AF78E),
   rarity: RarityTier.green,
   baseStatModifiers: const {
     BattlerStat.health: 5,
@@ -76,7 +54,6 @@ final imparableArchetypeNode = ArchetypePathNode(
       '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y daño extra al pelear herido. Empieza con 8C y 3 income.',
   iconEmoji: ironSwordItem.iconEmoji,
   playerIconEmoji: ironSwordItem.iconEmoji,
-  accent: const Color(0xFFFF5A5F),
   rarity: RarityTier.yellow,
   baseStatModifiers: const {
     BattlerStat.health: 5,
@@ -122,7 +99,7 @@ final _merchantGreenPreviewItem = shieldItem.copyWith(
 ///
 /// Los items de preview solo comunican rareza; esta funcion consume el randomizer
 /// de la run para entregar dos grises distintos y un verde distinto.
-List<Item> _buildMerchantStartingItems(RunRandomizer randomizer) {
+List<Item> _buildMerchantStartingItems(RandomSource randomizer) {
   final grayItems = itemPresets
       .where((item) => item.rarity == RarityTier.gray)
       .toList(growable: false);
@@ -145,7 +122,6 @@ final mercanteArchetypeNode = ArchetypePathNode(
       '2 objetos grises aleatorios + 1 verde aleatorio. Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 13C, 5 income y Flujo de Caja.',
   iconEmoji: '\u{1F4B0}',
   playerIconEmoji: '\u{1F4B3}',
-  accent: const Color(0xFFEBCB5A),
   rarity: RarityTier.blue,
   baseStatModifiers: const {
     BattlerStat.health: 10,
@@ -349,7 +325,6 @@ final scrapArsenalNode = ShopPathNode(
   tooltip: 'Armas funcionales antes del anochecer',
   iconEmoji: '\u2694',
   rarity: RarityTier.gray,
-  accent: _scrapShopAccent,
   badgeLabel: 'ARMAS',
   showTitle: 'Arsenal de Chatarra',
   shopTitle: 'ARSENAL DE CHATARRA',
@@ -365,7 +340,6 @@ final firstAidStandNode = ShopPathNode(
   tooltip: 'Suministros basicos para seguir respirando',
   iconEmoji: '\u{1FA79}',
   rarity: RarityTier.gray,
-  accent: _firstAidAccent,
   badgeLabel: 'VIDA',
   showTitle: 'Puesto de Primeros Auxilios',
   shopTitle: 'PUESTO DE PRIMEROS AUXILIOS',
@@ -381,7 +355,6 @@ final impActsNode = ShopPathNode(
   tooltip: 'Herramientas tempranas para hacer daño',
   iconEmoji: '\u{1F528}',
   rarity: RarityTier.gray,
-  accent: _impActsAccent,
   badgeLabel: 'ATAQUE',
   showTitle: 'Imp Acts',
   shopTitle: 'IMP ACTS',
@@ -396,7 +369,6 @@ final remiendosAndDontsNode = ShopPathNode(
   tooltip: 'Blindaje barato con advertencias razonables',
   iconEmoji: '\u{1F9F5}',
   rarity: RarityTier.gray,
-  accent: _mendingAccent,
   badgeLabel: 'BARRERA',
   showTitle: "Remiendos and don'ts",
   shopTitle: "REMIENDOS AND DON'TS",
@@ -411,7 +383,6 @@ final gangananciasNode = ShopPathNode(
   tooltip: 'Objetos verdes y azules al doble de precio',
   iconEmoji: '\u{1F4B8}',
   rarity: RarityTier.gray,
-  accent: _gangananciasAccent,
   badgeLabel: 'TRATO',
   showTitle: 'Ganganancias',
   shopTitle: 'GANGANANCIAS',
@@ -427,7 +398,6 @@ final greenItemVendorNode = ShopPathNode(
   tooltip: 'Objetos de rareza verde sin especialidad fija',
   iconEmoji: '\u{1F4E6}',
   rarity: RarityTier.green,
-  accent: _greenItemShopAccent,
   badgeLabel: 'VERDE',
   showTitle: 'Vendedor Verde',
   shopTitle: 'VENDEDOR VERDE',
@@ -442,7 +412,6 @@ final cambientGoldSellerNode = ShopPathNode(
   tooltip: 'Mercado economico reservado para Mercante',
   iconEmoji: '\u{1F4B1}',
   rarity: RarityTier.green,
-  accent: _gangananciasAccent,
   badgeLabel: 'ORO',
   showTitle: 'Cambient Gold Seller',
   shopTitle: 'CAMBIENT GOLD SELLER',
@@ -461,7 +430,6 @@ final routineMarketNode = ShopPathNode(
   tooltip: 'Piezas de ciclo reservadas para Veloz',
   iconEmoji: '\u{1F501}',
   rarity: RarityTier.green,
-  accent: _routineMarketAccent,
   badgeLabel: 'CICLO',
   showTitle: 'Routine Market',
   shopTitle: 'ROUTINE MARKET',
@@ -480,7 +448,6 @@ final luxuryRelicsNode = ShopPathNode(
   tooltip: 'Objetos de gran calidad y procedencia dudosa',
   iconEmoji: '\u{1F48E}',
   rarity: RarityTier.yellow,
-  accent: _luxuryShopAccent,
   badgeLabel: 'LUJO',
   showTitle: 'Reliquias de Lujo',
   shopTitle: 'RELIQUIAS DE LUJO',
@@ -496,7 +463,6 @@ final emberFoundryNode = ShopPathNode(
   tooltip: 'Todo el catalogo gira alrededor de la Quemadura',
   iconEmoji: '\u{1F525}',
   rarity: RarityTier.yellow,
-  accent: _emberShopAccent,
   badgeLabel: 'QUEMA',
   showTitle: 'Forja de Ascuas',
   shopTitle: 'FORJA DE ASCUAS',
@@ -514,7 +480,6 @@ final toxinLabNode = ShopPathNode(
   tooltip: 'Catalogo dedicado a la Intoxicacion y sus derivados',
   iconEmoji: '\u2623',
   rarity: RarityTier.yellow,
-  accent: _toxinShopAccent,
   badgeLabel: 'TOXICO',
   showTitle: 'Laboratorio Toxico',
   shopTitle: 'LABORATORIO TOXICO',
@@ -526,14 +491,13 @@ final toxinLabNode = ShopPathNode(
 );
 
 /// Hallazgo gris temprano que entrega equipo del arquetipo actual.
-final strandedTrashNode = EventPathNode(
+const strandedTrashNode = EventPathNode(
   id: PathEventId.strandedTrash,
   nodeId: 'event_stranded_trash',
   label: 'Basura Varada',
   tooltip: 'Encuentra un objeto gris gratis del arquetipo actual',
   iconEmoji: '\u{1F5D1}',
   rarity: RarityTier.gray,
-  accent: RarityTier.gray.accent,
   badgeLabel: 'HALLAZGO',
   showTitle: 'Has encontrado basura varada',
   eventTitle: 'BASURA VARADA',
@@ -547,14 +511,13 @@ final strandedTrashNode = EventPathNode(
 );
 
 /// Hallazgo verde temprano que entrega equipo del arquetipo actual.
-final lostCacheNode = EventPathNode(
+const lostCacheNode = EventPathNode(
   id: PathEventId.lostCache,
   nodeId: 'event_lost_cache',
   label: 'Alijo Perdido',
   tooltip: 'Encuentra un objeto verde gratis del arquetipo actual',
   iconEmoji: '\u{1F4E6}',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
   badgeLabel: 'CACHE',
   showTitle: 'Has encontrado un alijo perdido',
   eventTitle: 'ALIJO PERDIDO',
@@ -568,14 +531,13 @@ final lostCacheNode = EventPathNode(
 );
 
 /// Evento verde diurno preparado para futuras mejoras temporales.
-final shadyTechnosurgeonNode = EventPathNode(
+const shadyTechnosurgeonNode = EventPathNode(
   id: PathEventId.shadyTechnosurgeon,
   nodeId: 'event_shady_technosurgeon',
   label: 'Shady Technosurgeon',
   tooltip: 'Un cirujano de callejon ofrece ajustes temporales',
   iconEmoji: '\u2695',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
   badgeLabel: 'EVENTO',
   showTitle: 'Shady Technosurgeon',
   eventTitle: 'SHADY TECHNOSURGEON',
@@ -589,14 +551,13 @@ final shadyTechnosurgeonNode = EventPathNode(
 );
 
 /// Mercado clandestino de aumentos con precio segun tier ofertado.
-final blackTechnoMarketNode = EventPathNode(
+const blackTechnoMarketNode = EventPathNode(
   id: PathEventId.blackTechnoMarket,
   nodeId: 'event_black_techno_market',
   label: 'Black techno-market',
   tooltip: 'Tres aumentos pirateados se venden por tier',
   iconEmoji: '\u{1F578}',
   rarity: RarityTier.purple,
-  accent: RarityTier.purple.accent,
   badgeLabel: 'MERCADO',
   showTitle: 'Black techno-market',
   eventTitle: 'BLACK TECHNO-MARKET',
@@ -609,14 +570,13 @@ final blackTechnoMarketNode = EventPathNode(
 );
 
 /// Evento azul donde una start-up mejora equipo gratis con coste oculto.
-final sobreKarNode = EventPathNode(
+const sobreKarNode = EventPathNode(
   id: PathEventId.sobreKar,
   nodeId: 'event_sobre_kar',
   label: 'SobreKar',
   tooltip: 'Mejora un objeto gratis y acepta un efecto secundario aleatorio',
   iconEmoji: '\u{1F697}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'EVENTO',
   showTitle: 'SobreKar',
   eventTitle: 'SOBREKAR',
@@ -631,14 +591,13 @@ final sobreKarNode = EventPathNode(
 );
 
 /// Evento azul donde una mujer cromada ofrece asegurar un nodo futuro.
-final pasadizoSecretoNode = EventPathNode(
+const pasadizoSecretoNode = EventPathNode(
   id: PathEventId.pasadizoSecreto,
   nodeId: 'event_pasadizo_secreto',
   label: 'Pasadizo Secreto',
   tooltip: 'Ofrece forzar una oferta de tienda o evento por 10 creditos',
   iconEmoji: '\u{1F9CA}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'TRATO',
   showTitle: 'Pasadizo Secreto',
   eventTitle: 'PASADIZO SECRETO',
@@ -653,14 +612,13 @@ final pasadizoSecretoNode = EventPathNode(
 );
 
 /// Evento de subasta donde puedes vender, reciclar o intercambiar piezas de la run.
-final suBastaYaNode = EventPathNode(
+const suBastaYaNode = EventPathNode(
   id: PathEventId.suBastaYa,
   nodeId: 'event_su_basta_ya',
   label: 'SU-Basta-Ya',
   tooltip: 'Subasta objetos, recicla stats o intercambia aumentos',
   iconEmoji: '\u{1F4E2}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'SUBASTA',
   showTitle: 'Has encontrado una subasta de chatarra',
   eventTitle: 'SU-BASTA-YA',
@@ -674,14 +632,13 @@ final suBastaYaNode = EventPathNode(
 );
 
 /// Evento ritual que elimina debuffs, cura con ofrendas o reduce cooldowns.
-final pitonisaQuitapenasNode = EventPathNode(
+const pitonisaQuitapenasNode = EventPathNode(
   id: PathEventId.pitonisaQuitapenas,
   nodeId: 'event_pitonisa_quitapenas',
   label: 'Pitonisa Quitapenas',
   tooltip: 'Purga debuffs, cura con una ofrenda o paga por reducir un cooldown',
   iconEmoji: '\u{1F52E}',
   rarity: RarityTier.purple,
-  accent: RarityTier.purple.accent,
   badgeLabel: 'RITUAL',
   showTitle: 'Has encontrado a la Pitonisa Quitapenas',
   eventTitle: 'PITONISA QUITAPENAS',
@@ -694,14 +651,13 @@ final pitonisaQuitapenasNode = EventPathNode(
   ],
 );
 
-final clinicaReflejosNode = EventPathNode(
+const clinicaReflejosNode = EventPathNode(
   id: PathEventId.clinicaReflejos,
   nodeId: 'event_clinica_reflejos',
   label: 'Clinica de Reflejos',
   tooltip: 'Aumento Veloz o 6 Quemadura por +1 ATK permanente',
   iconEmoji: '\u{1F489}',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
   badgeLabel: 'VELOZ',
   showTitle: 'Has encontrado la Clinica de Reflejos',
   eventTitle: 'CLINICA DE REFLEJOS',
@@ -714,14 +670,13 @@ final clinicaReflejosNode = EventPathNode(
   ],
 );
 
-final viktorOperationsNode = EventPathNode(
+const viktorOperationsNode = EventPathNode(
   id: PathEventId.viktorOperations,
   nodeId: 'event_viktor_operations',
   label: 'Viktor Operations',
   tooltip: 'Mejora a morado un item de Contagio, Debuff o Intoxicacion',
   iconEmoji: '\u{1F9EA}',
   rarity: RarityTier.purple,
-  accent: RarityTier.purple.accent,
   badgeLabel: 'VELOZ',
   showTitle: 'Viktor Operations abre la puerta',
   eventTitle: 'VIKTOR OPERATIONS',
@@ -734,14 +689,13 @@ final viktorOperationsNode = EventPathNode(
   ],
 );
 
-final arquitecbrosSlNode = EventPathNode(
+const arquitecbrosSlNode = EventPathNode(
   id: PathEventId.arquitecbrosSl,
   nodeId: 'event_arquitecbros_sl',
   label: 'Arquitecbros SL',
   tooltip: 'Muralla futura y stats permanentes, o combate morado',
   iconEmoji: '\u{1F3D7}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'INAMOV',
   showTitle: 'Arquitecbros SL quiere presupuestar tu matriz',
   eventTitle: 'ARQUITECBROS SL',
@@ -754,7 +708,7 @@ final arquitecbrosSlNode = EventPathNode(
   ],
 );
 
-final barreraLibreNode = EventPathNode(
+const barreraLibreNode = EventPathNode(
   id: PathEventId.barreraLibre,
   nodeId: 'event_barrera_libre',
   label: 'Barrera Libre',
@@ -762,7 +716,6 @@ final barreraLibreNode = EventPathNode(
       'Refuerza un punto del Patron para ganar Barrera al colocar Murallas adyacentes',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
   badgeLabel: 'INAMOV',
   showTitle: 'Has encontrado una protesta vecinal',
   eventTitle: 'BARRERA LIBRE',
@@ -775,14 +728,13 @@ final barreraLibreNode = EventPathNode(
   ],
 );
 
-final capillaStShieladurnNode = EventPathNode(
+const capillaStShieladurnNode = EventPathNode(
   id: PathEventId.capillaStShieladurn,
   nodeId: 'event_capilla_st_shieladurn',
   label: 'Capilla a St. Shieladurn',
   tooltip: 'Ofrece un objeto para ganar Barrera permanente',
   iconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
   badgeLabel: 'INAMOV',
   showTitle: 'Has encontrado la Capilla a St. Shieladurn',
   eventTitle: 'CAPILLA A ST. SHIELADURN',
@@ -795,14 +747,13 @@ final capillaStShieladurnNode = EventPathNode(
   ],
 );
 
-final contratontosNode = EventPathNode(
+const contratontosNode = EventPathNode(
   id: PathEventId.contratontos,
   nodeId: 'event_contratontos',
   label: 'Contratontos',
   tooltip: 'Entrenamientos Imparables con costes brutales',
   iconEmoji: '\u{1F4AA}',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
   badgeLabel: 'IMPAR',
   showTitle: 'Contratontos ofrece entrenamiento especial',
   eventTitle: 'CONTRATONTOS',
@@ -815,14 +766,13 @@ final contratontosNode = EventPathNode(
   ],
 );
 
-final hornoJuramentosNode = EventPathNode(
+const hornoJuramentosNode = EventPathNode(
   id: PathEventId.hornoJuramentos,
   nodeId: 'event_horno_juramentos',
   label: 'Horno de Juramentos',
   tooltip: 'Mejora un objeto a cambio de Quemadura y HP actual',
   iconEmoji: '\u{1F525}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'IMPAR',
   showTitle: 'Has encontrado el Horno de Juramentos',
   eventTitle: 'HORNO DE JURAMENTOS',
@@ -835,14 +785,13 @@ final hornoJuramentosNode = EventPathNode(
   ],
 );
 
-final auditoriaCreativaNode = EventPathNode(
+const auditoriaCreativaNode = EventPathNode(
   id: PathEventId.auditoriaCreativa,
   nodeId: 'event_auditoria_creativa',
   label: 'Auditoria Creativa',
   tooltip: 'Pierde HP maximo por creditos o acepta Deuda por un aumento verde',
   iconEmoji: '\u{1F4CA}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'MERC',
   showTitle: 'Auditoria Creativa revisa tus activos',
   eventTitle: 'AUDITORIA CREATIVA',
@@ -855,14 +804,13 @@ final auditoriaCreativaNode = EventPathNode(
   ],
 );
 
-final mercadoFuturosNode = EventPathNode(
+const mercadoFuturosNode = EventPathNode(
   id: PathEventId.mercadoFuturos,
   nodeId: 'event_mercado_futuros',
   label: 'Mercado de Futuros',
   tooltip: 'Apuesta una cara de moneda por XP y buff de combate',
   iconEmoji: '\u{1FA99}',
   rarity: RarityTier.yellow,
-  accent: RarityTier.yellow.accent,
   badgeLabel: 'MERC',
   showTitle: 'El Mercado de Futuros propone una apuesta',
   eventTitle: 'MERCADO DE FUTUROS',
@@ -875,14 +823,13 @@ final mercadoFuturosNode = EventPathNode(
   ],
 );
 
-final thePurgameNode = EventPathNode(
+const thePurgameNode = EventPathNode(
   id: PathEventId.thePurgame,
   nodeId: 'event_the_purgame',
   label: 'The Purgame',
   tooltip: 'Elige como quieres alterar la Purga durante el resto de la run',
   iconEmoji: '\u{26EA}',
   rarity: RarityTier.purple,
-  accent: RarityTier.purple.accent,
   badgeLabel: 'PURGA',
   showTitle: 'The Purgame abre sus capillas',
   eventTitle: 'THE PURGAME',
@@ -895,14 +842,13 @@ final thePurgameNode = EventPathNode(
   ],
 );
 
-final tempografoNode = EventPathNode(
+const tempografoNode = EventPathNode(
   id: PathEventId.tempografo,
   nodeId: 'event_tempografo',
   label: 'Tempografo',
   tooltip: 'Sesga la rareza de tiendas o eventos durante el resto del dia',
   iconEmoji: '\u{1F570}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'TIEMPO',
   showTitle: 'El Tempografo despliega sus herramientas',
   eventTitle: 'TEMPOGRAFO',
@@ -915,14 +861,13 @@ final tempografoNode = EventPathNode(
   ],
 );
 
-final sWitchCabinNode = EventPathNode(
+const sWitchCabinNode = EventPathNode(
   id: PathEventId.sWitchCabin,
   nodeId: 'event_s_witch_cabin',
   label: "S. Witch's Cabin",
   tooltip: 'Intercambia el bonus de Patron entre dos objetos propios',
   iconEmoji: '\u{1F3DA}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'PATRON',
   showTitle: "Has encontrado S. Witch's Cabin",
   eventTitle: "S. WITCH'S CABIN",
@@ -935,14 +880,13 @@ final sWitchCabinNode = EventPathNode(
   ],
 );
 
-final hackathonBoothNode = EventPathNode(
+const hackathonBoothNode = EventPathNode(
   id: PathEventId.hackathonBooth,
   nodeId: 'event_hackathon_booth',
   label: 'Hackathon Booth',
   tooltip: 'Supera un reto de patrones para ganar objetos y aumentos',
   iconEmoji: '\u{1F4BB}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'RETO',
   showTitle: 'Hackathon Booth abre la cola',
   eventTitle: 'HACKATHON BOOTH',
@@ -956,14 +900,13 @@ final hackathonBoothNode = EventPathNode(
   ],
 );
 
-final tintoreriaFantasmaNode = EventPathNode(
+const tintoreriaFantasmaNode = EventPathNode(
   id: PathEventId.tintoreriaFantasma,
   nodeId: 'event_tintoreria_fantasma',
   label: 'Tintoreria Fantasma',
   tooltip: 'Toma un objeto prestado de rareza adelantada durante dos combates',
   iconEmoji: '\u{1F9FA}',
   rarity: RarityTier.purple,
-  accent: RarityTier.purple.accent,
   badgeLabel: 'FANTASMA',
   showTitle: 'Has entrado en la Tintoreria Fantasma',
   eventTitle: 'TINTORERIA FANTASMA',
@@ -984,7 +927,6 @@ final afterHoursArsenalNode = ShopPathNode(
   tooltip: 'El mercado nocturno mueve armas mas agresivas',
   iconEmoji: '\u{1F52A}',
   rarity: RarityTier.purple,
-  accent: _afterHoursArsenalAccent,
   badgeLabel: 'NOCHE',
   showTitle: 'Arsenal After Hours',
   shopTitle: 'ARSENAL AFTER HOURS',
@@ -999,7 +941,6 @@ final velvetArmoryNode = ShopPathNode(
   tooltip: 'Protecciones discretas para aguantar la noche',
   iconEmoji: '\u{1F9E5}',
   rarity: RarityTier.blue,
-  accent: _velvetArmoryAccent,
   badgeLabel: 'ACERO',
   showTitle: 'Velvet Armory',
   shopTitle: 'VELVET ARMORY',
@@ -1017,7 +958,6 @@ final chemicalExchangeNode = ShopPathNode(
   tooltip: 'Quemadura e Intoxicacion de alta gama, sin pasar de azul',
   iconEmoji: '\u{1F9EA}',
   rarity: RarityTier.purple,
-  accent: _chemicalExchangeAccent,
   badgeLabel: 'QUIMICA',
   showTitle: 'Mercado Quimico',
   shopTitle: 'MERCADO QUIMICO',
@@ -1032,7 +972,6 @@ final debuffBrokerNode = ShopPathNode(
   tooltip: 'Mercancia especializada en desventajas persistentes',
   iconEmoji: '\u26A0',
   rarity: RarityTier.blue,
-  accent: _debuffBrokerAccent,
   badgeLabel: 'DEBUFF',
   showTitle: 'Broker de Debuffs',
   shopTitle: 'BROKER DE DEBUFFS',
@@ -1048,7 +987,6 @@ final buffParlorNode = ShopPathNode(
   tooltip: 'Accesorios para explotar buffs o la ausencia de ellos',
   iconEmoji: '\u2728',
   rarity: RarityTier.blue,
-  accent: _buffParlorAccent,
   badgeLabel: 'BUFF',
   showTitle: 'Salon de Buffs',
   shopTitle: 'SALON DE BUFFS',
@@ -1064,7 +1002,6 @@ final resonanceBankNode = ShopPathNode(
   tooltip: 'Piezas de Resonancia reservadas para Inamovible',
   iconEmoji: '\u{1F3E6}',
   rarity: RarityTier.blue,
-  accent: _resonanceBankAccent,
   badgeLabel: 'RESON',
   showTitle: 'Banco de Resonancia',
   shopTitle: 'BANCO DE RESONANCIA',
@@ -1082,7 +1019,6 @@ final duelowPricesNode = ShopPathNode(
   tooltip: 'Piezas de Desafio reservadas para Imparable',
   iconEmoji: '\u2694',
   rarity: RarityTier.blue,
-  accent: _duelowPricesAccent,
   badgeLabel: 'DUELO',
   showTitle: 'Duelow Prices',
   shopTitle: 'DUELOW PRICES',
@@ -1100,7 +1036,6 @@ final contagionCompanyNode = ShopPathNode(
   tooltip: 'Piezas de Contagio reservadas para Veloz',
   iconEmoji: '\u{1F9AB}',
   rarity: RarityTier.blue,
-  accent: _contagionCompanyAccent,
   badgeLabel: 'CONTAG',
   showTitle: 'The Contagion Company',
   shopTitle: 'THE CONTAGION COMPANY',
@@ -1119,7 +1054,6 @@ final tacticsAndTreasuresNode = ShopPathNode(
   tooltip: 'Objetos tacticos que combinan ataque y barrera',
   iconEmoji: '\u{1F5FA}',
   rarity: RarityTier.blue,
-  accent: _velvetArmoryAccent,
   badgeLabel: 'TACTIC',
   showTitle: 'Tactics and Treasures',
   shopTitle: 'TACTICS AND TREASURES',
@@ -1128,14 +1062,13 @@ final tacticsAndTreasuresNode = ShopPathNode(
 );
 
 /// Evento azul nocturno reservado para efectos temporales mas agresivos.
-final afterHoursTechnosurgeonNode = EventPathNode(
+const afterHoursTechnosurgeonNode = EventPathNode(
   id: PathEventId.afterHoursTechnosurgeon,
   nodeId: 'event_after_hours_technosurgeon',
   label: 'Technosurgeon Nocturno',
   tooltip: 'Un especialista trasnochado ofrece modificaciones ilegales',
   iconEmoji: '\u2699',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'EVENTO',
   showTitle: 'Technosurgeon Nocturno',
   eventTitle: 'TECHNOSURGEON NOCTURNO',
@@ -1149,14 +1082,13 @@ final afterHoursTechnosurgeonNode = EventPathNode(
 );
 
 /// Evento azul condicionado por Deuda que intenta cobrar la cuota pendiente.
-final debtCollectionNode = EventPathNode(
+const debtCollectionNode = EventPathNode(
   id: PathEventId.debtCollection,
   nodeId: 'event_debt_collection',
   label: 'Oficina de Cobros',
   tooltip: 'Un recaudador intenta cerrar tu deuda operativa',
   iconEmoji: '\u{1F4B8}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'DEUDA',
   showTitle: 'La deuda te ha encontrado',
   eventTitle: 'OFICINA DE COBROS',
@@ -1171,13 +1103,12 @@ final debtCollectionNode = EventPathNode(
 );
 
 /// Nodo de descanso completo que recupera toda la vida.
-final restZoneCampNode = CampSitePathNode(
+const restZoneCampNode = CampSitePathNode(
   nodeId: 'camp_rest_zone',
   label: 'Zona de Descanso',
   tooltip: 'Recupera toda tu vida en un refugio seguro',
   iconEmoji: '\u{1F6CF}',
   rarity: RarityTier.green,
-  accent: RarityTier.green.accent,
   badgeLabel: 'DESCANSO',
   showTitle: 'Has encontrado una zona de descanso',
   sceneTitle: 'ZONA DE DESCANSO',
@@ -1186,13 +1117,12 @@ final restZoneCampNode = CampSitePathNode(
 );
 
 /// Nodo de tratamiento parcial que cura y purga un debuff aleatorio.
-final severeMedicationCampNode = CampSitePathNode(
+const severeMedicationCampNode = CampSitePathNode(
   nodeId: 'camp_severe_medication',
   label: 'Medicacion Severa',
   tooltip: 'Recupera 33% de tu vida maxima y elimina un debuff aleatorio',
   iconEmoji: '\u{1F489}',
   rarity: RarityTier.blue,
-  accent: RarityTier.blue.accent,
   badgeLabel: 'TRATAMIENTO',
   showTitle: 'Has encontrado un modulo de medicacion severa',
   sceneTitle: 'MEDICACION SEVERA',

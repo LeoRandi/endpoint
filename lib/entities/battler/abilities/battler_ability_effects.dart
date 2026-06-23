@@ -124,7 +124,7 @@ class RitmoCircadianoAbilityEffect extends BattlerAbilityEffect {
       updatedOwner = updatedOwner.heal(amount);
     }
     if (cycleContext.isNight) {
-      updatedOwner = updatedOwner.applyStatusFromSource(
+      updatedOwner = updatedOwner.runtimeApplyStatusFromSource(
         PotenciaStatus(value: amount),
         source: updatedOwner,
       );
@@ -158,7 +158,7 @@ class CambioDeGuardiaAbilityEffect extends BattlerAbilityEffect {
       updatedOwner = updatedOwner.gainCombatBarrier(amount * 2);
     }
     if (cycleContext.isNight) {
-      updatedOwner = updatedOwner.applyStatusFromSource(
+      updatedOwner = updatedOwner.runtimeApplyStatusFromSource(
         PotenciaStatus(value: amount),
         source: updatedOwner,
       );
@@ -354,7 +354,7 @@ class EclipseManualAbilityEffect extends BattlerAbilityEffect {
   }) {
     final activeTurns = min(3, max(1, ability.currentValue));
     final updatedOwner = owner
-        .applyStatusFromSource(
+        .runtimeApplyStatusFromSource(
           CicloEclipseStatus(remainingTurns: activeTurns),
           source: owner,
         )
@@ -445,7 +445,7 @@ class VenousOverloadAbilityEffect extends BattlerAbilityEffect {
 
     final burnTurns = max(1, ability.currentValue ~/ 2);
     final updatedOwner = owner
-        .applyStatusFromSource(
+        .runtimeApplyStatusFromSource(
           QuemaduraStatus(remainingTurns: burnTurns),
           source: owner,
         )
@@ -490,7 +490,7 @@ class HardResetAbilityEffect extends BattlerAbilityEffect {
     );
 
     updatedOwner = updatedOwner
-        .receiveDamage(selfDamage)
+        .runtimeReceiveDamage(selfDamage)
         .updateAbility(ability.startCooldown());
 
     return BattlerAbilityEffectResolution(
@@ -887,7 +887,7 @@ class DescargaSismicaAbilityEffect extends BattlerAbilityEffect {
     );
     var updatedOpponent = resonanceDamage <= 0
         ? opponent
-        : opponent.receiveDirectDamage(
+        : opponent.runtimeReceiveDirectDamage(
             resonanceDamage,
             source: updatedOwner,
           );
@@ -1095,7 +1095,7 @@ class MallaReboteAbilityEffect extends BattlerAbilityEffect {
     final reflectedDamage = max(0, ability.currentValue);
     final updatedSource = reflectedDamage <= 0
         ? source
-        : source.receiveDirectDamage(
+        : source.runtimeReceiveDirectDamage(
             reflectedDamage,
             source: owner,
           );
@@ -1330,7 +1330,7 @@ class NucleoParasitarioAbilityEffect extends BattlerAbilityEffect {
     final drainAmount = max(0, ability.currentValue);
     final updatedTarget = drainAmount <= 0
         ? target
-        : target.receiveDirectDamage(
+        : target.runtimeReceiveDirectDamage(
             drainAmount,
             source: owner,
           );
@@ -1392,7 +1392,7 @@ class EspejoDolorAbilityEffect extends BattlerAbilityEffect {
     final reflectedDamage = max(0, ability.currentValue) * 2;
     final updatedSource = reflectedDamage <= 0
         ? source
-        : source.receiveDirectDamage(
+        : source.runtimeReceiveDirectDamage(
             reflectedDamage,
             source: owner,
           );
@@ -1788,7 +1788,7 @@ class NoHayRetiradaAbilityEffect extends BattlerAbilityEffect {
 
     final amount = max(1, ability.currentValue);
     final hadPotencia = owner.hasStatus(PotenciaStatus.statusId);
-    var updatedOwner = owner.applyStatusFromSource(
+    var updatedOwner = owner.runtimeApplyStatusFromSource(
       PotenciaStatus(value: amount),
       source: owner,
     );
@@ -1892,7 +1892,7 @@ class CorteTangencialAbilityEffect extends BattlerAbilityEffect {
         (max(1, ability.currentValue) + max(0, pattern.attackBonus)).toInt();
     return BattlerAbilityEffectResolution(
       owner: owner,
-      opponent: opponent.receiveDirectDamage(damage, source: owner),
+      opponent: opponent.runtimeReceiveDirectDamage(damage, source: owner),
     );
   }
 }
@@ -2149,7 +2149,7 @@ class PatronPerfectoAbilityEffect extends BattlerAbilityEffect {
     final updatedOwner = owner.gainBarrierFromResonanceDamage(resonanceDamage);
     return BattlerAbilityEffectResolution(
       owner: updatedOwner,
-      opponent: opponent.receiveDirectDamage(
+      opponent: opponent.runtimeReceiveDirectDamage(
         resonanceDamage,
         source: updatedOwner,
       ),
@@ -2234,7 +2234,7 @@ class PuntoIgnicionAbilityEffect extends BattlerAbilityEffect {
     final desafio = max(1, (max(1, resolvedCalentando.value) / 2).ceil());
     final burnTurns = max(1, ability.currentValue);
     return BattlerAbilityEffectResolution(
-      owner: owner.gainDesafio(desafio).applyStatusFromSource(
+      owner: owner.gainDesafio(desafio).runtimeApplyStatusFromSource(
             QuemaduraStatus(remainingTurns: burnTurns),
             source: owner,
           ),
@@ -2315,7 +2315,7 @@ class MercadoRecursivoAbilityEffect extends BattlerAbilityEffect {
       final spent = min(maxCreditsPerPoint, updatedOwner.money);
       if (spent <= 0) break;
       updatedOwner = updatedOwner.spendMoney(spent);
-      updatedOpponent = updatedOpponent.receiveDirectDamage(
+      updatedOpponent = updatedOpponent.runtimeReceiveDirectDamage(
         spent,
         source: updatedOwner,
       );
@@ -2449,11 +2449,11 @@ class HornoSimetricoAbilityEffect extends BattlerAbilityEffect {
 
     final amount = max(1, ability.currentValue);
     return BattlerAbilityEffectResolution(
-      owner: owner.applyStatusFromSource(
+      owner: owner.runtimeApplyStatusFromSource(
         QuemaduraStatus(remainingTurns: amount),
         source: owner,
       ),
-      opponent: opponent.applyStatusFromSource(
+      opponent: opponent.runtimeApplyStatusFromSource(
         QuemaduraStatus(remainingTurns: amount),
         source: owner,
       ),
@@ -2633,7 +2633,7 @@ class SobrecargaReguladaAbilityEffect extends BattlerAbilityEffect {
   }) {
     final amount = max(1, ability.currentValue);
     final updatedOwner = owner
-        .applyStatusFromSource(
+        .runtimeApplyStatusFromSource(
           PotenciaStatus(value: amount),
           source: owner,
         )
@@ -2695,7 +2695,7 @@ class PuntoCiegoAbilityEffect extends BattlerAbilityEffect {
   }) {
     final turns = max(1, ability.currentValue);
     final updatedOwner = owner
-        .applyStatusFromSource(
+        .runtimeApplyStatusFromSource(
           PuntoCiegoStatus(
             remainingTurns: turns + 1,
             value: turns,
@@ -2815,7 +2815,7 @@ class ArmaBiologicaAbilityEffect extends BattlerAbilityEffect {
 
     return BattlerAbilityEffectResolution(
       owner: owner,
-      opponent: opponent.receiveDirectDamage(
+      opponent: opponent.runtimeReceiveDirectDamage(
         max(1, ability.currentValue),
         source: owner,
       ),
@@ -2879,10 +2879,10 @@ class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
     final usedPointKeys =
         pattern.patternPoints.map((point) => point.key).toSet();
     final debuffItemCount = owner.equippedItems.where((item) {
-      final pointKey = OperativePatternLayoutService.pointKeyForItem(
-        player: owner,
-        item: item,
-      );
+      final itemKey =
+          item.instanceId ?? '${item.id.name}:${identityHashCode(item)}';
+      final pointKey = owner.patternItemPointKeys[itemKey] ??
+          owner.patternItemPointKeys[item.id.name];
       return pointKey != null &&
           usedPointKeys.contains(pointKey) &&
           item.hasTag(EntityTag.debuff);
@@ -2891,7 +2891,7 @@ class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final resolution = opponent.applyStatusFromSourceResolved(
+    final resolution = opponent.runtimeApplyStatusFromSourceResolved(
       ContagioStatus(value: max(1, ability.currentValue)),
       source: owner,
     );
@@ -2935,7 +2935,7 @@ class SintomasCruzadosAbilityEffect extends BattlerAbilityEffect {
       return BattlerAbilityEffectResolution(owner: owner, opponent: opponent);
     }
 
-    final resolution = opponent.applyStatusFromSourceResolved(
+    final resolution = opponent.runtimeApplyStatusFromSourceResolved(
       followUpStatus,
       source: owner,
     );
@@ -2966,7 +2966,7 @@ class PacienteCeroAbilityEffect extends BattlerAbilityEffect {
         .where((item) => item.hasArchetypeAffinity(ItemArchetypeAffinity.veloz))
         .length;
     final amount = max(max(1, ability.currentValue), velozItemCount);
-    final resolution = opponent.applyStatusFromSourceResolved(
+    final resolution = opponent.runtimeApplyStatusFromSourceResolved(
       ContagioStatus(value: amount),
       source: owner,
     );
@@ -3104,7 +3104,7 @@ Battler _applyOrIncreaseCalentando({
 }) {
   final currentStatus = owner.statusById(CalentandoStatus.statusId);
   if (currentStatus is! CalentandoStatus) {
-    return owner.applyStatusFromSource(
+    return owner.runtimeApplyStatusFromSource(
       CalentandoStatus(value: amount),
       source: owner,
     );

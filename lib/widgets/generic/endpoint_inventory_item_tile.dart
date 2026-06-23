@@ -29,7 +29,7 @@ class EndpointInventoryItemTile extends StatelessWidget {
     final resolvedAccent = accent ?? item.rarity.accent;
 
     return HoldTooltip(
-      message: item.tooltipDescription,
+      message: item.localizedTooltipDescription,
       child: Material(
         color: Colors.transparent,
         child: InkWell(

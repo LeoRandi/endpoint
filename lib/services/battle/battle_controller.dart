@@ -353,7 +353,8 @@ class BattleController extends ChangeNotifier {
     var patternBlockModifier = resolvedActionBonus.immediateBarrierAmount;
     final patternHealModifier = resolvedActionBonus.healAmount;
 
-    final resolvedPatternContext = patternContext;
+    final resolvedPatternContext =
+        patternContext?.withRandomSource(_randomizer);
     if (resolvedPatternContext != null) {
       final playerBeforePatternAbilities = _player;
       final enemyBeforePatternAbilities = _enemy;
@@ -634,6 +635,7 @@ class BattleController extends ChangeNotifier {
       firstRepeatedItemPointKey: pattern.firstRepeatedItemPointKey,
       firstUsedItemHasAttackBonus: pattern.firstUsedItemHasAttackBonus,
       activatedItemEffectCount: pattern.activatedItemEffectCount,
+      randomSource: pattern.randomSource,
     );
   }
 
@@ -642,6 +644,7 @@ class BattleController extends ChangeNotifier {
     BattlePatternMatchContext? patternContext,
   }) async {
     if (!canResolveEnemyPattern) return;
+    patternContext = patternContext?.withRandomSource(_randomizer);
     if (patternContext != null) {
       if (_isPatternBanned(_enemyUsedPatterns, patternContext.patternPoints)) {
         return;

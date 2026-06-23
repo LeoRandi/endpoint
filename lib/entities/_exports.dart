@@ -2,6 +2,7 @@ export 'archetype_id.dart';
 export 'cycle_runtime.dart';
 export 'entity_tag.dart';
 export 'rarity_tier.dart';
+export 'random_source.dart';
 export 'battler/_exports.dart';
 export 'item/_exports.dart';
 export 'path_node/_exports.dart';

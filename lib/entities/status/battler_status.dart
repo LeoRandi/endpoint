@@ -1,6 +1,4 @@
 import '_imports.dart';
-import '../../services/run/run_randomizer.dart';
-import '../../services/runtime/battler_runtime_service.dart';
 
 part 'battler_statuses/battler_status_buffs.dart';
 part 'battler_statuses/battler_status_debuffs.dart';
@@ -65,39 +63,6 @@ class BattlerIncomingDamageResolution {
   });
 }
 
-/// Expone etiquetas y colores coherentes para representar tipos de estado en la UI.
-extension BattlerStatusTypePresentation on BattlerStatusType {
-  /// Devuelve el nombre corto que se muestra junto al estado.
-  String get label {
-    switch (this) {
-      case BattlerStatusType.buff:
-        return 'Buff';
-      case BattlerStatusType.debuff:
-        return 'Debuff';
-    }
-  }
-
-  /// Devuelve el color principal usado para resaltar este tipo de estado.
-  Color get accent {
-    switch (this) {
-      case BattlerStatusType.buff:
-        return const Color(0xFF5AF78E);
-      case BattlerStatusType.debuff:
-        return const Color(0xFFFF6B6B);
-    }
-  }
-
-  /// Devuelve el color de texto que mejor contrasta con el accent del tipo.
-  Color get foreground {
-    switch (this) {
-      case BattlerStatusType.buff:
-        return const Color(0xFFE6FFF0);
-      case BattlerStatusType.debuff:
-        return const Color(0xFFFFE3E3);
-    }
-  }
-}
-
 /// Sirve como base comun para todos los estados y sus hooks de combate.
 abstract class BattlerStatus {
   final BattlerStatusId id;
@@ -105,7 +70,6 @@ abstract class BattlerStatus {
   final BattlerStatusType type;
   final List<EntityTag> tags;
   final Set<BattlerStatusHook> hooks;
-  final IconData icon;
   final String description;
   final int remainingTurns;
   final int value;
@@ -117,7 +81,6 @@ abstract class BattlerStatus {
     required this.type,
     this.tags = const [],
     this.hooks = const <BattlerStatusHook>{},
-    required this.icon,
     required this.description,
     required this.remainingTurns,
     this.value = 0,
@@ -214,7 +177,7 @@ abstract class BattlerStatus {
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return owner;
   }
@@ -224,7 +187,7 @@ abstract class BattlerStatus {
     required Battler owner,
     required Battler opponent,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return owner;
   }

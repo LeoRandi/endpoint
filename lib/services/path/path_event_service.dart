@@ -13,6 +13,14 @@ typedef PathEventVisitResolver = PathEventVisitResult Function(
   required RunRandomizer randomizer,
 });
 
+String _rarityLabel(RarityTier rarity) => switch (rarity) {
+      RarityTier.gray => 'GRIS',
+      RarityTier.green => 'VERDE',
+      RarityTier.blue => 'AZUL',
+      RarityTier.purple => 'MORADO',
+      RarityTier.yellow => 'AMARILLO',
+    };
+
 class PathEventDefinition {
   final PathEventAvailabilityResolver canAppear;
   final PathEventVisitResolver visit;
@@ -241,7 +249,7 @@ class PathEventService {
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'Del hallazgo $actionLabel ${resolvedItem.displayName} (${resolvedItem.rarity.label}).',
+          'Del hallazgo $actionLabel ${resolvedItem.displayName} (${_rarityLabel(resolvedItem.rarity)}).',
       gainedItem: resolvedItem,
     );
   }
@@ -278,7 +286,7 @@ class PathEventService {
       applyEquipmentModifiers: false,
     );
     final outcomeText =
-        '${upgradedItemResolution.upgradedItem.displayName} se mejora a ${upgradedItemResolution.upgradedItem.rarity.label}. Efecto secundario: ${debuffRoll.label}.';
+        '${upgradedItemResolution.upgradedItem.displayName} se mejora a ${_rarityLabel(upgradedItemResolution.upgradedItem.rarity)}. Efecto secundario: ${debuffRoll.label}.';
 
     return SobreKarUpgradeResolution(
       visitResult: PathEventVisitResult(
@@ -374,7 +382,7 @@ class PathEventService {
         updatedPlayer.abilityById(selectedAbility.id) ?? selectedAbility;
     final outcomeText = existingAbility == null
         ? 'Has comprado ${resolvedAbility.displayName} por ${price}C.'
-        : 'Has comprado una copia de ${resolvedAbility.displayName} por ${price}C. Su tier actual es ${resolvedAbility.rarity.label}.';
+        : 'Has comprado una copia de ${resolvedAbility.displayName} por ${price}C. Su tier actual es ${_rarityLabel(resolvedAbility.rarity)}.';
 
     return PathEventVisitResult(
       player: updatedPlayer,
@@ -936,7 +944,7 @@ class PathEventService {
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'La Clinica de Reflejos integra ${resolvedAbility.displayName} (${resolvedAbility.rarity.label}).',
+          'La Clinica de Reflejos integra ${resolvedAbility.displayName} (${_rarityLabel(resolvedAbility.rarity)}).',
       gainedAbility: resolvedAbility,
     );
   }
@@ -1042,7 +1050,7 @@ class PathEventService {
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'Refuerzas el punto ${point.label}. Cada Muralla colocada junto a el te dara +1 Barrera.',
+          'Refuerzas el punto ${point.debugLabel}. Cada Muralla colocada junto a el te dara +1 Barrera.',
     );
   }
 
@@ -1169,7 +1177,7 @@ class PathEventService {
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          '${resolution.upgradedItem.displayName} sube a ${resolution.upgradedItem.rarity.label}. Sales con 3 Quemadura y el horno te deja a ${updatedPlayer.health} HP.',
+          '${resolution.upgradedItem.displayName} sube a ${_rarityLabel(resolution.upgradedItem.rarity)}. Sales con 3 Quemadura y el horno te deja a ${updatedPlayer.health} HP.',
       gainedItem: resolution.upgradedItem,
     );
   }

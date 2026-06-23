@@ -24,7 +24,7 @@ class ThermalTurbineItemEffect extends ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     final triggeredFlag = _itemCombatFlag(
       item,
@@ -55,7 +55,7 @@ class ThermalTurbineItemEffect extends ItemEffect {
     }
 
     return ItemEffectResolution(
-      owner: ownerWithFlag.applyStatusFromSource(
+      owner: ownerWithFlag.runtimeApplyStatusFromSource(
         CalentandoStatus(value: amount),
         source: ownerWithFlag,
       ),
@@ -102,11 +102,12 @@ class SunExecutionBladeItemEffect extends ItemEffect {
       0,
       (sum, status) => sum + status.currentDamage(target),
     );
-    final updatedTarget =
-        target.removeStatus(QuemaduraStatus.statusId).receiveDirectDamage(
-              totalBurnDamage + max(1, item.value),
-              source: owner,
-            );
+    final updatedTarget = target
+        .removeStatus(QuemaduraStatus.statusId)
+        .runtimeReceiveDirectDamage(
+          totalBurnDamage + max(1, item.value),
+          source: owner,
+        );
 
     return ItemEffectResolution(
       owner: owner,
@@ -352,7 +353,7 @@ class MochilaStronkboxItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn || owner.money < requiredMoney) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -380,11 +381,11 @@ class VirtualMailboxItemEffect extends ItemEffect {
   /// Construye la descripcion visible del efecto usando el valor actual.
   @override
   String descriptionFor(Item item) {
-    final focusLabel = _focusTagFor(item).label;
+    final focusLabel = _focusTagFor(item).name;
     final statLine = item.id == ItemId.buzonVirtualAzul
         ? '+1 PP mientras este equipado. '
         : '';
-    return '${statLine}Al terminar un combate, si tienes espacio, ofrece un item ${item.rarity.label} aleatorio con tag $focusLabel en la pantalla de recompensas.';
+    return '${statLine}Al terminar un combate, si tienes espacio, ofrece un item ${item.rarity.name.toUpperCase()} aleatorio con tag $focusLabel en la pantalla de recompensas.';
   }
 
   /// Decide que tag de recompensa debe buscar cada buzon segun su version.
@@ -460,7 +461,7 @@ class CuboDinamitalicoItemEffect extends ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     final point = _assignedPointForItem(owner: owner, item: item);
     if (point == null) {
@@ -526,12 +527,12 @@ class MurallaAutomaticaItemEffect extends ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     final walls = _randomAvailableWalls(
       existingWalls: opponent.combatWallSegments,
       count: max(1, item.value),
-      nextInt: randomizer?.nextInt ?? Random().nextInt,
+      nextInt: randomizer?.nextInt ?? _firstAvailableIndex,
     );
     return ItemEffectResolution(
       owner: owner,
@@ -583,7 +584,7 @@ class LiteralPaywallItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -603,7 +604,7 @@ class LiteralPaywallItemEffect extends ItemEffect {
       kind: ItemCombatFlagKind.literalPaywallPendingWall,
     );
     var updatedOpponent = opponent;
-    final nextInt = randomizer?.nextInt ?? Random().nextInt;
+    final nextInt = randomizer?.nextInt ?? _firstAvailableIndex;
     for (final flag in pendingFlags) {
       final cost = max(0, flag.secondaryValue ?? item.value);
       if (!updatedOwner.canAfford(cost)) continue;
@@ -706,7 +707,7 @@ class ConstructionSealItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -714,7 +715,7 @@ class ConstructionSealItemEffect extends ItemEffect {
 
     final remainingBp = max(
       0,
-      OperativePatternCombatRules.maxBlockingPointsFor(owner) -
+      BattlerRuntimeGateway.instance.maxBlockingPointsFor(owner) -
           opponent.combatWallSegments.length,
     );
     final healing = max(0, item.value) * remainingBp;
@@ -747,8 +748,8 @@ class ConstructionSealItemEffect extends ItemEffect {
       );
     }
 
-    final nextInt = Random().nextInt;
-    final selected = candidates[nextInt(candidates.length)];
+    final selectedIndex = pattern.randomSource?.nextInt(candidates.length) ?? 0;
+    final selected = candidates[selectedIndex];
     if (selected.ownerBoard) {
       final resolution = _destroyOwnerBoardWalls(
         owner: updatedOwner,
@@ -819,7 +820,7 @@ class BarbedShieldItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -848,7 +849,7 @@ class BarbedShieldItemEffect extends ItemEffect {
       ),
       opponent: damage <= 0
           ? opponent
-          : opponent.receiveDirectDamage(damage, source: owner),
+          : opponent.runtimeReceiveDirectDamage(damage, source: owner),
     );
   }
 }
@@ -895,7 +896,7 @@ class PilarAceroItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -1117,6 +1118,8 @@ List<OperativePatternWallSegment> _randomAvailableWalls({
   return List<OperativePatternWallSegment>.unmodifiable(picked);
 }
 
+int _firstAvailableIndex(int _) => 0;
+
 /// Premia guardar mercancia ajena en el inventario con curacion ofensiva.
 class MuestrarioContrabandoItemEffect extends ItemEffect {
   static const healCap = 10;
@@ -1222,7 +1225,7 @@ class ShoppingChecklistItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn ||
         !owner.hasCombatFlag(
@@ -1435,7 +1438,7 @@ class CompraAgresivaItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     final cost = max(0, item.value);
     if (!isOwnerTurn || cost <= 0 || !owner.canAfford(cost)) {
@@ -1505,7 +1508,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return ItemEffectResolution(
       owner: owner.earnMoney(max(1, item.value) * 2),
@@ -1533,7 +1536,7 @@ class BolsaRiesgoItemEffect extends ItemEffect {
     final spent = min(owner.money, max(1, item.value) * 3);
     return ItemEffectResolution(
       owner: owner.spendMoneyForItemEffect(spent).addCombatFlag(triggerFlag),
-      opponent: source.receiveDirectDamage(spent, source: owner),
+      opponent: source.runtimeReceiveDirectDamage(spent, source: owner),
     );
   }
 }
@@ -1624,7 +1627,7 @@ class BancoAmbulanteItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn || owner.money < requiredMoney) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -1674,7 +1677,7 @@ class BancoAmbulanteItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -1832,7 +1835,7 @@ class SonicaltropsItemEffect extends ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return ItemEffectResolution(
       owner: owner,
@@ -1958,14 +1961,14 @@ class PortableOvenItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
     return ItemEffectResolution(
-      owner: owner.applyStatusFromSource(
+      owner: owner.runtimeApplyStatusFromSource(
         QuemaduraStatus(remainingTurns: item.value),
         source: owner,
       ),
@@ -2031,7 +2034,7 @@ class OperativeBlackBoxItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -2072,7 +2075,7 @@ class VialRotoItemEffect extends ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return _applyStatusToOpponentFromOwner(
       owner: owner,
@@ -2106,10 +2109,10 @@ class PlumaSepticaItemEffect extends ItemEffect {
   }) {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
-    final randomizer = RunRandomizer();
+    final randomizer = pattern.randomSource;
 
     for (var i = 0; i < max(1, item.value); i++) {
-      final status = switch (randomizer.nextInt(4)) {
+      final status = switch (randomizer?.nextInt(4) ?? i % 4) {
         0 => const QuemaduraStatus(remainingTurns: 1),
         1 => const IntoxicacionStatus(value: 1),
         2 => const FragilidadStatus(value: 1),
@@ -2228,7 +2231,7 @@ class TuboCultivoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn || _debuffCount(opponent) < 2) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -2334,7 +2337,7 @@ class IncubadoraPortatilItemEffect extends ItemEffect {
     required Battler owner,
     required Battler opponent,
     required Item item,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return _applyStatusToOpponentFromOwner(
       owner: owner,
@@ -2447,7 +2450,7 @@ class StatusItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -2551,7 +2554,7 @@ class StatusItemEffect extends ItemEffect {
       case ItemStatusEffectTrigger.turnStartOwnerIfMissing:
         if (owner.hasStatus(status.id)) return owner;
 
-        return owner.applyStatusFromSource(
+        return owner.runtimeApplyStatusFromSource(
           status,
           source: source,
         );
@@ -2564,13 +2567,13 @@ class StatusItemEffect extends ItemEffect {
 
         final refreshedOwner =
             currentStatus == null ? owner : owner.removeStatus(status.id);
-        return refreshedOwner.applyStatusFromSource(
+        return refreshedOwner.runtimeApplyStatusFromSource(
           status,
           source: source,
         );
       case ItemStatusEffectTrigger.attackOwnerReinforce:
         if (kind != ItemStatusEffectKind.calentando) {
-          return owner.applyStatusFromSource(
+          return owner.runtimeApplyStatusFromSource(
             status,
             source: source,
           );
@@ -2578,7 +2581,7 @@ class StatusItemEffect extends ItemEffect {
 
         final currentStatus = owner.statusById(CalentandoStatus.statusId);
         if (currentStatus is! CalentandoStatus) {
-          return owner.applyStatusFromSource(
+          return owner.runtimeApplyStatusFromSource(
             status,
             source: source,
           );
@@ -2596,7 +2599,7 @@ class StatusItemEffect extends ItemEffect {
         );
       case ItemStatusEffectTrigger.attackOwner:
       case ItemStatusEffectTrigger.receiveDamageOwner:
-        return owner.applyStatusFromSource(
+        return owner.runtimeApplyStatusFromSource(
           status,
           source: source,
         );

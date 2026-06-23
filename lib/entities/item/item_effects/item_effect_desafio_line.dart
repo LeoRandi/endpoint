@@ -105,7 +105,7 @@ class VendasApretadasItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return ItemEffectResolution(
       owner: owner.removeItemCombatFlagsFor(
@@ -139,7 +139,7 @@ class MarcaRetadorItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn || owner.health * 2 >= owner.maxHealth) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -303,7 +303,7 @@ class ContratoDolorosoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     final damagedFlag = _itemCombatFlag(
       item,
@@ -376,7 +376,7 @@ class YunqueCardiacoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     return ItemEffectResolution(
       owner: owner.removeItemCombatFlagsFor(
@@ -450,7 +450,7 @@ class EmbudoMejorasItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -533,7 +533,7 @@ class ArnesTacticoItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     final tracked = owner.itemCombatFlagValue(
       item: item,
@@ -645,7 +645,7 @@ class EstandarteUltimoSolItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     if (!isOwnerTurn) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
@@ -735,7 +735,7 @@ class MotorMartirioItemEffect extends ItemEffect {
     required Battler opponent,
     required Item item,
     required bool isOwnerTurn,
-    RunRandomizer? randomizer,
+    RandomSource? randomizer,
   }) {
     var updatedOwner = owner;
     if (isOwnerTurn && owner.desafioValue >= item.value) {

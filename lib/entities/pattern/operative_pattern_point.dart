@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 const operativePatternPoints = <OperativePatternPoint>[
   OperativePatternPoint(x: -1, y: 1),
   OperativePatternPoint(x: 0, y: 1),
@@ -27,20 +25,6 @@ OperativePatternPoint? operativePatternPointAt({
   return operativePatternPointsByKey[operativePatternPointKey(x, y)];
 }
 
-Offset operativePatternPointCenter({
-  required OperativePatternPoint point,
-  required double boardSide,
-}) {
-  final cellSize = boardSide / 3;
-  final column = point.x + 1;
-  final row = 1 - point.y;
-
-  return Offset(
-    (column + 0.5) * cellSize,
-    (row + 0.5) * cellSize,
-  );
-}
-
 class OperativePatternPoint {
   final int x;
   final int y;
@@ -51,8 +35,8 @@ class OperativePatternPoint {
     required this.y,
   });
 
-  /// Devuelve una etiqueta corta para debug y detalles de configuracion.
-  String get label => '[$x, $y]';
+  /// Devuelve una representacion corta y no localizada para diagnostico.
+  String get debugLabel => '[$x, $y]';
 
   /// Devuelve la key persistible usada para asignaciones de items por punto.
   String get key => operativePatternPointKey(x, y);

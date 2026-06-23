@@ -21,7 +21,6 @@ const weaknessHunterAbility = BattlerAbility(
   name: 'Caza de debilidades',
   description:
       'Pasiva. Tus ataques infligen daño adicional si el objetivo ya tiene al menos un debuff.',
-  icon: Icons.track_changes_rounded,
   value: 2,
   upgradeValue: 2,
   effect: WeaknessHunterAbilityEffect(),
@@ -36,7 +35,6 @@ const ghostMeshAbility = BattlerAbility(
   name: 'Malla Fantasma',
   description:
       'Pasiva. Si tu vida esta al maximo, el daño recibido por ataques se reduce a la mitad, redondeando hacia arriba.',
-  icon: Icons.security_rounded,
   value: 2,
   effect: GhostMeshAbilityEffect(),
   isImplemented: true,
@@ -51,7 +49,6 @@ const ritmoCircadianoAbility = BattlerAbility(
   name: 'Ritmo Circadiano',
   description:
       'Pasiva. Al inicio de tu turno: de dia te curas y de noche ganas Potencia.',
-  icon: Icons.av_timer_rounded,
   value: 1,
   upgradeValue: 1,
   effect: RitmoCircadianoAbilityEffect(),
@@ -67,7 +64,6 @@ const turnoDeNocheAbility = BattlerAbility(
   name: 'Turno de Noche',
   description:
       'Pasiva. De dia reduces daño recibido. De noche infliges daño adicional.',
-  icon: Icons.bedtime_rounded,
   value: 2,
   upgradeValue: 1,
   effect: TurnoDeNocheAbilityEffect(),
@@ -82,7 +78,6 @@ const cashflowAbility = BattlerAbility(
   tags: _economiaAbilityTags,
   name: 'Flujo de Caja',
   description: 'Pasiva. Al comienzo de cada hora, ganas 2 creditos.',
-  icon: Icons.payments_rounded,
   value: 2,
   effect: CashflowAbilityEffect(),
   isImplemented: true,
@@ -96,7 +91,6 @@ const pulsoRepLAbility = BattlerAbility(
   tags: _buffBarreraAbilityTags,
   name: 'Pulso REP-L',
   description: 'Pasiva. Al final de tu turno, ganas Barrera.',
-  icon: Icons.shield_rounded,
   value: 3,
   upgradeValue: 1,
   effect: PulsoRepLAbilityEffect(),
@@ -112,7 +106,6 @@ const masaCriticaAbility = BattlerAbility(
   name: 'Masa Critica',
   description:
       'Pasiva. Tus efectos de Resonancia infligen daño adicional si tu Barrera supera la mitad de tu vida maxima.',
-  icon: Icons.hub_rounded,
   value: 2,
   upgradeValue: 1,
   effect: MasaCriticaAbilityEffect(),
@@ -127,7 +120,6 @@ const cortafuegosPortatilAbility = BattlerAbility(
   name: 'Cortafuegos Portatil',
   description:
       'Pasiva. Ignora los primeros debuffs recibidos en combate y gana Barrera.',
-  icon: Icons.security_rounded,
   value: 1,
   upgradeValue: 1,
   effect: CortafuegosPortatilAbilityEffect(),
@@ -142,7 +134,6 @@ const triageAutomaticoAbility = BattlerAbility(
   name: 'Triage Automatico',
   description:
       'Pasiva. Con poca vida, cura o reduce debuffs propios antes de curar.',
-  icon: Icons.medical_services_rounded,
   value: 3,
   upgradeValue: 2,
   effect: TriageAutomaticoAbilityEffect(),
@@ -157,7 +148,6 @@ const opresionTacticaAbility = BattlerAbility(
   name: 'Opresion Tactica',
   description:
       'Pasiva. Si desaparece un buff enemigo o un debuff propio, ganas Barrera una vez por turno.',
-  icon: Icons.control_camera_rounded,
   value: 4,
   upgradeValue: 2,
   isImplemented: true,
@@ -171,7 +161,6 @@ const copiaDeSeguridadAbility = BattlerAbility(
   name: 'Copia de Seguridad',
   description:
       'Pasiva. Una vez por combate, sobrevives a un ataque letal y ganas Barrera.',
-  icon: Icons.backup_rounded,
   value: 8,
   upgradeValue: 4,
   effect: CopiaDeSeguridadAbilityEffect(),
@@ -187,7 +176,6 @@ const mandatoColiseoAbility = BattlerAbility(
   name: 'Mandato de Coliseo',
   description:
       'Pasiva. La primera vez por turno que un Desafio se consume, no provoca contraataque. Ganas Desafio al principio del combate.',
-  icon: Icons.stadium_rounded,
   value: 2,
   upgradeValue: 2,
   effect: MandatoColiseoAbilityEffect(),
@@ -202,7 +190,6 @@ const hemostasiaAgresivaAbility = BattlerAbility(
   tags: _vidaAtaqueAbilityTags,
   name: 'Hemostasia Agresiva',
   description: 'Pasiva. Al golpear a un objetivo con debuff, te curas vida.',
-  icon: Icons.favorite_rounded,
   value: 5,
   upgradeValue: 0,
   effect: HemostasiaAgresivaAbilityEffect(),
@@ -218,7 +205,6 @@ const mallaReboteAbility = BattlerAbility(
   name: 'Malla de Rebote',
   description:
       'Pasiva. El primer ataque que recibes cada turno devuelve daño al atacante.',
-  icon: Icons.sync_alt_rounded,
   value: 4,
   upgradeValue: 4,
   effect: MallaReboteAbilityEffect(),
@@ -233,7 +219,6 @@ const escanerRupturaAbility = BattlerAbility(
   name: 'Escaner de Ruptura',
   description:
       'Pasiva. Tus ataques infligen daño adicional si el objetivo tiene al menos un buff.',
-  icon: Icons.radar_rounded,
   value: 3,
   upgradeValue: 2,
   effect: EscanerRupturaAbilityEffect(),
@@ -249,7 +234,6 @@ const nucleoParasitarioAbility = BattlerAbility(
   name: 'Nucleo Parasitario',
   description:
       'Pasiva. En el primer ataque durante tu turno, drenas vida al objetivo.',
-  icon: Icons.bloodtype_rounded,
   value: 4,
   upgradeValue: 1,
   effect: NucleoParasitarioAbilityEffect(),
@@ -265,7 +249,6 @@ const monopolioAbility = BattlerAbility(
   name: 'Monopolio',
   description:
       'Pasiva. Si todos tus objetos son de Mercante o generales, te curas al principio de cada turno.',
-  icon: Icons.storefront_rounded,
   value: 2,
   upgradeValue: 2,
   effect: MonopolioAbilityEffect(),
@@ -281,7 +264,6 @@ const diversificacionHostilAbility = BattlerAbility(
   name: 'Diversificacion Hostil',
   description:
       'Pasiva. Tus ataques infligen daño adicional por cada arquetipo no mercante distinto entre tus objetos equipados.',
-  icon: Icons.hub_rounded,
   value: 2,
   upgradeValue: 1,
   effect: DiversificacionHostilAbilityEffect(),
@@ -297,7 +279,6 @@ const furiaHematicaAbility = BattlerAbility(
   name: 'Furia Hematica',
   description:
       'Pasiva. El primer ataque de tu turno inflige daño adicional por cada tramo de vida maxima que te falte.',
-  icon: Icons.bloodtype_rounded,
   value: 2,
   upgradeValue: 1,
   effect: FuriaHematicaAbilityEffect(),
@@ -313,7 +294,6 @@ const noHayRetiradaAbility = BattlerAbility(
   name: 'No Hay Retirada',
   description:
       'Pasiva. La primera vez que recibes daño en combate, ganas Potencia. Si ya tenias Potencia, tambien ganas Calentando.',
-  icon: Icons.vertical_align_top_rounded,
   value: 1,
   upgradeValue: 1,
   effect: NoHayRetiradaAbilityEffect(),
@@ -329,7 +309,6 @@ const geometriaLimpiaAbility = BattlerAbility(
   name: 'Geometria Limpia',
   description:
       'Pasiva de Patron. Si el patron solo tiene angulos rectos, ganas Barrera y Resonancia.',
-  icon: Icons.grid_4x4_rounded,
   value: 2,
   upgradeValue: 1,
   effect: GeometriaLimpiaAbilityEffect(),
@@ -345,7 +324,6 @@ const pulsoIsometricoAbility = BattlerAbility(
   name: 'Pulso Isometrico',
   description:
       'Pasiva de Patron. Si el patron no tiene angulos agudos ni obtusos, recuperas HP y ganas Barrera.',
-  icon: Icons.crop_square_rounded,
   value: 3,
   upgradeValue: 1,
   effect: PulsoIsometricoAbilityEffect(),
@@ -364,7 +342,6 @@ const corteTangencialAbility = BattlerAbility(
   name: 'Corte Tangencial',
   description:
       'Pasiva de Patron. Si el patron tiene exactamente un angulo agudo, inflige daño directo segun este valor y el ATK del patron.',
-  icon: Icons.swipe_rounded,
   value: 6,
   upgradeValue: 4,
   effect: CorteTangencialAbilityEffect(),
@@ -379,7 +356,6 @@ const cortesAgudosAbility = BattlerAbility(
   name: 'Cortes Agudos',
   description:
       'Pasiva de Patron. Por cada angulo agudo del Patron, ganas Potencia antes del ataque.',
-  icon: Icons.show_chart_rounded,
   value: 1,
   upgradeValue: 1,
   effect: CortesAgudosAbilityEffect(),
@@ -394,7 +370,6 @@ const rotoresDefensivosAbility = BattlerAbility(
   name: 'Rotores Defensivos',
   description:
       'Pasiva de Patron. Por cada angulo de 90 grados del Patron, recuperas Barrera.',
-  icon: Icons.rotate_90_degrees_ccw_rounded,
   value: 1,
   upgradeValue: 1,
   effect: RotoresDefensivosAbilityEffect(),
@@ -409,7 +384,6 @@ const polarizacionAbility = BattlerAbility(
   name: 'Polarizacion',
   description:
       'Pasiva de Patron. El menor total entre ATK y Barrera del Patron polariza parte del mayor hacia el menor.',
-  icon: Icons.compare_arrows_rounded,
   value: 1,
   upgradeValue: 1,
   effect: PolarizacionAbilityEffect(),
@@ -425,7 +399,6 @@ const arquitecturaPesadaAbility = BattlerAbility(
   name: 'Arquitectura Pesada',
   description:
       'Pasiva de Patron. Si el patron no tiene angulos agudos, repite su bonus de Barrera y gana Resonancia.',
-  icon: Icons.foundation_rounded,
   value: 4,
   upgradeValue: 2,
   effect: ArquitecturaPesadaAbilityEffect(),
@@ -441,7 +414,6 @@ const rutaContrabandoAbility = BattlerAbility(
   name: 'Ruta de Contrabando',
   description:
       'Pasiva de Patron. Si activas items de otro arquetipo, ganas creditos, Potencia y Barrera.',
-  icon: Icons.alt_route_rounded,
   value: 1,
   upgradeValue: 1,
   effect: RutaContrabandoAbilityEffect(),
@@ -457,7 +429,6 @@ const ecoSimetriaAbility = BattlerAbility(
   name: 'Eco de Simetria',
   description:
       'Pasiva de Patron. Si el patron tiene simetria, repite el bonus dominante con una reduccion que mejora al subir de rareza.',
-  icon: Icons.flip_rounded,
   value: 3,
   upgradeValue: -2,
   effect: EcoSimetriaAbilityEffect(),
@@ -473,7 +444,6 @@ const patronPerfectoAbility = BattlerAbility(
   name: 'Patron perfecto',
   description:
       'Pasiva de Patron. Si el patron es cerrado, simetrico, sin puntos repetidos y con el mismo ATK que Barrera, inflige daño igual a toda tu Resonancia.',
-  icon: Icons.auto_awesome_rounded,
   value: 5,
   upgradeValue: 1,
   effect: PatronPerfectoAbilityEffect(),
@@ -489,7 +459,6 @@ const encendidoBrutalAbility = BattlerAbility(
   name: 'Encendido Brutal',
   description:
       'Pasiva. Cuando ganas Calentando, recuperas una fraccion de ese valor como vida.',
-  icon: Icons.local_fire_department_rounded,
   value: 4,
   upgradeValue: -1,
   effect: EncendidoBrutalAbilityEffect(),
@@ -505,7 +474,6 @@ const combustionDirigidaAbility = BattlerAbility(
   name: 'Combustion Dirigida',
   description:
       'Pasiva de Patron. La primera vez por combate que usas un item, ganas Calentando. Si el item empuja ATK, ganas el doble.',
-  icon: Icons.bolt_rounded,
   value: 4,
   upgradeValue: 1,
   effect: CombustionDirigidaAbilityEffect(),
@@ -521,7 +489,6 @@ const puntoIgnicionAbility = BattlerAbility(
   name: 'Punto de Ignicion',
   description:
       'Pasiva de Patron. Si usas 3 o mas items, ganas Desafio segun tu Calentando y te quemas.',
-  icon: Icons.whatshot_rounded,
   value: 8,
   upgradeValue: -4,
   effect: PuntoIgnicionAbilityEffect(),
@@ -537,7 +504,6 @@ const deudaSangreAbility = BattlerAbility(
   name: 'Deuda de Sangre',
   description:
       'Pasiva. La primera vez cada turno que pierdes HP, ganas Desafio segun tu HP faltante.',
-  icon: Icons.bloodtype_rounded,
   value: 4,
   upgradeValue: 1,
   effect: DeudaSangreAbilityEffect(),
@@ -553,7 +519,6 @@ const reventaCircularAbility = BattlerAbility(
   name: 'Reventa Circular',
   description:
       'Pasiva de Patron. Una vez por combate, repetir un punto con item genera creditos.',
-  icon: Icons.replay_rounded,
   value: 4,
   upgradeValue: 4,
   effect: ReventaCircularAbilityEffect(),
@@ -569,7 +534,6 @@ const contratoReusoAbility = BattlerAbility(
   name: 'Contrato de Reuso',
   description:
       'Pasiva de Patron. El primer item repetido dispara Al usarse una vez extra con mas value.',
-  icon: Icons.assignment_return_rounded,
   value: 1,
   upgradeValue: 1,
   effect: ContratoReusoAbilityEffect(),
@@ -585,7 +549,6 @@ const mercadoRecursivoAbility = BattlerAbility(
   name: 'Mercado Recursivo',
   description:
       'Pasiva de Patron. Cada punto con item repetido consume creditos para infligir daño directo.',
-  icon: Icons.currency_exchange_rounded,
   value: 5,
   upgradeValue: 5,
   effect: MercadoRecursivoAbilityEffect(),
@@ -601,7 +564,6 @@ const comisionRiesgoAbility = BattlerAbility(
   name: 'Comision de Riesgo',
   description:
       'Pasiva. Cuando un item te hace pagar creditos y quedas por debajo de 10C, ganas Potencia.',
-  icon: Icons.trending_down_rounded,
   value: 1,
   upgradeValue: 1,
   effect: ComisionRiesgoAbilityEffect(),
@@ -617,7 +579,6 @@ const franquiciaTotalAbility = BattlerAbility(
   name: 'Franquicia Total',
   description:
       'Pasiva. Al principio del combate, ganas creditos por item Mercante equipado. Al llegar a 20C, mejoras temporalmente el item Mercante de menor rareza.',
-  icon: Icons.storefront_rounded,
   value: 2,
   upgradeValue: 1,
   effect: FranquiciaTotalAbilityEffect(),
@@ -633,7 +594,6 @@ const agujaToxicaAbility = BattlerAbility(
   name: 'Aguja Toxica',
   description:
       'Pasiva de Patron. El primer item usado aplica o aumenta un debuff aleatorio.',
-  icon: Icons.colorize_rounded,
   value: 1,
   upgradeValue: 1,
   effect: AgujaToxicaAbilityEffect(),
@@ -649,7 +609,6 @@ const rastroInestableAbility = BattlerAbility(
   name: 'Rastro Inestable',
   description:
       'Pasiva de Patron. Patrones con suficientes items aplican Fragilidad, duplicada si ya habia otro debuff.',
-  icon: Icons.timeline_rounded,
   value: 2,
   upgradeValue: 1,
   effect: RastroInestableAbilityEffect(),
@@ -665,7 +624,6 @@ const cadenaNeurotoxicaAbility = BattlerAbility(
   name: 'Cadena Neurotoxica',
   description:
       'Pasiva de Patron. Los debuffs aplicados por items usados o aumentos infligen daño directo extra.',
-  icon: Icons.hub_rounded,
   value: 3,
   upgradeValue: 2,
   effect: CadenaNeurotoxicaAbilityEffect(),
@@ -681,7 +639,6 @@ const armaBiologicaAbility = BattlerAbility(
   name: 'Arma Biologica',
   description:
       'Pasiva. Cuando Contagio enemigo pierde valor, infliges daño directo.',
-  icon: Icons.biotech_rounded,
   value: 1,
   upgradeValue: 2,
   effect: ArmaBiologicaAbilityEffect(),
@@ -696,7 +653,6 @@ const inmunizacionAbility = BattlerAbility(
   tags: _vidaDebuffContagioAbilityTags,
   name: 'Inmunizacion',
   description: 'Pasiva. Cuando Contagio pierde valor en ti, recuperas vida.',
-  icon: Icons.vaccines_rounded,
   value: 4,
   upgradeValue: 4,
   effect: InmunizacionAbilityEffect(),
@@ -712,7 +668,6 @@ const cargaViricaAbility = BattlerAbility(
   name: 'Carga Virica',
   description:
       'Pasiva. La primera vez por turno que aplicas Contagio, aplica Contagio adicional.',
-  icon: Icons.bubble_chart_rounded,
   value: 1,
   upgradeValue: 1,
   effect: CargaViricaAbilityEffect(),
@@ -728,7 +683,6 @@ const epidemiologiaTacticaAbility = BattlerAbility(
   name: 'Epidemiologia Tactica',
   description:
       'Pasiva de Patron. Si el Patron usa 2+ items con debuff, aplica Contagio antes de sus efectos.',
-  icon: Icons.insights_rounded,
   value: 1,
   upgradeValue: 1,
   effect: EpidemiologiaTacticaAbilityEffect(),
@@ -744,7 +698,6 @@ const sintomasCruzadosAbility = BattlerAbility(
   name: 'Sintomas Cruzados',
   description:
       'Pasiva. Si activas Contagio aplicando Quemadura o Intoxicacion, tambien aplicas el otro debuff.',
-  icon: Icons.sync_alt_rounded,
   value: 1,
   upgradeValue: 0,
   effect: SintomasCruzadosAbilityEffect(),
@@ -760,7 +713,6 @@ const pacienteCeroAbility = BattlerAbility(
   name: 'Paciente Cero',
   description:
       'Pasiva. Al principio del combate, aplica Contagio segun tus items Veloz equipados.',
-  icon: Icons.personal_injury_rounded,
   value: 1,
   upgradeValue: 1,
   effect: PacienteCeroAbilityEffect(),
@@ -776,7 +728,6 @@ const aceleracionFotovoltaicaAbility = BattlerAbility(
   name: 'Aceleracion Fotovoltaica',
   description:
       'Pasiva. Cada ataque basico golpea una vez adicional, pero tus bonus de items, adyacencias y patrones se reducen a la mitad si no estaban ya reducidos.',
-  icon: Icons.flash_on_rounded,
   value: 1,
   upgradeValue: 0,
   effect: AceleracionFotovoltaicaAbilityEffect(),
@@ -790,7 +741,6 @@ const b4r3b0n3dAbility = BattlerAbility(
   name: 'B4r3B0n3D',
   description:
       'Pasiva de Patron. Si el Patron no activa efectos de items, ganas Potencia y Barrera antes del ataque.',
-  icon: Icons.data_object_rounded,
   value: 1,
   upgradeValue: 1,
   effect: B4r3B0n3DAbilityEffect(),
@@ -804,7 +754,6 @@ const compensadorRutaAbility = BattlerAbility(
   name: 'Compensador de Ruta',
   description:
       'Pasiva. Al inicio del combate, ganas valor en la stat menos aportada por tus items entre HP, ATK y Barrera.',
-  icon: Icons.route_rounded,
   value: 3,
   upgradeValue: 1,
   effect: CompensadorRutaAbilityEffect(),
@@ -818,7 +767,6 @@ const aTodoRiesgoAbility = BattlerAbility(
   name: 'A Todo Riesgo',
   description:
       'Pasiva. La primera vez por combate que pierdes HP, ganas creditos igual al HP perdido mas valor.',
-  icon: Icons.policy_rounded,
   value: 2,
   upgradeValue: 2,
   effect: ATodoRiesgoAbilityEffect(),
@@ -832,7 +780,6 @@ const ultimaPiezaAbility = BattlerAbility(
   name: 'Ultima Pieza',
   description:
       'Pasiva. Al inicio del combate, mejora el item equipado con menos bonuses y lo marca con un aura.',
-  icon: Icons.electric_bolt_rounded,
   value: 2,
   upgradeValue: 1,
   effect: UltimaPiezaAbilityEffect(),
@@ -846,7 +793,6 @@ const geometriaBolsilloAbility = BattlerAbility(
   name: 'Geometria de Bolsillo',
   description:
       'Pasiva. Al inicio del combate, hasta 1 item sin bonus de Patron gana un bonus de Patron aleatorio.',
-  icon: Icons.category_rounded,
   value: 1,
   upgradeValue: 1,
   effect: GeometriaBolsilloAbilityEffect(),
@@ -861,7 +807,6 @@ const adaptacionAbility = BattlerAbility(
   name: 'Adaptacion',
   description:
       'Pasiva de Patron. Los items sin bonus de patron ni adyacencia cuentan como espacios vacios con bonus limitado.',
-  icon: Icons.extension_rounded,
   value: 2,
   upgradeValue: 1,
   effect: AdaptacionAbilityEffect(),
@@ -877,7 +822,6 @@ const hornoSimetricoAbility = BattlerAbility(
   name: 'Horno Simetrico',
   description:
       'Pasiva. Al inicio de tu turno, aplicas Quemadura a ti y al rival.',
-  icon: Icons.local_fire_department_rounded,
   value: 2,
   upgradeValue: 1,
   effect: HornoSimetricoAbilityEffect(),
@@ -892,7 +836,6 @@ const kilotonificacionAbility = BattlerAbility(
   tags: _vidaBarreraAbilityTags,
   name: 'Kilotónificación',
   description: 'Pasiva. Recibes value daño menos de la Purga.',
-  icon: Icons.warning_amber_rounded,
   value: 3,
   upgradeValue: 3,
   isImplemented: true,

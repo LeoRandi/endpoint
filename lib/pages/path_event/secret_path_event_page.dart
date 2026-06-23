@@ -345,7 +345,7 @@ class _PasadizoSecretoOfferCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           EndpointText(
-            node.badgeLabel,
+            node.localizedBadgeLabel,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

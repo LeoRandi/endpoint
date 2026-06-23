@@ -504,7 +504,7 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                     ],
                     const SizedBox(height: 12),
                     EndpointHighlightedValueText(
-                      status.descriptionFor(battler),
+                      status.localizedDescriptionFor(battler),
                       tags: status.tags,
                       textAlign: TextAlign.center,
                       maxLines: null,

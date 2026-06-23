@@ -6,5 +6,5 @@ export '../codex_discovery_hook.dart';
 export '../entity_tag.dart';
 export '../item/_exports.dart';
 export '../rarity_tier.dart';
-export 'package:flutter/material.dart';
+export '../random_source.dart';
 export '_exports.dart';

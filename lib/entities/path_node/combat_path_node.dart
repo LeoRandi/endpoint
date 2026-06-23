@@ -27,12 +27,6 @@ enum CombatNodeTier {
     }
   }
 
-  /// Reexpone el color de la rareza para pintar el nodo.
-  Color get accent => rarity.accent;
-
-  /// Reexpone la etiqueta de rareza para el badge del nodo.
-  String get badgeLabel => rarity.label;
-
   /// Reexpone el factor numerico del tier para economia y recompensas.
   int get factor => rarity.factor;
 }
@@ -149,8 +143,7 @@ class CombatPathNode extends PathNode {
           tooltip: tooltip ?? label,
           iconEmoji: iconEmoji,
           rarity: tier.rarity,
-          accent: tier.accent,
-          badgeLabel: tier.badgeLabel,
+          badgeLabel: tier.name.toUpperCase(),
         );
 
   /// Devuelve el texto principal que se usa como titulo de la escena de combate.

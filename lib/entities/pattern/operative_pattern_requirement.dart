@@ -24,41 +24,35 @@ class OperativePatternRequirement {
   final OperativePatternRequirementKind kind;
   final List<OperativePatternPoint> shapePoints;
   final OperativePatternShapeKind shapeKind;
-  final String? labelOverride;
 
   /// Requiere que el item este en el primer punto del trazo normalizado.
   const OperativePatternRequirement.first()
       : kind = OperativePatternRequirementKind.firstPoint,
         shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal,
-        labelOverride = null;
+        shapeKind = OperativePatternShapeKind.literal;
 
   /// Requiere que el item ocupe el punto central del recorrido.
   const OperativePatternRequirement.middle()
       : kind = OperativePatternRequirementKind.middlePoint,
         shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal,
-        labelOverride = null;
+        shapeKind = OperativePatternShapeKind.literal;
 
   /// Requiere que el item este en el ultimo punto antes del cierre.
   const OperativePatternRequirement.last()
       : kind = OperativePatternRequirementKind.lastPoint,
         shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal,
-        labelOverride = null;
+        shapeKind = OperativePatternShapeKind.literal;
 
   /// Requiere que el item sea vertice de un angulo recto dentro del trazo.
   const OperativePatternRequirement.rightAngle()
       : kind = OperativePatternRequirementKind.rightAngle,
         shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal,
-        labelOverride = null;
+        shapeKind = OperativePatternShapeKind.literal;
 
   const OperativePatternRequirement.straightAngle()
       : kind = OperativePatternRequirementKind.straightAngle,
         shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal,
-        labelOverride = null;
+        shapeKind = OperativePatternShapeKind.literal;
 
   /// Requiere que el patron cerrado coincida con una figura concreta.
   ///
@@ -69,53 +63,10 @@ class OperativePatternRequirement {
   const OperativePatternRequirement.exactShape({
     required this.shapePoints,
     this.shapeKind = OperativePatternShapeKind.literal,
-    this.labelOverride,
+    // Kept temporarily for source compatibility with older callers. Display
+    // copy is derived from [shapeKind] by the presentation layer.
+    String? labelOverride,
   }) : kind = OperativePatternRequirementKind.exactShape;
-
-  /// Devuelve la etiqueta larga visible para dialogs y ayudas de patron.
-  String get label {
-    final override = labelOverride;
-    if (override != null && override.isNotEmpty) return override;
-
-    return switch (kind) {
-      OperativePatternRequirementKind.firstPoint => 'Inicio',
-      OperativePatternRequirementKind.middlePoint => 'Centro',
-      OperativePatternRequirementKind.lastPoint => 'Final',
-      OperativePatternRequirementKind.rightAngle => 'Angulo 90',
-      OperativePatternRequirementKind.straightAngle => 'Angulo 180',
-      OperativePatternRequirementKind.exactShape => 'Figura',
-    };
-  }
-
-  /// Devuelve una etiqueta compacta para chips, badges y puntos pequenos.
-  String get shortLabel {
-    return switch (kind) {
-      OperativePatternRequirementKind.firstPoint => 'INI',
-      OperativePatternRequirementKind.middlePoint => 'MED',
-      OperativePatternRequirementKind.lastPoint => 'FIN',
-      OperativePatternRequirementKind.rightAngle => '90',
-      OperativePatternRequirementKind.straightAngle => '180',
-      OperativePatternRequirementKind.exactShape => _shortExactShapeLabel,
-    };
-  }
-
-  /// Explica la condicion que debe cumplir el item equipado.
-  String get description {
-    return switch (kind) {
-      OperativePatternRequirementKind.firstPoint =>
-        'Debe ser el primer punto del trazo.',
-      OperativePatternRequirementKind.middlePoint =>
-        'Debe quedar en una posicion central del recorrido.',
-      OperativePatternRequirementKind.lastPoint =>
-        'Debe ser el ultimo vertice antes de cerrar.',
-      OperativePatternRequirementKind.rightAngle =>
-        'Debe ser el vertice de un angulo recto.',
-      OperativePatternRequirementKind.straightAngle =>
-        'Debe ser el vertice de un angulo llano de 180 grados.',
-      OperativePatternRequirementKind.exactShape =>
-        'El dibujo debe seguir esta figura en el orden indicado.',
-    };
-  }
 
   /// Comprueba si [itemPoint] satisface este requisito dentro del trazo actual.
   ///
@@ -171,13 +122,6 @@ class OperativePatternRequirement {
   /// Cuenta vertices distintos ignorando el punto de cierre duplicado.
   static int distinctPointCount(List<OperativePatternPoint> patternPoints) {
     return normalizedSequence(patternPoints).toSet().length;
-  }
-
-  /// Deriva la etiqueta corta de una figura exacta cuando no hay override.
-  String get _shortExactShapeLabel {
-    final compactLabel = label.replaceAll(' ', '');
-    if (compactLabel.length <= 3) return compactLabel.toUpperCase();
-    return compactLabel.substring(0, 3).toUpperCase();
   }
 
   /// Comprueba la figura exacta en sentido directo e inverso.

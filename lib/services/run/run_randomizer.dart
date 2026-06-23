@@ -1,6 +1,6 @@
 import '_imports.dart';
 
-class RunRandomizer {
+class RunRandomizer implements RandomSource {
   static const int _stateMask = 0x7fffffff;
   static const int _defaultSeed = 0x13579BDF;
 
@@ -21,6 +21,7 @@ class RunRandomizer {
 
   int get state => _state;
 
+  @override
   int nextInt(int max) {
     if (max <= 0) {
       throw RangeError.range(max, 1, null, 'max');
@@ -29,10 +30,13 @@ class RunRandomizer {
     return _nextState() % max;
   }
 
+  @override
   double nextDouble() => _nextState() / _stateMask;
 
+  @override
   bool chance(double probability) => nextDouble() <= probability;
 
+  @override
   List<T> pickDistinct<T>(Iterable<T> items, int count) {
     final remaining = List<T>.from(items);
     final pickedItems = <T>[];
