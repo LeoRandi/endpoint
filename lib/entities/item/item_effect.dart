@@ -1,5 +1,20 @@
 import '_imports.dart';
 
+const String itemEffectValuePlaceholder = '--value--';
+
+/// Replaces every item-effect value marker in [template] with [value].
+String interpolateItemEffectValue(String template, Object value) {
+  final resolvedValue = '$value';
+  return template
+      .replaceAll(itemEffectValuePlaceholder, resolvedValue)
+      .replaceAll('{value}', resolvedValue);
+}
+
+abstract final class ItemEffectKeys {
+  static const String sunglasses = 'sunglasses';
+  static const String nanoBandageTurnStartHeal = 'nano_bandage_turn_start_heal';
+}
+
 /// Base value object for every effect an item can own.
 sealed class Effect {
   final int value;
@@ -30,6 +45,10 @@ final class ActionEffect extends Effect {
           'ActionEffect.none requires a description and customEffectKey.',
         );
 
+  String? get resolvedDescription => description == null
+      ? null
+      : interpolateItemEffectValue(description!, value);
+
   @override
   ActionEffect withValue(int value) => ActionEffect(
         actionType: actionType,
@@ -38,21 +57,18 @@ final class ActionEffect extends Effect {
         value: value,
       );
 
-  factory ActionEffect.attack({required int value}) =>
-      ActionEffect(
+  factory ActionEffect.attack({required int value}) => ActionEffect(
         actionType: ItemActionType.attack,
         value: value,
       );
 
-  factory ActionEffect.block({required int value}) =>
-      ActionEffect(
-        actionType: ItemActionType.attack,
+  factory ActionEffect.block({required int value}) => ActionEffect(
+        actionType: ItemActionType.block,
         value: value,
       );
 
-  factory ActionEffect.heal({required int value}) =>
-      ActionEffect(
-        actionType: ItemActionType.attack,
+  factory ActionEffect.heal({required int value}) => ActionEffect(
+        actionType: ItemActionType.heal,
         value: value,
       );
 }
@@ -77,17 +93,24 @@ final class PatternEffect extends Effect {
 /// A described numeric effect evaluated at a combat lifecycle hook.
 final class PassiveEffect extends Effect {
   final ItemEffectHook hook;
+  final String effectKey;
   final String description;
 
   const PassiveEffect({
     required this.hook,
+    required this.effectKey,
     required this.description,
     required super.value,
-  }) : assert(description != '', 'PassiveEffect requires a description.');
+  })  : assert(effectKey != '', 'PassiveEffect requires an effect key.'),
+        assert(description != '', 'PassiveEffect requires a description.');
+
+  String get resolvedDescription =>
+      interpolateItemEffectValue(description, value);
 
   @override
   PassiveEffect withValue(int value) => PassiveEffect(
         hook: hook,
+        effectKey: effectKey,
         description: description,
         value: value,
       );
@@ -99,12 +122,14 @@ class ItemEffectResolution {
   final Battler opponent;
   final int attackBonusDelta;
   final int barrierBonusDelta;
+  final List<ActionEffect> followUpActions;
 
   const ItemEffectResolution({
     required this.owner,
     required this.opponent,
     this.attackBonusDelta = 0,
     this.barrierBonusDelta = 0,
+    this.followUpActions = const <ActionEffect>[],
   });
 }
 

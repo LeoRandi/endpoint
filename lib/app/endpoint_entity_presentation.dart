@@ -33,24 +33,26 @@ extension EntityTagPresentation on EntityTag {
         EntityTag.muralla => 'Muralla',
         EntityTag.arma => 'Arma',
         EntityTag.accesorio => 'Accesorio',
+        EntityTag.cura => 'Cura',
       };
 
   Color get accent => switch (this) {
-        EntityTag.debuff => const Color(0xFFFF6B6B),
-        EntityTag.buff => const Color(0xFF5AF78E),
+        EntityTag.debuff => const Color.fromARGB(255, 252, 98, 98),
+        EntityTag.buff => const Color.fromARGB(255, 63, 157, 235),
         EntityTag.quemadura => const Color(0xFFFF8C42),
-        EntityTag.intoxicacion => const Color(0xFF74D66A),
-        EntityTag.contagio => const Color(0xFFB56DFF),
+        EntityTag.intoxicacion => const Color.fromARGB(255, 177, 24, 182),
+        EntityTag.contagio => const Color.fromARGB(255, 233, 162, 195),
         EntityTag.ciclo => const Color(0xFFC0C0C0),
         EntityTag.vida => EndpointPalette.healthAccent,
-        EntityTag.ataque => const Color(0xFFF3D35C),
-        EntityTag.barrera => const Color(0xFF59B7FF),
+        EntityTag.ataque => const Color.fromARGB(255, 255, 0, 0),
+        EntityTag.barrera => const Color.fromARGB(255, 38, 8, 170),
         EntityTag.resonancia => const Color(0xFFD0D5DE),
         EntityTag.desafio => const Color(0xFF55D6C2),
         EntityTag.economia => const Color(0xFFEBCB5A),
         EntityTag.muralla => const Color(0xFFB8C0CC),
         EntityTag.arma => const Color(0xFFF3D35C),
         EntityTag.accesorio => const Color(0xFF9EA7B3),
+        EntityTag.cura => const Color(0xFF5AF78E),
       };
 }
 

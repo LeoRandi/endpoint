@@ -14,7 +14,7 @@ class WeaponShopStockService {
     required RunHourPhase phase,
     Battler? player,
     int dayNumber = 1,
-    List<Item> pool = itemPresets,
+    List<Item> pool = const <Item>[],
   }) {
     return availableStockCount(
           criterion: criterion,
@@ -31,7 +31,7 @@ class WeaponShopStockService {
     required RunHourPhase phase,
     Battler? player,
     int dayNumber = 1,
-    List<Item> pool = itemPresets,
+    List<Item> pool = const <Item>[],
     Set<String> excludedItemIds = const <String>{},
   }) {
     final itemPool = _deduplicateByItemType(pool);
@@ -63,7 +63,7 @@ class WeaponShopStockService {
     required RunRandomizer randomizer,
     Battler? player,
     int dayNumber = 1,
-    List<Item> pool = itemPresets,
+    List<Item> pool = const <Item>[],
     Set<String> excludedItemIds = const <String>{},
     int stockSize = defaultStockSize,
   }) {

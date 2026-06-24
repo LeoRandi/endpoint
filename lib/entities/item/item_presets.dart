@@ -5,21 +5,24 @@ List<Item> itemPresets = <Item>[
   Item(
     affinity: ItemArchetypeAffinity.general,
     name: 'Wooden Stick',
-    description: 'A simple wooden stick. Not very effective, but better than nothing.',
+    description:
+        'A simple wooden stick. Not very effective, but better than nothing.',
     tier: RarityTier.gray,
     baseCost: 2,
     sellValue: 1,
     tags: <EntityTag>[EntityTag.arma],
-    asset: 'assets/sprites/items/wooden_stick.png',
+    asset: 'assets/sprites/items/WoodenStick.png',
     effects: <Effect, int>{
-      ActionEffect.attack(value: 5) : 5,
+      ActionEffect.attack(value: 5): 5,
     },
   ),
+
   /// Sunglasses
   Item(
     affinity: ItemArchetypeAffinity.general,
     name: 'Sunglasses',
-    description: 'A pair of stylish sunglasses. The cooler you look, the more stuff you do, its simple math.',
+    description:
+        'A pair of stylish sunglasses. The cooler you look, the more stuff you do, its simple math.',
     tier: RarityTier.yellow,
     baseCost: 10,
     sellValue: 5,
@@ -27,13 +30,14 @@ List<Item> itemPresets = <Item>[
     asset: 'assets/sprites/items/wooden_stick.png',
     effects: <Effect, int>{
       const ActionEffect(
-        actionType: ItemActionType.none,
-        description: 'Take every action before this item is used an additional time.',
-        customEffectKey: 'sunglasses',
-        value: 0
-      ) : 0
+          actionType: ItemActionType.none,
+          description:
+              'Take every action before this item is used an additional time.',
+          customEffectKey: ItemEffectKeys.sunglasses,
+          value: 0): 0
     },
   ),
+
   /// Nano-bandage
   Item(
     affinity: ItemArchetypeAffinity.general,
@@ -45,12 +49,37 @@ List<Item> itemPresets = <Item>[
     tags: <EntityTag>[EntityTag.cura, EntityTag.accesorio],
     asset: 'assets/sprites/items/wooden_stick.png',
     effects: <Effect, int>{
-      ActionEffect.heal(value: 5) : 5,
+      ActionEffect.heal(value: 5): 5,
       const PassiveEffect(
-        description: 'Heals for 5 at the start of each turn.',
-        value: 5,
+        effectKey: ItemEffectKeys.nanoBandageTurnStartHeal,
+        description: 'Heal for --value-- at the start of your turn.',
+        value: 2,
         hook: ItemEffectHook.turnStart,
-      ) : 5
+      ): 2
+    },
+  ),
+
+  /// Shield Lance
+  Item(
+    affinity: ItemArchetypeAffinity.general,
+    name: 'Shield Lance',
+    description:
+        'A compact spear built through the guard of a small shield, made to catch a blow before driving forward.',
+    tier: RarityTier.green,
+    baseCost: 4,
+    sellValue: 2,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.barrera,
+      EntityTag.ataque,
+    ],
+    asset: 'assets/sprites/items/WoodenStick.png',
+    effects: <Effect, int>{
+      ActionEffect.block(value: 5): 5,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.rightAngle(),
+        actionEffect: ActionEffect.attack(value: 8),
+      ): 4,
     },
   ),
 ];

@@ -23,7 +23,7 @@ class WeaponShopController extends ChangeNotifier {
     required RunRandomizer randomizer,
     required this.shopRarity,
     int dayNumber = 1,
-    List<Item> stockPool = itemPresets,
+    List<Item> stockPool = const <Item>[],
     this.priceMultiplier = 1,
     this.maxRerolls = defaultMaxRerolls,
     WeaponShopStockService stockService = const WeaponShopStockService(),

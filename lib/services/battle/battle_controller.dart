@@ -477,6 +477,7 @@ class BattleController extends ChangeNotifier {
     required int blockModifier,
     required int healModifier,
   }) async {
+    final resolvedActions = <ActionEffect>[];
     for (final pointKey in pattern.usedItemPointKeys) {
       final item = _itemAtPatternPoint(owner: _player, pointKey: pointKey);
       if (item == null) continue;
@@ -486,8 +487,13 @@ class BattleController extends ChangeNotifier {
         pointKey: pointKey,
       );
       var didResolveAction = false;
+      final pendingActions = <({ActionEffect action, bool allowFollowUps})>[
+        for (final action in actions) (action: action, allowFollowUps: true),
+      ];
 
-      for (final action in actions) {
+      while (pendingActions.isNotEmpty) {
+        final pendingAction = pendingActions.removeAt(0);
+        final action = pendingAction.action;
         didResolveAction = true;
         switch (action.actionType) {
           case ItemActionType.attack:
@@ -542,11 +548,23 @@ class BattleController extends ChangeNotifier {
               owner: _player,
               opponent: _enemy,
               effect: action,
+              previousActions: List<ActionEffect>.unmodifiable(resolvedActions),
             );
             _player = resolution.owner;
             _enemy = resolution.opponent;
+            if (pendingAction.allowFollowUps &&
+                resolution.followUpActions.isNotEmpty) {
+              pendingActions.insertAll(0, <({
+                ActionEffect action,
+                bool allowFollowUps,
+              })>[
+                for (final followUp in resolution.followUpActions)
+                  (action: followUp, allowFollowUps: false),
+              ]);
+            }
             break;
         }
+        resolvedActions.add(action);
       }
 
       if (!didResolveAction) continue;
@@ -743,6 +761,7 @@ class BattleController extends ChangeNotifier {
     required int blockModifier,
     required int healModifier,
   }) async {
+    final resolvedActions = <ActionEffect>[];
     for (final pointKey in pattern.usedItemPointKeys) {
       final item = _itemAtPatternPoint(owner: _enemy, pointKey: pointKey);
       if (item == null) continue;
@@ -752,8 +771,13 @@ class BattleController extends ChangeNotifier {
         pointKey: pointKey,
       );
       var didResolveAction = false;
+      final pendingActions = <({ActionEffect action, bool allowFollowUps})>[
+        for (final action in actions) (action: action, allowFollowUps: true),
+      ];
 
-      for (final action in actions) {
+      while (pendingActions.isNotEmpty) {
+        final pendingAction = pendingActions.removeAt(0);
+        final action = pendingAction.action;
         didResolveAction = true;
         switch (action.actionType) {
           case ItemActionType.attack:
@@ -808,11 +832,23 @@ class BattleController extends ChangeNotifier {
               owner: _enemy,
               opponent: _player,
               effect: action,
+              previousActions: List<ActionEffect>.unmodifiable(resolvedActions),
             );
             _enemy = resolution.owner;
             _player = resolution.opponent;
+            if (pendingAction.allowFollowUps &&
+                resolution.followUpActions.isNotEmpty) {
+              pendingActions.insertAll(0, <({
+                ActionEffect action,
+                bool allowFollowUps,
+              })>[
+                for (final followUp in resolution.followUpActions)
+                  (action: followUp, allowFollowUps: false),
+              ]);
+            }
             break;
         }
+        resolvedActions.add(action);
       }
 
       if (!didResolveAction) continue;

@@ -539,10 +539,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onPlayerItemPressed: (item) => _handleOpenEquippedItemDetails(
             _sceneController.player,
             item,
+            allowDuringPatternMatch: true,
           ),
           onEnemyItemPressed: (item) => _handleOpenEquippedItemDetails(
             _sceneController.enemy,
             item,
+            allowDuringPatternMatch: true,
           ),
           onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
             ability,
@@ -624,10 +626,12 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onPlayerItemPressed: (item) => _handleOpenEquippedItemDetails(
             _sceneController.player,
             item,
+            allowDuringPatternMatch: true,
           ),
           onEnemyItemPressed: (item) => _handleOpenEquippedItemDetails(
             _sceneController.enemy,
             item,
+            allowDuringPatternMatch: true,
           ),
           onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
             ability,
@@ -1375,10 +1379,11 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
 
   Future<void> _handleOpenEquippedItemDetails(
     Battler battler,
-    Item item,
-  ) async {
+    Item item, {
+    bool allowDuringPatternMatch = false,
+  }) async {
     if (!_sceneController.canUseActions ||
-        _isPresentingPatternMatch ||
+        (_isPresentingPatternMatch && !allowDuringPatternMatch) ||
         _sceneController.hasPendingVictoryRewards ||
         _isPlayingBattleAnimation) {
       return;

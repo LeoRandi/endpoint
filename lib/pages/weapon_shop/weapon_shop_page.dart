@@ -35,7 +35,7 @@ class WeaponShopPage extends StatefulWidget {
     required this.randomizer,
     required this.phase,
     this.dayNumber = 1,
-    this.stockPool = itemPresets,
+    this.stockPool = const <Item>[],
   });
 
   @override

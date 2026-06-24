@@ -331,6 +331,7 @@ class _EndpointTagPill extends StatelessWidget {
       EntityTag.arma => Icons.hardware_rounded,
       EntityTag.accesorio => Icons.category_rounded,
       EntityTag.muralla => Icons.fort_rounded,
+      EntityTag.cura => Icons.healing_rounded,
     };
   }
 
@@ -366,6 +367,8 @@ class _EndpointTagPill extends StatelessWidget {
         'Accesorio: objeto de soporte que suele aportar utilidad, economia o defensa.',
       EntityTag.muralla =>
         'Muralla: Bloqueo en patrón que impide el paso del dibujo.',
+      EntityTag.cura =>
+        'Cura: efecto que restaura vida al usuario',
     };
   }
 }

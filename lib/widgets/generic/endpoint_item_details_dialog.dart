@@ -582,8 +582,7 @@ String _itemActionDescription(ActionEffect action) =>
       ItemActionType.attack => 'Ataca por ${action.value} de daño',
       ItemActionType.block => 'Bloquea por ${action.value} de barrera',
       ItemActionType.heal => 'Cúrate ${action.value} de vida',
-      ItemActionType.none =>
-        action.description!.replaceAll('{value}', '${action.value}'),
+      ItemActionType.none => action.resolvedDescription!,
     };
 
 class _PassiveEffectsContent extends StatelessWidget {
@@ -611,7 +610,7 @@ class _PassiveEffectsContent extends StatelessWidget {
   }
 
   String _descriptionFor(PassiveEffect effect) {
-    return effect.description.replaceAll('{value}', '${effect.value}');
+    return effect.resolvedDescription;
   }
 }
 

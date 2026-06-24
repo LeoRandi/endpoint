@@ -3,23 +3,21 @@
 [--El equipamiento también va en 9 huecos como el patrón, dibujar encima hace que se active el objeto]
 [--Bonuses de adyacencia en 4 direcciones, dependiendo de la tag que tenga al lado activa efecto/da bonus]
 [--Bonus de patrón por el uso dentro del patrón(al principio/final, en ángulo recto, forma específica)]
+--Asegurarse de que el bonus por patrón está funcionando en el nuevo sistema
 
 [-Level up]
-[--Cambiar recompensas de level up: 1º stats, luego habilidad, luego item, etc]
+--Modificar el sistema de level-ups
 
 -Tutorial
-[--Tuto de menú principal]
---Tuto de combate
---Tuto de dibujo
---Tuto de rutas
---Tuto de tiendas
-[--Tuto de arquetipos]
+--Rehacer por completo
 
 [-Economía]
 [--Bajar Income base a la mitad o algo]
 
 [-Diseño]
 [--Añadir color de tier para la card de cada item o habilidad]
+--finalizar los diseños que se requieren en ideas.txt
+--Crear un tile set específico para usarlo en la UI general de la app
 
 -Arquetipos
 --Añadir más arquetipos, unos 7 en total[4/7]
@@ -61,7 +59,7 @@
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 40 generales y 60 por arquetipo(40 para mercante)[General: 20, Veloz: 29, Inamovible: 26, Imparable: 32, Mercante: 19]
+--Meter al menos 40 generales y 60 por arquetipo(40 para mercante)[General: 3, Veloz: 0, Inamovible: 0, Imparable: 0, Mercante: 0]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
@@ -74,8 +72,8 @@
 -Tiendas
 [--Mejorar aspecto y diseño]
 [--Hacer más visible y llamativo el dinero que tienes/ el income]
---Crear más tiendas diferenciadas(después de añadir los Items)
 [--Texto de flavor a cada tienda]
+--Crear más tiendas diferenciadas(después de añadir los Items)
 
 -Eventos
 --Crear más eventos, al menos 40[22/40]

@@ -68,7 +68,7 @@ class MainMenuDebugToolsPage extends StatelessWidget {
                       label: 'pattern_item_actions_test',
                       icon: Icons.gesture_rounded,
                       tooltip:
-                          'Combate Patron contra un enemigo gris con acciones y Gafas de Sol',
+                          'Combate Patron contra un enemigo gris con los presets actuales',
                       onPressed: () => _openPatternItemActionsTest(context),
                     ),
                   ],
@@ -97,7 +97,9 @@ class MainMenuDebugToolsPage extends StatelessWidget {
   void _openPatternItemActionsTest(BuildContext context) {
     final random = Random(DateTime.now().microsecondsSinceEpoch);
     final enemyNode = grayCombatNodes[random.nextInt(grayCombatNodes.length)];
-    final equippedItems = <Item>[];
+    final equippedItems = itemPresets
+        .map((item) => item.toRuntimeInstance())
+        .toList(growable: false);
     final rawPlayer = defaultPlayerBattler.copyWith(
       name: 'ACTION TEST UNIT',
       archetypeId: ArchetypeId.veloz,

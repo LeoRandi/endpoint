@@ -469,6 +469,7 @@ Map<String, Object?>? _serializeEffectEntry(
     PassiveEffect passive => <String, Object?>{
         'type': 'passive',
         'hook': passive.hook.name,
+        'effectKey': passive.effectKey,
         'description': passive.description,
         'value': passive.value,
       },
@@ -506,9 +507,12 @@ Effect? _deserializeEffect(Map<String, dynamic> json) {
       );
       final description =
           EndpointJsonUtils.readString(json['description'], fallback: '');
-      if (hook == null || description.isEmpty) return null;
+      final effectKey =
+          EndpointJsonUtils.readString(json['effectKey'], fallback: '');
+      if (hook == null || effectKey.isEmpty || description.isEmpty) return null;
       return PassiveEffect(
         hook: hook,
+        effectKey: effectKey,
         description: description,
         value: EndpointJsonUtils.readInt(json['value'], fallback: 0),
       );

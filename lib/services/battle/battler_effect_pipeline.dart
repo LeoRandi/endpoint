@@ -830,6 +830,7 @@ class BattlerEffectPipeline {
       owner: owner,
       opponent: opponent,
       hook: ItemEffectHook.turnStart,
+      isOwnerTurn: isOwnerTurn,
     );
   }
 
