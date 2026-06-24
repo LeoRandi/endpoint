@@ -7,9 +7,9 @@ extension BattlerItemManagement on Battler {
   }
 
   /// Comprueba si el battler posee algun item de ese tipo, equipado o en inventario.
-  bool ownsItemOfType(ItemId itemId) {
-    return _derivedState.inventoryItemsByType.containsKey(itemId) ||
-        _derivedState.equippedItemsByType.containsKey(itemId);
+  bool ownsItemOfType(String catalogKey) {
+    return _derivedState.inventoryItemsByType.containsKey(catalogKey) ||
+        _derivedState.equippedItemsByType.containsKey(catalogKey);
   }
 
   /// Indica si recibir este item acabaria mejorando una copia ya poseida.
@@ -61,7 +61,7 @@ extension BattlerItemManagement on Battler {
   /// Anade un item nuevo o mejora la copia ya poseida si admite upgrades.
   Battler addItem(Item item) {
     if (!CodexDiscoveryHook.isSuppressed) {
-      CodexDiscoveryHook.onItemAdded?.call(item.id);
+      CodexDiscoveryHook.onItemAdded?.call(item.catalogKey);
     }
     final ownedEquippedItem = _upgradeableEquippedItemFor(item);
     if (ownedEquippedItem != null) {
@@ -97,7 +97,7 @@ extension BattlerItemManagement on Battler {
   Battler addItemAsNewInstance(Item item) {
     if (!hasInventorySpace) return this;
     if (!CodexDiscoveryHook.isSuppressed) {
-      CodexDiscoveryHook.onItemAdded?.call(item.id);
+      CodexDiscoveryHook.onItemAdded?.call(item.catalogKey);
     }
 
     return copyWith(
@@ -149,7 +149,7 @@ extension BattlerItemManagement on Battler {
 
     if (!item.isEquippable || remainingEquipmentCapacity < 1) return this;
     if (!CodexDiscoveryHook.isSuppressed) {
-      CodexDiscoveryHook.onItemAdded?.call(item.id);
+      CodexDiscoveryHook.onItemAdded?.call(item.catalogKey);
     }
 
     return copyWith(
@@ -193,7 +193,7 @@ extension BattlerItemManagement on Battler {
     required Item ownedItem,
     required Item receivedItem,
   }) {
-    return ownedItem.id == receivedItem.id &&
+    return ownedItem.catalogKey == receivedItem.catalogKey &&
         ownedItem.rarity == receivedItem.rarity &&
         ownedItem.canUpgrade;
   }
@@ -212,13 +212,13 @@ extension BattlerItemManagement on Battler {
   }
 
   /// Busca en inventario el primer item de un tipo concreto.
-  Item? inventoryItemOfType(ItemId itemId) {
-    return _derivedState.inventoryItemsByType[itemId];
+  Item? inventoryItemOfType(String catalogKey) {
+    return _derivedState.inventoryItemsByType[catalogKey];
   }
 
   /// Busca entre los items equipados el primero de un tipo concreto.
-  Item? equippedItemOfType(ItemId itemId) {
-    return _derivedState.equippedItemsByType[itemId];
+  Item? equippedItemOfType(String catalogKey) {
+    return _derivedState.equippedItemsByType[catalogKey];
   }
 
   /// Convierte todos los items poseidos en instancias propias para poder diferenciarlos.

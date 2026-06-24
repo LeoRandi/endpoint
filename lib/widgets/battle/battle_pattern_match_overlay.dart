@@ -48,9 +48,7 @@ class BattlePatternEnemyBlockAction {
 }
 
 bool _hasPassCardWallDisableActive(Battler battler) {
-  return battler.combatFlags.any(
-    (flag) => flag.itemFlag == ItemCombatFlagKind.passCardWallsDisabledThisTurn,
-  );
+  return false;
 }
 
 bool _containsOrderedPattern(
@@ -325,7 +323,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
   }
 
   bool _isAdaptationEligibleItem(Item item) {
-    return !item.hasPatternBonus && item.patternAdjacencyBonuses.isEmpty;
+    return item.patternEffects.isEmpty;
   }
 
   BattlePatternMatchResult get _currentResult =>
@@ -389,10 +387,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
 
   bool _itemIsFromAnotherArchetype(Item item, ArchetypeId playerArchetype) {
     final playerAffinity = playerArchetype.itemAffinity;
-    final specificAffinities = item.archetypeAffinities.where(
-      (affinity) => affinity.isSpecific,
-    );
-    return specificAffinities.any((affinity) => affinity != playerAffinity);
+    return item.affinity.isSpecific && item.affinity != playerAffinity;
   }
 
   void _handlePatternChanged(List<OperativePatternPoint> points) {
@@ -1469,18 +1464,20 @@ class _EnemyBattlePatternMatchOverlayState
 Set<OperativePatternBonusKind> _availableActionBonusKinds(Battler battler) {
   final kinds = <OperativePatternBonusKind>{};
   for (final item in battler.equippedItems) {
-    switch (item.actionType) {
-      case ItemActionType.attack:
-        kinds.add(OperativePatternBonusKind.attack);
-        break;
-      case ItemActionType.block:
-        kinds.add(OperativePatternBonusKind.barrier);
-        break;
-      case ItemActionType.heal:
-        kinds.add(OperativePatternBonusKind.health);
-        break;
-      case ItemActionType.none:
-        break;
+    for (final action in item.actionEffects) {
+      switch (action.actionType) {
+        case ItemActionType.attack:
+          kinds.add(OperativePatternBonusKind.attack);
+          break;
+        case ItemActionType.block:
+          kinds.add(OperativePatternBonusKind.barrier);
+          break;
+        case ItemActionType.heal:
+          kinds.add(OperativePatternBonusKind.health);
+          break;
+        case ItemActionType.none:
+          break;
+      }
     }
   }
   return kinds;
@@ -2492,10 +2489,10 @@ class _PatternItemListTile extends StatelessWidget {
                     width: 30,
                     height: 30,
                     child: Center(
-                      child: EndpointText(
-                        item.iconEmoji,
-                        textAlign: TextAlign.center,
-                        style: textSmall.copyWith(fontSize: 15),
+                      child: Image.asset(
+                        item.asset,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.none,
                       ),
                     ),
                   ),

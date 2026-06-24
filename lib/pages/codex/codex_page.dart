@@ -1137,6 +1137,7 @@ class _CodexEnemyItemButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           child: EndpointEmojiSprite(
             emoji: item.iconEmoji,
+            imageAsset: item.asset,
             accent: item.rarity.accent,
             size: 42,
           ),
@@ -1688,7 +1689,7 @@ class _CodexEntry {
       case _CodexEntryKind.archetype:
         return CodexDiscoveryService.archetypeKey(archetype!.archetypeId);
       case _CodexEntryKind.item:
-        return CodexDiscoveryService.itemKey(item!.id);
+        return CodexDiscoveryService.itemKey(item!.catalogKey);
       case _CodexEntryKind.ability:
         return CodexDiscoveryService.abilityKey(ability!.id);
       case _CodexEntryKind.enemy:
@@ -1710,7 +1711,7 @@ class _CodexEntry {
         );
       case _CodexEntryKind.item:
         return _CodexArchetypeSectionKey.fromItemAffinities(
-          item!.archetypeAffinities,
+          <ItemArchetypeAffinity>[item!.affinity],
         );
       case _CodexEntryKind.ability:
         return _CodexArchetypeSectionKey.fromAbilityAffinities(
@@ -1847,10 +1848,10 @@ class _CodexCategoryData {
           emojiIcon: imparableArchetypeNode.iconEmoji,
         );
       case _CodexCategory.items:
-        return _CodexCategoryData(
+        return const _CodexCategoryData(
           title: 'Objetos',
-          accent: woodenStickItem.rarity.accent,
-          emojiIcon: woodenStickItem.iconEmoji,
+          accent: EndpointPalette.warningAccent,
+          emojiIcon: '\u{1F9F0}',
         );
       case _CodexCategory.augments:
         return const _CodexCategoryData(

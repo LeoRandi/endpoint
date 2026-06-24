@@ -1,7 +1,7 @@
 name: endpoint
 description: "Death at Sunrise"
 
-version: 0.41.6
+version: 0.42.0
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -29,6 +29,7 @@ flutter:
     - assets/images/slots/
     - assets/images/tiles/
     - assets/sprites/
+    - assets/sprites/items/
     - assets/sprites/monsters/
   fonts:
     - family: Pixeboy

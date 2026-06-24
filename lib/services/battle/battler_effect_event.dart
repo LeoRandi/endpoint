@@ -64,13 +64,6 @@ abstract final class BattlerEffectPriorityPolicy {
         (item) => item.hasTag(EntityTag.contagio),
       );
     }
-    if (event.type == BattlerEffectEventType.turnEnd) {
-      orderedItems = _deferItemsWhere(
-        orderedItems,
-        (item) => item.id == ItemId.responseFrame,
-      );
-    }
-
     return List<Item>.unmodifiable(orderedItems);
   }
 

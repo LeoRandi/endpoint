@@ -11,24 +11,19 @@ abstract final class OperativePatternCombatRules {
   static int maxPatternPointsFor(Battler player) {
     return initialMaxPatternPoints +
         Battler.evenLevelProgressionBonusFor(player.level) +
-        _archetypePatternPointBonus(player) +
-        _itemPatternPointBonus(player);
+        _archetypePatternPointBonus(player);
   }
 
   static int maxBlockingPointsFor(Battler player) {
     return max(
       0,
       initialMaxBlockingPoints +
-          Battler.evenLevelProgressionBonusFor(player.level) +
-          _itemBlockingPointBonus(player),
+          Battler.evenLevelProgressionBonusFor(player.level),
     );
   }
 
   static int wallActionsPerBlockingTurnFor(Battler player) {
-    return 1 +
-        player.equippedItems
-            .where((item) => item.id == ItemId.tonfasEscudo)
-            .length;
+    return 1;
   }
 
   static int _archetypePatternPointBonus(Battler player) {
@@ -42,30 +37,5 @@ abstract final class OperativePatternCombatRules {
       case null:
         return 0;
     }
-  }
-
-  static int _itemPatternPointBonus(Battler player) {
-    return player.equippedItems
-        .where((item) => item.id == ItemId.buzonVirtualAzul)
-        .length;
-  }
-
-  static int _itemBlockingPointBonus(Battler player) {
-    return player.equippedItems.fold<int>(0, (total, item) {
-      return total +
-          switch (item.id) {
-            ItemId.passCard => 1,
-            ItemId.tonfasEscudo => -1,
-            ItemId.constructionSeal => 4,
-            ItemId.compraAgresiva => player.itemCombatFlagValue(
-                      item: item,
-                      kind: ItemCombatFlagKind.compraAgresivaBpUnlocked,
-                    ) !=
-                    null
-                ? 1
-                : 0,
-            _ => 0,
-          };
-    });
   }
 }

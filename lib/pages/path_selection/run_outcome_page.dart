@@ -78,7 +78,7 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
   }
 
   List<Item> get _runItems {
-    final byId = <ItemId, Item>{};
+    final byId = <String, Item>{};
     for (final reward in widget.runSummary.gainedRewards) {
       final item = reward.item;
       if (item == null) continue;
@@ -118,10 +118,10 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
     return abilities;
   }
 
-  void _keepBestItem(Map<ItemId, Item> byId, Item item) {
-    final current = byId[item.id];
+  void _keepBestItem(Map<String, Item> byId, Item item) {
+    final current = byId[item.catalogKey];
     if (current == null || item.rarity.index > current.rarity.index) {
-      byId[item.id] = item;
+      byId[item.catalogKey] = item;
     }
   }
 
@@ -562,12 +562,10 @@ class _RunOutcomePatternBoard extends StatelessWidget {
       for (final entry in layout.itemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
-          bonus: entry.value.hasPatternBonus ? entry.value.patternBonus : null,
-          requirement: entry.value.hasPatternBonus
-              ? entry.value.patternRequirement
-              : null,
-          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
-          hasAura: entry.value.hasPatternAura,
+          bonus: entry.value.primaryPatternBonus,
+          requirement: entry.value.primaryPatternEffect?.patternType,
+          adjacencyBonuses: const <OperativePatternAdjacencyBonus>[],
+          hasAura: false,
         ),
     };
 

@@ -26,7 +26,7 @@ abstract final class CodexDiscoveryService {
   static Future<void> _mutationQueue = Future<void>.value();
 
   static String archetypeKey(ArchetypeId id) => 'archetype:${id.name}';
-  static String itemKey(ItemId id) => 'item:${id.name}';
+  static String itemKey(String catalogKey) => 'item:$catalogKey';
   static String abilityKey(BattlerAbilityId id) => 'ability:${id.name}';
   static String enemyKey(String nodeId) => 'enemy:$nodeId';
   static String statusKey(BattlerStatusId id) => 'status:${id.name}';
@@ -112,7 +112,7 @@ abstract final class CodexDiscoveryService {
   static Set<String> _allKnownKeys() {
     final keys = <String>{
       for (final archetype in ArchetypeId.values) archetypeKey(archetype),
-      for (final item in itemPresets) itemKey(item.id),
+      for (final item in itemPresets) itemKey(item.catalogKey),
       for (final ability in abilityPresets) abilityKey(ability.id),
       for (final node in combatPathNodeExamples) enemyKey(node.nodeId),
       for (final statusId in BattlerStatusId.values) statusKey(statusId),

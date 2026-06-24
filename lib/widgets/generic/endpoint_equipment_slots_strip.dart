@@ -19,7 +19,6 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final bool showBudgetBadge;
-  final bool showPatternBadges;
 
   const EndpointEquipmentSlotsStrip({
     super.key,
@@ -34,7 +33,6 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
     this.backgroundColor = EndpointPalette.controlBackground,
     this.textColor = EndpointPalette.softForeground,
     this.showBudgetBadge = true,
-    this.showPatternBadges = false,
   });
 
   @override
@@ -93,7 +91,6 @@ class EndpointEquipmentSlotsStrip extends StatelessWidget {
         borderColor: borderColor,
         backgroundColor: backgroundColor,
         textColor: textColor,
-        showPatternBadges: showPatternBadges,
         onPressed:
             onItemPressed == null ? null : () => onItemPressed!.call(item),
       ),
@@ -173,7 +170,6 @@ class _EndpointEquippedItemCard extends StatelessWidget {
   final Color borderColor;
   final Color backgroundColor;
   final Color textColor;
-  final bool showPatternBadges;
   final VoidCallback? onPressed;
 
   const _EndpointEquippedItemCard({
@@ -182,7 +178,6 @@ class _EndpointEquippedItemCard extends StatelessWidget {
     required this.borderColor,
     required this.backgroundColor,
     required this.textColor,
-    required this.showPatternBadges,
     this.onPressed,
   });
 
@@ -209,12 +204,12 @@ class _EndpointEquippedItemCard extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 Center(
-                  child: EndpointText(
-                    item.iconEmoji,
-                    style: TextStyle(
-                      fontSize: emojiSize,
-                      height: 1,
-                    ),
+                  child: Image.asset(
+                    item.asset,
+                    width: emojiSize * 2,
+                    height: emojiSize * 2,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.none,
                   ),
                 ),
                 if (item.isGhostly)
@@ -237,10 +232,6 @@ class _EndpointEquippedItemCard extends StatelessWidget {
               letterSpacing: 0.4,
             ),
           ),
-          if (showPatternBadges) ...[
-            const SizedBox(height: 4),
-            EndpointItemPatternBadges(item: item),
-          ],
         ],
       ),
     );

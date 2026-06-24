@@ -64,10 +64,6 @@ class BattleRewardService {
       itemRewards: [
         if (lootReward.lootItem != null)
           BattleItemReward(item: lootReward.lootItem!),
-        ..._buildMailboxRewards(
-          player: player,
-          randomizer: randomizer,
-        ),
       ],
     );
   }
@@ -91,12 +87,13 @@ class BattleRewardService {
     required Battler player,
     required RunRandomizer randomizer,
   }) {
-    final lootItems = <ItemId, Item>{
+    final lootItems = <String, Item>{
       for (final item in [
         ...enemy.equippedItems,
         ...enemy.inventoryItems,
       ])
-        item.id: _runtimeService.runtimeItem(item, forceNewInstance: true),
+        item.catalogKey:
+            _runtimeService.runtimeItem(item, forceNewInstance: true),
     }.values.toList(growable: false);
     final lootAbilities = <BattlerAbilityId, BattlerAbility>{
       for (final ability in enemy.abilities)
@@ -126,63 +123,5 @@ class BattleRewardService {
     if (ownedAbility == null) return true;
 
     return ownedAbility.rarity == ability.rarity && ownedAbility.canUpgrade;
-  }
-
-  List<BattleItemReward> _buildMailboxRewards({
-    required Battler player,
-    required RunRandomizer randomizer,
-  }) {
-    var projectedPlayer = player;
-    final rewards = <BattleItemReward>[];
-
-    for (final mailbox in player.equippedItems.where(_isVirtualMailbox)) {
-      final candidates = itemPresets.where((candidate) {
-        return candidate.id != mailbox.id &&
-            candidate.rarity == mailbox.rarity &&
-            candidate.hasTag(_mailboxFocusTag(mailbox)) &&
-            projectedPlayer.canReceiveItemInInventoryOrEquipment(candidate);
-      }).toList(growable: false);
-      if (candidates.isEmpty) continue;
-
-      final selected = candidates[randomizer.nextInt(candidates.length)];
-      final rewardItem = _runtimeService.runtimeItem(
-        selected,
-        forceNewInstance: true,
-      );
-      rewards.add(BattleItemReward(item: rewardItem, sourceItem: mailbox));
-
-      final previousSuppression = CodexDiscoveryHook.isSuppressed;
-      CodexDiscoveryHook.isSuppressed = true;
-      projectedPlayer =
-          projectedPlayer.addItemToInventoryOrEquipment(rewardItem);
-      CodexDiscoveryHook.isSuppressed = previousSuppression;
-    }
-
-    return List<BattleItemReward>.unmodifiable(rewards);
-  }
-
-  bool _isVirtualMailbox(Item item) {
-    return item.id == ItemId.buzonVirtualAzul ||
-        item.id == ItemId.buzonVirtualRojo ||
-        item.id == ItemId.buzonVirtualVerde;
-  }
-
-  EntityTag _mailboxFocusTag(Item item) {
-    switch (item.id) {
-      case ItemId.buzonVirtualAzul:
-        return item.rarity.index <= RarityTier.gray.index
-            ? EntityTag.accesorio
-            : EntityTag.ciclo;
-      case ItemId.buzonVirtualRojo:
-        return item.rarity.index <= RarityTier.gray.index
-            ? EntityTag.ataque
-            : EntityTag.quemadura;
-      case ItemId.buzonVirtualVerde:
-        return item.rarity.index <= RarityTier.green.index
-            ? EntityTag.barrera
-            : EntityTag.resonancia;
-      default:
-        return EntityTag.economia;
-    }
   }
 }

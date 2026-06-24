@@ -50,23 +50,6 @@ class EndpointItemDetailsDialog extends StatefulWidget {
 }
 
 class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
-  EndpointGameMode _gameMode = EndpointGameMode.classic;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadSettings());
-  }
-
-  Future<void> _loadSettings() async {
-    final settings = await EndpointPreferencesService.loadSettingsSnapshot();
-    if (!mounted) return;
-
-    setState(() {
-      _gameMode = settings.gameMode;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final foreground = EndpointPalette.soften(widget.accent);
@@ -80,11 +63,6 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
       widget.accent,
       0.08,
     );
-    final shouldShowPatternBonus = _gameMode == EndpointGameMode.pattern &&
-        widget.item.actionType == ItemActionType.none &&
-        widget.item.hasPatternBonus;
-    final shouldShowPatternAction = _gameMode == EndpointGameMode.pattern &&
-        widget.item.actionType != ItemActionType.none;
 
     return EndpointDetailsDialogScaffold(
       accent: widget.accent,
@@ -104,10 +82,11 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
             children: [
               EndpointEmojiSprite(
                 emoji: widget.item.iconEmoji,
+                imageAsset: widget.item.asset,
                 accent: widget.accent,
-                size: 72,
+                size: 92,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,41 +99,46 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
                         letterSpacing: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 9),
                     Row(
                       children: [
-                        EndpointText(
-                          widget.priceLabel,
-                          style: textSmallBold.copyWith(
-                            fontSize: 10,
-                            color: EndpointPalette.warningAccent,
-                            letterSpacing: 1.1,
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  widget.accent.withValues(alpha: 0.8),
+                                  widget.accent.withValues(alpha: 0.12),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                        const Spacer(),
-                        EndpointCurrencyInline(
-                          value: widget.price,
-                          iconColor: EndpointPalette.warningAccent,
-                          textColor: EndpointPalette.softForegroundWarm,
-                          iconSize: 13,
-                          spacing: 3,
-                          textStyle: textSmallNumericBold.copyWith(
-                            fontSize: 11,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
+                        const SizedBox(width: 8),
+                        _ItemArchetypeBadge(item: widget.item),
                       ],
                     ),
-                    if (widget.item.hasTags) ...[
-                      const SizedBox(height: 4),
+                    const SizedBox(height: 8),
+                    if (widget.item.hasTags)
                       SizedBox(
                         width: double.infinity,
                         child: EndpointTagPillMarquee(
                           tags: widget.item.tags,
                           accent: widget.accent,
                         ),
+                      )
+                    else
+                      EndpointText(
+                        'SIN TAGS',
+                        style: textSmallBold.copyWith(
+                          color: EndpointPalette.softForeground.withValues(
+                            alpha: 0.38,
+                          ),
+                          fontSize: 9,
+                          letterSpacing: 1,
+                        ),
                       ),
-                    ],
                     if (widget.item.isGhostly) ...[
                       const SizedBox(height: 6),
                       const _GhostItemDetailBadge(),
@@ -164,59 +148,19 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (widget.item.actionType != ItemActionType.none) ...[
-            EndpointHighlightedValueText(
-              endpointItemActionDescription(widget.item),
-              tags: widget.item.tags,
-              maxLines: null,
-              style: textMediumBold.copyWith(
-                fontSize: 13,
-                color: endpointItemActionAccent(widget.item.actionType),
-                letterSpacing: 0.3,
-              ),
-            ),
-            const SizedBox(height: 7),
-          ],
-          EndpointHighlightedValueText(
-            widget.item.localizedDisplayDescription,
-            tags: widget.item.tags,
-            maxLines: null,
-            style: textMedium.copyWith(
-              fontSize: 14,
-              color: EndpointPalette.softForeground.withValues(alpha: 0.84),
-            ),
+          const SizedBox(height: 14),
+          _ItemEffectGroups(
+            item: widget.item,
+            accent: widget.accent,
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: EndpointText(
-                  _buildModifiersText(widget.item),
-                  maxLines: null,
-                  style: textSmallNumericBold.copyWith(
-                    fontSize: 10,
-                    color: widget.accent,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              _ItemArchetypeBadge(item: widget.item),
-            ],
+          const SizedBox(height: 14),
+          _ItemDialogStatusRow(
+            item: widget.item,
+            price: widget.price,
+            priceLabel: widget.priceLabel,
+            statusText: widget.statusText,
+            accent: widget.accent,
           ),
-          if (shouldShowPatternBonus) ...[
-            const SizedBox(height: 12),
-            _ItemPatternBonusSection(item: widget.item),
-          ],
-          if (shouldShowPatternAction) ...[
-            const SizedBox(height: 12),
-            EndpointItemPatternBadges(
-              item: widget.item,
-              alignment: WrapAlignment.start,
-            ),
-          ],
           if (widget.actionLabel != null ||
               widget.secondaryActionLabel != null) ...[
             const SizedBox(height: 12),
@@ -281,37 +225,447 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
       ),
     );
   }
+}
 
-  String _buildModifiersText(Item item) {
-    final entries = <String>[
-      ...item.statModifiers.entries.map((entry) {
-        final value = entry.value;
-        final sign = value >= 0 ? '+' : '';
-        return '$sign$value ${_modifierLabel(entry.key)}';
-      }),
-    ];
+class _ItemEffectGroups extends StatelessWidget {
+  final Item item;
+  final Color accent;
 
-    if (item.incomeModifier != 0) {
-      final sign = item.incomeModifier >= 0 ? '+' : '';
-      entries.add('$sign${item.incomeModifier} INCOME');
+  const _ItemEffectGroups({
+    required this.item,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = item.actionEffects;
+    final patterns = item.patternEffects;
+    final passives = item.effects.keys.whereType<PassiveEffect>().toList();
+    var isFirstGroup = true;
+    final groups = <Widget>[];
+
+    void addGroup({
+      required String title,
+      required IconData icon,
+      required Color groupAccent,
+      required int count,
+      required Widget child,
+    }) {
+      if (count == 0) return;
+      groups.add(
+        _CollapsibleEffectGroup(
+          title: title,
+          icon: icon,
+          accent: groupAccent,
+          count: count,
+          initiallyExpanded: isFirstGroup,
+          child: child,
+        ),
+      );
+      isFirstGroup = false;
     }
 
-    if (item.maxHealthPercentModifier != 0) {
-      final sign = item.maxHealthPercentModifier >= 0 ? '+' : '';
-      entries.add('$sign${item.maxHealthPercentModifier}% HP MAX');
+    addGroup(
+      title: 'ACCIONES',
+      icon: Icons.touch_app_rounded,
+      groupAccent: EndpointPalette.dangerAccent,
+      count: actions.length,
+      child: _ActionEffectsContent(actions: actions),
+    );
+    addGroup(
+      title: 'PATRONES',
+      icon: Icons.gesture_rounded,
+      groupAccent: EndpointPalette.patternAccent,
+      count: patterns.length,
+      child: _PatternEffectsContent(item: item, patterns: patterns),
+    );
+    addGroup(
+      title: 'PASIVOS',
+      icon: Icons.autorenew_rounded,
+      groupAccent: accent,
+      count: passives.length,
+      child: _PassiveEffectsContent(passives: passives),
+    );
+
+    if (groups.isEmpty) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.24),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: EndpointText(
+            'Este objeto no tiene efectos.',
+            maxLines: null,
+            style: textMedium.copyWith(
+              color: EndpointPalette.softForeground.withValues(alpha: 0.62),
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
     }
 
-    if (entries.isEmpty) return 'Sin modificadores directos.';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var index = 0; index < groups.length; index++) ...[
+          if (index > 0) const SizedBox(height: 8),
+          groups[index],
+        ],
+      ],
+    );
+  }
+}
 
-    return entries.join('   ');
+class _CollapsibleEffectGroup extends StatefulWidget {
+  final String title;
+  final IconData icon;
+  final Color accent;
+  final int count;
+  final bool initiallyExpanded;
+  final Widget child;
+
+  const _CollapsibleEffectGroup({
+    required this.title,
+    required this.icon,
+    required this.accent,
+    required this.count,
+    required this.initiallyExpanded,
+    required this.child,
+  });
+
+  @override
+  State<_CollapsibleEffectGroup> createState() =>
+      _CollapsibleEffectGroupState();
+}
+
+class _CollapsibleEffectGroupState extends State<_CollapsibleEffectGroup> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.initiallyExpanded;
   }
 
-  String _modifierLabel(BattlerStat stat) {
-    if (stat == BattlerStat.barrier) {
-      return stat.label;
-    }
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: EndpointPalette.blend(
+            EndpointPalette.panelBackgroundGold,
+            widget.accent,
+            0.07,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: widget.accent.withValues(alpha: 0.38),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            InkWell(
+              onTap: () => setState(() => _isExpanded = !_isExpanded),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 9,
+                ),
+                child: Row(
+                  children: [
+                    Icon(widget.icon, color: widget.accent, size: 17),
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: EndpointText(
+                        widget.title,
+                        style: textSmallBold.copyWith(
+                          color: widget.accent,
+                          fontSize: 10,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    EndpointText(
+                      '${widget.count}',
+                      style: textSmallNumericBold.copyWith(
+                        color: widget.accent,
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Icon(
+                      _isExpanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      color: widget.accent,
+                      size: 19,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox(width: double.infinity),
+              secondChild: Padding(
+                padding: const EdgeInsets.fromLTRB(11, 2, 11, 11),
+                child: widget.child,
+              ),
+              crossFadeState: _isExpanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 180),
+              sizeCurve: Curves.easeOutCubic,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-    return stat.shortLabel;
+class _ActionEffectsContent extends StatelessWidget {
+  final List<ActionEffect> actions;
+
+  const _ActionEffectsContent({required this.actions});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        EndpointText(
+          'Al usarse:',
+          style: textMediumBold.copyWith(
+            color: EndpointPalette.softForeground,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 6),
+        for (final action in actions)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: EndpointText(
+              '-${_itemActionDescription(action)}',
+              maxLines: null,
+              style: textMedium.copyWith(
+                color: EndpointPalette.softForeground.withValues(alpha: 0.86),
+                fontSize: 13,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _PatternEffectsContent extends StatelessWidget {
+  final Item item;
+  final List<PatternEffect> patterns;
+
+  const _PatternEffectsContent({
+    required this.item,
+    required this.patterns,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var index = 0; index < patterns.length; index++) ...[
+          if (index > 0)
+            Divider(
+              height: 17,
+              color: EndpointPalette.patternAccent.withValues(alpha: 0.2),
+            ),
+          _PatternEffectRow(item: item, effect: patterns[index]),
+        ],
+      ],
+    );
+  }
+}
+
+class _PatternEffectRow extends StatelessWidget {
+  final Item item;
+  final PatternEffect effect;
+
+  const _PatternEffectRow({
+    required this.item,
+    required this.effect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final action = effect.actionEffect;
+    final effectAccent = endpointItemActionAccent(action.actionType);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _ItemPatternRequirementPreview(
+          item: item,
+          requirement: effect.patternType,
+          accent: EndpointPalette.patternAccent,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EndpointText(
+                effect.patternType.label,
+                maxLines: null,
+                style: textSmallBold.copyWith(
+                  color: EndpointPalette.softForeground.withValues(alpha: 0.7),
+                  fontSize: 9,
+                  letterSpacing: 0.7,
+                ),
+              ),
+              const SizedBox(height: 7),
+              Row(
+                children: [
+                  if (action.actionType != ItemActionType.none)
+                    Image.asset(
+                      _effectIconAsset(action.actionType),
+                      width: 18,
+                      height: 18,
+                      filterQuality: FilterQuality.none,
+                      color: effectAccent,
+                    )
+                  else
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 18,
+                      color: effectAccent,
+                    ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: EndpointText(
+                      _effectDescription(effect),
+                      maxLines: null,
+                      style: textMediumBold.copyWith(
+                        color: effectAccent,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _effectDescription(PatternEffect effect) =>
+      _itemActionDescription(effect.actionEffect);
+
+  String _effectIconAsset(ItemActionType actionType) => switch (actionType) {
+        ItemActionType.attack => 'assets/images/icons/icon_sword.png',
+        ItemActionType.block => 'assets/images/icons/icon_shield.png',
+        ItemActionType.heal => 'assets/images/icons/icon_health.png',
+        ItemActionType.none => 'assets/images/icons/icon_pattern.png',
+      };
+}
+
+String _itemActionDescription(ActionEffect action) =>
+    switch (action.actionType) {
+      ItemActionType.attack => 'Ataca por ${action.value} de daño',
+      ItemActionType.block => 'Bloquea por ${action.value} de barrera',
+      ItemActionType.heal => 'Cúrate ${action.value} de vida',
+      ItemActionType.none =>
+        action.description!.replaceAll('{value}', '${action.value}'),
+    };
+
+class _PassiveEffectsContent extends StatelessWidget {
+  final List<PassiveEffect> passives;
+
+  const _PassiveEffectsContent({
+    required this.passives,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final descriptions = <String>[
+      for (final passive in passives) _descriptionFor(passive),
+    ];
+
+    return EndpointText(
+      descriptions.join('\n\n'),
+      maxLines: null,
+      style: textMedium.copyWith(
+        color: EndpointPalette.softForeground.withValues(alpha: 0.86),
+        fontSize: 13,
+        height: 1.35,
+      ),
+    );
+  }
+
+  String _descriptionFor(PassiveEffect effect) {
+    return effect.description.replaceAll('{value}', '${effect.value}');
+  }
+}
+
+class _ItemDialogStatusRow extends StatelessWidget {
+  final Item item;
+  final int price;
+  final String priceLabel;
+  final String statusText;
+  final Color accent;
+
+  const _ItemDialogStatusRow({
+    required this.item,
+    required this.price,
+    required this.priceLabel,
+    required this.statusText,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: EndpointText(
+            statusText,
+            maxLines: null,
+            style: textSmallBold.copyWith(
+              color: accent,
+              fontSize: 10,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+        if (price > 0) ...[
+          EndpointText(
+            priceLabel,
+            style: textSmallBold.copyWith(
+              color: EndpointPalette.warningAccent,
+              fontSize: 9,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(width: 6),
+          EndpointCurrencyInline(
+            value: price,
+            iconColor: EndpointPalette.warningAccent,
+            textColor: EndpointPalette.softForegroundWarm,
+            iconSize: 13,
+            spacing: 3,
+            textStyle: textSmallNumericBold.copyWith(fontSize: 11),
+          ),
+        ],
+      ],
+    );
   }
 }
 
@@ -397,12 +751,7 @@ class _ItemArchetypeBadge extends StatelessWidget {
   }
 
   List<ItemArchetypeAffinity> _displayAffinities(Item item) {
-    final specificAffinities = item.archetypeAffinities
-        .where((affinity) => affinity.isSpecific)
-        .toList(growable: false);
-    if (specificAffinities.isNotEmpty) return specificAffinities;
-
-    return const [ItemArchetypeAffinity.general];
+    return <ItemArchetypeAffinity>[item.affinity];
   }
 
   String _archetypeLegend() {
@@ -470,9 +819,18 @@ class _ItemPatternBonusSectionState extends State<_ItemPatternBonusSection> {
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    final bonus = item.patternBonus;
-    final requirement = item.patternRequirement;
-    final adjacencyBonuses = item.patternAdjacencyBonuses;
+    final patternEffect = item.patternEffects.first;
+    final requirement = patternEffect.patternType;
+    final bonus = OperativePatternBonus(
+      kind: switch (patternEffect.actionEffect.actionType) {
+        ItemActionType.attack => OperativePatternBonusKind.attack,
+        ItemActionType.block => OperativePatternBonusKind.barrier,
+        ItemActionType.heal => OperativePatternBonusKind.health,
+        ItemActionType.none => OperativePatternBonusKind.barrier,
+      },
+      amount: patternEffect.value,
+    );
+    const adjacencyBonuses = <OperativePatternAdjacencyBonus>[];
     final accent = _bonusAccent(bonus.kind);
 
     return Material(

@@ -648,7 +648,6 @@ class _ArchetypeItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = item.rarity.accent;
-    final modifiersText = _buildModifiersText(item);
 
     return EndpointPanel(
       accent: accent,
@@ -665,6 +664,7 @@ class _ArchetypeItemCard extends StatelessWidget {
         children: [
           EndpointEmojiSprite(
             emoji: item.iconEmoji,
+            imageAsset: item.asset,
             accent: accent,
             size: 54,
           ),
@@ -692,56 +692,12 @@ class _ArchetypeItemCard extends StatelessWidget {
                     height: 1.25,
                   ),
                 ),
-                if (modifiersText != null) ...[
-                  const SizedBox(height: 6),
-                  EndpointText(
-                    modifiersText,
-                    maxLines: null,
-                    style: textSmallNumericBold.copyWith(
-                      color: accent,
-                      fontSize: 10,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
         ],
       ),
     );
-  }
-
-  String? _buildModifiersText(Item item) {
-    final entries = <String>[
-      ...item.statModifiers.entries.map((entry) {
-        final value = entry.value;
-        final sign = value >= 0 ? '+' : '';
-        return '$sign$value ${_modifierLabel(entry.key)}';
-      }),
-    ];
-
-    if (item.incomeModifier != 0) {
-      final sign = item.incomeModifier >= 0 ? '+' : '';
-      entries.add('$sign${item.incomeModifier} INCOME');
-    }
-
-    if (item.maxHealthPercentModifier != 0) {
-      final sign = item.maxHealthPercentModifier >= 0 ? '+' : '';
-      entries.add('$sign${item.maxHealthPercentModifier}% HP MAX');
-    }
-
-    if (entries.isEmpty) return null;
-
-    return entries.join('   ');
-  }
-
-  String _modifierLabel(BattlerStat stat) {
-    if (stat == BattlerStat.barrier) {
-      return stat.label;
-    }
-
-    return stat.shortLabel;
   }
 }
 

@@ -6,9 +6,9 @@ final velozArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_veloz',
   label: 'Veloz',
   tooltip:
-      '1 item Veloz verde + 1 item general gris. Perfil agil de doble golpe que castiga objetivos debilitados. Empieza con 8C y 4 income.',
-  iconEmoji: cyberWhipsItem.iconEmoji,
-  playerIconEmoji: cyberWhipsItem.iconEmoji,
+      'Perfil agil de doble golpe que castiga objetivos debilitados. Empieza con 8C y 4 income.',
+  iconEmoji: '\u26A1',
+  playerIconEmoji: '\u26A1',
   rarity: RarityTier.blue,
   baseStatModifiers: const {
     BattlerStat.attack: 1,
@@ -28,9 +28,9 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
-      '1 item Inamovible verde + 1 item general gris. Perfil resistente con regeneracion pasiva y barrera sostenida. Empieza con 12C y 3 income.',
-  iconEmoji: shieldItem.iconEmoji,
-  playerIconEmoji: shieldItem.iconEmoji,
+      'Perfil resistente con regeneracion pasiva y barrera sostenida. Empieza con 12C y 3 income.',
+  iconEmoji: '\u{1F6E1}',
+  playerIconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
   baseStatModifiers: const {
     BattlerStat.health: 5,
@@ -51,9 +51,9 @@ final imparableArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
-      '1 item Imparable verde + 1 item general gris. Perfil ofensivo con mas pegada base y daño extra al pelear herido. Empieza con 8C y 3 income.',
-  iconEmoji: ironSwordItem.iconEmoji,
-  playerIconEmoji: ironSwordItem.iconEmoji,
+      'Perfil ofensivo con mas pegada base y daño extra al pelear herido. Empieza con 8C y 3 income.',
+  iconEmoji: '\u2694',
+  playerIconEmoji: '\u2694',
   rarity: RarityTier.yellow,
   baseStatModifiers: const {
     BattlerStat.health: 5,
@@ -67,59 +67,18 @@ final imparableArchetypeNode = ArchetypePathNode(
   ],
 );
 
-final _merchantGrayPreviewItem = woodenStickItem.copyWith(
-  name: 'Objeto Gris Aleatorio',
-  description:
-      'Al confirmar este arquetipo recibiras un objeto gris aleatorio.',
-  iconEmoji: '\u{1F3B2}',
-  rarity: RarityTier.gray,
-  baseCost: 0,
-  value: 0,
-  upgradeValue: 0,
-  statModifiers: const {},
-  upgradeStatModifiers: const {},
-  clearEffect: true,
-);
-
-final _merchantGreenPreviewItem = shieldItem.copyWith(
-  name: 'Objeto Verde Aleatorio',
-  description:
-      'Al confirmar este arquetipo recibiras un objeto verde aleatorio.',
-  iconEmoji: '\u{1F4E6}',
-  rarity: RarityTier.green,
-  baseCost: 0,
-  value: 0,
-  upgradeValue: 0,
-  statModifiers: const {},
-  upgradeStatModifiers: const {},
-  clearEffect: true,
-);
-
-/// Construye el loadout aleatorio real del Mercante al confirmar arquetipo.
-///
-/// Los items de preview solo comunican rareza; esta funcion consume el randomizer
-/// de la run para entregar dos grises distintos y un verde distinto.
+/// Returns no starting items while the item catalog is being rebuilt.
 List<Item> _buildMerchantStartingItems(RandomSource randomizer) {
-  final grayItems = itemPresets
-      .where((item) => item.rarity == RarityTier.gray)
-      .toList(growable: false);
-  final greenItems = itemPresets
-      .where((item) => item.rarity == RarityTier.green)
-      .toList(growable: false);
-
-  return List<Item>.unmodifiable([
-    ...randomizer.pickDistinct(grayItems, 2),
-    ...randomizer.pickDistinct(greenItems, 1),
-  ]);
+  return const <Item>[];
 }
 
-/// Arquetipo economico flexible que empieza con stock aleatorio y caja extra.
+/// Arquetipo economico flexible centrado en caja e income.
 final mercanteArchetypeNode = ArchetypePathNode(
   archetypeId: ArchetypeId.mercante,
   nodeId: 'archetype_mercante',
   label: 'Mercante',
   tooltip:
-      '2 objetos grises aleatorios + 1 verde aleatorio. Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 13C, 5 income y Flujo de Caja.',
+      'Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 13C, 5 income y Flujo de Caja.',
   iconEmoji: '\u{1F4B0}',
   playerIconEmoji: '\u{1F4B3}',
   rarity: RarityTier.blue,
@@ -128,11 +87,7 @@ final mercanteArchetypeNode = ArchetypePathNode(
   },
   moneyModifier: 13,
   incomeModifier: 5,
-  startingItems: [
-    _merchantGrayPreviewItem,
-    _merchantGrayPreviewItem,
-    _merchantGreenPreviewItem,
-  ],
+  startingItems: const [],
   startingItemsBuilder: _buildMerchantStartingItems,
   startingAbilities: const [
     cashflowAbility,
@@ -181,7 +136,7 @@ final weaponShopCriterion = ShopInventoryCriterion(
 final barrierShopCriterion = ShopInventoryCriterion(
   label: 'BARRERA',
   description: 'Solo aparecen objetos que otorgan barrera.',
-  requiredPositiveModifierStat: BattlerStat.barrier,
+  requiredTags: [EntityTag.barrera],
 );
 
 /// Criterio de vida para tiendas centradas en aguantar mas tiempo.
@@ -209,7 +164,7 @@ final grayBarrierShopCriterion = ShopInventoryCriterion(
   label: 'BARRERA',
   description: 'Solo aparecen objetos grises que otorgan barrera.',
   exactRarity: RarityTier.gray,
-  requiredPositiveModifierStat: BattlerStat.barrier,
+  requiredTags: [EntityTag.barrera],
 );
 
 /// Criterio economico para tiendas centradas en dinero y valor.

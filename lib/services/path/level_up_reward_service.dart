@@ -152,7 +152,7 @@ class LevelUpRewardService {
           fallback: fallbackCandidates,
           randomizer: randomizer,
           count: count,
-          keyOf: (item) => item.id,
+          keyOf: (item) => item.catalogKey,
         ),
       );
       if (pickedItems.isNotEmpty) break;
@@ -198,13 +198,13 @@ class LevelUpRewardService {
     Iterable<Item> pool, {
     required RarityTier targetRarity,
   }) {
-    final candidatesById = <ItemId, Item>{};
+    final candidatesById = <String, Item>{};
 
     for (final item in pool) {
       final promotedItem =
           _runtimeService.promoteItemToExactRarity(item, targetRarity);
       if (promotedItem == null) continue;
-      candidatesById.putIfAbsent(item.id, () => promotedItem);
+      candidatesById.putIfAbsent(item.catalogKey, () => promotedItem);
     }
 
     return List<Item>.unmodifiable(candidatesById.values);

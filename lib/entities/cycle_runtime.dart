@@ -1,5 +1,4 @@
 import 'battler/_exports.dart';
-import 'item/_exports.dart';
 import 'status/_exports.dart';
 
 /// Resume si los efectos de Ciclo deben contar como dia, noche o ambos.
@@ -24,8 +23,6 @@ class CycleContext {
 }
 
 const CycleContext _inactiveCycleContext = CycleContext();
-const CycleContext _dayCycleContext = CycleContext(isDay: true);
-const CycleContext _nightCycleContext = CycleContext(isNight: true);
 const CycleContext _dualCycleContext = CycleContext(
   isDay: true,
   isNight: true,
@@ -34,8 +31,8 @@ const CycleContext _dualCycleContext = CycleContext(
 /// Resuelve el contexto efectivo de Ciclo para items y habilidades en combate.
 ///
 /// La prioridad es intencional: sin combate no hay ciclo; Ciclo Eclipse gana a
-/// todo; las habilidades activas pueden forzar dia/noche; Eclipse Mantle alterna
-/// con una flag propia; y por ultimo se respetan las flags genericas del battler.
+/// todo; las habilidades activas pueden forzar dia/noche; y por ultimo se
+/// respetan las flags genericas del battler.
 CycleContext cycleContextFor(Battler owner) {
   final isCombatActive = owner.combatFlags.contains(Battler.combatActiveFlag);
   if (!isCombatActive) {
@@ -57,25 +54,6 @@ CycleContext cycleContextFor(Battler owner) {
       isDay: forcesDay,
       isNight: forcesNight,
     );
-  }
-
-  Item? eclipseMantle;
-  for (final item in owner.equippedItems) {
-    if (item.id == ItemId.eclipseMantle) {
-      eclipseMantle = item;
-      break;
-    }
-  }
-  if (eclipseMantle != null) {
-    final nightFlag = CombatRuntimeFlag.item(
-      itemFlag: ItemCombatFlagKind.eclipseMantleNightMode,
-      itemId: eclipseMantle.id,
-      itemInstanceId: eclipseMantle.instanceId,
-    );
-    if (owner.combatFlags.contains(nightFlag)) {
-      return _nightCycleContext;
-    }
-    return _dayCycleContext;
   }
 
   final hasDayContext = owner.combatFlags.contains(Battler.cycleDayContextFlag);

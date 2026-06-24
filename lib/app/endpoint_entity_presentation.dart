@@ -214,35 +214,7 @@ extension BattlerStatusPresentation on BattlerStatus {
 }
 
 extension ItemPresentation on Item {
-  String get localizedDisplayDescription {
-    if (id != ItemId.buzonVirtualAzul &&
-        id != ItemId.buzonVirtualRojo &&
-        id != ItemId.buzonVirtualVerde) {
-      return displayDescription;
-    }
-
-    final focusTag = switch (id) {
-      ItemId.buzonVirtualAzul => rarity.index <= RarityTier.gray.index
-          ? EntityTag.accesorio
-          : EntityTag.ciclo,
-      ItemId.buzonVirtualRojo => rarity.index <= RarityTier.gray.index
-          ? EntityTag.ataque
-          : EntityTag.quemadura,
-      ItemId.buzonVirtualVerde => rarity.index <= RarityTier.green.index
-          ? EntityTag.barrera
-          : EntityTag.resonancia,
-      _ => EntityTag.economia,
-    };
-    final statLine =
-        id == ItemId.buzonVirtualAzul ? '+1 PP mientras este equipado. ' : '';
-    final localizedEffect =
-        '${statLine}Al terminar un combate, si tienes espacio, ofrece un item ${rarity.label} aleatorio con tag ${focusTag.label} en la pantalla de recompensas.';
-    final technicalEffect = effect?.descriptionFor(this);
-    if (technicalEffect == null || technicalEffect.isEmpty) {
-      return localizedEffect;
-    }
-    return displayDescription.replaceFirst(technicalEffect, localizedEffect);
-  }
+  String get localizedDisplayDescription => displayDescription;
 
   String get localizedTooltipDescription => localizedDisplayDescription;
 }

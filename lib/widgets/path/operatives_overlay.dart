@@ -360,7 +360,6 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
     final tile = EndpointInventoryItemTile(
       item: item,
       onPressed: () => _openItemDetails(item),
-      showPatternBadges: true,
     );
 
     if (widget.gameMode != EndpointGameMode.pattern ||
@@ -381,7 +380,6 @@ class _OperativesOverlayState extends State<OperativesOverlay> {
           child: EndpointInventoryItemTile(
             item: item,
             glowOpacity: 0.14,
-            showPatternBadges: true,
           ),
         ),
       ),
@@ -1139,8 +1137,9 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasPatternBonus = item.hasPatternBonus;
-    final requirement = hasPatternBonus ? item.patternRequirement : null;
+    final patternEffect =
+        item.patternEffects.isEmpty ? null : item.patternEffects.first;
+    final requirement = patternEffect?.patternType;
     final content = SizedBox.square(
       dimension: _operativesPatternPointHitSize,
       child: Stack(
@@ -1170,12 +1169,12 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
               ),
             ),
           ),
-          EndpointText(
-            item.iconEmoji,
-            style: const TextStyle(
-              fontSize: 20,
-              height: 1,
-            ),
+          Image.asset(
+            item.asset,
+            width: 28,
+            height: 28,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.none,
           ),
           if (requirement != null)
             Positioned(
@@ -1185,14 +1184,14 @@ class _PatternEquipmentItemPoint extends StatelessWidget {
                 requirement: requirement,
               ),
             ),
-          if (item.actionType != ItemActionType.none)
+          if (item.actionEffects.isNotEmpty)
             Positioned(
               left: 0,
               right: 0,
               bottom: 1,
               child: Center(
                 child: EndpointItemActionPointBadge(
-                  item: item,
+                  action: item.primaryActionEffect!,
                   size: 18,
                 ),
               ),
@@ -1374,7 +1373,6 @@ class _EquipmentRow extends StatelessWidget {
                 battler: battler,
                 layout: EndpointEquipmentLayout.standard,
                 showBudgetBadge: false,
-                showPatternBadges: true,
                 onItemPressed: onItemPressed,
               ),
             ),

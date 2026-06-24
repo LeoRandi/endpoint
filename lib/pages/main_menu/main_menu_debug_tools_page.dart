@@ -97,12 +97,7 @@ class MainMenuDebugToolsPage extends StatelessWidget {
   void _openPatternItemActionsTest(BuildContext context) {
     final random = Random(DateTime.now().microsecondsSinceEpoch);
     final enemyNode = grayCombatNodes[random.nextInt(grayCombatNodes.length)];
-    final equippedItems = <Item>[
-      ironSwordItem,
-      guardShieldItem,
-      sunglassesItem,
-      botiquinCompactoItem,
-    ].map((item) => item.toOwnedInstance()).toList(growable: false);
+    final equippedItems = <Item>[];
     final rawPlayer = defaultPlayerBattler.copyWith(
       name: 'ACTION TEST UNIT',
       archetypeId: ArchetypeId.veloz,
@@ -244,7 +239,7 @@ class _EndResultDebugFixture {
   static List<Item> _randomOwnedItems(Random random, {required int count}) {
     final pool = itemPresets.toList(growable: false)..shuffle(random);
     return pool.take(count).map((item) {
-      return item.toOwnedInstance().copyWith(rarity: _randomRarity(random));
+      return item.toOwnedInstance().copyWith(tier: _randomRarity(random));
     }).toList(growable: false);
   }
 

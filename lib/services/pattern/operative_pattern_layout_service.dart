@@ -22,7 +22,7 @@ abstract final class OperativePatternLayoutService {
         operativePatternPoints.map((point) => point.key).toSet();
     final equippedItemKeys = <String>{
       for (final item in equippedItems) itemKey(item),
-      for (final item in equippedItems) item.id.name,
+      for (final item in equippedItems) item.catalogKey,
     };
     final existingAssignments = Map<String, String>.from(
       player.patternItemPointKeys,
@@ -129,7 +129,7 @@ abstract final class OperativePatternLayoutService {
   }
 
   static String itemKey(Item item) {
-    return item.instanceId ?? '${item.id.name}:${identityHashCode(item)}';
+    return item.instanceId ?? item.catalogKey;
   }
 
   static String? pointKeyForItem({
@@ -146,7 +146,7 @@ abstract final class OperativePatternLayoutService {
     required Item item,
     required Map<String, String> assignments,
   }) {
-    return assignments[itemKey(item)] ?? assignments[item.id.name];
+    return assignments[itemKey(item)] ?? assignments[item.catalogKey];
   }
 
   static Map<String, String> _resolvedPatternItemPointKeysFor({
@@ -156,7 +156,7 @@ abstract final class OperativePatternLayoutService {
     final presetAssignments = player.patternItemPointKeys;
     final validPointKeys =
         operativePatternPoints.map((point) => point.key).toSet();
-    final presetItemIds = player.equippedItems.map((item) => item.id.name);
+    final presetItemIds = player.equippedItems.map((item) => item.catalogKey);
     final usesPresetItemKeys = presetItemIds.any(presetAssignments.containsKey);
     if (!usesPresetItemKeys) {
       return Map<String, String>.unmodifiable(resolvedAssignments);
@@ -164,13 +164,13 @@ abstract final class OperativePatternLayoutService {
 
     final normalizedAssignments = <String, String>{};
     for (final item in player.equippedItems) {
-      final assignedPointKey =
-          presetAssignments[item.id.name] ?? resolvedAssignments[itemKey(item)];
+      final assignedPointKey = presetAssignments[item.catalogKey] ??
+          resolvedAssignments[itemKey(item)];
       if (assignedPointKey == null ||
           !validPointKeys.contains(assignedPointKey)) {
         continue;
       }
-      normalizedAssignments[item.id.name] = assignedPointKey;
+      normalizedAssignments[itemKey(item)] = assignedPointKey;
     }
 
     return Map<String, String>.unmodifiable(normalizedAssignments);

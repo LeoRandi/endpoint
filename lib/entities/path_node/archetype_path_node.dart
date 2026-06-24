@@ -81,7 +81,7 @@ class ArchetypePathNode extends PathNode {
         ItemArchetypeAffinity.general,
         exactRarity: RarityTier.gray,
         excludedItemIds: {
-          if (archetypeItem != null) archetypeItem.id,
+          if (archetypeItem != null) archetypeItem.catalogKey,
         },
       ),
       randomizer,
@@ -136,7 +136,8 @@ class ArchetypePathNode extends PathNode {
     try {
       for (final item in resolvedStartingItems) {
         updatedPlayer = updatedPlayer.addItem(item);
-        final inventoryItem = updatedPlayer.inventoryItemOfType(item.id);
+        final inventoryItem =
+            updatedPlayer.inventoryItemOfType(item.catalogKey);
         if (item.isEquippable && inventoryItem != null) {
           updatedPlayer = updatedPlayer.equipItem(inventoryItem);
         }
@@ -159,14 +160,14 @@ class ArchetypePathNode extends PathNode {
   static List<Item> _startingItemCandidatesForAffinity(
     ItemArchetypeAffinity affinity, {
     required RarityTier exactRarity,
-    Set<ItemId> excludedItemIds = const {},
+    Set<String> excludedItemIds = const {},
   }) {
     return itemPresets
         .where(
           (item) =>
               item.hasArchetypeAffinity(affinity) &&
               item.rarity == exactRarity &&
-              !excludedItemIds.contains(item.id),
+              !excludedItemIds.contains(item.catalogKey),
         )
         .toList(growable: false);
   }

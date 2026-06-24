@@ -195,10 +195,12 @@ class _SWitchItemChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = item.rarity.accent;
-    final patternKind = switch (item.patternBonusKind) {
-      OperativePatternBonusKind.attack => 'ATK',
-      OperativePatternBonusKind.barrier => 'BARR',
-      OperativePatternBonusKind.health => 'HP',
+    final patternEffect = item.patternEffects.first;
+    final patternKind = switch (patternEffect.actionEffect.actionType) {
+      ItemActionType.attack => 'ATK',
+      ItemActionType.block => 'BARR',
+      ItemActionType.heal => 'HP',
+      ItemActionType.none => 'EFECTO',
     };
     final child = AnimatedContainer(
       duration: const Duration(milliseconds: 140),
@@ -222,9 +224,12 @@ class _SWitchItemChip extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              EndpointText(
-                item.iconEmoji,
-                style: textMedium.copyWith(fontSize: 22),
+              Image.asset(
+                item.asset,
+                width: 30,
+                height: 30,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.none,
               ),
               if (orderLabel != null) ...[
                 const SizedBox(width: 6),
@@ -251,7 +256,7 @@ class _SWitchItemChip extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           EndpointText(
-            '+${item.patternBonusAmount} $patternKind',
+            '+${patternEffect.value} $patternKind',
             style: textSmallBold.copyWith(
               color: accent,
               fontSize: 9,

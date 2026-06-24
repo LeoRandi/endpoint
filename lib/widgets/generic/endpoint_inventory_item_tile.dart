@@ -9,7 +9,6 @@ class EndpointInventoryItemTile extends StatelessWidget {
   final double glowOpacity;
   final double emojiSize;
   final Color textColor;
-  final bool showPatternBadges;
 
   const EndpointInventoryItemTile({
     super.key,
@@ -21,7 +20,6 @@ class EndpointInventoryItemTile extends StatelessWidget {
     this.glowOpacity = 0.03,
     this.emojiSize = 18,
     this.textColor = EndpointPalette.softForeground,
-    this.showPatternBadges = false,
   });
 
   @override
@@ -54,12 +52,12 @@ class EndpointInventoryItemTile extends StatelessWidget {
                         filterQuality: FilterQuality.none,
                       ),
                       Center(
-                        child: EndpointText(
-                          item.iconEmoji,
-                          style: TextStyle(
-                            fontSize: emojiSize,
-                            height: 1,
-                          ),
+                        child: Image.asset(
+                          item.asset,
+                          width: emojiSize * 2,
+                          height: emojiSize * 2,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.none,
                         ),
                       ),
                       if (item.isGhostly)
@@ -81,10 +79,6 @@ class EndpointInventoryItemTile extends StatelessWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
-                if (showPatternBadges) ...[
-                  const SizedBox(height: 4),
-                  EndpointItemPatternBadges(item: item),
-                ],
               ],
             ),
           ),

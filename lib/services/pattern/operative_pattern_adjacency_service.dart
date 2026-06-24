@@ -46,7 +46,7 @@ abstract final class OperativePatternAdjacencyService {
       if (item == null) continue;
 
       final adjacencyBonuses = adjacencyBonusesForItem?.call(point, item) ??
-          item.patternAdjacencyBonuses;
+          const <OperativePatternAdjacencyBonus>[];
       for (final adjacencyBonus in adjacencyBonuses) {
         final targetPoint = operativePatternPointAt(
           x: point.x + adjacencyBonus.direction.dx,

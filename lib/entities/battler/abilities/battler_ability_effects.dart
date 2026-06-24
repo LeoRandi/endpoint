@@ -654,13 +654,7 @@ class CompensadorRutaAbilityEffect extends BattlerAbilityEffect {
       BattlerStat.attack,
       BattlerStat.barrier,
     ];
-    final itemTotals = <BattlerStat, int>{
-      for (final stat in stats)
-        stat: owner.equippedItems.fold<int>(
-          0,
-          (total, item) => total + max(0, item.modifier(stat)),
-        ),
-    };
+    const itemTotals = <BattlerStat, int>{};
     final selectedStat = stats.reduce((best, stat) {
       final bestValue = itemTotals[best] ?? 0;
       final nextValue = itemTotals[stat] ?? 0;
@@ -837,7 +831,7 @@ class GeometriaBolsilloAbilityEffect extends BattlerAbilityEffect {
     var updatedOwner = owner;
     var applied = 0;
     final candidates = owner.equippedItems
-        .where((item) => !item.hasPatternBonus)
+        .where((item) => item.patternEffects.isEmpty)
         .toList(growable: false)
       ..sort((a, b) => _stableItemSeed(a).compareTo(_stableItemSeed(b)));
 
@@ -846,12 +840,17 @@ class GeometriaBolsilloAbilityEffect extends BattlerAbilityEffect {
 
       final seed = _stableItemSeed(item) + applied;
       final replacement = item.copyWith(
-        patternBonusKindOverride: seed.isEven
-            ? OperativePatternBonusKind.attack
-            : OperativePatternBonusKind.barrier,
-        patternBonusAmountOverride: 1,
-        patternRequirementOverride: _randomishPatternRequirement(seed),
-        combatGeneratedPatternBonus: true,
+        effects: <Effect, int>{
+          ...item.effects,
+          PatternEffect(
+            patternType: _randomishPatternRequirement(seed),
+            actionEffect: ActionEffect(
+              actionType:
+                  seed.isEven ? ItemActionType.attack : ItemActionType.block,
+              value: 1,
+            ),
+          ): 0,
+        },
       );
       updatedOwner = _replaceEquippedItem(
         owner: updatedOwner,
@@ -2879,10 +2878,9 @@ class EpidemiologiaTacticaAbilityEffect extends BattlerAbilityEffect {
     final usedPointKeys =
         pattern.patternPoints.map((point) => point.key).toSet();
     final debuffItemCount = owner.equippedItems.where((item) {
-      final itemKey =
-          item.instanceId ?? '${item.id.name}:${identityHashCode(item)}';
+      final itemKey = item.instanceId ?? item.catalogKey;
       final pointKey = owner.patternItemPointKeys[itemKey] ??
-          owner.patternItemPointKeys[item.id.name];
+          owner.patternItemPointKeys[item.catalogKey];
       return pointKey != null &&
           usedPointKeys.contains(pointKey) &&
           item.hasTag(EntityTag.debuff);
@@ -3074,13 +3072,12 @@ Set<ItemArchetypeAffinity> _distinctEquippedSpecificArchetypes(
   final archetypes = <ItemArchetypeAffinity>{};
 
   for (final item in owner.equippedItems) {
-    for (final affinity in item.archetypeAffinities) {
-      if (!affinity.isSpecific) continue;
-      if (!includeMercante && affinity == ItemArchetypeAffinity.mercante) {
-        continue;
-      }
-      archetypes.add(affinity);
+    final affinity = item.affinity;
+    if (!affinity.isSpecific) continue;
+    if (!includeMercante && affinity == ItemArchetypeAffinity.mercante) {
+      continue;
     }
+    archetypes.add(affinity);
   }
 
   return archetypes;
@@ -3155,12 +3152,7 @@ Battler _replaceEquippedItem({
 
 /// Puntua cuantas vias de bonus trae un item para priorizar mejoras temporales.
 int _itemBonusComplexity(Item item) {
-  var score = 0;
-  if (item.statModifiers.values.any((value) => value > 0)) score++;
-  if (item.effect != null && item.value > 0) score++;
-  if (item.hasPatternBonus) score++;
-  if (item.patternAdjacencyBonuses.isNotEmpty) score++;
-  return score;
+  return item.effects.keys.where((effect) => effect.value > 0).length;
 }
 
 /// Mejora temporalmente las partes positivas de un item elegido por Last Piece.
@@ -3168,38 +3160,20 @@ Item _boostLastPieceItem({
   required Item item,
   required int amount,
 }) {
-  final statModifiers = Map<BattlerStat, int>.from(item.statModifiers);
-  for (final entry in item.statModifiers.entries) {
-    if (entry.value <= 0) continue;
-    statModifiers[entry.key] = entry.value + amount;
-  }
-
-  final adjacencyBonuses = item.patternAdjacencyBonuses
-      .map(
-        (bonus) => OperativePatternAdjacencyBonus(
-          direction: bonus.direction,
-          requiredTag: bonus.requiredTag,
-          kind: bonus.kind,
-          amount: bonus.amount + amount,
-        ),
-      )
-      .toList(growable: false);
-
   return item.copyWith(
-    value: item.effect != null && item.value > 0 ? item.value + amount : null,
-    statModifiers: statModifiers,
-    patternBonusAmountOverride:
-        item.hasPatternBonus ? item.patternBonusAmount + amount : null,
-    patternAdjacencyBonuses: adjacencyBonuses,
-    hasPatternAura: true,
-    combatItemBonusBoost: amount,
+    effects: <Effect, int>{
+      for (final entry in item.effects.entries)
+        entry.key.value > 0
+            ? entry.key.withValue(entry.key.value + amount)
+            : entry.key: entry.value,
+    },
   );
 }
 
 /// Genera una semilla estable para decisiones visualmente aleatorias de un item.
 int _stableItemSeed(Item item) {
   final instanceHash = item.instanceId?.hashCode ?? 0;
-  return Object.hash(item.id, item.name, item.rarity, instanceHash).abs();
+  return Object.hash(item.catalogKey, item.tier, instanceHash).abs();
 }
 
 /// Traduce una semilla estable a un requisito de Patron pseudoaleatorio.

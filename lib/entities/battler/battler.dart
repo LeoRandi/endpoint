@@ -107,67 +107,14 @@ enum BattlerCombatFlag {
   cargaViricaTriggeredThisTurn,
   deudaSangreTriggeredThisTurn,
   franquiciaTotalTriggered,
-  barbedShieldPendingDamage,
   creditsSpentThisCombat,
-  subastaRelampagoTriggeredThisTurn,
-}
-
-/// Enumera las flags runtime que usan los items para limitar activaciones por combate.
-enum ItemCombatFlagKind {
-  cyberWhipsActiveThisTurn,
-  crackedBatteryUsed,
-  eclipseMantleUsed,
-  eclipseMantleInitialized,
-  eclipseMantleNightMode,
-  operativeBlackBoxUsed,
-  operativeBlackBoxProtection,
-  succionaCreditosTriggeredThisTurn,
-  kunaiAnchoTriggeredThisTurn,
-  magnetiCHammerTriggeredThisTurn,
-  clavoReactorTriggeredThisTurn,
-  ultimaMarchaTriggeredThisTurn,
-  responseFrameDamagedThisTurn,
-  responseFrameTurnStartHealth,
-  reboundLensTriggeredThisTurn,
-  emergencyPlatingAutoBlockUsed,
-  deflectiveCapacitorReflectedDebuff,
-  filtroRuidoReducedDebuff,
-  nucleoPiezoelectricoTriggeredThisTurn,
-  aislanteArmonicoLostHealthThisTurn,
-  aislanteArmonicoTurnStartHealth,
-  guanteRetoTriggered,
-  ultimaPalabraTriggeredThisTurn,
-  aceleradorRetoTriggered,
-  thermalTurbineCombatStartTriggered,
-  resonanceEchoTriggeredThisTurn,
-  vendasApretadasTriggeredThisTurn,
-  contratoDolorosoDamagedThisTurn,
-  yunqueCardiacoTriggeredThisTurn,
-  motorMartirioDamageThisTurn,
-  arnesTacticoPotenciaTracked,
-  arnesTacticoDesafioTriggeredThisTurn,
-  barbedShieldPendingDamage,
-  literalPaywallPendingWall,
-  passCardPendingPayment,
-  passCardWallsDisabledNextTurn,
-  passCardWallsDisabledThisTurn,
-  laCuentaSpendTriggered,
-  laCuentaPendingAttackBonus,
-  bolsoR33mRefundedSpend,
-  seguroBolsilloUsed,
-  compraAgresivaPaid,
-  compraAgresivaBpUnlocked,
-  bolsaRiesgoTriggered,
-  bancoAmbulantePatternSpendThisTurn,
-  mekaYunqueTriggered,
-  sonicaltropsOpeningPenalty,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.
 class CombatRuntimeFlag {
   final BattlerCombatFlag? battlerFlag;
-  final ItemCombatFlagKind? itemFlag;
-  final ItemId? itemId;
+  final String? itemEffectKey;
+  final String? itemKey;
   final String? itemInstanceId;
   final int? value;
   final int? secondaryValue;
@@ -177,28 +124,28 @@ class CombatRuntimeFlag {
     this.battlerFlag, {
     this.value,
     this.secondaryValue,
-  })  : itemFlag = null,
-        itemId = null,
+  })  : itemEffectKey = null,
+        itemKey = null,
         itemInstanceId = null;
 
   /// Crea una flag asociada a un item concreto o a una de sus instancias.
   const CombatRuntimeFlag.item({
-    required this.itemFlag,
-    required this.itemId,
+    required this.itemEffectKey,
+    required this.itemKey,
     this.itemInstanceId,
     this.value,
     this.secondaryValue,
   })  : battlerFlag = null,
-        assert(itemFlag != null),
-        assert(itemId != null);
+        assert(itemEffectKey != ''),
+        assert(itemKey != null);
 
   /// Compara dos flags por su identidad tipada y por el item al que pertenezcan.
   @override
   bool operator ==(Object other) {
     return other is CombatRuntimeFlag &&
         other.battlerFlag == battlerFlag &&
-        other.itemFlag == itemFlag &&
-        other.itemId == itemId &&
+        other.itemEffectKey == itemEffectKey &&
+        other.itemKey == itemKey &&
         other.itemInstanceId == itemInstanceId &&
         other.value == value &&
         other.secondaryValue == secondaryValue;
@@ -208,8 +155,8 @@ class CombatRuntimeFlag {
   @override
   int get hashCode => Object.hash(
         battlerFlag,
-        itemFlag,
-        itemId,
+        itemEffectKey,
+        itemKey,
         itemInstanceId,
         value,
         secondaryValue,
@@ -251,8 +198,8 @@ class _BattlerDerivedState {
   final Map<BattlerStatusHook, List<BattlerStatus>> statusesByHook;
   final Map<BattlerAbilityId, BattlerAbility> abilitiesById;
   final Map<BattlerAbilityHook, List<BattlerAbilityId>> abilityIdsByHook;
-  final Map<ItemId, Item> inventoryItemsByType;
-  final Map<ItemId, Item> equippedItemsByType;
+  final Map<String, Item> inventoryItemsByType;
+  final Map<String, Item> equippedItemsByType;
   final Map<ItemEffectHook, List<Item>> equippedItemsByHook;
   final bool hasItemEffects;
 
@@ -290,32 +237,34 @@ class _BattlerDerivedState {
     for (final ability in owner.abilities) {
       _appendHookBindings(abilityIdsByHook, ability.hookBindings, ability.id);
     }
-    final inventoryItemsByType = <ItemId, Item>{};
+    final inventoryItemsByType = <String, Item>{};
     for (final item in owner.inventoryItems) {
-      inventoryItemsByType.putIfAbsent(item.id, () => item);
+      inventoryItemsByType.putIfAbsent(item.catalogKey, () => item);
     }
 
-    final equippedItemsByType = <ItemId, Item>{};
+    final equippedItemsByType = <String, Item>{};
     final equippedItemsByHook = <ItemEffectHook, List<Item>>{};
     var hasItemEffects = false;
     var basicAttackCount = 1;
     var equippedItemCost = 0;
 
     for (final item in owner.equippedItems) {
-      equippedItemsByType.putIfAbsent(item.id, () => item);
+      equippedItemsByType.putIfAbsent(item.catalogKey, () => item);
       equippedItemCost++;
 
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      hasItemEffects = true;
-      _appendHookBindings(equippedItemsByHook, effect.hooks, item);
-      if (effect.hooks.contains(ItemEffectHook.basicAttackCountModifier)) {
-        basicAttackCount = effect.modifyBasicAttackCount(
-          owner: owner,
-          item: item,
-          count: basicAttackCount,
-        );
+      final passiveEffects = item.passiveEffects;
+      if (passiveEffects.isNotEmpty) {
+        hasItemEffects = true;
+        for (final hook
+            in passiveEffects.map((effect) => effect.hook).toSet()) {
+          _appendHookBindings(
+              equippedItemsByHook, <ItemEffectHook>[hook], item);
+        }
+        for (final effect in passiveEffects.where(
+          (effect) => effect.hook == ItemEffectHook.basicAttackCountModifier,
+        )) {
+          basicAttackCount += effect.value;
+        }
       }
     }
 
@@ -382,15 +331,11 @@ class _BattlerDerivedState {
       }
 
       for (final item in statItems) {
-        final effect = item.effect;
-        if (effect == null) continue;
-
-        updatedValue = effect.modifyCalculatedStat(
-          owner: owner,
-          item: item,
-          stat: stat,
-          value: updatedValue,
-        );
+        for (final effect in item.passiveEffects.where(
+          (effect) => effect.hook == ItemEffectHook.calculatedStatModifier,
+        )) {
+          updatedValue += effect.value;
+        }
       }
 
       calculatedStats[stat] = max(0, updatedValue);
@@ -415,8 +360,8 @@ class _BattlerDerivedState {
       ),
       abilityIdsByHook: _freezeHookIndex(abilityIdsByHook),
       inventoryItemsByType:
-          Map<ItemId, Item>.unmodifiable(inventoryItemsByType),
-      equippedItemsByType: Map<ItemId, Item>.unmodifiable(equippedItemsByType),
+          Map<String, Item>.unmodifiable(inventoryItemsByType),
+      equippedItemsByType: Map<String, Item>.unmodifiable(equippedItemsByType),
       equippedItemsByHook: _freezeHookIndex(equippedItemsByHook),
       hasItemEffects: hasItemEffects,
     );
@@ -738,35 +683,7 @@ class Battler {
     required BattlerStat stat,
   }) {
     final baseValue = baseStats[stat] ?? 0;
-    final equipmentBonus = _resolveEquipmentBonus(
-      equippedItems: equippedItems,
-      abilities: abilities,
-      bonus: equippedItems.fold<int>(
-        0,
-        (total, item) => total + item.modifier(stat),
-      ),
-    );
-    final flatResolvedValue = max(0, baseValue + equipmentBonus);
-    if (stat != BattlerStat.health) {
-      return flatResolvedValue;
-    }
-
-    final healthPercentModifier = _resolveEquipmentBonus(
-      equippedItems: equippedItems,
-      abilities: abilities,
-      bonus: equippedItems.fold<int>(
-        0,
-        (total, item) => total + item.maxHealthPercentModifier,
-      ),
-    );
-    if (healthPercentModifier == 0) {
-      return flatResolvedValue;
-    }
-
-    return max(
-      0,
-      (flatResolvedValue * (100 + healthPercentModifier) / 100).round(),
-    );
+    return max(0, baseValue);
   }
 
   /// Calcula el income base mas los bonus planos aportados por el equipo.
@@ -775,31 +692,7 @@ class Battler {
     required List<Item> equippedItems,
     required List<BattlerAbility> abilities,
   }) {
-    final equipmentBonus = _resolveEquipmentBonus(
-      equippedItems: equippedItems,
-      abilities: abilities,
-      bonus: equippedItems.fold<int>(
-        0,
-        (total, item) => total + item.incomeModifier,
-      ),
-    );
-
-    return max(0, baseIncome + equipmentBonus);
-  }
-
-  /// Reduce los bonus positivos del equipo cuando un efecto de dilucion esta activo.
-  static int _resolveEquipmentBonus({
-    required List<Item> equippedItems,
-    required List<BattlerAbility> abilities,
-    required int bonus,
-  }) {
-    if (bonus <= 0) return bonus;
-    if (!_hasBonusDilution(
-        equippedItems: equippedItems, abilities: abilities)) {
-      return bonus;
-    }
-
-    return (bonus + 1) ~/ 2;
+    return max(0, baseIncome);
   }
 
   /// Indica si algun efecto activo ya redujo los bonus positivos al 50%.

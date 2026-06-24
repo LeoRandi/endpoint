@@ -2,7 +2,7 @@ import '_imports.dart';
 
 /// Describe las reglas que debe cumplir un objeto para aparecer en una tienda.
 ///
-/// Un criterio puede expresar rareza, rango de rareza, stat positiva y tags. El
+/// Un criterio puede expresar rareza, rango de rareza y tags. El
 /// servicio de stock lo aplica sobre `itemPresets` para construir inventarios.
 class ShopInventoryCriterion {
   final String label;
@@ -10,7 +10,6 @@ class ShopInventoryCriterion {
   final RarityTier? exactRarity;
   final RarityTier? minimumRarity;
   final RarityTier? maximumRarity;
-  final BattlerStat? requiredPositiveModifierStat;
   final List<EntityTag> requiredTags;
   final bool matchAnyRequiredTag;
 
@@ -21,7 +20,6 @@ class ShopInventoryCriterion {
     this.exactRarity,
     this.minimumRarity,
     this.maximumRarity,
-    this.requiredPositiveModifierStat,
     List<EntityTag> requiredTags = const [],
     this.matchAnyRequiredTag = false,
   })  : requiredTags = List<EntityTag>.unmodifiable(requiredTags),
@@ -47,10 +45,6 @@ class ShopInventoryCriterion {
       return false;
     }
     if (maximumRarity != null && item.rarity.index > maximumRarity!.index) {
-      return false;
-    }
-    if (requiredPositiveModifierStat != null &&
-        item.modifier(requiredPositiveModifierStat!) <= 0) {
       return false;
     }
     if (requiredTags.isNotEmpty) {

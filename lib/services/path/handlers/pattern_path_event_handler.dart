@@ -18,7 +18,7 @@ extension PatternPathEventHandler on PathEventService {
 
   List<Item> buildSWitchCabinEligibleItems(Battler player) {
     return List<Item>.unmodifiable(
-      buildOwnedItems(player).where((item) => item.hasPatternBonus),
+      buildOwnedItems(player).where((item) => item.patternEffects.isNotEmpty),
     );
   }
 
@@ -30,24 +30,30 @@ extension PatternPathEventHandler on PathEventService {
     if (firstItem == secondItem ||
         !_ownsItem(player, firstItem) ||
         !_ownsItem(player, secondItem) ||
-        !firstItem.hasPatternBonus ||
-        !secondItem.hasPatternBonus) {
+        firstItem.patternEffects.isEmpty ||
+        secondItem.patternEffects.isEmpty) {
       return PathEventVisitResult(
         player: player,
         outcomeText: 'La cabina no encuentra dos patrones compatibles.',
       );
     }
 
-    final updatedFirst = firstItem.copyWith(
-      patternBonusKindOverride: secondItem.patternBonusKind,
-      patternBonusAmountOverride: secondItem.patternBonusAmount,
-      patternRequirementOverride: secondItem.patternRequirement,
-    );
-    final updatedSecond = secondItem.copyWith(
-      patternBonusKindOverride: firstItem.patternBonusKind,
-      patternBonusAmountOverride: firstItem.patternBonusAmount,
-      patternRequirementOverride: firstItem.patternRequirement,
-    );
+    final firstPatternEntries = firstItem.effects.entries
+        .where((entry) => entry.key is PatternEffect)
+        .toList(growable: false);
+    final secondPatternEntries = secondItem.effects.entries
+        .where((entry) => entry.key is PatternEffect)
+        .toList(growable: false);
+    final updatedFirst = firstItem.copyWith(effects: <Effect, int>{
+      for (final entry in firstItem.effects.entries)
+        if (entry.key is! PatternEffect) entry.key: entry.value,
+      for (final entry in secondPatternEntries) entry.key: entry.value,
+    });
+    final updatedSecond = secondItem.copyWith(effects: <Effect, int>{
+      for (final entry in secondItem.effects.entries)
+        if (entry.key is! PatternEffect) entry.key: entry.value,
+      for (final entry in firstPatternEntries) entry.key: entry.value,
+    });
     final updatedPlayer = _replaceOwnedItems(
       player: player,
       replacements: {

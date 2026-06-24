@@ -52,7 +52,7 @@ class RunDaySummaryReward {
       'name': name,
       'iconEmoji': iconEmoji,
       'rarity': rarity.name,
-      'itemId': item?.id.name,
+      'itemKey': item?.catalogKey,
       'abilityId': ability?.id.name,
       'item': item == null ? null : EndpointDomainCodec.serializeItem(item!),
       'ability': ability == null
@@ -110,56 +110,13 @@ class RunDaySummaryReward {
       if (item != null) return item;
     }
 
-    final itemId = EndpointJsonUtils.parseEnumByName(
-      ItemId.values,
-      json['itemId'],
-    );
-    if (itemId == null) {
-      return _deserializeLegacyRewardItem(json, rarity: rarity);
-    }
-
+    final itemKey = EndpointJsonUtils.readNullableString(json['itemKey']);
+    if (itemKey == null) return null;
     try {
-      final preset = Item.presetForId(itemId);
-      return preset
-          .copyWith(
-            name: EndpointJsonUtils.readString(
-              json['name'],
-              fallback: preset.name,
-            ),
-            iconEmoji: EndpointJsonUtils.readString(
-              json['iconEmoji'],
-              fallback: preset.iconEmoji,
-            ),
-            rarity: rarity,
-          )
-          .normalizeUpgradeTier();
+      return Item.presetForKey(itemKey).copyWith(tier: rarity);
     } on StateError {
       return null;
     }
-  }
-
-  static Item? _deserializeLegacyRewardItem(
-    Map<String, dynamic> json, {
-    required RarityTier rarity,
-  }) {
-    final name = EndpointJsonUtils.readString(json['name'], fallback: '');
-    final iconEmoji = EndpointJsonUtils.readString(
-      json['iconEmoji'],
-      fallback: '',
-    );
-    for (final preset in itemPresets) {
-      final matchesName = name.isNotEmpty && preset.displayName == name;
-      final matchesIcon = iconEmoji.isNotEmpty && preset.iconEmoji == iconEmoji;
-      if (!matchesName && !matchesIcon) continue;
-
-      return preset.copyWith(
-        name: name.isEmpty ? preset.name : name,
-        iconEmoji: iconEmoji.isEmpty ? preset.iconEmoji : iconEmoji,
-        rarity: rarity,
-      );
-    }
-
-    return null;
   }
 
   static BattlerAbility? _deserializeRewardAbility(
@@ -390,22 +347,23 @@ class RunDaySummary {
     ];
     final beforeCounts = _itemCountsById(beforeItems);
     final beforeBestRarity = _bestItemRarityById(beforeItems);
-    final awardedItemIds = <ItemId>{};
+    final awardedItemIds = <String>{};
     final rewards = <RunDaySummaryReward>[];
 
     for (final item in afterItems) {
-      if (awardedItemIds.contains(item.id)) continue;
+      if (awardedItemIds.contains(item.catalogKey)) continue;
 
-      final beforeCount = beforeCounts[item.id] ?? 0;
-      final afterCount =
-          afterItems.where((entry) => entry.id == item.id).length;
-      final beforeRarity = beforeBestRarity[item.id];
+      final beforeCount = beforeCounts[item.catalogKey] ?? 0;
+      final afterCount = afterItems
+          .where((entry) => entry.catalogKey == item.catalogKey)
+          .length;
+      final beforeRarity = beforeBestRarity[item.catalogKey];
       final isNewCopy = afterCount > beforeCount;
       final isUpgrade =
           beforeRarity != null && item.rarity.index > beforeRarity.index;
       if (!isNewCopy && !isUpgrade) continue;
 
-      awardedItemIds.add(item.id);
+      awardedItemIds.add(item.catalogKey);
       rewards.add(RunDaySummaryReward.item(item));
     }
 
@@ -439,22 +397,22 @@ class RunDaySummary {
     return rewards;
   }
 
-  static Map<ItemId, int> _itemCountsById(Iterable<Item> items) {
-    final counts = <ItemId, int>{};
+  static Map<String, int> _itemCountsById(Iterable<Item> items) {
+    final counts = <String, int>{};
     for (final item in items) {
-      counts[item.id] = (counts[item.id] ?? 0) + 1;
+      counts[item.catalogKey] = (counts[item.catalogKey] ?? 0) + 1;
     }
     return counts;
   }
 
-  static Map<ItemId, RarityTier> _bestItemRarityById(Iterable<Item> items) {
-    final rarities = <ItemId, RarityTier>{};
+  static Map<String, RarityTier> _bestItemRarityById(Iterable<Item> items) {
+    final rarities = <String, RarityTier>{};
     for (final item in items) {
-      final currentRarity = rarities[item.id];
+      final currentRarity = rarities[item.catalogKey];
       if (currentRarity != null && currentRarity.index >= item.rarity.index) {
         continue;
       }
-      rarities[item.id] = item.rarity;
+      rarities[item.catalogKey] = item.rarity;
     }
     return rarities;
   }

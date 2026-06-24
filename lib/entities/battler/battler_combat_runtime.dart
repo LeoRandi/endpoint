@@ -93,13 +93,7 @@ extension BattlerCombatRuntime on Battler {
 
   /// Aplica efectos que recompensan el daño infligido por Resonancia.
   Battler gainBarrierFromResonanceDamage(int damage) {
-    final safeDamage = max(0, damage);
-    if (safeDamage <= 0 ||
-        !equippedItems.any((item) => item.id == ItemId.canonContrapresion)) {
-      return this;
-    }
-
-    return gainCombatBarrier(safeDamage ~/ 2);
+    return this;
   }
 
   /// Sincroniza la ronda visible para efectos que necesitan historial temporal.
@@ -143,11 +137,11 @@ extension BattlerCombatRuntime on Battler {
   /// Cuenta activaciones de un item concreto durante este combate.
   int itemCombatFlagUseCount({
     required Item item,
-    required ItemCombatFlagKind kind,
+    required String kind,
   }) {
     return combatFlags.where((flag) {
-      return flag.itemFlag == kind &&
-          flag.itemId == item.id &&
+      return flag.itemEffectKey == kind &&
+          flag.itemKey == item.catalogKey &&
           flag.itemInstanceId == item.instanceId;
     }).length;
   }
@@ -171,13 +165,13 @@ extension BattlerCombatRuntime on Battler {
   /// Registra una activacion adicional de un item para efectos limitados.
   Battler addItemCombatFlagUse({
     required Item item,
-    required ItemCombatFlagKind kind,
+    required String kind,
   }) {
     final nextUse = itemCombatFlagUseCount(item: item, kind: kind);
     return addCombatFlag(
       CombatRuntimeFlag.item(
-        itemFlag: kind,
-        itemId: item.id,
+        itemEffectKey: kind,
+        itemKey: item.catalogKey,
         itemInstanceId: item.instanceId,
         value: nextUse,
       ),
@@ -187,11 +181,11 @@ extension BattlerCombatRuntime on Battler {
   /// Devuelve el primer valor asociado a una flag de item.
   int? itemCombatFlagValue({
     required Item item,
-    required ItemCombatFlagKind kind,
+    required String kind,
   }) {
     for (final flag in combatFlags) {
-      if (flag.itemFlag == kind &&
-          flag.itemId == item.id &&
+      if (flag.itemEffectKey == kind &&
+          flag.itemKey == item.catalogKey &&
           flag.itemInstanceId == item.instanceId) {
         return flag.value ?? flag.secondaryValue;
       }
@@ -238,19 +232,19 @@ extension BattlerCombatRuntime on Battler {
   /// Elimina todas las flags de una clase concreta asociadas a un item.
   Battler removeItemCombatFlagsFor({
     required Item item,
-    required ItemCombatFlagKind kind,
+    required String kind,
   }) {
     final hasMatchingFlag = combatFlags.any((flag) {
-      return flag.itemFlag == kind &&
-          flag.itemId == item.id &&
+      return flag.itemEffectKey == kind &&
+          flag.itemKey == item.catalogKey &&
           flag.itemInstanceId == item.instanceId;
     });
     if (!hasMatchingFlag) return this;
 
     final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags)
       ..removeWhere((flag) {
-        return flag.itemFlag == kind &&
-            flag.itemId == item.id &&
+        return flag.itemEffectKey == kind &&
+            flag.itemKey == item.catalogKey &&
             flag.itemInstanceId == item.instanceId;
       });
     return copyWith(
@@ -577,35 +571,6 @@ extension BattlerCombatRuntime on Battler {
 
   /// Convierte la primera ganancia de Barrera de cada ronda en Resonancia si procede.
   Battler _gainResonanceFromBarrierGain(int amount) {
-    if (amount <= 0 || equippedItems.isEmpty) return this;
-
-    var updatedOwner = this;
-    final currentCombatRound = updatedOwner.combatRound;
-    for (final item in equippedItems) {
-      if (item.id != ItemId.nucleoPiezoelectrico) continue;
-
-      final alreadyTriggered = updatedOwner.combatFlags.any((flag) {
-        return flag.itemFlag ==
-                ItemCombatFlagKind.nucleoPiezoelectricoTriggeredThisTurn &&
-            flag.itemId == item.id &&
-            flag.itemInstanceId == item.instanceId &&
-            flag.value == currentCombatRound;
-      });
-      if (alreadyTriggered) continue;
-
-      updatedOwner = updatedOwner
-          .addCombatFlag(
-            CombatRuntimeFlag.item(
-              itemFlag:
-                  ItemCombatFlagKind.nucleoPiezoelectricoTriggeredThisTurn,
-              itemId: item.id,
-              itemInstanceId: item.instanceId,
-              value: currentCombatRound,
-            ),
-          )
-          .gainResonance(max(1, item.value));
-    }
-
-    return updatedOwner;
+    return this;
   }
 }

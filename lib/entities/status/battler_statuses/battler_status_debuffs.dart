@@ -550,11 +550,7 @@ class DeudaStatus extends BattlerStatus {
   /// Anade a la descripcion el saldo pendiente y el income retenido actualmente.
   @override
   String descriptionFor(Battler owner) {
-    final potentialIncome = owner.baseIncome +
-        owner.equippedItems.fold<int>(
-          0,
-          (total, item) => total + item.incomeModifier,
-        );
+    final potentialIncome = owner.baseIncome;
     final blockedIncome = max(0, potentialIncome - owner.income);
     return '$description Saldo pendiente: $value. Income retenido actualmente: +$blockedIncome.';
   }

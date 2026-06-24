@@ -42,7 +42,7 @@ List<Item> itemPoolForArchetype(ArchetypeId? archetypeId) {
     return List<Item>.unmodifiable(itemPresets);
   }
 
-  return _deduplicateByItemId([
+  return _deduplicateByCatalogKey([
     ...generalItemPool,
     ...?archetypeSpecificItemPools[archetypeId],
   ]);
@@ -56,16 +56,16 @@ List<Item> _itemsWithAffinity(ItemArchetypeAffinity affinity) {
   ]);
 }
 
-/// Elimina duplicados conservando la primera aparicion de cada [ItemId].
+/// Elimina duplicados conservando la primera aparicion de cada clave catalogo.
 ///
 /// Esto permite mezclar el pool general con el pool de arquetipo sin repetir
 /// items que hayan sido etiquetados como generalistas y especificos a la vez.
-List<Item> _deduplicateByItemId(Iterable<Item> items) {
-  final seen = <ItemId>{};
+List<Item> _deduplicateByCatalogKey(Iterable<Item> items) {
+  final seen = <String>{};
   final result = <Item>[];
 
   for (final item in items) {
-    if (!seen.add(item.id)) continue;
+    if (!seen.add(item.catalogKey)) continue;
     result.add(item);
   }
 

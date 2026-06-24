@@ -305,7 +305,7 @@ class _CodexDiscoveryNoticeIcon extends StatelessWidget {
     if (key.startsWith('item:')) {
       final itemName = key.substring('item:'.length);
       for (final item in itemPresets) {
-        if (item.id.name == itemName) return item.iconEmoji;
+        if (item.catalogKey == itemName) return item.iconEmoji;
       }
       return null;
     }

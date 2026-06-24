@@ -429,12 +429,12 @@ class _LevelUpChoiceLead extends StatelessWidget {
 
     final item = choice.item;
     if (item != null) {
-      return EndpointText(
-        item.iconEmoji,
-        style: const TextStyle(
-          fontSize: 20,
-          height: 1,
-        ),
+      return Image.asset(
+        item.asset,
+        width: 28,
+        height: 28,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.none,
       );
     }
 

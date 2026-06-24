@@ -67,30 +67,10 @@ class BattlerEffectPipeline {
     required Battler opponent,
     RunRandomizer? randomizer,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.combatStart),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onCombatStart(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        randomizer: randomizer,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.combatStart,
     );
   }
 
@@ -154,24 +134,6 @@ class BattlerEffectPipeline {
       updatedSource = resolution.opponent;
     }
 
-    for (final item in updatedTarget
-        .equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onContagioValueLost(
-        owner: updatedTarget,
-        opponent: updatedSource,
-        item: item,
-        lostValue: lostValue,
-        isOwnerContagioCarrier: true,
-        wasRemoved: wasRemoved,
-        triggerStatus: triggerStatus,
-      );
-      updatedTarget = resolution.owner;
-      updatedSource = resolution.opponent;
-    }
-
     for (final abilityId in updatedSource
         .abilityIdsForHook(BattlerAbilityHook.contagioValueLost)) {
       final ability = updatedSource.abilityById(abilityId);
@@ -182,24 +144,6 @@ class BattlerEffectPipeline {
         owner: updatedSource,
         opponent: updatedTarget,
         ability: ability,
-        lostValue: lostValue,
-        isOwnerContagioCarrier: false,
-        wasRemoved: wasRemoved,
-        triggerStatus: triggerStatus,
-      );
-      updatedSource = resolution.owner;
-      updatedTarget = resolution.opponent;
-    }
-
-    for (final item in updatedSource
-        .equippedItemsForHook(ItemEffectHook.contagioValueLost)) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onContagioValueLost(
-        owner: updatedSource,
-        opponent: updatedTarget,
-        item: item,
         lostValue: lostValue,
         isOwnerContagioCarrier: false,
         wasRemoved: wasRemoved,
@@ -479,15 +423,11 @@ class BattlerEffectPipeline {
 
     for (final item
         in owner.equippedItemsForHook(ItemEffectHook.outgoingDamageModifier)) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      updatedDamage = effect.modifyOutgoingDamage(
-        owner: owner,
-        target: target,
-        item: item,
-        damage: updatedDamage,
-      );
+      for (final effect in item.passiveEffects.where(
+        (effect) => effect.hook == ItemEffectHook.outgoingDamageModifier,
+      )) {
+        updatedDamage += effect.value;
+      }
     }
 
     return max(0, updatedDamage);
@@ -498,22 +438,7 @@ class BattlerEffectPipeline {
     required Battler target,
     required BattlerStatus status,
   }) {
-    BattlerStatus? updatedStatus = status;
-
-    for (final item
-        in owner.equippedItemsForHook(ItemEffectHook.outgoingStatusModifier)) {
-      final effect = item.effect;
-      if (effect == null || updatedStatus == null) continue;
-
-      updatedStatus = effect.modifyOutgoingStatus(
-        owner: owner,
-        target: target,
-        item: item,
-        status: updatedStatus,
-      );
-    }
-
-    return updatedStatus;
+    return status;
   }
 
   int applyAbilityOutgoingDamageModifiers({
@@ -612,24 +537,6 @@ class BattlerEffectPipeline {
       updatedDamage = resolution.damage;
     }
 
-    final activeItems = List<Item>.from(
-      updatedOwner.equippedItemsForHook(ItemEffectHook.incomingDamageEffect),
-    );
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onIncomingDamage(
-        owner: updatedOwner,
-        source: source,
-        item: item,
-        damage: updatedDamage,
-        kind: kind,
-      );
-      updatedOwner = resolution.owner;
-      updatedDamage = resolution.damage;
-    }
-
     return BattlerIncomingDamageResolution(
       owner: updatedOwner.pruneExpiredStatuses(),
       damage: max(0, updatedDamage),
@@ -645,15 +552,11 @@ class BattlerEffectPipeline {
 
     for (final item
         in owner.equippedItemsForHook(ItemEffectHook.incomingDamageModifier)) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      updatedDamage = effect.modifyIncomingDamage(
-        owner: owner,
-        source: source,
-        item: item,
-        damage: updatedDamage,
-      );
+      for (final effect in item.passiveEffects.where(
+        (effect) => effect.hook == ItemEffectHook.incomingDamageModifier,
+      )) {
+        updatedDamage -= effect.value;
+      }
     }
 
     return max(0, updatedDamage);
@@ -676,31 +579,10 @@ class BattlerEffectPipeline {
     required Battler source,
     required BattlerStatus status,
   }) {
-    var updatedOwner = owner;
-    var updatedSource = source;
-    BattlerStatus? updatedStatus = status;
-
-    for (final item in updatedOwner.equippedItemsForHook(
-      ItemEffectHook.incomingStatusModifier,
-    )) {
-      final effect = item.effect;
-      if (effect == null || updatedStatus == null) continue;
-
-      final resolution = effect.onIncomingStatus(
-        owner: updatedOwner,
-        source: updatedSource,
-        item: item,
-        status: updatedStatus,
-      );
-      updatedOwner = resolution.owner;
-      updatedSource = resolution.source;
-      updatedStatus = resolution.status;
-    }
-
     return ItemIncomingStatusResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      source: updatedSource.pruneExpiredStatuses(),
-      status: updatedStatus,
+      owner: owner,
+      source: source,
+      status: status,
     );
   }
 
@@ -795,31 +677,10 @@ class BattlerEffectPipeline {
     required Battler target,
     required int damageDealt,
   }) {
-    var updatedOwner = owner;
-    var updatedTarget = target;
-
-    final activeItems = BattlerEffectPriorityPolicy.orderItemsForEvent(
-      event: BattlerEffectEvent.attackResolved,
-      items: owner.equippedItemsForHook(ItemEffectHook.attackResolved),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onAttackResolved(
-        owner: updatedOwner,
-        target: updatedTarget,
-        item: item,
-        damageDealt: damageDealt,
-      );
-      updatedOwner = resolution.owner;
-      updatedTarget = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedTarget.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: target,
+      hook: ItemEffectHook.attackResolved,
     );
   }
 
@@ -903,30 +764,10 @@ class BattlerEffectPipeline {
     required Battler source,
     required int damageTaken,
   }) {
-    var updatedOwner = owner;
-    var updatedSource = source;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.receiveDamageResolved),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onReceiveDamageResolved(
-        owner: updatedOwner,
-        source: updatedSource,
-        item: item,
-        damageTaken: damageTaken,
-      );
-      updatedOwner = resolution.owner;
-      updatedSource = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedSource.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: source,
+      hook: ItemEffectHook.receiveDamageResolved,
     );
   }
 
@@ -985,31 +826,10 @@ class BattlerEffectPipeline {
     required bool isOwnerTurn,
     RunRandomizer? randomizer,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.turnStart),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onTurnStart(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        isOwnerTurn: isOwnerTurn,
-        randomizer: randomizer,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.turnStart,
     );
   }
 
@@ -1019,32 +839,10 @@ class BattlerEffectPipeline {
     required bool isOwnerTurn,
     RunRandomizer? randomizer,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-
-    final activeItems = BattlerEffectPriorityPolicy.orderItemsForEvent(
-      event: BattlerEffectEvent.turnEnd,
-      items: owner.equippedItemsForHook(ItemEffectHook.turnEnd),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onTurnEnd(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        isOwnerTurn: isOwnerTurn,
-        randomizer: randomizer,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.turnEnd,
     );
   }
 
@@ -1052,29 +850,10 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler opponent,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.defendResolved),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onDefendResolved(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.defendResolved,
     );
   }
 
@@ -1083,111 +862,10 @@ class BattlerEffectPipeline {
     required Battler opponent,
     required BattlePatternMatchContext pattern,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-    final usedPointKeys =
-        pattern.patternPoints.map((point) => point.key).toSet();
-
-    final activeItems = BattlerEffectPriorityPolicy.orderItemsForEvent(
-      event: BattlerEffectEvent.patternUsed,
-      items: owner.equippedItemsForHook(ItemEffectHook.patternUsed),
-    );
-    final contratoReuso = owner.abilityById(BattlerAbilityId.contratoReuso);
-    var usedContratoReuso = false;
-
-    for (final item in activeItems) {
-      final pointKey = OperativePatternLayoutService.pointKeyForItem(
-        player: owner,
-        item: item,
-      );
-      if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
-
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final debuffPressureBefore = _debuffPressure(updatedOpponent);
-      final resolution = effect.onPatternUsed(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        pattern: pattern,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-      final debuffPressureResolution = _resolveDebuffPressureTriggers(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        debuffPressureBefore: debuffPressureBefore,
-      );
-      updatedOwner = debuffPressureResolution.owner;
-      updatedOpponent = debuffPressureResolution.opponent;
-
-      if (!usedContratoReuso &&
-          contratoReuso != null &&
-          pattern.firstRepeatedItemPointKey == pointKey) {
-        usedContratoReuso = true;
-        final boostedItem = item.copyWith(
-          value: item.value + max(1, contratoReuso.currentValue),
-        );
-        final extraDebuffPressureBefore = _debuffPressure(updatedOpponent);
-        final extraResolution = effect.onPatternUsed(
-          owner: updatedOwner,
-          opponent: updatedOpponent,
-          item: boostedItem,
-          pattern: pattern,
-        );
-        updatedOwner = extraResolution.owner;
-        updatedOpponent = extraResolution.opponent;
-        final extraDebuffPressureResolution = _resolveDebuffPressureTriggers(
-          owner: updatedOwner,
-          opponent: updatedOpponent,
-          debuffPressureBefore: extraDebuffPressureBefore,
-        );
-        updatedOwner = extraDebuffPressureResolution.owner;
-        updatedOpponent = extraDebuffPressureResolution.opponent;
-      }
-
-      if (_hasSubastaRelampago(updatedOwner) &&
-          pattern.repeatedItemPointKeys.contains(pointKey)) {
-        final extraDebuffPressureBefore = _debuffPressure(updatedOpponent);
-        final extraResolution = effect.onPatternUsed(
-          owner: updatedOwner,
-          opponent: updatedOpponent,
-          item: item,
-          pattern: pattern,
-        );
-        updatedOwner = extraResolution.owner;
-        updatedOpponent = extraResolution.opponent;
-        final extraDebuffPressureAfter = _debuffPressure(updatedOpponent);
-        if (extraDebuffPressureAfter > extraDebuffPressureBefore) {
-          final chainResolution = _applyCadenaNeurotoxicaDamage(
-            owner: updatedOwner,
-            opponent: updatedOpponent,
-          );
-          updatedOwner = chainResolution.owner;
-          updatedOpponent = chainResolution.opponent;
-        }
-      }
-    }
-
-    if (pattern.repeatedItemPointCount > 0) {
-      for (final item in updatedOwner.equippedItems) {
-        if (item.id != ItemId.subastaRelampago) continue;
-        final triggerFlag = CombatRuntimeFlag.battler(
-          BattlerCombatFlag.subastaRelampagoTriggeredThisTurn,
-          value: updatedOwner.combatRound,
-        );
-        if (updatedOwner.hasCombatFlag(triggerFlag)) continue;
-        updatedOwner = updatedOwner
-            .earnMoney(max(1, item.value))
-            .addCombatFlag(triggerFlag);
-        break;
-      }
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.patternUsed,
     );
   }
 
@@ -1200,28 +878,11 @@ class BattlerEffectPipeline {
     required Item item,
     required BattlePatternMatchContext pattern,
   }) {
-    final effect = item.effect;
-    if (effect == null || !effect.hooks.contains(ItemEffectHook.patternUsed)) {
-      return ItemEffectResolution(owner: owner, opponent: opponent);
-    }
-
-    final debuffPressureBefore = _debuffPressure(opponent);
-    final resolution = effect.onPatternUsed(
+    return ItemEffectDispatcher.resolvePassiveHook(
       owner: owner,
       opponent: opponent,
-      item: item,
-      pattern: pattern,
-    );
-    final pressureResolution = _resolveDebuffPressureTriggers(
-      owner: resolution.owner,
-      opponent: resolution.opponent,
-      debuffPressureBefore: debuffPressureBefore,
-    );
-    return ItemEffectResolution(
-      owner: pressureResolution.owner.pruneExpiredStatuses(),
-      opponent: pressureResolution.opponent.pruneExpiredStatuses(),
-      attackBonusDelta: resolution.attackBonusDelta,
-      barrierBonusDelta: resolution.barrierBonusDelta,
+      hook: ItemEffectHook.patternUsed,
+      onlyItem: item,
     );
   }
 
@@ -1230,63 +891,10 @@ class BattlerEffectPipeline {
     required Battler opponent,
     required BattlePatternMatchContext pattern,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-    var attackBonusDelta = 0;
-    var barrierBonusDelta = 0;
-    final usedPointKeys =
-        pattern.patternPoints.map((point) => point.key).toSet();
-
-    final openingPenaltyFlags = updatedOwner.combatFlags
-        .where(
-          (flag) =>
-              flag.itemFlag == ItemCombatFlagKind.sonicaltropsOpeningPenalty,
-        )
-        .toList(growable: false);
-    if (openingPenaltyFlags.isNotEmpty) {
-      for (final flag in openingPenaltyFlags) {
-        final penalty = max(1, flag.secondaryValue ?? 1);
-        attackBonusDelta -= penalty;
-        barrierBonusDelta -= penalty;
-      }
-      final updatedFlags = Set<CombatRuntimeFlag>.from(updatedOwner.combatFlags)
-        ..removeAll(openingPenaltyFlags);
-      updatedOwner = updatedOwner.copyWith(
-        combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
-      );
-    }
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.prePatternAttack),
-    );
-
-    for (final item in activeItems) {
-      final pointKey = OperativePatternLayoutService.pointKeyForItem(
-        player: owner,
-        item: item,
-      );
-      if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
-
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.onPrePatternAttack(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        pattern: pattern,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-      attackBonusDelta += resolution.attackBonusDelta;
-      barrierBonusDelta += resolution.barrierBonusDelta;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
-      attackBonusDelta: attackBonusDelta,
-      barrierBonusDelta: barrierBonusDelta,
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.prePatternAttack,
     );
   }
 
@@ -1294,96 +902,27 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler opponent,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-    const pattern = BattlePatternMatchContext(
-      patternPoints: <OperativePatternPoint>[],
-      attackBonus: 0,
-      barrierBonus: 0,
-    );
-
-    final activeItems = BattlerEffectPriorityPolicy.orderItemsForEvent(
-      event: BattlerEffectEvent.forcedPatternUsed,
-      items: owner.equippedItemsForHook(ItemEffectHook.patternUsed),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final debuffPressureBefore = _debuffPressure(updatedOpponent);
-      final resolution = effect.onPatternUsed(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        pattern: pattern,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-      final debuffPressureResolution = _resolveDebuffPressureTriggers(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        debuffPressureBefore: debuffPressureBefore,
-      );
-      updatedOwner = debuffPressureResolution.owner;
-      updatedOpponent = debuffPressureResolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.patternUsed,
     );
   }
 
   Battler applyEquippedItemCombatEndEffects({
     required Battler owner,
   }) {
-    var updatedOwner = owner;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.combatEnd),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      updatedOwner = effect.onCombatEnd(
-        owner: updatedOwner,
-        item: item,
-      );
-    }
-
-    return updatedOwner.pruneExpiredStatuses();
+    return owner;
   }
 
   ItemEffectResolution applyEquippedItemPassiveEffects({
     required Battler owner,
     required Battler opponent,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.passive),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolution = effect.applyPassive(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.passive,
     );
   }
 
@@ -1393,36 +932,10 @@ class BattlerEffectPipeline {
     required BattlerAbility ability,
     required BattlerAbilityActivationContext screenContext,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-    var updatedAbility = ability;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.manualAbilityPreparation),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final syncedAbility =
-          updatedOwner.abilityById(updatedAbility.id) ?? updatedAbility;
-      final resolution = effect.onManualAbilityPreparing(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        ability: syncedAbility,
-        screenContext: screenContext,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-      updatedAbility = resolution.ability;
-    }
-
     return ItemAbilityPreparationResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
-      ability: updatedAbility,
+      owner: owner,
+      opponent: opponent,
+      ability: ability,
     );
   }
 
@@ -1432,34 +945,10 @@ class BattlerEffectPipeline {
     required BattlerAbility previousAbility,
     required ItemAbilityResolutionContext context,
   }) {
-    var updatedOwner = owner;
-    var updatedOpponent = opponent;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.abilityResolved),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      final resolvedAbility =
-          updatedOwner.abilityById(previousAbility.id) ?? previousAbility;
-      final resolution = effect.onAbilityResolved(
-        owner: updatedOwner,
-        opponent: updatedOpponent,
-        item: item,
-        previousAbility: previousAbility,
-        resolvedAbility: resolvedAbility,
-        context: context,
-      );
-      updatedOwner = resolution.owner;
-      updatedOpponent = resolution.opponent;
-    }
-
-    return ItemEffectResolution(
-      owner: updatedOwner.pruneExpiredStatuses(),
-      opponent: updatedOpponent.pruneExpiredStatuses(),
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: opponent,
+      hook: ItemEffectHook.abilityResolved,
     );
   }
 
@@ -1586,27 +1075,7 @@ class BattlerEffectPipeline {
     required Battler owner,
     required int incomingDamage,
   }) {
-    var updatedOwner = owner;
-
-    final activeItems = List<Item>.from(
-      owner.equippedItemsForHook(ItemEffectHook.fatalDamage),
-    );
-
-    for (final item in activeItems) {
-      final effect = item.effect;
-      if (effect == null) continue;
-
-      updatedOwner = effect.onReceiveFatalDamage(
-        owner: updatedOwner,
-        item: item,
-        incomingDamage: incomingDamage,
-      );
-      if (updatedOwner.health > 0) {
-        break;
-      }
-    }
-
-    return updatedOwner.pruneExpiredStatuses();
+    return owner;
   }
 
   Battler applyAbilityFatalDamageEffects({
@@ -1933,22 +1402,5 @@ class BattlerEffectPipeline {
 }
 
 Battler _clearCombatItemAugments(Battler owner) {
-  if (!owner.equippedItems.any(
-    (item) =>
-        item.hasPatternAura ||
-        item.combatItemBonusBoost > 0 ||
-        item.combatGeneratedPatternBonus,
-  )) {
-    return owner;
-  }
-
-  return owner.copyWith(
-    equippedItems: List<Item>.unmodifiable(
-      owner.equippedItems.map((item) => item.clearCombatAugments()),
-    ),
-  );
-}
-
-bool _hasSubastaRelampago(Battler owner) {
-  return owner.equippedItems.any((item) => item.id == ItemId.subastaRelampago);
+  return owner;
 }

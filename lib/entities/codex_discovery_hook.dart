@@ -1,5 +1,4 @@
 import 'battler/_exports.dart';
-import 'item/_exports.dart';
 import 'status/_exports.dart';
 
 /// Punto de integracion global para avisar descubrimientos nuevos al Codex.
@@ -11,7 +10,7 @@ abstract final class CodexDiscoveryHook {
   static bool isSuppressed = false;
 
   /// Notifica que un item entro por primera vez en el contexto del jugador.
-  static void Function(ItemId itemId)? onItemAdded;
+  static void Function(String catalogKey)? onItemAdded;
 
   /// Notifica que una habilidad entro por primera vez en el contexto del jugador.
   static void Function(BattlerAbilityId abilityId)? onAbilityAdded;

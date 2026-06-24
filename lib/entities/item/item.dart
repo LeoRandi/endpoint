@@ -1,137 +1,13 @@
 import '_imports.dart';
 
-/// Identifica cada tipo de objeto sin depender de la instancia concreta que posea el jugador.
-enum ItemId {
-  woodenStick,
-  cyberWhips,
-  sunglasses,
-  shield,
-  bulwarkAmulet,
-  crackedBattery,
-  gafasFotocromaticas,
-  bateriaCrepuscular,
-  relojDeTurno,
-  faroNoctivago,
-  prismaCircadiano,
-  impactGloves,
-  chemicalFilter,
-  billingModule,
-  mochilaStronkbox,
-  muestrarioContrabando,
-  roperaUnida,
-  mamparaPortatil,
-  magnetiCHammer,
-  ceramicaPurgadora,
-  clavoReactor,
-  ultimaMarcha,
-  pagareRevalorizable,
-  placaBisagra,
-  silbatoMudo,
-  botiquinCompacto,
-  fundaAislante,
-  filtroRuido,
-  portableOven,
-  eclipseMantle,
-  operativeBlackBox,
-  succionaCreditos,
-  ironSword,
-  guardShield,
-  platedJacket,
-  sunsteelBlade,
-  dawnCharm,
-  midnightCloak,
-  voidInjector,
-  toxicCatalyst,
-  emberCharm,
-  reactiveCasing,
-  stunBaton,
-  emergencyPlating,
-  pocketJammer,
-  serratedEdge,
-  containmentCoil,
-  thermalTurbine,
-  pulseCarbine,
-  phaseVeil,
-  concussionPrism,
-  overloadInjector,
-  contingencySeal,
-  rescueBlade,
-  shockMesh,
-  toxicScalpel,
-  deflectiveCapacitor,
-  interferenceCannon,
-  responseFrame,
-  overloadAnchor,
-  reboundLens,
-  kunaiAncho,
-  capaDelContrabandista,
-  sunExecutionBlade,
-  nucleoPiezoelectrico,
-  placasCompresion,
-  torreRetorno,
-  aislanteArmonico,
-  canonContrapresion,
-  guanteReto,
-  clavoDuelista,
-  vendasApretadas,
-  marcaRetador,
-  hemomedidor,
-  carbonParaHeridas,
-  juegosucio101,
-  contratoDoloroso,
-  yunqueCardiaco,
-  revanchadora,
-  embudoMejoras,
-  arnesTactico,
-  mandibultimatum,
-  estandarteUltimoSol,
-  motorMartirio,
-  visorApertura,
-  seguroRoto,
-  aceleradorReto,
-  ultimaPalabra,
-  descargaResonante,
-  prismaDeEco,
-  vialRoto,
-  plumaSeptica,
-  lanzaSucia,
-  ampollaInestable,
-  tuboCultivo,
-  cyberCerbatana,
-  protocoloBrote,
-  incubadoraPortatil,
-  buzonVirtualAzul,
-  buzonVirtualRojo,
-  buzonVirtualVerde,
-  taladron,
-  cuboDinamitalico,
-  medidorRotura,
-  murallaAutomatica,
-  barbedShield,
-  pilarAcero,
-  duplicadorAtomos,
-  cortinaHumo,
-  literalPaywall,
-  passCard,
-  tonfasEscudo,
-  constructionSeal,
-  shoppingChecklist,
-  laCuenta,
-  coinLauncher,
-  seguroBolsillo,
-  bolsoR33m,
-  selloMercante,
-  compraAgresiva,
-  subastaRelampago,
-  bolsaRiesgo,
-  camaraArbitraje,
-  bancoAmbulante,
-  nivelPrecision,
-  mekaYunque,
-  sonicaltrops,
-}
+const String itemAssetDirectory = 'assets/sprites/items/';
 
-/// Identifica a que familias de arquetipo puede pertenecer un objeto.
+/// Sprite paths eligible when an item does not declare a specific asset.
+const List<String> itemAssetPool = <String>[
+  '${itemAssetDirectory}WoodenStick.png',
+];
+
+/// The run archetype whose item pool contains an item.
 enum ItemArchetypeAffinity {
   general,
   veloz,
@@ -140,7 +16,7 @@ enum ItemArchetypeAffinity {
   mercante,
 }
 
-/// Accion inmediata que ejecuta un item al recorrer su punto en Patron.
+/// The immediate action produced by an [ActionEffect].
 enum ItemActionType {
   attack,
   block,
@@ -148,847 +24,231 @@ enum ItemActionType {
   none,
 }
 
-/// Expone utilidades para convertir afinidades de item en arquetipos de run.
 extension ItemArchetypeAffinityMapping on ItemArchetypeAffinity {
-  /// Indica si la afinidad pertenece a un arquetipo concreto y no al pool general.
   bool get isSpecific => this != ItemArchetypeAffinity.general;
 
-  /// Devuelve el arquetipo jugable asociado a esta afinidad, si existe.
-  ArchetypeId? get archetypeId {
-    switch (this) {
-      case ItemArchetypeAffinity.general:
-        return null;
-      case ItemArchetypeAffinity.veloz:
-        return ArchetypeId.veloz;
-      case ItemArchetypeAffinity.inamovible:
-        return ArchetypeId.inamovible;
-      case ItemArchetypeAffinity.imparable:
-        return ArchetypeId.imparable;
-      case ItemArchetypeAffinity.mercante:
-        return ArchetypeId.mercante;
-    }
-  }
+  ArchetypeId? get archetypeId => switch (this) {
+        ItemArchetypeAffinity.general => null,
+        ItemArchetypeAffinity.veloz => ArchetypeId.veloz,
+        ItemArchetypeAffinity.inamovible => ArchetypeId.inamovible,
+        ItemArchetypeAffinity.imparable => ArchetypeId.imparable,
+        ItemArchetypeAffinity.mercante => ArchetypeId.mercante,
+      };
 }
 
-/// Traduce el arquetipo jugable a la afinidad equivalente usada por los items.
 extension ArchetypeIdItemAffinity on ArchetypeId {
-  /// Devuelve la afinidad de items que debe consultar un arquetipo.
-  ItemArchetypeAffinity get itemAffinity {
-    switch (this) {
-      case ArchetypeId.veloz:
-        return ItemArchetypeAffinity.veloz;
-      case ArchetypeId.inamovible:
-        return ItemArchetypeAffinity.inamovible;
-      case ArchetypeId.imparable:
-        return ItemArchetypeAffinity.imparable;
-      case ArchetypeId.mercante:
-        return ItemArchetypeAffinity.mercante;
-    }
-  }
+  ItemArchetypeAffinity get itemAffinity => switch (this) {
+        ArchetypeId.veloz => ItemArchetypeAffinity.veloz,
+        ArchetypeId.inamovible => ItemArchetypeAffinity.inamovible,
+        ArchetypeId.imparable => ItemArchetypeAffinity.imparable,
+        ArchetypeId.mercante => ItemArchetypeAffinity.mercante,
+      };
 }
 
-const _weaponTaggedItemIds = <ItemId>{
-  ItemId.woodenStick,
-  ItemId.cyberWhips,
-  ItemId.impactGloves,
-  ItemId.roperaUnida,
-  ItemId.clavoReactor,
-  ItemId.ironSword,
-  ItemId.placaBisagra,
-  ItemId.stunBaton,
-  ItemId.kunaiAncho,
-  ItemId.serratedEdge,
-  ItemId.pulseCarbine,
-  ItemId.overloadInjector,
-  ItemId.sunsteelBlade,
-  ItemId.rescueBlade,
-  ItemId.toxicScalpel,
-  ItemId.interferenceCannon,
-  ItemId.magnetiCHammer,
-  ItemId.sunExecutionBlade,
-  ItemId.guanteReto,
-  ItemId.clavoDuelista,
-  ItemId.mandibultimatum,
-  ItemId.ultimaPalabra,
-  ItemId.descargaResonante,
-  ItemId.lanzaSucia,
-  ItemId.cyberCerbatana,
-  ItemId.tonfasEscudo,
-};
-
-const _accessoryTaggedItemIds = <ItemId>{
-  ItemId.sunglasses,
-  ItemId.gafasFotocromaticas,
-  ItemId.pagareRevalorizable,
-  ItemId.bulwarkAmulet,
-  ItemId.crackedBattery,
-  ItemId.bateriaCrepuscular,
-  ItemId.relojDeTurno,
-  ItemId.faroNoctivago,
-  ItemId.prismaCircadiano,
-  ItemId.toxicCatalyst,
-  ItemId.emberCharm,
-  ItemId.chemicalFilter,
-  ItemId.muestrarioContrabando,
-  ItemId.reactiveCasing,
-  ItemId.silbatoMudo,
-  ItemId.pocketJammer,
-  ItemId.thermalTurbine,
-  ItemId.concussionPrism,
-  ItemId.contingencySeal,
-  ItemId.dawnCharm,
-  ItemId.succionaCreditos,
-  ItemId.voidInjector,
-  ItemId.eclipseMantle,
-  ItemId.operativeBlackBox,
-  ItemId.deflectiveCapacitor,
-  ItemId.ceramicaPurgadora,
-  ItemId.ultimaMarcha,
-  ItemId.botiquinCompacto,
-  ItemId.fundaAislante,
-  ItemId.filtroRuido,
-  ItemId.overloadAnchor,
-  ItemId.reboundLens,
-  ItemId.nucleoPiezoelectrico,
-  ItemId.placasCompresion,
-  ItemId.torreRetorno,
-  ItemId.aislanteArmonico,
-  ItemId.canonContrapresion,
-  ItemId.prismaDeEco,
-  ItemId.visorApertura,
-  ItemId.vendasApretadas,
-  ItemId.marcaRetador,
-  ItemId.hemomedidor,
-  ItemId.juegosucio101,
-  ItemId.contratoDoloroso,
-  ItemId.revanchadora,
-  ItemId.embudoMejoras,
-  ItemId.estandarteUltimoSol,
-  ItemId.seguroRoto,
-  ItemId.aceleradorReto,
-  ItemId.vialRoto,
-  ItemId.plumaSeptica,
-  ItemId.ampollaInestable,
-  ItemId.tuboCultivo,
-  ItemId.protocoloBrote,
-  ItemId.incubadoraPortatil,
-  ItemId.buzonVirtualAzul,
-  ItemId.buzonVirtualRojo,
-  ItemId.buzonVirtualVerde,
-  ItemId.taladron,
-  ItemId.cuboDinamitalico,
-  ItemId.medidorRotura,
-  ItemId.duplicadorAtomos,
-  ItemId.cortinaHumo,
-  ItemId.literalPaywall,
-  ItemId.passCard,
-  ItemId.constructionSeal,
-  ItemId.shoppingChecklist,
-  ItemId.laCuenta,
-  ItemId.seguroBolsillo,
-  ItemId.bolsoR33m,
-  ItemId.selloMercante,
-  ItemId.compraAgresiva,
-  ItemId.subastaRelampago,
-  ItemId.bolsaRiesgo,
-  ItemId.camaraArbitraje,
-  ItemId.bancoAmbulante,
-  ItemId.nivelPrecision,
-  ItemId.mekaYunque,
-  ItemId.sonicaltrops,
-};
-
-const _patternSquareRequirement = OperativePatternRequirement.exactShape(
-  shapeKind: OperativePatternShapeKind.square,
-  shapePoints: <OperativePatternPoint>[
-    OperativePatternPoint(x: -1, y: 1),
-    OperativePatternPoint(x: 1, y: 1),
-    OperativePatternPoint(x: 1, y: -1),
-    OperativePatternPoint(x: -1, y: -1),
-  ],
-);
-
-const _patternHourglassRequirement = OperativePatternRequirement.exactShape(
-  shapeKind: OperativePatternShapeKind.hourglass,
-  shapePoints: <OperativePatternPoint>[
-    OperativePatternPoint(x: -1, y: 1),
-    OperativePatternPoint(x: 1, y: 1),
-    OperativePatternPoint(x: -1, y: -1),
-    OperativePatternPoint(x: 1, y: -1),
-  ],
-);
-
-const _patternZigzagRequirement = OperativePatternRequirement.exactShape(
-  shapeKind: OperativePatternShapeKind.zigzag,
-  shapePoints: <OperativePatternPoint>[
-    OperativePatternPoint(x: -1, y: 1),
-    OperativePatternPoint(x: 0, y: 0),
-    OperativePatternPoint(x: 1, y: 1),
-    OperativePatternPoint(x: 0, y: -1),
-    OperativePatternPoint(x: -1, y: -1),
-  ],
-);
-
-const _exactPatternRequirementsByItemId = <ItemId, OperativePatternRequirement>{
-  ItemId.bateriaCrepuscular: _patternHourglassRequirement,
-  ItemId.relojDeTurno: _patternSquareRequirement,
-  ItemId.faroNoctivago: _patternZigzagRequirement,
-  ItemId.prismaCircadiano: _patternSquareRequirement,
-  ItemId.muestrarioContrabando: _patternZigzagRequirement,
-  ItemId.contingencySeal: _patternSquareRequirement,
-  ItemId.operativeBlackBox: _patternSquareRequirement,
-  ItemId.responseFrame: _patternSquareRequirement,
-  ItemId.overloadAnchor: _patternZigzagRequirement,
-  ItemId.capaDelContrabandista: _patternHourglassRequirement,
-  ItemId.sunExecutionBlade: _patternHourglassRequirement,
-  ItemId.cyberCerbatana: OperativePatternRequirement.straightAngle(),
-  ItemId.cuboDinamitalico: _patternSquareRequirement,
-  ItemId.duplicadorAtomos: _patternSquareRequirement,
-  ItemId.passCard: _patternSquareRequirement,
-  ItemId.constructionSeal: _patternHourglassRequirement,
-  ItemId.pilarAcero: OperativePatternRequirement.straightAngle(),
-};
-
-const _firstPointPatternItemIds = <ItemId>{
-  ItemId.woodenStick,
-  ItemId.cyberWhips,
-  ItemId.crackedBattery,
-  ItemId.gafasFotocromaticas,
-  ItemId.impactGloves,
-  ItemId.guanteReto,
-  ItemId.visorApertura,
-  ItemId.ironSword,
-  ItemId.stunBaton,
-  ItemId.kunaiAncho,
-  ItemId.pulseCarbine,
-  ItemId.sunsteelBlade,
-  ItemId.magnetiCHammer,
-};
-
-const _lastPointPatternItemIds = <ItemId>{
-  ItemId.seguroRoto,
-  ItemId.aceleradorReto,
-  ItemId.ultimaPalabra,
-  ItemId.clavoReactor,
-  ItemId.ultimaMarcha,
-  ItemId.serratedEdge,
-  ItemId.overloadInjector,
-  ItemId.rescueBlade,
-  ItemId.toxicScalpel,
-  ItemId.interferenceCannon,
-  ItemId.succionaCreditos,
-  ItemId.voidInjector,
-};
-
-const _rightAnglePatternItemIds = <ItemId>{
-  ItemId.shield,
-  ItemId.bulwarkAmulet,
-  ItemId.mamparaPortatil,
-  ItemId.ceramicaPurgadora,
-  ItemId.placaBisagra,
-  ItemId.silbatoMudo,
-  ItemId.botiquinCompacto,
-  ItemId.fundaAislante,
-  ItemId.guardShield,
-  ItemId.reactiveCasing,
-  ItemId.emergencyPlating,
-  ItemId.pocketJammer,
-  ItemId.containmentCoil,
-  ItemId.phaseVeil,
-  ItemId.platedJacket,
-  ItemId.nucleoPiezoelectrico,
-  ItemId.placasCompresion,
-  ItemId.torreRetorno,
-  ItemId.aislanteArmonico,
-  ItemId.canonContrapresion,
-  ItemId.deflectiveCapacitor,
-};
-
-/// Representa un objeto base o una copia poseida con stats, economia y efectos opcionales.
+/// Immutable item definition.
+///
+/// Each entry in [effects] pairs the effect at the current [tier] with the
+/// amount added to that effect's value whenever the item advances one tier.
 class Item {
   static int _nextInstanceSequence = 0;
   static final RegExp _ownedInstancePattern = RegExp(r'^item_(\d+)$');
 
-  final ItemId id;
-  final List<ItemArchetypeAffinity> archetypeAffinities;
-  final List<EntityTag> _declaredTags;
   final String name;
   final String description;
-  final String iconEmoji;
-  final RarityTier rarity;
+  final ItemArchetypeAffinity affinity;
+  final RarityTier tier;
   final int baseCost;
-  final int sellValueBonus;
-  final int value;
-  final int upgradeValue;
-  final int incomePerValueUnit;
-  final int maxHealthPercentPerValueUnit;
-  final Map<BattlerStat, int> statModifiers;
-  final Map<BattlerStat, int> upgradeStatModifiers;
-  final ItemEffect? effect;
-  final ItemActionType? _actionType;
-  final int? _actionValue;
+  final int sellValue;
+  final List<EntityTag> tags;
+  final String asset;
+  final Map<Effect, int> effects;
   final String? instanceId;
-  final OperativePatternBonusKind? patternBonusKindOverride;
-  final int? patternBonusAmountOverride;
-  final OperativePatternRequirement? patternRequirementOverride;
-  final bool hasPatternAura;
   final bool isGhostly;
-  final int combatItemBonusBoost;
-  final bool combatGeneratedPatternBonus;
-  final List<OperativePatternAdjacencyBonus> patternAdjacencyBonuses;
 
-  /// Crea un item inmutable que puede actuar como preset compartido o copia poseida.
-  const Item({
-    required this.id,
-    this.archetypeAffinities = const [ItemArchetypeAffinity.general],
-    List<EntityTag> tags = const [],
+  /// Creates an item and resolves its sprite for the lifetime of the run.
+  ///
+  /// When [asset] is omitted, [randomizer] must be the run random source.
+  Item({
     required this.name,
     required this.description,
-    this.iconEmoji = '\u{1F9F0}',
-    this.rarity = RarityTier.gray,
+    required this.affinity,
+    required this.tier,
     required this.baseCost,
-    this.sellValueBonus = 0,
-    this.value = 0,
-    this.upgradeValue = 0,
-    this.incomePerValueUnit = 0,
-    this.maxHealthPercentPerValueUnit = 0,
-    this.statModifiers = const {},
-    this.upgradeStatModifiers = const {},
-    this.effect,
-    ItemActionType? actionType,
-    int? actionValue,
+    required this.sellValue,
+    List<EntityTag> tags = const <EntityTag>[],
+    String? asset,
+    RandomSource? randomizer,
+    Map<Effect, int> effects = const <Effect, int>{},
     this.instanceId,
-    this.patternBonusKindOverride,
-    this.patternBonusAmountOverride,
-    this.patternRequirementOverride,
-    this.hasPatternAura = false,
     this.isGhostly = false,
-    this.combatItemBonusBoost = 0,
-    this.combatGeneratedPatternBonus = false,
-    this.patternAdjacencyBonuses = const <OperativePatternAdjacencyBonus>[],
-  })  : _declaredTags = tags,
-        _actionType = actionType,
-        _actionValue = actionValue;
+  })  : tags = List<EntityTag>.unmodifiable(tags),
+        effects = Map<Effect, int>.unmodifiable(effects),
+        asset = _resolveAsset(asset, randomizer);
 
-  /// Indica si el objeto puede equiparse.
-  bool get isEquippable => true;
+  /// Stable catalog identity. Item names are canonical data, not localized UI.
+  String get catalogKey => name;
 
-  /// Indica si este objeto ya es una copia propia y no un preset compartido.
-  bool get isInstanced => instanceId != null;
+  bool get canUpgrade => !tier.isMaxTier;
 
-  /// Indica si el objeto tiene una logica activa mas alla de sus stats planos.
-  bool get hasEffect => effect != null;
-
-  /// Accion efectiva del item. Los presets existentes heredan la intencion de
-  /// su bonus de Patron salvo que declaren una accion concreta.
-  ItemActionType get actionType {
-    if (_actionType != null) return _actionType;
-    if (!hasPatternBonus) return ItemActionType.none;
-
-    return switch (patternBonusKind) {
-      OperativePatternBonusKind.attack => ItemActionType.attack,
-      OperativePatternBonusKind.barrier => ItemActionType.block,
-      OperativePatternBonusKind.health => ItemActionType.heal,
-    };
-  }
-
-  /// Magnitud no negativa de la accion inmediata del item. Si el preset
-  /// declara una accion sin valor propio, reutiliza su parametro [value].
-  int get actionValue => max(
-        0,
-        _actionValue ?? (actionType == ItemActionType.none ? 0 : value),
-      );
-
-  /// Indica si este objeto aporta su propio bonus de Patron.
-  bool get hasPatternBonus => patternBonusAmount > 0;
-
-  /// Describe el bonus que aporta este objeto cuando se cruza en Patron.
-  OperativePatternBonus get patternBonus => OperativePatternBonus(
-        kind: patternBonusKind,
-        amount: patternBonusAmount,
-      );
-
-  /// Devuelve si el bonus interno del Patron empuja ataque o bloqueo.
-  OperativePatternBonusKind get patternBonusKind =>
-      patternBonusKindOverride ?? _defaultPatternBonusKind;
-
-  /// Devuelve la magnitud interna del bonus de Patron.
-  int get patternBonusAmount =>
-      patternBonusAmountOverride ?? max(1, rarity.factor);
-
-  /// Devuelve la condicion que debe cumplir el trazo para activar su bonus de Patron.
-  OperativePatternRequirement get patternRequirement =>
-      patternRequirementOverride ?? _defaultPatternRequirement;
-
-  /// Devuelve las tags declaradas mas las de categoria visible heredadas.
-  List<EntityTag> get tags {
-    final resolvedTags = <EntityTag>{
-      ..._declaredTags,
-    };
-    if (isWeaponLike) {
-      resolvedTags.add(EntityTag.arma);
-    }
-    if (isAccessoryLike) {
-      resolvedTags.add(EntityTag.accesorio);
-    }
-    return List<EntityTag>.unmodifiable(resolvedTags);
-  }
-
-  /// Indica si el objeto tiene al menos una tag util para filtros y UI.
-  bool get hasTags => tags.isNotEmpty;
-
-  /// Comprueba si este objeto pertenece a una tag concreta.
-  bool hasTag(EntityTag tag) => tags.contains(tag);
-
-  /// Indica si el objeto se presenta como arma en la interfaz y los filtros.
-  bool get isWeaponLike => _weaponTaggedItemIds.contains(id);
-
-  /// Indica si el objeto se presenta como accesorio en la interfaz y los filtros.
-  bool get isAccessoryLike => _accessoryTaggedItemIds.contains(id);
-
-  /// Comprueba si este objeto declara afinidad con un arquetipo concreto.
-  bool hasArchetypeAffinity(ItemArchetypeAffinity affinity) {
-    return archetypeAffinities.contains(affinity);
-  }
-
-  /// Comprueba si comparte afinidad con alguna de las pedidas.
-  bool hasAnyArchetypeAffinity(Iterable<ItemArchetypeAffinity> affinities) {
-    for (final affinity in affinities) {
-      if (hasArchetypeAffinity(affinity)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Indica si este objeto puede mejorar al recibir una copia adicional.
-  bool get canUpgrade {
-    final preset = presetForId(id);
-    final resolvedUpgradeValue =
-        upgradeValue > 0 ? upgradeValue : preset.upgradeValue;
-    final resolvedUpgradeStats = upgradeStatModifiers.isNotEmpty
-        ? upgradeStatModifiers
-        : preset.upgradeStatModifiers;
-
-    return !rarity.isMaxTier &&
-        (resolvedUpgradeValue != 0 || resolvedUpgradeStats.isNotEmpty);
-  }
-
-  /// Devuelve el coste actual del objeto para compra y reventa.
-  int get cost {
-    if (baseCost <= 0) return 0;
-
-    return 1 << rarity.factor;
-  }
-
-  /// Devuelve el valor de venta rapida fuera de tienda.
-  int get sellValue => max(1, rarity.factor);
-
-  /// Calcula el income que aporta el objeto a partir de su valor actual.
-  int get incomeModifier => value * incomePerValueUnit;
-
-  /// Calcula el modificador porcentual de vida maxima que aporta el objeto.
-  int get maxHealthPercentModifier => value * maxHealthPercentPerValueUnit;
-
-  /// Devuelve el modificador plano que este objeto aplica a una stat concreta.
-  int modifier(BattlerStat stat) {
-    return statModifiers[stat] ?? 0;
-  }
-
-  /// Indica cuantas mejoras visibles lleva esta copia respecto a su preset base.
-  int get upgradeCount {
-    final preset = presetForId(id);
-    final resolvedUpgradeValue =
-        upgradeValue > 0 ? upgradeValue : preset.upgradeValue;
-    if (resolvedUpgradeValue == 0) return 0;
-
-    final baseValue = preset.value;
-    if (resolvedUpgradeValue > 0 && value <= baseValue) return 0;
-    if (resolvedUpgradeValue < 0 && value >= baseValue) return 0;
-
-    return max(0, ((value - baseValue) ~/ resolvedUpgradeValue).abs());
-  }
-
-  /// Devuelve el nombre visible del objeto sin marcadores extras de mejora.
-  String get displayName => name;
-
-  /// Genera la descripcion visible unica, priorizando el efecto con valores de instancia.
-  String get displayDescription {
-    final effectDescription = effect?.descriptionFor(this);
-    if (effectDescription != null) {
-      final statEntries = _statModifierDescriptionEntries();
-      if (statEntries.isEmpty) return effectDescription;
-
-      return [
-        ...statEntries,
-        effectDescription,
-      ].join('. ');
-    }
-
-    final entries = _modifierDescriptionEntries();
-    if (entries.isNotEmpty) return entries.join('. ');
-
-    if (upgradeCount <= 0) return description;
-
-    return description;
-  }
-
-  /// Devuelve la misma descripcion canonica para tooltips y tarjetas compactas.
-  String get tooltipDescription => displayDescription;
-
-  /// Construye entradas de descripcion para modificadores planos de stats.
-  List<String> _statModifierDescriptionEntries() {
-    return [
-      ...statModifiers.entries.map((entry) {
-        final value = entry.value;
-        final sign = value >= 0 ? '+' : '';
-        return '$sign$value ${_statLabel(entry.key)}';
-      }),
-    ];
-  }
-
-  /// Construye la descripcion sintetica de todos los modificadores pasivos.
-  List<String> _modifierDescriptionEntries() {
-    final entries = <String>[
-      ..._statModifierDescriptionEntries(),
-    ];
-
-    if (incomeModifier != 0) {
-      final sign = incomeModifier >= 0 ? '+' : '';
-      entries.add('$sign$incomeModifier INCOME');
-    }
-
-    if (maxHealthPercentModifier != 0) {
-      final sign = maxHealthPercentModifier >= 0 ? '+' : '';
-      entries.add('$sign$maxHealthPercentModifier% HP MAX');
-    }
-
-    return entries;
-  }
-
-  /// Sube la rareza visual y el valor del objeto respetando el tope amarillo.
+  /// Advances the tier and applies each effect's configured upgrade value.
   Item upgraded() {
-    final upgradeTemplate = canUpgrade ? this : presetForId(id);
-    if (!upgradeTemplate.canUpgrade) return this;
-
-    final updatedStatModifiers = Map<BattlerStat, int>.from(statModifiers);
-    for (final entry in upgradeTemplate.upgradeStatModifiers.entries) {
-      updatedStatModifiers.update(
-        entry.key,
-        (currentValue) => currentValue + entry.value,
-        ifAbsent: () => entry.value,
-      );
-    }
-
-    final updatedValue = value + upgradeTemplate.upgradeValue;
-    final updatedAdjacencyBonuses = upgradeTemplate.patternAdjacencyBonuses
-        .map(
-          (bonus) => id == ItemId.tonfasEscudo
-              ? OperativePatternAdjacencyBonus(
-                  direction: bonus.direction,
-                  requiredTag: bonus.requiredTag,
-                  kind: bonus.kind,
-                  amount: max(0, updatedValue),
-                )
-              : bonus,
-        )
-        .toList(growable: false);
+    if (!canUpgrade) return this;
 
     return copyWith(
-      archetypeAffinities: upgradeTemplate.archetypeAffinities,
-      tags: upgradeTemplate._declaredTags,
-      name: upgradeTemplate.name,
-      description: upgradeTemplate.description,
-      iconEmoji: upgradeTemplate.iconEmoji,
-      rarity: rarity.nextTier,
-      baseCost: upgradeTemplate.baseCost,
-      sellValueBonus: sellValueBonus,
-      value: updatedValue,
-      upgradeValue: upgradeTemplate.upgradeValue,
-      incomePerValueUnit: upgradeTemplate.incomePerValueUnit,
-      maxHealthPercentPerValueUnit:
-          upgradeTemplate.maxHealthPercentPerValueUnit,
-      statModifiers: updatedStatModifiers,
-      upgradeStatModifiers: upgradeTemplate.upgradeStatModifiers,
-      effect: upgradeTemplate.effect,
-      actionType: upgradeTemplate.actionType,
-      actionValue: upgradeTemplate.actionValue,
-      patternBonusKindOverride: upgradeTemplate.patternBonusKindOverride,
-      clearPatternBonusKindOverride:
-          upgradeTemplate.patternBonusKindOverride == null,
-      patternBonusAmountOverride: upgradeTemplate.patternBonusAmountOverride,
-      clearPatternBonusAmountOverride:
-          upgradeTemplate.patternBonusAmountOverride == null,
-      patternRequirementOverride: upgradeTemplate.patternRequirementOverride,
-      clearPatternRequirementOverride:
-          upgradeTemplate.patternRequirementOverride == null,
-      hasPatternAura: false,
-      isGhostly: isGhostly,
-      combatItemBonusBoost: 0,
-      combatGeneratedPatternBonus: false,
-      patternAdjacencyBonuses: updatedAdjacencyBonuses,
+      tier: tier.nextTier,
+      effects: <Effect, int>{
+        for (final entry in effects.entries)
+          entry.key.withValue(entry.key.value + entry.value): entry.value,
+      },
     );
   }
 
-  /// Crea una copia parcial del objeto conservando el resto de propiedades intactas.
   Item copyWith({
-    List<ItemArchetypeAffinity>? archetypeAffinities,
-    List<EntityTag>? tags,
     String? name,
     String? description,
-    String? iconEmoji,
-    RarityTier? rarity,
+    ItemArchetypeAffinity? affinity,
+    RarityTier? tier,
     int? baseCost,
-    int? sellValueBonus,
-    int? value,
-    int? upgradeValue,
-    int? incomePerValueUnit,
-    int? maxHealthPercentPerValueUnit,
-    Map<BattlerStat, int>? statModifiers,
-    Map<BattlerStat, int>? upgradeStatModifiers,
-    ItemEffect? effect,
-    bool clearEffect = false,
-    ItemActionType? actionType,
-    int? actionValue,
+    int? sellValue,
+    List<EntityTag>? tags,
+    String? asset,
+    Map<Effect, int>? effects,
     String? instanceId,
-    OperativePatternBonusKind? patternBonusKindOverride,
-    bool clearPatternBonusKindOverride = false,
-    int? patternBonusAmountOverride,
-    bool clearPatternBonusAmountOverride = false,
-    OperativePatternRequirement? patternRequirementOverride,
-    bool clearPatternRequirementOverride = false,
-    bool? hasPatternAura,
     bool? isGhostly,
-    int? combatItemBonusBoost,
-    bool? combatGeneratedPatternBonus,
-    List<OperativePatternAdjacencyBonus>? patternAdjacencyBonuses,
   }) {
     return Item(
-      id: id,
-      archetypeAffinities: archetypeAffinities ?? this.archetypeAffinities,
-      tags: tags ?? _declaredTags,
       name: name ?? this.name,
       description: description ?? this.description,
-      iconEmoji: iconEmoji ?? this.iconEmoji,
-      rarity: rarity ?? this.rarity,
+      affinity: affinity ?? this.affinity,
+      tier: tier ?? this.tier,
       baseCost: baseCost ?? this.baseCost,
-      sellValueBonus: sellValueBonus ?? this.sellValueBonus,
-      value: value ?? this.value,
-      upgradeValue: upgradeValue ?? this.upgradeValue,
-      incomePerValueUnit: incomePerValueUnit ?? this.incomePerValueUnit,
-      maxHealthPercentPerValueUnit:
-          maxHealthPercentPerValueUnit ?? this.maxHealthPercentPerValueUnit,
-      statModifiers: statModifiers ?? this.statModifiers,
-      upgradeStatModifiers: upgradeStatModifiers ?? this.upgradeStatModifiers,
-      effect: clearEffect ? null : effect ?? this.effect,
-      actionType: actionType ?? this.actionType,
-      actionValue: max(0, actionValue ?? this.actionValue),
+      sellValue: sellValue ?? this.sellValue,
+      tags: tags ?? this.tags,
+      asset: asset ?? this.asset,
+      effects: effects ?? this.effects,
       instanceId: instanceId ?? this.instanceId,
-      patternBonusKindOverride: clearPatternBonusKindOverride
-          ? null
-          : patternBonusKindOverride ?? this.patternBonusKindOverride,
-      patternBonusAmountOverride: clearPatternBonusAmountOverride
-          ? null
-          : patternBonusAmountOverride ?? this.patternBonusAmountOverride,
-      patternRequirementOverride: clearPatternRequirementOverride
-          ? null
-          : patternRequirementOverride ?? this.patternRequirementOverride,
-      hasPatternAura: hasPatternAura ?? this.hasPatternAura,
       isGhostly: isGhostly ?? this.isGhostly,
-      combatItemBonusBoost:
-          max(0, combatItemBonusBoost ?? this.combatItemBonusBoost),
-      combatGeneratedPatternBonus:
-          combatGeneratedPatternBonus ?? this.combatGeneratedPatternBonus,
-      patternAdjacencyBonuses:
-          patternAdjacencyBonuses ?? this.patternAdjacencyBonuses,
     );
   }
 
-  /// Materializa un objeto de preset como copia propia para poder diferenciarlo por instancia.
-  Item toOwnedInstance() => toRuntimeInstance();
+  static String _resolveAsset(String? asset, RandomSource? randomizer) {
+    if (asset == null || asset.trim().isEmpty) {
+      if (randomizer == null) {
+        throw ArgumentError.notNull('randomizer');
+      }
+      return itemAssetPool[randomizer.nextInt(itemAssetPool.length)];
+    }
 
-  /// Materializa este item como estado runtime propio.
-  ///
-  /// Usa [forceNewInstance] cuando la copia recibida ya pertenecia a alguien
-  /// pero debe duplicarse como recompensa o compra independiente.
+    final normalizedAsset = asset.trim().replaceAll('\\', '/');
+    final filename = normalizedAsset.startsWith(itemAssetDirectory)
+        ? normalizedAsset.substring(itemAssetDirectory.length)
+        : normalizedAsset;
+    if (filename.isEmpty || filename.contains('/') || filename.contains('..')) {
+      throw ArgumentError.value(
+        asset,
+        'asset',
+        'Item assets must be filenames inside $itemAssetDirectory.',
+      );
+    }
+    return '$itemAssetDirectory$filename';
+  }
+
+  // Read-only views used by gameplay and presentation.
+  RarityTier get rarity => tier;
+  String get iconEmoji => '\u{1F9F0}';
+
+  List<ActionEffect> get actionEffects => List<ActionEffect>.unmodifiable(
+        effects.keys.whereType<ActionEffect>(),
+      );
+
+  List<PatternEffect> get patternEffects => List<PatternEffect>.unmodifiable(
+        effects.keys.whereType<PatternEffect>(),
+      );
+
+  List<PassiveEffect> get passiveEffects => List<PassiveEffect>.unmodifiable(
+        effects.keys.whereType<PassiveEffect>(),
+      );
+
+  ActionEffect? get primaryActionEffect =>
+      actionEffects.isEmpty ? null : actionEffects.first;
+
+  PatternEffect? get primaryPatternEffect =>
+      patternEffects.isEmpty ? null : patternEffects.first;
+
+  OperativePatternBonus? get primaryPatternBonus {
+    final effect = primaryPatternEffect;
+    if (effect == null ||
+        effect.actionEffect.actionType == ItemActionType.none) {
+      return null;
+    }
+    return OperativePatternBonus(
+      kind: switch (effect.actionEffect.actionType) {
+        ItemActionType.attack => OperativePatternBonusKind.attack,
+        ItemActionType.block => OperativePatternBonusKind.barrier,
+        ItemActionType.heal => OperativePatternBonusKind.health,
+        ItemActionType.none => throw StateError('Handled above.'),
+      },
+      amount: effect.value,
+    );
+  }
+
+  /// Pattern actions enabled by [patternPoints] at this item's [itemPoint].
+  List<PatternEffect> matchingPatternEffects({
+    required List<OperativePatternPoint> patternPoints,
+    required OperativePatternPoint itemPoint,
+  }) {
+    return List<PatternEffect>.unmodifiable(
+      patternEffects.where(
+        (effect) => effect.patternType.isSatisfiedBy(
+          patternPoints: patternPoints,
+          itemPoint: itemPoint,
+        ),
+      ),
+    );
+  }
+
+  bool get isEquippable => true;
+  bool get isInstanced => instanceId != null;
+  bool get hasEffect => effects.isNotEmpty;
+  bool get hasTags => tags.isNotEmpty;
+  bool hasTag(EntityTag tag) => tags.contains(tag);
+  bool get isWeaponLike => hasTag(EntityTag.arma);
+  bool get isAccessoryLike => hasTag(EntityTag.accesorio);
+  bool hasArchetypeAffinity(ItemArchetypeAffinity affinity) =>
+      this.affinity == affinity;
+  bool hasAnyArchetypeAffinity(Iterable<ItemArchetypeAffinity> affinities) =>
+      affinities.contains(affinity);
+  String get displayName => name;
+  String get displayDescription => description;
+  String get tooltipDescription => description;
+  Item toOwnedInstance() => toRuntimeInstance();
   Item toRuntimeInstance({bool forceNewInstance = false}) {
     if (isInstanced && !forceNewInstance) return this;
-
-    return Item(
-      id: id,
-      archetypeAffinities: archetypeAffinities,
-      tags: _declaredTags,
-      name: name,
-      description: description,
-      iconEmoji: iconEmoji,
-      rarity: rarity,
-      baseCost: baseCost,
-      sellValueBonus: sellValueBonus,
-      value: value,
-      upgradeValue: upgradeValue,
-      incomePerValueUnit: incomePerValueUnit,
-      maxHealthPercentPerValueUnit: maxHealthPercentPerValueUnit,
-      statModifiers: statModifiers,
-      upgradeStatModifiers: upgradeStatModifiers,
-      effect: effect,
-      actionType: actionType,
-      actionValue: actionValue,
-      instanceId: _nextOwnedInstanceId(),
-      patternBonusKindOverride: patternBonusKindOverride,
-      patternBonusAmountOverride: patternBonusAmountOverride,
-      patternRequirementOverride: patternRequirementOverride,
-      isGhostly: isGhostly,
-      patternAdjacencyBonuses: patternAdjacencyBonuses,
-    );
+    return copyWith(instanceId: _nextOwnedInstanceId());
   }
 
-  /// Reserva un id nuevo para una copia runtime diferenciable.
   static String _nextOwnedInstanceId() => 'item_${_nextInstanceSequence++}';
 
-  /// Limpia mejoras generadas solo durante combate sin tocar progreso permanente.
-  ///
-  /// Revierte boosts de valor, stats, bonus de Patron y auras visuales que se
-  /// marcaron con contadores temporales.
-  Item clearCombatAugments() {
-    var updatedItem = this;
-
-    if (combatItemBonusBoost > 0) {
-      final amount = combatItemBonusBoost;
-      final cleanedStats = <BattlerStat, int>{
-        for (final entry in statModifiers.entries)
-          entry.key: max(0, entry.value - amount),
-      };
-      final cleanedAdjacencyBonuses = patternAdjacencyBonuses
-          .map(
-            (bonus) => OperativePatternAdjacencyBonus(
-              direction: bonus.direction,
-              requiredTag: bonus.requiredTag,
-              kind: bonus.kind,
-              amount: max(0, bonus.amount - amount),
-            ),
-          )
-          .toList(growable: false);
-      updatedItem = updatedItem.copyWith(
-        value: effect != null && value > amount ? value - amount : value,
-        statModifiers: cleanedStats,
-        patternBonusAmountOverride:
-            hasPatternBonus ? max(0, patternBonusAmount - amount) : null,
-        patternAdjacencyBonuses: cleanedAdjacencyBonuses,
-      );
-    }
-
-    if (combatGeneratedPatternBonus) {
-      updatedItem = updatedItem.copyWith(
-        clearPatternBonusKindOverride: true,
-        patternBonusAmountOverride: 0,
-        clearPatternRequirementOverride: true,
-      );
-    }
-
-    return updatedItem.copyWith(
-      hasPatternAura: false,
-      combatItemBonusBoost: 0,
-      combatGeneratedPatternBonus: false,
-    );
-  }
-
-  /// Avanza el contador global de instancias para no reutilizar ids tras restaurar una partida.
   static void syncInstanceSequenceFromExistingIds(
-      Iterable<String?> instanceIds) {
+    Iterable<String?> instanceIds,
+  ) {
     var nextSequence = _nextInstanceSequence;
-
     for (final instanceId in instanceIds) {
       if (instanceId == null) continue;
       final match = _ownedInstancePattern.firstMatch(instanceId);
       if (match == null) continue;
-
-      final parsedSequence = int.tryParse(match.group(1) ?? '');
-      if (parsedSequence == null) continue;
-      nextSequence = max(nextSequence, parsedSequence + 1);
+      final sequence = int.tryParse(match.group(1) ?? '');
+      if (sequence != null) nextSequence = max(nextSequence, sequence + 1);
     }
-
     _nextInstanceSequence = nextSequence;
   }
 
-  /// Recupera el preset canonico asociado al id estable del objeto.
-  static Item presetForId(ItemId id) {
-    final preset = itemPresetRegistry[id];
-    if (preset != null) {
-      return preset;
-    }
-
-    throw StateError('No existe preset para el objeto ${id.name}.');
+  static Item presetForKey(String catalogKey) {
+    final preset = itemPresetRegistry[catalogKey];
+    if (preset != null) return preset;
+    throw StateError('No item preset exists for $catalogKey.');
   }
 
-  /// Ajusta la rareza visual de objetos legacy segun sus mejoras acumuladas.
-  Item normalizeUpgradeTier() {
-    final preset = presetForId(id);
-    final inferredRarity = preset.rarity.advanceBy(upgradeCount);
-    if (rarity.index >= inferredRarity.index) return this;
-
-    return copyWith(
-      rarity: inferredRarity,
-    );
-  }
-
-  /// Devuelve una abreviatura estable para descripciones compactas de stats.
-  static String _statLabel(BattlerStat stat) {
-    switch (stat) {
-      case BattlerStat.health:
-        return 'HP';
-      case BattlerStat.attack:
-        return 'ATK';
-      case BattlerStat.barrier:
-        return 'Barrera';
-    }
-  }
-
-  /// Deduce si el bonus de patron debe empujar ataque o barrera.
-  ///
-  /// La decision combina modificadores planos, tags y categoria visible para que
-  /// los presets no tengan que configurar manualmente cada item.
-  OperativePatternBonusKind get _defaultPatternBonusKind {
-    final attackScore = max(0, modifier(BattlerStat.attack)) +
-        (hasTag(EntityTag.ataque) ? 1 : 0) +
-        (isWeaponLike ? 1 : 0);
-    final barrierScore = max(0, modifier(BattlerStat.barrier)) +
-        (hasTag(EntityTag.barrera) ? 1 : 0);
-
-    return attackScore > barrierScore
-        ? OperativePatternBonusKind.attack
-        : OperativePatternBonusKind.barrier;
-  }
-
-  /// Deduce el requisito de patron cuando el item no lo declara explicitamente.
-  ///
-  /// Primero respeta figuras exactas por id; despues usa listas curadas de
-  /// posicion; por ultimo aplica heuristicas por barrera, arma y rareza.
-  OperativePatternRequirement get _defaultPatternRequirement {
-    final exactRequirement = _exactPatternRequirementsByItemId[id];
-    if (exactRequirement != null) return exactRequirement;
-
-    if (_rightAnglePatternItemIds.contains(id)) {
-      return const OperativePatternRequirement.rightAngle();
-    }
-    if (_lastPointPatternItemIds.contains(id)) {
-      return const OperativePatternRequirement.last();
-    }
-    if (_firstPointPatternItemIds.contains(id)) {
-      return const OperativePatternRequirement.first();
-    }
-    if (hasTag(EntityTag.barrera)) {
-      return const OperativePatternRequirement.rightAngle();
-    }
-    if (isWeaponLike) {
-      return rarity.index >= RarityTier.blue.index
-          ? const OperativePatternRequirement.last()
-          : const OperativePatternRequirement.first();
-    }
-
-    return const OperativePatternRequirement.middle();
-  }
-
-  /// Compara objetos poseidos usando su id de instancia para no mezclar copias distintas.
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -998,7 +258,6 @@ class Item {
         other.instanceId == instanceId;
   }
 
-  /// Genera un hash estable para instancias propias y uno identitario para presets.
   @override
   int get hashCode => instanceId?.hashCode ?? identityHashCode(this);
 }

@@ -935,9 +935,12 @@ class _EnemyLoadoutPanel extends StatelessWidget {
                         statusText: statusText,
                       );
                     },
-                    child: EndpointText(
-                      item.iconEmoji,
-                      style: const TextStyle(fontSize: 24, height: 1),
+                    child: Image.asset(
+                      item.asset,
+                      width: 32,
+                      height: 32,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.none,
                     ),
                   ),
               ],

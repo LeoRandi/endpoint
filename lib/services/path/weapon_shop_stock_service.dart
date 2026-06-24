@@ -32,14 +32,14 @@ class WeaponShopStockService {
     Battler? player,
     int dayNumber = 1,
     List<Item> pool = itemPresets,
-    Set<ItemId> excludedItemIds = const <ItemId>{},
+    Set<String> excludedItemIds = const <String>{},
   }) {
     final itemPool = _deduplicateByItemType(pool);
     final maximumRarity = _maximumItemRarityFor(
       phase: phase,
       dayNumber: dayNumber,
     );
-    final availableItemIds = <ItemId>{};
+    final availableItemIds = <String>{};
 
     for (final rarity in RarityTier.values) {
       if (rarity.index > maximumRarity.index) continue;
@@ -51,7 +51,7 @@ class WeaponShopStockService {
         targetRarity: rarity,
         excludedItemIds: excludedItemIds,
       );
-      availableItemIds.addAll(candidates.map((item) => item.id));
+      availableItemIds.addAll(candidates.map((item) => item.catalogKey));
     }
 
     return availableItemIds.length;
@@ -64,7 +64,7 @@ class WeaponShopStockService {
     Battler? player,
     int dayNumber = 1,
     List<Item> pool = itemPresets,
-    Set<ItemId> excludedItemIds = const <ItemId>{},
+    Set<String> excludedItemIds = const <String>{},
     int stockSize = defaultStockSize,
   }) {
     if (stockSize <= 0) return const <Item>[];
@@ -75,7 +75,7 @@ class WeaponShopStockService {
       dayNumber: dayNumber,
     );
     final pickedItems = <Item>[];
-    final pickedItemIds = <ItemId>{...excludedItemIds};
+    final pickedItemIds = <String>{...excludedItemIds};
 
     while (pickedItems.length < stockSize) {
       final availableRarities = _availableStockRarities(
@@ -103,7 +103,7 @@ class WeaponShopStockService {
 
       final pickedItem = candidates[randomizer.nextInt(candidates.length)];
       pickedItems.add(pickedItem);
-      pickedItemIds.add(pickedItem.id);
+      pickedItemIds.add(pickedItem.catalogKey);
     }
 
     return List<Item>.unmodifiable(pickedItems);
@@ -127,11 +127,11 @@ class WeaponShopStockService {
   }
 
   List<Item> _deduplicateByItemType(Iterable<Item> items) {
-    final seenItemIds = <ItemId>{};
+    final seenItemIds = <String>{};
     final uniqueItems = <Item>[];
 
     for (final item in items) {
-      if (!seenItemIds.add(item.id)) continue;
+      if (!seenItemIds.add(item.catalogKey)) continue;
       uniqueItems.add(item);
     }
 
@@ -143,7 +143,7 @@ class WeaponShopStockService {
     required ShopInventoryCriterion criterion,
     required Battler? player,
     required RarityTier maximumRarity,
-    required Set<ItemId> excludedItemIds,
+    required Set<String> excludedItemIds,
   }) {
     final availableRarities = <RarityTier>[];
 
@@ -170,12 +170,12 @@ class WeaponShopStockService {
     required ShopInventoryCriterion criterion,
     required Battler? player,
     required RarityTier targetRarity,
-    required Set<ItemId> excludedItemIds,
+    required Set<String> excludedItemIds,
   }) {
-    final candidatesById = <ItemId, Item>{};
+    final candidatesById = <String, Item>{};
 
     for (final item in items) {
-      if (excludedItemIds.contains(item.id)) continue;
+      if (excludedItemIds.contains(item.catalogKey)) continue;
 
       final promotedItem =
           _runtimeService.promoteItemToExactRarity(item, targetRarity);
@@ -185,7 +185,7 @@ class WeaponShopStockService {
         continue;
       }
 
-      candidatesById.putIfAbsent(promotedItem.id, () => promotedItem);
+      candidatesById.putIfAbsent(promotedItem.catalogKey, () => promotedItem);
     }
 
     return List<Item>.unmodifiable(candidatesById.values);
@@ -200,7 +200,7 @@ class WeaponShopStockService {
     final ownedItems = [
       ...player.equippedItems,
       ...player.inventoryItems,
-    ].where((ownedItem) => ownedItem.id == item.id);
+    ].where((ownedItem) => ownedItem.catalogKey == item.catalogKey);
     if (ownedItems.isEmpty) return true;
 
     return ownedItems.any(

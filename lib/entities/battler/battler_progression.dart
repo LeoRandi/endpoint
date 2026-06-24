@@ -19,7 +19,6 @@ extension BattlerProgression on Battler {
 
     final previousMoney = money;
     return copyWith(money: money + safeAmount)
-        ._applyCreditGainItemEffects(safeAmount)
         ._applyCreditGainAbilityEffects(previousMoney: previousMoney);
   }
 
@@ -54,7 +53,6 @@ extension BattlerProgression on Battler {
       );
     }
 
-    updatedBattler = updatedBattler._applyCreditSpendItemEffects(paidAmount);
     if (applyItemPaymentAbilities) {
       updatedBattler =
           updatedBattler._applyCreditSpendAbilityEffects(paidAmount);
@@ -126,18 +124,6 @@ extension BattlerProgression on Battler {
     return updatedPlayer;
   }
 
-  /// Dispara efectos de items que reaccionan cuando el jugador gana creditos.
-  Battler _applyCreditGainItemEffects(int amount) {
-    if (amount <= 0 || equippedItems.isEmpty) return this;
-
-    var updatedBattler = this;
-    for (final item in equippedItems) {
-      if (item.id != ItemId.selloMercante) continue;
-      updatedBattler = updatedBattler.heal(max(1, item.value));
-    }
-    return updatedBattler;
-  }
-
   /// Dispara habilidades que reaccionan al cruzar umbrales de creditos ganados.
   ///
   /// Actualmente `franquiciaTotal` se activa una sola vez por combate al llegar
@@ -198,57 +184,6 @@ extension BattlerProgression on Battler {
     );
   }
 
-  /// Dispara items equipados que reaccionan cuando se gastan creditos.
-  ///
-  /// Cada item conserva sus propios limites mediante flags de combate para que
-  /// multiples copias no compartan accidentalmente usos.
-  Battler _applyCreditSpendItemEffects(int paidAmount) {
-    if (paidAmount <= 0 ||
-        equippedItems.isEmpty ||
-        !combatFlags.contains(Battler.combatActiveFlag)) {
-      return this;
-    }
-
-    var updatedBattler = this;
-    for (final item in equippedItems) {
-      switch (item.id) {
-        case ItemId.laCuenta:
-          final uses = updatedBattler.itemCombatFlagUseCount(
-            item: item,
-            kind: ItemCombatFlagKind.laCuentaSpendTriggered,
-          );
-          if (uses >= max(1, item.value)) break;
-          updatedBattler = updatedBattler
-              .addItemCombatFlagUse(
-                item: item,
-                kind: ItemCombatFlagKind.laCuentaSpendTriggered,
-              )
-              .addItemCombatFlagUse(
-                item: item,
-                kind: ItemCombatFlagKind.laCuentaPendingAttackBonus,
-              );
-          break;
-        case ItemId.bolsoR33m:
-          final uses = updatedBattler.itemCombatFlagUseCount(
-            item: item,
-            kind: ItemCombatFlagKind.bolsoR33mRefundedSpend,
-          );
-          if (uses >= max(1, item.value)) break;
-          updatedBattler = updatedBattler
-              .addItemCombatFlagUse(
-                item: item,
-                kind: ItemCombatFlagKind.bolsoR33mRefundedSpend,
-              )
-              .copyWith(money: updatedBattler.money + paidAmount)
-              ._applyCreditGainItemEffects(paidAmount);
-          break;
-        default:
-          break;
-      }
-    }
-    return updatedBattler;
-  }
-
   /// Reemplaza una instancia equipada conservando la posicion visual del equipo.
   Battler _replaceEquippedItemForCreditAbility({
     required Item currentItem,
@@ -272,31 +207,13 @@ extension BattlerProgression on Battler {
     required Item item,
     required int amount,
   }) {
-    final statModifiers = Map<BattlerStat, int>.from(item.statModifiers);
-    for (final entry in item.statModifiers.entries) {
-      if (entry.value <= 0) continue;
-      statModifiers[entry.key] = entry.value + amount;
-    }
-
-    final adjacencyBonuses = item.patternAdjacencyBonuses
-        .map(
-          (bonus) => OperativePatternAdjacencyBonus(
-            direction: bonus.direction,
-            requiredTag: bonus.requiredTag,
-            kind: bonus.kind,
-            amount: bonus.amount + amount,
-          ),
-        )
-        .toList(growable: false);
-
     return item.copyWith(
-      value: item.effect != null && item.value > 0 ? item.value + amount : null,
-      statModifiers: statModifiers,
-      patternBonusAmountOverride:
-          item.hasPatternBonus ? item.patternBonusAmount + amount : null,
-      patternAdjacencyBonuses: adjacencyBonuses,
-      hasPatternAura: true,
-      combatItemBonusBoost: item.combatItemBonusBoost + amount,
+      effects: <Effect, int>{
+        for (final entry in item.effects.entries)
+          entry.key.value > 0
+              ? entry.key.withValue(entry.key.value + amount)
+              : entry.key: entry.value,
+      },
     );
   }
 }

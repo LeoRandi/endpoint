@@ -16,13 +16,13 @@ class CatalogRuntimeService {
     return template.toRuntimeInstance(forceNewInstance: forceNewInstance);
   }
 
-  /// Resuelve un item por id y lo materializa como copia runtime propia.
-  Item runtimeItemForId(
-    ItemId id, {
+  /// Resuelve un item por clave de catalogo y lo materializa como copia runtime.
+  Item runtimeItemForKey(
+    String catalogKey, {
     bool forceNewInstance = false,
   }) {
     return runtimeItem(
-      Item.presetForId(id),
+      Item.presetForKey(catalogKey),
       forceNewInstance: forceNewInstance,
     );
   }

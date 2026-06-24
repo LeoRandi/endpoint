@@ -60,8 +60,8 @@ extension RewardPathEventHandler on PathEventService {
             ability == null ? null : updatedPlayer.abilityById(ability.id),
         gainedItem: item == null
             ? null
-            : updatedPlayer.inventoryItemOfType(item.id) ??
-                updatedPlayer.equippedItemOfType(item.id) ??
+            : updatedPlayer.inventoryItemOfType(item.catalogKey) ??
+                updatedPlayer.equippedItemOfType(item.catalogKey) ??
                 item,
       );
     }
@@ -89,8 +89,8 @@ extension RewardPathEventHandler on PathEventService {
           ability == null ? null : updatedPlayer.abilityById(ability.id),
       gainedItem: item == null
           ? null
-          : updatedPlayer.inventoryItemOfType(item.id) ??
-              updatedPlayer.equippedItemOfType(item.id) ??
+          : updatedPlayer.inventoryItemOfType(item.catalogKey) ??
+              updatedPlayer.equippedItemOfType(item.catalogKey) ??
               item,
     );
   }
@@ -111,12 +111,13 @@ extension RewardPathEventHandler on PathEventService {
       dayNumber: dayNumber + 1,
     );
     final selectedItems = <Item>[];
-    final selectedItemIds = <ItemId>{};
+    final selectedItemIds = <String>{};
     for (final rarity in _rarityFallbacksFrom(targetRarity)) {
       final candidates = pool
           .where(
             (item) =>
-                item.rarity == rarity && !selectedItemIds.contains(item.id),
+                item.rarity == rarity &&
+                !selectedItemIds.contains(item.catalogKey),
           )
           .toList(growable: false);
       if (candidates.isEmpty) continue;
@@ -126,7 +127,7 @@ extension RewardPathEventHandler on PathEventService {
         min(count - selectedItems.length, candidates.length),
       );
       selectedItems.addAll(pickedItems);
-      selectedItemIds.addAll(pickedItems.map((item) => item.id));
+      selectedItemIds.addAll(pickedItems.map((item) => item.catalogKey));
       if (selectedItems.length >= count) {
         return List<Item>.unmodifiable(selectedItems.take(count));
       }
@@ -136,7 +137,7 @@ extension RewardPathEventHandler on PathEventService {
   }
 
   int tintoreriaFantasmaPriceFor(Item item) {
-    return max(item.cost, item.rarity.factor * 5);
+    return max(item.baseCost, item.tier.factor * 5);
   }
 
   PathEventVisitResult resolveTintoreriaFantasmaBorrow({

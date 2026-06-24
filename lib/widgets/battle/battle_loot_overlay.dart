@@ -379,8 +379,11 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           tags: _itemRewards[index].item.tags,
                           accent: _itemRewards[index].item.rarity.accent,
                           emoji: _itemRewards[index].item.iconEmoji,
+                          imageAsset: _itemRewards[index].item.asset,
                           sourceEmoji:
                               _itemRewards[index].sourceItem?.iconEmoji,
+                          sourceImageAsset:
+                              _itemRewards[index].sourceItem?.asset,
                           sourceTooltip: _itemRewards[index].sourceItem == null
                               ? null
                               : 'Generado por ${_itemRewards[index].sourceItem!.displayName}',
@@ -475,7 +478,9 @@ class _BattleLootRewardCard extends StatelessWidget {
   final Iterable<EntityTag> tags;
   final Color accent;
   final String? emoji;
+  final String? imageAsset;
   final String? sourceEmoji;
+  final String? sourceImageAsset;
   final String? sourceTooltip;
   final IconData? icon;
   final bool isCollected;
@@ -499,7 +504,9 @@ class _BattleLootRewardCard extends StatelessWidget {
     required this.onPressed,
     this.isEnabled = true,
     this.emoji,
+    this.imageAsset,
     this.sourceEmoji,
+    this.sourceImageAsset,
     this.sourceTooltip,
     this.icon,
   });
@@ -519,10 +526,11 @@ class _BattleLootRewardCard extends StatelessWidget {
             _BattleLootRewardLead(
               accent: accent,
               emoji: emoji,
+              imageAsset: imageAsset,
               icon: icon,
               isCollected: isCollected,
             ),
-            if (sourceEmoji != null)
+            if (sourceEmoji != null || sourceImageAsset != null)
               Positioned(
                 right: -5,
                 bottom: -5,
@@ -539,15 +547,16 @@ class _BattleLootRewardCard extends StatelessWidget {
                       ),
                     ),
                     alignment: Alignment.center,
-                    child: EndpointText(
-                      sourceEmoji!,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isCollected
-                            ? Colors.white.withValues(alpha: 0.56)
-                            : null,
-                      ),
-                    ),
+                    child: sourceImageAsset == null
+                        ? EndpointText(
+                            sourceEmoji ?? '',
+                            style: const TextStyle(fontSize: 10),
+                          )
+                        : Image.asset(
+                            sourceImageAsset!,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.none,
+                          ),
                   ),
                 ),
               ),
@@ -641,6 +650,7 @@ class _BattleLootRewardCard extends StatelessWidget {
 class _BattleLootRewardLead extends StatelessWidget {
   final Color accent;
   final String? emoji;
+  final String? imageAsset;
   final IconData? icon;
   final bool isCollected;
 
@@ -648,6 +658,7 @@ class _BattleLootRewardLead extends StatelessWidget {
     required this.accent,
     required this.isCollected,
     this.emoji,
+    this.imageAsset,
     this.icon,
   });
 
@@ -664,21 +675,29 @@ class _BattleLootRewardLead extends StatelessWidget {
         ),
       ),
       alignment: Alignment.center,
-      child: emoji != null
-          ? EndpointText(
-              emoji!,
-              style: TextStyle(
-                fontSize: 18,
-                color:
-                    isCollected ? Colors.white.withValues(alpha: 0.56) : null,
-              ),
+      child: imageAsset != null
+          ? Image.asset(
+              imageAsset!,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.none,
             )
-          : Icon(
-              icon,
-              size: 18,
-              color:
-                  isCollected ? Colors.white.withValues(alpha: 0.56) : accent,
-            ),
+          : emoji != null
+              ? EndpointText(
+                  emoji!,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: isCollected
+                        ? Colors.white.withValues(alpha: 0.56)
+                        : null,
+                  ),
+                )
+              : Icon(
+                  icon,
+                  size: 18,
+                  color: isCollected
+                      ? Colors.white.withValues(alpha: 0.56)
+                      : accent,
+                ),
     );
   }
 }

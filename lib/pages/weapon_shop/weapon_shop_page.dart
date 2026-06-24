@@ -708,6 +708,7 @@ class _ShopOfferRow extends StatelessWidget {
                 _ItemIconBox(
                   accent: itemAccent,
                   emoji: item.iconEmoji,
+                  imageAsset: item.asset,
                   size: 42,
                 ),
                 const SizedBox(width: 8),
@@ -978,9 +979,12 @@ class _OwnedShopTile extends StatelessWidget {
               children: [
                 Expanded(
                   child: Center(
-                    child: EndpointText(
-                      item.iconEmoji,
-                      style: const TextStyle(fontSize: 20, height: 1),
+                    child: Image.asset(
+                      item.asset,
+                      width: 32,
+                      height: 32,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.none,
                     ),
                   ),
                 ),
@@ -1000,11 +1004,13 @@ class _OwnedShopTile extends StatelessWidget {
 class _ItemIconBox extends StatelessWidget {
   final Color accent;
   final String emoji;
+  final String imageAsset;
   final double size;
 
   const _ItemIconBox({
     required this.accent,
     required this.emoji,
+    required this.imageAsset,
     required this.size,
   });
 
@@ -1019,9 +1025,12 @@ class _ItemIconBox extends StatelessWidget {
         border: Border.all(color: accent.withValues(alpha: 0.7)),
       ),
       alignment: Alignment.center,
-      child: EndpointText(
-        emoji,
-        style: TextStyle(fontSize: size * 0.45, height: 1),
+      child: Image.asset(
+        imageAsset,
+        width: size * 0.8,
+        height: size * 0.8,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.none,
       ),
     );
   }

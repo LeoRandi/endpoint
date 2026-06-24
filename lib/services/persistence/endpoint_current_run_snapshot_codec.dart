@@ -14,6 +14,7 @@ import 'endpoint_json_utils.dart';
 import 'endpoint_preferences_models.dart';
 
 abstract final class EndpointCurrentRunSnapshotCodec {
+  static const int schemaVersion = 6;
   static const JsonEncoder _jsonEncoder = JsonEncoder.withIndent('  ');
 
   static String encode({
@@ -25,7 +26,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
     PathNode? activeNode,
   }) {
     final payload = <String, Object?>{
-      'schemaVersion': 5,
+      'schemaVersion': schemaVersion,
       'savedAt': DateTime.now().toUtc().toIso8601String(),
       'trigger': trigger,
       'run': <String, Object?>{
@@ -69,6 +70,10 @@ abstract final class EndpointCurrentRunSnapshotCodec {
     final decoded = jsonDecode(rawValue);
     final rootJson = EndpointJsonUtils.asJsonMap(decoded);
     if (rootJson == null) return null;
+    if (EndpointJsonUtils.readInt(rootJson['schemaVersion'], fallback: -1) !=
+        schemaVersion) {
+      return null;
+    }
 
     final runJson = EndpointJsonUtils.asJsonMap(rootJson['run']);
     if (runJson == null) return null;

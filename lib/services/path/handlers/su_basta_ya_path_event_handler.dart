@@ -14,7 +14,7 @@ extension SuBastaYaPathEventHandler on PathEventService {
   }
 
   int suBastaYaAuctionPriceFor(Item item) {
-    return max(item.cost, item.sellValue * 3);
+    return max(item.baseCost, item.sellValue * 3);
   }
 
   Map<BattlerStat, int> suBastaYaStatRewardFor({

@@ -310,100 +310,46 @@ BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
 }
 
 Item? _deserializeItem(Map<String, dynamic> json) {
-  final itemId = EndpointJsonUtils.parseEnumByName(ItemId.values, json['id']);
-  if (itemId == null) return null;
+  final name = EndpointJsonUtils.readString(json['name'], fallback: '').trim();
+  if (name.isEmpty) return null;
 
-  final preset = Item.presetForId(itemId);
+  final effects = <Effect, int>{};
+  for (final effectJson in EndpointJsonUtils.readJsonMapList(json['effects'])) {
+    final effect = _deserializeEffect(effectJson);
+    if (effect == null) continue;
+    effects[effect] = EndpointJsonUtils.readInt(
+      effectJson['upgradeValue'],
+      fallback: 0,
+    );
+  }
+
   final instanceId = EndpointJsonUtils.readNullableString(json['instanceId']);
-  var item = preset.copyWith(
-    archetypeAffinities: _deserializeItemArchetypeAffinities(
-      json['archetypeAffinities'],
-      fallback: preset.archetypeAffinities,
-    ),
-    name: EndpointJsonUtils.readString(
-      json['name'],
-      fallback: preset.name,
-    ),
-    description: EndpointJsonUtils.readString(
-      json['description'],
-      fallback: preset.description,
-    ),
-    iconEmoji: EndpointJsonUtils.readString(
-      json['iconEmoji'],
-      fallback: preset.iconEmoji,
-    ),
-    rarity:
-        EndpointJsonUtils.parseEnumByName(RarityTier.values, json['rarity']) ??
-            preset.rarity,
-    baseCost: EndpointJsonUtils.readInt(
-      json['baseCost'],
-      fallback: preset.baseCost,
-    ),
-    sellValueBonus: EndpointJsonUtils.readInt(
-      json['sellValueBonus'],
-      fallback: preset.sellValueBonus,
-    ),
-    value: EndpointJsonUtils.readInt(
-      json['value'],
-      fallback: preset.value,
-    ),
-    upgradeValue: EndpointJsonUtils.readInt(
-      json['upgradeValue'],
-      fallback: preset.upgradeValue,
-    ),
-    incomePerValueUnit: EndpointJsonUtils.readInt(
-      json['incomePerValueUnit'],
-      fallback: preset.incomePerValueUnit,
-    ),
-    maxHealthPercentPerValueUnit: EndpointJsonUtils.readInt(
-      json['maxHealthPercentPerValueUnit'],
-      fallback: preset.maxHealthPercentPerValueUnit,
-    ),
-    statModifiers: _deserializeStatMap(
-      json['statModifiers'],
-      fallback: preset.statModifiers,
-    ),
-    upgradeStatModifiers: _deserializeStatMap(
-      json['upgradeStatModifiers'],
-      fallback: preset.upgradeStatModifiers,
-    ),
-    actionType: EndpointJsonUtils.parseEnumByName(
-          ItemActionType.values,
-          json['actionType'],
+  var item = Item(
+    name: name,
+    description:
+        EndpointJsonUtils.readString(json['description'], fallback: ''),
+    affinity: EndpointJsonUtils.parseEnumByName(
+          ItemArchetypeAffinity.values,
+          json['affinity'],
         ) ??
-        preset.actionType,
-    actionValue: EndpointJsonUtils.readInt(
-      json['actionValue'],
-      fallback: preset.actionValue,
+        ItemArchetypeAffinity.general,
+    tier: EndpointJsonUtils.parseEnumByName(
+          RarityTier.values,
+          json['tier'],
+        ) ??
+        RarityTier.gray,
+    baseCost: EndpointJsonUtils.readInt(json['baseCost'], fallback: 0),
+    sellValue: EndpointJsonUtils.readInt(json['sellValue'], fallback: 0),
+    tags: _deserializeItemTags(json['tags']),
+    asset: EndpointJsonUtils.readString(
+      json['asset'],
+      fallback: itemAssetPool.first,
     ),
+    effects: Map<Effect, int>.unmodifiable(effects),
     instanceId: instanceId,
-    patternBonusKindOverride: EndpointJsonUtils.parseEnumByName(
-      OperativePatternBonusKind.values,
-      json['patternBonusKind'],
-    ),
-    patternBonusAmountOverride: EndpointJsonUtils.readNullableInt(
-      json['patternBonusAmount'],
-    ),
-    patternRequirementOverride: _deserializePatternRequirement(json),
-    hasPatternAura: EndpointJsonUtils.readBool(
-      json['hasPatternAura'],
-      fallback: preset.hasPatternAura,
-    ),
     isGhostly: EndpointJsonUtils.readBool(
       json['isGhostly'],
-      fallback: preset.isGhostly,
-    ),
-    combatItemBonusBoost: EndpointJsonUtils.readInt(
-      json['combatItemBonusBoost'],
-      fallback: preset.combatItemBonusBoost,
-    ),
-    combatGeneratedPatternBonus: EndpointJsonUtils.readBool(
-      json['combatGeneratedPatternBonus'],
-      fallback: preset.combatGeneratedPatternBonus,
-    ),
-    patternAdjacencyBonuses: _deserializePatternAdjacencyBonuses(
-      json['patternAdjacencyBonuses'],
-      fallback: preset.patternAdjacencyBonuses,
+      fallback: false,
     ),
   );
 
@@ -413,7 +359,7 @@ Item? _deserializeItem(Map<String, dynamic> json) {
     item = item.toRuntimeInstance();
   }
 
-  return item.normalizeUpgradeTier();
+  return item;
 }
 
 CombatRuntimeFlag? _deserializeCombatFlag(Map<String, dynamic> json) {
@@ -422,24 +368,27 @@ CombatRuntimeFlag? _deserializeCombatFlag(Map<String, dynamic> json) {
     json['battlerFlag'],
   );
   if (battlerFlag != null) {
-    return CombatRuntimeFlag.battler(battlerFlag);
+    return CombatRuntimeFlag.battler(
+      battlerFlag,
+      value: EndpointJsonUtils.readNullableInt(json['value']),
+      secondaryValue: EndpointJsonUtils.readNullableInt(
+        json['secondaryValue'],
+      ),
+    );
   }
 
-  final itemFlag = EndpointJsonUtils.parseEnumByName(
-    ItemCombatFlagKind.values,
-    json['itemFlag'],
-  );
-  final itemId = EndpointJsonUtils.parseEnumByName(
-    ItemId.values,
-    json['itemId'],
-  );
-  if (itemFlag == null || itemId == null) return null;
+  final itemEffectKey =
+      EndpointJsonUtils.readNullableString(json['itemEffectKey']);
+  final itemKey = EndpointJsonUtils.readNullableString(json['itemKey']);
+  if (itemEffectKey == null || itemKey == null) return null;
 
   return CombatRuntimeFlag.item(
-    itemFlag: itemFlag,
-    itemId: itemId,
+    itemEffectKey: itemEffectKey,
+    itemKey: itemKey,
     itemInstanceId:
         EndpointJsonUtils.readNullableString(json['itemInstanceId']),
+    value: EndpointJsonUtils.readNullableInt(json['value']),
+    secondaryValue: EndpointJsonUtils.readNullableInt(json['secondaryValue']),
   );
 }
 
@@ -483,70 +432,130 @@ Map<String, Object?> _serializeStatus(BattlerStatus status) {
 
 Map<String, Object?> _serializeItem(Item item) {
   return {
-    'id': item.id.name,
-    'archetypeAffinities': item.archetypeAffinities
-        .map((affinity) => affinity.name)
+    'name': item.name,
+    'description': item.description,
+    'affinity': item.affinity.name,
+    'tier': item.tier.name,
+    'baseCost': item.baseCost,
+    'sellValue': item.sellValue,
+    'tags': item.tags.map((tag) => tag.name).toList(growable: false),
+    'asset': item.asset,
+    'effects': item.effects.entries
+        .map<Map<String, Object?>?>((entry) => _serializeEffectEntry(
+              entry.key,
+              entry.value,
+            ))
+        .whereType<Map<String, Object?>>()
         .toList(growable: false),
     'instanceId': item.instanceId,
-    'name': item.name,
-    'displayName': item.displayName,
-    'description': item.description,
-    'iconEmoji': item.iconEmoji,
-    'rarity': item.rarity.name,
-    'baseCost': item.baseCost,
-    'sellValueBonus': item.sellValueBonus,
-    'value': item.value,
-    'upgradeValue': item.upgradeValue,
-    'upgradeCount': item.upgradeCount,
-    'incomePerValueUnit': item.incomePerValueUnit,
-    'incomeModifier': item.incomeModifier,
-    'maxHealthPercentPerValueUnit': item.maxHealthPercentPerValueUnit,
-    'maxHealthPercentModifier': item.maxHealthPercentModifier,
-    'statModifiers': _serializeStatMap(item.statModifiers),
-    'upgradeStatModifiers': _serializeStatMap(item.upgradeStatModifiers),
-    'hasEffect': item.hasEffect,
-    'actionType': item.actionType.name,
-    'actionValue': item.actionValue,
-    'hasPatternBonus': item.hasPatternBonus,
-    'patternBonusKind':
-        item.hasPatternBonus ? item.patternBonusKind.name : null,
-    'patternBonusAmount': item.patternBonusAmount,
-    'hasPatternAura': item.hasPatternAura,
-    'combatItemBonusBoost': item.combatItemBonusBoost,
-    'combatGeneratedPatternBonus': item.combatGeneratedPatternBonus,
-    'patternRequirementKind':
-        item.hasPatternBonus ? item.patternRequirement.kind.name : null,
-    'patternRequirementShapeKind':
-        item.hasPatternBonus ? item.patternRequirement.shapeKind.name : null,
     'isGhostly': item.isGhostly,
-    'patternRequirementShape': item.hasPatternBonus
-        ? item.patternRequirement.shapePoints
-            .map((point) => point.key)
-            .toList(growable: false)
-        : const <String>[],
-    'patternAdjacencyBonuses': item.patternAdjacencyBonuses
-        .map<Map<String, Object?>>(_serializePatternAdjacencyBonus)
+  };
+}
+
+Map<String, Object?>? _serializeEffectEntry(
+  Effect effect,
+  int upgradeValue,
+) {
+  final serialized = switch (effect) {
+    ActionEffect action => <String, Object?>{
+        'type': 'action',
+        ..._serializeActionEffect(action),
+      },
+    PatternEffect pattern => <String, Object?>{
+        'type': 'pattern',
+        'pattern': _serializePatternRequirement(pattern.patternType),
+        'action': _serializeActionEffect(pattern.actionEffect),
+      },
+    PassiveEffect passive => <String, Object?>{
+        'type': 'passive',
+        'hook': passive.hook.name,
+        'description': passive.description,
+        'value': passive.value,
+      },
+  };
+  return <String, Object?>{
+    ...serialized,
+    'upgradeValue': upgradeValue,
+  };
+}
+
+Map<String, Object?> _serializeActionEffect(ActionEffect effect) {
+  return {
+    'actionType': effect.actionType.name,
+    'description': effect.description,
+    'customEffectKey': effect.customEffectKey,
+    'value': effect.value,
+  };
+}
+
+Effect? _deserializeEffect(Map<String, dynamic> json) {
+  switch (EndpointJsonUtils.readString(json['type'], fallback: '')) {
+    case 'action':
+      return _deserializeActionEffect(json);
+    case 'pattern':
+      final pattern = _deserializePatternRequirement(json['pattern']);
+      final actionJson = EndpointJsonUtils.asJsonMap(json['action']);
+      final action =
+          actionJson == null ? null : _deserializeActionEffect(actionJson);
+      if (pattern == null || action == null) return null;
+      return PatternEffect(patternType: pattern, actionEffect: action);
+    case 'passive':
+      final hook = EndpointJsonUtils.parseEnumByName(
+        ItemEffectHook.values,
+        json['hook'],
+      );
+      final description =
+          EndpointJsonUtils.readString(json['description'], fallback: '');
+      if (hook == null || description.isEmpty) return null;
+      return PassiveEffect(
+        hook: hook,
+        description: description,
+        value: EndpointJsonUtils.readInt(json['value'], fallback: 0),
+      );
+    default:
+      return null;
+  }
+}
+
+ActionEffect? _deserializeActionEffect(Map<String, dynamic> json) {
+  final actionType = EndpointJsonUtils.parseEnumByName(
+    ItemActionType.values,
+    json['actionType'],
+  );
+  if (actionType == null) return null;
+  final description = EndpointJsonUtils.readNullableString(json['description']);
+  final customEffectKey =
+      EndpointJsonUtils.readNullableString(json['customEffectKey']);
+  if (actionType == ItemActionType.none &&
+      (description == null || customEffectKey == null)) {
+    return null;
+  }
+  return ActionEffect(
+    actionType: actionType,
+    description: description,
+    customEffectKey: customEffectKey,
+    value: EndpointJsonUtils.readInt(json['value'], fallback: 0),
+  );
+}
+
+Map<String, Object?> _serializePatternRequirement(
+  OperativePatternRequirement requirement,
+) {
+  return {
+    'kind': requirement.kind.name,
+    'shapeKind': requirement.shapeKind.name,
+    'shape': requirement.shapePoints
+        .map((point) => point.key)
         .toList(growable: false),
   };
 }
 
-Map<String, Object?> _serializePatternAdjacencyBonus(
-  OperativePatternAdjacencyBonus adjacencyBonus,
-) {
-  return {
-    'direction': adjacencyBonus.direction.name,
-    'requiredTag': adjacencyBonus.requiredTag.name,
-    'bonusKind': adjacencyBonus.bonus.kind.name,
-    'amount': adjacencyBonus.bonus.amount,
-  };
-}
-
-OperativePatternRequirement? _deserializePatternRequirement(
-  Map<String, dynamic> json,
-) {
+OperativePatternRequirement? _deserializePatternRequirement(Object? rawValue) {
+  final json = EndpointJsonUtils.asJsonMap(rawValue);
+  if (json == null) return null;
   final kind = EndpointJsonUtils.parseEnumByName(
     OperativePatternRequirementKind.values,
-    json['patternRequirementKind'],
+    json['kind'],
   );
   if (kind == null) return null;
 
@@ -563,7 +572,7 @@ OperativePatternRequirement? _deserializePatternRequirement(
       return const OperativePatternRequirement.straightAngle();
     case OperativePatternRequirementKind.exactShape:
       final shapePoints = _deserializePatternPointList(
-        json['patternRequirementShape'],
+        json['shape'],
       );
       if (shapePoints.length < 3 ||
           shapePoints.length >
@@ -575,26 +584,11 @@ OperativePatternRequirement? _deserializePatternRequirement(
         shapePoints: shapePoints,
         shapeKind: EndpointJsonUtils.parseEnumByName(
               OperativePatternShapeKind.values,
-              json['patternRequirementShapeKind'],
+              json['shapeKind'],
             ) ??
-            _inferPatternShapeKindFromLabel(
-              EndpointJsonUtils.readNullableString(
-                json['patternRequirementLabel'],
-              ),
-            ),
+            OperativePatternShapeKind.literal,
       );
   }
-}
-
-OperativePatternShapeKind _inferPatternShapeKindFromLabel(String? label) {
-  final normalized = label?.toLowerCase().replaceAll(' ', '') ?? '';
-  if (normalized.contains('cuadrado')) return OperativePatternShapeKind.square;
-  if (normalized.contains('diamante')) return OperativePatternShapeKind.diamond;
-  if (normalized.contains('relojarena')) {
-    return OperativePatternShapeKind.hourglass;
-  }
-  if (normalized.contains('zigzag')) return OperativePatternShapeKind.zigzag;
-  return OperativePatternShapeKind.literal;
 }
 
 List<OperativePatternPoint> _deserializePatternPointList(Object? rawValue) {
@@ -614,79 +608,25 @@ List<OperativePatternPoint> _deserializePatternPointList(Object? rawValue) {
   return List<OperativePatternPoint>.unmodifiable(points);
 }
 
-List<OperativePatternAdjacencyBonus> _deserializePatternAdjacencyBonuses(
-  Object? rawValue, {
-  required List<OperativePatternAdjacencyBonus> fallback,
-}) {
-  if (rawValue is! List) return fallback;
-
-  final bonuses = <OperativePatternAdjacencyBonus>[];
-  for (final entry in rawValue) {
-    if (entry is! Map) continue;
-    final json = Map<String, dynamic>.from(entry);
-    final direction = EndpointJsonUtils.parseEnumByName(
-      OperativePatternAdjacencyDirection.values,
-      json['direction'],
-    );
-    final requiredTag = EndpointJsonUtils.parseEnumByName(
-      EntityTag.values,
-      json['requiredTag'],
-    );
-    final bonusKind = EndpointJsonUtils.parseEnumByName(
-      OperativePatternBonusKind.values,
-      json['bonusKind'],
-    );
-    final amount = EndpointJsonUtils.readInt(
-      json['amount'],
-      fallback: 1,
-    );
-    if (direction == null || requiredTag == null || bonusKind == null) {
-      continue;
-    }
-
-    bonuses.add(
-      OperativePatternAdjacencyBonus.match(
-        direction,
-        requiredTag,
-        bonusKind,
-        amount < 1 ? 1 : amount,
-      ),
-    );
-  }
-
-  return List<OperativePatternAdjacencyBonus>.unmodifiable(bonuses);
-}
-
-List<ItemArchetypeAffinity> _deserializeItemArchetypeAffinities(
-  Object? rawValue, {
-  required List<ItemArchetypeAffinity> fallback,
-}) {
-  if (rawValue is! List) {
-    return List<ItemArchetypeAffinity>.unmodifiable(fallback);
-  }
-
-  final parsedAffinities = rawValue
-      .map<ItemArchetypeAffinity?>(
-        (entry) => EndpointJsonUtils.parseEnumByName(
-          ItemArchetypeAffinity.values,
-          entry,
-        ),
-      )
-      .whereType<ItemArchetypeAffinity>()
-      .toList(growable: false);
-  if (parsedAffinities.isEmpty) {
-    return List<ItemArchetypeAffinity>.unmodifiable(fallback);
-  }
-
-  return List<ItemArchetypeAffinity>.unmodifiable(parsedAffinities);
+List<EntityTag> _deserializeItemTags(Object? rawValue) {
+  if (rawValue is! List) return const <EntityTag>[];
+  return List<EntityTag>.unmodifiable(
+    rawValue
+        .map<EntityTag?>(
+          (value) => EndpointJsonUtils.parseEnumByName(EntityTag.values, value),
+        )
+        .whereType<EntityTag>(),
+  );
 }
 
 Map<String, Object?> _serializeCombatFlag(CombatRuntimeFlag flag) {
   return {
     'battlerFlag': flag.battlerFlag?.name,
-    'itemFlag': flag.itemFlag?.name,
-    'itemId': flag.itemId?.name,
+    'itemEffectKey': flag.itemEffectKey,
+    'itemKey': flag.itemKey,
     'itemInstanceId': flag.itemInstanceId,
+    'value': flag.value,
+    'secondaryValue': flag.secondaryValue,
   };
 }
 

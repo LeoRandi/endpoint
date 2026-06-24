@@ -477,118 +477,79 @@ class BattleController extends ChangeNotifier {
     required int blockModifier,
     required int healModifier,
   }) async {
-    var currentAttackModifier = attackModifier;
-    var currentBlockModifier = blockModifier;
-    for (final pointKey in pattern.usedItemPointKeys) {
-      final item = _itemAtPatternPoint(owner: _player, pointKey: pointKey);
-      if (item == null || item.actionType != ItemActionType.none) continue;
-
-      final playerBeforeUse = _player;
-      final enemyBeforeUse = _enemy;
-      final useResolution = _player.applyEquippedItemPatternUsedEffect(
-        opponent: _enemy,
-        item: item,
-        pattern: pattern,
-      );
-      await _playCombatStateTransitionAnimations(
-        playerBefore: playerBeforeUse,
-        enemyBefore: enemyBeforeUse,
-        playerAfter: useResolution.owner,
-        enemyAfter: useResolution.opponent,
-      );
-      if (_isDisposed || !canUseActions) return true;
-      _player = useResolution.owner;
-      _enemy = useResolution.opponent;
-      currentAttackModifier += useResolution.attackBonusDelta;
-      currentBlockModifier += useResolution.barrierBonusDelta;
-
-      final finish = _turnEngine.finishFor(player: _player, enemy: _enemy);
-      if (finish != null) {
-        _finishCombat(
-          resultType: finish.resultType,
-          resultText: finish.resultText,
-        );
-        return true;
-      }
-    }
-
     for (final pointKey in pattern.usedItemPointKeys) {
       final item = _itemAtPatternPoint(owner: _player, pointKey: pointKey);
       if (item == null) continue;
-      if (item.actionType == ItemActionType.none) continue;
-
-      switch (item.actionType) {
-        case ItemActionType.attack:
-          final attackerBefore = _player;
-          final defenderBefore = _enemy;
-          final attackResolution = _resolveAttackAction(
-            attacker: _player,
-            defender: _enemy,
-            baseDamageOverride:
-                max(0, item.actionValue + currentAttackModifier),
-          );
-          await _playAttackActionAnimations(
-            attackerSide: BattleCombatantSide.player,
-            attackerBefore: attackerBefore,
-            defenderBefore: defenderBefore,
-            resolution: attackResolution,
-          );
-          if (_isDisposed || !canUseActions) return true;
-          _player = attackResolution.attacker;
-          _enemy = attackResolution.defender;
-          break;
-        case ItemActionType.block:
-          final playerBefore = _player;
-          final enemyBefore = _enemy;
-          _player = _applyBarrierGain(
-            _player,
-            max(0, item.actionValue + currentBlockModifier),
-          );
-          await _playBlockResolutionAnimation(
-            defenderSide: BattleCombatantSide.player,
-            defenderBefore: playerBefore,
-            opponentBefore: enemyBefore,
-            defenderAfter: _player,
-            opponentAfter: _enemy,
-          );
-          if (_isDisposed || !canUseActions) return true;
-          break;
-        case ItemActionType.heal:
-          final playerBefore = _player;
-          final enemyBefore = _enemy;
-          _player = _player.heal(item.actionValue + healModifier);
-          await _playHealingActionAnimation(
-            healerSide: BattleCombatantSide.player,
-            healerBefore: playerBefore,
-            opponentBefore: enemyBefore,
-            healerAfter: _player,
-            opponentAfter: _enemy,
-          );
-          if (_isDisposed || !canUseActions) return true;
-          break;
-        case ItemActionType.none:
-          break;
-      }
-
-      final playerBeforeUse = _player;
-      final enemyBeforeUse = _enemy;
-      final useResolution = _player.applyEquippedItemPatternUsedEffect(
-        opponent: _enemy,
+      final actions = _actionsForPatternItemUse(
         item: item,
         pattern: pattern,
+        pointKey: pointKey,
       );
-      await _playCombatStateTransitionAnimations(
-        playerBefore: playerBeforeUse,
-        enemyBefore: enemyBeforeUse,
-        playerAfter: useResolution.owner,
-        enemyAfter: useResolution.opponent,
-      );
-      if (_isDisposed || !canUseActions) return true;
-      _player = useResolution.owner;
-      _enemy = useResolution.opponent;
-      currentAttackModifier += useResolution.attackBonusDelta;
-      currentBlockModifier += useResolution.barrierBonusDelta;
+      var didResolveAction = false;
 
+      for (final action in actions) {
+        didResolveAction = true;
+        switch (action.actionType) {
+          case ItemActionType.attack:
+            final attackerBefore = _player;
+            final defenderBefore = _enemy;
+            final attackResolution = _resolveAttackAction(
+              attacker: _player,
+              defender: _enemy,
+              baseDamageOverride: max(0, action.value + attackModifier),
+            );
+            await _playAttackActionAnimations(
+              attackerSide: BattleCombatantSide.player,
+              attackerBefore: attackerBefore,
+              defenderBefore: defenderBefore,
+              resolution: attackResolution,
+            );
+            if (_isDisposed || !canUseActions) return true;
+            _player = attackResolution.attacker;
+            _enemy = attackResolution.defender;
+            break;
+          case ItemActionType.block:
+            final playerBefore = _player;
+            final enemyBefore = _enemy;
+            _player = _applyBarrierGain(
+              _player,
+              max(0, action.value + blockModifier),
+            );
+            await _playBlockResolutionAnimation(
+              defenderSide: BattleCombatantSide.player,
+              defenderBefore: playerBefore,
+              opponentBefore: enemyBefore,
+              defenderAfter: _player,
+              opponentAfter: _enemy,
+            );
+            if (_isDisposed || !canUseActions) return true;
+            break;
+          case ItemActionType.heal:
+            final playerBefore = _player;
+            final enemyBefore = _enemy;
+            _player = _player.heal(action.value + healModifier);
+            await _playHealingActionAnimation(
+              healerSide: BattleCombatantSide.player,
+              healerBefore: playerBefore,
+              opponentBefore: enemyBefore,
+              healerAfter: _player,
+              opponentAfter: _enemy,
+            );
+            if (_isDisposed || !canUseActions) return true;
+            break;
+          case ItemActionType.none:
+            final resolution = ItemEffectDispatcher.resolveCustomAction(
+              owner: _player,
+              opponent: _enemy,
+              effect: action,
+            );
+            _player = resolution.owner;
+            _enemy = resolution.opponent;
+            break;
+        }
+      }
+
+      if (!didResolveAction) continue;
       final finish = _turnEngine.finishFor(player: _player, enemy: _enemy);
       if (finish != null) {
         _finishCombat(
@@ -597,19 +558,6 @@ class BattleController extends ChangeNotifier {
         );
         return true;
       }
-    }
-
-    final replayPointKeys = _sunglassesReplayPointKeys(
-      owner: _player,
-      pattern: pattern,
-    );
-    if (replayPointKeys.isNotEmpty) {
-      return _resolvePlayerPatternItemActions(
-        pattern: _patternReplayContext(pattern, replayPointKeys),
-        attackModifier: currentAttackModifier,
-        blockModifier: currentBlockModifier,
-        healModifier: healModifier,
-      );
     }
 
     return false;
@@ -631,37 +579,28 @@ class BattleController extends ChangeNotifier {
     return null;
   }
 
-  List<String> _sunglassesReplayPointKeys({
-    required Battler owner,
+  List<ActionEffect> _actionsForPatternItemUse({
+    required Item item,
     required BattlePatternMatchContext pattern,
+    required String pointKey,
   }) {
-    final precedingPointKeys = <String>[];
-    for (final pointKey in pattern.usedItemPointKeys) {
-      final item = _itemAtPatternPoint(owner: owner, pointKey: pointKey);
-      if (item?.id == ItemId.sunglasses) {
-        return List<String>.unmodifiable(precedingPointKeys);
-      }
-      precedingPointKeys.add(pointKey);
+    OperativePatternPoint? itemPoint;
+    for (final point in pattern.patternPoints) {
+      if (point.key != pointKey) continue;
+      itemPoint = point;
+      break;
     }
-    return const <String>[];
-  }
 
-  BattlePatternMatchContext _patternReplayContext(
-    BattlePatternMatchContext pattern,
-    List<String> usedItemPointKeys,
-  ) {
-    return BattlePatternMatchContext(
-      patternPoints: pattern.patternPoints,
-      attackBonus: pattern.attackBonus,
-      barrierBonus: pattern.barrierBonus,
-      otherArchetypeItemCount: pattern.otherArchetypeItemCount,
-      usedItemPointKeys: usedItemPointKeys,
-      repeatedItemPointKeys: pattern.repeatedItemPointKeys,
-      firstRepeatedItemPointKey: pattern.firstRepeatedItemPointKey,
-      firstUsedItemHasAttackBonus: pattern.firstUsedItemHasAttackBonus,
-      activatedItemEffectCount: pattern.activatedItemEffectCount,
-      randomSource: pattern.randomSource,
-    );
+    return List<ActionEffect>.unmodifiable([
+      ...item.actionEffects,
+      if (itemPoint != null)
+        ...item
+            .matchingPatternEffects(
+              patternPoints: pattern.patternPoints,
+              itemPoint: itemPoint,
+            )
+            .map((effect) => effect.actionEffect),
+    ]);
   }
 
   Future<void> handleEnemyPatternMatch({
@@ -804,118 +743,79 @@ class BattleController extends ChangeNotifier {
     required int blockModifier,
     required int healModifier,
   }) async {
-    var currentAttackModifier = attackModifier;
-    var currentBlockModifier = blockModifier;
-    for (final pointKey in pattern.usedItemPointKeys) {
-      final item = _itemAtPatternPoint(owner: _enemy, pointKey: pointKey);
-      if (item == null || item.actionType != ItemActionType.none) continue;
-
-      final enemyBeforeUse = _enemy;
-      final playerBeforeUse = _player;
-      final useResolution = _enemy.applyEquippedItemPatternUsedEffect(
-        opponent: _player,
-        item: item,
-        pattern: pattern,
-      );
-      await _playCombatStateTransitionAnimations(
-        playerBefore: playerBeforeUse,
-        enemyBefore: enemyBeforeUse,
-        playerAfter: useResolution.opponent,
-        enemyAfter: useResolution.owner,
-      );
-      if (_isDisposed || _turn != BattleTurnState.enemy) return true;
-      _enemy = useResolution.owner;
-      _player = useResolution.opponent;
-      currentAttackModifier += useResolution.attackBonusDelta;
-      currentBlockModifier += useResolution.barrierBonusDelta;
-
-      final finish = _turnEngine.finishFor(player: _player, enemy: _enemy);
-      if (finish != null) {
-        _finishCombat(
-          resultType: finish.resultType,
-          resultText: finish.resultText,
-        );
-        return true;
-      }
-    }
-
     for (final pointKey in pattern.usedItemPointKeys) {
       final item = _itemAtPatternPoint(owner: _enemy, pointKey: pointKey);
       if (item == null) continue;
-      if (item.actionType == ItemActionType.none) continue;
-
-      switch (item.actionType) {
-        case ItemActionType.attack:
-          final enemyBefore = _enemy;
-          final playerBefore = _player;
-          final attackResolution = _resolveAttackAction(
-            attacker: _enemy,
-            defender: _player,
-            baseDamageOverride:
-                max(0, item.actionValue + currentAttackModifier),
-          );
-          await _playAttackActionAnimations(
-            attackerSide: BattleCombatantSide.enemy,
-            attackerBefore: enemyBefore,
-            defenderBefore: playerBefore,
-            resolution: attackResolution,
-          );
-          if (_isDisposed || _turn != BattleTurnState.enemy) return true;
-          _enemy = attackResolution.attacker;
-          _player = attackResolution.defender;
-          break;
-        case ItemActionType.block:
-          final enemyBefore = _enemy;
-          final playerBefore = _player;
-          _enemy = _applyBarrierGain(
-            _enemy,
-            max(0, item.actionValue + currentBlockModifier),
-          );
-          await _playBlockResolutionAnimation(
-            defenderSide: BattleCombatantSide.enemy,
-            defenderBefore: enemyBefore,
-            opponentBefore: playerBefore,
-            defenderAfter: _enemy,
-            opponentAfter: _player,
-          );
-          if (_isDisposed || _turn != BattleTurnState.enemy) return true;
-          break;
-        case ItemActionType.heal:
-          final enemyBefore = _enemy;
-          final playerBefore = _player;
-          _enemy = _enemy.heal(item.actionValue + healModifier);
-          await _playHealingActionAnimation(
-            healerSide: BattleCombatantSide.enemy,
-            healerBefore: enemyBefore,
-            opponentBefore: playerBefore,
-            healerAfter: _enemy,
-            opponentAfter: _player,
-          );
-          if (_isDisposed || _turn != BattleTurnState.enemy) return true;
-          break;
-        case ItemActionType.none:
-          break;
-      }
-
-      final enemyBeforeUse = _enemy;
-      final playerBeforeUse = _player;
-      final useResolution = _enemy.applyEquippedItemPatternUsedEffect(
-        opponent: _player,
+      final actions = _actionsForPatternItemUse(
         item: item,
         pattern: pattern,
+        pointKey: pointKey,
       );
-      await _playCombatStateTransitionAnimations(
-        playerBefore: playerBeforeUse,
-        enemyBefore: enemyBeforeUse,
-        playerAfter: useResolution.opponent,
-        enemyAfter: useResolution.owner,
-      );
-      if (_isDisposed || _turn != BattleTurnState.enemy) return true;
-      _enemy = useResolution.owner;
-      _player = useResolution.opponent;
-      currentAttackModifier += useResolution.attackBonusDelta;
-      currentBlockModifier += useResolution.barrierBonusDelta;
+      var didResolveAction = false;
 
+      for (final action in actions) {
+        didResolveAction = true;
+        switch (action.actionType) {
+          case ItemActionType.attack:
+            final enemyBefore = _enemy;
+            final playerBefore = _player;
+            final attackResolution = _resolveAttackAction(
+              attacker: _enemy,
+              defender: _player,
+              baseDamageOverride: max(0, action.value + attackModifier),
+            );
+            await _playAttackActionAnimations(
+              attackerSide: BattleCombatantSide.enemy,
+              attackerBefore: enemyBefore,
+              defenderBefore: playerBefore,
+              resolution: attackResolution,
+            );
+            if (_isDisposed || _turn != BattleTurnState.enemy) return true;
+            _enemy = attackResolution.attacker;
+            _player = attackResolution.defender;
+            break;
+          case ItemActionType.block:
+            final enemyBefore = _enemy;
+            final playerBefore = _player;
+            _enemy = _applyBarrierGain(
+              _enemy,
+              max(0, action.value + blockModifier),
+            );
+            await _playBlockResolutionAnimation(
+              defenderSide: BattleCombatantSide.enemy,
+              defenderBefore: enemyBefore,
+              opponentBefore: playerBefore,
+              defenderAfter: _enemy,
+              opponentAfter: _player,
+            );
+            if (_isDisposed || _turn != BattleTurnState.enemy) return true;
+            break;
+          case ItemActionType.heal:
+            final enemyBefore = _enemy;
+            final playerBefore = _player;
+            _enemy = _enemy.heal(action.value + healModifier);
+            await _playHealingActionAnimation(
+              healerSide: BattleCombatantSide.enemy,
+              healerBefore: enemyBefore,
+              opponentBefore: playerBefore,
+              healerAfter: _enemy,
+              opponentAfter: _player,
+            );
+            if (_isDisposed || _turn != BattleTurnState.enemy) return true;
+            break;
+          case ItemActionType.none:
+            final resolution = ItemEffectDispatcher.resolveCustomAction(
+              owner: _enemy,
+              opponent: _player,
+              effect: action,
+            );
+            _enemy = resolution.owner;
+            _player = resolution.opponent;
+            break;
+        }
+      }
+
+      if (!didResolveAction) continue;
       final finish = _turnEngine.finishFor(player: _player, enemy: _enemy);
       if (finish != null) {
         _finishCombat(
@@ -924,19 +824,6 @@ class BattleController extends ChangeNotifier {
         );
         return true;
       }
-    }
-
-    final replayPointKeys = _sunglassesReplayPointKeys(
-      owner: _enemy,
-      pattern: pattern,
-    );
-    if (replayPointKeys.isNotEmpty) {
-      return _resolveEnemyPatternItemActions(
-        pattern: _patternReplayContext(pattern, replayPointKeys),
-        attackModifier: currentAttackModifier,
-        blockModifier: currentBlockModifier,
-        healModifier: healModifier,
-      );
     }
 
     return false;
@@ -1603,26 +1490,7 @@ class BattleController extends ChangeNotifier {
   }
 
   Battler _applyPreAttackDesafioGains(Battler owner) {
-    var updatedOwner = owner;
-    for (final item in owner.equippedItems) {
-      if (item.id != ItemId.guanteReto) continue;
-      if (updatedOwner.itemCombatFlagUseCount(
-            item: item,
-            kind: ItemCombatFlagKind.guanteRetoTriggered,
-          ) >=
-          1) {
-        continue;
-      }
-
-      updatedOwner = updatedOwner
-          .addItemCombatFlagUse(
-            item: item,
-            kind: ItemCombatFlagKind.guanteRetoTriggered,
-          )
-          .gainDesafio(max(1, item.value));
-    }
-
-    return updatedOwner;
+    return owner;
   }
 
   _DesafioConsumption _consumeDesafioIfPresent(Battler owner) {
@@ -1660,109 +1528,26 @@ class BattleController extends ChangeNotifier {
   }
 
   int _desafioBarrierIgnoreFor(Battler owner) {
-    var barrierIgnore = 0;
-    for (final item in owner.equippedItems) {
-      if (item.id != ItemId.visorApertura) continue;
-      barrierIgnore = max(barrierIgnore, max(1, item.value));
-    }
-
-    return barrierIgnore;
+    return 0;
   }
 
   Battler _applySeguroRotoAfterDesafioCounter(Battler owner) {
-    var updatedOwner = owner;
-    for (final item in owner.equippedItems) {
-      if (item.id != ItemId.seguroRoto) continue;
-      updatedOwner = updatedOwner.applyStatus(
-        DesafioExcitanteStatus(value: max(1, item.value)),
-        applyEquipmentModifiers: false,
-      );
-    }
-
-    return updatedOwner;
+    return owner;
   }
 
   Battler _applyAceleradorRetoAfterSurvivingCounter(Battler owner) {
-    var updatedOwner = owner;
-    for (final item in owner.equippedItems) {
-      if (item.id != ItemId.aceleradorReto) continue;
-      if (updatedOwner.itemCombatFlagUseCount(
-            item: item,
-            kind: ItemCombatFlagKind.aceleradorRetoTriggered,
-          ) >=
-          max(1, item.value)) {
-        continue;
-      }
-
-      updatedOwner = updatedOwner
-          .applyStatus(
-            DesafioExcitanteStatus(value: max(1, item.value)),
-            applyEquipmentModifiers: false,
-          )
-          .addItemCombatFlagUse(
-            item: item,
-            kind: ItemCombatFlagKind.aceleradorRetoTriggered,
-          );
-    }
-
-    return updatedOwner;
+    return owner;
   }
 
   _UltimaPalabraResolution _resolveUltimaPalabraAfterCounter({
     required Battler owner,
     required Battler target,
   }) {
-    var updatedOwner = owner;
-    var updatedTarget = target;
-    var totalDamageDealt = 0;
-    final hits = <_BattleAttackHitResolution>[];
-
-    for (final item in owner.equippedItems) {
-      if (item.id != ItemId.ultimaPalabra) continue;
-      final alreadyTriggered = updatedOwner.itemCombatFlagValue(
-            item: item,
-            kind: ItemCombatFlagKind.ultimaPalabraTriggeredThisTurn,
-          ) ==
-          updatedOwner.combatRound;
-      if (alreadyTriggered) continue;
-
-      final ownerBefore = updatedOwner;
-      final targetBefore = updatedTarget;
-      final resolution = _resolver.resolveAttack(
-        attacker: updatedOwner,
-        defender: updatedTarget,
-        flatAttackBonus: max(0, item.value),
-      );
-      updatedOwner = resolution.attacker.addCombatFlag(
-        CombatRuntimeFlag.item(
-          itemFlag: ItemCombatFlagKind.ultimaPalabraTriggeredThisTurn,
-          itemId: item.id,
-          itemInstanceId: item.instanceId,
-          value: updatedOwner.combatRound,
-        ),
-      );
-      updatedTarget = resolution.defender;
-      totalDamageDealt += resolution.damageDealt;
-      hits.add(
-        _BattleAttackHitResolution(
-          primaryCombatant: _BattleAttackHitCombatant.attacker,
-          motionAsset: BattleCombatMotionAsset.sword,
-          attackerBefore: ownerBefore,
-          defenderBefore: targetBefore,
-          attackerAfter: updatedOwner,
-          defenderAfter: updatedTarget,
-          damageDealt: resolution.damageDealt,
-        ),
-      );
-
-      if (updatedOwner.isDefeated || updatedTarget.isDefeated) break;
-    }
-
     return _UltimaPalabraResolution(
-      owner: updatedOwner,
-      target: updatedTarget,
-      damageDealt: totalDamageDealt,
-      hits: List<_BattleAttackHitResolution>.unmodifiable(hits),
+      owner: owner,
+      target: target,
+      damageDealt: 0,
+      hits: const <_BattleAttackHitResolution>[],
     );
   }
 
@@ -2112,133 +1897,6 @@ class BattleController extends ChangeNotifier {
     _enemy = _enemy.withCombatRound(_currentRound);
   }
 
-  Future<void> _resolveEmergencyPlatingAutoBlockForTurnStart(
-    BattleTurnState activeTurn,
-  ) async {
-    final side = _combatantSideForTurn(activeTurn);
-    if (side == null) return;
-
-    final defender = side == BattleCombatantSide.player ? _player : _enemy;
-    final opponent = side == BattleCombatantSide.player ? _enemy : _player;
-    final item = _eligibleEmergencyPlatingAutoBlockItem(defender);
-    if (item == null) return;
-
-    final defendResolution = _resolveEmergencyPlatingAutoBlock(
-      defender: defender,
-      opponent: opponent,
-      side: side,
-      item: item,
-    );
-    await _playBlockResolutionAnimation(
-      defenderSide: side,
-      defenderBefore: defender,
-      opponentBefore: opponent,
-      defenderAfter: defendResolution.defender,
-      opponentAfter: defendResolution.opponent,
-    );
-    if (_isDisposed) return;
-    _applyDefendResolutionForSide(
-      side: side,
-      resolution: defendResolution,
-    );
-  }
-
-  void _resolveEmergencyPlatingAutoBlockForTurnStartWithoutAnimation(
-    BattleTurnState activeTurn,
-  ) {
-    final side = _combatantSideForTurn(activeTurn);
-    if (side == null) return;
-
-    final defender = side == BattleCombatantSide.player ? _player : _enemy;
-    final opponent = side == BattleCombatantSide.player ? _enemy : _player;
-    final item = _eligibleEmergencyPlatingAutoBlockItem(defender);
-    if (item == null) return;
-
-    final defendResolution = _resolveEmergencyPlatingAutoBlock(
-      defender: defender,
-      opponent: opponent,
-      side: side,
-      item: item,
-    );
-    _applyDefendResolutionForSide(
-      side: side,
-      resolution: defendResolution,
-    );
-  }
-
-  BattleDefendActionResolution _resolveEmergencyPlatingAutoBlock({
-    required Battler defender,
-    required Battler opponent,
-    required BattleCombatantSide side,
-    required Item item,
-  }) {
-    final defendResolution = _resolveDefendAction(
-      defender: defender,
-      opponent: opponent,
-      barrierGain: _blockBarrierGainForSide(side),
-    );
-    return BattleDefendActionResolution(
-      defender: defendResolution.defender.addItemCombatFlagUse(
-        item: item,
-        kind: ItemCombatFlagKind.emergencyPlatingAutoBlockUsed,
-      ),
-      opponent: defendResolution.opponent,
-    );
-  }
-
-  Item? _eligibleEmergencyPlatingAutoBlockItem(Battler battler) {
-    if (battler.isDefeated ||
-        battler.maxHealth <= 0 ||
-        battler.health * 2 >= battler.maxHealth) {
-      return null;
-    }
-
-    for (final item in battler.equippedItems) {
-      if (item.id != ItemId.emergencyPlating) continue;
-      final maxUses = max(1, item.value);
-      final used = battler.itemCombatFlagUseCount(
-        item: item,
-        kind: ItemCombatFlagKind.emergencyPlatingAutoBlockUsed,
-      );
-      if (used < maxUses) {
-        return item;
-      }
-    }
-
-    return null;
-  }
-
-  BattleCombatantSide? _combatantSideForTurn(BattleTurnState activeTurn) {
-    switch (activeTurn) {
-      case BattleTurnState.player:
-        return BattleCombatantSide.player;
-      case BattleTurnState.enemy:
-        return BattleCombatantSide.enemy;
-      case BattleTurnState.finished:
-        return null;
-    }
-  }
-
-  int _blockBarrierGainForSide(BattleCombatantSide side) {
-    return side == BattleCombatantSide.player
-        ? _playerCurrentBlockBarrierGain()
-        : _enemyInitialBlockBarrier;
-  }
-
-  void _applyDefendResolutionForSide({
-    required BattleCombatantSide side,
-    required BattleDefendActionResolution resolution,
-  }) {
-    if (side == BattleCombatantSide.player) {
-      _player = resolution.defender;
-      _enemy = resolution.opponent;
-      return;
-    }
-
-    _enemy = resolution.defender;
-    _player = resolution.opponent;
-  }
-
   Future<void> _beginTurn(
     BattleTurnState nextTurn, {
     bool notify = true,
@@ -2307,8 +1965,6 @@ class BattleController extends ChangeNotifier {
     _player = nextPlayer;
     _enemy = nextEnemy;
 
-    await _resolveEmergencyPlatingAutoBlockForTurnStart(nextTurn);
-    if (_isDisposed) return;
     final autoBlockFinish = _turnEngine.finishFor(
       player: _player,
       enemy: _enemy,
@@ -2351,8 +2007,6 @@ class BattleController extends ChangeNotifier {
 
     _player = resolution.player;
     _enemy = resolution.enemy;
-    _resolveEmergencyPlatingAutoBlockForTurnStartWithoutAnimation(nextTurn);
-
     final autoBlockFinish = _turnEngine.finishFor(
       player: _player,
       enemy: _enemy,

@@ -15,7 +15,7 @@ export "endpoint_highlighted_value_text.dart";
 export "endpoint_inventory_overlay.dart";
 export "endpoint_inventory_item_tile.dart";
 export "endpoint_item_details_dialog.dart";
-export "endpoint_item_pattern_badges.dart";
+export "endpoint_item_action_badge.dart";
 export "endpoint_marquee_text.dart";
 export "endpoint_overlay_scaffold.dart";
 export "endpoint_panel.dart";

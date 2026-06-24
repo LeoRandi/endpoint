@@ -67,13 +67,13 @@ class WeaponShopController extends ChangeNotifier {
           player: _player,
           dayNumber: _dayNumber,
           pool: _stockPool,
-          excludedItemIds: _stock.map((item) => item.id).toSet(),
+          excludedItemIds: _stock.map((item) => item.catalogKey).toSet(),
         ) >=
         WeaponShopStockService.defaultStockSize;
   }
 
   int purchasePriceFor(Item item) =>
-      max(1, (item.cost * priceMultiplier).ceil());
+      max(1, (item.baseCost * priceMultiplier).ceil());
 
   int sellPriceFor(Item item) => max(1, (purchasePriceFor(item) / 2).ceil());
 
@@ -237,7 +237,7 @@ class WeaponShopController extends ChangeNotifier {
       player: _player,
       dayNumber: _dayNumber,
       pool: _stockPool,
-      excludedItemIds: _stock.map((item) => item.id).toSet(),
+      excludedItemIds: _stock.map((item) => item.catalogKey).toSet(),
     );
   }
 

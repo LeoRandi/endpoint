@@ -294,12 +294,10 @@ class _OperativePatternOverlayState extends State<OperativePatternOverlay> {
       for (final entry in widget.equippedItemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
-          bonus: entry.value.hasPatternBonus ? entry.value.patternBonus : null,
-          requirement: entry.value.hasPatternBonus
-              ? entry.value.patternRequirement
-              : null,
-          adjacencyBonuses: entry.value.patternAdjacencyBonuses,
-          hasAura: entry.value.hasPatternAura,
+          bonus: entry.value.primaryPatternBonus,
+          requirement: entry.value.primaryPatternEffect?.patternType,
+          adjacencyBonuses: const <OperativePatternAdjacencyBonus>[],
+          hasAura: false,
         ),
       for (final entry in _emptyBonusesByPointKey.entries)
         entry.key: OperativePatternPointContent(bonus: entry.value),
@@ -614,7 +612,7 @@ class _OperativePatternBoardState extends State<OperativePatternBoard>
       },
       adjacencyBonusesForItem: (point, item) =>
           widget.contentsByPointKey[point.key]?.adjacencyBonuses ??
-          item.patternAdjacencyBonuses,
+          const <OperativePatternAdjacencyBonus>[],
     );
 
     return <OperativePatternAdjacencyGuideSegment>[
@@ -1391,7 +1389,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
                   ),
                 ),
               ),
-            if (currentItem.actionType != ItemActionType.none)
+            if (currentItem.primaryActionEffect != null)
               Positioned(
                 left: 0,
                 right: 0,
@@ -1400,7 +1398,7 @@ class _OperativePatternDotVisual extends StatelessWidget {
                   child: Transform.rotate(
                     angle: _operativePatternContentCounterRotation,
                     child: EndpointItemActionPointBadge(
-                      item: currentItem,
+                      action: currentItem.primaryActionEffect!,
                       size: (size * 0.46).clamp(16.0, 20.0).toDouble(),
                     ),
                   ),

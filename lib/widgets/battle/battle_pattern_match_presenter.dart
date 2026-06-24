@@ -76,12 +76,11 @@ abstract final class BattlePatternMatchPresenter {
     final item = equippedItemsByPointKey[usedItemPointKeys.first];
     if (item == null) return false;
 
-    return item.actionType == ItemActionType.attack ||
-        item.modifier(BattlerStat.attack) > 0 ||
-        (item.hasPatternBonus &&
-            item.patternBonus.kind == OperativePatternBonusKind.attack) ||
-        item.patternAdjacencyBonuses.any(
-          (bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack,
+    return item.actionEffects.any(
+          (effect) => effect.actionType == ItemActionType.attack,
+        ) ||
+        item.patternEffects.any(
+          (effect) => effect.actionEffect.actionType == ItemActionType.attack,
         );
   }
 
@@ -93,10 +92,14 @@ abstract final class BattlePatternMatchPresenter {
     final seen = <String>{};
     for (final pointKey in usedItemPointKeys) {
       if (!seen.add(pointKey)) continue;
-      final effect = equippedItemsByPointKey[pointKey]?.effect;
-      if (effect == null) continue;
-      if (effect.hooks.contains(ItemEffectHook.patternUsed) ||
-          effect.hooks.contains(ItemEffectHook.prePatternAttack)) {
+      final item = equippedItemsByPointKey[pointKey];
+      if (item == null) continue;
+      if (item.patternEffects.isNotEmpty ||
+          item.passiveEffects.any(
+            (effect) =>
+                effect.hook == ItemEffectHook.patternUsed ||
+                effect.hook == ItemEffectHook.prePatternAttack,
+          )) {
         count++;
       }
     }
@@ -111,40 +114,37 @@ abstract final class BattlePatternMatchPresenter {
   }) {
     final allowedBonusKinds = <OperativePatternBonusKind>{
       for (final item in equippedItemsByPointKey.values)
-        if (item.actionType == ItemActionType.attack)
-          OperativePatternBonusKind.attack
-        else if (item.actionType == ItemActionType.block)
-          OperativePatternBonusKind.barrier
-        else if (item.actionType == ItemActionType.heal)
-          OperativePatternBonusKind.health,
+        for (final effect in item.patternEffects)
+          if (effect.actionEffect.actionType == ItemActionType.attack)
+            OperativePatternBonusKind.attack
+          else if (effect.actionEffect.actionType == ItemActionType.block)
+            OperativePatternBonusKind.barrier
+          else if (effect.actionEffect.actionType == ItemActionType.heal)
+            OperativePatternBonusKind.health,
     };
     return <String, OperativePatternPointContent>{
       for (final entry in equippedItemsByPointKey.entries)
         entry.key: OperativePatternPointContent(
           item: entry.value,
-          bonus: entry.value.actionType != ItemActionType.none
-              ? null
-              : entry.value.hasPatternBonus &&
-                      allowedBonusKinds.contains(entry.value.patternBonusKind)
-                  ? entry.value.patternBonus
-                  : isFallbackBonusEligible?.call(entry.value) == false
-                      ? null
-                      : bonusesByPointKey[entry.key],
-          requirement: entry.value.actionType == ItemActionType.none &&
-                  entry.value.hasPatternBonus &&
-                  allowedBonusKinds.contains(entry.value.patternBonusKind)
-              ? entry.value.patternRequirement
+          bonus: entry.value.primaryPatternBonus != null &&
+                  allowedBonusKinds
+                      .contains(entry.value.primaryPatternBonus!.kind)
+              ? entry.value.primaryPatternBonus
+              : entry.value.primaryActionEffect != null ||
+                      isFallbackBonusEligible?.call(entry.value) == false
+                  ? null
+                  : bonusesByPointKey[entry.key],
+          requirement: entry.value.primaryPatternBonus != null &&
+                  allowedBonusKinds
+                      .contains(entry.value.primaryPatternBonus!.kind)
+              ? entry.value.primaryPatternEffect!.patternType
               : null,
-          adjacencyBonuses: entry.value.patternAdjacencyBonuses
-              .where(
-                (bonus) => allowedBonusKinds.contains(bonus.bonus.kind),
-              )
-              .toList(growable: false),
+          adjacencyBonuses: const <OperativePatternAdjacencyBonus>[],
           activatedAdjacencyBonuses:
               resolution.activatedAdjacencyBonusesAt(entry.key),
           isBonusEnabled: resolution.isItemBonusEnabledAt(entry.key),
           isPatternBonusActivated: resolution.isItemBonusEnabledAt(entry.key),
-          hasAura: entry.value.hasPatternAura,
+          hasAura: false,
         ),
       for (final entry in bonusesByPointKey.entries)
         if (!equippedItemsByPointKey.containsKey(entry.key))
@@ -335,19 +335,18 @@ abstract final class BattlePatternEnemyPlanner {
 
   static int pointPriority(Item? item) {
     if (item == null) return 0;
-    var score = switch (item.actionType) {
-      ItemActionType.attack => item.actionValue * 4,
-      ItemActionType.block => item.actionValue * 3,
-      ItemActionType.heal => item.actionValue * 2,
-      ItemActionType.none => item.modifier(BattlerStat.attack) * 3,
-    };
-    if (item.hasPatternBonus &&
-        item.patternBonus.kind == OperativePatternBonusKind.attack) {
-      score += item.patternBonus.amount * 4;
+    var score = 0;
+    for (final effect in <ActionEffect>[
+      ...item.actionEffects,
+      ...item.patternEffects.map((effect) => effect.actionEffect),
+    ]) {
+      score += switch (effect.actionType) {
+        ItemActionType.attack => effect.value * 4,
+        ItemActionType.block => effect.value * 3,
+        ItemActionType.heal => effect.value * 2,
+        ItemActionType.none => 0,
+      };
     }
-    score += item.patternAdjacencyBonuses
-        .where((bonus) => bonus.bonus.kind == OperativePatternBonusKind.attack)
-        .fold<int>(0, (sum, bonus) => sum + bonus.bonus.amount * 2);
     return score;
   }
 }

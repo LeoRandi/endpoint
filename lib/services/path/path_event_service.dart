@@ -248,9 +248,10 @@ class PathEventService {
 
     final rewardItem = rewardPool[randomizer.nextInt(rewardPool.length)];
     final updatedPlayer = player.addItem(rewardItem);
-    final resolvedItem = updatedPlayer.inventoryItemOfType(rewardItem.id) ??
-        updatedPlayer.equippedItemOfType(rewardItem.id) ??
-        rewardItem;
+    final resolvedItem =
+        updatedPlayer.inventoryItemOfType(rewardItem.catalogKey) ??
+            updatedPlayer.equippedItemOfType(rewardItem.catalogKey) ??
+            rewardItem;
     final actionLabel =
         player.wouldUpgradeItem(rewardItem) ? 'mejora' : 'recibes';
 
@@ -1187,7 +1188,8 @@ bool _canAppearForSWitchCabin(
   required Battler? player,
 }) {
   if (player == null) {
-    return itemPresets.where((item) => item.hasPatternBonus).length >= 2;
+    return itemPresets.where((item) => item.patternEffects.isNotEmpty).length >=
+        2;
   }
 
   return service.buildSWitchCabinEligibleItems(player).length >= 2;

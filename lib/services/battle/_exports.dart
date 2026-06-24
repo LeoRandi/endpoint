@@ -1,5 +1,6 @@
 export 'battler_effect_event.dart';
 export 'battler_effect_pipeline.dart';
+export 'item_effect_dispatcher.dart';
 export 'battle_animation_cue_producer.dart';
 export 'battle_action_bonus.dart';
 export 'battle_action_handlers.dart';
