@@ -37,6 +37,24 @@ final class ActionEffect extends Effect {
         customEffectKey: customEffectKey,
         value: value,
       );
+
+  factory ActionEffect.attack({required int value}) =>
+      ActionEffect(
+        actionType: ItemActionType.attack,
+        value: value,
+      );
+
+  factory ActionEffect.block({required int value}) =>
+      ActionEffect(
+        actionType: ItemActionType.attack,
+        value: value,
+      );
+
+  factory ActionEffect.heal({required int value}) =>
+      ActionEffect(
+        actionType: ItemActionType.attack,
+        value: value,
+      );
 }
 
 /// An action produced when the item satisfies a pattern requirement.

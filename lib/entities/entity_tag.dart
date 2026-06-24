@@ -6,6 +6,7 @@ enum EntityTag {
   intoxicacion,
   contagio,
   ciclo,
+  cura,
   vida,
   ataque,
   barrera,
