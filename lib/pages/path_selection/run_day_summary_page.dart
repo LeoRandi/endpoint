@@ -538,83 +538,9 @@ Future<void> _openAugmentDetails(
     barrierLabel: 'Detalle de aumento',
     barrierColor: EndpointPalette.overlayScrim,
     builder: (context) {
-      final accent = augment.accent;
-
-      return EndpointDetailsDialogScaffold(
-        accent: accent,
-        backgroundColor: EndpointPalette.panelBackgroundOpaque,
-        foregroundColor: EndpointPalette.soften(accent),
-        closeBackgroundColor: EndpointPalette.closeButtonBackground,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                EndpointAugmentOrb(
-                  augment: augment,
-                  size: 72,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      EndpointText(
-                        augment.displayName,
-                        maxLines: null,
-                        style: textLargeBold.copyWith(
-                          color: EndpointPalette.soften(accent),
-                          letterSpacing: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      EndpointText(
-                        'AUMENTO ${augment.rarity.label}',
-                        style: textSmallBold.copyWith(
-                          color: accent,
-                          fontSize: 10,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (augment.hasTags) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: EndpointTagPillMarquee(
-                  tags: augment.tags,
-                  accent: accent,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            EndpointHighlightedValueText(
-              augment.displayDescription,
-              tags: augment.tags,
-              maxLines: null,
-              style: textMedium.copyWith(
-                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
-                height: 1.24,
-              ),
-            ),
-            const SizedBox(height: 12),
-            EndpointText(
-              statusText,
-              maxLines: null,
-              style: textSmallBold.copyWith(
-                color: accent,
-                fontSize: 11,
-                letterSpacing: 0.8,
-              ),
-            ),
-          ],
-        ),
+      return EndpointAugmentDetailsDialog(
+        augment: augment,
+        statusText: statusText,
       );
     },
   );

@@ -388,6 +388,7 @@ class OperativePatternBoard extends StatefulWidget {
   final int? maxPatternPoints;
   final Color accent;
   final Duration longPressDuration;
+  final Widget? underlay;
 
   const OperativePatternBoard({
     super.key,
@@ -410,6 +411,7 @@ class OperativePatternBoard extends StatefulWidget {
     this.maxPatternPoints,
     this.accent = EndpointPalette.patternAccent,
     this.longPressDuration = _operativePatternCoordinateHoldDuration,
+    this.underlay,
   });
 
   @override
@@ -833,6 +835,12 @@ class _OperativePatternBoardState extends State<OperativePatternBoard>
                             ),
                           ),
                         ),
+                        if (widget.underlay != null)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: widget.underlay!,
+                            ),
+                          ),
                         if (adjacencyGuideSegments.isNotEmpty)
                           Positioned.fill(
                             child: IgnorePointer(

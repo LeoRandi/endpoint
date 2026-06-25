@@ -53,7 +53,9 @@
 -Aumentos
 [--Añadir Tags]
 [--Meter en el loot]
---Crear al menos 20 generales y 20 por arquetipo[general: 14, veloz: 15, inamovible: 10, imparable: 10, mercante: 9]
+[--Eliminar los de tests de los arquetipos actuales]
+[--Mostrar brevemente durante el combate el patrón de un augment, e ir ciclando entre los disponibles.]
+--Crear al menos 20 generales y 20 por arquetipo[general: 1, veloz: 0, inamovible: 0, imparable: 0, mercante: 0]
 
 -Items
 [--Añadir Tags]

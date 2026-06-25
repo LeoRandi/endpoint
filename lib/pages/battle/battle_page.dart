@@ -546,6 +546,16 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             item,
             allowDuringPatternMatch: true,
           ),
+          onPlayerAugmentPressed: (augment) => _handleOpenAugmentDetails(
+            augment,
+            owner: _sceneController.player,
+            allowDuringPatternMatch: true,
+          ),
+          onEnemyAugmentPressed: (augment) => _handleOpenAugmentDetails(
+            augment,
+            owner: _sceneController.enemy,
+            allowDuringPatternMatch: true,
+          ),
           onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
             ability,
             canControlOwner: true,
@@ -631,6 +641,16 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onEnemyItemPressed: (item) => _handleOpenEquippedItemDetails(
             _sceneController.enemy,
             item,
+            allowDuringPatternMatch: true,
+          ),
+          onPlayerAugmentPressed: (augment) => _handleOpenAugmentDetails(
+            augment,
+            owner: _sceneController.player,
+            allowDuringPatternMatch: true,
+          ),
+          onEnemyAugmentPressed: (augment) => _handleOpenAugmentDetails(
+            augment,
+            owner: _sceneController.enemy,
             allowDuringPatternMatch: true,
           ),
           onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
@@ -1465,6 +1485,33 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  Future<void> _handleOpenAugmentDetails(
+    Augment augment, {
+    required Battler owner,
+    bool allowDuringPatternMatch = false,
+  }) async {
+    if (!_sceneController.canUseActions ||
+        (!allowDuringPatternMatch && _isPresentingPatternMatch) ||
+        _sceneController.hasPendingVictoryRewards ||
+        _isPlayingBattleAnimation) {
+      return;
+    }
+
+    await showEndpointDialog<void>(
+      context: context,
+      barrierLabel: 'Detalle de aumento',
+      barrierColor: EndpointPalette.overlayScrim,
+      builder: (context) {
+        final currentAugment = owner.augmentById(augment.id) ?? augment;
+
+        return EndpointAugmentDetailsDialog(
+          augment: currentAugment,
+          statusText: 'Integrado en ${owner.name}.',
         );
       },
     );

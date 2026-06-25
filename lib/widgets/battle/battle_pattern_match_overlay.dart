@@ -27,6 +27,11 @@ class BattlePatternVisualBattlers {
 }
 
 const _enemyPatternPointStepDuration = Duration(milliseconds: 750);
+const _augmentPatternHintInitialDelay = Duration(seconds: 2);
+const _augmentPatternHintDrawDuration = Duration(milliseconds: 1400);
+const _augmentPatternHintHoldDuration = Duration(seconds: 1);
+const _augmentPatternHintFadeDuration = Duration(milliseconds: 600);
+const _augmentPatternHintGapDuration = Duration(seconds: 1);
 
 enum _BattlePatternBlockPlacementMode {
   wall,
@@ -45,6 +50,22 @@ class BattlePatternEnemyBlockAction {
       : wallSegment = null;
 
   bool get isEmpty => wallSegment == null && point == null;
+}
+
+class _AugmentPatternHint {
+  final int augmentId;
+  final RarityTier tier;
+  final List<OperativePatternPoint> points;
+
+  const _AugmentPatternHint({
+    required this.augmentId,
+    required this.tier,
+    required this.points,
+  });
+
+  String get signature {
+    return '$augmentId:${tier.name}:${points.map((point) => point.key).join(",")}';
+  }
 }
 
 bool _hasPassCardWallDisableActive(Battler battler) {
@@ -201,6 +222,8 @@ class BattlePatternMatchOverlay extends StatefulWidget {
   final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
   final Future<void> Function(Item item)? onPlayerItemPressed;
   final Future<void> Function(Item item)? onEnemyItemPressed;
+  final ValueChanged<Augment>? onPlayerAugmentPressed;
+  final ValueChanged<Augment>? onEnemyAugmentPressed;
   final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
   final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
@@ -228,6 +251,8 @@ class BattlePatternMatchOverlay extends StatefulWidget {
     this.onAnimationTargetsChanged,
     this.onPlayerItemPressed,
     this.onEnemyItemPressed,
+    this.onPlayerAugmentPressed,
+    this.onEnemyAugmentPressed,
     this.onPlayerAbilityPressed,
     this.onEnemyAbilityPressed,
   });
@@ -420,6 +445,40 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
         _patternPoints.map((point) => point.key).toList(growable: false),
       );
 
+  List<_AugmentPatternHint> _augmentPatternHintsFor(Battler player) {
+    final hints = <_AugmentPatternHint>[];
+    final maxPatternPoints = OperativePatternCombatRules.maxPatternPointsFor(
+      player,
+    );
+
+    for (final augment in player.augments) {
+      final bestHintByPattern = <String, _AugmentPatternHint>{};
+      var tierIndex = 0;
+      for (final entry in augment.effects.patternEffects.entries) {
+        if (tierIndex > augment.rarity.index) break;
+        if (entry.key.length > maxPatternPoints) {
+          tierIndex++;
+          continue;
+        }
+
+        final patternSignature = entry.key.map((point) => point.key).join(',');
+        bestHintByPattern[patternSignature] = _AugmentPatternHint(
+          augmentId: augment.id,
+          tier: RarityTier.values[tierIndex],
+          points: entry.key,
+        );
+        tierIndex++;
+      }
+      hints.addAll(bestHintByPattern.values);
+    }
+
+    return List<_AugmentPatternHint>.unmodifiable(hints);
+  }
+
+  String _augmentPatternHintSignature(List<_AugmentPatternHint> hints) {
+    return hints.map((hint) => hint.signature).join('|');
+  }
+
   Map<String, OperativePatternPointContent> _buildContentsByPointKey(
     OperativePatternResolution resolution,
   ) {
@@ -434,6 +493,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
   @override
   Widget build(BuildContext context) {
     final resolution = _currentResolution;
+    final augmentPatternHints = _augmentPatternHintsFor(widget.player);
     final result = BattlePatternMatchResult.fromResolution(
       resolution,
       _blockPlan.mode,
@@ -471,6 +531,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
         spriteOnLeft: true,
       ),
       topAugments: _PatternAugmentStrip(
+        augments: widget.enemy.augments,
         abilities: widget.enemy.abilities
             .where(
               (ability) => ability.appearsInContext(
@@ -482,6 +543,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
         alignEnd: true,
         items: widget.enemy.equippedItems,
         onItemPressed: widget.onEnemyItemPressed,
+        onAugmentPressed: widget.onEnemyAugmentPressed,
         onAbilityPressed: widget.onEnemyAbilityPressed,
       ),
       matrix: _PatternMatrixCard(
@@ -528,7 +590,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
             OperativePatternRequirement.isClosedPattern(_patternPoints) &&
             !_isCurrentPatternBanned,
         finishTooltip: _isCurrentPatternBanned
-            ? 'Este Patron sigue bloqueado durante tres rondas.'
+            ? 'No puedes repetir el Patron usado en tu turno anterior.'
             : 'Terminar turno y resolver el Patron.',
         onFinish: _submit,
         dimPatternPoints: false,
@@ -558,6 +620,12 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
                           contentsByPointKey: _buildContentsByPointKey(
                             resolution,
                           ),
+                          underlay: _AugmentPatternHintUnderlay(
+                            hints: augmentPatternHints,
+                            hintSignature: _augmentPatternHintSignature(
+                              augmentPatternHints,
+                            ),
+                          ),
                           blockedPointKeys: blockedPointKeys,
                           reinforcedPointKey:
                               widget.player.reinforcedPatternPointKey,
@@ -584,6 +652,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
         ),
       ),
       bottomAugments: _PatternAugmentStrip(
+        augments: widget.player.augments,
         abilities: widget.player.abilities
             .where(
               (ability) => ability.appearsInContext(
@@ -594,6 +663,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
         accent: EndpointPalette.patternAccent,
         items: widget.player.equippedItems,
         onItemPressed: widget.onPlayerItemPressed,
+        onAugmentPressed: widget.onPlayerAugmentPressed,
         onAbilityPressed: widget.onPlayerAbilityPressed,
       ),
       bottom: _PatternVisualBattlerHeader(
@@ -634,6 +704,8 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
   final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
   final Future<void> Function(Item item)? onPlayerItemPressed;
   final Future<void> Function(Item item)? onEnemyItemPressed;
+  final ValueChanged<Augment>? onPlayerAugmentPressed;
+  final ValueChanged<Augment>? onEnemyAugmentPressed;
   final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
   final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
@@ -656,6 +728,8 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
     this.onAnimationTargetsChanged,
     this.onPlayerItemPressed,
     this.onEnemyItemPressed,
+    this.onPlayerAugmentPressed,
+    this.onEnemyAugmentPressed,
     this.onPlayerAbilityPressed,
     this.onEnemyAbilityPressed,
   });
@@ -1304,6 +1378,7 @@ class _EnemyBattlePatternMatchOverlayState
         spriteOnLeft: true,
       ),
       topAugments: _PatternAugmentStrip(
+        augments: widget.enemy.augments,
         abilities: widget.enemy.abilities
             .where(
               (ability) => ability.appearsInContext(
@@ -1315,6 +1390,7 @@ class _EnemyBattlePatternMatchOverlayState
         alignEnd: true,
         items: widget.enemy.equippedItems,
         onItemPressed: widget.onEnemyItemPressed,
+        onAugmentPressed: widget.onEnemyAugmentPressed,
         onAbilityPressed: widget.onEnemyAbilityPressed,
       ),
       matrix: _PatternMatrixCard(
@@ -1429,6 +1505,7 @@ class _EnemyBattlePatternMatchOverlayState
         ),
       ),
       bottomAugments: _PatternAugmentStrip(
+        augments: widget.player.augments,
         abilities: widget.player.abilities
             .where(
               (ability) => ability.appearsInContext(
@@ -1439,6 +1516,7 @@ class _EnemyBattlePatternMatchOverlayState
         accent: EndpointPalette.patternAccent,
         items: widget.player.equippedItems,
         onItemPressed: widget.onPlayerItemPressed,
+        onAugmentPressed: widget.onPlayerAugmentPressed,
         onAbilityPressed: widget.onPlayerAbilityPressed,
       ),
       bottom: _PatternVisualBattlerHeader(
@@ -2239,20 +2317,307 @@ class _PatternMeter extends StatelessWidget {
   }
 }
 
+class _AugmentPatternHintUnderlay extends StatefulWidget {
+  final List<_AugmentPatternHint> hints;
+  final String hintSignature;
+
+  const _AugmentPatternHintUnderlay({
+    required this.hints,
+    required this.hintSignature,
+  });
+
+  @override
+  State<_AugmentPatternHintUnderlay> createState() =>
+      _AugmentPatternHintUnderlayState();
+}
+
+class _AugmentPatternHintUnderlayState
+    extends State<_AugmentPatternHintUnderlay>
+    with SingleTickerProviderStateMixin {
+  static final _cycleDuration = Duration(
+    milliseconds: _augmentPatternHintDrawDuration.inMilliseconds +
+        _augmentPatternHintHoldDuration.inMilliseconds +
+        _augmentPatternHintFadeDuration.inMilliseconds +
+        _augmentPatternHintGapDuration.inMilliseconds,
+  );
+
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: _cycleDuration,
+  );
+  Timer? _startTimer;
+  int _hintIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addStatusListener(_handleAnimationStatus);
+    _scheduleInitialStart();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AugmentPatternHintUnderlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.hintSignature == widget.hintSignature) return;
+
+    _hintIndex = 0;
+    _controller.stop();
+    _controller.value = 0;
+    _scheduleInitialStart();
+  }
+
+  @override
+  void dispose() {
+    _startTimer?.cancel();
+    _controller
+      ..removeStatusListener(_handleAnimationStatus)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _scheduleInitialStart() {
+    _startTimer?.cancel();
+    if (widget.hints.isEmpty) return;
+    _startTimer = Timer(_augmentPatternHintInitialDelay, () {
+      if (!mounted || widget.hints.isEmpty) return;
+      _controller.forward(from: 0);
+    });
+  }
+
+  void _handleAnimationStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed || widget.hints.isEmpty) return;
+    setState(() {
+      _hintIndex = (_hintIndex + 1) % widget.hints.length;
+    });
+    _controller.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.hints.isEmpty) return const SizedBox.shrink();
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final activeHint = widget.hints[_hintIndex % widget.hints.length];
+        final phase = _AugmentPatternHintPhase.fromValue(_controller.value);
+        if (phase.opacity <= 0) return const SizedBox.expand();
+
+        return CustomPaint(
+          painter: _AugmentPatternHintPainter(
+            points: activeHint.points,
+            accent: activeHint.tier.accent,
+            drawProgress: phase.drawProgress,
+            opacity: phase.opacity,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AugmentPatternHintPhase {
+  final double drawProgress;
+  final double opacity;
+
+  const _AugmentPatternHintPhase({
+    required this.drawProgress,
+    required this.opacity,
+  });
+
+  static _AugmentPatternHintPhase fromValue(double value) {
+    final total = _AugmentPatternHintUnderlayState._cycleDuration.inMilliseconds
+        .toDouble();
+    final drawEnd = _augmentPatternHintDrawDuration.inMilliseconds / total;
+    final holdEnd =
+        (_augmentPatternHintDrawDuration + _augmentPatternHintHoldDuration)
+                .inMilliseconds /
+            total;
+    final fadeEnd = (_augmentPatternHintDrawDuration +
+                _augmentPatternHintHoldDuration +
+                _augmentPatternHintFadeDuration)
+            .inMilliseconds /
+        total;
+    const maxOpacity = 0.46;
+
+    if (value <= drawEnd) {
+      final progress = Curves.easeInOutCubic.transform(
+        (value / drawEnd).clamp(0.0, 1.0).toDouble(),
+      );
+      return _AugmentPatternHintPhase(
+        drawProgress: progress,
+        opacity: maxOpacity * progress,
+      );
+    }
+    if (value <= holdEnd) {
+      return const _AugmentPatternHintPhase(
+        drawProgress: 1,
+        opacity: maxOpacity,
+      );
+    }
+    if (value <= fadeEnd) {
+      final fadeProgress =
+          ((value - holdEnd) / (fadeEnd - holdEnd)).clamp(0.0, 1.0).toDouble();
+      return _AugmentPatternHintPhase(
+        drawProgress: 1,
+        opacity: maxOpacity * (1 - Curves.easeOutCubic.transform(fadeProgress)),
+      );
+    }
+
+    return const _AugmentPatternHintPhase(
+      drawProgress: 1,
+      opacity: 0,
+    );
+  }
+}
+
+class _AugmentPatternHintPainter extends CustomPainter {
+  final List<OperativePatternPoint> points;
+  final Color accent;
+  final double drawProgress;
+  final double opacity;
+
+  const _AugmentPatternHintPainter({
+    required this.points,
+    required this.accent,
+    required this.drawProgress,
+    required this.opacity,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty || opacity <= 0) return;
+
+    final centers = points.map((point) => _centerFor(point, size)).toList();
+    final partialPath = _partialPath(centers, drawProgress);
+    final visiblePointCount = max(
+      1,
+      min(points.length, (points.length * drawProgress).ceil()),
+    );
+    final visiblePoints = points.take(visiblePointCount).toList();
+
+    _drawPath(canvas, partialPath);
+    _drawPointHighlights(canvas, visiblePoints, size);
+  }
+
+  Path _partialPath(List<Offset> centers, double progress) {
+    final path = Path();
+    if (centers.isEmpty) return path;
+
+    path.moveTo(centers.first.dx, centers.first.dy);
+    if (centers.length == 1 || progress <= 0) return path;
+
+    final segmentCount = centers.length - 1;
+    final scaledProgress = progress.clamp(0.0, 1.0) * segmentCount;
+    final fullSegments = scaledProgress.floor().clamp(0, segmentCount);
+    final partialSegmentProgress = scaledProgress - fullSegments;
+
+    for (var index = 1; index <= fullSegments; index++) {
+      path.lineTo(centers[index].dx, centers[index].dy);
+    }
+
+    if (fullSegments < segmentCount && partialSegmentProgress > 0) {
+      final start = centers[fullSegments];
+      final end = centers[fullSegments + 1];
+      final partial = Offset.lerp(start, end, partialSegmentProgress)!;
+      path.lineTo(partial.dx, partial.dy);
+    }
+
+    return path;
+  }
+
+  void _drawPath(Canvas canvas, Path path) {
+    final wideGlowPaint = Paint()
+      ..color = accent.withValues(alpha: opacity * 0.42)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 16
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    final softGlowPaint = Paint()
+      ..color = accent.withValues(alpha: opacity * 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final corePaint = Paint()
+      ..color = EndpointPalette.softForeground.withValues(alpha: opacity * 0.76)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(path, wideGlowPaint);
+    canvas.drawPath(path, softGlowPaint);
+    canvas.drawPath(path, corePaint);
+  }
+
+  void _drawPointHighlights(
+    Canvas canvas,
+    List<OperativePatternPoint> visiblePoints,
+    Size size,
+  ) {
+    for (final point in visiblePoints) {
+      final center = _centerFor(point, size);
+      canvas.drawCircle(
+        center,
+        13,
+        Paint()
+          ..color = accent.withValues(alpha: opacity * 0.22)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+      );
+      canvas.drawCircle(
+        center,
+        5.4,
+        Paint()
+          ..color = accent.withValues(alpha: opacity * 0.45)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
+      );
+    }
+  }
+
+  Offset _centerFor(OperativePatternPoint point, Size size) {
+    final side = min(size.width * 0.94, size.height * 0.94);
+    final topLeft = Offset(
+      (size.width - side) / 2,
+      (size.height - side) / 2,
+    );
+    return topLeft +
+        operativePatternPointCenter(
+          point: point,
+          boardSide: side,
+        );
+  }
+
+  @override
+  bool shouldRepaint(covariant _AugmentPatternHintPainter oldDelegate) {
+    return oldDelegate.points != points ||
+        oldDelegate.accent != accent ||
+        oldDelegate.drawProgress != drawProgress ||
+        oldDelegate.opacity != opacity;
+  }
+}
+
 class _PatternAugmentStrip extends StatelessWidget {
+  final List<Augment> augments;
   final List<BattlerAbility> abilities;
   final Color accent;
   final bool alignEnd;
   final List<Item> items;
   final Future<void> Function(Item item)? onItemPressed;
+  final ValueChanged<Augment>? onAugmentPressed;
   final ValueChanged<BattlerAbility>? onAbilityPressed;
 
   const _PatternAugmentStrip({
+    this.augments = const <Augment>[],
     required this.abilities,
     required this.accent,
     this.alignEnd = false,
     this.items = const <Item>[],
     this.onItemPressed,
+    this.onAugmentPressed,
     this.onAbilityPressed,
   });
 
@@ -2271,9 +2636,19 @@ class _PatternAugmentStrip extends StatelessWidget {
                   alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
               textDirection: alignEnd ? TextDirection.rtl : TextDirection.ltr,
               children: [
-                for (var index = 0; index < abilities.length; index++) ...[
+                for (var index = 0; index < augments.length; index++) ...[
                   if (index > 0) const SizedBox(width: 8),
                   _PatternAugmentDot(
+                    augment: augments[index],
+                    accent: accent,
+                    onPressed: onAugmentPressed,
+                  ),
+                ],
+                if (augments.isNotEmpty && abilities.isNotEmpty)
+                  const SizedBox(width: 8),
+                for (var index = 0; index < abilities.length; index++) ...[
+                  if (index > 0) const SizedBox(width: 8),
+                  _PatternAbilityDot(
                     ability: abilities[index],
                     accent: accent,
                     onPressed: onAbilityPressed,
@@ -2538,11 +2913,37 @@ class _PatternItemListTile extends StatelessWidget {
 }
 
 class _PatternAugmentDot extends StatelessWidget {
+  final Augment augment;
+  final Color accent;
+  final ValueChanged<Augment>? onPressed;
+
+  const _PatternAugmentDot({
+    required this.augment,
+    required this.accent,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final handlePressed = onPressed;
+    return Tooltip(
+      message: augment.displayName,
+      child: EndpointAugmentOrb(
+        augment: augment,
+        accent: accent,
+        size: 38,
+        onPressed: handlePressed == null ? null : () => handlePressed(augment),
+      ),
+    );
+  }
+}
+
+class _PatternAbilityDot extends StatelessWidget {
   final BattlerAbility ability;
   final Color accent;
   final ValueChanged<BattlerAbility>? onPressed;
 
-  const _PatternAugmentDot({
+  const _PatternAbilityDot({
     required this.ability,
     required this.accent,
     this.onPressed,

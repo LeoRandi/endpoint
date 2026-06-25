@@ -197,6 +197,32 @@ extension AugmentPresentation on Augment {
   Color get accent => rarity.accent;
 }
 
+extension AugmentAffinityPresentation on AugmentAffinity {
+  String get label => switch (this) {
+        AugmentAffinity.general => 'General',
+        AugmentAffinity.veloz => ArchetypeId.veloz.label,
+        AugmentAffinity.inamovible => ArchetypeId.inamovible.label,
+        AugmentAffinity.imparable => ArchetypeId.imparable.label,
+        AugmentAffinity.mercante => ArchetypeId.mercante.label,
+      };
+
+  IconData get icon => switch (this) {
+        AugmentAffinity.general => Icons.all_inclusive_rounded,
+        AugmentAffinity.veloz => Icons.flash_on_rounded,
+        AugmentAffinity.inamovible => Icons.shield_rounded,
+        AugmentAffinity.imparable => Icons.local_fire_department_rounded,
+        AugmentAffinity.mercante => Icons.payments_rounded,
+      };
+
+  Color get accent => switch (this) {
+        AugmentAffinity.general => EndpointPalette.neutralAccent,
+        AugmentAffinity.veloz => const Color(0xFF59B7FF),
+        AugmentAffinity.inamovible => const Color(0xFF5AF78E),
+        AugmentAffinity.imparable => const Color(0xFFFF5A5F),
+        AugmentAffinity.mercante => const Color(0xFFEBCB5A),
+      };
+}
+
 const _statusIcons = <BattlerStatusId, IconData>{
   BattlerStatusId.calentando: Icons.local_fire_department_rounded,
   BattlerStatusId.potencia: Icons.bolt_rounded,

@@ -63,57 +63,14 @@ class _BlackTechnoMarketEventPageState
       barrierLabel: 'Detalle de aumento',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
-        return EndpointDetailsDialogScaffold(
-          accent: augment.accent,
-          backgroundColor: EndpointPalette.panelBackgroundGold,
-          foregroundColor: EndpointPalette.softForeground,
-          closeBackgroundColor: EndpointPalette.closeButtonBackground,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              EndpointAugmentOrb(
-                augment: augment,
-                size: 70,
-              ),
-              const SizedBox(height: 10),
-              EndpointText(
-                augment.displayName,
-                textAlign: TextAlign.center,
-                maxLines: null,
-                style: textLargeBold.copyWith(
-                  color: EndpointPalette.soften(augment.accent),
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              EndpointHighlightedValueText(
-                augment.displayDescription,
-                tags: augment.tags,
-                textAlign: TextAlign.center,
-                maxLines: null,
-                style: textSmallBold.copyWith(
-                  color: EndpointPalette.softForeground.withAlpha(210),
-                  fontSize: 11,
-                ),
-              ),
-              const SizedBox(height: 12),
-              EndpointCurrencyInline(
-                value: price,
-                iconColor: EndpointPalette.warningAccent,
-                textColor: EndpointPalette.softForeground,
-              ),
-              const SizedBox(height: 12),
-              EndpointActionButton(
-                label: 'Seleccionar',
-                icon: Icons.check_rounded,
-                onPressed: () => Navigator.of(context).pop(augment),
-                tooltip: 'Seleccionar este aumento para comprarlo',
-                accent: augment.accent,
-                expands: true,
-                useMarquee: false,
-              ),
-            ],
-          ),
+        return EndpointAugmentDetailsDialog(
+          augment: augment,
+          statusText: 'Precio: ${price}C.',
+          actionLabel: 'Seleccionar',
+          actionIcon: Icons.check_rounded,
+          onPrimaryAction: () => Navigator.of(context).pop(augment),
+          isActionEnabled: true,
+          enabledActionTooltip: 'Seleccionar este aumento para comprarlo',
         );
       },
     );

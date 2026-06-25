@@ -107,6 +107,9 @@ class MainMenuDebugToolsPage extends StatelessWidget {
       equipmentCapacity: equippedItems.length,
       equippedItems: equippedItems,
       inventoryItems: const <Item>[],
+      augments: [
+        augmentCatalogById[1]!.copyWith(tier: RarityTier.purple),
+      ],
       patternItemPointKeys: const <String, String>{},
     );
     final layout = OperativePatternLayoutService.resolveForPlayer(

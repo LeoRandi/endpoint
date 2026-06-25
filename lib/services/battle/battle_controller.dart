@@ -1,7 +1,7 @@
 import '_imports.dart';
 
 class BattleController extends ChangeNotifier {
-  static const int patternBanRoundCount = 3;
+  static const int patternBanHistoryCount = 1;
   final BattleResolver _resolver;
   final BattleTurnEngine _turnEngine;
   final BattlerEffectPipeline _effectPipeline;
@@ -878,9 +878,9 @@ class BattleController extends ChangeNotifier {
   List<List<String>> _activeBannedPatternPointKeys(
     List<_BattleUsedPattern> history,
   ) {
-    history.removeWhere(
-      (entry) => _currentRound - entry.usedRound >= patternBanRoundCount,
-    );
+    if (history.length > patternBanHistoryCount) {
+      history.removeRange(0, history.length - patternBanHistoryCount);
+    }
     return List<List<String>>.unmodifiable(
       history.map((entry) => entry.pointKeys),
     );

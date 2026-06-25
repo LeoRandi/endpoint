@@ -149,6 +149,19 @@ class _EndpointItemDetailsDialogState extends State<EndpointItemDetailsDialog> {
             ],
           ),
           const SizedBox(height: 14),
+          if (widget.item.localizedDisplayDescription.isNotEmpty) ...[
+            EndpointHighlightedValueText(
+              widget.item.localizedDisplayDescription,
+              tags: widget.item.tags,
+              maxLines: null,
+              style: textMedium.copyWith(
+                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
+                fontSize: 13,
+                height: 1.32,
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
           _ItemEffectGroups(
             item: widget.item,
             accent: widget.accent,
@@ -270,7 +283,10 @@ class _ItemEffectGroups extends StatelessWidget {
       icon: Icons.touch_app_rounded,
       groupAccent: EndpointPalette.dangerAccent,
       count: actions.length,
-      child: _ActionEffectsContent(actions: actions),
+      child: _ActionEffectsContent(
+        actions: actions,
+        tags: item.tags,
+      ),
     );
     addGroup(
       title: 'PATRONES',
@@ -284,7 +300,10 @@ class _ItemEffectGroups extends StatelessWidget {
       icon: Icons.autorenew_rounded,
       groupAccent: accent,
       count: passives.length,
-      child: _PassiveEffectsContent(passives: passives),
+      child: _PassiveEffectsContent(
+        passives: passives,
+        tags: item.tags,
+      ),
     );
 
     if (groups.isEmpty) {
@@ -434,16 +453,21 @@ class _CollapsibleEffectGroupState extends State<_CollapsibleEffectGroup> {
 
 class _ActionEffectsContent extends StatelessWidget {
   final List<ActionEffect> actions;
+  final Iterable<EntityTag> tags;
 
-  const _ActionEffectsContent({required this.actions});
+  const _ActionEffectsContent({
+    required this.actions,
+    required this.tags,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EndpointText(
+        EndpointHighlightedValueText(
           'Al usarse:',
+          tags: tags,
           style: textMediumBold.copyWith(
             color: EndpointPalette.softForeground,
             fontSize: 13,
@@ -453,8 +477,9 @@ class _ActionEffectsContent extends StatelessWidget {
         for (final action in actions)
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: EndpointText(
+            child: EndpointHighlightedValueText(
               '-${_itemActionDescription(action)}',
+              tags: tags,
               maxLines: null,
               style: textMedium.copyWith(
                 color: EndpointPalette.softForeground.withValues(alpha: 0.86),
@@ -548,8 +573,9 @@ class _PatternEffectRow extends StatelessWidget {
                     ),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: EndpointText(
+                    child: EndpointHighlightedValueText(
                       _effectDescription(effect),
+                      tags: item.tags,
                       maxLines: null,
                       style: textMediumBold.copyWith(
                         color: effectAccent,
@@ -587,9 +613,11 @@ String _itemActionDescription(ActionEffect action) =>
 
 class _PassiveEffectsContent extends StatelessWidget {
   final List<PassiveEffect> passives;
+  final Iterable<EntityTag> tags;
 
   const _PassiveEffectsContent({
     required this.passives,
+    required this.tags,
   });
 
   @override
@@ -598,8 +626,9 @@ class _PassiveEffectsContent extends StatelessWidget {
       for (final passive in passives) _descriptionFor(passive),
     ];
 
-    return EndpointText(
+    return EndpointHighlightedValueText(
       descriptions.join('\n\n'),
+      tags: tags,
       maxLines: null,
       style: textMedium.copyWith(
         color: EndpointPalette.softForeground.withValues(alpha: 0.86),
@@ -634,8 +663,9 @@ class _ItemDialogStatusRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: EndpointText(
+          child: EndpointHighlightedValueText(
             statusText,
+            tags: item.tags,
             maxLines: null,
             style: textSmallBold.copyWith(
               color: accent,
@@ -925,8 +955,9 @@ class _ItemPatternBonusSectionState extends State<_ItemPatternBonusSection> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: EndpointText(
+                      child: EndpointHighlightedValueText(
                         '${requirement.label}: ${requirement.description}',
+                        tags: item.tags,
                         maxLines: null,
                         style: textSmall.copyWith(
                           color: EndpointPalette.softForeground.withValues(

@@ -357,8 +357,9 @@ class _CodexPageState extends State<CodexPage> {
           context: context,
           barrierLabel: 'Detalle de aumento',
           barrierColor: EndpointPalette.overlayScrim,
-          builder: (context) => _CodexAugmentDetailsDialog(
+          builder: (context) => EndpointAugmentDetailsDialog(
             augment: entry.augment!,
+            statusText: 'DESBLOQUEADO',
           ),
         );
       case _CodexEntryKind.enemy:
@@ -1354,109 +1355,6 @@ class _CodexEventDetailsDialog extends StatelessWidget {
   }
 }
 
-class _CodexAugmentDetailsDialog extends StatelessWidget {
-  final Augment augment;
-
-  const _CodexAugmentDetailsDialog({
-    required this.augment,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = augment.accent;
-
-    return EndpointDetailsDialogScaffold(
-      accent: accent,
-      backgroundColor: EndpointPalette.panelBackgroundOpaque,
-      foregroundColor: EndpointPalette.soften(accent),
-      closeBackgroundColor: EndpointPalette.closeButtonBackground,
-      maxWidth: 420,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              EndpointAugmentOrb(
-                augment: augment,
-                size: 72,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    EndpointText(
-                      augment.displayName,
-                      maxLines: null,
-                      style: textLargeBold.copyWith(
-                        color: EndpointPalette.soften(accent),
-                        letterSpacing: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    EndpointText(
-                      'AUMENTO ${augment.rarity.label}',
-                      style: textSmallBold.copyWith(
-                        color: accent,
-                        fontSize: 10,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (augment.hasTags) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: EndpointTagPillMarquee(
-                tags: augment.tags,
-                accent: accent,
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          EndpointHighlightedValueText(
-            augment.displayDescription,
-            tags: augment.tags,
-            maxLines: null,
-            style: textMedium.copyWith(
-              color: EndpointPalette.softForeground.withValues(alpha: 0.84),
-              height: 1.24,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final entry in augment.effects.patternEffects.entries)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 5),
-                  child: EndpointText(
-                    '${entry.key.length} puntos: ${entry.value.description}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: textSmallBold.copyWith(
-                      color: EndpointPalette.softForeground.withValues(
-                        alpha: 0.78,
-                      ),
-                      fontSize: 11,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _CodexStatusDetailsDialog extends StatelessWidget {
   final BattlerStatus status;
 
@@ -1919,7 +1817,6 @@ enum _CodexArchetypeSectionKey {
 
     return fromArchetypeId(affinity.archetypeId!);
   }
-
 }
 
 class _CodexCategoryData {

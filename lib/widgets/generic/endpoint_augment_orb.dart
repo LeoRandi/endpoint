@@ -19,7 +19,8 @@ class EndpointAugmentOrb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentAugment = augment;
-    final resolvedAccent = currentAugment?.accent ?? accent ?? EndpointPalette.primaryAccent;
+    final resolvedAccent =
+        currentAugment?.accent ?? accent ?? EndpointPalette.primaryAccent;
     final tooltip = currentAugment?.displayDescription ?? emptyTooltip;
     final child = HoldTooltip(
       message: tooltip,
@@ -34,12 +35,14 @@ class EndpointAugmentOrb extends StatelessWidget {
               currentAugment == null ? 0.06 : 0.18,
             ),
             border: Border.all(
-              color: resolvedAccent.withValues(alpha: currentAugment == null ? 0.35 : 0.82),
+              color: resolvedAccent.withValues(
+                  alpha: currentAugment == null ? 0.35 : 0.82),
               width: 1.4,
             ),
             boxShadow: [
               BoxShadow(
-                color: resolvedAccent.withValues(alpha: currentAugment == null ? 0.08 : 0.22),
+                color: resolvedAccent.withValues(
+                    alpha: currentAugment == null ? 0.08 : 0.22),
                 blurRadius: size * 0.18,
                 spreadRadius: 1,
               ),

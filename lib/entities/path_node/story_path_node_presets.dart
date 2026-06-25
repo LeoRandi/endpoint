@@ -18,7 +18,7 @@ final velozArchetypeNode = ArchetypePathNode(
   incomeModifier: 4,
   startingItems: const [],
   startingAugments: [
-    augmentCatalogById[3]!,
+    augmentCatalogById[1]!,
   ],
 );
 
@@ -40,8 +40,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   incomeModifier: 3,
   startingItems: const [],
   startingAugments: [
-    augmentCatalogById[2]!,
-    augmentCatalogById[4]!,
+    augmentCatalogById[1]!,
   ],
 );
 
@@ -90,7 +89,7 @@ final mercanteArchetypeNode = ArchetypePathNode(
   startingItems: const [],
   startingItemsBuilder: _buildMerchantStartingItems,
   startingAugments: [
-    augmentCatalogById[5]!,
+    augmentCatalogById[1]!,
   ],
 );
 
