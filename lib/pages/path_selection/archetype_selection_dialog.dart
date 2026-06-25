@@ -213,11 +213,11 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
                             const SizedBox(height: 14),
                             _ArchetypeSectionHeader(
                               title: 'AUMENTOS',
-                              caption: '${archetype.startingAbilities.length}',
+                              caption: '${archetype.startingAugments.length}',
                               accent: accent,
                             ),
                             const SizedBox(height: 6),
-                            if (archetype.startingAbilities.isEmpty)
+                            if (archetype.startingAugments.isEmpty)
                               const _ArchetypeEmptyState(
                                 message: 'No entrega aumentos iniciales.',
                               )
@@ -225,13 +225,11 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
                               Column(
                                 children: [
                                   for (int index = 0;
-                                      index <
-                                          archetype.startingAbilities.length;
+                                      index < archetype.startingAugments.length;
                                       index++) ...[
                                     if (index > 0) const SizedBox(height: 10),
-                                    _ArchetypeAbilityCard(
-                                      ability:
-                                          archetype.startingAbilities[index],
+                                    _ArchetypeAugmentCard(
+                                      augment: archetype.startingAugments[index],
                                     ),
                                   ],
                                 ],
@@ -701,17 +699,16 @@ class _ArchetypeItemCard extends StatelessWidget {
   }
 }
 
-class _ArchetypeAbilityCard extends StatelessWidget {
-  final BattlerAbility ability;
+class _ArchetypeAugmentCard extends StatelessWidget {
+  final Augment augment;
 
-  const _ArchetypeAbilityCard({
-    required this.ability,
+  const _ArchetypeAugmentCard({
+    required this.augment,
   });
 
   @override
   Widget build(BuildContext context) {
-    final accent = ability.accent;
-    final activationLabel = ability.manualActivationContext?.label ?? 'Pasiva';
+    final accent = augment.accent;
 
     return EndpointPanel(
       accent: accent,
@@ -729,10 +726,9 @@ class _ArchetypeAbilityCard extends StatelessWidget {
           SizedBox(
             width: 56,
             child: Center(
-              child: EndpointAbilityOrb(
-                ability: ability,
+              child: EndpointAugmentOrb(
+                augment: augment,
                 size: 52,
-                enableTooltipLongPress: false,
               ),
             ),
           ),
@@ -742,7 +738,7 @@ class _ArchetypeAbilityCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 EndpointText(
-                  ability.displayName,
+                  augment.displayName,
                   maxLines: null,
                   style: textMediumBold.copyWith(
                     color: EndpointPalette.softForeground,
@@ -751,7 +747,7 @@ class _ArchetypeAbilityCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 EndpointText(
-                  '${ability.rarity.label}  |  $activationLabel',
+                  augment.rarity.label,
                   maxLines: null,
                   style: textSmallBold.copyWith(
                     color: accent,
@@ -761,23 +757,13 @@ class _ArchetypeAbilityCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 EndpointHighlightedValueText(
-                  ability.displayDescription,
-                  tags: ability.tags,
+                  augment.displayDescription,
+                  tags: augment.tags,
                   maxLines: null,
                   style: textSmallBold.copyWith(
                     color: Colors.white.withAlpha(196),
                     fontSize: 11,
                     height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                EndpointText(
-                  _buildAbilitySummary(ability),
-                  maxLines: null,
-                  style: textSmallNumericBold.copyWith(
-                    color: accent,
-                    fontSize: 10,
-                    letterSpacing: 0.8,
                   ),
                 ),
               ],
@@ -788,17 +774,4 @@ class _ArchetypeAbilityCard extends StatelessWidget {
     );
   }
 
-  String _buildAbilitySummary(BattlerAbility ability) {
-    final parts = <String>[
-      'POTENCIA ${ability.currentValue}',
-    ];
-
-    if (ability.upgradeValue > 0) {
-      parts.add('MEJORA +${ability.upgradeValue}');
-    }
-
-    parts.add('COOLDOWN ${ability.cooldownLabel}');
-
-    return parts.join('   ');
-  }
 }

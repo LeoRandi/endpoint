@@ -1,6 +1,6 @@
 part of '../path_event_service.dart';
 
-/// Item and ability mutation use cases for Sobre Kar and Technosurgeon events.
+/// Item and augment mutation use cases for Sobre Kar and Technosurgeon events.
 extension MutationPathEventHandler on PathEventService {
   List<Item> buildSobreKarEligibleItems(Battler player) {
     final eligibleItems = [
@@ -46,25 +46,25 @@ extension MutationPathEventHandler on PathEventService {
   PathEventVisitResult resolveTechnosurgeonMutation({
     required EventPathNode node,
     required Battler player,
-    required BattlerAbility selectedAbility,
+    required Augment selectedAugment,
     required RunRandomizer randomizer,
   }) {
-    final replacementAbility = _rollTechnosurgeonReplacement(
+    final replacementAugment = _rollTechnosurgeonReplacement(
       node: node,
-      selectedAbility: selectedAbility,
+      selectedAugment: selectedAugment,
       player: player,
       randomizer: randomizer,
     );
-    final updatedPlayer = player.replaceAbility(
-      currentAbility: selectedAbility,
-      replacementAbility: replacementAbility,
+    final updatedPlayer = player.replaceAugment(
+      currentAugment: selectedAugment,
+      replacementAugment: replacementAugment,
     );
 
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          '${selectedAbility.displayName} ha sido reemplazada por ${replacementAbility.displayName}.',
-      gainedAbility: replacementAbility,
+          '${selectedAugment.displayName} ha sido reemplazado por ${replacementAugment.displayName}.',
+      gainedAugment: replacementAugment,
     );
   }
 }

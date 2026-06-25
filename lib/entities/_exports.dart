@@ -1,4 +1,5 @@
 export 'archetype_id.dart';
+export 'augment/_exports.dart';
 export 'cycle_runtime.dart';
 export 'entity_tag.dart';
 export 'rarity_tier.dart';

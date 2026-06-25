@@ -17,7 +17,7 @@ class RunDaySummaryPage extends StatefulWidget {
 class _RunDaySummaryPageState extends State<RunDaySummaryPage>
     with SingleTickerProviderStateMixin {
   bool _areItemRewardsExpanded = false;
-  bool _areAbilityRewardsExpanded = false;
+  bool _areAugmentRewardsExpanded = false;
   bool _areEnemiesExpanded = false;
 
   late final AnimationController _controller = AnimationController(
@@ -47,8 +47,10 @@ class _RunDaySummaryPageState extends State<RunDaySummaryPage>
     final itemRewards = widget.summary.gainedRewards
         .where((reward) => reward.type == RunDaySummaryRewardType.item)
         .toList(growable: false);
-    final abilityRewards = widget.summary.gainedRewards
-        .where((reward) => reward.type == RunDaySummaryRewardType.ability)
+    final augmentRewards = widget.summary.gainedRewards
+        .where((reward) =>
+            reward.type == RunDaySummaryRewardType.augment ||
+            reward.type == RunDaySummaryRewardType.ability)
         .toList(growable: false);
 
     return PopScope(
@@ -124,17 +126,17 @@ class _RunDaySummaryPageState extends State<RunDaySummaryPage>
                                 index: 2,
                                 child: _SummaryRewardsBlock(
                                   title: 'AUMENTOS APRENDIDOS',
-                                  caption: '${abilityRewards.length}',
+                                  caption: '${augmentRewards.length}',
                                   icon: Icons.auto_awesome_rounded,
-                                  rewards: abilityRewards,
+                                  rewards: augmentRewards,
                                   dayNumber: widget.summary.dayNumber,
                                   emptyText: 'No se han aprendido aumentos.',
                                   accent: EndpointPalette.infoAccent,
-                                  isExpanded: _areAbilityRewardsExpanded,
+                                  isExpanded: _areAugmentRewardsExpanded,
                                   onToggle: () {
                                     setState(() {
-                                      _areAbilityRewardsExpanded =
-                                          !_areAbilityRewardsExpanded;
+                                      _areAugmentRewardsExpanded =
+                                          !_areAugmentRewardsExpanded;
                                     });
                                   },
                                 ),
@@ -425,7 +427,7 @@ class _SummaryRewardIconCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = reward.rarity.accent;
-    final canOpenDetails = reward.item != null || reward.ability != null;
+    final canOpenDetails = reward.item != null || reward.augment != null;
 
     return HoldTooltip(
       message: reward.name,
@@ -462,7 +464,7 @@ class _SummaryRewardIconCard extends StatelessWidget {
                         style: const TextStyle(fontSize: 23, height: 1),
                       )
                     : Icon(
-                        reward.ability?.icon ?? Icons.auto_awesome_rounded,
+                        reward.augment?.icon ?? Icons.auto_awesome_rounded,
                         color: accent,
                         size: 24,
                       ),
@@ -491,13 +493,14 @@ Future<void> _openRewardDetails(
         statusText: 'Obtenido durante el dia $dayNumber.',
       );
       return;
+    case RunDaySummaryRewardType.augment:
     case RunDaySummaryRewardType.ability:
-      final ability = reward.ability;
-      if (ability == null) return;
+      final augment = reward.augment;
+      if (augment == null) return;
 
-      await _openAbilityDetails(
+      await _openAugmentDetails(
         context,
-        ability,
+        augment,
         statusText: 'Aprendida durante el dia $dayNumber.',
       );
       return;
@@ -525,9 +528,9 @@ Future<void> _openItemDetails(
   );
 }
 
-Future<void> _openAbilityDetails(
+Future<void> _openAugmentDetails(
   BuildContext context,
-  BattlerAbility ability, {
+  Augment augment, {
   required String statusText,
 }) async {
   await showEndpointDialog<void>(
@@ -535,10 +538,83 @@ Future<void> _openAbilityDetails(
     barrierLabel: 'Detalle de aumento',
     barrierColor: EndpointPalette.overlayScrim,
     builder: (context) {
-      return EndpointAbilityDetailsDialog(
-        ability: ability,
-        accent: ability.accent,
-        statusText: statusText,
+      final accent = augment.accent;
+
+      return EndpointDetailsDialogScaffold(
+        accent: accent,
+        backgroundColor: EndpointPalette.panelBackgroundOpaque,
+        foregroundColor: EndpointPalette.soften(accent),
+        closeBackgroundColor: EndpointPalette.closeButtonBackground,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                EndpointAugmentOrb(
+                  augment: augment,
+                  size: 72,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EndpointText(
+                        augment.displayName,
+                        maxLines: null,
+                        style: textLargeBold.copyWith(
+                          color: EndpointPalette.soften(accent),
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      EndpointText(
+                        'AUMENTO ${augment.rarity.label}',
+                        style: textSmallBold.copyWith(
+                          color: accent,
+                          fontSize: 10,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (augment.hasTags) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: EndpointTagPillMarquee(
+                  tags: augment.tags,
+                  accent: accent,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            EndpointHighlightedValueText(
+              augment.displayDescription,
+              tags: augment.tags,
+              maxLines: null,
+              style: textMedium.copyWith(
+                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
+                height: 1.24,
+              ),
+            ),
+            const SizedBox(height: 12),
+            EndpointText(
+              statusText,
+              maxLines: null,
+              style: textSmallBold.copyWith(
+                color: accent,
+                fontSize: 11,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ],
+        ),
       );
     },
   );
@@ -759,9 +835,9 @@ class _RunSummaryEnemyDetailsPage extends StatelessWidget {
                                 statusText: 'En reserva de ${battler.name}.',
                               ),
                               const SizedBox(height: 10),
-                              _EnemyAbilitiesPanel(
+                              _EnemyAugmentsPanel(
                                 enemyName: battler.name,
-                                abilities: battler.abilities,
+                                augments: battler.augments,
                               ),
                             ],
                           ),
@@ -949,13 +1025,13 @@ class _EnemyLoadoutPanel extends StatelessWidget {
   }
 }
 
-class _EnemyAbilitiesPanel extends StatelessWidget {
+class _EnemyAugmentsPanel extends StatelessWidget {
   final String enemyName;
-  final List<BattlerAbility> abilities;
+  final List<Augment> augments;
 
-  const _EnemyAbilitiesPanel({
+  const _EnemyAugmentsPanel({
     required this.enemyName,
-    required this.abilities,
+    required this.augments,
   });
 
   @override
@@ -964,7 +1040,7 @@ class _EnemyAbilitiesPanel extends StatelessWidget {
       title: 'AUMENTOS',
       icon: Icons.auto_awesome_rounded,
       accent: EndpointPalette.infoAccent,
-      child: abilities.isEmpty
+      child: augments.isEmpty
           ? _EnemyDetailsEmptyState(
               message: '$enemyName no tenia aumentos.',
             )
@@ -972,20 +1048,20 @@ class _EnemyAbilitiesPanel extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final ability in abilities)
+                for (final augment in augments)
                   _EnemyLoadoutIconCard(
-                    tooltip: ability.displayName,
-                    accent: ability.accent,
+                    tooltip: augment.displayName,
+                    accent: augment.accent,
                     onPressed: () {
-                      _openAbilityDetails(
+                      _openAugmentDetails(
                         context,
-                        ability,
+                        augment,
                         statusText: 'Aumento de $enemyName.',
                       );
                     },
                     child: Icon(
-                      ability.icon,
-                      color: ability.accent,
+                      augment.icon,
+                      color: augment.accent,
                       size: 25,
                     ),
                   ),

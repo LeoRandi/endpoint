@@ -185,6 +185,18 @@ extension BattlerAbilityPresentation on BattlerAbility {
   Color get accent => rarity.accent;
 }
 
+extension AugmentPresentation on Augment {
+  IconData get icon {
+    if (hasTag(EntityTag.economia)) return Icons.currency_exchange_rounded;
+    if (hasTag(EntityTag.desafio)) return Icons.local_activity_rounded;
+    if (hasTag(EntityTag.barrera)) return Icons.shield_rounded;
+    if (hasTag(EntityTag.ataque)) return Icons.join_inner_rounded;
+    return Icons.auto_awesome_rounded;
+  }
+
+  Color get accent => rarity.accent;
+}
+
 const _statusIcons = <BattlerStatusId, IconData>{
   BattlerStatusId.calentando: Icons.local_fire_department_rounded,
   BattlerStatusId.potencia: Icons.bolt_rounded,

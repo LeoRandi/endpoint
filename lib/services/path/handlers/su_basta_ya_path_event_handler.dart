@@ -1,6 +1,6 @@
 part of '../path_event_service.dart';
 
-/// Auction, sacrifice, and ability-swap use cases for Su Basta Ya.
+/// Auction, sacrifice, and augment-swap use cases for Su Basta Ya.
 extension SuBastaYaPathEventHandler on PathEventService {
   List<Item> buildSuBastaYaEligibleItems(Battler player) {
     return List<Item>.unmodifiable([
@@ -9,8 +9,8 @@ extension SuBastaYaPathEventHandler on PathEventService {
     ]);
   }
 
-  List<BattlerAbility> buildSuBastaYaEligibleAbilities(Battler player) {
-    return List<BattlerAbility>.unmodifiable(player.abilities);
+  List<Augment> buildSuBastaYaEligibleAugments(Battler player) {
+    return List<Augment>.unmodifiable(player.augments);
   }
 
   int suBastaYaAuctionPriceFor(Item item) {
@@ -82,33 +82,33 @@ extension SuBastaYaPathEventHandler on PathEventService {
     );
   }
 
-  PathEventVisitResult resolveSuBastaYaAbilitySwap({
+  PathEventVisitResult resolveSuBastaYaAugmentSwap({
     required Battler player,
-    required BattlerAbility selectedAbility,
+    required Augment selectedAugment,
     required RunRandomizer randomizer,
   }) {
-    if (player.abilityById(selectedAbility.id) == null) {
+    if (player.augmentById(selectedAugment.id) == null) {
       return PathEventVisitResult(
         player: player,
-        outcomeText: 'Esa habilidad ya no esta disponible para intercambiar.',
+        outcomeText: 'Ese aumento ya no esta disponible para intercambiar.',
       );
     }
 
-    final replacementAbility = _rollSuBastaYaReplacementAbility(
-      selectedAbility: selectedAbility,
+    final replacementAugment = _rollSuBastaYaReplacementAugment(
+      selectedAugment: selectedAugment,
       player: player,
       randomizer: randomizer,
     );
-    final updatedPlayer = player.replaceAbility(
-      currentAbility: selectedAbility,
-      replacementAbility: replacementAbility,
+    final updatedPlayer = player.replaceAugment(
+      currentAugment: selectedAugment,
+      replacementAugment: replacementAugment,
     );
 
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'Cambias ${selectedAbility.displayName} por ${replacementAbility.displayName}.',
-      gainedAbility: replacementAbility,
+          'Cambias ${selectedAugment.displayName} por ${replacementAugment.displayName}.',
+      gainedAugment: replacementAugment,
     );
   }
 }

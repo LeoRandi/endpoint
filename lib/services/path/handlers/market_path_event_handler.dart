@@ -2,24 +2,25 @@ part of '../path_event_service.dart';
 
 /// Purchase and negotiated-route use cases shared by market events.
 extension MarketPathEventHandler on PathEventService {
-  List<BattlerAbility> buildBlackTechnoMarketOffers({
+  List<Augment> buildBlackTechnoMarketOffers({
     required Battler player,
     required RunRandomizer randomizer,
     int count = 3,
   }) {
-    final eligiblePresets = abilityPresets.where((ability) {
-      final ownedAbility = player.abilityById(ability.id);
-      return ownedAbility == null || ownedAbility.canUpgrade;
+    final eligibleCatalogEntries = augmentCatalog.where((augment) {
+      final ownedAugment = player.augmentById(augment.id);
+      return ownedAugment == null || ownedAugment.canUpgrade;
     }).toList(growable: false);
-    if (count <= 0 || eligiblePresets.isEmpty) {
-      return const <BattlerAbility>[];
+    if (count <= 0 || eligibleCatalogEntries.isEmpty) {
+      return const <Augment>[];
     }
 
-    final selectedPresets = randomizer.pickDistinct(eligiblePresets, count);
-    return List<BattlerAbility>.unmodifiable(
-      selectedPresets.map(
-        (preset) => _rollBlackTechnoMarketOffer(
-          preset: preset,
+    final selectedCatalogEntries =
+        randomizer.pickDistinct(eligibleCatalogEntries, count);
+    return List<Augment>.unmodifiable(
+      selectedCatalogEntries.map(
+        (catalogEntry) => _rollBlackTechnoMarketOffer(
+          catalogEntry: catalogEntry,
           player: player,
           randomizer: randomizer,
         ),
@@ -27,45 +28,45 @@ extension MarketPathEventHandler on PathEventService {
     );
   }
 
-  int blackTechnoMarketPriceFor(BattlerAbility ability) {
-    return max(0, ability.rarity.factor * 5);
+  int blackTechnoMarketPriceFor(Augment augment) {
+    return max(0, augment.rarity.factor * 5);
   }
 
   PathEventVisitResult resolveBlackTechnoMarketPurchase({
     required Battler player,
-    required BattlerAbility selectedAbility,
+    required Augment selectedAugment,
   }) {
-    final price = blackTechnoMarketPriceFor(selectedAbility);
+    final price = blackTechnoMarketPriceFor(selectedAugment);
     if (!player.canAfford(price)) {
       return PathEventVisitResult(
         player: player,
         outcomeText:
-            'No tienes creditos suficientes para comprar ${selectedAbility.displayName}.',
+            'No tienes creditos suficientes para comprar ${selectedAugment.displayName}.',
       );
     }
 
-    final existingAbility = player.abilityById(selectedAbility.id);
-    if (existingAbility != null && !existingAbility.canUpgrade) {
+    final existingAugment = player.augmentById(selectedAugment.id);
+    if (existingAugment != null && !existingAugment.canUpgrade) {
       return PathEventVisitResult(
         player: player,
         outcomeText:
-            '${existingAbility.displayName} no puede mejorar mas ahora mismo.',
+            '${existingAugment.displayName} no puede mejorar mas ahora mismo.',
       );
     }
 
     final updatedPlayer = player
         .spendMoney(price)
-        .addAbility(_runtimeService.runtimeAbility(selectedAbility));
-    final resolvedAbility =
-        updatedPlayer.abilityById(selectedAbility.id) ?? selectedAbility;
-    final outcomeText = existingAbility == null
-        ? 'Has comprado ${resolvedAbility.displayName} por ${price}C.'
-        : 'Has comprado una copia de ${resolvedAbility.displayName} por ${price}C. Su tier actual es ${_rarityLabel(resolvedAbility.rarity)}.';
+        .addAugment(_runtimeService.runtimeAugment(selectedAugment));
+    final resolvedAugment =
+        updatedPlayer.augmentById(selectedAugment.id) ?? selectedAugment;
+    final outcomeText = existingAugment == null
+        ? 'Has comprado ${resolvedAugment.displayName} por ${price}C.'
+        : 'Has comprado una copia de ${resolvedAugment.displayName} por ${price}C. Su tier actual es ${_rarityLabel(resolvedAugment.rarity)}.';
 
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText: outcomeText,
-      gainedAbility: resolvedAbility,
+      gainedAugment: resolvedAugment,
     );
   }
 

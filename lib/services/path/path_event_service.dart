@@ -291,18 +291,18 @@ class PathEventService {
     );
   }
 
-  PathEventVisitResult resolveClinicaReflejosAbility({
+  PathEventVisitResult resolveClinicaReflejosAugment({
     required Battler player,
     required RunRandomizer randomizer,
     required int dayNumber,
   }) {
-    final ability = _rollAbilityForArchetypeAndDay(
+    final augment = _rollAugmentForArchetypeAndDay(
       player: player,
       archetypeId: ArchetypeId.veloz,
       randomizer: randomizer,
       dayNumber: dayNumber,
     );
-    if (ability == null) {
+    if (augment == null) {
       return PathEventVisitResult(
         player: player,
         outcomeText: 'La clinica no encuentra ningun aumento Veloz compatible.',
@@ -310,13 +310,13 @@ class PathEventService {
     }
 
     final updatedPlayer =
-        player.addAbility(_runtimeService.runtimeAbility(ability));
-    final resolvedAbility = updatedPlayer.abilityById(ability.id) ?? ability;
+        player.addAugment(_runtimeService.runtimeAugment(augment));
+    final resolvedAugment = updatedPlayer.augmentById(augment.id) ?? augment;
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'La Clinica de Reflejos integra ${resolvedAbility.displayName} (${_rarityLabel(resolvedAbility.rarity)}).',
-      gainedAbility: resolvedAbility,
+          'La Clinica de Reflejos integra ${resolvedAugment.displayName} (${_rarityLabel(resolvedAugment.rarity)}).',
+      gainedAugment: resolvedAugment,
     );
   }
 
@@ -450,19 +450,19 @@ class PathEventService {
       player.removeItem(selectedItem),
       {BattlerStat.barrier: barrierGain},
     );
-    BattlerAbility? gainedAbility;
+    Augment? gainedAugment;
     if (selectedItem.isWeaponLike) {
-      gainedAbility = _rollAbilityFromPoolForExactRarity(
-        pool: abilityPresets,
+      gainedAugment = _rollAugmentFromPoolForExactRarity(
+        pool: augmentCatalog,
         player: updatedPlayer,
         targetRarity: RarityTier.green,
         randomizer: randomizer,
       );
-      if (gainedAbility != null) {
-        updatedPlayer = updatedPlayer.addAbility(
-          _runtimeService.runtimeAbility(gainedAbility),
+      if (gainedAugment != null) {
+        updatedPlayer = updatedPlayer.addAugment(
+          _runtimeService.runtimeAugment(gainedAugment),
         );
-        gainedAbility = updatedPlayer.abilityById(gainedAbility.id);
+        gainedAugment = updatedPlayer.augmentById(gainedAugment.id);
       }
     }
 
@@ -470,7 +470,7 @@ class PathEventService {
       player: updatedPlayer,
       outcomeText:
           'La Capilla acepta ${selectedItem.displayName}. Ganas +$barrierGain Barrera permanente.',
-      gainedAbility: gainedAbility,
+      gainedAugment: gainedAugment,
     );
   }
 
@@ -490,8 +490,8 @@ class PathEventService {
     required Battler player,
     required RunRandomizer randomizer,
   }) {
-    final ability = _rollAbilityFromPoolForExactRarity(
-      pool: abilityPoolForArchetype(ArchetypeId.imparable),
+    final augment = _rollAugmentFromPoolForExactRarity(
+      pool: augmentCatalogForArchetype(ArchetypeId.imparable),
       player: player,
       targetRarity: RarityTier.blue,
       randomizer: randomizer,
@@ -500,18 +500,18 @@ class PathEventService {
       const QuemaduraStatus(remainingTurns: 8),
       applyEquipmentModifiers: false,
     );
-    BattlerAbility? gainedAbility;
-    if (ability != null) {
+    Augment? gainedAugment;
+    if (augment != null) {
       updatedPlayer =
-          updatedPlayer.addAbility(_runtimeService.runtimeAbility(ability));
-      gainedAbility = updatedPlayer.abilityById(ability.id) ?? ability;
+          updatedPlayer.addAugment(_runtimeService.runtimeAugment(augment));
+      gainedAugment = updatedPlayer.augmentById(augment.id) ?? augment;
     }
 
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
           'Aceptas el entrenamiento de holo-arena: 8 Quemadura y un aumento Imparable azul.',
-      gainedAbility: gainedAbility,
+      gainedAugment: gainedAugment,
     );
   }
 
@@ -565,8 +565,8 @@ class PathEventService {
     required Battler player,
     required RunRandomizer randomizer,
   }) {
-    final ability = _rollAbilityFromPoolForExactRarity(
-      pool: abilityPresets,
+    final augment = _rollAugmentFromPoolForExactRarity(
+      pool: augmentCatalog,
       player: player,
       targetRarity: RarityTier.green,
       randomizer: randomizer,
@@ -575,18 +575,18 @@ class PathEventService {
       const DeudaStatus(value: 20),
       applyEquipmentModifiers: false,
     );
-    BattlerAbility? gainedAbility;
-    if (ability != null) {
+    Augment? gainedAugment;
+    if (augment != null) {
       updatedPlayer =
-          updatedPlayer.addAbility(_runtimeService.runtimeAbility(ability));
-      gainedAbility = updatedPlayer.abilityById(ability.id) ?? ability;
+          updatedPlayer.addAugment(_runtimeService.runtimeAugment(augment));
+      gainedAugment = updatedPlayer.augmentById(augment.id) ?? augment;
     }
 
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
           'Firmas deuda operativa y recibes un aumento verde gratuito.',
-      gainedAbility: gainedAbility,
+      gainedAugment: gainedAugment,
     );
   }
 
@@ -647,97 +647,100 @@ class PathEventService {
     );
   }
 
-  BattlerAbility _rollTechnosurgeonReplacement({
+  Augment _rollTechnosurgeonReplacement({
     required EventPathNode node,
-    required BattlerAbility selectedAbility,
+    required Augment selectedAugment,
     required Battler player,
     required RunRandomizer randomizer,
   }) {
-    final ownedAbilityIds = player.abilities
-        .where((ability) => ability.id != selectedAbility.id)
-        .map((ability) => ability.id)
+    final ownedAugmentIds = player.augments
+        .where((augment) => augment.id != selectedAugment.id)
+        .map((augment) => augment.id)
         .toSet();
-    final scopedPool = abilityPoolForArchetype(player.archetypeId);
+    final scopedPool = augmentCatalogForArchetype(player.archetypeId);
     var candidates = scopedPool
         .where(
-          (ability) =>
-              ability.id != selectedAbility.id &&
-              !ownedAbilityIds.contains(ability.id),
+          (augment) =>
+              augment.id != selectedAugment.id &&
+              !ownedAugmentIds.contains(augment.id),
         )
         .toList(growable: false);
 
     if (candidates.isEmpty) {
       candidates = scopedPool
-          .where((ability) => ability.id != selectedAbility.id)
+          .where((augment) => augment.id != selectedAugment.id)
           .toList(growable: false);
     }
     if (candidates.isEmpty) {
-      candidates = abilityPresets;
+      candidates = augmentCatalog;
     }
 
-    final rolledAbility = candidates[randomizer.nextInt(candidates.length)];
-    return _runtimeService.promoteAbilityToAtLeastRarity(
-      rolledAbility,
+    final rolledAugment = candidates[randomizer.nextInt(candidates.length)];
+    return _runtimeService.promoteAugmentToAtLeastRarity(
+      rolledAugment,
       _technosurgeonTargetRarity(
         node: node,
-        selectedAbility: selectedAbility,
+        selectedAugment: selectedAugment,
       ),
     );
   }
 
-  BattlerAbility _rollBlackTechnoMarketOffer({
-    required BattlerAbility preset,
+  Augment _rollBlackTechnoMarketOffer({
+    required Augment catalogEntry,
     required Battler player,
     required RunRandomizer randomizer,
   }) {
-    final ownedAbility = player.abilityById(preset.id);
-    if (ownedAbility != null) {
-      return _runtimeService.runtimeAbility(ownedAbility);
+    final ownedAugment = player.augmentById(catalogEntry.id);
+    if (ownedAugment != null) {
+      return _runtimeService.runtimeAugment(ownedAugment);
     }
 
     final targetRarity = _rollWeightedRarity(
-      minimumRarity: preset.rarity,
+      minimumRarity: catalogEntry.rarity,
       randomizer: randomizer,
     );
-    return _runtimeService.promoteAbilityToAtLeastRarity(preset, targetRarity);
+    return _runtimeService.promoteAugmentToAtLeastRarity(
+      catalogEntry,
+      targetRarity,
+    );
   }
 
-  BattlerAbility _rollSuBastaYaReplacementAbility({
-    required BattlerAbility selectedAbility,
+  Augment _rollSuBastaYaReplacementAugment({
+    required Augment selectedAugment,
     required Battler player,
     required RunRandomizer randomizer,
   }) {
-    final ownedAbilityIds = player.abilities
-        .where((ability) => ability.id != selectedAbility.id)
-        .map((ability) => ability.id)
+    final ownedAugmentIds = player.augments
+        .where((augment) => augment.id != selectedAugment.id)
+        .map((augment) => augment.id)
         .toSet();
-    var candidates = abilityPoolForArchetype(player.archetypeId)
+    var candidates = augmentCatalogForArchetype(player.archetypeId)
         .where(
-          (ability) =>
-              ability.id != selectedAbility.id &&
-              ability.rarity.index >= selectedAbility.rarity.index &&
-              !ownedAbilityIds.contains(ability.id),
+          (augment) =>
+              augment.id != selectedAugment.id &&
+              augment.rarity.index >= selectedAugment.rarity.index &&
+              !ownedAugmentIds.contains(augment.id),
         )
         .toList(growable: false);
 
     if (candidates.isEmpty) {
-      candidates = abilityPoolForArchetype(player.archetypeId)
-          .where((ability) => ability.id != selectedAbility.id)
+      candidates = augmentCatalogForArchetype(player.archetypeId)
+          .where((augment) => augment.id != selectedAugment.id)
           .toList(growable: false);
     }
     if (candidates.isEmpty) {
-      candidates = abilityPresets
-          .where((ability) => ability.id != selectedAbility.id)
+      candidates = augmentCatalog
+          .where((augment) => augment.id != selectedAugment.id)
           .toList(growable: false);
     }
     if (candidates.isEmpty) {
-      return _runtimeService.runtimeAbility(selectedAbility);
+      return _runtimeService.runtimeAugment(selectedAugment);
     }
 
-    final rolledAbility = candidates[randomizer.nextInt(candidates.length)];
-    return _runtimeService.promoteAbilityToAtLeastRarity(
-      rolledAbility,
-      selectedAbility.rarity,
+    final rolledAugment = candidates[randomizer.nextInt(candidates.length)];
+    return _runtimeService.promoteAugmentToAtLeastRarity(
+      rolledAugment,
+      selectedAugment.rarity,
     );
   }
 
@@ -767,9 +770,9 @@ class PathEventService {
 
   RarityTier _technosurgeonTargetRarity({
     required EventPathNode node,
-    required BattlerAbility selectedAbility,
+    required Augment selectedAugment,
   }) {
-    final nextTier = selectedAbility.rarity.nextTier;
+    final nextTier = selectedAugment.rarity.nextTier;
     if (node.id != PathEventId.afterHoursTechnosurgeon ||
         nextTier.index >= RarityTier.purple.index) {
       return nextTier;
@@ -817,33 +820,33 @@ class PathEventService {
     );
   }
 
-  BattlerAbility? _rollRewardAbility({
+  Augment? _rollRewardAugment({
     required Battler player,
     required RarityTier rarity,
     required RunRandomizer randomizer,
   }) {
-    final candidatesById = <BattlerAbilityId, BattlerAbility>{};
-    for (final ability in abilityPresets) {
-      final ownedAbility = player.abilityById(ability.id);
-      if (ownedAbility != null) {
-        if (ownedAbility.rarity == rarity && ownedAbility.canUpgrade) {
+    final candidatesById = <int, Augment>{};
+    for (final augment in augmentCatalog) {
+      final ownedAugment = player.augmentById(augment.id);
+      if (ownedAugment != null) {
+        if (ownedAugment.rarity == rarity && ownedAugment.canUpgrade) {
           candidatesById.putIfAbsent(
-            ability.id,
-            () => _runtimeService.runtimeAbility(ownedAbility),
+            augment.id,
+            () => _runtimeService.runtimeAugment(ownedAugment),
           );
         }
         continue;
       }
 
-      final promotedAbility =
-          _runtimeService.promoteAbilityToExactRarity(ability, rarity);
-      if (promotedAbility == null) continue;
-      candidatesById.putIfAbsent(ability.id, () => promotedAbility);
+      final promotedAugment =
+          _runtimeService.promoteAugmentToExactRarity(augment, rarity);
+      if (promotedAugment == null) continue;
+      candidatesById.putIfAbsent(augment.id, () => promotedAugment);
     }
 
     final candidates = candidatesById.values.toList(growable: false);
     if (candidates.isEmpty) return null;
-    return _runtimeService.runtimeAbility(
+    return _runtimeService.runtimeAugment(
       candidates[randomizer.nextInt(candidates.length)],
     );
   }
@@ -966,62 +969,62 @@ class PathEventService {
     );
   }
 
-  BattlerAbility? _rollAbilityForArchetypeAndDay({
+  Augment? _rollAugmentForArchetypeAndDay({
     required Battler player,
     required ArchetypeId archetypeId,
     required RunRandomizer randomizer,
     required int dayNumber,
   }) {
-    final targetRarity = _rollEventAbilityRarityForDay(
+    final targetRarity = _rollEventAugmentRarityForDay(
       randomizer: randomizer,
       dayNumber: dayNumber,
     );
     for (final rarity in _rarityFallbacksFrom(targetRarity)) {
-      final ability = _rollAbilityFromPoolForExactRarity(
-        pool: abilityPoolForArchetype(archetypeId),
+      final augment = _rollAugmentFromPoolForExactRarity(
+        pool: augmentCatalogForArchetype(archetypeId),
         player: player,
         targetRarity: rarity,
         randomizer: randomizer,
       );
-      if (ability != null) return ability;
+      if (augment != null) return augment;
     }
     return null;
   }
 
-  BattlerAbility? _rollAbilityFromPoolForExactRarity({
-    required Iterable<BattlerAbility> pool,
+  Augment? _rollAugmentFromPoolForExactRarity({
+    required Iterable<Augment> pool,
     required Battler player,
     required RarityTier targetRarity,
     required RunRandomizer randomizer,
   }) {
-    final candidatesById = <BattlerAbilityId, BattlerAbility>{};
-    for (final ability in pool) {
-      final ownedAbility = player.abilityById(ability.id);
-      if (ownedAbility != null) {
-        if (ownedAbility.rarity == targetRarity && ownedAbility.canUpgrade) {
+    final candidatesById = <int, Augment>{};
+    for (final augment in pool) {
+      final ownedAugment = player.augmentById(augment.id);
+      if (ownedAugment != null) {
+        if (ownedAugment.rarity == targetRarity && ownedAugment.canUpgrade) {
           candidatesById.putIfAbsent(
-            ability.id,
-            () => _runtimeService.runtimeAbility(ownedAbility),
+            augment.id,
+            () => _runtimeService.runtimeAugment(ownedAugment),
           );
         }
         continue;
       }
 
-      final promotedAbility = _runtimeService.promoteAbilityToExactRarity(
-        ability,
+      final promotedAugment = _runtimeService.promoteAugmentToExactRarity(
+        augment,
         targetRarity,
       );
-      if (promotedAbility == null) continue;
-      candidatesById.putIfAbsent(ability.id, () => promotedAbility);
+      if (promotedAugment == null) continue;
+      candidatesById.putIfAbsent(augment.id, () => promotedAugment);
     }
     final candidates = candidatesById.values.toList(growable: false);
     if (candidates.isEmpty) return null;
-    return _runtimeService.runtimeAbility(
+    return _runtimeService.runtimeAugment(
       candidates[randomizer.nextInt(candidates.length)],
     );
   }
 
-  RarityTier _rollEventAbilityRarityForDay({
+  RarityTier _rollEventAugmentRarityForDay({
     required RunRandomizer randomizer,
     required int dayNumber,
   }) {
@@ -1200,7 +1203,7 @@ bool _canAppearForTechnosurgeon(
   required EventPathNode node,
   required Battler? player,
 }) {
-  return player?.abilities.isNotEmpty ?? false;
+  return player?.augments.isNotEmpty ?? false;
 }
 
 bool _canAppearForArchetypeItemReward(
@@ -1226,12 +1229,12 @@ bool _canAppearForBlackTechnoMarket(
   required Battler? player,
 }) {
   if (player == null) {
-    return abilityPresets.isNotEmpty;
+    return augmentCatalog.isNotEmpty;
   }
 
-  return abilityPresets.any((ability) {
-    final ownedAbility = player.abilityById(ability.id);
-    return ownedAbility == null || ownedAbility.canUpgrade;
+  return augmentCatalog.any((augment) {
+    final ownedAugment = player.augmentById(augment.id);
+    return ownedAugment == null || ownedAugment.canUpgrade;
   });
 }
 
@@ -1272,11 +1275,11 @@ bool _canAppearForSuBastaYa(
   required Battler? player,
 }) {
   if (player == null) {
-    return itemPresets.isNotEmpty || abilityPresets.isNotEmpty;
+    return itemPresets.isNotEmpty || augmentCatalog.isNotEmpty;
   }
 
   return service.buildSuBastaYaEligibleItems(player).isNotEmpty ||
-      service.buildSuBastaYaEligibleAbilities(player).isNotEmpty;
+      service.buildSuBastaYaEligibleAugments(player).isNotEmpty;
 }
 
 bool _canAppearForPitonisaQuitapenas(

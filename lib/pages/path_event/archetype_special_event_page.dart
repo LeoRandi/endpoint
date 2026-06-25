@@ -183,7 +183,7 @@ class _ArchetypeSpecialEventPageState extends State<ArchetypeSpecialEventPage>
               icon: Icons.flash_on_rounded,
               tooltip: 'Recibir un aumento Veloz aleatorio segun el dia',
               onPressed: () => _resolve(
-                widget.eventService.resolveClinicaReflejosAbility(
+                widget.eventService.resolveClinicaReflejosAugment(
                   player: widget.player,
                   randomizer: widget.randomizer,
                   dayNumber: widget.dayNumber,

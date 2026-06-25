@@ -188,7 +188,7 @@ class _EndResultDebugFixture {
     final random = Random(DateTime.now().microsecondsSinceEpoch);
     final equippedItems = _randomOwnedItems(random, count: 7);
     final acquiredItems = _randomOwnedItems(random, count: 6);
-    final abilities = _randomAbilities(random, count: 5);
+    final augments = _randomAugments(random, count: 5);
     final defeatedEnemies = _randomDefeatedEnemies(random, count: 13);
 
     final rawPlayer = defaultPlayerBattler.copyWith(
@@ -208,7 +208,7 @@ class _EndResultDebugFixture {
         BattlerStat.attack: 8 + random.nextInt(6),
         BattlerStat.barrier: 5 + random.nextInt(7),
       },
-      abilities: abilities,
+      augments: augments,
       inventoryItems: acquiredItems.take(4).toList(growable: false),
       equippedItems: equippedItems,
       reinforcedPatternPointKey: _pick(random, operativePatternPoints).key,
@@ -219,8 +219,8 @@ class _EndResultDebugFixture {
     );
     final gainedRewards = <RunDaySummaryReward>[
       for (final item in acquiredItems) RunDaySummaryReward.item(item),
-      for (final ability in abilities.take(4))
-        RunDaySummaryReward.ability(ability),
+      for (final augment in augments.take(4))
+        RunDaySummaryReward.augment(augment),
     ];
 
     return _EndResultDebugFixture(
@@ -245,13 +245,13 @@ class _EndResultDebugFixture {
     }).toList(growable: false);
   }
 
-  static List<BattlerAbility> _randomAbilities(
+  static List<Augment> _randomAugments(
     Random random, {
     required int count,
   }) {
-    final pool = abilityPresets.toList(growable: false)..shuffle(random);
-    return pool.take(count).map((ability) {
-      return ability.copyWith(rarity: _randomRarity(random));
+    final pool = augmentCatalog.toList(growable: false)..shuffle(random);
+    return pool.take(count).map((augment) {
+      return augment.copyWith(tier: _randomRarity(random));
     }).toList(growable: false);
   }
 

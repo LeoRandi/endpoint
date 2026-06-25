@@ -37,6 +37,18 @@ class CatalogRuntimeService {
     return runtimeAbility(BattlerAbility.presetForId(id));
   }
 
+  Augment runtimeAugment(Augment template) {
+    return template;
+  }
+
+  Augment runtimeAugmentForId(int id) {
+    final augment = augmentCatalogById[id];
+    if (augment == null) {
+      throw StateError('No augment exists for id $id.');
+    }
+    return runtimeAugment(augment);
+  }
+
   /// Promociona un item hasta una rareza exacta; devuelve null si no puede llegar.
   Item? promoteItemToExactRarity(Item template, RarityTier targetRarity) {
     if (template.rarity.index > targetRarity.index) return null;
@@ -85,6 +97,39 @@ class CatalogRuntimeService {
     }
 
     return runtimeAbility(promotedAbility.copyWith(rarity: targetRarity));
+  }
+
+  Augment? promoteAugmentToExactRarity(
+    Augment template,
+    RarityTier targetRarity,
+  ) {
+    if (template.rarity.index > targetRarity.index) return null;
+
+    var promotedAugment = runtimeAugment(template);
+    while (promotedAugment.rarity.index < targetRarity.index &&
+        promotedAugment.canUpgrade) {
+      promotedAugment = promotedAugment.upgraded();
+    }
+
+    if (promotedAugment.rarity != targetRarity) return null;
+
+    return runtimeAugment(promotedAugment);
+  }
+
+  Augment promoteAugmentToAtLeastRarity(
+    Augment template,
+    RarityTier targetRarity,
+  ) {
+    var promotedAugment = runtimeAugment(template);
+    while (promotedAugment.rarity.index < targetRarity.index &&
+        promotedAugment.canUpgrade) {
+      promotedAugment = promotedAugment.upgraded();
+    }
+    if (promotedAugment.rarity.index >= targetRarity.index) {
+      return runtimeAugment(promotedAugment);
+    }
+
+    return runtimeAugment(promotedAugment.copyWith(tier: targetRarity));
   }
 
   /// Limpia un battler de preset para usarlo como combatiente de una escena.

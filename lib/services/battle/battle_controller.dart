@@ -409,6 +409,11 @@ class BattleController extends ChangeNotifier {
         return;
       }
 
+      final augmentResolution = _player.resolveAugmentPatternEffects(
+        pattern: resolvedPatternContext,
+      );
+      patternAttackModifier += augmentResolution.attackBonusDelta;
+
       final playerBeforePreAttackItems = _player;
       final enemyBeforePreAttackItems = _enemy;
       final preAttackItemResolution =
@@ -699,6 +704,11 @@ class BattleController extends ChangeNotifier {
         );
         return;
       }
+
+      final augmentResolution = _enemy.resolveAugmentPatternEffects(
+        pattern: resolvedPatternContext,
+      );
+      patternAttackModifier += augmentResolution.attackBonusDelta;
 
       final enemyBeforePreAttackItems = _enemy;
       final playerBeforePreAttackItems = _player;

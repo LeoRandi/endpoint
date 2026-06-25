@@ -6,6 +6,8 @@ import '../persistence/endpoint_json_utils.dart';
 
 enum RunDaySummaryRewardType {
   item,
+  augment,
+  // Legacy summary rows may still carry this type in existing saves.
   ability,
 }
 
@@ -15,7 +17,7 @@ class RunDaySummaryReward {
   final String iconEmoji;
   final RarityTier rarity;
   final Item? item;
-  final BattlerAbility? ability;
+  final Augment? augment;
 
   const RunDaySummaryReward({
     required this.type,
@@ -23,7 +25,7 @@ class RunDaySummaryReward {
     required this.iconEmoji,
     required this.rarity,
     this.item,
-    this.ability,
+    this.augment,
   });
 
   factory RunDaySummaryReward.item(Item item) {
@@ -36,13 +38,13 @@ class RunDaySummaryReward {
     );
   }
 
-  factory RunDaySummaryReward.ability(BattlerAbility ability) {
+  factory RunDaySummaryReward.augment(Augment augment) {
     return RunDaySummaryReward(
-      type: RunDaySummaryRewardType.ability,
-      name: ability.displayName,
+      type: RunDaySummaryRewardType.augment,
+      name: augment.displayName,
       iconEmoji: '',
-      rarity: ability.rarity,
-      ability: ability,
+      rarity: augment.rarity,
+      augment: augment,
     );
   }
 
@@ -53,11 +55,11 @@ class RunDaySummaryReward {
       'iconEmoji': iconEmoji,
       'rarity': rarity.name,
       'itemKey': item?.catalogKey,
-      'abilityId': ability?.id.name,
+      'augmentId': augment?.id,
       'item': item == null ? null : EndpointDomainCodec.serializeItem(item!),
-      'ability': ability == null
+      'augment': augment == null
           ? null
-          : EndpointDomainCodec.serializeAbility(ability!),
+          : EndpointDomainCodec.serializeAugment(augment!),
     };
   }
 
@@ -78,8 +80,10 @@ class RunDaySummaryReward {
     final item = type == RunDaySummaryRewardType.item
         ? _deserializeRewardItem(json, rarity: rarity)
         : null;
-    final ability = type == RunDaySummaryRewardType.ability
-        ? _deserializeRewardAbility(json, rarity: rarity)
+    final isAugmentReward = type == RunDaySummaryRewardType.augment ||
+        type == RunDaySummaryRewardType.ability;
+    final augment = isAugmentReward
+        ? _deserializeRewardAugment(json, rarity: rarity)
         : null;
 
     final name = EndpointJsonUtils.readString(json['name'], fallback: '');
@@ -92,11 +96,11 @@ class RunDaySummaryReward {
       type: type,
       name: name.isNotEmpty
           ? name
-          : item?.displayName ?? ability?.displayName ?? '',
+          : item?.displayName ?? augment?.displayName ?? '',
       iconEmoji: iconEmoji.isNotEmpty ? iconEmoji : item?.iconEmoji ?? '',
       rarity: rarity,
       item: item,
-      ability: ability,
+      augment: augment,
     );
   }
 
@@ -119,53 +123,40 @@ class RunDaySummaryReward {
     }
   }
 
-  static BattlerAbility? _deserializeRewardAbility(
+  static Augment? _deserializeRewardAugment(
     Map<String, dynamic> json, {
     required RarityTier rarity,
   }) {
-    final abilityJson = EndpointJsonUtils.asJsonMap(json['ability']);
-    if (abilityJson != null) {
-      final ability = EndpointDomainCodec.deserializeAbility(abilityJson);
-      if (ability != null) return ability;
+    final augmentJson = EndpointJsonUtils.asJsonMap(json['augment']);
+    if (augmentJson != null) {
+      final augment = EndpointDomainCodec.deserializeAugment(augmentJson);
+      if (augment != null) return augment;
     }
 
-    final abilityId = EndpointJsonUtils.parseEnumByName(
-      BattlerAbilityId.values,
-      json['abilityId'],
-    );
-    if (abilityId == null) {
-      return _deserializeLegacyRewardAbility(json, rarity: rarity);
+    final augmentId = EndpointJsonUtils.readNullableInt(json['augmentId']);
+    if (augmentId != null) {
+      final catalogAugment = augmentCatalogById[augmentId];
+      if (catalogAugment != null) {
+        return catalogAugment.copyWith(tier: rarity);
+      }
     }
 
-    try {
-      final preset = BattlerAbility.presetForId(abilityId);
-      return preset
-          .copyWith(
-            name: EndpointJsonUtils.readString(
-              json['name'],
-              fallback: preset.name,
-            ),
-            rarity: rarity,
-          )
-          .normalizeUpgradeTier();
-    } on StateError {
-      return null;
-    }
+    return _deserializeLegacyRewardAugment(json, rarity: rarity);
   }
 
-  static BattlerAbility? _deserializeLegacyRewardAbility(
+  static Augment? _deserializeLegacyRewardAugment(
     Map<String, dynamic> json, {
     required RarityTier rarity,
   }) {
     final name = EndpointJsonUtils.readString(json['name'], fallback: '');
     if (name.isEmpty) return null;
 
-    for (final preset in abilityPresets) {
-      if (preset.displayName != name) continue;
+    for (final augment in augmentCatalog) {
+      if (augment.displayName != name) continue;
 
-      return preset.copyWith(
+      return augment.copyWith(
         name: name,
-        rarity: rarity,
+        tier: rarity,
       );
     }
 
@@ -329,7 +320,7 @@ class RunDaySummary {
   }) {
     return [
       ..._newItemRewards(before: before, after: after),
-      ..._newAbilityRewards(before: before, after: after),
+      ..._newAugmentRewards(before: before, after: after),
     ];
   }
 
@@ -370,28 +361,27 @@ class RunDaySummary {
     return rewards;
   }
 
-  static List<RunDaySummaryReward> _newAbilityRewards({
+  static List<RunDaySummaryReward> _newAugmentRewards({
     required Battler before,
     required Battler after,
   }) {
-    final beforeAbilities = {
-      for (final ability in before.abilities) ability.id: ability,
+    final beforeAugments = {
+      for (final augment in before.augments) augment.id: augment,
     };
-    final awardedAbilityIds = <BattlerAbilityId>{};
+    final awardedAugmentIds = <int>{};
     final rewards = <RunDaySummaryReward>[];
 
-    for (final ability in after.abilities) {
-      if (awardedAbilityIds.contains(ability.id)) continue;
+    for (final augment in after.augments) {
+      if (awardedAugmentIds.contains(augment.id)) continue;
 
-      final previousAbility = beforeAbilities[ability.id];
-      final isNew = previousAbility == null;
-      final isUpgrade = previousAbility != null &&
-          (ability.rarity.index > previousAbility.rarity.index ||
-              ability.value > previousAbility.value);
+      final previousAugment = beforeAugments[augment.id];
+      final isNew = previousAugment == null;
+      final isUpgrade = previousAugment != null &&
+          augment.rarity.index > previousAugment.rarity.index;
       if (!isNew && !isUpgrade) continue;
 
-      awardedAbilityIds.add(ability.id);
-      rewards.add(RunDaySummaryReward.ability(ability));
+      awardedAugmentIds.add(augment.id);
+      rewards.add(RunDaySummaryReward.augment(augment));
     }
 
     return rewards;

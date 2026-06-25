@@ -277,7 +277,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         player: request.exitResult.player,
         lootItem: request.rewards.lootItem,
         itemRewards: request.rewards.itemRewards,
-        lootAbility: request.rewards.lootAbility,
+        lootAugment: request.rewards.lootAugment,
         moneyReward: request.rewards.moneyReward,
         enemyName: _sceneController.enemy.name,
         gameMode: settings.gameMode,

@@ -21,8 +21,8 @@ class BlackTechnoMarketEventPage extends StatefulWidget {
 
 class _BlackTechnoMarketEventPageState
     extends State<BlackTechnoMarketEventPage> {
-  late final List<BattlerAbility> _offers;
-  BattlerAbility? _selectedAbility;
+  late final List<Augment> _offers;
+  Augment? _selectedAugment;
   bool _isResolvingPurchase = false;
   int _flavorPageIndex = 0;
 
@@ -56,42 +56,82 @@ class _BlackTechnoMarketEventPageState
     });
   }
 
-  Future<void> _openOfferDetails(BattlerAbility ability) async {
-    final price = widget.eventService.blackTechnoMarketPriceFor(ability);
-    final selectedAbility = await showEndpointDialog<BattlerAbility>(
+  Future<void> _openOfferDetails(Augment augment) async {
+    final price = widget.eventService.blackTechnoMarketPriceFor(augment);
+    final selectedAugment = await showEndpointDialog<Augment>(
       context: context,
       barrierLabel: 'Detalle de aumento',
       barrierColor: EndpointPalette.overlayScrim,
       builder: (context) {
-        return EndpointAbilityDetailsDialog(
-          ability: ability,
-          accent: ability.accent,
-          statusText: '',
-          moneyCost: price,
-          actionLabel: 'Seleccionar',
-          onPrimaryAction: () {
-            Navigator.of(context).pop(ability);
-          },
-          isActionEnabled: true,
-          enabledActionTooltip: 'Seleccionar este aumento para comprarlo',
+        return EndpointDetailsDialogScaffold(
+          accent: augment.accent,
+          backgroundColor: EndpointPalette.panelBackgroundGold,
+          foregroundColor: EndpointPalette.softForeground,
+          closeBackgroundColor: EndpointPalette.closeButtonBackground,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              EndpointAugmentOrb(
+                augment: augment,
+                size: 70,
+              ),
+              const SizedBox(height: 10),
+              EndpointText(
+                augment.displayName,
+                textAlign: TextAlign.center,
+                maxLines: null,
+                style: textLargeBold.copyWith(
+                  color: EndpointPalette.soften(augment.accent),
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              EndpointHighlightedValueText(
+                augment.displayDescription,
+                tags: augment.tags,
+                textAlign: TextAlign.center,
+                maxLines: null,
+                style: textSmallBold.copyWith(
+                  color: EndpointPalette.softForeground.withAlpha(210),
+                  fontSize: 11,
+                ),
+              ),
+              const SizedBox(height: 12),
+              EndpointCurrencyInline(
+                value: price,
+                iconColor: EndpointPalette.warningAccent,
+                textColor: EndpointPalette.softForeground,
+              ),
+              const SizedBox(height: 12),
+              EndpointActionButton(
+                label: 'Seleccionar',
+                icon: Icons.check_rounded,
+                onPressed: () => Navigator.of(context).pop(augment),
+                tooltip: 'Seleccionar este aumento para comprarlo',
+                accent: augment.accent,
+                expands: true,
+                useMarquee: false,
+              ),
+            ],
+          ),
         );
       },
     );
-    if (!mounted || selectedAbility == null) return;
+    if (!mounted || selectedAugment == null) return;
 
-    _selectOffer(selectedAbility);
+    _selectOffer(selectedAugment);
   }
 
-  void _selectOffer(BattlerAbility ability) {
+  void _selectOffer(Augment augment) {
     setState(() {
-      _selectedAbility = ability;
+      _selectedAugment = augment;
     });
   }
 
-  Future<void> _buySelectedAbility() async {
-    final selectedAbility = _selectedAbility;
+  Future<void> _buySelectedAugment() async {
+    final selectedAugment = _selectedAugment;
     if (_isResolvingPurchase ||
-        selectedAbility == null ||
+        selectedAugment == null ||
         _selectionBlockReason != null) {
       return;
     }
@@ -102,10 +142,10 @@ class _BlackTechnoMarketEventPageState
 
     final result = widget.eventService.resolveBlackTechnoMarketPurchase(
       player: widget.player,
-      selectedAbility: selectedAbility,
+      selectedAugment: selectedAugment,
     );
-    final gainedAbility = result.gainedAbility;
-    if (gainedAbility != null) {
+    final gainedAugment = result.gainedAugment;
+    if (gainedAugment != null) {
       await showEndpointDialog<void>(
         context: context,
         barrierLabel: 'Aumento comprado',
@@ -113,9 +153,9 @@ class _BlackTechnoMarketEventPageState
         barrierColor: EndpointPalette.overlayScrim,
         builder: (context) {
           return _BlackMarketPurchaseDialog(
-            ability: gainedAbility,
+            augment: gainedAugment,
             outcomeText: result.outcomeText,
-            accent: gainedAbility.accent,
+            accent: gainedAugment.accent,
           );
         },
       );
@@ -126,18 +166,18 @@ class _BlackTechnoMarketEventPageState
   }
 
   int? get _selectedPrice {
-    final selectedAbility = _selectedAbility;
-    if (selectedAbility == null) return null;
+    final selectedAugment = _selectedAugment;
+    if (selectedAugment == null) return null;
 
-    return widget.eventService.blackTechnoMarketPriceFor(selectedAbility);
+    return widget.eventService.blackTechnoMarketPriceFor(selectedAugment);
   }
 
   String? get _selectionBlockReason {
-    final selectedAbility = _selectedAbility;
-    if (selectedAbility == null) return 'Elige un aumento';
+    final selectedAugment = _selectedAugment;
+    if (selectedAugment == null) return 'Elige un aumento';
 
-    final ownedAbility = widget.player.abilityById(selectedAbility.id);
-    if (ownedAbility != null && !ownedAbility.canUpgrade) {
+    final ownedAugment = widget.player.augmentById(selectedAugment.id);
+    if (ownedAugment != null && !ownedAugment.canUpgrade) {
       return 'Este aumento no puede mejorar mas';
     }
 
@@ -173,17 +213,17 @@ class _BlackTechnoMarketEventPageState
   }
 
   Widget _buildContent() {
-    final selectedAbility = _selectedAbility;
+    final selectedAugment = _selectedAugment;
     final selectedPrice = _selectedPrice;
     final blockReason = _selectionBlockReason;
-    final willUpgradeSelectedAbility = selectedAbility != null &&
-        widget.player.wouldUpgradeAbility(selectedAbility);
+    final willUpgradeSelectedAugment = selectedAugment != null &&
+        widget.player.wouldUpgradeAugment(selectedAugment);
     final actionTooltip = blockReason ??
-        (selectedAbility == null
+        (selectedAugment == null
             ? 'Elige un aumento'
-            : willUpgradeSelectedAbility
-                ? 'Mejorar ${selectedAbility.displayName}'
-                : 'Comprar ${selectedAbility.displayName}');
+            : willUpgradeSelectedAugment
+                ? 'Mejorar ${selectedAugment.displayName}'
+                : 'Comprar ${selectedAugment.displayName}');
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 620),
@@ -245,28 +285,28 @@ class _BlackTechnoMarketEventPageState
               const SizedBox(height: 8),
             ],
             EndpointActionButton(
-              label: selectedAbility == null
+              label: selectedAugment == null
                   ? 'Elige un aumento'
-                  : willUpgradeSelectedAbility
+                  : willUpgradeSelectedAugment
                       ? 'Mejorar seleccion'
                       : 'Comprar seleccion',
               icon: Icons.shopping_bag_rounded,
               onPressed: blockReason == null && !_isResolvingPurchase
-                  ? _buySelectedAbility
+                  ? _buySelectedAugment
                   : null,
               tooltip: actionTooltip,
-              accent: selectedAbility?.accent ?? widget.node.accent,
+              accent: selectedAugment?.accent ?? widget.node.accent,
               backgroundColor: EndpointPalette.blend(
                 EndpointPalette.panelBackgroundGold,
-                selectedAbility?.accent ?? widget.node.accent,
+                selectedAugment?.accent ?? widget.node.accent,
                 blockReason == null ? 0.24 : 0.08,
               ),
               foregroundColor: EndpointPalette.soften(
-                selectedAbility?.accent ?? widget.node.accent,
+                selectedAugment?.accent ?? widget.node.accent,
               ),
               expands: true,
               useMarquee: false,
-              showUpgradeIndicator: willUpgradeSelectedAbility,
+              showUpgradeIndicator: willUpgradeSelectedAugment,
               upgradeIndicatorColor: endpointUpgradeIndicatorNeonYellow,
             ),
           ],
@@ -293,13 +333,13 @@ class _BlackTechnoMarketEventPageState
           for (var index = 0; index < _offers.length; index++) ...[
             if (index > 0) const SizedBox(width: 10),
             _BlackMarketOfferCard(
-              ability: _offers[index],
+              augment: _offers[index],
               offerNumber: index + 1,
               price: widget.eventService.blackTechnoMarketPriceFor(
                 _offers[index],
               ),
-              ownedAbility: widget.player.abilityById(_offers[index].id),
-              isSelected: _selectedAbility?.id == _offers[index].id,
+              ownedAugment: widget.player.augmentById(_offers[index].id),
+              isSelected: _selectedAugment?.id == _offers[index].id,
               onPressed: () => _openOfferDetails(_offers[index]),
             ),
           ],
@@ -310,16 +350,16 @@ class _BlackTechnoMarketEventPageState
 }
 
 class _BlackMarketOfferCard extends StatelessWidget {
-  final BattlerAbility ability;
-  final BattlerAbility? ownedAbility;
+  final Augment augment;
+  final Augment? ownedAugment;
   final int offerNumber;
   final int price;
   final bool isSelected;
   final VoidCallback? onPressed;
 
   const _BlackMarketOfferCard({
-    required this.ability,
-    required this.ownedAbility,
+    required this.augment,
+    required this.ownedAugment,
     required this.offerNumber,
     required this.price,
     required this.isSelected,
@@ -328,12 +368,12 @@ class _BlackMarketOfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ownedLabel = ownedAbility == null
+    final ownedLabel = ownedAugment == null
         ? null
-        : !ownedAbility!.canUpgrade
+        : !ownedAugment!.canUpgrade
             ? 'NO MEJORA'
-            : 'YA TIENES ${ownedAbility!.rarity.label}';
-    final foreground = EndpointPalette.soften(ability.accent);
+            : 'YA TIENES ${ownedAugment!.rarity.label}';
+    final foreground = EndpointPalette.soften(augment.accent);
     final card = AnimatedContainer(
       duration: const Duration(milliseconds: 160),
       width: 142,
@@ -341,17 +381,17 @@ class _BlackMarketOfferCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: EndpointPalette.blend(
           EndpointPalette.panelBackgroundGold,
-          ability.accent,
+          augment.accent,
           isSelected ? 0.24 : 0.1,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: ability.accent.withAlpha(isSelected ? 235 : 135),
+          color: augment.accent.withAlpha(isSelected ? 235 : 135),
           width: isSelected ? 1.7 : 1.1,
         ),
         boxShadow: [
           BoxShadow(
-            color: ability.accent.withAlpha(isSelected ? 61 : 23),
+            color: augment.accent.withAlpha(isSelected ? 61 : 23),
             blurRadius: isSelected ? 16 : 8,
             spreadRadius: isSelected ? 2 : 1,
           ),
@@ -363,20 +403,19 @@ class _BlackMarketOfferCard extends StatelessWidget {
           EndpointText(
             'OFERTA $offerNumber',
             style: textSmallBold.copyWith(
-              color: ability.accent,
+              color: augment.accent,
               fontSize: 9,
               letterSpacing: 1.4,
             ),
           ),
           const SizedBox(height: 8),
-          EndpointAbilityOrb(
-            ability: ability,
+          EndpointAugmentOrb(
+            augment: augment,
             size: 64,
-            enableTooltipLongPress: false,
           ),
           const SizedBox(height: 8),
           EndpointText(
-            ability.displayName,
+            augment.displayName,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -388,9 +427,9 @@ class _BlackMarketOfferCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           EndpointText(
-            ability.rarity.label,
+            augment.rarity.label,
             style: textSmallBold.copyWith(
-              color: ability.accent,
+              color: augment.accent,
               fontSize: 9,
               letterSpacing: 1.2,
             ),
@@ -446,12 +485,12 @@ class _BlackMarketOfferCard extends StatelessWidget {
 }
 
 class _BlackMarketPurchaseDialog extends StatefulWidget {
-  final BattlerAbility ability;
+  final Augment augment;
   final String outcomeText;
   final Color accent;
 
   const _BlackMarketPurchaseDialog({
-    required this.ability,
+    required this.augment,
     required this.outcomeText,
     required this.accent,
   });
@@ -492,11 +531,10 @@ class _BlackMarketPurchaseDialogState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                EndpointAbilityOrb(
-                  ability: widget.ability,
+                EndpointAugmentOrb(
+                  augment: widget.augment,
                   accent: widget.accent,
                   size: 64,
-                  enableTooltipLongPress: false,
                 ),
                 const SizedBox(height: 10),
                 EndpointText(
@@ -509,7 +547,7 @@ class _BlackMarketPurchaseDialogState
                 ),
                 const SizedBox(height: 6),
                 EndpointText(
-                  widget.ability.displayName,
+                  widget.augment.displayName,
                   textAlign: TextAlign.center,
                   maxLines: null,
                   style: textLargeBold.copyWith(

@@ -14,16 +14,16 @@ class BattleItemReward {
 
 class BattleRewardBundle {
   final Item? lootItem;
-  final BattlerAbility? lootAbility;
+  final Augment? lootAugment;
   final int moneyReward;
   final List<BattleItemReward> itemRewards;
 
   BattleRewardBundle({
     this.lootItem,
-    this.lootAbility,
+    this.lootAugment,
     this.moneyReward = 0,
     List<BattleItemReward>? itemRewards,
-  })  : assert(lootItem == null || lootAbility == null),
+  })  : assert(lootItem == null || lootAugment == null),
         itemRewards = List<BattleItemReward>.unmodifiable(
           itemRewards ??
               [
@@ -32,7 +32,7 @@ class BattleRewardBundle {
         );
 
   bool get hasRewards =>
-      itemRewards.isNotEmpty || lootAbility != null || moneyReward > 0;
+      itemRewards.isNotEmpty || lootAugment != null || moneyReward > 0;
 }
 
 class BattleRewardService {
@@ -56,7 +56,7 @@ class BattleRewardService {
 
     return BattleRewardBundle(
       lootItem: lootReward.lootItem,
-      lootAbility: lootReward.lootAbility,
+      lootAugment: lootReward.lootAugment,
       moneyReward: _buildVictoryMoneyReward(
         player: player,
         victoryMoneyFactor: victoryMoneyFactor,
@@ -95,12 +95,12 @@ class BattleRewardService {
         item.catalogKey:
             _runtimeService.runtimeItem(item, forceNewInstance: true),
     }.values.toList(growable: false);
-    final lootAbilities = <BattlerAbilityId, BattlerAbility>{
-      for (final ability in enemy.abilities)
-        if (_canOfferAbilityLoot(player: player, ability: ability))
-          ability.id: _runtimeService.runtimeAbility(ability),
+    final lootAugments = <int, Augment>{
+      for (final augment in enemy.augments)
+        if (_canOfferAugmentLoot(player: player, augment: augment))
+          augment.id: _runtimeService.runtimeAugment(augment),
     }.values.toList(growable: false);
-    final totalLootCount = lootItems.length + lootAbilities.length;
+    final totalLootCount = lootItems.length + lootAugments.length;
     if (totalLootCount <= 0) {
       return BattleRewardBundle();
     }
@@ -111,17 +111,17 @@ class BattleRewardService {
     }
 
     return BattleRewardBundle(
-      lootAbility: lootAbilities[selectedIndex - lootItems.length],
+      lootAugment: lootAugments[selectedIndex - lootItems.length],
     );
   }
 
-  bool _canOfferAbilityLoot({
+  bool _canOfferAugmentLoot({
     required Battler player,
-    required BattlerAbility ability,
+    required Augment augment,
   }) {
-    final ownedAbility = player.abilityById(ability.id);
-    if (ownedAbility == null) return true;
+    final ownedAugment = player.augmentById(augment.id);
+    if (ownedAugment == null) return true;
 
-    return ownedAbility.rarity == ability.rarity && ownedAbility.canUpgrade;
+    return ownedAugment.rarity == augment.rarity && ownedAugment.canUpgrade;
   }
 }

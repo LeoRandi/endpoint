@@ -1,6 +1,7 @@
 import '_imports.dart';
 
 part '../battler_runtime_port.dart';
+part 'battler_augment_management.dart';
 part 'battler_ability_management.dart';
 part 'battler_combat_runtime.dart';
 part 'battler_item_management.dart';
@@ -24,7 +25,7 @@ enum BattlerLevelReward {
 /// Identifica que tipo de eleccion concreta resuelve una subida de nivel.
 enum BattlerLevelRewardChoiceType {
   stat,
-  ability,
+  augment,
   item,
 }
 
@@ -37,32 +38,32 @@ enum PurgeDoctrine {
 class BattlerLevelRewardChoice {
   final BattlerLevelRewardChoiceType type;
   final BattlerLevelReward? statReward;
-  final BattlerAbility? ability;
+  final Augment? augment;
   final Item? item;
 
   /// Crea una opcion que aplica una mejora permanente de stat.
   const BattlerLevelRewardChoice.stat(BattlerLevelReward reward)
       : type = BattlerLevelRewardChoiceType.stat,
         statReward = reward,
-        ability = null,
+        augment = null,
         item = null;
 
-  /// Crea una opcion que entrega o mejora una habilidad.
-  const BattlerLevelRewardChoice.ability(BattlerAbility reward)
-      : type = BattlerLevelRewardChoiceType.ability,
+  /// Crea una opcion que entrega o mejora un aumento.
+  const BattlerLevelRewardChoice.augment(Augment reward)
+      : type = BattlerLevelRewardChoiceType.augment,
         statReward = null,
-        ability = reward,
+        augment = reward,
         item = null;
 
   /// Crea una opcion que entrega o mejora un item.
   const BattlerLevelRewardChoice.item(Item reward)
       : type = BattlerLevelRewardChoiceType.item,
         statReward = null,
-        ability = null,
+        augment = null,
         item = reward;
 
   /// Devuelve la rareza de la recompensa cuando la opcion trae contenido.
-  RarityTier? get rarity => ability?.rarity ?? item?.rarity;
+  RarityTier? get rarity => augment?.rarity ?? item?.rarity;
 }
 
 /// Agrupa las opciones ya tiradas para una subida de nivel concreta.
@@ -198,6 +199,7 @@ class _BattlerDerivedState {
   final Map<BattlerStatusHook, List<BattlerStatus>> statusesByHook;
   final Map<BattlerAbilityId, BattlerAbility> abilitiesById;
   final Map<BattlerAbilityHook, List<BattlerAbilityId>> abilityIdsByHook;
+  final Map<int, Augment> augmentsById;
   final Map<String, Item> inventoryItemsByType;
   final Map<String, Item> equippedItemsByType;
   final Map<ItemEffectHook, List<Item>> equippedItemsByHook;
@@ -212,6 +214,7 @@ class _BattlerDerivedState {
     required this.statusesByHook,
     required this.abilitiesById,
     required this.abilityIdsByHook,
+    required this.augmentsById,
     required this.inventoryItemsByType,
     required this.equippedItemsByType,
     required this.equippedItemsByHook,
@@ -237,6 +240,9 @@ class _BattlerDerivedState {
     for (final ability in owner.abilities) {
       _appendHookBindings(abilityIdsByHook, ability.hookBindings, ability.id);
     }
+    final augmentsById = <int, Augment>{
+      for (final augment in owner.augments) augment.id: augment,
+    };
     final inventoryItemsByType = <String, Item>{};
     for (final item in owner.inventoryItems) {
       inventoryItemsByType.putIfAbsent(item.catalogKey, () => item);
@@ -359,6 +365,7 @@ class _BattlerDerivedState {
         abilitiesById,
       ),
       abilityIdsByHook: _freezeHookIndex(abilityIdsByHook),
+      augmentsById: Map<int, Augment>.unmodifiable(augmentsById),
       inventoryItemsByType:
           Map<String, Item>.unmodifiable(inventoryItemsByType),
       equippedItemsByType: Map<String, Item>.unmodifiable(equippedItemsByType),
@@ -424,6 +431,7 @@ class Battler {
   final int experience;
   final Map<BattlerStat, int> baseStats;
   final List<BattlerAbility> abilities;
+  final List<Augment> augments;
   final List<BattlerStatus> statuses;
   final List<Item> inventoryItems;
   final List<Item> equippedItems;
@@ -467,6 +475,7 @@ class Battler {
     this.experience = 0,
     required this.baseStats,
     this.abilities = const [],
+    this.augments = const [],
     this.statuses = const [],
     this.inventoryItems = const [],
     this.equippedItems = const [],
@@ -573,6 +582,7 @@ class Battler {
     int? experience,
     Map<BattlerStat, int>? baseStats,
     List<BattlerAbility>? abilities,
+    List<Augment>? augments,
     List<BattlerStatus>? statuses,
     List<Item>? inventoryItems,
     List<Item>? equippedItems,
@@ -594,6 +604,9 @@ class Battler {
     );
     final resolvedStatuses = List<BattlerStatus>.unmodifiable(
       statuses ?? this.statuses,
+    );
+    final resolvedAugments = List<Augment>.unmodifiable(
+      augments ?? this.augments,
     );
     final resolvedInventoryItems = List<Item>.unmodifiable(
       (inventoryItems ?? this.inventoryItems).take(maxInventoryItems),
@@ -644,6 +657,7 @@ class Battler {
       experience: max(0, experience ?? this.experience),
       baseStats: resolvedBaseStats,
       abilities: resolvedAbilities,
+      augments: resolvedAugments,
       statuses: resolvedStatuses,
       inventoryItems: resolvedInventoryItems,
       equippedItems: resolvedEquippedItems,
@@ -737,6 +751,7 @@ class Battler {
     required int experience,
     required Map<BattlerStat, int> baseStats,
     required List<BattlerAbility> abilities,
+    required List<Augment> augments,
     required List<BattlerStatus> statuses,
     required List<Item> inventoryItems,
     required List<Item> equippedItems,
@@ -771,6 +786,7 @@ class Battler {
           : max(0, experience),
       baseStats: baseStats,
       abilities: abilities,
+      augments: augments,
       statuses: statuses,
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,
@@ -817,6 +833,7 @@ class Battler {
           : max(0, experience),
       baseStats: baseStats,
       abilities: abilities,
+      augments: augments,
       statuses: statuses,
       inventoryItems: inventoryItems,
       equippedItems: equippedItems,

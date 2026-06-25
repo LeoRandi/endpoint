@@ -164,7 +164,7 @@ class _CodexPageState extends State<CodexPage> {
         ];
       case _CodexCategory.augments:
         return [
-          for (final ability in abilityPresets) _CodexEntry.ability(ability),
+          for (final augment in augmentCatalog) _CodexEntry.augment(augment),
         ];
       case _CodexCategory.enemies:
         return [
@@ -352,16 +352,13 @@ class _CodexPageState extends State<CodexPage> {
             statusText: 'DESBLOQUEADO',
           ),
         );
-      case _CodexEntryKind.ability:
-        final ability = entry.ability!;
+      case _CodexEntryKind.augment:
         await showEndpointDialog<void>(
           context: context,
           barrierLabel: 'Detalle de aumento',
           barrierColor: EndpointPalette.overlayScrim,
-          builder: (context) => EndpointAbilityDetailsDialog(
-            ability: ability,
-            accent: ability.accent,
-            statusText: 'DESBLOQUEADO',
+          builder: (context) => _CodexAugmentDetailsDialog(
+            augment: entry.augment!,
           ),
         );
       case _CodexEntryKind.enemy:
@@ -965,7 +962,7 @@ class _CodexArchetypeDetailsDialog extends StatelessWidget {
         '${archetype.moneyModifier >= 0 ? '+' : ''}${archetype.moneyModifier}C',
       if (archetype.incomeModifier != 0)
         '${archetype.incomeModifier >= 0 ? '+' : ''}${archetype.incomeModifier} INCOME',
-      '${archetype.startingAbilities.length} AUMENTOS',
+      '${archetype.startingAugments.length} AUMENTOS',
     ];
 
     return parts.join('   ');
@@ -1357,6 +1354,109 @@ class _CodexEventDetailsDialog extends StatelessWidget {
   }
 }
 
+class _CodexAugmentDetailsDialog extends StatelessWidget {
+  final Augment augment;
+
+  const _CodexAugmentDetailsDialog({
+    required this.augment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = augment.accent;
+
+    return EndpointDetailsDialogScaffold(
+      accent: accent,
+      backgroundColor: EndpointPalette.panelBackgroundOpaque,
+      foregroundColor: EndpointPalette.soften(accent),
+      closeBackgroundColor: EndpointPalette.closeButtonBackground,
+      maxWidth: 420,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EndpointAugmentOrb(
+                augment: augment,
+                size: 72,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EndpointText(
+                      augment.displayName,
+                      maxLines: null,
+                      style: textLargeBold.copyWith(
+                        color: EndpointPalette.soften(accent),
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    EndpointText(
+                      'AUMENTO ${augment.rarity.label}',
+                      style: textSmallBold.copyWith(
+                        color: accent,
+                        fontSize: 10,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (augment.hasTags) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: EndpointTagPillMarquee(
+                tags: augment.tags,
+                accent: accent,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          EndpointHighlightedValueText(
+            augment.displayDescription,
+            tags: augment.tags,
+            maxLines: null,
+            style: textMedium.copyWith(
+              color: EndpointPalette.softForeground.withValues(alpha: 0.84),
+              height: 1.24,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final entry in augment.effects.patternEffects.entries)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 5),
+                  child: EndpointText(
+                    '${entry.key.length} puntos: ${entry.value.description}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textSmallBold.copyWith(
+                      color: EndpointPalette.softForeground.withValues(
+                        alpha: 0.78,
+                      ),
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CodexStatusDetailsDialog extends StatelessWidget {
   final BattlerStatus status;
 
@@ -1469,7 +1569,7 @@ class _CodexStatusDetailsDialog extends StatelessWidget {
 enum _CodexEntryKind {
   archetype,
   item,
-  ability,
+  augment,
   enemy,
   shop,
   event,
@@ -1480,7 +1580,7 @@ class _CodexEntry {
   final _CodexEntryKind kind;
   final ArchetypePathNode? archetype;
   final Item? item;
-  final BattlerAbility? ability;
+  final Augment? augment;
   final Battler? enemy;
   final String? enemyNodeId;
   final CombatNodeTier? enemyTier;
@@ -1492,7 +1592,7 @@ class _CodexEntry {
       : kind = _CodexEntryKind.archetype,
         archetype = value,
         item = null,
-        ability = null,
+        augment = null,
         enemy = null,
         enemyNodeId = null,
         enemyTier = null,
@@ -1504,7 +1604,7 @@ class _CodexEntry {
       : kind = _CodexEntryKind.item,
         archetype = null,
         item = value,
-        ability = null,
+        augment = null,
         enemy = null,
         enemyNodeId = null,
         enemyTier = null,
@@ -1512,11 +1612,11 @@ class _CodexEntry {
         event = null,
         status = null;
 
-  const _CodexEntry.ability(BattlerAbility value)
-      : kind = _CodexEntryKind.ability,
+  const _CodexEntry.augment(Augment value)
+      : kind = _CodexEntryKind.augment,
         archetype = null,
         item = null,
-        ability = value,
+        augment = value,
         enemy = null,
         enemyNodeId = null,
         enemyTier = null,
@@ -1528,7 +1628,7 @@ class _CodexEntry {
       : kind = _CodexEntryKind.enemy,
         archetype = null,
         item = null,
-        ability = null,
+        augment = null,
         enemy = value.enemy,
         enemyNodeId = value.nodeId,
         enemyTier = value.tier,
@@ -1540,7 +1640,7 @@ class _CodexEntry {
       : kind = _CodexEntryKind.shop,
         archetype = null,
         item = null,
-        ability = null,
+        augment = null,
         enemy = null,
         enemyNodeId = null,
         enemyTier = null,
@@ -1552,7 +1652,7 @@ class _CodexEntry {
       : kind = _CodexEntryKind.event,
         archetype = null,
         item = null,
-        ability = null,
+        augment = null,
         enemy = null,
         enemyNodeId = null,
         enemyTier = null,
@@ -1564,7 +1664,7 @@ class _CodexEntry {
       : kind = _CodexEntryKind.status,
         archetype = null,
         item = null,
-        ability = null,
+        augment = null,
         enemy = null,
         enemyNodeId = null,
         enemyTier = null,
@@ -1578,8 +1678,8 @@ class _CodexEntry {
         return archetype!.accent;
       case _CodexEntryKind.item:
         return item!.rarity.accent;
-      case _CodexEntryKind.ability:
-        return ability!.accent;
+      case _CodexEntryKind.augment:
+        return augment!.accent;
       case _CodexEntryKind.enemy:
         return enemyTier!.accent;
       case _CodexEntryKind.shop:
@@ -1597,8 +1697,8 @@ class _CodexEntry {
 
   IconData? get icon {
     switch (kind) {
-      case _CodexEntryKind.ability:
-        return ability!.icon;
+      case _CodexEntryKind.augment:
+        return augment!.icon;
       case _CodexEntryKind.status:
         return status!.icon;
       case _CodexEntryKind.shop:
@@ -1624,7 +1724,7 @@ class _CodexEntry {
         return shop!.iconEmoji;
       case _CodexEntryKind.event:
         return event!.iconEmoji;
-      case _CodexEntryKind.ability:
+      case _CodexEntryKind.augment:
       case _CodexEntryKind.status:
         return null;
     }
@@ -1636,7 +1736,7 @@ class _CodexEntry {
         return enemy!.imageAsset;
       case _CodexEntryKind.archetype:
       case _CodexEntryKind.item:
-      case _CodexEntryKind.ability:
+      case _CodexEntryKind.augment:
       case _CodexEntryKind.shop:
       case _CodexEntryKind.event:
       case _CodexEntryKind.status:
@@ -1650,8 +1750,8 @@ class _CodexEntry {
         return archetype!.label;
       case _CodexEntryKind.item:
         return item!.displayName;
-      case _CodexEntryKind.ability:
-        return ability!.displayName;
+      case _CodexEntryKind.augment:
+        return augment!.displayName;
       case _CodexEntryKind.enemy:
         return enemy!.name;
       case _CodexEntryKind.shop:
@@ -1671,8 +1771,8 @@ class _CodexEntry {
         return archetype!.rarity.index;
       case _CodexEntryKind.item:
         return item!.rarity.index;
-      case _CodexEntryKind.ability:
-        return ability!.rarity.index;
+      case _CodexEntryKind.augment:
+        return augment!.rarity.index;
       case _CodexEntryKind.enemy:
         return enemyTier!.rarity.index;
       case _CodexEntryKind.shop:
@@ -1690,8 +1790,8 @@ class _CodexEntry {
         return CodexDiscoveryService.archetypeKey(archetype!.archetypeId);
       case _CodexEntryKind.item:
         return CodexDiscoveryService.itemKey(item!.catalogKey);
-      case _CodexEntryKind.ability:
-        return CodexDiscoveryService.abilityKey(ability!.id);
+      case _CodexEntryKind.augment:
+        return CodexDiscoveryService.augmentKey(augment!.id);
       case _CodexEntryKind.enemy:
         return CodexDiscoveryService.enemyKey(enemyNodeId!);
       case _CodexEntryKind.shop:
@@ -1713,9 +1813,9 @@ class _CodexEntry {
         return _CodexArchetypeSectionKey.fromItemAffinities(
           <ItemArchetypeAffinity>[item!.affinity],
         );
-      case _CodexEntryKind.ability:
-        return _CodexArchetypeSectionKey.fromAbilityAffinities(
-          ability!.archetypeAffinities,
+      case _CodexEntryKind.augment:
+        return _CodexArchetypeSectionKey.fromAugmentAffinity(
+          augment!.affinity,
         );
       case _CodexEntryKind.shop:
         return _CodexArchetypeSectionKey.fromArchetypeIds(
@@ -1812,18 +1912,14 @@ enum _CodexArchetypeSectionKey {
     return fromArchetypeId(specificAffinities.first.archetypeId!);
   }
 
-  static _CodexArchetypeSectionKey fromAbilityAffinities(
-    List<BattlerAbilityArchetypeAffinity> affinities,
+  static _CodexArchetypeSectionKey fromAugmentAffinity(
+    AugmentAffinity affinity,
   ) {
-    final specificAffinities = affinities
-        .where((affinity) => affinity.isSpecific)
-        .toList(growable: false);
-    if (specificAffinities.isEmpty) {
-      return _CodexArchetypeSectionKey.general;
-    }
+    if (!affinity.isSpecific) return _CodexArchetypeSectionKey.general;
 
-    return fromArchetypeId(specificAffinities.first.archetypeId!);
+    return fromArchetypeId(affinity.archetypeId!);
   }
+
 }
 
 class _CodexCategoryData {

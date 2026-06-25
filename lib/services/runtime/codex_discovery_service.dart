@@ -27,6 +27,7 @@ abstract final class CodexDiscoveryService {
 
   static String archetypeKey(ArchetypeId id) => 'archetype:${id.name}';
   static String itemKey(String catalogKey) => 'item:$catalogKey';
+  static String augmentKey(int id) => 'augment:$id';
   static String abilityKey(BattlerAbilityId id) => 'ability:${id.name}';
   static String enemyKey(String nodeId) => 'enemy:$nodeId';
   static String statusKey(BattlerStatusId id) => 'status:${id.name}';
@@ -36,6 +37,9 @@ abstract final class CodexDiscoveryService {
   static void registerHooks() {
     CodexDiscoveryHook.onItemAdded = (itemId) {
       unawaited(markIndexed(itemKey(itemId)));
+    };
+    CodexDiscoveryHook.onAugmentAdded = (augmentId) {
+      unawaited(markIndexed(augmentKey(augmentId)));
     };
     CodexDiscoveryHook.onAbilityAdded = (abilityId) {
       unawaited(markIndexed(abilityKey(abilityId)));
@@ -113,7 +117,7 @@ abstract final class CodexDiscoveryService {
     final keys = <String>{
       for (final archetype in ArchetypeId.values) archetypeKey(archetype),
       for (final item in itemPresets) itemKey(item.catalogKey),
-      for (final ability in abilityPresets) abilityKey(ability.id),
+      for (final augment in augmentCatalog) augmentKey(augment.id),
       for (final node in combatPathNodeExamples) enemyKey(node.nodeId),
       for (final statusId in BattlerStatusId.values) statusKey(statusId),
       for (final node in _allShopNodes) shopKey(node.nodeId),

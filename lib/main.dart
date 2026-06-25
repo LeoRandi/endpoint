@@ -289,11 +289,10 @@ class _CodexDiscoveryNoticeIcon extends StatelessWidget {
       return null;
     }
 
-    if (key.startsWith('ability:')) {
-      final abilityName = key.substring('ability:'.length);
-      for (final ability in abilityPresets) {
-        if (ability.id.name == abilityName) return ability.icon;
-      }
+    if (key.startsWith('augment:')) {
+      final augmentId = int.tryParse(key.substring('augment:'.length));
+      final augment = augmentId == null ? null : augmentCatalogById[augmentId];
+      if (augment != null) return augment.icon;
       return null;
     }
 

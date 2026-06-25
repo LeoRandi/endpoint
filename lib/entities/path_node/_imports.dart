@@ -1,6 +1,7 @@
 export 'dart:math';
 
 export '../archetype_id.dart';
+export '../augment/_exports.dart';
 export '../battler/_exports.dart';
 export '../codex_discovery_hook.dart';
 export '../entity_tag.dart';

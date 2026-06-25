@@ -16,28 +16,28 @@ extension RewardPathEventHandler on PathEventService {
     }
 
     if (cappedScore <= 3) {
-      final ability = _rollRewardAbility(
+      final augment = _rollRewardAugment(
         player: player,
         rarity: RarityTier.green,
         randomizer: randomizer,
       );
-      if (ability == null) {
+      if (augment == null) {
         return PathEventVisitResult(
           player: player,
           outcomeText: 'El puesto no encuentra un aumento verde compatible.',
         );
       }
       final updatedPlayer =
-          player.addAbility(_runtimeService.runtimeAbility(ability));
+          player.addAugment(_runtimeService.runtimeAugment(augment));
       return PathEventVisitResult(
         player: updatedPlayer,
-        outcomeText: 'Recibes un aumento verde: ${ability.displayName}.',
-        gainedAbility: updatedPlayer.abilityById(ability.id) ?? ability,
+        outcomeText: 'Recibes un aumento verde: ${augment.displayName}.',
+        gainedAugment: updatedPlayer.augmentById(augment.id) ?? augment,
       );
     }
 
     if (cappedScore <= 5) {
-      final ability = _rollRewardAbility(
+      final augment = _rollRewardAugment(
         player: player,
         rarity: RarityTier.blue,
         randomizer: randomizer,
@@ -47,17 +47,17 @@ extension RewardPathEventHandler on PathEventService {
         randomizer: randomizer,
       );
       var updatedPlayer = player;
-      if (ability != null) {
+      if (augment != null) {
         updatedPlayer =
-            updatedPlayer.addAbility(_runtimeService.runtimeAbility(ability));
+            updatedPlayer.addAugment(_runtimeService.runtimeAugment(augment));
       }
       if (item != null) updatedPlayer = updatedPlayer.addItem(item);
       return PathEventVisitResult(
         player: updatedPlayer,
         outcomeText:
-            'Recibes ${ability?.displayName ?? 'sin aumento'} y ${item?.displayName ?? 'sin objeto'}.',
-        gainedAbility:
-            ability == null ? null : updatedPlayer.abilityById(ability.id),
+            'Recibes ${augment?.displayName ?? 'sin aumento'} y ${item?.displayName ?? 'sin objeto'}.',
+        gainedAugment:
+            augment == null ? null : updatedPlayer.augmentById(augment.id),
         gainedItem: item == null
             ? null
             : updatedPlayer.inventoryItemOfType(item.catalogKey) ??
@@ -66,7 +66,7 @@ extension RewardPathEventHandler on PathEventService {
       );
     }
 
-    final ability = _rollRewardAbility(
+    final augment = _rollRewardAugment(
       player: player,
       rarity: RarityTier.yellow,
       randomizer: randomizer,
@@ -76,17 +76,17 @@ extension RewardPathEventHandler on PathEventService {
       randomizer: randomizer,
     );
     var updatedPlayer = player;
-    if (ability != null) {
+    if (augment != null) {
       updatedPlayer =
-          updatedPlayer.addAbility(_runtimeService.runtimeAbility(ability));
+          updatedPlayer.addAugment(_runtimeService.runtimeAugment(augment));
     }
     if (item != null) updatedPlayer = updatedPlayer.addItem(item);
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'Reclamas el premio completo: ${ability?.displayName ?? 'sin aumento'} y ${item?.displayName ?? 'sin objeto'}.',
-      gainedAbility:
-          ability == null ? null : updatedPlayer.abilityById(ability.id),
+          'Reclamas el premio completo: ${augment?.displayName ?? 'sin aumento'} y ${item?.displayName ?? 'sin objeto'}.',
+      gainedAugment:
+          augment == null ? null : updatedPlayer.augmentById(augment.id),
       gainedItem: item == null
           ? null
           : updatedPlayer.inventoryItemOfType(item.catalogKey) ??

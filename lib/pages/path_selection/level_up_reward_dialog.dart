@@ -94,7 +94,7 @@ class LevelUpRewardDialog extends StatelessWidget {
     switch (offer.type) {
       case BattlerLevelRewardChoiceType.stat:
         return 'ELIGE UNA RECOMPENSA EXTRA';
-      case BattlerLevelRewardChoiceType.ability:
+      case BattlerLevelRewardChoiceType.augment:
         return 'ELIGE UNA AUMENTO ${offer.rarity?.label ?? ''}'.trim();
       case BattlerLevelRewardChoiceType.item:
         return 'ELIGE UN OBJETO ${offer.rarity?.label ?? ''}'.trim();
@@ -265,8 +265,8 @@ class _LevelUpRewardCard extends StatelessWidget {
     final statReward = choice.statReward;
     if (statReward != null) return _statTitle(statReward);
 
-    final ability = choice.ability;
-    if (ability != null) return ability.displayName;
+    final augment = choice.augment;
+    if (augment != null) return augment.displayName;
 
     return choice.item?.displayName ?? 'Recompensa';
   }
@@ -275,8 +275,8 @@ class _LevelUpRewardCard extends StatelessWidget {
     final statReward = choice.statReward;
     if (statReward != null) return _statDescription(statReward);
 
-    final ability = choice.ability;
-    if (ability != null) return ability.displayDescription;
+    final augment = choice.augment;
+    if (augment != null) return augment.displayDescription;
 
     return choice.item?.localizedTooltipDescription ?? '';
   }
@@ -285,10 +285,10 @@ class _LevelUpRewardCard extends StatelessWidget {
     final statReward = choice.statReward;
     if (statReward != null) return _statMeta(statReward);
 
-    final ability = choice.ability;
-    if (ability != null) {
-      final status = player.wouldUpgradeAbility(ability) ? 'MEJORA' : 'NUEVA';
-      return '$status | ${ability.rarity.label} | POTENCIA ${ability.currentValue}';
+    final augment = choice.augment;
+    if (augment != null) {
+      final status = player.wouldUpgradeAugment(augment) ? 'MEJORA' : 'NUEVO';
+      return '$status | ${augment.rarity.label} | AUMENTO';
     }
 
     final item = choice.item;
@@ -359,11 +359,11 @@ class _LevelUpDescriptionText extends StatelessWidget {
     final style = textSmall.copyWith(
       color: EndpointPalette.softForeground.withValues(alpha: 0.74),
     );
-    final ability = choice.ability;
-    if (ability != null) {
+    final augment = choice.augment;
+    if (augment != null) {
       return EndpointHighlightedValueText(
         description,
-        tags: ability.tags,
+        tags: augment.tags,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: style,
@@ -422,9 +422,9 @@ class _LevelUpChoiceLead extends StatelessWidget {
       return Icon(_statIcon(statReward), color: accent, size: 22);
     }
 
-    final ability = choice.ability;
-    if (ability != null) {
-      return Icon(ability.icon, color: accent, size: 22);
+    final augment = choice.augment;
+    if (augment != null) {
+      return Icon(augment.icon, color: accent, size: 22);
     }
 
     final item = choice.item;

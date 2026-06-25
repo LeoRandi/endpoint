@@ -1,12 +1,12 @@
 import '_imports.dart';
 
-/// Describe un arquetipo inicial que altera stats, economia, items y AUMENTOS del jugador.
+/// Describe un arquetipo inicial que altera stats, economia, items y aumentos del jugador.
 class ArchetypePathNode extends PathNode {
   final ArchetypeId archetypeId;
   final String playerIconEmoji;
   final List<Item> startingItems;
   final List<Item> Function(RandomSource randomizer)? startingItemsBuilder;
-  final List<BattlerAbility> startingAbilities;
+  final List<Augment> startingAugments;
   final Map<BattlerStat, int> baseStatModifiers;
   final int moneyModifier;
   final int incomeModifier;
@@ -22,13 +22,12 @@ class ArchetypePathNode extends PathNode {
     this.playerIconEmoji = '\u{1F916}',
     required List<Item> startingItems,
     this.startingItemsBuilder,
-    List<BattlerAbility> startingAbilities = const [],
+    List<Augment> startingAugments = const [],
     this.baseStatModifiers = const {},
     this.moneyModifier = 0,
     this.incomeModifier = 0,
   })  : startingItems = List<Item>.unmodifiable(startingItems),
-        startingAbilities =
-            List<BattlerAbility>.unmodifiable(startingAbilities),
+        startingAugments = List<Augment>.unmodifiable(startingAugments),
         super.base(
           type: PathNodeType.archetype,
           nodeId: nodeId ?? 'archetype:$label',
@@ -55,7 +54,7 @@ class ArchetypePathNode extends PathNode {
       playerIconEmoji: playerIconEmoji,
       startingItems: List<Item>.unmodifiable(items),
       startingItemsBuilder: startingItemsBuilder,
-      startingAbilities: startingAbilities,
+      startingAugments: startingAugments,
       baseStatModifiers: baseStatModifiers,
       moneyModifier: moneyModifier,
       incomeModifier: incomeModifier,
@@ -143,8 +142,8 @@ class ArchetypePathNode extends PathNode {
         }
       }
 
-      for (final ability in startingAbilities) {
-        updatedPlayer = updatedPlayer.addAbility(ability);
+      for (final augment in startingAugments) {
+        updatedPlayer = updatedPlayer.addAugment(augment);
       }
     } finally {
       CodexDiscoveryHook.isSuppressed = previousSuppression;

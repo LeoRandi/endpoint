@@ -6,6 +6,14 @@ abstract final class EndpointDomainCodec {
     return _deserializeAbility(json);
   }
 
+  static Augment? deserializeAugment(Map<String, dynamic> json) {
+    return _deserializeAugment(json);
+  }
+
+  static Map<String, Object?> serializeAugment(Augment augment) {
+    return _serializeAugment(augment);
+  }
+
   static Map<String, Object?> serializeAbility(BattlerAbility ability) {
     return _serializeAbility(ability);
   }
@@ -22,6 +30,10 @@ abstract final class EndpointDomainCodec {
     final abilities = EndpointJsonUtils.readJsonMapList(json['abilities'])
         .map<BattlerAbility?>(_deserializeAbility)
         .whereType<BattlerAbility>()
+        .toList(growable: false);
+    final augments = EndpointJsonUtils.readJsonMapList(json['augments'])
+        .map<Augment?>(_deserializeAugment)
+        .whereType<Augment>()
         .toList(growable: false);
     final statuses = EndpointJsonUtils.readJsonMapList(json['statuses'])
         .map<BattlerStatus?>(_deserializeStatus)
@@ -95,6 +107,7 @@ abstract final class EndpointDomainCodec {
         ),
       ),
       abilities: List<BattlerAbility>.unmodifiable(abilities),
+      augments: List<Augment>.unmodifiable(augments),
       statuses: List<BattlerStatus>.unmodifiable(statuses),
       inventoryItems: List<Item>.unmodifiable(inventoryItems),
       equippedItems: List<Item>.unmodifiable(equippedItems),
@@ -134,6 +147,9 @@ abstract final class EndpointDomainCodec {
       'baseStats': _serializeStatMap(battler.baseStats),
       'abilities': battler.abilities
           .map<Map<String, Object?>>(_serializeAbility)
+          .toList(growable: false),
+      'augments': battler.augments
+          .map<Map<String, Object?>>(_serializeAugment)
           .toList(growable: false),
       'statuses': battler.statuses
           .map<Map<String, Object?>>(_serializeStatus)
@@ -267,6 +283,58 @@ BattlerAbility? _deserializeAbility(Map<String, dynamic> json) {
         ),
       )
       .normalizeUpgradeTier();
+}
+
+Augment? _deserializeAugment(Map<String, dynamic> json) {
+  final id = EndpointJsonUtils.readInt(json['id'], fallback: -1);
+  final name = EndpointJsonUtils.readString(json['name'], fallback: '').trim();
+  final description = EndpointJsonUtils.readString(
+    json['description'],
+    fallback: '',
+  ).trim();
+  final tier = EndpointJsonUtils.parseEnumByName(
+    RarityTier.values,
+    json['tier'],
+  );
+  final assetPath = EndpointJsonUtils.readString(
+    json['assetPath'],
+    fallback: '',
+  ).trim();
+  final effectEntries = EndpointJsonUtils.readJsonMapList(json['effects']);
+  if (id < 0 ||
+      name.isEmpty ||
+      description.isEmpty ||
+      tier == null ||
+      assetPath.isEmpty ||
+      effectEntries.length != AugmentEffects.tierPatternCount) {
+    return null;
+  }
+
+  final patternEffects = <List<OperativePatternPoint>, AugmentEffect>{};
+  for (final entry in effectEntries) {
+    final points = _deserializePatternPointList(entry['pattern']);
+    final effectJson = EndpointJsonUtils.asJsonMap(entry['effect']);
+    final effect =
+        effectJson == null ? null : _deserializeAugmentEffect(effectJson);
+    if (points.isEmpty || effect == null) return null;
+    patternEffects[points] = effect;
+  }
+  if (patternEffects.length != AugmentEffects.tierPatternCount) return null;
+
+  return Augment(
+    id: id,
+    name: name,
+    description: description,
+    tier: tier,
+    assetPath: assetPath,
+    affinity: EndpointJsonUtils.parseEnumByName(
+          AugmentAffinity.values,
+          json['affinity'],
+        ) ??
+        AugmentAffinity.general,
+    tags: _deserializeEntityTags(json['tags']),
+    effects: AugmentEffects(patternEffects: patternEffects),
+  );
 }
 
 BattlerStatus? _deserializeStatus(Map<String, dynamic> json) {
@@ -409,6 +477,54 @@ Map<String, Object?> _serializeAbility(BattlerAbility ability) {
     'manualActivationContext': ability.manualActivationContext?.name,
     'isImplemented': ability.isImplemented,
   };
+}
+
+Map<String, Object?> _serializeAugment(Augment augment) {
+  return {
+    'id': augment.id,
+    'name': augment.name,
+    'description': augment.description,
+    'tier': augment.tier.name,
+    'assetPath': augment.assetPath,
+    'affinity': augment.affinity.name,
+    'tags': augment.tags.map((tag) => tag.name).toList(growable: false),
+    'effects': augment.effects.patternEffects.entries
+        .map<Map<String, Object?>>(
+          (entry) => {
+            'pattern': entry.key
+                .map((point) => point.key)
+                .toList(growable: false),
+            'effect': _serializeAugmentEffect(entry.value),
+          },
+        )
+        .toList(growable: false),
+  };
+}
+
+Map<String, Object?> _serializeAugmentEffect(AugmentEffect effect) {
+  return {
+    'type': effect.type.name,
+    'value': effect.value,
+    'description': effect.description,
+  };
+}
+
+AugmentEffect? _deserializeAugmentEffect(Map<String, dynamic> json) {
+  final type = EndpointJsonUtils.parseEnumByName(
+    AugmentEffectType.values,
+    json['type'],
+  );
+  final description = EndpointJsonUtils.readString(
+    json['description'],
+    fallback: '',
+  ).trim();
+  if (type == null || description.isEmpty) return null;
+
+  return AugmentEffect(
+    type: type,
+    value: EndpointJsonUtils.readInt(json['value'], fallback: 0),
+    description: description,
+  );
 }
 
 Map<String, Object?> _serializeStatus(BattlerStatus status) {
@@ -613,6 +729,10 @@ List<OperativePatternPoint> _deserializePatternPointList(Object? rawValue) {
 }
 
 List<EntityTag> _deserializeItemTags(Object? rawValue) {
+  return _deserializeEntityTags(rawValue);
+}
+
+List<EntityTag> _deserializeEntityTags(Object? rawValue) {
   if (rawValue is! List) return const <EntityTag>[];
   return List<EntityTag>.unmodifiable(
     rawValue

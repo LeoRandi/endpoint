@@ -21,7 +21,7 @@ class RunOutcomePage extends StatefulWidget {
 class _RunOutcomePageState extends State<RunOutcomePage> {
   bool _areEnemiesExpanded = false;
   bool _areItemsExpanded = false;
-  bool _areAbilitiesExpanded = false;
+  bool _areAugmentsExpanded = false;
   bool _areStatsExpanded = false;
 
   /// Devuelve el acento visual dominante segun el tipo de cierre de run.
@@ -99,23 +99,23 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
     return items;
   }
 
-  List<BattlerAbility> get _runAbilities {
-    final byId = <BattlerAbilityId, BattlerAbility>{};
+  List<Augment> get _runAugments {
+    final byId = <int, Augment>{};
     for (final reward in widget.runSummary.gainedRewards) {
-      final ability = reward.ability;
-      if (ability == null) continue;
-      _keepBestAbility(byId, ability);
+      final augment = reward.augment;
+      if (augment == null) continue;
+      _keepBestAugment(byId, augment);
     }
-    for (final ability in widget.player.abilities) {
-      _keepBestAbility(byId, ability);
+    for (final augment in widget.player.augments) {
+      _keepBestAugment(byId, augment);
     }
-    final abilities = byId.values.toList(growable: false);
-    abilities.sort((a, b) {
+    final augments = byId.values.toList(growable: false);
+    augments.sort((a, b) {
       final rarityOrder = b.rarity.index.compareTo(a.rarity.index);
       if (rarityOrder != 0) return rarityOrder;
       return a.displayName.compareTo(b.displayName);
     });
-    return abilities;
+    return augments;
   }
 
   void _keepBestItem(Map<String, Item> byId, Item item) {
@@ -125,22 +125,20 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
     }
   }
 
-  void _keepBestAbility(
-    Map<BattlerAbilityId, BattlerAbility> byId,
-    BattlerAbility ability,
+  void _keepBestAugment(
+    Map<int, Augment> byId,
+    Augment augment,
   ) {
-    final current = byId[ability.id];
-    if (current == null ||
-        ability.rarity.index > current.rarity.index ||
-        ability.value > current.value) {
-      byId[ability.id] = ability;
+    final current = byId[augment.id];
+    if (current == null || augment.rarity.index > current.rarity.index) {
+      byId[augment.id] = augment;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final runItems = _runItems;
-    final runAbilities = _runAbilities;
+    final runAugments = _runAugments;
     final defeatedEnemies = widget.runSummary.defeatedEnemies;
 
     return Scaffold(
@@ -291,21 +289,21 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
                             const SizedBox(height: 10),
                             _RunOutcomeCollectionSection(
                               title: 'Aumentos de la run',
-                              count: runAbilities.length,
+                              count: runAugments.length,
                               emptyText: 'Ningun aumento registrado.',
-                              isExpanded: _areAbilitiesExpanded,
+                              isExpanded: _areAugmentsExpanded,
                               onToggle: () {
                                 setState(() {
-                                  _areAbilitiesExpanded =
-                                      !_areAbilitiesExpanded;
+                                  _areAugmentsExpanded =
+                                      !_areAugmentsExpanded;
                                 });
                               },
-                              children: runAbilities
+                              children: runAugments
                                   .map(
-                                    (ability) => _RunOutcomePill(
-                                      label: ability.displayName,
-                                      icon: Icons.auto_awesome_rounded,
-                                      accent: ability.rarity.accent,
+                                    (augment) => _RunOutcomePill(
+                                      label: augment.displayName,
+                                      icon: augment.icon,
+                                      accent: augment.rarity.accent,
                                     ),
                                   )
                                   .toList(growable: false),

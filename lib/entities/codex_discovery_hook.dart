@@ -12,6 +12,9 @@ abstract final class CodexDiscoveryHook {
   /// Notifica que un item entro por primera vez en el contexto del jugador.
   static void Function(String catalogKey)? onItemAdded;
 
+  /// Notifica que un aumento entro por primera vez en el contexto del jugador.
+  static void Function(int augmentId)? onAugmentAdded;
+
   /// Notifica que una habilidad entro por primera vez en el contexto del jugador.
   static void Function(BattlerAbilityId abilityId)? onAbilityAdded;
 

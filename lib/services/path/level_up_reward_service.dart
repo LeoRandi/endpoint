@@ -18,9 +18,9 @@ class LevelUpRewardService {
     final rewardType = rewardTypeForNextLevel(nextLevel);
 
     switch (rewardType) {
-      case BattlerLevelRewardChoiceType.ability:
-        final rarity = abilityRarityForNextLevel(nextLevel);
-        final choices = _buildAbilityChoices(
+      case BattlerLevelRewardChoiceType.augment:
+        final rarity = augmentRarityForNextLevel(nextLevel);
+        final choices = _buildAugmentChoices(
           player: player,
           targetRarity: rarity,
           randomizer: randomizer,
@@ -60,13 +60,13 @@ class LevelUpRewardService {
   static BattlerLevelRewardChoiceType rewardTypeForNextLevel(int nextLevel) {
     final cycleIndex = (max(2, nextLevel) - 2) % 3;
     return switch (cycleIndex) {
-      0 => BattlerLevelRewardChoiceType.ability,
+      0 => BattlerLevelRewardChoiceType.augment,
       1 => BattlerLevelRewardChoiceType.item,
       _ => BattlerLevelRewardChoiceType.stat,
     };
   }
 
-  static RarityTier abilityRarityForNextLevel(int nextLevel) {
+  static RarityTier augmentRarityForNextLevel(int nextLevel) {
     final cycleCount = (max(2, nextLevel) - 2) ~/ 3;
     if (cycleCount <= 0) return RarityTier.green;
     if (cycleCount == 1) return RarityTier.purple;
@@ -95,38 +95,38 @@ class LevelUpRewardService {
     );
   }
 
-  List<BattlerLevelRewardChoice> _buildAbilityChoices({
+  List<BattlerLevelRewardChoice> _buildAugmentChoices({
     required Battler player,
     required RarityTier targetRarity,
     required RunRandomizer randomizer,
     required int count,
   }) {
-    final pickedAbilities = <BattlerAbility>[];
+    final pickedAugments = <Augment>[];
     for (final rarity in _rarityFallbacksFrom(targetRarity)) {
-      final scopedCandidates = _abilityCandidatesForRarity(
-        abilityPoolForArchetype(player.archetypeId),
+      final scopedCandidates = _augmentCandidatesForRarity(
+        augmentCatalogForArchetype(player.archetypeId),
         player: player,
         targetRarity: rarity,
       );
-      final fallbackCandidates = _abilityCandidatesForRarity(
-        abilityPresets,
+      final fallbackCandidates = _augmentCandidatesForRarity(
+        augmentCatalog,
         player: player,
         targetRarity: rarity,
       );
-      pickedAbilities.addAll(
-        _pickPreferredThenFallback<BattlerAbility>(
+      pickedAugments.addAll(
+        _pickPreferredThenFallback<Augment>(
           preferred: scopedCandidates,
           fallback: fallbackCandidates,
           randomizer: randomizer,
           count: count,
-          keyOf: (ability) => ability.id,
+          keyOf: (augment) => augment.id,
         ),
       );
-      if (pickedAbilities.isNotEmpty) break;
+      if (pickedAugments.isNotEmpty) break;
     }
 
     return List<BattlerLevelRewardChoice>.unmodifiable(
-      pickedAbilities.map(BattlerLevelRewardChoice.ability),
+      pickedAugments.map(BattlerLevelRewardChoice.augment),
     );
   }
 
@@ -163,35 +163,35 @@ class LevelUpRewardService {
     );
   }
 
-  List<BattlerAbility> _abilityCandidatesForRarity(
-    Iterable<BattlerAbility> pool, {
+  List<Augment> _augmentCandidatesForRarity(
+    Iterable<Augment> pool, {
     required Battler player,
     required RarityTier targetRarity,
   }) {
-    final candidatesById = <BattlerAbilityId, BattlerAbility>{};
+    final candidatesById = <int, Augment>{};
 
-    for (final ability in pool) {
-      final ownedAbility = player.abilityById(ability.id);
-      if (ownedAbility != null) {
-        if (ownedAbility.rarity != targetRarity || !ownedAbility.canUpgrade) {
+    for (final augment in pool) {
+      final ownedAugment = player.augmentById(augment.id);
+      if (ownedAugment != null) {
+        if (ownedAugment.rarity != targetRarity || !ownedAugment.canUpgrade) {
           continue;
         }
         candidatesById.putIfAbsent(
-          ability.id,
-          () => _runtimeService.runtimeAbility(ownedAbility),
+          augment.id,
+          () => _runtimeService.runtimeAugment(ownedAugment),
         );
         continue;
       }
 
-      final promotedAbility = _runtimeService.promoteAbilityToExactRarity(
-        ability,
+      final promotedAugment = _runtimeService.promoteAugmentToExactRarity(
+        augment,
         targetRarity,
       );
-      if (promotedAbility == null) continue;
-      candidatesById.putIfAbsent(ability.id, () => promotedAbility);
+      if (promotedAugment == null) continue;
+      candidatesById.putIfAbsent(augment.id, () => promotedAugment);
     }
 
-    return List<BattlerAbility>.unmodifiable(candidatesById.values);
+    return List<Augment>.unmodifiable(candidatesById.values);
   }
 
   List<Item> _itemCandidatesForRarity(

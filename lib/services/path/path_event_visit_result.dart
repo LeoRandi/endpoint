@@ -4,7 +4,7 @@ class PathEventVisitResult {
   final Battler player;
   final String outcomeText;
   final Item? gainedItem;
-  final BattlerAbility? gainedAbility;
+  final Augment? gainedAugment;
   final PathNode? guaranteedNextNode;
   final int nextShopRarityDayOffset;
   final int nextEventRarityDayOffset;
@@ -17,7 +17,7 @@ class PathEventVisitResult {
     required this.player,
     required this.outcomeText,
     this.gainedItem,
-    this.gainedAbility,
+    this.gainedAugment,
     this.guaranteedNextNode,
     this.nextShopRarityDayOffset = 0,
     this.nextEventRarityDayOffset = 0,

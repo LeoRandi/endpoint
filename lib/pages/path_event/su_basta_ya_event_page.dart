@@ -22,16 +22,16 @@ enum _SuBastaYaEventStage {
   options,
   auction,
   stats,
-  ability,
+  augment,
 }
 
 class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
   late final RunRandomizer _eventRandomizer;
   late final List<Item> _eligibleItems;
-  late final List<BattlerAbility> _eligibleAbilities;
+  late final List<Augment> _eligibleAugments;
   Item? _auctionItem;
   Item? _statItem;
-  BattlerAbility? _swapAbility;
+  Augment? _swapAugment;
   SuBastaYaStatReward _selectedReward = SuBastaYaStatReward.health;
   _SuBastaYaEventStage _stage = _SuBastaYaEventStage.options;
   int _flavorPageIndex = 0;
@@ -49,7 +49,7 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
     _eligibleItems = widget.eventService.buildSuBastaYaEligibleItems(
       widget.player,
     );
-    _eligibleAbilities = widget.eventService.buildSuBastaYaEligibleAbilities(
+    _eligibleAugments = widget.eventService.buildSuBastaYaEligibleAugments(
       widget.player,
     );
   }
@@ -94,9 +94,9 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
     });
   }
 
-  void _selectSwapAbility(BattlerAbility ability) {
+  void _selectSwapAugment(Augment augment) {
     setState(() {
-      _swapAbility = ability;
+      _swapAugment = augment;
     });
   }
 
@@ -133,14 +133,14 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
     );
   }
 
-  void _swapSelectedAbility() {
-    final ability = _swapAbility;
-    if (ability == null) return;
+  void _swapSelectedAugment() {
+    final augment = _swapAugment;
+    if (augment == null) return;
 
     _resolve(
-      widget.eventService.resolveSuBastaYaAbilitySwap(
+      widget.eventService.resolveSuBastaYaAugmentSwap(
         player: widget.player,
-        selectedAbility: ability,
+        selectedAugment: augment,
         randomizer: _eventRandomizer,
       ),
     );
@@ -245,14 +245,14 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
         return _buildAuctionStage();
       case _SuBastaYaEventStage.stats:
         return _buildStatsStage();
-      case _SuBastaYaEventStage.ability:
-        return _buildAbilityStage();
+      case _SuBastaYaEventStage.augment:
+        return _buildAugmentStage();
     }
   }
 
   Widget _buildOptionsStage() {
     final hasItems = _eligibleItems.isNotEmpty;
-    final hasAbilities = _eligibleAbilities.isNotEmpty;
+    final hasAugments = _eligibleAugments.isNotEmpty;
 
     return Column(
       key: const ValueKey<String>('su-basta-options'),
@@ -286,12 +286,12 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
           title: 'INTERCAMBIAR',
           icon: Icons.swap_horiz_rounded,
           accent: widget.node.accent,
-          body: hasAbilities
+          body: hasAugments
               ? 'Entrega un aumento y recibe otro del mismo tier o superior.'
               : 'No tienes aumentos disponibles para intercambiar.',
-          onPressed: _isResolving || !hasAbilities
+          onPressed: _isResolving || !hasAugments
               ? null
-              : () => _chooseStage(_SuBastaYaEventStage.ability),
+              : () => _chooseStage(_SuBastaYaEventStage.augment),
         ),
       ],
     );
@@ -385,17 +385,17 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
     );
   }
 
-  Widget _buildAbilityStage() {
-    final swapAbility = _swapAbility;
+  Widget _buildAugmentStage() {
+    final swapAugment = _swapAugment;
 
     return Column(
-      key: const ValueKey<String>('su-basta-ability'),
+      key: const ValueKey<String>('su-basta-augment'),
       mainAxisSize: MainAxisSize.min,
       children: [
         _SuBastaYaStageHeader(
           title: 'INTERCAMBIAR',
           icon: Icons.swap_horiz_rounded,
-          accent: swapAbility?.accent ?? widget.node.accent,
+          accent: swapAugment?.accent ?? widget.node.accent,
           onBack: _backToOptions,
         ),
         const SizedBox(height: 10),
@@ -404,25 +404,25 @@ class _SuBastaYaEventPageState extends State<SuBastaYaEventPage> {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            for (final ability in _eligibleAbilities)
-              _SuBastaYaAbilityPickTile(
-                ability: ability,
-                isSelected: swapAbility?.id == ability.id,
-                onPressed: () => _selectSwapAbility(ability),
+            for (final augment in _eligibleAugments)
+              _SuBastaYaAugmentPickTile(
+                augment: augment,
+                isSelected: swapAugment?.id == augment.id,
+                onPressed: () => _selectSwapAugment(augment),
               ),
           ],
         ),
         const SizedBox(height: 10),
         EndpointActionButton(
-          label: swapAbility == null ? 'Elige un aumento' : 'Cambiar',
+          label: swapAugment == null ? 'Elige un aumento' : 'Cambiar',
           icon: Icons.shuffle_rounded,
           onPressed:
-              _isResolving || swapAbility == null ? null : _swapSelectedAbility,
+              _isResolving || swapAugment == null ? null : _swapSelectedAugment,
           tooltip: 'Intercambiar aumento',
-          accent: swapAbility?.accent ?? widget.node.accent,
+          accent: swapAugment?.accent ?? widget.node.accent,
           backgroundColor: EndpointPalette.panelBackgroundMuted,
           foregroundColor:
-              EndpointPalette.soften(swapAbility?.accent ?? widget.node.accent),
+              EndpointPalette.soften(swapAugment?.accent ?? widget.node.accent),
           expands: true,
           useMarquee: false,
         ),
@@ -682,20 +682,20 @@ class _SuBastaYaStageHeader extends StatelessWidget {
   }
 }
 
-class _SuBastaYaAbilityPickTile extends StatelessWidget {
-  final BattlerAbility ability;
+class _SuBastaYaAugmentPickTile extends StatelessWidget {
+  final Augment augment;
   final bool isSelected;
   final VoidCallback onPressed;
 
-  const _SuBastaYaAbilityPickTile({
-    required this.ability,
+  const _SuBastaYaAugmentPickTile({
+    required this.augment,
     required this.isSelected,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final accent = ability.accent;
+    final accent = augment.accent;
 
     return SizedBox(
       width: 94,
@@ -722,14 +722,13 @@ class _SuBastaYaAbilityPickTile extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  EndpointAbilityOrb(
-                    ability: ability,
+                  EndpointAugmentOrb(
+                    augment: augment,
                     size: 54,
-                    enableTooltipLongPress: false,
                   ),
                   const SizedBox(height: 5),
                   EndpointText(
-                    ability.displayName,
+                    augment.displayName,
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

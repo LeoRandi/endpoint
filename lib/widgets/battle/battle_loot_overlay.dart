@@ -7,7 +7,7 @@ class BattleLootOverlay extends StatefulWidget {
   final Battler player;
   final Item? lootItem;
   final List<BattleItemReward> itemRewards;
-  final BattlerAbility? lootAbility;
+  final Augment? lootAugment;
   final int moneyReward;
   final String enemyName;
   final EndpointGameMode gameMode;
@@ -20,7 +20,7 @@ class BattleLootOverlay extends StatefulWidget {
     this.gameMode = EndpointGameMode.pattern,
     this.lootItem,
     this.itemRewards = const <BattleItemReward>[],
-    this.lootAbility,
+    this.lootAugment,
   });
 
   @override
@@ -32,7 +32,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
 
   late Battler _player;
   late Set<int> _collectedItemRewardIndexes;
-  late bool _isAbilityCollected;
+  late bool _isAugmentCollected;
   late bool _isMoneyCollected;
 
   List<BattleItemReward> get _itemRewards => widget.itemRewards.isNotEmpty
@@ -41,15 +41,15 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
           if (widget.lootItem != null) BattleItemReward(item: widget.lootItem!),
         ];
   bool get _hasLootReward =>
-      _itemRewards.isNotEmpty || widget.lootAbility != null;
+      _itemRewards.isNotEmpty || widget.lootAugment != null;
   bool get _hasPendingLoot =>
       _collectedItemRewardIndexes.length < _itemRewards.length ||
-      (widget.lootAbility != null && !_isAbilityCollected);
+      (widget.lootAugment != null && !_isAugmentCollected);
   bool get _hasPendingMoney => widget.moneyReward > 0 && !_isMoneyCollected;
   bool get _hasPendingRewards => _hasPendingLoot || _hasPendingMoney;
-  bool get _lootWillUpgradeAbility =>
-      widget.lootAbility != null &&
-      _player.wouldUpgradeAbility(widget.lootAbility!);
+  bool get _lootWillUpgradeAugment =>
+      widget.lootAugment != null &&
+      _player.wouldUpgradeAugment(widget.lootAugment!);
 
   bool _itemRewardWillUpgrade(int index) {
     return _player.wouldUpgradeItem(_itemRewards[index].item);
@@ -74,7 +74,7 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     super.initState();
     _player = widget.player;
     _collectedItemRewardIndexes = <int>{};
-    _isAbilityCollected = widget.lootAbility == null;
+    _isAugmentCollected = widget.lootAugment == null;
     _isMoneyCollected = widget.moneyReward <= 0;
   }
 
@@ -206,14 +206,14 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
     });
   }
 
-  void _collectAbility() {
-    if (widget.lootAbility == null || _isAbilityCollected) return;
+  void _collectAugment() {
+    if (widget.lootAugment == null || _isAugmentCollected) return;
 
     setState(() {
-      _player = _player.addAbility(
-        _runtimeService.runtimeAbility(widget.lootAbility!),
+      _player = _player.addAugment(
+        _runtimeService.runtimeAugment(widget.lootAugment!),
       );
-      _isAbilityCollected = true;
+      _isAugmentCollected = true;
     });
   }
 
@@ -242,9 +242,9 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
           : updatedPlayer.addItem(reward.item);
       collectedIndexes.add(index);
     }
-    if (widget.lootAbility != null && !_isAbilityCollected) {
-      updatedPlayer = updatedPlayer.addAbility(
-        _runtimeService.runtimeAbility(widget.lootAbility!),
+    if (widget.lootAugment != null && !_isAugmentCollected) {
+      updatedPlayer = updatedPlayer.addAugment(
+        _runtimeService.runtimeAugment(widget.lootAugment!),
       );
     }
     if (_hasPendingMoney) {
@@ -403,25 +403,26 @@ class _BattleLootOverlayState extends State<BattleLootOverlay> {
                           isEnabled: _canCollectItemReward(index),
                         ),
                       ],
-                      if (_itemRewards.isNotEmpty && widget.lootAbility != null)
+                      if (_itemRewards.isNotEmpty && widget.lootAugment != null)
                         const SizedBox(height: 12),
-                      if (widget.lootAbility != null)
+                      if (widget.lootAugment != null)
                         _BattleLootRewardCard(
-                          title: widget.lootAbility!.displayName,
-                          subtitle: widget.lootAbility!.displayDescription,
-                          tags: widget.lootAbility!.tags,
-                          accent: widget.lootAbility!.accent,
-                          icon: widget.lootAbility!.icon,
-                          isCollected: _isAbilityCollected,
-                          collectedLabel: _lootWillUpgradeAbility
+                          title: widget.lootAugment!.displayName,
+                          subtitle: widget.lootAugment!.displayDescription,
+                          tags: widget.lootAugment!.tags,
+                          accent: widget.lootAugment!.accent,
+                          icon: widget.lootAugment!.icon,
+                          isCollected: _isAugmentCollected,
+                          collectedLabel: _lootWillUpgradeAugment
                               ? 'MEJORADA'
                               : 'APRENDIDA',
-                          pendingLabel:
-                              _lootWillUpgradeAbility ? 'MEJORAR' : 'APRENDER',
-                          showUpgradeIndicator: _lootWillUpgradeAbility,
+                          pendingLabel: _lootWillUpgradeAugment
+                              ? 'MEJORAR'
+                              : 'APRENDER',
+                          showUpgradeIndicator: _lootWillUpgradeAugment,
                           upgradeIndicatorColor:
                               endpointUpgradeIndicatorNeonYellow,
-                          onPressed: _collectAbility,
+                          onPressed: _collectAugment,
                         ),
                       if (_hasLootReward && widget.moneyReward > 0)
                         const SizedBox(height: 12),

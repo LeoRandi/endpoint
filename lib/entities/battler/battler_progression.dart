@@ -110,10 +110,9 @@ extension BattlerProgression on Battler {
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
     );
 
-    final abilityReward = reward.ability;
-    if (abilityReward != null) {
-      updatedPlayer =
-          updatedPlayer.addAbility(abilityReward.toRuntimeInstance());
+    final augmentReward = reward.augment;
+    if (augmentReward != null) {
+      updatedPlayer = updatedPlayer.addAugment(augmentReward);
     }
 
     final itemReward = reward.item;

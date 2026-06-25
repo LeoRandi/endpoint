@@ -120,3 +120,29 @@ IDEAS:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
 
 ////////////////////////////////
+
+Id: 1
+"Augment M"
+"An augment for M-like patterns"
+blue tier
+"/assets/sprites/augments/augment_m.png"
+general affinity
+Attacl tag
+AugmentEffects:
+ Map(
+  [
+    [-1, 1], [0, 0], [1, 1]
+  ] : an effect that applies +10 damage to every attack in the pattern,
+  [
+    [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0]
+  ] : an effect that applies +15 damage to every attack in the pattern,
+  [
+    [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0]
+  ] : an effect that applies +20 damage to every attack in the pattern,
+  [
+    [-1, -1], [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0], [1, -1]
+  ] : an effect that applies +30 damage to every attack in the pattern,
+  [
+    [-1, -1], [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0], [1, -1]
+  ] : an effect that applies +50 damage to every attack in the pattern
+ )

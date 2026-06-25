@@ -22,12 +22,12 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
   late final RunRandomizer _eventRandomizer;
   final Random _visualRandom = Random();
   PathEventVisitResult? _visitResult;
-  BattlerAbility? _selectedAbility;
-  BattlerAbility? _previewAbility;
+  Augment? _selectedAugment;
+  Augment? _previewAugment;
   Timer? _previewTimer;
   int _flavorPageIndex = 0;
 
-  bool get _hasResolvedTechnosurgeon => _visitResult?.gainedAbility != null;
+  bool get _hasResolvedTechnosurgeon => _visitResult?.gainedAugment != null;
 
   bool get _isFlavorIntroVisible {
     final flavorTexts = widget.node.flavorTexts;
@@ -63,76 +63,76 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
     });
   }
 
-  Future<void> _selectAbility() async {
-    if (_hasResolvedTechnosurgeon || widget.player.abilities.isEmpty) return;
+  Future<void> _selectAugment() async {
+    if (_hasResolvedTechnosurgeon || widget.player.augments.isEmpty) return;
 
-    final selectedAbility = await showEndpointOverlay<BattlerAbility>(
+    final selectedAugment = await showEndpointOverlay<Augment>(
       context: context,
       barrierLabel: 'Seleccionar aumento',
       barrierColor: EndpointPalette.overlayScrim,
-      builder: (_) => _TechnosurgeonAbilitySelectionOverlay(
-        abilities: widget.player.abilities,
+      builder: (_) => _TechnosurgeonAugmentSelectionOverlay(
+        augments: widget.player.augments,
         accent: widget.node.accent,
       ),
     );
-    if (!mounted || selectedAbility == null) return;
+    if (!mounted || selectedAugment == null) return;
 
     setState(() {
-      _selectedAbility = selectedAbility;
+      _selectedAugment = selectedAugment;
     });
     _startPreviewTicker();
   }
 
   void _startPreviewTicker() {
     _previewTimer?.cancel();
-    _rollVisualPreviewAbility();
+    _rollVisualPreviewAugment();
     _previewTimer = Timer.periodic(
       const Duration(milliseconds: 100),
       (_) {
         if (!mounted || _hasResolvedTechnosurgeon) return;
-        setState(_rollVisualPreviewAbility);
+        setState(_rollVisualPreviewAugment);
       },
     );
   }
 
-  void _rollVisualPreviewAbility() {
-    final selectedAbility = _selectedAbility;
-    var candidates = abilityPoolForArchetype(widget.player.archetypeId)
-        .where((ability) => ability.id != selectedAbility?.id)
+  void _rollVisualPreviewAugment() {
+    final selectedAugment = _selectedAugment;
+    var candidates = augmentCatalogForArchetype(widget.player.archetypeId)
+        .where((augment) => augment.id != selectedAugment?.id)
         .toList(growable: false);
     if (candidates.isEmpty) {
-      candidates = abilityPresets
-          .where((ability) => ability.id != selectedAbility?.id)
+      candidates = augmentCatalog
+          .where((augment) => augment.id != selectedAugment?.id)
           .toList(growable: false);
     }
     if (candidates.isEmpty) return;
 
-    var nextAbility = candidates[_visualRandom.nextInt(candidates.length)];
-    if (candidates.length > 1 && nextAbility.id == _previewAbility?.id) {
+    var nextAugment = candidates[_visualRandom.nextInt(candidates.length)];
+    if (candidates.length > 1 && nextAugment.id == _previewAugment?.id) {
       final currentIndex = candidates.indexWhere(
-        (ability) => ability.id == nextAbility.id,
+        (augment) => augment.id == nextAugment.id,
       );
       final offset = 1 + _visualRandom.nextInt(candidates.length - 1);
-      nextAbility = candidates[(currentIndex + offset) % candidates.length];
+      nextAugment = candidates[(currentIndex + offset) % candidates.length];
     }
-    _previewAbility = nextAbility;
+    _previewAugment = nextAugment;
   }
 
   void _assumeTechnosurgeonChange() {
-    final selectedAbility = _selectedAbility;
-    if (selectedAbility == null || _hasResolvedTechnosurgeon) return;
+    final selectedAugment = _selectedAugment;
+    if (selectedAugment == null || _hasResolvedTechnosurgeon) return;
 
     _previewTimer?.cancel();
     final result = widget.eventService.resolveTechnosurgeonMutation(
       node: widget.node,
       player: widget.player,
-      selectedAbility: selectedAbility,
+      selectedAugment: selectedAugment,
       randomizer: _eventRandomizer,
     );
 
     setState(() {
       _visitResult = result;
-      _previewAbility = result.gainedAbility;
+      _previewAugment = result.gainedAugment;
     });
   }
 
@@ -160,35 +160,35 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
   }
 
   Widget _buildTechnosurgeonContent() {
-    final selectedAbility = _selectedAbility;
-    final previewAbility = _previewAbility;
-    final gainedAbility = _visitResult?.gainedAbility;
+    final selectedAugment = _selectedAugment;
+    final previewAugment = _previewAugment;
+    final gainedAugment = _visitResult?.gainedAugment;
     final canAssumeChange =
-        selectedAbility != null && !_hasResolvedTechnosurgeon;
-    final hasAbilities = widget.player.abilities.isNotEmpty;
+        selectedAugment != null && !_hasResolvedTechnosurgeon;
+    final hasAugments = widget.player.augments.isNotEmpty;
     final leftOrb = _TechnosurgeonOrbPanel(
       label: 'ENTREGA',
-      caption: selectedAbility == null
-          ? hasAbilities
+      caption: selectedAugment == null
+          ? hasAugments
               ? 'Pulsa para elegir'
               : 'Sin aumentos'
           : 'Aumento seleccionado',
-      ability: selectedAbility,
-      accent: selectedAbility?.accent ?? widget.node.accent,
-      isSelectable: hasAbilities && !_hasResolvedTechnosurgeon,
+      augment: selectedAugment,
+      accent: selectedAugment?.accent ?? widget.node.accent,
+      isSelectable: hasAugments && !_hasResolvedTechnosurgeon,
       onPressed:
-          hasAbilities && !_hasResolvedTechnosurgeon ? _selectAbility : null,
+          hasAugments && !_hasResolvedTechnosurgeon ? _selectAugment : null,
     );
     final rightOrb = _TechnosurgeonOrbPanel(
       label: 'MUTACION',
       caption: _hasResolvedTechnosurgeon
           ? 'Resultado estable'
-          : selectedAbility == null
+          : selectedAugment == null
               ? 'Esperando muestra'
               : 'Muestra inestable',
-      ability: gainedAbility ?? previewAbility,
-      accent: (gainedAbility ?? previewAbility)?.accent ?? widget.node.accent,
-      isAnimating: selectedAbility != null && !_hasResolvedTechnosurgeon,
+      augment: gainedAugment ?? previewAugment,
+      accent: (gainedAugment ?? previewAugment)?.accent ?? widget.node.accent,
+      isAnimating: selectedAugment != null && !_hasResolvedTechnosurgeon,
     );
 
     return ConstrainedBox(
@@ -221,7 +221,7 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
           if (_visitResult != null) ...[
             const SizedBox(height: 10),
             _TechnosurgeonResultCard(
-              ability: gainedAbility,
+              augment: gainedAugment,
               outcomeText: _visitResult!.outcomeText,
               accent: widget.node.accent,
             ),
@@ -242,14 +242,14 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
                 : canAssumeChange
                     ? 'Reemplazar el aumento seleccionado por uno de tier superior'
                     : 'Primero selecciona un aumento',
-            accent: selectedAbility?.accent ?? widget.node.accent,
+            accent: selectedAugment?.accent ?? widget.node.accent,
             backgroundColor: EndpointPalette.blend(
               EndpointPalette.panelBackgroundGold,
-              selectedAbility?.accent ?? widget.node.accent,
+              selectedAugment?.accent ?? widget.node.accent,
               canAssumeChange || _hasResolvedTechnosurgeon ? 0.24 : 0.08,
             ),
             foregroundColor: EndpointPalette.soften(
-              selectedAbility?.accent ?? widget.node.accent,
+              selectedAugment?.accent ?? widget.node.accent,
             ),
             expands: true,
             useMarquee: false,
@@ -260,12 +260,12 @@ class _TechnosurgeonEventPageState extends State<TechnosurgeonEventPage> {
   }
 }
 
-class _TechnosurgeonAbilitySelectionOverlay extends StatelessWidget {
-  final List<BattlerAbility> abilities;
+class _TechnosurgeonAugmentSelectionOverlay extends StatelessWidget {
+  final List<Augment> augments;
   final Color accent;
 
-  const _TechnosurgeonAbilitySelectionOverlay({
-    required this.abilities,
+  const _TechnosurgeonAugmentSelectionOverlay({
+    required this.augments,
     required this.accent,
   });
 
@@ -275,13 +275,13 @@ class _TechnosurgeonAbilitySelectionOverlay extends StatelessWidget {
       title: 'Aumentos',
       subtitle: 'Elige el protocolo que vas a entregar',
       sectionLabel: 'AUMENTOS',
-      sectionValue: '${abilities.length}',
+      sectionValue: '${augments.length}',
       closeTooltip: 'Cerrar seleccion',
       accent: accent,
       bottomInset: 104,
       maxWidth: 420,
       maxHeight: 360,
-      child: abilities.isEmpty
+      child: augments.isEmpty
           ? Center(
               child: EndpointText(
                 EndpointStrings.noAugments,
@@ -292,7 +292,7 @@ class _TechnosurgeonAbilitySelectionOverlay extends StatelessWidget {
               ),
             )
           : GridView.builder(
-              itemCount: abilities.length,
+              itemCount: augments.length,
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 104,
                 crossAxisSpacing: 12,
@@ -300,28 +300,27 @@ class _TechnosurgeonAbilitySelectionOverlay extends StatelessWidget {
                 mainAxisExtent: 96,
               ),
               itemBuilder: (context, index) {
-                final ability = abilities[index];
+                final augment = augments[index];
 
                 return Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => Navigator.of(context).pop(ability),
+                    onTap: () => Navigator.of(context).pop(augment),
                     borderRadius: BorderRadius.circular(14),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        EndpointAbilityOrb(
-                          ability: ability,
+                        EndpointAugmentOrb(
+                          augment: augment,
                           size: 58,
-                          enableTooltipLongPress: false,
                         ),
                         const SizedBox(height: 6),
                         EndpointText(
-                          ability.displayName,
+                          augment.displayName,
                           textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,
                           style: textSmallBold.copyWith(
-                            color: ability.accent,
+                            color: augment.accent,
                             fontSize: 9,
                             letterSpacing: 0.6,
                           ),
@@ -339,7 +338,7 @@ class _TechnosurgeonAbilitySelectionOverlay extends StatelessWidget {
 class _TechnosurgeonOrbPanel extends StatelessWidget {
   final String label;
   final String caption;
-  final BattlerAbility? ability;
+  final Augment? augment;
   final Color accent;
   final bool isSelectable;
   final bool isAnimating;
@@ -348,7 +347,7 @@ class _TechnosurgeonOrbPanel extends StatelessWidget {
   const _TechnosurgeonOrbPanel({
     required this.label,
     required this.caption,
-    required this.ability,
+    required this.augment,
     required this.accent,
     this.isSelectable = false,
     this.isAnimating = false,
@@ -392,21 +391,20 @@ class _TechnosurgeonOrbPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          EndpointAbilityOrb(
-            ability: ability,
+          EndpointAugmentOrb(
+            augment: augment,
             accent: accent,
             size: 72,
             emptyTooltip: caption,
             onPressed: onPressed,
-            enableTooltipLongPress: false,
           ),
           const SizedBox(height: 8),
           EndpointText(
-            ability?.displayName ?? caption,
+            augment?.displayName ?? caption,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: textSmallBold.copyWith(
-              color: ability?.accent ?? foreground,
+              color: augment?.accent ?? foreground,
               fontSize: 10,
               letterSpacing: 0.8,
             ),
@@ -440,20 +438,20 @@ class _TechnosurgeonOrbPanel extends StatelessWidget {
 }
 
 class _TechnosurgeonResultCard extends StatelessWidget {
-  final BattlerAbility? ability;
+  final Augment? augment;
   final String outcomeText;
   final Color accent;
 
   const _TechnosurgeonResultCard({
-    required this.ability,
+    required this.augment,
     required this.outcomeText,
     required this.accent,
   });
 
   @override
   Widget build(BuildContext context) {
-    final currentAbility = ability;
-    final resolvedAccent = currentAbility?.accent ?? accent;
+    final currentAugment = augment;
+    final resolvedAccent = currentAugment?.accent ?? accent;
 
     return EndpointPanel(
       accent: resolvedAccent,
@@ -467,11 +465,10 @@ class _TechnosurgeonResultCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       child: Row(
         children: [
-          EndpointAbilityOrb(
-            ability: currentAbility,
+          EndpointAugmentOrb(
+            augment: currentAugment,
             accent: resolvedAccent,
             size: 56,
-            enableTooltipLongPress: false,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -479,7 +476,7 @@ class _TechnosurgeonResultCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 EndpointText(
-                  currentAbility?.displayName ?? 'Mutacion completada',
+                  currentAugment?.displayName ?? 'Mutacion completada',
                   maxLines: null,
                   style: textMediumBold.copyWith(
                     color: EndpointPalette.soften(resolvedAccent),

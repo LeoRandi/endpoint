@@ -17,8 +17,8 @@ final velozArchetypeNode = ArchetypePathNode(
   moneyModifier: 8,
   incomeModifier: 4,
   startingItems: const [],
-  startingAbilities: const [
-    weaknessHunterAbility,
+  startingAugments: [
+    augmentCatalogById[3]!,
   ],
 );
 
@@ -39,9 +39,9 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   moneyModifier: 12,
   incomeModifier: 3,
   startingItems: const [],
-  startingAbilities: const [
-    pulsoRepLAbility,
-    kilotonificacionAbility,
+  startingAugments: [
+    augmentCatalogById[2]!,
+    augmentCatalogById[4]!,
   ],
 );
 
@@ -62,8 +62,8 @@ final imparableArchetypeNode = ArchetypePathNode(
   moneyModifier: 8,
   incomeModifier: 3,
   startingItems: const [],
-  startingAbilities: const [
-    furiaHematicaAbility,
+  startingAugments: [
+    augmentCatalogById[1]!,
   ],
 );
 
@@ -89,8 +89,8 @@ final mercanteArchetypeNode = ArchetypePathNode(
   incomeModifier: 5,
   startingItems: const [],
   startingItemsBuilder: _buildMerchantStartingItems,
-  startingAbilities: const [
-    cashflowAbility,
+  startingAugments: [
+    augmentCatalogById[5]!,
   ],
 );
 
