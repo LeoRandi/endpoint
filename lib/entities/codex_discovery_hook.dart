@@ -1,4 +1,3 @@
-import 'battler/_exports.dart';
 import 'status/_exports.dart';
 
 /// Punto de integracion global para avisar descubrimientos nuevos al Codex.
@@ -14,9 +13,6 @@ abstract final class CodexDiscoveryHook {
 
   /// Notifica que un aumento entro por primera vez en el contexto del jugador.
   static void Function(int augmentId)? onAugmentAdded;
-
-  /// Notifica que una habilidad entro por primera vez en el contexto del jugador.
-  static void Function(BattlerAbilityId abilityId)? onAbilityAdded;
 
   /// Notifica que un estado fue aplicado y debe quedar visible en el Codex.
   static void Function(BattlerStatusId statusId)? onStatusApplied;

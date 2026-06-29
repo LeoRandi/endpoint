@@ -21,16 +21,13 @@ enum _PitonisaEventStage {
   options,
   purge,
   offering,
-  presage,
 }
 
 class _PitonisaQuitapenasEventPageState
     extends State<PitonisaQuitapenasEventPage> {
   late final List<BattlerStatus> _debuffs;
   late final List<Item> _items;
-  late final List<BattlerAbility> _cooldownAbilities;
   Item? _selectedItem;
-  BattlerAbility? _selectedAbility;
   _PitonisaEventStage _stage = _PitonisaEventStage.options;
   int _flavorPageIndex = 0;
   bool _isResolving = false;
@@ -47,25 +44,6 @@ class _PitonisaQuitapenasEventPageState
       widget.player,
     );
     _items = widget.eventService.buildPitonisaItemOfferings(widget.player);
-    _cooldownAbilities = widget.eventService.buildPitonisaCooldownAbilities(
-      widget.player,
-    );
-  }
-
-  int get _cooldownReductionCost {
-    return widget.eventService.pitonisaCooldownReductionCost;
-  }
-
-  String? get _cooldownActionBlockReason {
-    final selectedAbility = _selectedAbility;
-    if (selectedAbility == null) return null;
-
-    final missingCredits = _cooldownReductionCost - widget.player.money;
-    if (missingCredits > 0) {
-      return 'Te faltan $missingCredits creditos.';
-    }
-
-    return null;
   }
 
   void _close() {
@@ -102,12 +80,6 @@ class _PitonisaQuitapenasEventPageState
     });
   }
 
-  void _selectAbility(BattlerAbility ability) {
-    setState(() {
-      _selectedAbility = ability;
-    });
-  }
-
   void _resolve(PathEventVisitResult result) {
     if (_isResolving) return;
     setState(() {
@@ -132,18 +104,6 @@ class _PitonisaQuitapenasEventPageState
       widget.eventService.resolvePitonisaItemHealing(
         player: widget.player,
         selectedItem: item,
-      ),
-    );
-  }
-
-  void _reduceCooldown() {
-    final ability = _selectedAbility;
-    if (ability == null) return;
-
-    _resolve(
-      widget.eventService.resolvePitonisaCooldownReduction(
-        player: widget.player,
-        selectedAbility: ability,
       ),
     );
   }
@@ -271,16 +231,12 @@ class _PitonisaQuitapenasEventPageState
         return _buildPurgeStage();
       case _PitonisaEventStage.offering:
         return _buildOfferingStage();
-      case _PitonisaEventStage.presage:
-        return _buildPresageStage();
     }
   }
 
   Widget _buildOptionsStage() {
     final hasDebuffs = _debuffs.isNotEmpty;
     final hasItems = _items.isNotEmpty;
-    final hasCooldownAbilities = _cooldownAbilities.isNotEmpty;
-    final missingCredits = _cooldownReductionCost - widget.player.money;
 
     return Column(
       key: const ValueKey<String>('pitonisa-options'),
@@ -308,20 +264,6 @@ class _PitonisaQuitapenasEventPageState
           onPressed: _isResolving || !hasItems
               ? null
               : () => _chooseStage(_PitonisaEventStage.offering),
-        ),
-        const SizedBox(height: 8),
-        _PitonisaOptionCard(
-          title: 'PRESAGIO',
-          icon: Icons.av_timer_rounded,
-          accent: widget.node.accent,
-          body: !hasCooldownAbilities
-              ? 'No tienes aumentos con recarga.'
-              : missingCredits > 0
-                  ? 'Te faltan $missingCredits creditos para reducir un cooldown.'
-                  : 'Paga ${_cooldownReductionCost}C para reducir un cooldown permanente.',
-          onPressed: _isResolving || !hasCooldownAbilities
-              ? null
-              : () => _chooseStage(_PitonisaEventStage.presage),
         ),
       ],
     );
@@ -409,72 +351,6 @@ class _PitonisaQuitapenasEventPageState
     );
   }
 
-  Widget _buildPresageStage() {
-    final selectedAbility = _selectedAbility;
-    final cooldownBlockReason = _cooldownActionBlockReason;
-
-    return Column(
-      key: const ValueKey<String>('pitonisa-presage'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _PitonisaStageHeader(
-          title: 'PRESAGIO',
-          icon: Icons.av_timer_rounded,
-          accent: selectedAbility?.accent ?? widget.node.accent,
-          onBack: _backToOptions,
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          alignment: WrapAlignment.center,
-          children: [
-            for (final ability in _cooldownAbilities)
-              _PitonisaAbilityPickTile(
-                ability: ability,
-                isSelected: selectedAbility?.id == ability.id,
-                onPressed: () => _selectAbility(ability),
-              ),
-          ],
-        ),
-        if (selectedAbility != null) ...[
-          const SizedBox(height: 8),
-          EndpointText(
-            cooldownBlockReason ??
-                '${selectedAbility.displayName}: ${selectedAbility.cooldownTurns} -> ${max(0, selectedAbility.cooldownTurns - 1)} turnos por ${_cooldownReductionCost}C',
-            textAlign: TextAlign.center,
-            maxLines: null,
-            style: textSmallBold.copyWith(
-              color: cooldownBlockReason == null
-                  ? EndpointPalette.softForeground.withAlpha(214)
-                  : EndpointPalette.dangerAccent,
-              fontSize: 11,
-            ),
-          ),
-        ],
-        const SizedBox(height: 10),
-        EndpointActionButton(
-          label:
-              selectedAbility == null ? 'Elige un aumento' : 'Reducir cooldown',
-          icon: Icons.update_rounded,
-          onPressed: _isResolving ||
-                  selectedAbility == null ||
-                  cooldownBlockReason != null
-              ? null
-              : _reduceCooldown,
-          tooltip: cooldownBlockReason ?? 'Reducir cooldown permanente',
-          accent: selectedAbility?.accent ?? widget.node.accent,
-          backgroundColor: EndpointPalette.panelBackgroundMuted,
-          foregroundColor: EndpointPalette.soften(
-            selectedAbility?.accent ?? widget.node.accent,
-          ),
-          expands: true,
-          useMarquee: false,
-        ),
-      ],
-    );
-  }
-
   Widget _buildItemPicker() {
     final selectedItem = _selectedItem;
 
@@ -503,7 +379,6 @@ class _PitonisaQuitapenasEventPageState
     );
   }
 }
-
 class _PitonisaOptionCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -613,7 +488,6 @@ class _PitonisaOptionCard extends StatelessWidget {
     );
   }
 }
-
 class _PitonisaStageHeader extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -717,83 +591,6 @@ class _PitonisaStatusChip extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PitonisaAbilityPickTile extends StatelessWidget {
-  final BattlerAbility ability;
-  final bool isSelected;
-  final VoidCallback onPressed;
-
-  const _PitonisaAbilityPickTile({
-    required this.ability,
-    required this.isSelected,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = ability.accent;
-
-    return SizedBox(
-      width: 94,
-      height: 104,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(14),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: EndpointPalette.blend(
-                EndpointPalette.panelBackgroundMuted,
-                accent,
-                isSelected ? 0.24 : 0.06,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: accent.withAlpha(isSelected ? 210 : 82),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(6, 7, 6, 5),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  EndpointAbilityOrb(
-                    ability: ability,
-                    size: 54,
-                    enableTooltipLongPress: false,
-                  ),
-                  const SizedBox(height: 5),
-                  EndpointText(
-                    ability.displayName,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textSmallBold.copyWith(
-                      color: EndpointPalette.soften(accent),
-                      fontSize: 9,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  EndpointText(
-                    '${ability.cooldownTurns} -> ${max(0, ability.cooldownTurns - 1)}',
-                    textAlign: TextAlign.center,
-                    style: textSmallNumericBold.copyWith(
-                      color: EndpointPalette.warningAccent,
-                      fontSize: 9,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

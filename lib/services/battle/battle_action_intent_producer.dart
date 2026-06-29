@@ -16,7 +16,6 @@ class BattleActionIntentProducer {
     required Battler ownerAfter,
     required Battler opponentBefore,
     required Battler opponentAfter,
-    required bool includeAttackResolvedAbilities,
   }) {
     final intents = <PlayerActionEffectIntent>[];
     final ownerHealthGain = max(0, ownerAfter.health - ownerBefore.health);
@@ -26,14 +25,6 @@ class BattleActionIntentProducer {
     intents.addAll(_statusDeltaIntents(before: ownerBefore, after: ownerAfter));
     intents.addAll(
       _statusDeltaIntents(before: opponentBefore, after: opponentAfter),
-    );
-    intents.addAll(
-      _abilityEffectIntents(
-        before: ownerBefore,
-        after: ownerAfter,
-        includeAttackResolvedAbilities: includeAttackResolvedAbilities,
-        hasVisibleActionDelta: intents.isNotEmpty,
-      ),
     );
     return List<PlayerActionEffectIntent>.unmodifiable(intents);
   }
@@ -107,50 +98,6 @@ class BattleActionIntentProducer {
       return status.remainingTurns;
     }
     return 1;
-  }
-
-  List<PlayerActionEffectIntent> _abilityEffectIntents({
-    required Battler before,
-    required Battler after,
-    required bool includeAttackResolvedAbilities,
-    required bool hasVisibleActionDelta,
-  }) {
-    final intents = <PlayerActionEffectIntent>[];
-    final addedAbilityIds = <BattlerAbilityId>{};
-    for (final ability in before.abilities) {
-      final updatedAbility = after.abilityById(ability.id);
-      if (updatedAbility == null ||
-          !_didAbilityRuntimeChange(ability, updatedAbility)) {
-        continue;
-      }
-      intents.add(PlayerActionEffectIntent.ability(ability));
-      addedAbilityIds.add(ability.id);
-    }
-
-    if (!includeAttackResolvedAbilities || !hasVisibleActionDelta) {
-      return intents;
-    }
-    for (final abilityId in before.abilityIdsForHook(
-      BattlerAbilityHook.attackResolved,
-    )) {
-      if (addedAbilityIds.contains(abilityId)) continue;
-      final ability = before.abilityById(abilityId);
-      if (ability == null || !ability.isPassive || !ability.isImplemented) {
-        continue;
-      }
-      intents.add(PlayerActionEffectIntent.ability(ability));
-      addedAbilityIds.add(ability.id);
-    }
-    return intents;
-  }
-
-  bool _didAbilityRuntimeChange(
-    BattlerAbility before,
-    BattlerAbility after,
-  ) {
-    return before.isActive != after.isActive ||
-        before.remainingCooldownTurns != after.remainingCooldownTurns ||
-        before.runtimeValueBonus != after.runtimeValueBonus;
   }
 
   String _statusIntentKey(BattlerStatus status) {

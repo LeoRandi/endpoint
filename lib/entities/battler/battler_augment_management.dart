@@ -61,15 +61,55 @@ extension BattlerAugmentManagement on Battler {
   AugmentPatternResolution resolveAugmentPatternEffects({
     required BattlePatternMatchContext pattern,
   }) {
-    var attackBonusDelta = 0;
+    var weaponAttackBonusDelta = 0;
 
     for (final augment in augments) {
       final resolution = augment.resolvePattern(
         patternPoints: pattern.patternPoints,
       );
-      attackBonusDelta += resolution.attackBonusDelta;
+      weaponAttackBonusDelta += resolution.weaponAttackBonusDelta;
     }
 
-    return AugmentPatternResolution(attackBonusDelta: attackBonusDelta);
+    return AugmentPatternResolution(
+      weaponAttackBonusDelta: weaponAttackBonusDelta,
+    );
+  }
+
+  Battler applyAugmentPatternWeaponBoost({
+    required BattlePatternMatchContext pattern,
+  }) {
+    if (pattern.usedItemPointKeys.isEmpty) return this;
+
+    final usedPointKeys = pattern.usedItemPointKeys.toSet();
+    final weapons = <Item>[];
+    final seenItemKeys = <String>{};
+    for (final item in equippedItems) {
+      final pointKey =
+          patternItemPointKeys[item.instanceId ?? item.catalogKey] ??
+              patternItemPointKeys[item.catalogKey];
+      if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
+      if (!item.isWeaponLike ||
+          !seenItemKeys.add(item.instanceId ?? item.catalogKey)) {
+        continue;
+      }
+      weapons.add(item);
+    }
+
+    if (weapons.isEmpty) return this;
+
+    var updatedOwner = this;
+    for (final augment in augments) {
+      final resolution = augment.resolvePattern(
+        patternPoints: pattern.patternPoints,
+      );
+      final amount = resolution.weaponAttackBonusDelta;
+      if (amount <= 0) continue;
+      updatedOwner = updatedOwner.addCombatAttackBonusToWeapons(
+        weapons: weapons,
+        amount: amount,
+        sourceKey: 'augment:${augment.id}',
+      );
+    }
+    return updatedOwner;
   }
 }

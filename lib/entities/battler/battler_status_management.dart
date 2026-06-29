@@ -175,17 +175,7 @@ extension BattlerStatusManagement on Battler {
     required BattlerStatus? previousStatus,
     required BattlerStatus nextStatus,
   }) {
-    if (nextStatus.id != CalentandoStatus.statusId) return this;
-
-    final ability = abilityById(BattlerAbilityId.encendidoBrutal);
-    if (ability == null) return this;
-
-    final previousValue = previousStatus?.resolved(this).value ?? 0;
-    final gainedValue = max(0, nextStatus.resolved(this).value - previousValue);
-    if (gainedValue <= 0) return this;
-
-    final divisor = max(1, ability.currentValue);
-    return heal(max(1, (gainedValue / divisor).ceil()));
+    return this;
   }
 
   /// Elimina todas las instancias del estado indicado.

@@ -59,6 +59,28 @@ List<Item> itemPresets = <Item>[
     },
   ),
 
+  /// S-Harp-Ener
+  Item(
+    affinity: ItemArchetypeAffinity.general,
+    name: 'S-Harp-Ener',
+    description:
+        'A compact harmonic charger. After it acts, adjacent weapons permanently gain attack.',
+    tier: RarityTier.green,
+    baseCost: 6,
+    sellValue: 3,
+    tags: <EntityTag>[EntityTag.accesorio],
+    asset: 'assets/sprites/items/WoodenStick.png',
+    effects: <Effect, int>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Give +--value-- permanent attack to adjacent weapons.',
+        customEffectKey: ItemEffectKeys.sHarpEner,
+        value: 1,
+      ): 1,
+    },
+  ),
+
   /// Shield Lance
   Item(
     affinity: ItemArchetypeAffinity.general,

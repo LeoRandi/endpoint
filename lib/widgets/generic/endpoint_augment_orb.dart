@@ -1,5 +1,62 @@
 import '_imports.dart';
 
+class EndpointAugmentSlotsStrip extends StatelessWidget {
+  final List<Augment> augments;
+  final Color accent;
+  final ValueChanged<Augment>? onAugmentPressed;
+  final int minimumSlots;
+  final bool reserveEmptySlots;
+  final double orbSize;
+  final double spacing;
+  final String emptyTooltip;
+
+  const EndpointAugmentSlotsStrip({
+    super.key,
+    this.augments = const [],
+    this.accent = EndpointPalette.primaryAccent,
+    this.onAugmentPressed,
+    this.minimumSlots = 3,
+    this.reserveEmptySlots = false,
+    this.orbSize = 46,
+    this.spacing = 6,
+    this.emptyTooltip = 'Slot de aumento',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final slotCount = reserveEmptySlots
+        ? max(minimumSlots, augments.length)
+        : augments.length;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int index = 0; index < slotCount; index++) ...[
+          if (index > 0) SizedBox(width: spacing),
+          Builder(
+            builder: (context) {
+              final augment = index < augments.length ? augments[index] : null;
+
+              return EndpointAugmentOrb(
+                key: ValueKey<String>(
+                  augment == null ? 'augment-empty-$index' : '${augment.id}',
+                ),
+                augment: augment,
+                accent: accent,
+                size: orbSize,
+                emptyTooltip: emptyTooltip,
+                onPressed: augment != null && onAugmentPressed != null
+                    ? () => onAugmentPressed!.call(augment)
+                    : null,
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class EndpointAugmentOrb extends StatelessWidget {
   final Augment? augment;
   final Color? accent;

@@ -1,8 +1,8 @@
 part of 'battle_page.dart';
 
 typedef _OpenBattleItemDetailsCallback = Future<void> Function(Item item);
-typedef _OpenBattleAbilityDetailsCallback = Future<void> Function(
-  BattlerAbility ability,
+typedef _OpenBattleAugmentDetailsCallback = Future<void> Function(
+  Augment augment,
 );
 
 EndpointSectionPreset _buildBattlePanelPreset(
@@ -56,8 +56,8 @@ class _BattleSceneView extends StatelessWidget {
   final Future<void> Function() onAdvancePressed;
   final _OpenBattleItemDetailsCallback onOpenPlayerItemDetails;
   final _OpenBattleItemDetailsCallback onOpenEnemyItemDetails;
-  final _OpenBattleAbilityDetailsCallback onOpenPlayerAbilityDetails;
-  final _OpenBattleAbilityDetailsCallback onOpenEnemyAbilityDetails;
+  final _OpenBattleAugmentDetailsCallback onOpenPlayerAugmentDetails;
+  final _OpenBattleAugmentDetailsCallback onOpenEnemyAugmentDetails;
 
   const _BattleSceneView({
     required this.showTitle,
@@ -89,8 +89,8 @@ class _BattleSceneView extends StatelessWidget {
     required this.onAdvancePressed,
     required this.onOpenPlayerItemDetails,
     required this.onOpenEnemyItemDetails,
-    required this.onOpenPlayerAbilityDetails,
-    required this.onOpenEnemyAbilityDetails,
+    required this.onOpenPlayerAugmentDetails,
+    required this.onOpenEnemyAugmentDetails,
   });
 
   @override
@@ -178,10 +178,6 @@ class _BattleSceneView extends StatelessWidget {
                               child: SizedBox.expand(
                                 child: _EnemyBattleHud(
                                   enemy: displayEnemy,
-                                  visibleAbilities:
-                                      sceneController.visibleAbilitiesFor(
-                                    displayEnemy,
-                                  ),
                                   statusBarKey: enemyStatusBarKey,
                                   healthAnimationDuration:
                                       enemyHealthAnimationDuration,
@@ -193,8 +189,8 @@ class _BattleSceneView extends StatelessWidget {
                                       detailButtonsEnabled
                                           ? onOpenEnemyItemDetails
                                           : null,
-                                  onOpenAbilityDetails: detailButtonsEnabled
-                                      ? onOpenEnemyAbilityDetails
+                                  onOpenAugmentDetails: detailButtonsEnabled
+                                      ? onOpenEnemyAugmentDetails
                                       : null,
                                 ),
                               ),
@@ -221,10 +217,6 @@ class _BattleSceneView extends StatelessWidget {
                               child: SizedBox.expand(
                                 child: _PlayerBattleHud(
                                   player: displayPlayer,
-                                  visibleAbilities:
-                                      sceneController.visibleAbilitiesFor(
-                                    displayPlayer,
-                                  ),
                                   isEnabled: playerActionsEnabled,
                                   isPatternMode: isPatternMode,
                                   onAttack: onAttack,
@@ -239,8 +231,8 @@ class _BattleSceneView extends StatelessWidget {
                                       detailButtonsEnabled
                                           ? onOpenPlayerItemDetails
                                           : null,
-                                  onOpenAbilityDetails: detailButtonsEnabled
-                                      ? onOpenPlayerAbilityDetails
+                                  onOpenAugmentDetails: detailButtonsEnabled
+                                      ? onOpenPlayerAugmentDetails
                                       : null,
                                   statusBarKey: playerStatusBarKey,
                                   healthAnimationDuration:

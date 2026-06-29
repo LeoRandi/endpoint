@@ -2,7 +2,6 @@ import '_imports.dart';
 
 part '../battler_runtime_port.dart';
 part 'battler_augment_management.dart';
-part 'battler_ability_management.dart';
 part 'battler_combat_runtime.dart';
 part 'battler_item_management.dart';
 part 'battler_progression.dart';
@@ -85,7 +84,6 @@ class BattlerLevelRewardOffer {
 /// Enumera las flags globales del runtime de combate del battler.
 enum BattlerCombatFlag {
   combatActive,
-  manualAbilityActivatedThisTurn,
   pendingBasicAttackFollowUp,
   cycleDayContext,
   cycleNightContext,
@@ -96,19 +94,8 @@ enum BattlerCombatFlag {
   healthLostThisHit,
   fragilidadTriggeredThisHit,
   removedWallBlockingPointDebt,
-  cortafuegosPortatilBlockedDebuff,
-  opresionTacticaTriggeredThisTurn,
-  copiaSeguridadUsed,
-  sobrecargaReguladaPendingCooldownPenalty,
-  mandatoColiseoOpeningGranted,
-  mandatoColiseoCounterPreventedThisTurn,
-  combustionDirigidaTriggered,
-  reventaCircularTriggered,
-  aTodoRiesgoTriggered,
-  cargaViricaTriggeredThisTurn,
-  deudaSangreTriggeredThisTurn,
-  franquiciaTotalTriggered,
   creditsSpentThisCombat,
+  augmentPatternWeaponAttackBoost,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.
@@ -197,8 +184,6 @@ class _BattlerDerivedState {
   final int equippedItemCost;
   final Map<BattlerStatusId, List<BattlerStatus>> statusesById;
   final Map<BattlerStatusHook, List<BattlerStatus>> statusesByHook;
-  final Map<BattlerAbilityId, BattlerAbility> abilitiesById;
-  final Map<BattlerAbilityHook, List<BattlerAbilityId>> abilityIdsByHook;
   final Map<int, Augment> augmentsById;
   final Map<String, Item> inventoryItemsByType;
   final Map<String, Item> equippedItemsByType;
@@ -212,8 +197,6 @@ class _BattlerDerivedState {
     required this.equippedItemCost,
     required this.statusesById,
     required this.statusesByHook,
-    required this.abilitiesById,
-    required this.abilityIdsByHook,
     required this.augmentsById,
     required this.inventoryItemsByType,
     required this.equippedItemsByType,
@@ -233,13 +216,6 @@ class _BattlerDerivedState {
       _appendHookBindings(statusesByHook, status.hooks, status);
     }
 
-    final abilitiesById = <BattlerAbilityId, BattlerAbility>{
-      for (final ability in owner.abilities) ability.id: ability,
-    };
-    final abilityIdsByHook = <BattlerAbilityHook, List<BattlerAbilityId>>{};
-    for (final ability in owner.abilities) {
-      _appendHookBindings(abilityIdsByHook, ability.hookBindings, ability.id);
-    }
     final augmentsById = <int, Augment>{
       for (final augment in owner.augments) augment.id: augment,
     };
@@ -274,21 +250,6 @@ class _BattlerDerivedState {
       }
     }
 
-    final basicAttackAbilityIds =
-        abilityIdsByHook[BattlerAbilityHook.basicAttackCountModifier] ??
-            const <BattlerAbilityId>[];
-    for (final abilityId in basicAttackAbilityIds) {
-      final ability = abilitiesById[abilityId];
-      final effect = ability?.effect;
-      if (ability == null || effect == null) continue;
-
-      basicAttackCount = effect.modifyBasicAttackCount(
-        owner: owner,
-        ability: ability,
-        count: basicAttackCount,
-      );
-    }
-
     final incomeStatuses = statusesByHook[BattlerStatusHook.incomeModifier] ??
         const <BattlerStatus>[];
     final statStatuses =
@@ -308,7 +269,6 @@ class _BattlerDerivedState {
         stat: Battler._calculateStat(
           baseStats: owner.baseStats,
           equippedItems: owner.equippedItems,
-          abilities: owner.abilities,
           stat: stat,
         ),
     };
@@ -316,7 +276,6 @@ class _BattlerDerivedState {
     var income = Battler._calculateIncome(
       baseIncome: owner.baseIncome,
       equippedItems: owner.equippedItems,
-      abilities: owner.abilities,
     );
     for (final status in resolvedIncomeStatuses) {
       income = status.modifyIncome(
@@ -361,10 +320,6 @@ class _BattlerDerivedState {
         ),
       ),
       statusesByHook: _freezeHookIndex(statusesByHook),
-      abilitiesById: Map<BattlerAbilityId, BattlerAbility>.unmodifiable(
-        abilitiesById,
-      ),
-      abilityIdsByHook: _freezeHookIndex(abilityIdsByHook),
       augmentsById: Map<int, Augment>.unmodifiable(augmentsById),
       inventoryItemsByType:
           Map<String, Item>.unmodifiable(inventoryItemsByType),
@@ -400,9 +355,6 @@ class Battler {
   static const combatActiveFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.combatActive,
   );
-  static const manualAbilityActivatedThisTurnFlag = CombatRuntimeFlag.battler(
-    BattlerCombatFlag.manualAbilityActivatedThisTurn,
-  );
   static const pendingBasicAttackFollowUpFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.pendingBasicAttackFollowUp,
   );
@@ -430,7 +382,6 @@ class Battler {
   final int level;
   final int experience;
   final Map<BattlerStat, int> baseStats;
-  final List<BattlerAbility> abilities;
   final List<Augment> augments;
   final List<BattlerStatus> statuses;
   final List<Item> inventoryItems;
@@ -474,7 +425,6 @@ class Battler {
     this.level = initialLevel,
     this.experience = 0,
     required this.baseStats,
-    this.abilities = const [],
     this.augments = const [],
     this.statuses = const [],
     this.inventoryItems = const [],
@@ -581,7 +531,6 @@ class Battler {
     int? level,
     int? experience,
     Map<BattlerStat, int>? baseStats,
-    List<BattlerAbility>? abilities,
     List<Augment>? augments,
     List<BattlerStatus>? statuses,
     List<Item>? inventoryItems,
@@ -599,9 +548,6 @@ class Battler {
     Set<CombatRuntimeFlag>? combatFlags,
   }) {
     final resolvedBaseStats = baseStats ?? this.baseStats;
-    final resolvedAbilities = List<BattlerAbility>.unmodifiable(
-      abilities ?? this.abilities,
-    );
     final resolvedStatuses = List<BattlerStatus>.unmodifiable(
       statuses ?? this.statuses,
     );
@@ -656,7 +602,6 @@ class Battler {
       level: max(initialLevel, level ?? this.level),
       experience: max(0, experience ?? this.experience),
       baseStats: resolvedBaseStats,
-      abilities: resolvedAbilities,
       augments: resolvedAugments,
       statuses: resolvedStatuses,
       inventoryItems: resolvedInventoryItems,
@@ -693,7 +638,6 @@ class Battler {
   static int _calculateStat({
     required Map<BattlerStat, int> baseStats,
     required List<Item> equippedItems,
-    required List<BattlerAbility> abilities,
     required BattlerStat stat,
   }) {
     final baseValue = baseStats[stat] ?? 0;
@@ -704,26 +648,12 @@ class Battler {
   static int _calculateIncome({
     required int baseIncome,
     required List<Item> equippedItems,
-    required List<BattlerAbility> abilities,
   }) {
     return max(0, baseIncome);
   }
 
   /// Indica si algun efecto activo ya redujo los bonus positivos al 50%.
-  bool get hasBonusDilution => Battler._hasBonusDilution(
-        equippedItems: equippedItems,
-        abilities: abilities,
-      );
-
-  /// Detecta si equipo o habilidades activos reducen los bonus positivos.
-  static bool _hasBonusDilution({
-    required List<Item> equippedItems,
-    required List<BattlerAbility> abilities,
-  }) {
-    return abilities.any(
-      (ability) => ability.id == BattlerAbilityId.aceleracionFotovoltaica,
-    );
-  }
+  bool get hasBonusDilution => false;
 
   /// Calcula el coste de XP del siguiente nivel sin escalado entre niveles.
   static int _experienceCostForLevel(int level) {
@@ -750,7 +680,6 @@ class Battler {
     required int level,
     required int experience,
     required Map<BattlerStat, int> baseStats,
-    required List<BattlerAbility> abilities,
     required List<Augment> augments,
     required List<BattlerStatus> statuses,
     required List<Item> inventoryItems,
@@ -785,7 +714,6 @@ class Battler {
           ? 0
           : max(0, experience),
       baseStats: baseStats,
-      abilities: abilities,
       augments: augments,
       statuses: statuses,
       inventoryItems: inventoryItems,
@@ -832,7 +760,6 @@ class Battler {
           ? 0
           : max(0, experience),
       baseStats: baseStats,
-      abilities: abilities,
       augments: augments,
       statuses: statuses,
       inventoryItems: inventoryItems,

@@ -224,8 +224,6 @@ class BattlePatternMatchOverlay extends StatefulWidget {
   final Future<void> Function(Item item)? onEnemyItemPressed;
   final ValueChanged<Augment>? onPlayerAugmentPressed;
   final ValueChanged<Augment>? onEnemyAugmentPressed;
-  final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
-  final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
   const BattlePatternMatchOverlay({
     super.key,
@@ -253,8 +251,6 @@ class BattlePatternMatchOverlay extends StatefulWidget {
     this.onEnemyItemPressed,
     this.onPlayerAugmentPressed,
     this.onEnemyAugmentPressed,
-    this.onPlayerAbilityPressed,
-    this.onEnemyAbilityPressed,
   });
 
   @override
@@ -333,10 +329,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
   }
 
   int _adaptationBonusCap() {
-    return max(
-      0,
-      widget.player.abilityById(BattlerAbilityId.adaptacion)?.currentValue ?? 0,
-    );
+    return 0;
   }
 
   Iterable<String> _adaptationEligiblePointKeys() {
@@ -532,19 +525,11 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
       ),
       topAugments: _PatternAugmentStrip(
         augments: widget.enemy.augments,
-        abilities: widget.enemy.abilities
-            .where(
-              (ability) => ability.appearsInContext(
-                BattlerAbilityActivationContext.battle,
-              ),
-            )
-            .toList(growable: false),
         accent: EndpointPalette.dangerAccent,
         alignEnd: true,
         items: widget.enemy.equippedItems,
         onItemPressed: widget.onEnemyItemPressed,
         onAugmentPressed: widget.onEnemyAugmentPressed,
-        onAbilityPressed: widget.onEnemyAbilityPressed,
       ),
       matrix: _PatternMatrixCard(
         accent: EndpointPalette.patternAccent,
@@ -653,18 +638,10 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
       ),
       bottomAugments: _PatternAugmentStrip(
         augments: widget.player.augments,
-        abilities: widget.player.abilities
-            .where(
-              (ability) => ability.appearsInContext(
-                BattlerAbilityActivationContext.battle,
-              ),
-            )
-            .toList(growable: false),
         accent: EndpointPalette.patternAccent,
         items: widget.player.equippedItems,
         onItemPressed: widget.onPlayerItemPressed,
         onAugmentPressed: widget.onPlayerAugmentPressed,
-        onAbilityPressed: widget.onPlayerAbilityPressed,
       ),
       bottom: _PatternVisualBattlerHeader(
         visualBattlers: widget.visualBattlers,
@@ -706,8 +683,6 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
   final Future<void> Function(Item item)? onEnemyItemPressed;
   final ValueChanged<Augment>? onPlayerAugmentPressed;
   final ValueChanged<Augment>? onEnemyAugmentPressed;
-  final ValueChanged<BattlerAbility>? onPlayerAbilityPressed;
-  final ValueChanged<BattlerAbility>? onEnemyAbilityPressed;
 
   const EnemyBattlePatternMatchOverlay({
     super.key,
@@ -730,8 +705,6 @@ class EnemyBattlePatternMatchOverlay extends StatefulWidget {
     this.onEnemyItemPressed,
     this.onPlayerAugmentPressed,
     this.onEnemyAugmentPressed,
-    this.onPlayerAbilityPressed,
-    this.onEnemyAbilityPressed,
   });
 
   @override
@@ -1379,19 +1352,11 @@ class _EnemyBattlePatternMatchOverlayState
       ),
       topAugments: _PatternAugmentStrip(
         augments: widget.enemy.augments,
-        abilities: widget.enemy.abilities
-            .where(
-              (ability) => ability.appearsInContext(
-                BattlerAbilityActivationContext.battle,
-              ),
-            )
-            .toList(growable: false),
         accent: EndpointPalette.dangerAccent,
         alignEnd: true,
         items: widget.enemy.equippedItems,
         onItemPressed: widget.onEnemyItemPressed,
         onAugmentPressed: widget.onEnemyAugmentPressed,
-        onAbilityPressed: widget.onEnemyAbilityPressed,
       ),
       matrix: _PatternMatrixCard(
         accent: EndpointPalette.dangerAccent,
@@ -1506,18 +1471,10 @@ class _EnemyBattlePatternMatchOverlayState
       ),
       bottomAugments: _PatternAugmentStrip(
         augments: widget.player.augments,
-        abilities: widget.player.abilities
-            .where(
-              (ability) => ability.appearsInContext(
-                BattlerAbilityActivationContext.battle,
-              ),
-            )
-            .toList(growable: false),
         accent: EndpointPalette.patternAccent,
         items: widget.player.equippedItems,
         onItemPressed: widget.onPlayerItemPressed,
         onAugmentPressed: widget.onPlayerAugmentPressed,
-        onAbilityPressed: widget.onPlayerAbilityPressed,
       ),
       bottom: _PatternVisualBattlerHeader(
         visualBattlers: widget.visualBattlers,
@@ -1712,23 +1669,18 @@ class _BattlePatternEffectChip extends StatelessWidget {
       PlayerActionEffectIntentKind.buff ||
       PlayerActionEffectIntentKind.debuff =>
         effect.status?.icon ?? Icons.auto_awesome_rounded,
-      PlayerActionEffectIntentKind.ability =>
-        effect.ability?.icon ?? Icons.auto_awesome_rounded,
     };
     final accent = switch (effect.kind) {
       PlayerActionEffectIntentKind.heal => BattlerStatusType.buff.accent,
       PlayerActionEffectIntentKind.buff ||
       PlayerActionEffectIntentKind.debuff =>
         effect.status?.type.accent ?? EndpointPalette.neutralAccent,
-      PlayerActionEffectIntentKind.ability =>
-        effect.ability?.accent ?? EndpointPalette.neutralAccent,
     };
     final valueLabel = switch (effect.kind) {
       PlayerActionEffectIntentKind.heal => '${max(0, effect.amount)}',
       PlayerActionEffectIntentKind.buff ||
       PlayerActionEffectIntentKind.debuff =>
         effect.amount > 0 ? '${max(0, effect.amount)}' : null,
-      PlayerActionEffectIntentKind.ability => null,
     };
 
     return DecoratedBox(
@@ -2602,23 +2554,19 @@ class _AugmentPatternHintPainter extends CustomPainter {
 
 class _PatternAugmentStrip extends StatelessWidget {
   final List<Augment> augments;
-  final List<BattlerAbility> abilities;
   final Color accent;
   final bool alignEnd;
   final List<Item> items;
   final Future<void> Function(Item item)? onItemPressed;
   final ValueChanged<Augment>? onAugmentPressed;
-  final ValueChanged<BattlerAbility>? onAbilityPressed;
 
   const _PatternAugmentStrip({
     this.augments = const <Augment>[],
-    required this.abilities,
     required this.accent,
     this.alignEnd = false,
     this.items = const <Item>[],
     this.onItemPressed,
     this.onAugmentPressed,
-    this.onAbilityPressed,
   });
 
   @override
@@ -2642,16 +2590,6 @@ class _PatternAugmentStrip extends StatelessWidget {
                     augment: augments[index],
                     accent: accent,
                     onPressed: onAugmentPressed,
-                  ),
-                ],
-                if (augments.isNotEmpty && abilities.isNotEmpty)
-                  const SizedBox(width: 8),
-                for (var index = 0; index < abilities.length; index++) ...[
-                  if (index > 0) const SizedBox(width: 8),
-                  _PatternAbilityDot(
-                    ability: abilities[index],
-                    accent: accent,
-                    onPressed: onAbilityPressed,
                   ),
                 ],
               ],
@@ -2933,46 +2871,6 @@ class _PatternAugmentDot extends StatelessWidget {
         accent: accent,
         size: 38,
         onPressed: handlePressed == null ? null : () => handlePressed(augment),
-      ),
-    );
-  }
-}
-
-class _PatternAbilityDot extends StatelessWidget {
-  final BattlerAbility ability;
-  final Color accent;
-  final ValueChanged<BattlerAbility>? onPressed;
-
-  const _PatternAbilityDot({
-    required this.ability,
-    required this.accent,
-    this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final handlePressed = onPressed;
-    return Tooltip(
-      message: ability.name,
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: handlePressed == null ? null : () => handlePressed(ability),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: EndpointPalette.panelBackgroundBattleOpaque,
-              border: Border.all(color: accent.withAlpha(150), width: 2),
-            ),
-            child: SizedBox(
-              width: 38,
-              height: 38,
-              child: Icon(ability.icon, color: ability.accent, size: 20),
-            ),
-          ),
-        ),
       ),
     );
   }

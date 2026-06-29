@@ -3,7 +3,9 @@ import '_imports.dart';
 typedef ItemCustomActionHandler = ItemEffectResolution Function({
   required Battler owner,
   required Battler opponent,
+  required Item item,
   required ActionEffect effect,
+  required BattlePatternMatchContext pattern,
   required List<ActionEffect> previousActions,
 });
 
@@ -23,6 +25,7 @@ typedef ItemPassiveEffectHandler = ItemEffectResolution Function({
 abstract final class ItemEffectDispatcher {
   static final Map<String, ItemCustomActionHandler> _customActions = {
     ItemEffectKeys.sunglasses: _resolveSunglasses,
+    ItemEffectKeys.sHarpEner: _resolveSHarpEner,
   };
   static final Map<String, ItemPassiveEffectHandler> _passiveHandlers = {
     ItemEffectKeys.nanoBandageTurnStartHeal: _resolveNanoBandageTurnStartHeal,
@@ -45,7 +48,9 @@ abstract final class ItemEffectDispatcher {
   static ItemEffectResolution resolveCustomAction({
     required Battler owner,
     required Battler opponent,
+    required Item item,
     required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
     List<ActionEffect> previousActions = const <ActionEffect>[],
   }) {
     final key = effect.customEffectKey;
@@ -53,7 +58,9 @@ abstract final class ItemEffectDispatcher {
     return handler?.call(
           owner: owner,
           opponent: opponent,
+          item: item,
           effect: effect,
+          pattern: pattern,
           previousActions: previousActions,
         ) ??
         ItemEffectResolution(owner: owner, opponent: opponent);
@@ -95,7 +102,9 @@ abstract final class ItemEffectDispatcher {
   static ItemEffectResolution _resolveSunglasses({
     required Battler owner,
     required Battler opponent,
+    required Item item,
     required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
     required List<ActionEffect> previousActions,
   }) {
     return ItemEffectResolution(
@@ -103,6 +112,74 @@ abstract final class ItemEffectDispatcher {
       opponent: opponent,
       followUpActions: List<ActionEffect>.unmodifiable(previousActions),
     );
+  }
+
+  static ItemEffectResolution _resolveSHarpEner({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    const sourceKey = 'item:s_harp_ener';
+    final sourcePointKey = OperativePatternLayoutService.pointKeyForItem(
+      player: owner,
+      item: item,
+    );
+    if (sourcePointKey == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final sourcePoint = operativePatternPointsByKey[sourcePointKey];
+    if (sourcePoint == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner;
+    final boostedPointKeys = _adjacentPointKeys(sourcePoint);
+    for (final targetItem in owner.equippedItems) {
+      if (!targetItem.isWeaponLike) continue;
+      final targetPointKey = OperativePatternLayoutService.pointKeyForItem(
+        player: owner,
+        item: targetItem,
+      );
+      if (targetPointKey == null || !boostedPointKeys.contains(targetPointKey)) {
+        continue;
+      }
+
+      final currentBonus = targetItem.actionBonusValueForSource(
+        actionType: ItemActionType.attack,
+        sourceKey: sourceKey,
+      );
+      updatedOwner = updatedOwner.replaceOwnedItem(
+        currentItem: targetItem,
+        replacementItem: targetItem.withActionBonus(
+          actionType: ItemActionType.attack,
+          sourceKey: sourceKey,
+          bonusValue: currentBonus + max(0, effect.totalValue),
+        ),
+      );
+    }
+
+    return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
+  }
+
+  static Set<String> _adjacentPointKeys(OperativePatternPoint sourcePoint) {
+    final pointKeys = <String>{};
+    for (final offset in const [
+      (dx: 0, dy: 1),
+      (dx: 0, dy: -1),
+      (dx: 1, dy: 0),
+      (dx: -1, dy: 0),
+    ]) {
+      final point = operativePatternPointAt(
+        x: sourcePoint.x + offset.dx,
+        y: sourcePoint.y + offset.dy,
+      );
+      if (point != null) pointKeys.add(point.key);
+    }
+    return pointKeys;
   }
 
   static ItemEffectResolution _resolveNanoBandageTurnStartHeal({

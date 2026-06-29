@@ -1292,9 +1292,7 @@ bool _canAppearForPitonisaQuitapenas(
   }
 
   return service.buildPitonisaPurgeableDebuffs(player).isNotEmpty ||
-      service.buildPitonisaItemOfferings(player).isNotEmpty ||
-      (player.canAfford(service.pitonisaCooldownReductionCost) &&
-          service.buildPitonisaCooldownAbilities(player).isNotEmpty);
+      service.buildPitonisaItemOfferings(player).isNotEmpty;
 }
 
 bool _canAppearForVeloz(

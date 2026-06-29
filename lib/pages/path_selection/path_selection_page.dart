@@ -64,7 +64,7 @@ class PathSelectionPage extends StatefulWidget {
 }
 
 class _PathSelectionPageState extends State<PathSelectionPage> {
-  static const _abilitiesBottomInset = 164.0;
+  static const _augmentsBottomInset = 164.0;
   static const _flowCoordinator = RunNodeFlowCoordinator();
   static const _levelUpRewardService = LevelUpRewardService();
 
@@ -166,7 +166,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             _tutorialKeys.playerStats,
             _tutorialKeys.money,
             _tutorialKeys.operatives,
-            _tutorialKeys.abilities,
+            _tutorialKeys.augments,
             _tutorialKeys.timeline,
             _tutorialKeys.archetypeNode,
           ],
@@ -175,7 +175,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     });
   }
 
-  Future<void> _handleOpenAbilities() async {
+  Future<void> _handleOpenAugments() async {
     if (_sessionController.isRunComplete ||
         _sessionController.hasPendingDaySummary ||
         _sessionController.hasPendingGhostItemResolution) {
@@ -184,13 +184,10 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
     await showEndpointOverlay<void>(
       context: context,
-      builder: (_) => EndpointAbilitiesOverlay(
+      builder: (_) => EndpointAugmentsOverlay(
         player: _sessionController.player,
-        screenContext: BattlerAbilityActivationContext.pathSelection,
         subtitle: 'Protocolos disponibles en ruta',
-        bottomInset: _abilitiesBottomInset,
-        abilityActivationBlockReason: _pathAbilityActivationBlockReason,
-        onPlayerChanged: _sessionController.updatePlayer,
+        bottomInset: _augmentsBottomInset,
       ),
     );
     if (!mounted) return;
@@ -198,17 +195,6 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
     await _maybePresentGhostItemResolution();
     await _maybePresentDaySummary();
     await _maybePresentRunOutcome();
-  }
-
-  String? _pathAbilityActivationBlockReason(BattlerAbility ability) {
-    if (ability.id != BattlerAbilityId.convencionRepentina) return null;
-
-    final phase = _sessionController.currentHour.phase;
-    if (phase == RunHourPhase.dusk || phase == RunHourPhase.sunrise) {
-      return 'No se puede usar al atardecer ni al amanecer';
-    }
-
-    return null;
   }
 
   Future<void> _handleOpenOperatives() async {
@@ -565,7 +551,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
                                   child: _PathBottomHud(
                                     player: player,
                                     onOpenOperatives: _handleOpenOperatives,
-                                    onOpenAbilities: _handleOpenAbilities,
+                                    onOpenAugments: _handleOpenAugments,
                                     onOpenLevelUp: _handleOpenLevelUp,
                                     canOpenLevelUp: canOpenLevelUp,
                                     tutorialKeys: tutorialKeys,
@@ -593,7 +579,7 @@ class _PathTutorialShowcaseKeys {
   final GlobalKey playerStats = GlobalKey();
   final GlobalKey money = GlobalKey();
   final GlobalKey operatives = GlobalKey();
-  final GlobalKey abilities = GlobalKey();
+  final GlobalKey augments = GlobalKey();
   final GlobalKey timeline = GlobalKey();
   final GlobalKey archetypeNode = GlobalKey();
 }
@@ -798,7 +784,7 @@ class _PathHeader extends StatelessWidget {
 class _PathBottomHud extends StatelessWidget {
   final Battler player;
   final Future<void> Function() onOpenOperatives;
-  final Future<void> Function() onOpenAbilities;
+  final Future<void> Function() onOpenAugments;
   final Future<void> Function() onOpenLevelUp;
   final bool canOpenLevelUp;
   final _PathTutorialShowcaseKeys? tutorialKeys;
@@ -806,7 +792,7 @@ class _PathBottomHud extends StatelessWidget {
   const _PathBottomHud({
     required this.player,
     required this.onOpenOperatives,
-    required this.onOpenAbilities,
+    required this.onOpenAugments,
     required this.onOpenLevelUp,
     required this.canOpenLevelUp,
     this.tutorialKeys,
@@ -844,10 +830,10 @@ class _PathBottomHud extends StatelessWidget {
               onPressed: onOpenOperatives,
               tooltip: 'Abrir ventana de operativos',
             );
-            Widget abilitiesButton = PathActionButton(
+            Widget augmentsButton = PathActionButton(
               label: 'AUMENTOS',
               icon: Icons.auto_awesome_rounded,
-              onPressed: onOpenAbilities,
+              onPressed: onOpenAugments,
               tooltip: 'Abrir panel de AUMENTOS',
             );
             Widget moneyChip = EndpointValueChip(
@@ -867,12 +853,12 @@ class _PathBottomHud extends StatelessWidget {
                     'Este boton abre la gestion del operativo, su inventario y el equipo disponible.',
                 child: operativesButton,
               );
-              abilitiesButton = _PathShowcaseStep(
-                showcaseKey: keys.abilities,
+              augmentsButton = _PathShowcaseStep(
+                showcaseKey: keys.augments,
                 title: 'AUMENTOS',
                 description:
                     'Este boton abre los protocolos y aumentos pasivos que puedes revisar en ruta.',
-                child: abilitiesButton,
+                child: augmentsButton,
               );
               moneyChip = _PathShowcaseStep(
                 showcaseKey: keys.money,
@@ -932,7 +918,7 @@ class _PathBottomHud extends StatelessWidget {
                     alignment: Alignment.bottomRight,
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 118),
-                      child: abilitiesButton,
+                      child: augmentsButton,
                     ),
                   ),
                 ),

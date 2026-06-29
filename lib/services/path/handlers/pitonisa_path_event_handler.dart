@@ -18,18 +18,6 @@ extension PitonisaPathEventHandler on PathEventService {
     );
   }
 
-  List<BattlerAbility> buildPitonisaCooldownAbilities(Battler player) {
-    return List<BattlerAbility>.unmodifiable(
-      player.abilities.where(
-        (ability) =>
-            ability.manualActivationContext != null &&
-            ability.cooldownTurns > 0,
-      ),
-    );
-  }
-
-  int get pitonisaCooldownReductionCost => 10;
-
   PathEventVisitResult resolvePitonisaDebuffPurge({
     required Battler player,
   }) {
@@ -71,42 +59,4 @@ extension PitonisaPathEventHandler on PathEventService {
     );
   }
 
-  PathEventVisitResult resolvePitonisaCooldownReduction({
-    required Battler player,
-    required BattlerAbility selectedAbility,
-  }) {
-    final currentAbility = player.abilityById(selectedAbility.id);
-    if (currentAbility == null ||
-        currentAbility.manualActivationContext == null ||
-        currentAbility.cooldownTurns <= 0) {
-      return PathEventVisitResult(
-        player: player,
-        outcomeText: 'Esa habilidad no puede reducir su recarga.',
-      );
-    }
-
-    final price = pitonisaCooldownReductionCost;
-    if (!player.canAfford(price)) {
-      return PathEventVisitResult(
-        player: player,
-        outcomeText:
-            'No tienes creditos suficientes para reducir la recarga de ${currentAbility.displayName}.',
-      );
-    }
-
-    final nextCooldown = max(0, currentAbility.cooldownTurns - 1);
-    final updatedAbility = currentAbility.copyWith(
-      cooldownTurns: nextCooldown,
-      remainingCooldownTurns: min(
-        currentAbility.remainingCooldownTurns,
-        nextCooldown,
-      ),
-    );
-
-    return PathEventVisitResult(
-      player: player.spendMoney(price).updateAbility(updatedAbility),
-      outcomeText:
-          'Pagas ${price}C. ${currentAbility.displayName} reduce su cooldown permanente a $nextCooldown turnos.',
-    );
-  }
 }

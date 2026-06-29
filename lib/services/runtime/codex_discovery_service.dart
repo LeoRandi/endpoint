@@ -28,7 +28,6 @@ abstract final class CodexDiscoveryService {
   static String archetypeKey(ArchetypeId id) => 'archetype:${id.name}';
   static String itemKey(String catalogKey) => 'item:$catalogKey';
   static String augmentKey(int id) => 'augment:$id';
-  static String abilityKey(BattlerAbilityId id) => 'ability:${id.name}';
   static String enemyKey(String nodeId) => 'enemy:$nodeId';
   static String statusKey(BattlerStatusId id) => 'status:${id.name}';
   static String shopKey(String nodeId) => 'shop:$nodeId';
@@ -40,9 +39,6 @@ abstract final class CodexDiscoveryService {
     };
     CodexDiscoveryHook.onAugmentAdded = (augmentId) {
       unawaited(markIndexed(augmentKey(augmentId)));
-    };
-    CodexDiscoveryHook.onAbilityAdded = (abilityId) {
-      unawaited(markIndexed(abilityKey(abilityId)));
     };
     CodexDiscoveryHook.onStatusApplied = (statusId) {
       unawaited(markIndexed(statusKey(statusId)));

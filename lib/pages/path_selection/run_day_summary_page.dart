@@ -48,9 +48,7 @@ class _RunDaySummaryPageState extends State<RunDaySummaryPage>
         .where((reward) => reward.type == RunDaySummaryRewardType.item)
         .toList(growable: false);
     final augmentRewards = widget.summary.gainedRewards
-        .where((reward) =>
-            reward.type == RunDaySummaryRewardType.augment ||
-            reward.type == RunDaySummaryRewardType.ability)
+        .where((reward) => reward.type == RunDaySummaryRewardType.augment)
         .toList(growable: false);
 
     return PopScope(
@@ -494,7 +492,6 @@ Future<void> _openRewardDetails(
       );
       return;
     case RunDaySummaryRewardType.augment:
-    case RunDaySummaryRewardType.ability:
       final augment = reward.augment;
       if (augment == null) return;
 

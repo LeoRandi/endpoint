@@ -8,8 +8,8 @@ class CycleContext {
 
   /// Crea un contexto de Ciclo para resolver efectos dependientes de hora.
   ///
-  /// `isDay` y `isNight` pueden estar activos a la vez cuando un estado o una
-  /// habilidad fuerza que los bonus de ambos lados del ciclo se apliquen.
+  /// `isDay` y `isNight` pueden estar activos a la vez cuando un estado fuerza
+  /// que los bonus de ambos lados del ciclo se apliquen.
   const CycleContext({
     this.isDay = false,
     this.isNight = false,
@@ -28,11 +28,10 @@ const CycleContext _dualCycleContext = CycleContext(
   isNight: true,
 );
 
-/// Resuelve el contexto efectivo de Ciclo para items y habilidades en combate.
+/// Resuelve el contexto efectivo de Ciclo para items en combate.
 ///
 /// La prioridad es intencional: sin combate no hay ciclo; Ciclo Eclipse gana a
-/// todo; las habilidades activas pueden forzar dia/noche; y por ultimo se
-/// respetan las flags genericas del battler.
+/// todo; y por ultimo se respetan las flags genericas del battler.
 CycleContext cycleContextFor(Battler owner) {
   final isCombatActive = owner.combatFlags.contains(Battler.combatActiveFlag);
   if (!isCombatActive) {
@@ -46,16 +45,6 @@ CycleContext cycleContextFor(Battler owner) {
     return _dualCycleContext;
   }
 
-  final forcesDay =
-      _hasActiveAbility(owner, BattlerAbilityId.amanecerSintetico);
-  final forcesNight = _hasActiveAbility(owner, BattlerAbilityId.lunaArtificial);
-  if (forcesDay || forcesNight) {
-    return CycleContext(
-      isDay: forcesDay,
-      isNight: forcesNight,
-    );
-  }
-
   final hasDayContext = owner.combatFlags.contains(Battler.cycleDayContextFlag);
   final hasNightContext =
       owner.combatFlags.contains(Battler.cycleNightContextFlag);
@@ -67,17 +56,4 @@ CycleContext cycleContextFor(Battler owner) {
   }
 
   return _inactiveCycleContext;
-}
-
-/// Comprueba si [owner] mantiene activa una habilidad manual concreta.
-///
-/// El runtime de Ciclo solo necesita saber si la habilidad esta activa ahora, no
-/// si aparece en el contexto ni si esta en cooldown.
-bool _hasActiveAbility(Battler owner, BattlerAbilityId abilityId) {
-  for (final ability in owner.abilities) {
-    if (ability.id == abilityId && ability.isActive) {
-      return true;
-    }
-  }
-  return false;
 }

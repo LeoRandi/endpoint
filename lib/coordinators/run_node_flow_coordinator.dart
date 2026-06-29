@@ -185,7 +185,7 @@ class RunNodeFlowCoordinator {
         dayNumber: PathNodeService.dayNumberForStageIndex(
           session.currentHour.stageIndex,
         ),
-        stockPool: itemPoolForArchetype(session.player.archetypeId),
+        stockPool: itemPresets,
       ),
       onCompleted: session.completeWeaponShopVisit,
     );

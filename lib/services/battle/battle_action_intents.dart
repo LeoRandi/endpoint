@@ -17,19 +17,16 @@ enum PlayerActionEffectIntentKind {
   heal,
   buff,
   debuff,
-  ability,
 }
 
 class PlayerActionEffectIntent {
   final PlayerActionEffectIntentKind kind;
   final BattlerStatus? status;
-  final BattlerAbility? ability;
   final int amount;
 
   const PlayerActionEffectIntent._({
     required this.kind,
     this.status,
-    this.ability,
     this.amount = 0,
   });
 
@@ -53,12 +50,6 @@ class PlayerActionEffectIntent {
     );
   }
 
-  factory PlayerActionEffectIntent.ability(BattlerAbility ability) {
-    return PlayerActionEffectIntent._(
-      kind: PlayerActionEffectIntentKind.ability,
-      ability: ability,
-    );
-  }
 }
 
 class PlayerActionIntentPreview {
@@ -89,7 +80,6 @@ class PlayerActionIntentPreview {
 
 class EnemyTurnIntentPreview {
   final EnemyTurnAction action;
-  final BattlerAbility? activatedBattleAbility;
   final int damage;
   final int attackHitDamage;
   final int attackHitCount;
@@ -98,7 +88,6 @@ class EnemyTurnIntentPreview {
 
   const EnemyTurnIntentPreview({
     this.action = EnemyTurnAction.attack,
-    this.activatedBattleAbility,
     this.damage = 0,
     this.attackHitDamage = 0,
     this.attackHitCount = 1,
@@ -115,8 +104,7 @@ class EnemyTurnIntentPreview {
   }
 
   bool get hasAnyEffect {
-    return activatedBattleAbility != null ||
-        damage > 0 ||
+    return damage > 0 ||
         barrierGain > 0 ||
         appliedDebuffs.isNotEmpty;
   }

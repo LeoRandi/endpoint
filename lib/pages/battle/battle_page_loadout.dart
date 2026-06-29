@@ -40,17 +40,15 @@ class _BattleItemStrip extends StatelessWidget {
   }
 }
 
-class _BattleAbilityStrip extends StatelessWidget {
-  final List<BattlerAbility> abilities;
+class _BattleAugmentStrip extends StatelessWidget {
+  final List<Augment> augments;
   final Color accent;
-  final ValueChanged<BattlerAbility>? onAbilityPressed;
-  final bool enableAbilityTooltipLongPress;
+  final ValueChanged<Augment>? onAugmentPressed;
 
-  const _BattleAbilityStrip({
-    required this.abilities,
+  const _BattleAugmentStrip({
+    required this.augments,
     required this.accent,
-    this.onAbilityPressed,
-    this.enableAbilityTooltipLongPress = true,
+    this.onAugmentPressed,
   });
 
   @override
@@ -64,12 +62,12 @@ class _BattleAbilityStrip extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: Center(
-                child: EndpointAbilitySlotsStrip(
-                  abilities: abilities,
+                child: EndpointAugmentSlotsStrip(
+                  augments: augments,
                   accent: accent,
-                  onAbilityPressed: onAbilityPressed,
-                  holdDuration: const Duration(milliseconds: 500),
-                  enableTooltipLongPress: enableAbilityTooltipLongPress,
+                  onAugmentPressed: onAugmentPressed,
+                  orbSize: 46,
+                  reserveEmptySlots: false,
                 ),
               ),
             ),

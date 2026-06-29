@@ -40,16 +40,49 @@ extension BattlerCombatRuntime on Battler {
   }
 
   /// Bonus plano que las pasivas de Resonancia añaden a su daño propio.
-  int get resonanceDamageBonus {
-    final ability = abilityById(BattlerAbilityId.masaCritica);
-    if (ability == null || currentBarrier * 2 <= maxHealth) return 0;
-
-    return max(0, ability.currentValue);
-  }
+  int get resonanceDamageBonus => 0;
 
   /// Indica si el ataque basico actual todavia tiene impactos pendientes.
   bool get hasPendingBasicAttackFollowUp {
     return hasCombatFlag(Battler.pendingBasicAttackFollowUpFlag);
+  }
+
+  int combatAttackBonusForItem(Item item) {
+    return _combatItemFlagValue(
+      item: item,
+      kind: BattlerCombatFlag.augmentPatternWeaponAttackBoost,
+    );
+  }
+
+  Item itemWithCombatActionBonuses(Item item) {
+    final attackBonusBySource = _combatItemFlagValuesBySource(
+      item: item,
+      kind: BattlerCombatFlag.augmentPatternWeaponAttackBoost,
+    );
+    if (attackBonusBySource.isEmpty) return item;
+
+    var updatedItem = item;
+    for (final entry in attackBonusBySource.entries) {
+      updatedItem = updatedItem.withActionBonus(
+        actionType: ItemActionType.attack,
+        sourceKey: 'combat:${entry.key}',
+        bonusValue: entry.value,
+      );
+    }
+    return updatedItem;
+  }
+
+  Map<String, Item> itemsByPointKeyWithCombatActionBonuses(
+    Map<String, Item> itemsByPointKey,
+  ) {
+    return Map<String, Item>.unmodifiable(
+      itemsByPointKey.map(
+        (pointKey, item) => MapEntry(
+          pointKey,
+          itemWithCombatActionBonuses(item),
+        ),
+      ),
+    );
   }
 
   /// Calcula el daño base de un ataque directo usando solo el ataque total del portador.
@@ -94,6 +127,32 @@ extension BattlerCombatRuntime on Battler {
   /// Aplica efectos que recompensan el daño infligido por Resonancia.
   Battler gainBarrierFromResonanceDamage(int damage) {
     return this;
+  }
+
+  Battler addCombatAttackBonusToWeapons({
+    required Iterable<Item> weapons,
+    required int amount,
+    required String sourceKey,
+  }) {
+    final safeAmount = max(0, amount);
+    final safeSourceKey = sourceKey.trim();
+    if (safeAmount <= 0 ||
+        safeSourceKey.isEmpty ||
+        !hasCombatFlag(Battler.combatActiveFlag)) {
+      return this;
+    }
+
+    var updatedOwner = this;
+    for (final weapon in weapons) {
+      if (!weapon.isWeaponLike) continue;
+      updatedOwner = updatedOwner._addCombatItemFlagValue(
+        item: weapon,
+        kind: BattlerCombatFlag.augmentPatternWeaponAttackBoost,
+        amount: safeAmount,
+        sourceKey: safeSourceKey,
+      );
+    }
+    return updatedOwner;
   }
 
   /// Sincroniza la ronda visible para efectos que necesitan historial temporal.
@@ -567,6 +626,102 @@ extension BattlerCombatRuntime on Battler {
       total += max(0, flag.secondaryValue ?? flag.value ?? 0);
     }
     return total;
+  }
+
+  int _combatItemFlagValue({
+    required Item item,
+    required BattlerCombatFlag kind,
+  }) {
+    final valuesBySource = _combatItemFlagValuesBySource(
+      item: item,
+      kind: kind,
+    );
+    return valuesBySource.values.fold<int>(
+      0,
+      (total, value) => total + value,
+    );
+  }
+
+  Map<String, int> _combatItemFlagValuesBySource({
+    required Item item,
+    required BattlerCombatFlag kind,
+  }) {
+    final valuesBySource = <String, int>{};
+    for (final flag in combatFlags) {
+      if (!_isCombatItemFlagKind(flag, kind) ||
+          flag.itemKey != item.catalogKey ||
+          flag.itemInstanceId != item.instanceId) {
+        continue;
+      }
+      final sourceKey = _combatItemFlagSourceKey(flag, kind);
+      valuesBySource[sourceKey] = (valuesBySource[sourceKey] ?? 0) +
+          max(0, flag.secondaryValue ?? flag.value ?? 0);
+    }
+    return Map<String, int>.unmodifiable(valuesBySource);
+  }
+
+  Battler _addCombatItemFlagValue({
+    required Item item,
+    required BattlerCombatFlag kind,
+    required int amount,
+    required String sourceKey,
+  }) {
+    final itemEffectKey = '${kind.name}:$sourceKey';
+    final nextUse = combatFlags.where((flag) {
+      return flag.itemEffectKey == itemEffectKey &&
+          flag.itemKey == item.catalogKey &&
+          flag.itemInstanceId == item.instanceId;
+    }).length;
+
+    return addCombatFlag(
+      CombatRuntimeFlag.item(
+        itemEffectKey: itemEffectKey,
+        itemKey: item.catalogKey,
+        itemInstanceId: item.instanceId,
+        value: nextUse,
+        secondaryValue: max(0, amount),
+      ),
+    );
+  }
+
+  bool _isCombatItemFlagKind(
+    CombatRuntimeFlag flag,
+    BattlerCombatFlag kind,
+  ) {
+    final itemEffectKey = flag.itemEffectKey;
+    return itemEffectKey == kind.name ||
+        (itemEffectKey?.startsWith('${kind.name}:') ?? false);
+  }
+
+  String _combatItemFlagSourceKey(
+    CombatRuntimeFlag flag,
+    BattlerCombatFlag kind,
+  ) {
+    final itemEffectKey = flag.itemEffectKey;
+    final prefix = '${kind.name}:';
+    if (itemEffectKey != null && itemEffectKey.startsWith(prefix)) {
+      return itemEffectKey.substring(prefix.length);
+    }
+    return kind.name;
+  }
+
+  Battler removeCombatItemFlagSource({
+    required Item item,
+    required BattlerCombatFlag kind,
+    required String sourceKey,
+  }) {
+    final itemEffectKey = '${kind.name}:$sourceKey';
+    final updatedFlags = Set<CombatRuntimeFlag>.from(combatFlags)
+      ..removeWhere((flag) {
+        return flag.itemEffectKey == itemEffectKey &&
+            flag.itemKey == item.catalogKey &&
+            flag.itemInstanceId == item.instanceId;
+      });
+    if (updatedFlags.length == combatFlags.length) return this;
+
+    return copyWith(
+      combatFlags: Set<CombatRuntimeFlag>.unmodifiable(updatedFlags),
+    );
   }
 
   /// Convierte la primera ganancia de Barrera de cada ronda en Resonancia si procede.

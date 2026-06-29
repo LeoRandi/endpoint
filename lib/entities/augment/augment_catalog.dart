@@ -8,7 +8,8 @@ final List<Augment> augmentCatalog = List<Augment>.unmodifiable([
   Augment(
     id: 1,
     name: 'Augment M',
-    description: 'Potencia ataques cuando el patron contiene una M.',
+    description:
+        'Mejora las armas del patron cuando el patron contiene una M.',
     tier: RarityTier.gray,
     assetPath: 'assets/sprites/unknown.png',
     affinity: AugmentAffinity.general,
@@ -17,18 +18,18 @@ final List<Augment> augmentCatalog = List<Augment>.unmodifiable([
       patternEffects: {
         _points(const [(-1, 1), (0, 0), (1, 1)]):
             const AugmentEffect.patternAttackDamageBonus(
-          value: 10,
-          description: '+10 dano a cada ataque del patron.',
+          value: 1,
+          description: '+1 dano a las armas del patron durante el combate.',
         ),
         _points(const [(-1, 0), (-1, 1), (0, 0), (1, 1), (1, 0)]):
             const AugmentEffect.patternAttackDamageBonus(
-          value: 15,
-          description: '+15 dano a cada ataque del patron.',
+          value: 2,
+          description: '+2 dano a las armas del patron durante el combate.',
         ),
         _points(const [(-1, 0), (-1, 1), (0, 0), (1, 1), (1, 0)]):
             const AugmentEffect.patternAttackDamageBonus(
-          value: 20,
-          description: '+20 dano a cada ataque del patron.',
+          value: 3,
+          description: '+3 dano a las armas del patron durante el combate.',
         ),
         _points(
           const [
@@ -41,8 +42,8 @@ final List<Augment> augmentCatalog = List<Augment>.unmodifiable([
             (1, -1),
           ],
         ): const AugmentEffect.patternAttackDamageBonus(
-          value: 30,
-          description: '+30 dano a cada ataque del patron.',
+          value: 4,
+          description: '+4 dano a las armas del patron durante el combate.',
         ),
         _points(
           const [
@@ -55,8 +56,8 @@ final List<Augment> augmentCatalog = List<Augment>.unmodifiable([
             (1, -1),
           ],
         ): const AugmentEffect.patternAttackDamageBonus(
-          value: 50,
-          description: '+50 dano a cada ataque del patron.',
+          value: 5,
+          description: '+5 dano a las armas del patron durante el combate.',
         ),
       },
     ),

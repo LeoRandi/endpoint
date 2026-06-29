@@ -1030,7 +1030,7 @@ class _CodexEnemyDetailsDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _CodexStatStrip(battler: enemy, accent: accent),
-          if (enemy.abilities.isNotEmpty) ...[
+          if (enemy.augments.isNotEmpty) ...[
             const SizedBox(height: 12),
             EndpointText(
               'AUMENTOS',
@@ -1045,12 +1045,12 @@ class _CodexEnemyDetailsDialog extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final ability in enemy.abilities)
-                  EndpointAbilityOrb(
-                    ability: ability,
+                for (final augment in enemy.augments)
+                  EndpointAugmentOrb(
+                    augment: augment,
                     size: 42,
                     enableTooltipLongPress: true,
-                    onPressed: () => _openAbilityDetails(context, ability),
+                    onPressed: () => _openAugmentDetails(context, augment),
                   ),
               ],
             ),
@@ -1083,17 +1083,17 @@ class _CodexEnemyDetailsDialog extends StatelessWidget {
     );
   }
 
-  Future<void> _openAbilityDetails(
+  Future<void> _openAugmentDetails(
     BuildContext context,
-    BattlerAbility ability,
+    Augment augment,
   ) async {
     await showEndpointDialog<void>(
       context: context,
       barrierLabel: 'Detalle de aumento',
       barrierColor: EndpointPalette.overlayScrim,
-      builder: (context) => EndpointAbilityDetailsDialog(
-        ability: ability,
-        accent: ability.accent,
+      builder: (context) => EndpointAugmentDetailsDialog(
+        augment: augment,
+        accent: augment.accent,
         statusText: 'DESBLOQUEADO',
       ),
     );

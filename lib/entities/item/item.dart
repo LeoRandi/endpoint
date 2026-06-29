@@ -103,6 +103,52 @@ class Item {
     );
   }
 
+  Item withActionBonus({
+    required ItemActionType actionType,
+    required String sourceKey,
+    required int bonusValue,
+  }) {
+    final safeSourceKey = sourceKey.trim();
+    if (safeSourceKey.isEmpty) return this;
+
+    return copyWith(
+      effects: <Effect, int>{
+        for (final entry in effects.entries)
+          _effectWithActionBonus(
+            effect: entry.key,
+            actionType: actionType,
+            sourceKey: safeSourceKey,
+            bonusValue: bonusValue,
+          ): entry.value,
+      },
+    );
+  }
+
+  int actionBonusValueForSource({
+    required ItemActionType actionType,
+    required String sourceKey,
+  }) {
+    var currentValue = 0;
+    for (final action in actionEffects) {
+      if (action.actionType == actionType) {
+        currentValue = max(
+          currentValue,
+          action.bonusValueForSource(sourceKey),
+        );
+      }
+    }
+    for (final patternEffect in patternEffects) {
+      final action = patternEffect.actionEffect;
+      if (action.actionType == actionType) {
+        currentValue = max(
+          currentValue,
+          action.bonusValueForSource(sourceKey),
+        );
+      }
+    }
+    return currentValue;
+  }
+
   Item copyWith({
     String? name,
     String? description,
@@ -188,7 +234,7 @@ class Item {
         ItemActionType.heal => OperativePatternBonusKind.health,
         ItemActionType.none => throw StateError('Handled above.'),
       },
-      amount: effect.value,
+      amount: effect.totalValue,
     );
   }
 
@@ -260,4 +306,26 @@ class Item {
 
   @override
   int get hashCode => instanceId?.hashCode ?? identityHashCode(this);
+
+  static Effect _effectWithActionBonus({
+    required Effect effect,
+    required ItemActionType actionType,
+    required String sourceKey,
+    required int bonusValue,
+  }) {
+    if (effect is ActionEffect && effect.actionType == actionType) {
+      return effect.withBonusSource(
+        sourceKey: sourceKey,
+        bonusValue: bonusValue,
+      );
+    }
+    if (effect is PatternEffect &&
+        effect.actionEffect.actionType == actionType) {
+      return effect.withActionBonusSource(
+        sourceKey: sourceKey,
+        bonusValue: bonusValue,
+      );
+    }
+    return effect;
+  }
 }

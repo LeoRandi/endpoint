@@ -104,11 +104,6 @@ const yellowEnemyBattler = Battler(
     BattlerStat.attack: 10,
     BattlerStat.barrier: 6,
   },
-  abilities: [
-    copiaDeSeguridadAbility,
-    mallaReboteAbility,
-    hemostasiaAgresivaAbility,
-  ],
   equippedItems: [],
   patternItemPointKeys: {},
 );

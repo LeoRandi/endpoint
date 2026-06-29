@@ -140,9 +140,7 @@ extension BattlerRuntimeService on Battler {
       },
       currentBarrier: preparedOwner.maxBarrier,
     );
-    return _battlerEffectPipeline.applyAbilityCombatStartEffects(
-      owner: combatReadyOwner,
-    );
+    return combatReadyOwner;
   }
 
   /// Ejecuta todos los hooks de inicio de turno de los estados activos.
@@ -289,17 +287,6 @@ extension BattlerRuntimeService on Battler {
         status: instancedStatus,
       );
       if (instancedStatus != null) {
-        final abilityIncomingResolution =
-            _battlerEffectPipeline.applyAbilityIncomingStatusEffects(
-          owner: updatedOwner,
-          source: updatedSource,
-          status: instancedStatus,
-        );
-        updatedOwner = abilityIncomingResolution.owner;
-        updatedSource = abilityIncomingResolution.source;
-        instancedStatus = abilityIncomingResolution.status;
-      }
-      if (instancedStatus != null) {
         final incomingResolution =
             _battlerEffectPipeline.applyEquippedItemIncomingStatusEffects(
           owner: updatedOwner,
@@ -317,21 +304,6 @@ extension BattlerRuntimeService on Battler {
         owner: updatedOwner,
         source: updatedSource,
       );
-    }
-
-    if (instancedStatus is ContagioStatus) {
-      final cargaVirica =
-          updatedSource.abilityById(BattlerAbilityId.cargaVirica);
-      const cargaViricaFlag = CombatRuntimeFlag.battler(
-        BattlerCombatFlag.cargaViricaTriggeredThisTurn,
-      );
-      if (cargaVirica != null &&
-          !updatedSource.hasCombatFlag(cargaViricaFlag)) {
-        updatedSource = updatedSource.addCombatFlag(cargaViricaFlag);
-        instancedStatus = instancedStatus.copyWith(
-          value: instancedStatus.value + max(1, cargaVirica.currentValue),
-        ) as ContagioStatus;
-      }
     }
 
     if (instancedStatus.type == BattlerStatusType.debuff &&
@@ -539,149 +511,6 @@ extension BattlerRuntimeService on Battler {
     );
   }
 
-  /// Permite que los items modifiquen una habilidad justo antes de activarla manualmente.
-  ItemAbilityPreparationResolution applyEquippedItemManualAbilityPreparation({
-    required Battler opponent,
-    required BattlerAbility ability,
-    required BattlerAbilityActivationContext screenContext,
-  }) {
-    return _battlerEffectPipeline.applyEquippedItemManualAbilityPreparation(
-      owner: this,
-      opponent: opponent,
-      ability: ability,
-      screenContext: screenContext,
-    );
-  }
-
-  /// Ejecuta reacciones de items cuando una habilidad ya se ha resuelto.
-  ItemEffectResolution applyEquippedItemAbilityResolvedEffects({
-    required Battler opponent,
-    required BattlerAbility previousAbility,
-    required ItemAbilityResolutionContext context,
-  }) {
-    return _battlerEffectPipeline.applyEquippedItemAbilityResolvedEffects(
-      owner: this,
-      opponent: opponent,
-      previousAbility: previousAbility,
-      context: context,
-    );
-  }
-
-  /// Ejecuta todos los hooks de inicio de turno de las habilidades activas.
-  BattlerAbilityEffectResolution applyAbilityTurnStartEffects({
-    required Battler opponent,
-    required bool isOwnerTurn,
-  }) {
-    return _battlerEffectPipeline.applyAbilityTurnStartEffects(
-      owner: this,
-      opponent: opponent,
-      isOwnerTurn: isOwnerTurn,
-    );
-  }
-
-  /// Ejecuta todos los hooks de final de turno de las habilidades activas.
-  BattlerAbilityEffectResolution applyAbilityTurnEndEffects({
-    required Battler opponent,
-    required bool isOwnerTurn,
-  }) {
-    return _battlerEffectPipeline.applyAbilityTurnEndEffects(
-      owner: this,
-      opponent: opponent,
-      isOwnerTurn: isOwnerTurn,
-    );
-  }
-
-  /// Aplica a un daño saliente todos los modificadores provenientes de habilidades.
-  int applyAbilityOutgoingDamageModifiers({
-    required Battler target,
-    required int damage,
-  }) {
-    return _battlerEffectPipeline.applyAbilityOutgoingDamageModifiers(
-      owner: this,
-      target: target,
-      damage: damage,
-    );
-  }
-
-  /// Aplica a un daño entrante todos los modificadores provenientes de habilidades.
-  int applyAbilityIncomingDamageModifiers({
-    required Battler source,
-    required int damage,
-  }) {
-    return _battlerEffectPipeline.applyAbilityIncomingDamageModifiers(
-      owner: this,
-      source: source,
-      damage: damage,
-    );
-  }
-
-  /// Ejecuta efectos de habilidades que reaccionan despues de atacar.
-  BattlerAbilityEffectResolution applyAbilityAttackResolvedEffects({
-    required Battler target,
-    required int damageDealt,
-  }) {
-    return _battlerEffectPipeline.applyAbilityAttackResolvedEffects(
-      owner: this,
-      target: target,
-      damageDealt: damageDealt,
-    );
-  }
-
-  /// Ejecuta efectos de habilidades que reaccionan despues de recibir daño.
-  BattlerAbilityEffectResolution applyAbilityReceiveDamageResolvedEffects({
-    required Battler source,
-    required int damageTaken,
-  }) {
-    return _battlerEffectPipeline.applyAbilityReceiveDamageResolvedEffects(
-      owner: this,
-      source: source,
-      damageTaken: damageTaken,
-    );
-  }
-
-  /// Ejecuta efectos de habilidades que reaccionan a la figura final de Patron.
-  BattlerAbilityEffectResolution applyAbilityPatternMatchResolvedEffects({
-    required Battler opponent,
-    required BattlePatternMatchContext pattern,
-  }) {
-    return _battlerEffectPipeline.applyAbilityPatternMatchResolvedEffects(
-      owner: this,
-      opponent: opponent,
-      pattern: pattern,
-    );
-  }
-
-  /// Ejecuta efectos de habilidades que se disparan al comenzar una nueva hora.
-  Battler applyAbilityHourStartEffects() {
-    return _battlerEffectPipeline.applyAbilityHourStartEffects(
-      owner: this,
-    );
-  }
-
-  /// Ejecuta todos los efectos pasivos de habilidades activas o presentes.
-  BattlerAbilityEffectResolution applyAbilityPassiveEffects({
-    required Battler opponent,
-  }) {
-    return _battlerEffectPipeline.applyAbilityPassiveEffects(
-      owner: this,
-      opponent: opponent,
-    );
-  }
-
-  /// Activa o desactiva una habilidad manual y resuelve sus hooks asociados.
-  BattlerAbilityEffectResolution toggleAbilityActivation({
-    required BattlerAbilityId abilityId,
-    required BattlerAbilityActivationContext screenContext,
-    Battler? opponent,
-  }) {
-    return _battlerEffectPipeline.toggleAbilityActivation(
-      owner: this,
-      abilityId: abilityId,
-      screenContext: screenContext,
-      opponent: opponent,
-    );
-  }
-
   /// Ejecuta todos los hooks de fin de combate antes de limpiar estado runtime.
   Battler applyCombatEndEffects() {
     return _battlerEffectPipeline.applyCombatEndEffects(owner: this);
@@ -705,9 +534,6 @@ extension BattlerRuntimeService on Battler {
 
     return ownerAfterHooks
         .clearCombatStatuses()
-        .resetAbilitiesForContext(
-          BattlerAbilityActivationContext.battle,
-        )
         .copyWith(currentBarrier: 0)
         .clearCombatFlags();
   }

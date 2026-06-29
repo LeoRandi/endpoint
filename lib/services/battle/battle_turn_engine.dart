@@ -35,63 +35,9 @@ class BattleTurnEngine {
     required Battler enemy,
     RunRandomizer? randomizer,
   }) {
-    var updatedPlayer = isPlayerTurn
-        ? player
-            .removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag)
-            .removeCombatFlag(
-              const CombatRuntimeFlag.battler(
-                BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
-              ),
-            )
-            .removeCombatFlag(
-              const CombatRuntimeFlag.battler(
-                BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
-              ),
-            )
-            .removeCombatFlag(
-              const CombatRuntimeFlag.battler(
-                BattlerCombatFlag.cargaViricaTriggeredThisTurn,
-              ),
-            )
-            .removeCombatFlag(
-              const CombatRuntimeFlag.battler(
-                BattlerCombatFlag.deudaSangreTriggeredThisTurn,
-              ),
-            )
-        : player;
-    var updatedEnemy = isPlayerTurn
-        ? enemy
-        : enemy
-            .removeCombatFlag(Battler.manualAbilityActivatedThisTurnFlag)
-            .removeCombatFlag(
-              const CombatRuntimeFlag.battler(
-                BattlerCombatFlag.opresionTacticaTriggeredThisTurn,
-              ),
-            );
-    if (!isPlayerTurn) {
-      updatedEnemy = updatedEnemy.removeCombatFlag(
-        const CombatRuntimeFlag.battler(
-          BattlerCombatFlag.mandatoColiseoCounterPreventedThisTurn,
-        ),
-      );
-      updatedEnemy = updatedEnemy.removeCombatFlag(
-        const CombatRuntimeFlag.battler(
-          BattlerCombatFlag.cargaViricaTriggeredThisTurn,
-        ),
-      );
-      updatedEnemy = updatedEnemy.removeCombatFlag(
-        const CombatRuntimeFlag.battler(
-          BattlerCombatFlag.deudaSangreTriggeredThisTurn,
-        ),
-      );
-    }
+    var updatedPlayer = player;
+    var updatedEnemy = enemy;
 
-    updatedPlayer = updatedPlayer.progressAbilityCooldownsOnTurnStart(
-      isOwnerTurn: isPlayerTurn,
-    );
-    updatedEnemy = updatedEnemy.progressAbilityCooldownsOnTurnStart(
-      isOwnerTurn: !isPlayerTurn,
-    );
     updatedPlayer = _effectPipeline.applyStatusTurnStart(
       owner: updatedPlayer,
       opponent: updatedEnemy,
@@ -104,21 +50,6 @@ class BattleTurnEngine {
       isOwnerTurn: !isPlayerTurn,
       randomizer: randomizer,
     );
-    final playerAbilityResolution =
-        _effectPipeline.applyAbilityTurnStartEffects(
-      owner: updatedPlayer,
-      opponent: updatedEnemy,
-      isOwnerTurn: isPlayerTurn,
-    );
-    updatedPlayer = playerAbilityResolution.owner;
-    updatedEnemy = playerAbilityResolution.opponent;
-    final enemyAbilityResolution = _effectPipeline.applyAbilityTurnStartEffects(
-      owner: updatedEnemy,
-      opponent: updatedPlayer,
-      isOwnerTurn: !isPlayerTurn,
-    );
-    updatedEnemy = enemyAbilityResolution.owner;
-    updatedPlayer = enemyAbilityResolution.opponent;
     final playerItemResolution =
         _effectPipeline.applyEquippedItemTurnStartEffects(
       owner: updatedPlayer,
@@ -175,20 +106,6 @@ class BattleTurnEngine {
       isOwnerTurn: !didPlayerAct,
       randomizer: randomizer,
     );
-    final playerAbilityResolution = _effectPipeline.applyAbilityTurnEndEffects(
-      owner: updatedPlayer,
-      opponent: updatedEnemy,
-      isOwnerTurn: didPlayerAct,
-    );
-    updatedPlayer = playerAbilityResolution.owner;
-    updatedEnemy = playerAbilityResolution.opponent;
-    final enemyAbilityResolution = _effectPipeline.applyAbilityTurnEndEffects(
-      owner: updatedEnemy,
-      opponent: updatedPlayer,
-      isOwnerTurn: !didPlayerAct,
-    );
-    updatedEnemy = enemyAbilityResolution.owner;
-    updatedPlayer = enemyAbilityResolution.opponent;
     final playerItemResolution =
         _effectPipeline.applyEquippedItemTurnEndEffects(
       owner: updatedPlayer,

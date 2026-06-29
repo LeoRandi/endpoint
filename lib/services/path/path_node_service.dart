@@ -676,6 +676,7 @@ class PathNodeService {
           phase: phase,
           player: player,
           dayNumber: dayNumber,
+          pool: itemPresets,
         );
   }
 

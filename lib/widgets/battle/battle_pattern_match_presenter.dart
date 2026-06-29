@@ -341,9 +341,9 @@ abstract final class BattlePatternEnemyPlanner {
       ...item.patternEffects.map((effect) => effect.actionEffect),
     ]) {
       score += switch (effect.actionType) {
-        ItemActionType.attack => effect.value * 4,
-        ItemActionType.block => effect.value * 3,
-        ItemActionType.heal => effect.value * 2,
+        ItemActionType.attack => effect.totalValue * 4,
+        ItemActionType.block => effect.totalValue * 3,
+        ItemActionType.heal => effect.totalValue * 2,
         ItemActionType.none => 0,
       };
     }

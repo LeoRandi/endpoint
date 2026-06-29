@@ -94,15 +94,6 @@ extension BattlerStatPresentation on BattlerStat {
       };
 }
 
-extension BattlerAbilityActivationContextPresentation
-    on BattlerAbilityActivationContext {
-  String get label => switch (this) {
-        BattlerAbilityActivationContext.battle => 'Combate',
-        BattlerAbilityActivationContext.pathSelection => 'Ruta',
-        BattlerAbilityActivationContext.shop => 'Tienda',
-      };
-}
-
 extension BattlerStatusTypePresentation on BattlerStatusType {
   String get label => switch (this) {
         BattlerStatusType.buff => 'Buff',
@@ -118,71 +109,6 @@ extension BattlerStatusTypePresentation on BattlerStatusType {
         BattlerStatusType.buff => const Color(0xFFE6FFF0),
         BattlerStatusType.debuff => const Color(0xFFFFE3E3),
       };
-}
-
-const _abilityIcons = <BattlerAbilityId, IconData>{
-  BattlerAbilityId.weaknessHunter: Icons.track_changes_rounded,
-  BattlerAbilityId.ghostMesh: Icons.security_rounded,
-  BattlerAbilityId.ritmoCircadiano: Icons.av_timer_rounded,
-  BattlerAbilityId.turnoDeNoche: Icons.bedtime_rounded,
-  BattlerAbilityId.cashflow: Icons.payments_rounded,
-  BattlerAbilityId.pulsoRepL: Icons.shield_rounded,
-  BattlerAbilityId.masaCritica: Icons.hub_rounded,
-  BattlerAbilityId.cortafuegosPortatil: Icons.security_rounded,
-  BattlerAbilityId.triageAutomatico: Icons.medical_services_rounded,
-  BattlerAbilityId.opresionTactica: Icons.control_camera_rounded,
-  BattlerAbilityId.copiaDeSeguridad: Icons.backup_rounded,
-  BattlerAbilityId.mandatoColiseo: Icons.stadium_rounded,
-  BattlerAbilityId.hemostasiaAgresiva: Icons.favorite_rounded,
-  BattlerAbilityId.mallaRebote: Icons.sync_alt_rounded,
-  BattlerAbilityId.escanerRuptura: Icons.radar_rounded,
-  BattlerAbilityId.nucleoParasitario: Icons.bloodtype_rounded,
-  BattlerAbilityId.monopolio: Icons.storefront_rounded,
-  BattlerAbilityId.diversificacionHostil: Icons.hub_rounded,
-  BattlerAbilityId.furiaHematica: Icons.bloodtype_rounded,
-  BattlerAbilityId.noHayRetirada: Icons.vertical_align_top_rounded,
-  BattlerAbilityId.geometriaLimpia: Icons.grid_4x4_rounded,
-  BattlerAbilityId.pulsoIsometrico: Icons.crop_square_rounded,
-  BattlerAbilityId.corteTangencial: Icons.swipe_rounded,
-  BattlerAbilityId.cortesAgudos: Icons.show_chart_rounded,
-  BattlerAbilityId.rotoresDefensivos: Icons.rotate_90_degrees_ccw_rounded,
-  BattlerAbilityId.polarizacion: Icons.compare_arrows_rounded,
-  BattlerAbilityId.arquitecturaPesada: Icons.foundation_rounded,
-  BattlerAbilityId.rutaContrabando: Icons.alt_route_rounded,
-  BattlerAbilityId.ecoSimetria: Icons.flip_rounded,
-  BattlerAbilityId.patronPerfecto: Icons.auto_awesome_rounded,
-  BattlerAbilityId.encendidoBrutal: Icons.local_fire_department_rounded,
-  BattlerAbilityId.combustionDirigida: Icons.bolt_rounded,
-  BattlerAbilityId.puntoIgnicion: Icons.whatshot_rounded,
-  BattlerAbilityId.deudaSangre: Icons.bloodtype_rounded,
-  BattlerAbilityId.reventaCircular: Icons.replay_rounded,
-  BattlerAbilityId.contratoReuso: Icons.assignment_return_rounded,
-  BattlerAbilityId.mercadoRecursivo: Icons.currency_exchange_rounded,
-  BattlerAbilityId.comisionRiesgo: Icons.trending_down_rounded,
-  BattlerAbilityId.franquiciaTotal: Icons.storefront_rounded,
-  BattlerAbilityId.agujaToxica: Icons.colorize_rounded,
-  BattlerAbilityId.rastroInestable: Icons.timeline_rounded,
-  BattlerAbilityId.cadenaNeurotoxica: Icons.hub_rounded,
-  BattlerAbilityId.armaBiologica: Icons.biotech_rounded,
-  BattlerAbilityId.inmunizacion: Icons.vaccines_rounded,
-  BattlerAbilityId.cargaVirica: Icons.bubble_chart_rounded,
-  BattlerAbilityId.epidemiologiaTactica: Icons.insights_rounded,
-  BattlerAbilityId.sintomasCruzados: Icons.sync_alt_rounded,
-  BattlerAbilityId.pacienteCero: Icons.personal_injury_rounded,
-  BattlerAbilityId.aceleracionFotovoltaica: Icons.flash_on_rounded,
-  BattlerAbilityId.b4r3b0n3d: Icons.data_object_rounded,
-  BattlerAbilityId.compensadorRuta: Icons.route_rounded,
-  BattlerAbilityId.aTodoRiesgo: Icons.policy_rounded,
-  BattlerAbilityId.ultimaPieza: Icons.electric_bolt_rounded,
-  BattlerAbilityId.geometriaBolsillo: Icons.category_rounded,
-  BattlerAbilityId.adaptacion: Icons.extension_rounded,
-  BattlerAbilityId.hornoSimetrico: Icons.local_fire_department_rounded,
-  BattlerAbilityId.kilotonificacion: Icons.warning_amber_rounded,
-};
-
-extension BattlerAbilityPresentation on BattlerAbility {
-  IconData get icon => _abilityIcons[id] ?? Icons.center_focus_strong_rounded;
-  Color get accent => rarity.accent;
 }
 
 extension AugmentPresentation on Augment {

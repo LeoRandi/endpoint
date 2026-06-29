@@ -160,16 +160,6 @@ class BattleSceneController extends ChangeNotifier {
   /// Indica si ya se esta presentando el overlay de recompensas para evitar aperturas dobles.
   bool get isPresentingRewards => _isPresentingRewards;
 
-  /// Devuelve solo las AUMENTOS que deben verse en la interfaz del contexto de combate.
-  List<BattlerAbility> visibleAbilitiesFor(Battler battler) {
-    return battler.abilities
-        .where(
-          (ability) =>
-              ability.appearsInContext(BattlerAbilityActivationContext.battle),
-        )
-        .toList(growable: false);
-  }
-
   /// Sustituye el jugador vivo del combate tras cambios externos como overlays.
   void replacePlayer(Battler player) {
     _battleController.replacePlayer(player);
@@ -225,11 +215,6 @@ class BattleSceneController extends ChangeNotifier {
     );
   }
 
-  /// Los aumentos son pasivos; no se alternan desde combate.
-  Future<void> togglePlayerAbility(BattlerAbility ability) {
-    return Future<void>.value();
-  }
-
   /// Indica si la escena puede abrir el overlay de inventario de combate.
   bool canOpenItemsOverlay() {
     return canUseActions && !hasPendingVictoryRewards;
@@ -238,58 +223,6 @@ class BattleSceneController extends ChangeNotifier {
   /// Devuelve el texto de estado que se muestra en el dialogo de un item equipado o inventariado.
   String statusLabelFor(Battler battler, Item item) {
     return ControllerUiText.itemStatusLabel(owner: battler, item: item);
-  }
-
-  /// Construye el texto de estado de una AUMENTO para el dialogo contextual de combate.
-  String abilityStatusTextFor(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    final ownershipSentence =
-        canControlOwner ? 'Pertenece al jugador.' : 'Pertenece al enemigo.';
-    return ControllerUiText.abilityStatusText(
-      ability,
-      ownershipSentence: ownershipSentence,
-    );
-  }
-
-  /// Devuelve la etiqueta del boton principal del dialogo de AUMENTO si la accion existe.
-  String? abilityActionLabelFor(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    return null;
-  }
-
-  /// Indica si la accion principal del dialogo de habilidad esta habilitada ahora mismo.
-  bool isAbilityActionEnabled(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    return false;
-  }
-
-  /// Explica por que la accion principal del dialogo de AUMENTO esta bloqueada.
-  String disabledAbilityActionTooltipFor(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) {
-    if (!canControlOwner) return 'Solo puedes gestionar habilidades propias';
-    if (!_battleController.canUseActions) {
-      return 'Solo puedes gestionar habilidades en tu turno';
-    }
-    final blockReason =
-        _battleController.player.manualAbilityActivationBlockReason(
-      BattlerAbilityActivationContext.battle,
-    );
-    if (blockReason != null && !ability.isActive) {
-      return blockReason;
-    }
-    if (!ability.isImplemented) return 'La habilidad aun no esta implementada';
-    if (ability.isOnCooldown) {
-      return 'Recarga restante: ${ability.remainingCooldownLabel}';
-    }
-    return 'No se puede activar desde esta pantalla';
   }
 
   /// Marca que el overlay de recompensas ya se esta presentando para evitar una segunda apertura.

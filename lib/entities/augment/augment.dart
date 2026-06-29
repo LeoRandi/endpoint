@@ -35,7 +35,7 @@ extension ArchetypeIdAugmentAffinity on ArchetypeId {
 }
 
 enum AugmentEffectType {
-  patternGlobalAttackDamageBonus,
+  patternWeaponCombatAttackBoost,
 }
 
 class AugmentEffect {
@@ -53,7 +53,7 @@ class AugmentEffect {
     required int value,
     required String description,
   }) : this(
-          type: AugmentEffectType.patternGlobalAttackDamageBonus,
+          type: AugmentEffectType.patternWeaponCombatAttackBoost,
           value: value,
           description: description,
         );
@@ -134,13 +134,13 @@ class AugmentEffects {
 }
 
 class AugmentPatternResolution {
-  final int attackBonusDelta;
+  final int weaponAttackBonusDelta;
 
   const AugmentPatternResolution({
-    this.attackBonusDelta = 0,
+    this.weaponAttackBonusDelta = 0,
   });
 
-  bool get isEmpty => attackBonusDelta == 0;
+  bool get isEmpty => weaponAttackBonusDelta == 0;
 }
 
 class Augment {
@@ -212,8 +212,8 @@ class Augment {
     if (effect == null) return const AugmentPatternResolution();
 
     return switch (effect.type) {
-      AugmentEffectType.patternGlobalAttackDamageBonus =>
-        AugmentPatternResolution(attackBonusDelta: effect.value),
+      AugmentEffectType.patternWeaponCombatAttackBoost =>
+        AugmentPatternResolution(weaponAttackBonusDelta: effect.value),
     };
   }
 

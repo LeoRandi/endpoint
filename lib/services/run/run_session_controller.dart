@@ -171,14 +171,8 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
-    final shouldRerollVisibleNodes = _didTriggerTimelineRefactor(
-      previousPlayer: _state.player,
-      updatedPlayer: player,
-    );
-    final shouldConveneShopNodes = _didTriggerSuddenConvention(
-      previousPlayer: _state.player,
-      updatedPlayer: player,
-    );
+    const shouldRerollVisibleNodes = false;
+    const shouldConveneShopNodes = false;
     final resolvedCompletionType = _resolveCompletionType(
       updatedPlayer: player,
     );
@@ -205,7 +199,7 @@ class RunSessionController extends ChangeNotifier {
       completionType: resolvedCompletionType,
     );
     if (resolvedCompletionType == null && !_isResolvingNode) {
-      if (shouldConveneShopNodes && _canApplySuddenConvention()) {
+      if (shouldConveneShopNodes) {
         final conventionHour = _buildSuddenConventionHourSnapshot(
           player: player,
         );
@@ -638,7 +632,7 @@ class RunSessionController extends ChangeNotifier {
         shopRarityDayOffset ?? _state.shopRarityDayOffset;
     final activeEventRarityDayOffset =
         eventRarityDayOffset ?? _state.eventRarityDayOffset;
-    var nextPlayer = _progressPathSelectionAbilityCooldowns(player);
+    final nextPlayer = player;
     var nextHour = _pathNodeService.buildHourSnapshot(
       stageIndex: stageIndex,
       player: nextPlayer,
@@ -649,19 +643,6 @@ class RunSessionController extends ChangeNotifier {
       shopRarityDayOffset: activeShopRarityDayOffset,
       eventRarityDayOffset: activeEventRarityDayOffset,
     );
-    if (_shouldApplyHourStartEffects(nextHour)) {
-      nextPlayer = nextPlayer.applyAbilityHourStartEffects();
-      nextHour = _pathNodeService.buildHourSnapshot(
-        stageIndex: stageIndex,
-        player: nextPlayer,
-        availableNodes:
-            _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
-        shownShopNodeIds: _state.shownShopNodeIds,
-        nodeCount: _nodeCount,
-        shopRarityDayOffset: activeShopRarityDayOffset,
-        eventRarityDayOffset: activeEventRarityDayOffset,
-      );
-    }
     nextHour = _injectGuaranteedNextNode(
       hour: nextHour,
       guaranteedNextNode: guaranteedNextNode,
@@ -748,75 +729,6 @@ class RunSessionController extends ChangeNotifier {
     }
 
     return null;
-  }
-
-  bool _shouldApplyHourStartEffects(RunHourSnapshot hour) {
-    return hour.phase == RunHourPhase.day || hour.phase == RunHourPhase.night;
-  }
-
-  bool _didTriggerTimelineRefactor({
-    required Battler previousPlayer,
-    required Battler updatedPlayer,
-  }) {
-    final previousAbility =
-        previousPlayer.abilityById(BattlerAbilityId.refactorizacionTimeline);
-    final updatedAbility =
-        updatedPlayer.abilityById(BattlerAbilityId.refactorizacionTimeline);
-    if (previousAbility == null || updatedAbility == null) {
-      return false;
-    }
-
-    final cooldownRaised = updatedAbility.remainingCooldownTurns >
-        previousAbility.remainingCooldownTurns;
-    final spentCredits = updatedPlayer.money < previousPlayer.money;
-    return cooldownRaised && spentCredits;
-  }
-
-  bool _didTriggerSuddenConvention({
-    required Battler previousPlayer,
-    required Battler updatedPlayer,
-  }) {
-    final previousAbility =
-        previousPlayer.abilityById(BattlerAbilityId.convencionRepentina);
-    final updatedAbility =
-        updatedPlayer.abilityById(BattlerAbilityId.convencionRepentina);
-    if (previousAbility == null || updatedAbility == null) {
-      return false;
-    }
-
-    return updatedAbility.remainingCooldownTurns >
-        previousAbility.remainingCooldownTurns;
-  }
-
-  bool _canApplySuddenConvention() {
-    return currentHour.phase != RunHourPhase.dusk &&
-        currentHour.phase != RunHourPhase.sunrise;
-  }
-
-  Battler _progressPathSelectionAbilityCooldowns(Battler player) {
-    final cappedPlayer = player.enforceAbilityCooldownCap();
-    if (cappedPlayer.abilities.isEmpty) return cappedPlayer;
-
-    var hasChanges = false;
-    final updatedAbilities = cappedPlayer.abilities.map((ability) {
-      if (ability.manualActivationContext !=
-          BattlerAbilityActivationContext.pathSelection) {
-        return ability;
-      }
-
-      final tickedAbility = ability.tickCooldown();
-      if (tickedAbility.remainingCooldownTurns !=
-          ability.remainingCooldownTurns) {
-        hasChanges = true;
-      }
-      return tickedAbility;
-    }).toList(growable: false);
-
-    if (!hasChanges) return cappedPlayer;
-
-    return cappedPlayer.copyWith(
-      abilities: List<BattlerAbility>.unmodifiable(updatedAbilities),
-    );
   }
 
   RunHourSnapshot _buildRefactoredHourSnapshot({

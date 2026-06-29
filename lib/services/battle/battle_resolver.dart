@@ -44,17 +44,11 @@ class BattleResolver {
       target: defender,
       damage: baseDamage,
     );
-    final outgoingAbilityModifiedDamage =
-        _effectPipeline.applyAbilityOutgoingDamageModifiers(
-      owner: attacker,
-      target: defender,
-      damage: outgoingStatusModifiedDamage,
-    );
     final outgoingModifiedDamage =
         _effectPipeline.applyEquippedItemOutgoingDamageModifiers(
       owner: attacker,
       target: defender,
-      damage: outgoingAbilityModifiedDamage,
+      damage: outgoingStatusModifiedDamage,
     );
     final incomingStatusModifiedDamage =
         _effectPipeline.applyIncomingDamageModifiers(
@@ -62,29 +56,17 @@ class BattleResolver {
       source: attacker,
       damage: outgoingModifiedDamage,
     );
-    final incomingAbilityModifiedDamage =
-        _effectPipeline.applyAbilityIncomingDamageModifiers(
-      owner: defender,
-      source: attacker,
-      damage: incomingStatusModifiedDamage,
-    );
     final damageDealt =
         _effectPipeline.applyEquippedItemIncomingDamageModifiers(
       owner: defender,
       source: attacker,
-      damage: incomingAbilityModifiedDamage,
+      damage: incomingStatusModifiedDamage,
     );
     var defenderAfterDamage = _effectPipeline.receiveDirectDamage(
       owner: defender,
       damage: damageDealt,
       source: attacker,
     );
-    if (defenderAfterDamage.isDefeated && damageDealt > 0) {
-      defenderAfterDamage = _effectPipeline.applyAbilityFatalDamageEffects(
-        owner: defenderAfterDamage,
-        incomingDamage: damageDealt,
-      );
-    }
     final barrierWasBrokenByAttack = defender.currentBarrier > 0 &&
         defenderAfterDamage.currentBarrier <= 0 &&
         damageDealt > 0;
@@ -96,15 +78,6 @@ class BattleResolver {
         target: updatedDefender,
         damageDealt: damageDealt,
       );
-      final attackAbilityResolution =
-          _effectPipeline.applyAbilityAttackResolvedEffects(
-        owner: updatedAttacker,
-        target: updatedDefender,
-        damageDealt: damageDealt,
-      );
-      updatedAttacker = attackAbilityResolution.owner;
-      updatedDefender = attackAbilityResolution.opponent;
-
       final attackItemResolution =
           _effectPipeline.applyEquippedItemAttackResolvedEffects(
         owner: updatedAttacker,
@@ -125,14 +98,6 @@ class BattleResolver {
       source: updatedAttacker,
       damageTaken: damageDealt,
     );
-    final receiveAbilityResolution =
-        _effectPipeline.applyAbilityReceiveDamageResolvedEffects(
-      owner: updatedDefender,
-      source: updatedAttacker,
-      damageTaken: damageDealt,
-    );
-    updatedDefender = receiveAbilityResolution.owner;
-    updatedAttacker = receiveAbilityResolution.opponent;
     final receiveItemResolution =
         _effectPipeline.applyEquippedItemReceiveDamageResolvedEffects(
       owner: updatedDefender,
@@ -171,15 +136,6 @@ class BattleResolver {
         target: updatedDefender,
         damageDealt: 0,
       );
-
-      final attackAbilityResolution =
-          _effectPipeline.applyAbilityAttackResolvedEffects(
-        owner: updatedAttacker,
-        target: updatedDefender,
-        damageDealt: 0,
-      );
-      updatedAttacker = attackAbilityResolution.owner;
-      updatedDefender = attackAbilityResolution.opponent;
 
       final attackItemResolution =
           _effectPipeline.applyEquippedItemAttackResolvedEffects(

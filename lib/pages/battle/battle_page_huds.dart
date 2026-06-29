@@ -46,7 +46,6 @@ class _ActionPanel extends StatelessWidget {
 
 class _PlayerBattleHud extends StatelessWidget {
   final Battler player;
-  final List<BattlerAbility> visibleAbilities;
   final bool isEnabled;
   final bool isPatternMode;
   final VoidCallback onAttack;
@@ -55,7 +54,7 @@ class _PlayerBattleHud extends StatelessWidget {
   final Future<void> Function() onOpenPreviewOperatives;
   final PlayerActionIntentPreview actionPreview;
   final _OpenBattleItemDetailsCallback? onOpenEquippedItemDetails;
-  final _OpenBattleAbilityDetailsCallback? onOpenAbilityDetails;
+  final _OpenBattleAugmentDetailsCallback? onOpenAugmentDetails;
   final Key? statusBarKey;
   final Duration healthAnimationDuration;
   final Duration barrierAnimationDuration;
@@ -63,7 +62,6 @@ class _PlayerBattleHud extends StatelessWidget {
 
   const _PlayerBattleHud({
     required this.player,
-    required this.visibleAbilities,
     required this.isEnabled,
     required this.isPatternMode,
     required this.onAttack,
@@ -72,7 +70,7 @@ class _PlayerBattleHud extends StatelessWidget {
     required this.onOpenPreviewOperatives,
     required this.actionPreview,
     required this.onOpenEquippedItemDetails,
-    required this.onOpenAbilityDetails,
+    required this.onOpenAugmentDetails,
     required this.statusBarKey,
     required this.healthAnimationDuration,
     required this.barrierAnimationDuration,
@@ -90,13 +88,14 @@ class _PlayerBattleHud extends StatelessWidget {
           accent: EndpointPalette.primaryAccent,
           onItemPressed: onOpenEquippedItemDetails,
         ),
-        const SizedBox(height: 8),
-        _BattleAbilityStrip(
-          abilities: visibleAbilities,
-          accent: EndpointPalette.primaryAccent,
-          onAbilityPressed: onOpenAbilityDetails,
-          enableAbilityTooltipLongPress: false,
-        ),
+        if (player.augments.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _BattleAugmentStrip(
+            augments: player.augments,
+            accent: EndpointPalette.primaryAccent,
+            onAugmentPressed: onOpenAugmentDetails,
+          ),
+        ],
         const SizedBox(height: 8),
         _BattleStatusBar(
           key: statusBarKey,
@@ -418,10 +417,6 @@ class _ActionIntentEffectChip extends StatelessWidget {
           accent: status.type.accent,
           valueLabel: _statusAmountLabel(status, effect.amount),
         );
-      case PlayerActionEffectIntentKind.ability:
-        final ability = effect.ability;
-        if (ability == null) return const SizedBox.shrink();
-        return _ActionIntentAbilityChip(ability: ability);
     }
   }
 
@@ -480,38 +475,6 @@ class _ActionIntentIconChip extends StatelessWidget {
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionIntentAbilityChip extends StatelessWidget {
-  final BattlerAbility ability;
-
-  const _ActionIntentAbilityChip({
-    required this.ability,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = ability.accent;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: EndpointPalette.panelBackgroundBattleOpaque,
-        border: Border.all(
-          color: accent.withAlpha(174),
-          width: 1,
-        ),
-      ),
-      child: SizedBox(
-        width: 17,
-        height: 17,
-        child: Icon(
-          ability.icon,
-          size: 10,
-          color: accent,
         ),
       ),
     );
@@ -656,9 +619,8 @@ class _ActionIntentMarqueeState extends State<_ActionIntentMarquee>
 
 class _EnemyBattleHud extends StatelessWidget {
   final Battler enemy;
-  final List<BattlerAbility> visibleAbilities;
   final _OpenBattleItemDetailsCallback? onOpenEquippedItemDetails;
-  final _OpenBattleAbilityDetailsCallback? onOpenAbilityDetails;
+  final _OpenBattleAugmentDetailsCallback? onOpenAugmentDetails;
   final Key? statusBarKey;
   final Duration healthAnimationDuration;
   final Duration barrierAnimationDuration;
@@ -666,9 +628,8 @@ class _EnemyBattleHud extends StatelessWidget {
 
   const _EnemyBattleHud({
     required this.enemy,
-    required this.visibleAbilities,
     required this.onOpenEquippedItemDetails,
-    required this.onOpenAbilityDetails,
+    required this.onOpenAugmentDetails,
     required this.statusBarKey,
     required this.healthAnimationDuration,
     required this.barrierAnimationDuration,
@@ -717,11 +678,14 @@ class _EnemyBattleHud extends StatelessWidget {
           barrierAnimationReference: barrierAnimationReference,
         ),
         const SizedBox(height: 8),
-        _BattleAbilityStrip(
-          abilities: visibleAbilities,
-          accent: EndpointPalette.dangerAccent,
-          onAbilityPressed: onOpenAbilityDetails,
-        ),
+        if (enemy.augments.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _BattleAugmentStrip(
+            augments: enemy.augments,
+            accent: EndpointPalette.dangerAccent,
+            onAugmentPressed: onOpenAugmentDetails,
+          ),
+        ],
         const SizedBox(height: 8),
         _BattleItemStrip(
           battler: enemy,

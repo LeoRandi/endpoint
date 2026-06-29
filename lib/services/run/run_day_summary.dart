@@ -7,8 +7,6 @@ import '../persistence/endpoint_json_utils.dart';
 enum RunDaySummaryRewardType {
   item,
   augment,
-  // Legacy summary rows may still carry this type in existing saves.
-  ability,
 }
 
 class RunDaySummaryReward {
@@ -80,9 +78,7 @@ class RunDaySummaryReward {
     final item = type == RunDaySummaryRewardType.item
         ? _deserializeRewardItem(json, rarity: rarity)
         : null;
-    final isAugmentReward = type == RunDaySummaryRewardType.augment ||
-        type == RunDaySummaryRewardType.ability;
-    final augment = isAugmentReward
+    final augment = type == RunDaySummaryRewardType.augment
         ? _deserializeRewardAugment(json, rarity: rarity)
         : null;
 

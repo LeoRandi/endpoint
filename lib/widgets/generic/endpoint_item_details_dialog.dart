@@ -605,9 +605,9 @@ class _PatternEffectRow extends StatelessWidget {
 
 String _itemActionDescription(ActionEffect action) =>
     switch (action.actionType) {
-      ItemActionType.attack => 'Ataca por ${action.value} de daño',
-      ItemActionType.block => 'Bloquea por ${action.value} de barrera',
-      ItemActionType.heal => 'Cúrate ${action.value} de vida',
+      ItemActionType.attack => 'Ataca por ${action.totalValue} de daño',
+      ItemActionType.block => 'Bloquea por ${action.totalValue} de barrera',
+      ItemActionType.heal => 'Cúrate ${action.totalValue} de vida',
       ItemActionType.none => action.resolvedDescription!,
     };
 
@@ -857,7 +857,7 @@ class _ItemPatternBonusSectionState extends State<_ItemPatternBonusSection> {
         ItemActionType.heal => OperativePatternBonusKind.health,
         ItemActionType.none => OperativePatternBonusKind.barrier,
       },
-      amount: patternEffect.value,
+      amount: patternEffect.totalValue,
     );
     const adjacencyBonuses = <OperativePatternAdjacencyBonus>[];
     final accent = _bonusAccent(bonus.kind);

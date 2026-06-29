@@ -2,20 +2,12 @@ import '../../entities/_exports.dart';
 import 'endpoint_json_utils.dart';
 
 abstract final class EndpointDomainCodec {
-  static BattlerAbility? deserializeAbility(Map<String, dynamic> json) {
-    return _deserializeAbility(json);
-  }
-
   static Augment? deserializeAugment(Map<String, dynamic> json) {
     return _deserializeAugment(json);
   }
 
   static Map<String, Object?> serializeAugment(Augment augment) {
     return _serializeAugment(augment);
-  }
-
-  static Map<String, Object?> serializeAbility(BattlerAbility ability) {
-    return _serializeAbility(ability);
   }
 
   static Item? deserializeItem(Map<String, dynamic> json) {
@@ -27,10 +19,6 @@ abstract final class EndpointDomainCodec {
   }
 
   static Battler deserializeBattler(Map<String, dynamic> json) {
-    final abilities = EndpointJsonUtils.readJsonMapList(json['abilities'])
-        .map<BattlerAbility?>(_deserializeAbility)
-        .whereType<BattlerAbility>()
-        .toList(growable: false);
     final augments = EndpointJsonUtils.readJsonMapList(json['augments'])
         .map<Augment?>(_deserializeAugment)
         .whereType<Augment>()
@@ -106,7 +94,6 @@ abstract final class EndpointDomainCodec {
           fallback: defaultPlayerBattler.baseStats,
         ),
       ),
-      abilities: List<BattlerAbility>.unmodifiable(abilities),
       augments: List<Augment>.unmodifiable(augments),
       statuses: List<BattlerStatus>.unmodifiable(statuses),
       inventoryItems: List<Item>.unmodifiable(inventoryItems),
@@ -145,9 +132,6 @@ abstract final class EndpointDomainCodec {
       'equipmentCapacity': battler.equipmentCapacity,
       'remainingEquipmentCapacity': battler.remainingEquipmentCapacity,
       'baseStats': _serializeStatMap(battler.baseStats),
-      'abilities': battler.abilities
-          .map<Map<String, Object?>>(_serializeAbility)
-          .toList(growable: false),
       'augments': battler.augments
           .map<Map<String, Object?>>(_serializeAugment)
           .toList(growable: false),
@@ -223,66 +207,6 @@ abstract final class EndpointDomainCodec {
 
     return payload;
   }
-}
-
-BattlerAbility? _deserializeAbility(Map<String, dynamic> json) {
-  final abilityId = EndpointJsonUtils.parseEnumByName(
-    BattlerAbilityId.values,
-    json['id'],
-  );
-  if (abilityId == null) return null;
-
-  final preset = abilityPresetRegistry[abilityId];
-  if (preset == null) return null;
-
-  return preset
-      .copyWith(
-        rarity: EndpointJsonUtils.parseEnumByName(
-                RarityTier.values, json['rarity']) ??
-            preset.rarity,
-        name: EndpointJsonUtils.readString(
-          json['name'],
-          fallback: preset.name,
-        ),
-        description: EndpointJsonUtils.readString(
-          json['description'],
-          fallback: preset.description,
-        ),
-        cooldownTurns: EndpointJsonUtils.readInt(
-          json['cooldownTurns'],
-          fallback: preset.cooldownTurns,
-        ),
-        remainingCooldownTurns: EndpointJsonUtils.readInt(
-          json['remainingCooldownTurns'],
-          fallback: preset.remainingCooldownTurns,
-        ),
-        value: EndpointJsonUtils.readInt(
-          json['value'],
-          fallback: preset.value,
-        ),
-        upgradeValue: EndpointJsonUtils.readInt(
-          json['upgradeValue'],
-          fallback: preset.upgradeValue,
-        ),
-        runtimeValueBonus: EndpointJsonUtils.readInt(
-          json['runtimeValueBonus'],
-          fallback: preset.runtimeValueBonus,
-        ),
-        isActive: EndpointJsonUtils.readBool(
-          json['isActive'],
-          fallback: preset.isActive,
-        ),
-        manualActivationContext: EndpointJsonUtils.parseEnumByName(
-              BattlerAbilityActivationContext.values,
-              json['manualActivationContext'],
-            ) ??
-            preset.manualActivationContext,
-        isImplemented: EndpointJsonUtils.readBool(
-          json['isImplemented'],
-          fallback: preset.isImplemented,
-        ),
-      )
-      .normalizeUpgradeTier();
 }
 
 Augment? _deserializeAugment(Map<String, dynamic> json) {
@@ -460,25 +384,6 @@ CombatRuntimeFlag? _deserializeCombatFlag(Map<String, dynamic> json) {
   );
 }
 
-Map<String, Object?> _serializeAbility(BattlerAbility ability) {
-  return {
-    'id': ability.id.name,
-    'name': ability.name,
-    'description': ability.description,
-    'displayName': ability.displayName,
-    'rarity': ability.rarity.name,
-    'value': ability.value,
-    'currentValue': ability.currentValue,
-    'upgradeValue': ability.upgradeValue,
-    'cooldownTurns': ability.cooldownTurns,
-    'remainingCooldownTurns': ability.remainingCooldownTurns,
-    'runtimeValueBonus': ability.runtimeValueBonus,
-    'isActive': ability.isActive,
-    'manualActivationContext': ability.manualActivationContext?.name,
-    'isImplemented': ability.isImplemented,
-  };
-}
-
 Map<String, Object?> _serializeAugment(Augment augment) {
   return {
     'id': augment.id,
@@ -602,6 +507,8 @@ Map<String, Object?> _serializeActionEffect(ActionEffect effect) {
     'description': effect.description,
     'customEffectKey': effect.customEffectKey,
     'value': effect.value,
+    if (effect.bonusValuesBySource.isNotEmpty)
+      'bonusValuesBySource': effect.bonusValuesBySource,
   };
 }
 
@@ -654,8 +561,19 @@ ActionEffect? _deserializeActionEffect(Map<String, dynamic> json) {
     actionType: actionType,
     description: description,
     customEffectKey: customEffectKey,
+    bonusValuesBySource: _deserializeIntMap(json['bonusValuesBySource']),
     value: EndpointJsonUtils.readInt(json['value'], fallback: 0),
   );
+}
+
+Map<String, int> _deserializeIntMap(Object? rawValue) {
+  final jsonMap = EndpointJsonUtils.asJsonMap(rawValue);
+  if (jsonMap == null) return const <String, int>{};
+
+  return Map<String, int>.unmodifiable({
+    for (final entry in jsonMap.entries)
+      if (entry.value is int) entry.key: entry.value as int,
+  });
 }
 
 Map<String, Object?> _serializePatternRequirement(

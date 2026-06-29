@@ -504,6 +504,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.player)) {
       _sceneController.replacePlayer(patternLayout.player);
     }
+    final equippedItemsByPointKey = _sceneController.player
+        .itemsByPointKeyWithCombatActionBonuses(patternLayout.itemsByPointKey);
     const BattlePatternEnemyBlockAction? pendingEnemyBlockAction = null;
     const availableBlockingPoints = 0;
     const availableEnemyBlockingPoints = 0;
@@ -518,7 +520,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         child: BattlePatternMatchOverlay(
           player: _sceneController.player,
           enemy: _sceneController.enemy,
-          equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          equippedItemsByPointKey: equippedItemsByPointKey,
           wallSegments: const <OperativePatternWallSegment>[],
           blockedPointKeys: const <String>{},
           pendingEnemyBlockAction: pendingEnemyBlockAction,
@@ -555,14 +557,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             augment,
             owner: _sceneController.enemy,
             allowDuringPatternMatch: true,
-          ),
-          onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
-            ability,
-            canControlOwner: true,
-          ),
-          onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
-            ability,
-            canControlOwner: false,
           ),
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
@@ -604,6 +598,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!identical(patternLayout.player, _sceneController.enemy)) {
       _sceneController.replaceEnemy(patternLayout.player);
     }
+    final equippedItemsByPointKey = _sceneController.enemy
+        .itemsByPointKeyWithCombatActionBonuses(patternLayout.itemsByPointKey);
     const playerWallCapacity = 0;
     const enemyOverchargesPattern = false;
     var didResolveTurn = false;
@@ -618,7 +614,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         child: EnemyBattlePatternMatchOverlay(
           player: _sceneController.player,
           enemy: _sceneController.enemy,
-          equippedItemsByPointKey: patternLayout.itemsByPointKey,
+          equippedItemsByPointKey: equippedItemsByPointKey,
           wallSegments: const <OperativePatternWallSegment>[],
           blockedPointKeys: const <String>{},
           maxBlockingPoints: playerWallCapacity,
@@ -652,14 +648,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             augment,
             owner: _sceneController.enemy,
             allowDuringPatternMatch: true,
-          ),
-          onPlayerAbilityPressed: (ability) => _handleOpenAbilityDetails(
-            ability,
-            canControlOwner: true,
-          ),
-          onEnemyAbilityPressed: (ability) => _handleOpenAbilityDetails(
-            ability,
-            canControlOwner: false,
           ),
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
@@ -1425,71 +1413,6 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> _handleOpenAbilityDetails(
-    BattlerAbility ability, {
-    required bool canControlOwner,
-  }) async {
-    if (!_sceneController.canUseActions ||
-        _isPresentingPatternMatch ||
-        _sceneController.hasPendingVictoryRewards ||
-        _isPlayingBattleAnimation) {
-      return;
-    }
-
-    await showEndpointDialog<void>(
-      context: context,
-      barrierLabel: 'Detalle de aumento',
-      barrierColor: EndpointPalette.overlayScrim,
-      builder: (context) {
-        return AnimatedBuilder(
-          animation: _sceneController.battleController,
-          builder: (context, _) {
-            final currentOwner = canControlOwner
-                ? _sceneController.player
-                : _sceneController.enemy;
-            final currentAbility =
-                currentOwner.abilityById(ability.id) ?? ability;
-
-            return EndpointAbilityDetailsDialog(
-              ability: currentAbility,
-              accent: currentAbility.accent,
-              statusText: _sceneController.abilityStatusTextFor(
-                currentAbility,
-                canControlOwner: canControlOwner,
-              ),
-              actionLabel: _sceneController.abilityActionLabelFor(
-                currentAbility,
-                canControlOwner: canControlOwner,
-              ),
-              onPrimaryAction: _sceneController.isAbilityActionEnabled(
-                currentAbility,
-                canControlOwner: canControlOwner,
-              )
-                  ? () {
-                      unawaited(
-                        _sceneController.togglePlayerAbility(currentAbility),
-                      );
-                    }
-                  : null,
-              isActionEnabled: _sceneController.isAbilityActionEnabled(
-                currentAbility,
-                canControlOwner: canControlOwner,
-              ),
-              enabledActionTooltip: currentAbility.isActive
-                  ? 'Desactivar aumento manual'
-                  : 'Activar aumento manual',
-              disabledActionTooltip:
-                  _sceneController.disabledAbilityActionTooltipFor(
-                currentAbility,
-                canControlOwner: canControlOwner,
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Future<void> _handleOpenAugmentDetails(
     Augment augment, {
     required Battler owner,
@@ -1570,16 +1493,16 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           item,
         );
       },
-      onOpenPlayerAbilityDetails: (ability) {
-        return _handleOpenAbilityDetails(
-          ability,
-          canControlOwner: true,
+      onOpenPlayerAugmentDetails: (augment) {
+        return _handleOpenAugmentDetails(
+          augment,
+          owner: _sceneController.player,
         );
       },
-      onOpenEnemyAbilityDetails: (ability) {
-        return _handleOpenAbilityDetails(
-          ability,
-          canControlOwner: false,
+      onOpenEnemyAugmentDetails: (augment) {
+        return _handleOpenAugmentDetails(
+          augment,
+          owner: _sceneController.enemy,
         );
       },
     );

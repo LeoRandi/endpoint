@@ -13,6 +13,7 @@ String interpolateItemEffectValue(String template, Object value) {
 abstract final class ItemEffectKeys {
   static const String sunglasses = 'sunglasses';
   static const String nanoBandageTurnStartHeal = 'nano_bandage_turn_start_heal';
+  static const String sHarpEner = 's_harp_ener';
 }
 
 /// Base value object for every effect an item can own.
@@ -30,11 +31,13 @@ final class ActionEffect extends Effect {
   final ItemActionType actionType;
   final String? description;
   final String? customEffectKey;
+  final Map<String, int> bonusValuesBySource;
 
   const ActionEffect({
     required this.actionType,
     this.description,
     this.customEffectKey,
+    this.bonusValuesBySource = const <String, int>{},
     required super.value,
   }) : assert(
           actionType != ItemActionType.none ||
@@ -45,17 +48,51 @@ final class ActionEffect extends Effect {
           'ActionEffect.none requires a description and customEffectKey.',
         );
 
+  int get bonusValue => bonusValuesBySource.values.fold<int>(
+        0,
+        (total, value) => total + value,
+      );
+  int get totalValue => max(0, value + bonusValue);
+  bool get showsPointBadge => actionType != ItemActionType.none || value > 0;
+
+  int bonusValueForSource(String sourceKey) {
+    return bonusValuesBySource[sourceKey] ?? 0;
+  }
+
   String? get resolvedDescription => description == null
       ? null
-      : interpolateItemEffectValue(description!, value);
+      : interpolateItemEffectValue(description!, totalValue);
 
   @override
   ActionEffect withValue(int value) => ActionEffect(
         actionType: actionType,
         description: description,
         customEffectKey: customEffectKey,
+        bonusValuesBySource: bonusValuesBySource,
         value: value,
       );
+
+  ActionEffect withBonusSource({
+    required String sourceKey,
+    required int bonusValue,
+  }) {
+    final safeSourceKey = sourceKey.trim();
+    if (safeSourceKey.isEmpty) return this;
+
+    final nextBonusValues = Map<String, int>.from(bonusValuesBySource);
+    if (bonusValue == 0) {
+      nextBonusValues.remove(safeSourceKey);
+    } else {
+      nextBonusValues[safeSourceKey] = bonusValue;
+    }
+    return ActionEffect(
+      actionType: actionType,
+      description: description,
+      customEffectKey: customEffectKey,
+      bonusValuesBySource: Map<String, int>.unmodifiable(nextBonusValues),
+      value: value,
+    );
+  }
 
   factory ActionEffect.attack({required int value}) => ActionEffect(
         actionType: ItemActionType.attack,
@@ -83,10 +120,26 @@ final class PatternEffect extends Effect {
     required this.actionEffect,
   }) : super(value: actionEffect.value);
 
+  int get bonusValue => actionEffect.bonusValue;
+  Map<String, int> get bonusValuesBySource => actionEffect.bonusValuesBySource;
+  int get totalValue => actionEffect.totalValue;
+
   @override
   PatternEffect withValue(int value) => PatternEffect(
         patternType: patternType,
         actionEffect: actionEffect.withValue(value),
+      );
+
+  PatternEffect withActionBonusSource({
+    required String sourceKey,
+    required int bonusValue,
+  }) =>
+      PatternEffect(
+        patternType: patternType,
+        actionEffect: actionEffect.withBonusSource(
+          sourceKey: sourceKey,
+          bonusValue: bonusValue,
+        ),
       );
 }
 
@@ -133,15 +186,6 @@ class ItemEffectResolution {
   });
 }
 
-enum ItemAbilityResolutionContext {
-  manualActivation,
-  attackResolved,
-  receiveDamageResolved,
-  turnStart,
-  turnEnd,
-  patternMatchResolved,
-}
-
 /// Combat moments at which a [PassiveEffect] can be evaluated.
 enum ItemEffectHook {
   combatStart,
@@ -159,24 +203,10 @@ enum ItemEffectHook {
   attackResolved,
   receiveDamageResolved,
   passive,
-  manualAbilityPreparation,
-  abilityResolved,
   outgoingStatusModifier,
   incomingStatusModifier,
   contagioValueLost,
   fatalDamage,
-}
-
-class ItemAbilityPreparationResolution {
-  final Battler owner;
-  final Battler opponent;
-  final BattlerAbility ability;
-
-  const ItemAbilityPreparationResolution({
-    required this.owner,
-    required this.opponent,
-    required this.ability,
-  });
 }
 
 class ItemIncomingStatusResolution {
