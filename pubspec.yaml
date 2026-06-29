@@ -1,7 +1,7 @@
 name: endpoint
 description: "Death at Sunrise"
 
-version: 0.43.4
+version: 0.43.5
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

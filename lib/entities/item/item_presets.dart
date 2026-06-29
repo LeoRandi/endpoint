@@ -142,7 +142,7 @@ List<Item> itemPresets = <Item>[
     asset: 'assets/sprites/items/KindlingAxe.png',
     effects: <Effect, int>{
       ActionEffect.attack(value: 10): 10,
-      ActionEffect(
+      const ActionEffect(
         actionType: ItemActionType.none,
         description:
             'Apply --value-- Burn to the enemy and 2 Burn to yourself.',
@@ -611,6 +611,184 @@ List<Item> itemPresets = <Item>[
       ): 1,
     },
   ),
+
+  /////////////////////////////---Mercante---///////////////////////////////////////
+
+  /// Brass Multitool
+  Item(
+    affinity: ItemArchetypeAffinity.mercante,
+    name: 'Brass Multitool',
+    description:
+        'A cheap folding tool with too many functions and none of them impressive. Still, it always has the right attachment.',
+    tier: RarityTier.gray,
+    baseCost: 2,
+    sellValue: 1,
+    tags: <EntityTag>[
+      EntityTag.ataque,
+      EntityTag.barrera,
+      EntityTag.cura,
+      EntityTag.accesorio,
+      EntityTag.arma,
+    ],
+    asset: 'assets/sprites/items/BrassMultitool.png',
+    effects: <Effect, int>{
+      ActionEffect.attack(value: 2): 2,
+      ActionEffect.block(value: 2): 2,
+      ActionEffect.heal(value: 2): 2,
+    },
+  ),
+
+  /// Lanzamonedas
+  Item(
+    affinity: ItemArchetypeAffinity.mercante,
+    name: 'Lanzamonedas',
+    description:
+        'A ridiculous rocket launcher with a cartoonish bag of coins strapped on top. It turns bad financial decisions into direct violence.',
+    tier: RarityTier.green,
+    baseCost: 4,
+    sellValue: 2,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.economia,
+    ],
+    asset: 'assets/sprites/items/Lanzamonedas.png',
+    effects: <Effect, int>{
+      ActionEffect.attack(value: 5): 5,
+      ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Spend 2 Gold to deal --value-- extra true damage. If you cannot pay, this effect does nothing.',
+        customEffectKey: ItemEffectKeys.lanzamonedasSpendGoldDamage,
+        value: 5,
+      ): 5,
+    },
+  ),
+
+  /// Cashback Badge
+  Item(
+    affinity: ItemArchetypeAffinity.mercante,
+    name: 'Cashback Badge',
+    description:
+        'A polished badge awarded to reckless spenders. Somehow, every purchase feels like profit.',
+    tier: RarityTier.blue,
+    baseCost: 6,
+    sellValue: 3,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.economia,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/CashbackBadge.png',
+    effects: <Effect, int>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.cashbackBadgeRefund,
+        description:
+            'The first time each turn you spend Gold through an item effect, recover --value-- Gold.',
+        value: 1,
+        hook: ItemEffectHook.passive,
+      ): 1,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.cashbackBadgeSpendPotencia,
+        description:
+            'Whenever you gain Gold through an item effect, gain --value-- Potencia.',
+        value: 1,
+        hook: ItemEffectHook.passive,
+      ): 1,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.last(),
+        actionEffect: ActionEffect(
+          actionType: ItemActionType.none,
+          description: 'If this ends the pattern, gain --value-- Gold.',
+          customEffectKey: ItemEffectKeys.cashbackBadgeOpeningDiscount,
+          value: 1,
+        ),
+      ): 1,
+    },
+  ),
+
+  /// Contraband Catalogue
+  Item(
+    affinity: ItemArchetypeAffinity.mercante,
+    name: 'Contraband Catalogue',
+    description:
+        'A forbidden catalogue full of things no honest shop should sell. Perfect for someone with flexible morals and enough money.',
+    tier: RarityTier.purple,
+    baseCost: 8,
+    sellValue: 4,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.economia,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/ContrabandCatalogue.png',
+    effects: <Effect, int>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.contrabandCatalogueMixedArchetypeScaling,
+        description:
+            'At combat start, gain --value-- Potencia for each different non-Mercante item affinity equipped.',
+        value: 1,
+        hook: ItemEffectHook.combatStart,
+      ): 1,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.contrabandCatalogueGoldSpendEcho,
+        description:
+            'Whenever you spend Gold through an item effect, repeat the weakest non-Mercante item used this pattern --value-- times.',
+        value: 1,
+        hook: ItemEffectHook.patternUsed,
+      ): 1,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.middle(),
+        actionEffect: ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this is used in the middle of a pattern, gain --value-- Gold for each different item affinity used in this pattern.',
+          customEffectKey: ItemEffectKeys.contrabandCatalogueMiddleProfit,
+          value: 1,
+        ),
+      ): 1,
+    },
+  ),
+  /// Golden Godfather
+Item(
+  affinity: ItemArchetypeAffinity.mercante,
+  name: 'Golden Godfather',
+  description:
+      'A grinning golden idol of impossible wealth. It does not fight for you. It simply pays reality to lose.',
+  tier: RarityTier.yellow,
+  baseCost: 10,
+  sellValue: 5,
+  tags: <EntityTag>[
+    EntityTag.accesorio,
+    EntityTag.economia,
+    EntityTag.buff,
+    EntityTag.ataque,
+    EntityTag.resonancia,
+  ],
+  asset: 'assets/sprites/items/GoldenGodfather.png',
+  effects: <Effect, int>{
+    ActionEffect.attack(value: 10): 10,
+    ActionEffect.block(value: 10): 10,
+    ActionEffect.heal(value: 10): 10,
+    const PassiveEffect(
+      effectKey: ItemEffectKeys.goldenGodfatherRichScaling,
+      description:
+          'Your attack, Barrier and healing effects have +--value-- power for every 10 Gold you have.',
+      value: 1,
+      hook: ItemEffectHook.calculatedStatModifier,
+    ): 1,
+    PatternEffect(
+      patternType: const OperativePatternRequirement.last(),
+      actionEffect: ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'If this ends the pattern, gain --value-- Gold for each different action type used in this pattern.',
+        customEffectKey: ItemEffectKeys.goldenGodfatherFinisher,
+        value: 5,
+      ),
+    ): 5,
+  },
+),
 ];
 
 /// Stable catalog lookup populated alongside [itemPresets].
