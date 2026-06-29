@@ -1268,7 +1268,21 @@ class _PatternPreviewVariant {
             const OperativePatternPoint(x: 1, y: 1),
           ]),
         ],
-      OperativePatternShapeKind.zigzag || OperativePatternShapeKind.literal => [
+      OperativePatternShapeKind.zigzag => [
+          _closedVariant([
+            const OperativePatternPoint(x: -1, y: 1),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: -1, y: -1),
+            const OperativePatternPoint(x: 1, y: -1),
+          ]),
+          _closedVariant([
+            const OperativePatternPoint(x: 1, y: 1),
+            const OperativePatternPoint(x: 0, y: 0),
+            const OperativePatternPoint(x: 1, y: -1),
+            const OperativePatternPoint(x: -1, y: -1),
+          ]),
+        ],
+      OperativePatternShapeKind.literal => [
           _closedVariant(requirement.shapePoints),
           _closedVariant(_mirrorHorizontally(requirement.shapePoints)),
         ],

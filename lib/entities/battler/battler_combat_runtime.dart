@@ -248,6 +248,15 @@ extension BattlerCombatRuntime on Battler {
     return combatFlags.where((flag) => flag.battlerFlag == kind).length;
   }
 
+  /// Cuenta activaciones de una flag del battler durante la ronda actual.
+  int battlerCombatRoundFlagUseCount(BattlerCombatFlag kind) {
+    final currentCombatRound = combatRound;
+    return combatFlags.where((flag) {
+      return flag.battlerFlag == kind &&
+          flag.secondaryValue == currentCombatRound;
+    }).length;
+  }
+
   /// Registra una activacion adicional asociada a una flag global del battler.
   Battler addBattlerCombatFlagUse(BattlerCombatFlag kind) {
     final nextUse = battlerCombatFlagUseCount(kind);
@@ -257,6 +266,46 @@ extension BattlerCombatRuntime on Battler {
         value: nextUse,
       ),
     );
+  }
+
+  /// Registra una activacion asociada a la ronda actual del battler.
+  Battler addBattlerCombatRoundFlagUse(BattlerCombatFlag kind) {
+    final currentCombatRound = combatRound;
+    final nextUse = battlerCombatRoundFlagUseCount(kind);
+    return addCombatFlag(
+      CombatRuntimeFlag.battler(
+        kind,
+        value: nextUse,
+        secondaryValue: currentCombatRound,
+      ),
+    );
+  }
+
+  /// Cuenta cuantas acciones de item se han completado este turno.
+  int get itemActionResolvedCountThisTurn {
+    return battlerCombatRoundFlagUseCount(
+      BattlerCombatFlag.itemActionResolved,
+    );
+  }
+
+  /// Cuenta cuantas acciones ofensivas de item se han completado este turno.
+  int get itemAttackActionResolvedCountThisTurn {
+    return battlerCombatRoundFlagUseCount(
+      BattlerCombatFlag.itemAttackActionResolved,
+    );
+  }
+
+  /// Marca una accion de item como completada para efectos de combo.
+  Battler recordResolvedItemAction(ActionEffect action) {
+    var updatedOwner = addBattlerCombatRoundFlagUse(
+      BattlerCombatFlag.itemActionResolved,
+    );
+    if (action.actionType == ItemActionType.attack) {
+      updatedOwner = updatedOwner.addBattlerCombatRoundFlagUse(
+        BattlerCombatFlag.itemAttackActionResolved,
+      );
+    }
+    return updatedOwner;
   }
 
   /// Registra una activacion adicional de un item para efectos limitados.
@@ -271,6 +320,38 @@ extension BattlerCombatRuntime on Battler {
         itemKey: item.catalogKey,
         itemInstanceId: item.instanceId,
         value: nextUse,
+      ),
+    );
+  }
+
+  /// Cuenta activaciones de un item concreto durante la ronda actual.
+  int itemCombatRoundFlagUseCount({
+    required Item item,
+    required String kind,
+  }) {
+    final currentCombatRound = combatRound;
+    return combatFlags.where((flag) {
+      return flag.itemEffectKey == kind &&
+          flag.itemKey == item.catalogKey &&
+          flag.itemInstanceId == item.instanceId &&
+          flag.secondaryValue == currentCombatRound;
+    }).length;
+  }
+
+  /// Registra una activacion de item limitada a la ronda actual.
+  Battler addItemCombatRoundFlagUse({
+    required Item item,
+    required String kind,
+  }) {
+    final currentCombatRound = combatRound;
+    final nextUse = itemCombatRoundFlagUseCount(item: item, kind: kind);
+    return addCombatFlag(
+      CombatRuntimeFlag.item(
+        itemEffectKey: kind,
+        itemKey: item.catalogKey,
+        itemInstanceId: item.instanceId,
+        value: nextUse,
+        secondaryValue: currentCombatRound,
       ),
     );
   }

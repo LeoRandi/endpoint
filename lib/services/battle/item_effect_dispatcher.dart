@@ -19,6 +19,8 @@ typedef ItemPassiveEffectHandler = ItemEffectResolution Function({
   required int damageTaken,
   required DamageKind? damageKind,
   required Item? sourceItem,
+  required ActionEffect? action,
+  required BattlerStatus? status,
   required BattlePatternMatchContext? pattern,
 });
 
@@ -38,6 +40,11 @@ abstract final class ItemEffectDispatcher {
         _resolveCrownOfTheBlackSunFinisher,
     ItemEffectKeys.rampartRamFinisher: _resolveRampartRamFinisher,
     ItemEffectKeys.citadelCoreSquareFortress: _resolveCitadelCoreSquareFortress,
+    ItemEffectKeys.needlewheelComboRepeat: _resolveNeedlewheelComboRepeat,
+    ItemEffectKeys.venomMetronomeZigzag: _resolveVenomMetronomeZigzag,
+    ItemEffectKeys.leechwireCoilMiddleContagio:
+        _resolveLeechwireCoilMiddleContagio,
+    ItemEffectKeys.thousandCutHaloFinisher: _resolveThousandCutHaloFinisher,
   };
   static final Map<String, ItemPassiveEffectHandler> _passiveHandlers = {
     ItemEffectKeys.nanoBandageTurnStartHeal: _resolveNanoBandageTurnStartHeal,
@@ -56,6 +63,13 @@ abstract final class ItemEffectDispatcher {
         _resolveCitadelCoreFortressScaling,
     ItemEffectKeys.citadelCoreUnbrokenRetaliation:
         _resolveCitadelCoreUnbrokenRetaliation,
+    ItemEffectKeys.venomMetronomeRepeatedActionPoison:
+        _resolveVenomMetronomeRepeatedActionPoison,
+    ItemEffectKeys.leechwireCoilHealFromDebuffs:
+        _resolveLeechwireCoilHealFromDebuffs,
+    ItemEffectKeys.thousandCutHaloActionScaling:
+        _resolveThousandCutHaloActionScaling,
+    ItemEffectKeys.thousandCutHaloStatusEcho: _resolveThousandCutHaloStatusEcho,
   };
 
   static void registerCustomAction(
@@ -103,10 +117,13 @@ abstract final class ItemEffectDispatcher {
     int damageTaken = 0,
     DamageKind? damageKind,
     Item? sourceItem,
+    ActionEffect? action,
+    BattlerStatus? status,
     BattlePatternMatchContext? pattern,
   }) {
     var updatedOwner = owner;
     var updatedOpponent = opponent;
+    var updatedStatus = status;
     final followUpActions = <ActionEffect>[];
     final followUpItemActions = <ItemFollowUpAction>[];
     final items = onlyItem == null ? owner.equippedItems : <Item>[onlyItem];
@@ -126,10 +143,13 @@ abstract final class ItemEffectDispatcher {
           damageTaken: damageTaken,
           damageKind: damageKind,
           sourceItem: sourceItem,
+          action: action,
+          status: updatedStatus,
           pattern: pattern,
         );
         updatedOwner = resolution.owner;
         updatedOpponent = resolution.opponent;
+        updatedStatus = resolution.status ?? updatedStatus;
         followUpActions.addAll(resolution.followUpActions);
         followUpItemActions.addAll(resolution.followUpItemActions);
       }
@@ -151,6 +171,7 @@ abstract final class ItemEffectDispatcher {
     return ItemEffectResolution(
       owner: updatedOwner,
       opponent: updatedOpponent,
+      status: updatedStatus,
       followUpActions: List<ActionEffect>.unmodifiable(followUpActions),
       followUpItemActions:
           List<ItemFollowUpAction>.unmodifiable(followUpItemActions),
@@ -251,6 +272,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     return ItemEffectResolution(
@@ -269,6 +292,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     if (!isOwnerTurn || owner.currentBarrier <= 0) {
@@ -294,6 +319,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     final adjacentBarrierItems =
@@ -321,6 +348,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     final usedBarrierItems = _usedItemsMatching(
@@ -372,6 +401,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     final adjacentWeapons = _adjacentWeaponItems(owner: owner, item: item);
@@ -434,6 +465,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     if (damageKind != DamageKind.burn || damageTaken <= 0) {
@@ -459,6 +492,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     if (damageDealt <= 0 ||
@@ -524,6 +559,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     if (!isOwnerTurn || owner.currentBarrier < 20) {
@@ -546,6 +583,8 @@ abstract final class ItemEffectDispatcher {
     required int damageTaken,
     required DamageKind? damageKind,
     required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
     final damage = effect.value * _buffStackValue(owner);
@@ -608,6 +647,256 @@ abstract final class ItemEffectDispatcher {
     return ItemEffectResolution(
       owner: updatedOwner,
       opponent: updatedOpponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveNeedlewheelComboRepeat({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    if (previousActions.length + 1 < 3 || effect.totalValue <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final followUps = <ItemFollowUpAction>[
+      for (var repeat = 0; repeat < effect.totalValue; repeat++)
+        for (final action in _attackActionsForFollowUpWeapon(
+          owner: owner,
+          weapon: item,
+        ))
+          ItemFollowUpAction(item: item, action: action),
+    ];
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent,
+      followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static ItemEffectResolution _resolveVenomMetronomeZigzag({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final shockResolution = _applyConmocionToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.totalValue,
+    );
+    final firstWeapon = _firstPatternWeapon(
+      owner: shockResolution.owner,
+      pattern: pattern,
+    );
+    final followUps = firstWeapon == null
+        ? const <ItemFollowUpAction>[]
+        : <ItemFollowUpAction>[
+            for (final action in _attackActionsForFollowUpWeapon(
+              owner: shockResolution.owner,
+              weapon: firstWeapon,
+            ))
+              ItemFollowUpAction(item: firstWeapon, action: action),
+          ];
+
+    return ItemEffectResolution(
+      owner: shockResolution.owner,
+      opponent: shockResolution.opponent,
+      followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static ItemEffectResolution _resolveLeechwireCoilMiddleContagio({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final contagioResolution = _applyContagioToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.totalValue,
+    );
+    return ItemEffectResolution(
+      owner: contagioResolution.owner,
+      opponent: contagioResolution.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveThousandCutHaloFinisher({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final debuffCount = _differentDebuffCount(opponent);
+    final repeatCount = debuffCount * max(0, effect.totalValue);
+    final weakestWeapon = _weakestWeapon(owner);
+    if (repeatCount <= 0 || weakestWeapon == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final followUps = <ItemFollowUpAction>[
+      for (var repeat = 0; repeat < repeatCount; repeat++)
+        for (final action in _attackActionsForFollowUpWeapon(
+          owner: owner,
+          weapon: weakestWeapon,
+        ))
+          ItemFollowUpAction(item: weakestWeapon, action: action),
+    ];
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent,
+      followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static ItemEffectResolution _resolveVenomMetronomeRepeatedActionPoison({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (action?.actionType != ItemActionType.attack ||
+        owner.itemAttackActionResolvedCountThisTurn <= 0 ||
+        owner.itemAttackActionResolvedCountThisTurn.isOdd) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final poisonResolution = _applyPoisonToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.value,
+    );
+    return ItemEffectResolution(
+      owner: poisonResolution.owner,
+      opponent: poisonResolution.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveLeechwireCoilHealFromDebuffs({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (status?.type != BattlerStatusType.debuff) {
+      return ItemEffectResolution(
+        owner: owner,
+        opponent: opponent,
+        status: status,
+      );
+    }
+
+    final usesThisTurn = owner.itemCombatRoundFlagUseCount(
+      item: item,
+      kind: effect.effectKey,
+    );
+    if (usesThisTurn >= 3) {
+      return ItemEffectResolution(
+        owner: owner,
+        opponent: opponent,
+        status: status,
+      );
+    }
+
+    return ItemEffectResolution(
+      owner: owner
+          .heal(effect.value)
+          .addItemCombatRoundFlagUse(item: item, kind: effect.effectKey),
+      opponent: opponent,
+      status: status,
+    );
+  }
+
+  static ItemEffectResolution _resolveThousandCutHaloActionScaling({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    return ItemEffectResolution(owner: owner, opponent: opponent);
+  }
+
+  static ItemEffectResolution _resolveThousandCutHaloStatusEcho({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (status?.type != BattlerStatusType.debuff) {
+      return ItemEffectResolution(
+        owner: owner,
+        opponent: opponent,
+        status: status,
+      );
+    }
+
+    final echoSource = _echoDebuffCandidate(
+      opponent: opponent,
+      incomingStatus: status,
+    );
+    if (echoSource == null) {
+      return ItemEffectResolution(
+        owner: owner,
+        opponent: opponent,
+        status: status,
+      );
+    }
+
+    final echoStatus = _singleStackOfDebuff(echoSource, effect.value);
+    final echoResolution = opponent.applyStatusFromSourceResolved(
+      echoStatus,
+      source: owner,
+      applyEquipmentModifiers: false,
+    );
+    return ItemEffectResolution(
+      owner: echoResolution.source,
+      opponent: echoResolution.owner,
+      status: status,
     );
   }
 
@@ -706,6 +995,56 @@ abstract final class ItemEffectDispatcher {
           source: owner,
         )
         .owner;
+  }
+
+  static ({Battler owner, Battler opponent}) _applyPoisonToOpponent({
+    required Battler owner,
+    required Battler opponent,
+    required int amount,
+  }) {
+    return _applyStatusToOpponent(
+      owner: owner,
+      opponent: opponent,
+      status: IntoxicacionStatus(value: amount),
+    );
+  }
+
+  static ({Battler owner, Battler opponent}) _applyConmocionToOpponent({
+    required Battler owner,
+    required Battler opponent,
+    required int amount,
+  }) {
+    return _applyStatusToOpponent(
+      owner: owner,
+      opponent: opponent,
+      status: ConmocionStatus(value: amount),
+    );
+  }
+
+  static ({Battler owner, Battler opponent}) _applyContagioToOpponent({
+    required Battler owner,
+    required Battler opponent,
+    required int amount,
+  }) {
+    return _applyStatusToOpponent(
+      owner: owner,
+      opponent: opponent,
+      status: ContagioStatus(value: amount),
+    );
+  }
+
+  static ({Battler owner, Battler opponent}) _applyStatusToOpponent({
+    required Battler owner,
+    required Battler opponent,
+    required BattlerStatus status,
+  }) {
+    if (status.value <= 0) return (owner: owner, opponent: opponent);
+
+    final resolution = opponent.applyStatusFromSourceResolved(
+      status,
+      source: owner,
+    );
+    return (owner: resolution.source, opponent: resolution.owner);
   }
 
   static int _burnValue(Battler owner) {
@@ -811,6 +1150,14 @@ abstract final class ItemEffectDispatcher {
     );
   }
 
+  static int _differentDebuffCount(Battler owner) {
+    return owner.statuses
+        .where((status) => status.type == BattlerStatusType.debuff)
+        .map((status) => status.id)
+        .toSet()
+        .length;
+  }
+
   static Battler _dealDamageToOpponent({
     required Battler owner,
     required Battler opponent,
@@ -864,6 +1211,51 @@ abstract final class ItemEffectDispatcher {
     }).toList(growable: false);
   }
 
+  static Item? _firstPatternWeapon({
+    required Battler owner,
+    required BattlePatternMatchContext pattern,
+  }) {
+    for (final pointKey in pattern.usedItemPointKeys) {
+      for (final item in owner.equippedItems) {
+        if (!item.isWeaponLike) continue;
+        final itemPointKey = OperativePatternLayoutService.pointKeyForItem(
+          player: owner,
+          item: item,
+        );
+        if (itemPointKey == pointKey) return item;
+      }
+    }
+    return null;
+  }
+
+  static Item? _weakestWeapon(Battler owner) {
+    Item? weakest;
+    var weakestValue = 0;
+    for (final item in owner.equippedItems) {
+      if (!item.isWeaponLike) continue;
+      final attackValue = _weaponAttackValue(owner: owner, weapon: item);
+      if (attackValue <= 0) continue;
+      if (weakest == null || attackValue < weakestValue) {
+        weakest = item;
+        weakestValue = attackValue;
+      }
+    }
+    return weakest;
+  }
+
+  static int _weaponAttackValue({
+    required Battler owner,
+    required Item weapon,
+  }) {
+    return _attackActionsForFollowUpWeapon(
+      owner: owner,
+      weapon: weapon,
+    ).fold<int>(
+      0,
+      (total, action) => total + action.totalValue,
+    );
+  }
+
   static bool _isAdjacentWeapon({
     required Battler owner,
     required Item source,
@@ -906,6 +1298,63 @@ abstract final class ItemEffectDispatcher {
   }) {
     final boostedWeapon = owner.itemWithCombatActionBonuses(weapon);
     return List<ActionEffect>.unmodifiable(boostedWeapon.actionEffects);
+  }
+
+  static List<ActionEffect> _attackActionsForFollowUpWeapon({
+    required Battler owner,
+    required Item weapon,
+  }) {
+    final boostedWeapon = owner.itemWithCombatActionBonuses(weapon);
+    return List<ActionEffect>.unmodifiable(
+      boostedWeapon.actionEffects.where(
+        (action) => action.actionType == ItemActionType.attack,
+      ),
+    );
+  }
+
+  static BattlerStatus? _echoDebuffCandidate({
+    required Battler opponent,
+    required BattlerStatus? incomingStatus,
+  }) {
+    final candidates = opponent.statuses
+        .where(
+          (status) =>
+              status.type == BattlerStatusType.debuff &&
+              status.id != incomingStatus?.id,
+        )
+        .toList(growable: false);
+    if (candidates.isEmpty) return null;
+
+    return candidates[Random().nextInt(candidates.length)];
+  }
+
+  static BattlerStatus _singleStackOfDebuff(
+    BattlerStatus source,
+    int amount,
+  ) {
+    final safeAmount = max(1, amount);
+    if (source is QuemaduraStatus) {
+      return QuemaduraStatus(remainingTurns: safeAmount);
+    }
+    if (source is IntoxicacionStatus) {
+      return IntoxicacionStatus(value: safeAmount);
+    }
+    if (source is ContagioStatus) {
+      return ContagioStatus(value: safeAmount);
+    }
+    if (source is CatalisisCruelStatus) {
+      return CatalisisCruelStatus(value: safeAmount);
+    }
+    if (source is FragilidadStatus) {
+      return FragilidadStatus(value: safeAmount);
+    }
+    if (source is ConmocionStatus) {
+      return ConmocionStatus(value: safeAmount);
+    }
+    if (source is DeudaStatus) {
+      return DeudaStatus(value: safeAmount);
+    }
+    return source.copyWith(value: safeAmount);
   }
 
   static String _itemSourceKey({

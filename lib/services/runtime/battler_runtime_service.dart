@@ -200,7 +200,18 @@ extension BattlerRuntimeService on Battler {
     required Battler target,
     required BattlerStatus status,
   }) {
-    return _battlerEffectPipeline.applyEquippedItemOutgoingStatusModifiers(
+    return applyEquippedItemOutgoingStatusEffects(
+      target: target,
+      status: status,
+    ).status;
+  }
+
+  /// Ejecuta efectos de items al aplicar estados desde este battler.
+  ItemIncomingStatusResolution applyEquippedItemOutgoingStatusEffects({
+    required Battler target,
+    required BattlerStatus status,
+  }) {
+    return _battlerEffectPipeline.applyEquippedItemOutgoingStatusEffects(
       owner: this,
       target: target,
       status: status,
@@ -280,12 +291,15 @@ extension BattlerRuntimeService on Battler {
     var updatedSource = source;
     BattlerStatus? instancedStatus = status.copyWith();
     if (applyEquipmentModifiers) {
-      instancedStatus =
-          _battlerEffectPipeline.applyEquippedItemOutgoingStatusModifiers(
+      final outgoingResolution =
+          _battlerEffectPipeline.applyEquippedItemOutgoingStatusEffects(
         owner: updatedSource,
         target: updatedOwner,
         status: instancedStatus,
       );
+      updatedOwner = outgoingResolution.owner;
+      updatedSource = outgoingResolution.source;
+      instancedStatus = outgoingResolution.status;
       if (instancedStatus != null) {
         final incomingResolution =
             _battlerEffectPipeline.applyEquippedItemIncomingStatusEffects(
@@ -390,6 +404,22 @@ extension BattlerRuntimeService on Battler {
       target: target,
       damageDealt: damageDealt,
       sourceItem: sourceItem,
+    );
+  }
+
+  /// Ejecuta efectos de items tras completar una accion de item.
+  ItemEffectResolution applyEquippedItemActionResolvedEffects({
+    required Battler target,
+    required ActionEffect action,
+    Item? sourceItem,
+    BattlePatternMatchContext? pattern,
+  }) {
+    return _battlerEffectPipeline.applyEquippedItemActionResolvedEffects(
+      owner: this,
+      target: target,
+      action: action,
+      sourceItem: sourceItem,
+      pattern: pattern,
     );
   }
 

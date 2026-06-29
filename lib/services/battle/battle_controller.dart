@@ -377,7 +377,10 @@ class BattleController extends ChangeNotifier {
 
       while (pendingActions.isNotEmpty) {
         final pendingAction = pendingActions.removeAt(0);
-        final action = pendingAction.action;
+        final action = _actionWithItemActionScaling(
+          owner: _player,
+          action: pendingAction.action,
+        );
         didResolveAction = true;
         switch (action.actionType) {
           case ItemActionType.attack:
@@ -481,6 +484,37 @@ class BattleController extends ChangeNotifier {
             }
             break;
         }
+        final actionResolvedItemResolution =
+            _applyPlayerItemActionResolvedEffects(
+          action: action,
+          item: pendingAction.item,
+          pattern: pattern,
+        );
+        _player = actionResolvedItemResolution.owner;
+        _enemy = actionResolvedItemResolution.opponent;
+        if (pendingAction.allowFollowUps &&
+            (actionResolvedItemResolution.followUpActions.isNotEmpty ||
+                actionResolvedItemResolution.followUpItemActions.isNotEmpty)) {
+          pendingActions.insertAll(0, <({
+            ActionEffect action,
+            Item item,
+            bool allowFollowUps,
+          })>[
+            for (final followUp
+                in actionResolvedItemResolution.followUpItemActions)
+              (
+                action: followUp.action,
+                item: followUp.item,
+                allowFollowUps: false,
+              ),
+            for (final followUp in actionResolvedItemResolution.followUpActions)
+              (
+                action: followUp,
+                item: pendingAction.item,
+                allowFollowUps: false,
+              ),
+          ]);
+        }
         resolvedActions.add(action);
       }
 
@@ -496,6 +530,64 @@ class BattleController extends ChangeNotifier {
     }
 
     return false;
+  }
+
+  ActionEffect _actionWithItemActionScaling({
+    required Battler owner,
+    required ActionEffect action,
+  }) {
+    if (action.actionType == ItemActionType.none ||
+        owner.itemActionResolvedCountThisTurn < 4) {
+      return action;
+    }
+
+    var updatedAction = action;
+    for (final item in owner.equippedItemsForHook(
+      ItemEffectHook.actionResolved,
+    )) {
+      for (final effect in item.passiveEffects.where(
+        (effect) =>
+            effect.effectKey == ItemEffectKeys.thousandCutHaloActionScaling,
+      )) {
+        updatedAction = updatedAction.withBonusSource(
+          sourceKey: _itemActionScalingSourceKey(item, effect),
+          bonusValue: effect.value,
+        );
+      }
+    }
+    return updatedAction;
+  }
+
+  String _itemActionScalingSourceKey(Item item, PassiveEffect effect) {
+    return '${effect.effectKey}:${item.instanceId ?? item.catalogKey}';
+  }
+
+  ItemEffectResolution _applyPlayerItemActionResolvedEffects({
+    required ActionEffect action,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final playerWithActionCount = _player.recordResolvedItemAction(action);
+    return playerWithActionCount.applyEquippedItemActionResolvedEffects(
+      target: _enemy,
+      action: action,
+      sourceItem: item,
+      pattern: pattern,
+    );
+  }
+
+  ItemEffectResolution _applyEnemyItemActionResolvedEffects({
+    required ActionEffect action,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final enemyWithActionCount = _enemy.recordResolvedItemAction(action);
+    return enemyWithActionCount.applyEquippedItemActionResolvedEffects(
+      target: _player,
+      action: action,
+      sourceItem: item,
+      pattern: pattern,
+    );
   }
 
   Item? _itemAtPatternPoint({
@@ -707,7 +799,10 @@ class BattleController extends ChangeNotifier {
 
       while (pendingActions.isNotEmpty) {
         final pendingAction = pendingActions.removeAt(0);
-        final action = pendingAction.action;
+        final action = _actionWithItemActionScaling(
+          owner: _enemy,
+          action: pendingAction.action,
+        );
         didResolveAction = true;
         switch (action.actionType) {
           case ItemActionType.attack:
@@ -810,6 +905,37 @@ class BattleController extends ChangeNotifier {
               ]);
             }
             break;
+        }
+        final actionResolvedItemResolution =
+            _applyEnemyItemActionResolvedEffects(
+          action: action,
+          item: pendingAction.item,
+          pattern: pattern,
+        );
+        _enemy = actionResolvedItemResolution.owner;
+        _player = actionResolvedItemResolution.opponent;
+        if (pendingAction.allowFollowUps &&
+            (actionResolvedItemResolution.followUpActions.isNotEmpty ||
+                actionResolvedItemResolution.followUpItemActions.isNotEmpty)) {
+          pendingActions.insertAll(0, <({
+            ActionEffect action,
+            Item item,
+            bool allowFollowUps,
+          })>[
+            for (final followUp
+                in actionResolvedItemResolution.followUpItemActions)
+              (
+                action: followUp.action,
+                item: followUp.item,
+                allowFollowUps: false,
+              ),
+            for (final followUp in actionResolvedItemResolution.followUpActions)
+              (
+                action: followUp,
+                item: pendingAction.item,
+                allowFollowUps: false,
+              ),
+          ]);
         }
         resolvedActions.add(action);
       }

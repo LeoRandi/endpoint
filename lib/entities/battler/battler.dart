@@ -95,6 +95,8 @@ enum BattlerCombatFlag {
   fragilidadTriggeredThisHit,
   removedWallBlockingPointDebt,
   creditsSpentThisCombat,
+  itemActionResolved,
+  itemAttackActionResolved,
   augmentPatternWeaponAttackBoost,
   itemBarrierActionBoost,
 }

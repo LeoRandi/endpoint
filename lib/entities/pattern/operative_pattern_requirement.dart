@@ -61,7 +61,7 @@ class OperativePatternRequirement {
   /// misma silueta desde distintos puntos. Mantener las figuras por debajo de
   /// [maxExactShapePoints] evita patrones demasiado costosos para la UI.
   const OperativePatternRequirement.exactShape({
-    required this.shapePoints,
+    this.shapePoints = const <OperativePatternPoint>[],
     this.shapeKind = OperativePatternShapeKind.literal,
     // Kept temporarily for source compatibility with older callers. Display
     // copy is derived from [shapeKind] by the presentation layer.
@@ -131,9 +131,8 @@ class OperativePatternRequirement {
       OperativePatternShapeKind.diamond =>
         _matchesSquareLike(sequence),
       OperativePatternShapeKind.hourglass => _matchesHourglassLike(sequence),
-      OperativePatternShapeKind.zigzag ||
-      OperativePatternShapeKind.literal =>
-        _matchesLiteralExactShape(sequence),
+      OperativePatternShapeKind.zigzag => _matchesZigzagLike(sequence),
+      OperativePatternShapeKind.literal => _matchesLiteralExactShape(sequence),
     };
   }
 
@@ -207,6 +206,30 @@ class OperativePatternRequirement {
       corners[3],
       corners[0],
     );
+  }
+
+  /// Valida trazos con giros alternos. El segmento de cierre se ignora para
+  /// que el jugador pueda cerrar el Patron sin romper la silueta zigzag.
+  bool _matchesZigzagLike(List<OperativePatternPoint> sequence) {
+    final points = _removeConsecutiveDuplicates(sequence);
+    if (points.length < 4) return false;
+
+    final turnSigns = <int>[];
+    for (var index = 1; index < points.length - 1; index++) {
+      final incoming = _vectorBetween(points[index - 1], points[index]);
+      final outgoing = _vectorBetween(points[index], points[index + 1]);
+      if (_isZeroVector(incoming) || _isZeroVector(outgoing)) return false;
+
+      final turn = _cross(incoming, outgoing);
+      if (turn == 0) return false;
+      turnSigns.add(turn.sign);
+    }
+
+    if (turnSigns.length < 2) return false;
+    for (var index = 1; index < turnSigns.length; index++) {
+      if (turnSigns[index] == turnSigns[index - 1]) return false;
+    }
+    return true;
   }
 
   /// Reduce un trazo cerrado a sus vertices significativos.

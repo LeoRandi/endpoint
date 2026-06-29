@@ -232,6 +232,9 @@ class BattlerEffectPipeline {
           case ItemEffectKeys.rampartRamBarrierDamage:
             updatedDamage += effect.value * (owner.currentBarrier ~/ 10);
             break;
+          case ItemEffectKeys.leechwireCoilDebuffDamage:
+            updatedDamage += effect.value * _differentDebuffCount(target);
+            break;
           default:
             updatedDamage += effect.value;
             break;
@@ -247,7 +250,29 @@ class BattlerEffectPipeline {
     required Battler target,
     required BattlerStatus status,
   }) {
-    return status;
+    return applyEquippedItemOutgoingStatusEffects(
+      owner: owner,
+      target: target,
+      status: status,
+    ).status;
+  }
+
+  ItemIncomingStatusResolution applyEquippedItemOutgoingStatusEffects({
+    required Battler owner,
+    required Battler target,
+    required BattlerStatus status,
+  }) {
+    final resolution = ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: target,
+      hook: ItemEffectHook.outgoingStatusModifier,
+      status: status,
+    );
+    return ItemIncomingStatusResolution(
+      owner: resolution.opponent,
+      source: resolution.owner,
+      status: resolution.status ?? status,
+    );
   }
 
   int applyIncomingDamageModifiers({
@@ -386,6 +411,23 @@ class BattlerEffectPipeline {
       hook: ItemEffectHook.attackResolved,
       damageDealt: damageDealt,
       sourceItem: sourceItem,
+    );
+  }
+
+  ItemEffectResolution applyEquippedItemActionResolvedEffects({
+    required Battler owner,
+    required Battler target,
+    required ActionEffect action,
+    Item? sourceItem,
+    BattlePatternMatchContext? pattern,
+  }) {
+    return ItemEffectDispatcher.resolvePassiveHook(
+      owner: owner,
+      opponent: target,
+      hook: ItemEffectHook.actionResolved,
+      sourceItem: sourceItem,
+      action: action,
+      pattern: pattern,
     );
   }
 
@@ -579,4 +621,12 @@ int _burnValue(Battler owner) {
         0,
         (total, status) => total + max(0, status.resolved(owner).value),
       );
+}
+
+int _differentDebuffCount(Battler owner) {
+  return owner.statuses
+      .where((status) => status.type == BattlerStatusType.debuff)
+      .map((status) => status.id)
+      .toSet()
+      .length;
 }

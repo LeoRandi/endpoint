@@ -178,7 +178,7 @@ List<Item> itemPresets = <Item>[
       ): 1,
       PatternEffect(
         patternType: const OperativePatternRequirement.rightAngle(),
-        actionEffect: ActionEffect(
+        actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
               'Apply --value-- Burn to yourself, then use adjacent weapons on the pattern an additional time.',
@@ -259,7 +259,7 @@ List<Item> itemPresets = <Item>[
       ): 2,
       PatternEffect(
         patternType: const OperativePatternRequirement.last(),
-        actionEffect: ActionEffect(
+        actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
               'If this ends the pattern, consume half of your Burn to deal --value-- true damage per Burn consumed.',
@@ -375,7 +375,7 @@ List<Item> itemPresets = <Item>[
       ): 2,
       PatternEffect(
         patternType: const OperativePatternRequirement.last(),
-        actionEffect: ActionEffect(
+        actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
               'If this ends the pattern, deal damage equal to --value-- times your current Barrier divided by 10.',
@@ -440,12 +440,32 @@ List<Item> itemPresets = <Item>[
 
   /////////////////////////////---VELOZ---///////////////////////////////////////
 
+  /// Pocket Shiv
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Pocket Shiv',
+    description:
+        'A tiny blade made for quick hands. It does not hit hard, but it is always ready.',
+    tier: RarityTier.gray,
+    baseCost: 2,
+    sellValue: 1,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+    ],
+    asset: 'assets/sprites/items/PocketShiv.png',
+    effects: <Effect, int>{
+      ActionEffect.attack(value: 2): 2,
+      ActionEffect.attack(value: 2): 2,
+    },
+  ),
+
   /// Needlewheel
   Item(
     affinity: ItemArchetypeAffinity.veloz,
     name: 'Needlewheel',
     description:
-        'A spinning ring of tiny blades. Weak on its own, deadly when it is only the first cut of many.',
+        'A spinning ring of tiny blades. Weak on its own, deadly when paired with poison.',
     tier: RarityTier.green,
     baseCost: 4,
     sellValue: 2,
@@ -456,12 +476,138 @@ List<Item> itemPresets = <Item>[
     asset: 'assets/sprites/items/Needlewheel.png',
     effects: <Effect, int>{
       ActionEffect.attack(value: 1): 1,
+      ActionEffect.attack(value: 1): 1,
       const ActionEffect(
         actionType: ItemActionType.none,
         description:
             'If this is your third action this turn or later, use this item --value-- additional times.',
         customEffectKey: ItemEffectKeys.needlewheelComboRepeat,
         value: 1,
+      ): 1,
+    },
+  ),
+
+  /// Venom Metronome
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Venotronome',
+    description: 'A ticking vial that releases poison in a rhythmic pattern.',
+    tier: RarityTier.blue,
+    baseCost: 6,
+    sellValue: 3,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.debuff,
+      EntityTag.intoxicacion,
+    ],
+    asset: 'assets/sprites/items/VenomMetronome.png',
+    effects: <Effect, int>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.venomMetronomeRepeatedActionPoison,
+        description:
+            'Every two attacking actions, apply --value-- Intoxicacion.',
+        value: 1,
+        hook: ItemEffectHook.actionResolved,
+      ): 2,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.exactShape(
+          shapeKind: OperativePatternShapeKind.zigzag,
+        ),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If used in a zigzag pattern, apply --value-- Conmocion and use your first weapon on the pattern again.',
+          customEffectKey: ItemEffectKeys.venomMetronomeZigzag,
+          value: 5,
+        ),
+      ): 5,
+    },
+  ),
+
+  /// Leechwire Coil
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Leechwire Coil',
+    description:
+        'A bundle of living wires. Specially akeen to exploiting weaknesses.',
+    tier: RarityTier.purple,
+    baseCost: 8,
+    sellValue: 4,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.debuff,
+      EntityTag.cura,
+      EntityTag.contagio,
+    ],
+    asset: 'assets/sprites/items/LeechwireCoil.png',
+    effects: <Effect, int>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.leechwireCoilHealFromDebuffs,
+        description:
+            'Whenever you apply a debuff, heal --value-- HP. This can only trigger 3 times per turn.',
+        value: 2,
+        hook: ItemEffectHook.outgoingStatusModifier,
+      ): 2,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.leechwireCoilDebuffDamage,
+        description:
+            'Your attacks deal +--value-- damage for each different debuff on the enemy.',
+        value: 2,
+        hook: ItemEffectHook.outgoingDamageModifier,
+      ): 2,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.middle(),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this item is used in the middle of a pattern, apply --value-- Contagio.',
+          customEffectKey: ItemEffectKeys.leechwireCoilMiddleContagio,
+          value: 2,
+        ),
+      ): 2,
+    },
+  ),
+
+  /// Thousand-Cut Halo
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Thousand-Cut Halo',
+    description:
+        'A ring of impossible blades that appears only when the rhythm is perfect. One cut is harmless. One thousand is judgment.',
+    tier: RarityTier.yellow,
+    baseCost: 10,
+    sellValue: 5,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/ThousandCutHalo.png',
+    effects: <Effect, int>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.thousandCutHaloActionScaling,
+        description:
+            'After your fourth action each turn, every further attack action has +--value--  damage, barrier or heal',
+        value: 3,
+        hook: ItemEffectHook.actionResolved,
+      ): 3,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.thousandCutHaloStatusEcho,
+        description:
+            'Whenever you apply a debuff to an enemy, apply 1 stack of another random debuff they already have.',
+        value: 1,
+        hook: ItemEffectHook.outgoingStatusModifier,
+      ): 1,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.last(),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this ends the pattern, repeat your weakest weapon once for each different debuff on the enemy.',
+          customEffectKey: ItemEffectKeys.thousandCutHaloFinisher,
+          value: 1,
+        ),
       ): 1,
     },
   ),

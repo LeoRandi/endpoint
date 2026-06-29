@@ -44,6 +44,20 @@ abstract final class ItemEffectKeys {
   static const String citadelCoreSquareFortress =
       'citadel_core_square_fortress';
   static const String needlewheelComboRepeat = 'needlewheel_combo_repeat';
+  static const String venomMetronomeRepeatedActionPoison =
+      'venom_metronome_repeated_action_poison';
+  static const String venomMetronomeZigzag = 'venom_metronome_zigzag';
+  static const String leechwireCoilHealFromDebuffs =
+      'leechwire_coil_heal_from_debuffs';
+  static const String leechwireCoilDebuffDamage =
+      'leechwire_coil_debuff_damage';
+  static const String leechwireCoilMiddleContagio =
+      'leechwire_coil_middle_contagio';
+  static const String thousandCutHaloActionScaling =
+      'thousand_cut_halo_action_scaling';
+  static const String thousandCutHaloStatusEcho =
+      'thousand_cut_halo_status_echo';
+  static const String thousandCutHaloFinisher = 'thousand_cut_halo_finisher';
 }
 
 /// Base value object for every effect an item can own.
@@ -215,6 +229,7 @@ class ItemEffectResolution {
   final Battler opponent;
   final int attackBonusDelta;
   final int barrierBonusDelta;
+  final BattlerStatus? status;
   final List<ActionEffect> followUpActions;
   final List<ItemFollowUpAction> followUpItemActions;
 
@@ -223,6 +238,7 @@ class ItemEffectResolution {
     required this.opponent,
     this.attackBonusDelta = 0,
     this.barrierBonusDelta = 0,
+    this.status,
     this.followUpActions = const <ActionEffect>[],
     this.followUpItemActions = const <ItemFollowUpAction>[],
   });
@@ -243,6 +259,7 @@ enum ItemEffectHook {
   calculatedStatModifier,
   basicAttackCountModifier,
   attackResolved,
+  actionResolved,
   receiveDamageResolved,
   passive,
   outgoingStatusModifier,

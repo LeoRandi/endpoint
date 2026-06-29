@@ -396,9 +396,8 @@ Map<String, Object?> _serializeAugment(Augment augment) {
     'effects': augment.effects.patternEffects.entries
         .map<Map<String, Object?>>(
           (entry) => {
-            'pattern': entry.key
-                .map((point) => point.key)
-                .toList(growable: false),
+            'pattern':
+                entry.key.map((point) => point.key).toList(growable: false),
             'effect': _serializeAugmentEffect(entry.value),
           },
         )
@@ -612,19 +611,23 @@ OperativePatternRequirement? _deserializePatternRequirement(Object? rawValue) {
       final shapePoints = _deserializePatternPointList(
         json['shape'],
       );
-      if (shapePoints.length < 3 ||
-          shapePoints.length >
-              OperativePatternRequirement.maxExactShapePoints) {
+      final shapeKind = EndpointJsonUtils.parseEnumByName(
+            OperativePatternShapeKind.values,
+            json['shapeKind'],
+          ) ??
+          OperativePatternShapeKind.literal;
+      if (shapePoints.length >
+          OperativePatternRequirement.maxExactShapePoints) {
+        return null;
+      }
+      if (shapeKind == OperativePatternShapeKind.literal &&
+          shapePoints.length < 3) {
         return null;
       }
 
       return OperativePatternRequirement.exactShape(
         shapePoints: shapePoints,
-        shapeKind: EndpointJsonUtils.parseEnumByName(
-              OperativePatternShapeKind.values,
-              json['shapeKind'],
-            ) ??
-            OperativePatternShapeKind.literal,
+        shapeKind: shapeKind,
       );
   }
 }
