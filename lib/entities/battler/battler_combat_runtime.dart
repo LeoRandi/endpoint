@@ -59,12 +59,25 @@ extension BattlerCombatRuntime on Battler {
       item: item,
       kind: BattlerCombatFlag.augmentPatternWeaponAttackBoost,
     );
-    if (attackBonusBySource.isEmpty) return item;
+    final blockBonusBySource = _combatItemFlagValuesBySource(
+      item: item,
+      kind: BattlerCombatFlag.itemBarrierActionBoost,
+    );
+    if (attackBonusBySource.isEmpty && blockBonusBySource.isEmpty) {
+      return item;
+    }
 
     var updatedItem = item;
     for (final entry in attackBonusBySource.entries) {
       updatedItem = updatedItem.withActionBonus(
         actionType: ItemActionType.attack,
+        sourceKey: 'combat:${entry.key}',
+        bonusValue: entry.value,
+      );
+    }
+    for (final entry in blockBonusBySource.entries) {
+      updatedItem = updatedItem.withActionBonus(
+        actionType: ItemActionType.block,
         sourceKey: 'combat:${entry.key}',
         bonusValue: entry.value,
       );
@@ -148,6 +161,31 @@ extension BattlerCombatRuntime on Battler {
       updatedOwner = updatedOwner._addCombatItemFlagValue(
         item: weapon,
         kind: BattlerCombatFlag.augmentPatternWeaponAttackBoost,
+        amount: safeAmount,
+        sourceKey: safeSourceKey,
+      );
+    }
+    return updatedOwner;
+  }
+
+  Battler addCombatBlockBonusToItems({
+    required Iterable<Item> items,
+    required int amount,
+    required String sourceKey,
+  }) {
+    final safeAmount = max(0, amount);
+    final safeSourceKey = sourceKey.trim();
+    if (safeAmount <= 0 ||
+        safeSourceKey.isEmpty ||
+        !hasCombatFlag(Battler.combatActiveFlag)) {
+      return this;
+    }
+
+    var updatedOwner = this;
+    for (final item in items) {
+      updatedOwner = updatedOwner._addCombatItemFlagValue(
+        item: item,
+        kind: BattlerCombatFlag.itemBarrierActionBoost,
         amount: safeAmount,
         sourceKey: safeSourceKey,
       );

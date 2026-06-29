@@ -171,8 +171,6 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
-    const shouldRerollVisibleNodes = false;
-    const shouldConveneShopNodes = false;
     final resolvedCompletionType = _resolveCompletionType(
       updatedPlayer: player,
     );
@@ -198,37 +196,6 @@ class RunSessionController extends ChangeNotifier {
       isRunComplete: resolvedCompletionType != null,
       completionType: resolvedCompletionType,
     );
-    if (resolvedCompletionType == null && !_isResolvingNode) {
-      if (shouldConveneShopNodes) {
-        final conventionHour = _buildSuddenConventionHourSnapshot(
-          player: player,
-        );
-        nextState = nextState.copyWith(
-          currentHour: conventionHour,
-          visibleNodes: List<PathNode>.unmodifiable(conventionHour.nodes),
-          shownShopNodeIds: _updatedShownShopNodeIds(
-            previousShownShopNodeIds: _state.shownShopNodeIds,
-            hour: conventionHour,
-            player: player,
-          ),
-        );
-      } else if (shouldRerollVisibleNodes) {
-        final rerolledHour = _buildRefactoredHourSnapshot(
-          player: player,
-          previousNodes: _state.visibleNodes,
-        );
-        nextState = nextState.copyWith(
-          currentHour: rerolledHour,
-          visibleNodes: List<PathNode>.unmodifiable(rerolledHour.nodes),
-          shownShopNodeIds: _updatedShownShopNodeIds(
-            previousShownShopNodeIds: _state.shownShopNodeIds,
-            hour: rerolledHour,
-            player: player,
-          ),
-        );
-      }
-    }
-
     _state = nextState;
     notifyListeners();
     if (resolvedCompletionType != null) {
@@ -731,65 +698,6 @@ class RunSessionController extends ChangeNotifier {
     return null;
   }
 
-  RunHourSnapshot _buildRefactoredHourSnapshot({
-    required Battler player,
-    required List<PathNode> previousNodes,
-  }) {
-    const maxAttempts = 24;
-    RunHourSnapshot? firstDifferentSnapshot;
-    RunHourSnapshot latestSnapshot = _pathNodeService.buildHourSnapshot(
-      stageIndex: _state.stageIndex,
-      player: player,
-      availableNodes:
-          _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
-      shownShopNodeIds: _state.shownShopNodeIds,
-      nodeCount: _nodeCount,
-      shopRarityDayOffset: _state.shopRarityDayOffset,
-      eventRarityDayOffset: _state.eventRarityDayOffset,
-    );
-
-    for (var attempt = 0; attempt < maxAttempts; attempt++) {
-      final candidateSnapshot = attempt == 0
-          ? latestSnapshot
-          : _pathNodeService.buildHourSnapshot(
-              stageIndex: _state.stageIndex,
-              player: player,
-              availableNodes: _scriptedNodesForStage(_state.stageIndex) ??
-                  _availableNodesOverride,
-              shownShopNodeIds: _state.shownShopNodeIds,
-              nodeCount: _nodeCount,
-              shopRarityDayOffset: _state.shopRarityDayOffset,
-              eventRarityDayOffset: _state.eventRarityDayOffset,
-            );
-      latestSnapshot = candidateSnapshot;
-
-      if (!_areNodeListsEqualById(
-        previousNodes,
-        candidateSnapshot.nodes,
-      )) {
-        firstDifferentSnapshot ??= candidateSnapshot;
-      }
-      if (_areAllNodeIdsDistinct(
-        previousNodes,
-        candidateSnapshot.nodes,
-      )) {
-        return candidateSnapshot;
-      }
-    }
-
-    return firstDifferentSnapshot ?? latestSnapshot;
-  }
-
-  RunHourSnapshot _buildSuddenConventionHourSnapshot({
-    required Battler player,
-  }) {
-    return _pathNodeService.buildSuddenConventionSnapshot(
-      stageIndex: _state.stageIndex,
-      player: player,
-      nodeCount: _nodeCount,
-    );
-  }
-
   List<String> _updatedShownShopNodeIds({
     required List<String> previousShownShopNodeIds,
     required RunHourSnapshot hour,
@@ -815,35 +723,6 @@ class RunSessionController extends ChangeNotifier {
     updatedShownSet.addAll(visibleShopNodeIds);
 
     return List<String>.unmodifiable(updatedShownSet);
-  }
-
-  bool _areNodeListsEqualById(
-    List<PathNode> leftNodes,
-    List<PathNode> rightNodes,
-  ) {
-    if (leftNodes.length != rightNodes.length) return false;
-
-    for (var index = 0; index < leftNodes.length; index++) {
-      if (leftNodes[index].nodeId != rightNodes[index].nodeId) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool _areAllNodeIdsDistinct(
-    List<PathNode> previousNodes,
-    List<PathNode> candidateNodes,
-  ) {
-    final previousNodeIds = previousNodes.map((node) => node.nodeId).toSet();
-    if (previousNodeIds.isEmpty || candidateNodes.isEmpty) {
-      return !_areNodeListsEqualById(previousNodes, candidateNodes);
-    }
-
-    return candidateNodes.every(
-      (candidateNode) => !previousNodeIds.contains(candidateNode.nodeId),
-    );
   }
 
   Future<void> _persistCurrentRun({

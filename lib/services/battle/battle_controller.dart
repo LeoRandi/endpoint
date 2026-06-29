@@ -286,6 +286,37 @@ class BattleController extends ChangeNotifier {
         );
         return;
       }
+
+      final playerBeforePatternUsedItems = _player;
+      final enemyBeforePatternUsedItems = _enemy;
+      final patternUsedItemResolution =
+          _player.applyEquippedItemPatternUsedEffects(
+        opponent: _enemy,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBeforePatternUsedItems,
+        enemyBefore: enemyBeforePatternUsedItems,
+        playerAfter: patternUsedItemResolution.owner,
+        enemyAfter: patternUsedItemResolution.opponent,
+      );
+      if (_isDisposed || !canUseActions) return;
+
+      _player = patternUsedItemResolution.owner;
+      _enemy = patternUsedItemResolution.opponent;
+      patternAttackModifier += patternUsedItemResolution.attackBonusDelta;
+      patternBlockModifier += patternUsedItemResolution.barrierBonusDelta;
+      final patternUsedItemFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (patternUsedItemFinish != null) {
+        _finishCombat(
+          resultType: patternUsedItemFinish.resultType,
+          resultText: patternUsedItemFinish.resultText,
+        );
+        return;
+      }
     }
 
     if (resolvedPatternContext != null) {
@@ -335,8 +366,13 @@ class BattleController extends ChangeNotifier {
         pointKey: pointKey,
       );
       var didResolveAction = false;
-      final pendingActions = <({ActionEffect action, bool allowFollowUps})>[
-        for (final action in actions) (action: action, allowFollowUps: true),
+      final pendingActions = <({
+        ActionEffect action,
+        Item item,
+        bool allowFollowUps,
+      })>[
+        for (final action in actions)
+          (action: action, item: item, allowFollowUps: true),
       ];
 
       while (pendingActions.isNotEmpty) {
@@ -354,6 +390,7 @@ class BattleController extends ChangeNotifier {
                 0,
                 action.totalValue + attackModifier,
               ),
+              sourceItem: pendingAction.item,
             );
             await _playAttackActionAnimations(
               attackerSide: BattleCombatantSide.player,
@@ -364,6 +401,21 @@ class BattleController extends ChangeNotifier {
             if (_isDisposed || !canUseActions) return true;
             _player = attackResolution.attacker;
             _enemy = attackResolution.defender;
+            if (pendingAction.allowFollowUps &&
+                attackResolution.followUpItemActions.isNotEmpty) {
+              pendingActions.insertAll(0, <({
+                ActionEffect action,
+                Item item,
+                bool allowFollowUps,
+              })>[
+                for (final followUp in attackResolution.followUpItemActions)
+                  (
+                    action: followUp.action,
+                    item: followUp.item,
+                    allowFollowUps: false,
+                  ),
+              ]);
+            }
             break;
           case ItemActionType.block:
             final playerBefore = _player;
@@ -398,7 +450,7 @@ class BattleController extends ChangeNotifier {
             final resolution = ItemEffectDispatcher.resolveCustomAction(
               owner: _player,
               opponent: _enemy,
-              item: item,
+              item: pendingAction.item,
               effect: action,
               pattern: pattern,
               previousActions: List<ActionEffect>.unmodifiable(resolvedActions),
@@ -406,13 +458,25 @@ class BattleController extends ChangeNotifier {
             _player = resolution.owner;
             _enemy = resolution.opponent;
             if (pendingAction.allowFollowUps &&
-                resolution.followUpActions.isNotEmpty) {
+                (resolution.followUpActions.isNotEmpty ||
+                    resolution.followUpItemActions.isNotEmpty)) {
               pendingActions.insertAll(0, <({
                 ActionEffect action,
+                Item item,
                 bool allowFollowUps,
               })>[
+                for (final followUp in resolution.followUpItemActions)
+                  (
+                    action: followUp.action,
+                    item: followUp.item,
+                    allowFollowUps: false,
+                  ),
                 for (final followUp in resolution.followUpActions)
-                  (action: followUp, allowFollowUps: false),
+                  (
+                    action: followUp,
+                    item: pendingAction.item,
+                    allowFollowUps: false,
+                  ),
               ]);
             }
             break;
@@ -559,6 +623,37 @@ class BattleController extends ChangeNotifier {
         );
         return;
       }
+
+      final enemyBeforePatternUsedItems = _enemy;
+      final playerBeforePatternUsedItems = _player;
+      final patternUsedItemResolution =
+          _enemy.applyEquippedItemPatternUsedEffects(
+        opponent: _player,
+        pattern: resolvedPatternContext,
+      );
+      await _playCombatStateTransitionAnimations(
+        playerBefore: playerBeforePatternUsedItems,
+        enemyBefore: enemyBeforePatternUsedItems,
+        playerAfter: patternUsedItemResolution.opponent,
+        enemyAfter: patternUsedItemResolution.owner,
+      );
+      if (_isDisposed || _turn != BattleTurnState.enemy) return;
+
+      _enemy = patternUsedItemResolution.owner;
+      _player = patternUsedItemResolution.opponent;
+      patternAttackModifier += patternUsedItemResolution.attackBonusDelta;
+      patternBlockModifier += patternUsedItemResolution.barrierBonusDelta;
+      final patternUsedItemFinish = _turnEngine.finishFor(
+        player: _player,
+        enemy: _enemy,
+      );
+      if (patternUsedItemFinish != null) {
+        _finishCombat(
+          resultType: patternUsedItemFinish.resultType,
+          resultText: patternUsedItemFinish.resultText,
+        );
+        return;
+      }
     }
 
     if (resolvedPatternContext != null) {
@@ -601,8 +696,13 @@ class BattleController extends ChangeNotifier {
         pointKey: pointKey,
       );
       var didResolveAction = false;
-      final pendingActions = <({ActionEffect action, bool allowFollowUps})>[
-        for (final action in actions) (action: action, allowFollowUps: true),
+      final pendingActions = <({
+        ActionEffect action,
+        Item item,
+        bool allowFollowUps,
+      })>[
+        for (final action in actions)
+          (action: action, item: item, allowFollowUps: true),
       ];
 
       while (pendingActions.isNotEmpty) {
@@ -620,6 +720,7 @@ class BattleController extends ChangeNotifier {
                 0,
                 action.totalValue + attackModifier,
               ),
+              sourceItem: pendingAction.item,
             );
             await _playAttackActionAnimations(
               attackerSide: BattleCombatantSide.enemy,
@@ -630,6 +731,21 @@ class BattleController extends ChangeNotifier {
             if (_isDisposed || _turn != BattleTurnState.enemy) return true;
             _enemy = attackResolution.attacker;
             _player = attackResolution.defender;
+            if (pendingAction.allowFollowUps &&
+                attackResolution.followUpItemActions.isNotEmpty) {
+              pendingActions.insertAll(0, <({
+                ActionEffect action,
+                Item item,
+                bool allowFollowUps,
+              })>[
+                for (final followUp in attackResolution.followUpItemActions)
+                  (
+                    action: followUp.action,
+                    item: followUp.item,
+                    allowFollowUps: false,
+                  ),
+              ]);
+            }
             break;
           case ItemActionType.block:
             final enemyBefore = _enemy;
@@ -664,7 +780,7 @@ class BattleController extends ChangeNotifier {
             final resolution = ItemEffectDispatcher.resolveCustomAction(
               owner: _enemy,
               opponent: _player,
-              item: item,
+              item: pendingAction.item,
               effect: action,
               pattern: pattern,
               previousActions: List<ActionEffect>.unmodifiable(resolvedActions),
@@ -672,13 +788,25 @@ class BattleController extends ChangeNotifier {
             _enemy = resolution.owner;
             _player = resolution.opponent;
             if (pendingAction.allowFollowUps &&
-                resolution.followUpActions.isNotEmpty) {
+                (resolution.followUpActions.isNotEmpty ||
+                    resolution.followUpItemActions.isNotEmpty)) {
               pendingActions.insertAll(0, <({
                 ActionEffect action,
+                Item item,
                 bool allowFollowUps,
               })>[
+                for (final followUp in resolution.followUpItemActions)
+                  (
+                    action: followUp.action,
+                    item: followUp.item,
+                    allowFollowUps: false,
+                  ),
                 for (final followUp in resolution.followUpActions)
-                  (action: followUp, allowFollowUps: false),
+                  (
+                    action: followUp,
+                    item: pendingAction.item,
+                    allowFollowUps: false,
+                  ),
               ]);
             }
             break;
@@ -1148,6 +1276,7 @@ class BattleController extends ChangeNotifier {
     int? baseDamageOverride,
     int challengeCounterattackBonus = 0,
     bool triggerAttackResolvedEffects = true,
+    Item? sourceItem,
   }) {
     var updatedAttacker = attacker.removeCombatFlag(
       Battler.pendingBasicAttackFollowUpFlag,
@@ -1156,6 +1285,7 @@ class BattleController extends ChangeNotifier {
     var totalDamageDealt = 0;
     final attackCount = attacker.basicAttackCount;
     final hits = <_BattleAttackHitResolution>[];
+    final followUpItemActions = <ItemFollowUpAction>[];
 
     for (var attackIndex = 0; attackIndex < attackCount; attackIndex++) {
       if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
@@ -1217,12 +1347,14 @@ class BattleController extends ChangeNotifier {
         flatAttackBonus: flatAttackBonus,
         baseDamageOverride: baseDamageOverride,
         triggerAttackResolvedEffects: triggerAttackResolvedEffects,
+        sourceItem: sourceItem,
       );
       updatedAttacker = resolution.attacker.removeCombatFlag(
         Battler.pendingBasicAttackFollowUpFlag,
       );
       updatedDefender = resolution.defender;
       totalDamageDealt += resolution.damageDealt;
+      followUpItemActions.addAll(resolution.followUpItemActions);
       hits.add(
         _BattleAttackHitResolution(
           primaryCombatant: _BattleAttackHitCombatant.attacker,
@@ -1295,6 +1427,8 @@ class BattleController extends ChangeNotifier {
       defender: updatedDefender,
       damageDealt: totalDamageDealt,
       hits: List<_BattleAttackHitResolution>.unmodifiable(hits),
+      followUpItemActions:
+          List<ItemFollowUpAction>.unmodifiable(followUpItemActions),
     );
   }
 
@@ -2187,12 +2321,14 @@ class _BattleAttackActionResolution {
   final Battler defender;
   final int damageDealt;
   final List<_BattleAttackHitResolution> hits;
+  final List<ItemFollowUpAction> followUpItemActions;
 
   const _BattleAttackActionResolution({
     required this.attacker,
     required this.defender,
     required this.damageDealt,
     required this.hits,
+    this.followUpItemActions = const <ItemFollowUpAction>[],
   });
 }
 

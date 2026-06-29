@@ -99,12 +99,26 @@ class BattlerEffectPipeline {
             (total, status) => total + status.currentDamage(updatedOwner),
           );
       if (burnDamage > 0) {
+        final ownerBeforeBurn = updatedOwner;
         updatedOwner = receiveDebuffDamage(
           owner: updatedOwner,
           damage: burnDamage,
           source: opponent,
           kind: DamageKind.burn,
         );
+        final damageTaken = max(
+          0,
+          updatedOwner.barrierLostThisHit + updatedOwner.healthLostThisHit,
+        );
+        if (damageTaken > 0 || ownerBeforeBurn != updatedOwner) {
+          final itemResolution = applyEquippedItemReceiveDamageResolvedEffects(
+            owner: updatedOwner,
+            source: opponent,
+            damageTaken: damageTaken,
+            damageKind: DamageKind.burn,
+          );
+          updatedOwner = itemResolution.owner;
+        }
       }
     }
 
@@ -205,7 +219,23 @@ class BattlerEffectPipeline {
       for (final effect in item.passiveEffects.where(
         (effect) => effect.hook == ItemEffectHook.outgoingDamageModifier,
       )) {
-        updatedDamage += effect.value;
+        switch (effect.effectKey) {
+          case ItemEffectKeys.bloodflameGauntletLowHpDamage:
+            if (owner.health * 2 < owner.maxHealth) {
+              updatedDamage += effect.value * (_burnValue(owner) > 0 ? 2 : 1);
+            }
+            break;
+          case ItemEffectKeys.crownOfTheBlackSunBurnScaling:
+            updatedDamage +=
+                effect.value * (_burnValue(owner) + _burnValue(target));
+            break;
+          case ItemEffectKeys.rampartRamBarrierDamage:
+            updatedDamage += effect.value * (owner.currentBarrier ~/ 10);
+            break;
+          default:
+            updatedDamage += effect.value;
+            break;
+        }
       }
     }
 
@@ -348,11 +378,14 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler target,
     required int damageDealt,
+    Item? sourceItem,
   }) {
     return ItemEffectDispatcher.resolvePassiveHook(
       owner: owner,
       opponent: target,
       hook: ItemEffectHook.attackResolved,
+      damageDealt: damageDealt,
+      sourceItem: sourceItem,
     );
   }
 
@@ -383,11 +416,14 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler source,
     required int damageTaken,
+    DamageKind damageKind = DamageKind.direct,
   }) {
     return ItemEffectDispatcher.resolvePassiveHook(
       owner: owner,
       opponent: source,
       hook: ItemEffectHook.receiveDamageResolved,
+      damageTaken: damageTaken,
+      damageKind: damageKind,
     );
   }
 
@@ -438,6 +474,7 @@ class BattlerEffectPipeline {
       owner: owner,
       opponent: opponent,
       hook: ItemEffectHook.patternUsed,
+      pattern: pattern,
     );
   }
 
@@ -455,6 +492,7 @@ class BattlerEffectPipeline {
       opponent: opponent,
       hook: ItemEffectHook.patternUsed,
       onlyItem: item,
+      pattern: pattern,
     );
   }
 
@@ -530,9 +568,15 @@ class BattlerEffectPipeline {
               activeStatus.value == target.value),
     );
   }
-
 }
 
 Battler _clearCombatItemAugments(Battler owner) {
   return owner;
+}
+
+int _burnValue(Battler owner) {
+  return owner.statusesById(QuemaduraStatus.statusId).fold<int>(
+        0,
+        (total, status) => total + max(0, status.resolved(owner).value),
+      );
 }

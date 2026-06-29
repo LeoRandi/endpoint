@@ -14,6 +14,36 @@ abstract final class ItemEffectKeys {
   static const String sunglasses = 'sunglasses';
   static const String nanoBandageTurnStartHeal = 'nano_bandage_turn_start_heal';
   static const String sHarpEner = 's_harp_ener';
+  static const String kindlingAxeBurnBoth = 'kindling_axe_burn_both';
+  static const String furnaceHeartAdjacentWeapons =
+      'furnace_heart_adjacent_weapons';
+  static const String furnaceHeartRightAngleTrigger =
+      'furnace_heart_right_angle_trigger';
+  static const String bloodflameGauntletLowHpDamage =
+      'bloodflame_gauntlet_low_hp_damage';
+  static const String bloodflameGauntletBurnRevenge =
+      'bloodflame_gauntlet_burn_revenge';
+  static const String crownOfTheBlackSunBurnScaling =
+      'crown_of_the_black_sun_burn_scaling';
+  static const String crownOfTheBlackSunNoDeathOnce =
+      'crown_of_the_black_sun_no_death_once';
+  static const String crownOfTheBlackSunFinisher =
+      'crown_of_the_black_sun_finisher';
+  static const String oathplateCleanse = 'oathplate_cleanse';
+  static const String whitewallStandardBarrierBoost =
+      'whitewall_standard_barrier_boost';
+  static const String whitewallStandardBuffStacking =
+      'whitewall_standard_buff_stacking';
+  static const String rampartRamBarrierDamage = 'rampart_ram_barrier_damage';
+  static const String rampartRamFinisher = 'rampart_ram_finisher';
+  static const String citadelCoreCleanseHeal = 'citadel_core_cleanse_heal';
+  static const String citadelCoreFortressScaling =
+      'citadel_core_fortress_scaling';
+  static const String citadelCoreUnbrokenRetaliation =
+      'citadel_core_unbroken_retaliation';
+  static const String citadelCoreSquareFortress =
+      'citadel_core_square_fortress';
+  static const String needlewheelComboRepeat = 'needlewheel_combo_repeat';
 }
 
 /// Base value object for every effect an item can own.
@@ -169,6 +199,16 @@ final class PassiveEffect extends Effect {
       );
 }
 
+class ItemFollowUpAction {
+  final Item item;
+  final ActionEffect action;
+
+  const ItemFollowUpAction({
+    required this.item,
+    required this.action,
+  });
+}
+
 /// Final owner/opponent state returned by item-effect lifecycle entry points.
 class ItemEffectResolution {
   final Battler owner;
@@ -176,6 +216,7 @@ class ItemEffectResolution {
   final int attackBonusDelta;
   final int barrierBonusDelta;
   final List<ActionEffect> followUpActions;
+  final List<ItemFollowUpAction> followUpItemActions;
 
   const ItemEffectResolution({
     required this.owner,
@@ -183,6 +224,7 @@ class ItemEffectResolution {
     this.attackBonusDelta = 0,
     this.barrierBonusDelta = 0,
     this.followUpActions = const <ActionEffect>[],
+    this.followUpItemActions = const <ItemFollowUpAction>[],
   });
 }
 

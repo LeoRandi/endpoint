@@ -96,6 +96,7 @@ enum BattlerCombatFlag {
   removedWallBlockingPointDebt,
   creditsSpentThisCombat,
   augmentPatternWeaponAttackBoost,
+  itemBarrierActionBoost,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.

@@ -9,6 +9,9 @@ Diseño de items:
 -Gafas de Sol
  -Unas gafas de sol futuristas, con una de las lentes con una pequeña marca de diana
 
+-S-Harp-ener
+ -Una lira/arpa, de metal plateado y afilado.
+
 /////////////////////////////////////////////////////////////
 
 Diseño de enemigos:

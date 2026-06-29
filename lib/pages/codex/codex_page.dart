@@ -1049,7 +1049,6 @@ class _CodexEnemyDetailsDialog extends StatelessWidget {
                   EndpointAugmentOrb(
                     augment: augment,
                     size: 42,
-                    enableTooltipLongPress: true,
                     onPressed: () => _openAugmentDetails(context, augment),
                   ),
               ],

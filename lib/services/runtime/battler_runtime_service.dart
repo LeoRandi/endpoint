@@ -383,11 +383,13 @@ extension BattlerRuntimeService on Battler {
   ItemEffectResolution applyEquippedItemAttackResolvedEffects({
     required Battler target,
     required int damageDealt,
+    Item? sourceItem,
   }) {
     return _battlerEffectPipeline.applyEquippedItemAttackResolvedEffects(
       owner: this,
       target: target,
       damageDealt: damageDealt,
+      sourceItem: sourceItem,
     );
   }
 
@@ -465,11 +467,13 @@ extension BattlerRuntimeService on Battler {
   ItemEffectResolution applyEquippedItemReceiveDamageResolvedEffects({
     required Battler source,
     required int damageTaken,
+    DamageKind damageKind = DamageKind.direct,
   }) {
     return _battlerEffectPipeline.applyEquippedItemReceiveDamageResolvedEffects(
       owner: this,
       source: source,
       damageTaken: damageTaken,
+      damageKind: damageKind,
     );
   }
 

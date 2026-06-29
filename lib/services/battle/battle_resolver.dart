@@ -4,11 +4,13 @@ class BattleAttackResolution {
   final Battler attacker;
   final Battler defender;
   final int damageDealt;
+  final List<ItemFollowUpAction> followUpItemActions;
 
   const BattleAttackResolution({
     required this.attacker,
     required this.defender,
     required this.damageDealt,
+    this.followUpItemActions = const <ItemFollowUpAction>[],
   });
 }
 
@@ -25,12 +27,14 @@ class BattleResolver {
     int flatAttackBonus = 0,
     int? baseDamageOverride,
     bool triggerAttackResolvedEffects = true,
+    Item? sourceItem,
   }) {
     if (defender.hasStatus(PuntoCiegoStatus.statusId)) {
       return _resolvePuntoCiegoMissedAttack(
         attacker: attacker,
         defender: defender,
         triggerAttackResolvedEffects: triggerAttackResolvedEffects,
+        sourceItem: sourceItem,
       );
     }
 
@@ -72,6 +76,7 @@ class BattleResolver {
         damageDealt > 0;
     var updatedAttacker = attacker;
     var updatedDefender = defenderAfterDamage;
+    var followUpItemActions = const <ItemFollowUpAction>[];
     if (triggerAttackResolvedEffects) {
       updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
         owner: updatedAttacker,
@@ -83,9 +88,11 @@ class BattleResolver {
         owner: updatedAttacker,
         target: updatedDefender,
         damageDealt: damageDealt,
+        sourceItem: sourceItem,
       );
       updatedAttacker = attackItemResolution.owner;
       updatedDefender = attackItemResolution.opponent;
+      followUpItemActions = attackItemResolution.followUpItemActions;
     }
     if (barrierWasBrokenByAttack) {
       updatedDefender = updatedDefender.addCombatFlag(
@@ -120,6 +127,7 @@ class BattleResolver {
       attacker: updatedAttacker,
       defender: updatedDefender,
       damageDealt: damageDealt,
+      followUpItemActions: followUpItemActions,
     );
   }
 
@@ -127,9 +135,11 @@ class BattleResolver {
     required Battler attacker,
     required Battler defender,
     required bool triggerAttackResolvedEffects,
+    Item? sourceItem,
   }) {
     var updatedAttacker = attacker;
     var updatedDefender = defender;
+    var followUpItemActions = const <ItemFollowUpAction>[];
     if (triggerAttackResolvedEffects) {
       updatedAttacker = _effectPipeline.applyAttackResolvedEffects(
         owner: updatedAttacker,
@@ -142,9 +152,11 @@ class BattleResolver {
         owner: updatedAttacker,
         target: updatedDefender,
         damageDealt: 0,
+        sourceItem: sourceItem,
       );
       updatedAttacker = attackItemResolution.owner;
       updatedDefender = attackItemResolution.opponent;
+      followUpItemActions = attackItemResolution.followUpItemActions;
     }
 
     final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
@@ -158,6 +170,7 @@ class BattleResolver {
       attacker: statusLossResolution.owner,
       defender: statusLossResolution.opponent,
       damageDealt: 0,
+      followUpItemActions: followUpItemActions,
     );
   }
 }
