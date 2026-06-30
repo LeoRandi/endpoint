@@ -58,6 +58,23 @@ abstract final class ItemEffectKeys {
   static const String thousandCutHaloStatusEcho =
       'thousand_cut_halo_status_echo';
   static const String thousandCutHaloFinisher = 'thousand_cut_halo_finisher';
+  static const String lanzamonedasSpendGoldDamage =
+      'lanzamonedas_spend_gold_damage';
+  static const String cashbackBadgeRefund = 'cashback_badge_refund';
+  static const String cashbackBadgeSpendPotencia =
+      'cashback_badge_spend_potencia';
+  static const String cashbackBadgeOpeningDiscount =
+      'cashback_badge_opening_discount';
+  static const String contrabandCatalogueMixedArchetypeScaling =
+      'contraband_catalogue_mixed_archetype_scaling';
+  static const String contrabandCatalogueGoldSpendEcho =
+      'contraband_catalogue_gold_spend_echo';
+  static const String contrabandCatalogueMiddleProfit =
+      'contraband_catalogue_middle_profit';
+  static const String goldenGodfatherRichScaling =
+      'golden_godfather_rich_scaling';
+  static const String goldenGodfatherFinisher =
+      'golden_godfather_finisher';
 }
 
 /// Base value object for every effect an item can own.

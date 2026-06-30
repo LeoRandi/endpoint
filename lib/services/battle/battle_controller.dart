@@ -536,12 +536,29 @@ class BattleController extends ChangeNotifier {
     required Battler owner,
     required ActionEffect action,
   }) {
-    if (action.actionType == ItemActionType.none ||
-        owner.itemActionResolvedCountThisTurn < 4) {
+    if (action.actionType == ItemActionType.none) {
       return action;
     }
 
     var updatedAction = action;
+    for (final item in owner.equippedItemsForHook(
+      ItemEffectHook.actionResolved,
+    )) {
+      for (final effect in item.passiveEffects.where(
+        (effect) =>
+            effect.effectKey == ItemEffectKeys.goldenGodfatherRichScaling,
+      )) {
+        updatedAction = updatedAction.withBonusSource(
+          sourceKey: _itemActionScalingSourceKey(item, effect),
+          bonusValue: effect.value * (owner.money ~/ 10),
+        );
+      }
+    }
+
+    if (owner.itemActionResolvedCountThisTurn < 4) {
+      return updatedAction;
+    }
+
     for (final item in owner.equippedItemsForHook(
       ItemEffectHook.actionResolved,
     )) {

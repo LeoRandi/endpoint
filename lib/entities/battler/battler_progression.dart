@@ -20,6 +20,9 @@ extension BattlerProgression on Battler {
     return copyWith(money: money + safeAmount);
   }
 
+  /// Suma dinero causado por un efecto de item.
+  Battler earnMoneyForItemEffect(int amount) => earnMoney(amount);
+
   /// Resta dinero sin permitir que el total baje de cero.
   Battler spendMoney(int amount) => _spendMoney(amount);
 

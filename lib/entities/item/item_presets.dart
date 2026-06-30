@@ -775,7 +775,7 @@ Item(
       description:
           'Your attack, Barrier and healing effects have +--value-- power for every 10 Gold you have.',
       value: 1,
-      hook: ItemEffectHook.calculatedStatModifier,
+      hook: ItemEffectHook.actionResolved,
     ): 1,
     PatternEffect(
       patternType: const OperativePatternRequirement.last(),

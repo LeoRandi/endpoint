@@ -45,6 +45,13 @@ abstract final class ItemEffectDispatcher {
     ItemEffectKeys.leechwireCoilMiddleContagio:
         _resolveLeechwireCoilMiddleContagio,
     ItemEffectKeys.thousandCutHaloFinisher: _resolveThousandCutHaloFinisher,
+    ItemEffectKeys.lanzamonedasSpendGoldDamage:
+        _resolveLanzamonedasSpendGoldDamage,
+    ItemEffectKeys.cashbackBadgeOpeningDiscount:
+        _resolveCashbackBadgeOpeningDiscount,
+    ItemEffectKeys.contrabandCatalogueMiddleProfit:
+        _resolveContrabandCatalogueMiddleProfit,
+    ItemEffectKeys.goldenGodfatherFinisher: _resolveGoldenGodfatherFinisher,
   };
   static final Map<String, ItemPassiveEffectHandler> _passiveHandlers = {
     ItemEffectKeys.nanoBandageTurnStartHeal: _resolveNanoBandageTurnStartHeal,
@@ -70,6 +77,12 @@ abstract final class ItemEffectDispatcher {
     ItemEffectKeys.thousandCutHaloActionScaling:
         _resolveThousandCutHaloActionScaling,
     ItemEffectKeys.thousandCutHaloStatusEcho: _resolveThousandCutHaloStatusEcho,
+    ItemEffectKeys.cashbackBadgeRefund: _resolvePassiveNoop,
+    ItemEffectKeys.cashbackBadgeSpendPotencia: _resolvePassiveNoop,
+    ItemEffectKeys.contrabandCatalogueMixedArchetypeScaling:
+        _resolveContrabandCatalogueMixedArchetypeScaling,
+    ItemEffectKeys.contrabandCatalogueGoldSpendEcho: _resolvePassiveNoop,
+    ItemEffectKeys.goldenGodfatherRichScaling: _resolvePassiveNoop,
   };
 
   static void registerCustomAction(
@@ -762,6 +775,119 @@ abstract final class ItemEffectDispatcher {
     );
   }
 
+  static ItemEffectResolution _resolveLanzamonedasSpendGoldDamage({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    const goldCost = 2;
+    if (!owner.canAfford(goldCost)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final spendResolution = _spendGoldThroughItemEffect(
+      owner: owner,
+      opponent: opponent,
+      amount: goldCost,
+      pattern: pattern,
+    );
+    final trueDamage = max(0, effect.totalValue);
+    return ItemEffectResolution(
+      owner: spendResolution.owner,
+      opponent: trueDamage <= 0
+          ? spendResolution.opponent
+          : spendResolution.opponent.copyWith(
+              health: max(0, spendResolution.opponent.health - trueDamage),
+            ),
+      followUpItemActions: spendResolution.followUpItemActions,
+    );
+  }
+
+  static ItemEffectResolution _resolveCashbackBadgeOpeningDiscount({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return ItemEffectResolution(
+      owner: _gainGoldThroughItemEffect(owner, effect.totalValue),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveContrabandCatalogueMixedArchetypeScaling({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    final affinityCount = owner.equippedItems
+        .where((item) => item.affinity != ItemArchetypeAffinity.mercante)
+        .map((item) => item.affinity)
+        .toSet()
+        .length;
+    return ItemEffectResolution(
+      owner: _gainPotencia(owner, affinityCount * effect.value),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveContrabandCatalogueMiddleProfit({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final affinityCount = _usedPatternItems(
+      owner: owner,
+      pattern: pattern,
+    ).map((item) => item.affinity).toSet().length;
+    return ItemEffectResolution(
+      owner: _gainGoldThroughItemEffect(
+        owner,
+        affinityCount * effect.totalValue,
+      ),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveGoldenGodfatherFinisher({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final actionTypeCount = previousActions
+        .map((action) => action.actionType)
+        .where((actionType) => actionType != ItemActionType.none)
+        .toSet()
+        .length;
+    return ItemEffectResolution(
+      owner: _gainGoldThroughItemEffect(
+        owner,
+        actionTypeCount * effect.totalValue,
+      ),
+      opponent: opponent,
+    );
+  }
+
   static ItemEffectResolution _resolveVenomMetronomeRepeatedActionPoison({
     required Battler owner,
     required Battler opponent,
@@ -964,6 +1090,114 @@ abstract final class ItemEffectDispatcher {
     }
 
     return ItemEffectResolution(owner: updatedOwner, opponent: updatedOpponent);
+  }
+
+  static ItemEffectResolution _resolvePassiveNoop({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent,
+      status: status,
+    );
+  }
+
+  static ItemEffectResolution _spendGoldThroughItemEffect({
+    required Battler owner,
+    required Battler opponent,
+    required int amount,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || !owner.canAfford(safeAmount)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    var updatedOwner = owner.spendMoneyForItemEffect(safeAmount);
+    final followUps = <ItemFollowUpAction>[];
+
+    for (final cashbackItem in updatedOwner.equippedItems) {
+      for (final effect in cashbackItem.passiveEffects.where(
+        (effect) => effect.effectKey == ItemEffectKeys.cashbackBadgeRefund,
+      )) {
+        if (updatedOwner.itemCombatRoundFlagUseCount(
+              item: cashbackItem,
+              kind: effect.effectKey,
+            ) >
+            0) {
+          continue;
+        }
+        updatedOwner = _gainGoldThroughItemEffect(updatedOwner, effect.value)
+            .addItemCombatRoundFlagUse(
+          item: cashbackItem,
+          kind: effect.effectKey,
+        );
+      }
+    }
+
+    for (final catalogueItem in updatedOwner.equippedItems) {
+      for (final effect in catalogueItem.passiveEffects.where(
+        (effect) =>
+            effect.effectKey ==
+            ItemEffectKeys.contrabandCatalogueGoldSpendEcho,
+      )) {
+        final weakestItem = _weakestNonMercantePatternItem(
+          owner: updatedOwner,
+          pattern: pattern,
+        );
+        if (weakestItem == null) continue;
+        final actions = _actionsForFollowUpItem(
+          owner: updatedOwner,
+          item: weakestItem,
+          pattern: pattern,
+        );
+        for (var repeat = 0; repeat < max(0, effect.value); repeat++) {
+          for (final action in actions) {
+            followUps.add(ItemFollowUpAction(item: weakestItem, action: action));
+          }
+        }
+      }
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: opponent,
+      followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static Battler _gainGoldThroughItemEffect(Battler owner, int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0) return owner;
+
+    var updatedOwner = owner.earnMoneyForItemEffect(safeAmount);
+    for (final item in updatedOwner.equippedItems) {
+      for (final effect in item.passiveEffects.where(
+        (effect) =>
+            effect.effectKey == ItemEffectKeys.cashbackBadgeSpendPotencia,
+      )) {
+        updatedOwner = _gainPotencia(updatedOwner, effect.value);
+      }
+    }
+    return updatedOwner;
+  }
+
+  static Battler _gainPotencia(Battler owner, int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0) return owner;
+
+    return owner.applyStatus(PotenciaStatus(value: safeAmount));
   }
 
   static ({Battler owner, Battler opponent}) _applyBurnToOpponent({
@@ -1188,6 +1422,63 @@ abstract final class ItemEffectDispatcher {
     return List<Item>.unmodifiable(items);
   }
 
+  static List<Item> _usedPatternItems({
+    required Battler owner,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final items = <Item>[];
+    for (final pointKey in pattern.usedItemPointKeys) {
+      for (final item in owner.equippedItems) {
+        final itemPointKey = OperativePatternLayoutService.pointKeyForItem(
+          player: owner,
+          item: item,
+        );
+        if (itemPointKey == pointKey) {
+          items.add(item);
+          break;
+        }
+      }
+    }
+    return List<Item>.unmodifiable(items);
+  }
+
+  static Item? _weakestNonMercantePatternItem({
+    required Battler owner,
+    required BattlePatternMatchContext pattern,
+  }) {
+    Item? weakest;
+    var weakestValue = 0;
+    for (final item in _usedPatternItems(owner: owner, pattern: pattern)) {
+      if (item.affinity == ItemArchetypeAffinity.mercante) continue;
+      final itemValue = _itemActionValue(
+        owner: owner,
+        item: item,
+        pattern: pattern,
+      );
+      if (itemValue <= 0) continue;
+      if (weakest == null || itemValue < weakestValue) {
+        weakest = item;
+        weakestValue = itemValue;
+      }
+    }
+    return weakest;
+  }
+
+  static int _itemActionValue({
+    required Battler owner,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    return _actionsForFollowUpItem(
+      owner: owner,
+      item: item,
+      pattern: pattern,
+    ).fold<int>(
+      0,
+      (total, action) => total + action.totalValue,
+    );
+  }
+
   static List<Item> _adjacentBarrierItems({
     required Battler owner,
     required Item item,
@@ -1298,6 +1589,38 @@ abstract final class ItemEffectDispatcher {
   }) {
     final boostedWeapon = owner.itemWithCombatActionBonuses(weapon);
     return List<ActionEffect>.unmodifiable(boostedWeapon.actionEffects);
+  }
+
+  static List<ActionEffect> _actionsForFollowUpItem({
+    required Battler owner,
+    required Item item,
+    required BattlePatternMatchContext pattern,
+  }) {
+    final boostedItem = owner.itemWithCombatActionBonuses(item);
+    final itemPointKey = OperativePatternLayoutService.pointKeyForItem(
+      player: owner,
+      item: item,
+    );
+    OperativePatternPoint? itemPoint;
+    if (itemPointKey != null) {
+      for (final point in pattern.patternPoints) {
+        if (point.key == itemPointKey) {
+          itemPoint = point;
+          break;
+        }
+      }
+    }
+
+    return List<ActionEffect>.unmodifiable([
+      ...boostedItem.actionEffects,
+      if (itemPoint != null)
+        ...boostedItem
+            .matchingPatternEffects(
+              patternPoints: pattern.patternPoints,
+              itemPoint: itemPoint,
+            )
+            .map((effect) => effect.actionEffect),
+    ]);
   }
 
   static List<ActionEffect> _attackActionsForFollowUpWeapon({
