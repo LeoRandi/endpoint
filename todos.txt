@@ -61,7 +61,7 @@
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 40 generales y 60 por arquetipo(40 para mercante)[General: 5, Veloz: 5, Inamovible: 5, Imparable: 5, Mercante:5]
+--Meter al menos 40 generales y 60 por arquetipo(40 para mercante)[General: 5, Veloz: 5, Inamovible: 10, Imparable: 5, Mercante:5]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]

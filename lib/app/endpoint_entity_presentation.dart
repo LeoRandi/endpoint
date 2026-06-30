@@ -214,13 +214,6 @@ extension OperativePatternRequirementPresentation
         OperativePatternRequirementKind.lastPoint => 'Final',
         OperativePatternRequirementKind.rightAngle => 'Angulo 90',
         OperativePatternRequirementKind.straightAngle => 'Angulo 180',
-        OperativePatternRequirementKind.exactShape => switch (shapeKind) {
-            OperativePatternShapeKind.literal => 'Figura',
-            OperativePatternShapeKind.square => 'Cuadrado',
-            OperativePatternShapeKind.diamond => 'Diamante',
-            OperativePatternShapeKind.hourglass => 'Reloj arena',
-            OperativePatternShapeKind.zigzag => 'Zigzag',
-          },
       };
 
   String get shortLabel => switch (kind) {
@@ -229,7 +222,6 @@ extension OperativePatternRequirementPresentation
         OperativePatternRequirementKind.lastPoint => 'FIN',
         OperativePatternRequirementKind.rightAngle => '90',
         OperativePatternRequirementKind.straightAngle => '180',
-        OperativePatternRequirementKind.exactShape => _shortExactShapeLabel,
       };
 
   String get description => switch (kind) {
@@ -243,15 +235,7 @@ extension OperativePatternRequirementPresentation
           'Debe ser el vertice de un angulo recto.',
         OperativePatternRequirementKind.straightAngle =>
           'Debe ser el vertice de un angulo llano de 180 grados.',
-        OperativePatternRequirementKind.exactShape =>
-          'El dibujo debe seguir esta figura en el orden indicado.',
       };
-
-  String get _shortExactShapeLabel {
-    final compactLabel = label.replaceAll(' ', '');
-    if (compactLabel.length <= 3) return compactLabel.toUpperCase();
-    return compactLabel.substring(0, 3).toUpperCase();
-  }
 }
 
 extension PathNodePresentation on PathNode {

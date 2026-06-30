@@ -235,6 +235,10 @@ class BattlerEffectPipeline {
           case ItemEffectKeys.leechwireCoilDebuffDamage:
             updatedDamage += effect.value * _differentDebuffCount(target);
             break;
+          case ItemEffectKeys.executionBellDesafioDamage:
+            updatedDamage +=
+                2 * (owner.desafioGainedThisCombat ~/ max(1, effect.value));
+            break;
           default:
             updatedDamage += effect.value;
             break;

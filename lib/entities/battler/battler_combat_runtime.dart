@@ -295,6 +295,20 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  /// Cuenta cuanto daÃ±o recibio este combatiente durante la ronda actual.
+  int get damageTakenThisRound {
+    return _secondaryValueForBattlerRoundFlag(
+      BattlerCombatFlag.damageTakenThisRound,
+    );
+  }
+
+  /// Cuenta cuanto Desafio se ha ganado durante este combate.
+  int get desafioGainedThisCombat {
+    return _secondaryValueForBattlerFlag(
+      BattlerCombatFlag.desafioGainedThisCombat,
+    );
+  }
+
   /// Marca una accion de item como completada para efectos de combo.
   Battler recordResolvedItemAction(ActionEffect action) {
     var updatedOwner = addBattlerCombatRoundFlagUse(
@@ -306,6 +320,40 @@ extension BattlerCombatRuntime on Battler {
       );
     }
     return updatedOwner;
+  }
+
+  /// Registra daÃ±o recibido en la ronda actual para efectos reactivos.
+  Battler recordDamageTakenThisRound(int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || !hasCombatFlag(Battler.combatActiveFlag)) {
+      return this;
+    }
+
+    return addCombatFlag(
+      CombatRuntimeFlag.battler(
+        BattlerCombatFlag.damageTakenThisRound,
+        value: combatRound,
+        secondaryValue: safeAmount,
+      ),
+    );
+  }
+
+  /// Registra Desafio ganado durante este combate para efectos de escalado.
+  Battler recordDesafioGainedThisCombat(int amount) {
+    final safeAmount = max(0, amount);
+    if (safeAmount <= 0 || !hasCombatFlag(Battler.combatActiveFlag)) {
+      return this;
+    }
+
+    return addCombatFlag(
+      CombatRuntimeFlag.battler(
+        BattlerCombatFlag.desafioGainedThisCombat,
+        value: battlerCombatFlagUseCount(
+          BattlerCombatFlag.desafioGainedThisCombat,
+        ),
+        secondaryValue: safeAmount,
+      ),
+    );
   }
 
   /// Registra una activacion adicional de un item para efectos limitados.
@@ -742,6 +790,18 @@ extension BattlerCombatRuntime on Battler {
     var total = 0;
     for (final flag in combatFlags) {
       if (flag.battlerFlag != kind) continue;
+      total += max(0, flag.secondaryValue ?? flag.value ?? 0);
+    }
+    return total;
+  }
+
+  int _secondaryValueForBattlerRoundFlag(BattlerCombatFlag kind) {
+    final currentCombatRound = combatRound;
+    var total = 0;
+    for (final flag in combatFlags) {
+      if (flag.battlerFlag != kind || flag.value != currentCombatRound) {
+        continue;
+      }
       total += max(0, flag.secondaryValue ?? flag.value ?? 0);
     }
     return total;

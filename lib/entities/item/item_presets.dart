@@ -98,7 +98,7 @@ List<Item> itemPresets = <Item>[
     effects: <Effect, int>{
       ActionEffect.block(value: 5): 5,
       PatternEffect(
-        patternType: const OperativePatternRequirement.rightAngle(),
+        patternType: const OperativePatternRequirement.straightAngle(),
         actionEffect: ActionEffect.attack(value: 8),
       ): 4,
     },
@@ -121,6 +121,30 @@ List<Item> itemPresets = <Item>[
     asset: 'assets/sprites/items/RustedCleaver.png',
     effects: <Effect, int>{
       ActionEffect.attack(value: 6): 6,
+    },
+  ),
+
+  /// Duelist Chalk
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Duelist Chalk',
+    description:
+        'A piece of red chalk used to draw ritualistic dueling circles. Cross it, and someone will bleed.',
+    tier: RarityTier.gray,
+    baseCost: 2,
+    sellValue: 1,
+    tags: <EntityTag>[
+      EntityTag.desafio,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/DuelistChalk.png',
+    effects: <Effect, int>{
+      ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Gain --value-- Desafio.',
+        customEffectKey: ItemEffectKeys.duelistChalkGainDesafio,
+        value: 4,
+      ): 4,
     },
   ),
 
@@ -152,6 +176,68 @@ List<Item> itemPresets = <Item>[
     },
   ),
 
+  /// Spite Hook
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Spite Hook',
+    description:
+        'A hooked blade that bites deeper when its wielder is already bleeding.',
+    tier: RarityTier.green,
+    baseCost: 4,
+    sellValue: 2,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.desafio,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/SpiteHook.png',
+    effects: <Effect, int>{
+      ActionEffect.attack(value: 8): 8,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.spiteHookRevengeStrike,
+        description:
+            'If you received damage this turn before using this item, gain --value-- Desafio before your next action.',
+        value: 4,
+        hook: ItemEffectHook.actionResolved,
+      ): 4,
+    },
+  ),
+
+  /// Ash-Eater Mask
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Ash-Eater Mask',
+    description:
+        'A scorched mask worn by fighters who breathe better when the air is full of smoke and pain.',
+    tier: RarityTier.green,
+    baseCost: 4,
+    sellValue: 2,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.quemadura,
+      EntityTag.buff,
+      EntityTag.vida,
+    ],
+    asset: 'assets/sprites/items/AshEaterMask.png',
+    effects: <Effect, int>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.ashEaterMaskBurnPotencia,
+        description:
+            'At the start of your turn, if you have Burn, gain --value-- Potencia.',
+        value: 1,
+        hook: ItemEffectHook.turnStart,
+      ): 1,
+      ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Apply --value-- Burn to yourself. If you are below half HP, heal --value-- HP.',
+        customEffectKey: ItemEffectKeys.ashEaterMaskSelfBurnHeal,
+        value: 2,
+      ): 2,
+    },
+  ),
+
   /// Furnace Heart
   Item(
     affinity: ItemArchetypeAffinity.imparable,
@@ -177,15 +263,53 @@ List<Item> itemPresets = <Item>[
         hook: ItemEffectHook.combatStart,
       ): 1,
       PatternEffect(
-        patternType: const OperativePatternRequirement.rightAngle(),
+        patternType: const OperativePatternRequirement.middle(),
         actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
-              'Apply --value-- Burn to yourself, then use adjacent weapons on the pattern an additional time.',
+              'If used in the middle of a pattern, apply --value-- Burn to yourself, then use adjacent weapons on the pattern an additional time.',
           customEffectKey: ItemEffectKeys.furnaceHeartRightAngleTrigger,
           value: 1,
         ),
       ): 1,
+    },
+  ),
+
+  /// Challenge Brand
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Challenge Brand',
+    description:
+        'A burning iron seal pressed into your own armor, sizzling each time your anger flares.',
+    tier: RarityTier.blue,
+    baseCost: 6,
+    sellValue: 3,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.desafio,
+      EntityTag.quemadura,
+      EntityTag.debuff,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/ChallengeBrand.png',
+    effects: <Effect, int>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.challengeBrandCounterBurn,
+        description:
+            'Whenever an enemy counters your Desafio attack, apply --value-- Burn to both you and the enemy.',
+        value: 1,
+        hook: ItemEffectHook.receiveDamageResolved,
+      ): 1,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.first(),
+        actionEffect: ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this starts the pattern, gain --value-- Desafio. If you have Burn, also heal --value-- HP.',
+          customEffectKey: ItemEffectKeys.challengeBrandRightAngleDesafio,
+          value: 3,
+        ),
+      ): 3,
     },
   ),
 
@@ -219,6 +343,43 @@ List<Item> itemPresets = <Item>[
         effectKey: ItemEffectKeys.bloodflameGauntletBurnRevenge,
         description:
             'Whenever you receive damage from Burn, your next attack applies --value-- Burn to the enemy.',
+        value: 2,
+        hook: ItemEffectHook.receiveDamageResolved,
+      ): 2,
+    },
+  ),
+
+  /// Execution Bell
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Execution Bell',
+    description:
+        'A cracked iron bell, chained and used as a weapon. Dont let it toll for you.',
+    tier: RarityTier.purple,
+    baseCost: 8,
+    sellValue: 4,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.desafio,
+      EntityTag.buff,
+      EntityTag.quemadura,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/ExecutionBell.png',
+    effects: <Effect, int>{
+      ActionEffect.attack(value: 10): 10,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.executionBellDesafioDamage,
+        description:
+            'Your attacks deal 2 extra damage for every --value-- Desafio you gained this combat.',
+        value: 5,
+        hook: ItemEffectHook.outgoingDamageModifier,
+      ): -2,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.executionBellCounterRevenge,
+        description:
+            'Your first --value-- Desafio attacks each combat apply 5 burn to the enemy.',
         value: 2,
         hook: ItemEffectHook.receiveDamageResolved,
       ): 2,
@@ -510,13 +671,11 @@ List<Item> itemPresets = <Item>[
         hook: ItemEffectHook.actionResolved,
       ): 2,
       PatternEffect(
-        patternType: const OperativePatternRequirement.exactShape(
-          shapeKind: OperativePatternShapeKind.zigzag,
-        ),
+        patternType: const OperativePatternRequirement.rightAngle(),
         actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
-              'If used in a zigzag pattern, apply --value-- Conmocion and use your first weapon on the pattern again.',
+              'If used in a 90 degree turn, apply --value-- Conmocion and use your first weapon on the pattern again.',
           customEffectKey: ItemEffectKeys.venomMetronomeZigzag,
           value: 5,
         ),
@@ -696,10 +855,10 @@ List<Item> itemPresets = <Item>[
         hook: ItemEffectHook.passive,
       ): 1,
       PatternEffect(
-        patternType: const OperativePatternRequirement.last(),
+        patternType: const OperativePatternRequirement.first(),
         actionEffect: ActionEffect(
           actionType: ItemActionType.none,
-          description: 'If this ends the pattern, gain --value-- Gold.',
+          description: 'If this starts the pattern, gain --value-- Gold.',
           customEffectKey: ItemEffectKeys.cashbackBadgeOpeningDiscount,
           value: 1,
         ),
@@ -749,46 +908,47 @@ List<Item> itemPresets = <Item>[
       ): 1,
     },
   ),
+
   /// Golden Godfather
-Item(
-  affinity: ItemArchetypeAffinity.mercante,
-  name: 'Golden Godfather',
-  description:
-      'A grinning golden idol of impossible wealth. It does not fight for you. It simply pays reality to lose.',
-  tier: RarityTier.yellow,
-  baseCost: 10,
-  sellValue: 5,
-  tags: <EntityTag>[
-    EntityTag.accesorio,
-    EntityTag.economia,
-    EntityTag.buff,
-    EntityTag.ataque,
-    EntityTag.resonancia,
-  ],
-  asset: 'assets/sprites/items/GoldenGodfather.png',
-  effects: <Effect, int>{
-    ActionEffect.attack(value: 10): 10,
-    ActionEffect.block(value: 10): 10,
-    ActionEffect.heal(value: 10): 10,
-    const PassiveEffect(
-      effectKey: ItemEffectKeys.goldenGodfatherRichScaling,
-      description:
-          'Your attack, Barrier and healing effects have +--value-- power for every 10 Gold you have.',
-      value: 1,
-      hook: ItemEffectHook.actionResolved,
-    ): 1,
-    PatternEffect(
-      patternType: const OperativePatternRequirement.last(),
-      actionEffect: ActionEffect(
-        actionType: ItemActionType.none,
+  Item(
+    affinity: ItemArchetypeAffinity.mercante,
+    name: 'Golden Godfather',
+    description:
+        'A grinning golden idol of impossible wealth. It does not fight for you. It simply pays reality to lose.',
+    tier: RarityTier.yellow,
+    baseCost: 10,
+    sellValue: 5,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.economia,
+      EntityTag.buff,
+      EntityTag.ataque,
+      EntityTag.resonancia,
+    ],
+    asset: 'assets/sprites/items/GoldenGodfather.png',
+    effects: <Effect, int>{
+      ActionEffect.attack(value: 10): 10,
+      ActionEffect.block(value: 10): 10,
+      ActionEffect.heal(value: 10): 10,
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.goldenGodfatherRichScaling,
         description:
-            'If this ends the pattern, gain --value-- Gold for each different action type used in this pattern.',
-        customEffectKey: ItemEffectKeys.goldenGodfatherFinisher,
-        value: 5,
-      ),
-    ): 5,
-  },
-),
+            'Your attack, Barrier and healing effects have +--value-- power for every 10 Gold you have.',
+        value: 1,
+        hook: ItemEffectHook.actionResolved,
+      ): 1,
+      PatternEffect(
+        patternType: const OperativePatternRequirement.last(),
+        actionEffect: ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this ends the pattern, gain --value-- Gold for each different action type used in this pattern.',
+          customEffectKey: ItemEffectKeys.goldenGodfatherFinisher,
+          value: 5,
+        ),
+      ): 5,
+    },
+  ),
 ];
 
 /// Stable catalog lookup populated alongside [itemPresets].

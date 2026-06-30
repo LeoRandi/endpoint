@@ -14,6 +14,7 @@ enum DamageKind {
   direct,
   debuff,
   burn,
+  desafioCounter,
 }
 
 /// Enumera las identidades estables de los estados para evitar lookups por texto.

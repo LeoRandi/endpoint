@@ -113,6 +113,9 @@ class BattleResolver {
     );
     updatedDefender = receiveItemResolution.owner;
     updatedAttacker = receiveItemResolution.opponent;
+    if (damageDealt > 0) {
+      updatedDefender = updatedDefender.recordDamageTakenThisRound(damageDealt);
+    }
     final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
       ownerBefore: attacker,
       ownerAfter: updatedAttacker,

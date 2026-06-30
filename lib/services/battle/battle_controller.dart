@@ -1454,6 +1454,12 @@ class BattleController extends ChangeNotifier {
         updatedAttacker = challengeResolution.source;
         updatedDefender = challengeResolution.target;
         totalDamageDealt += challengeResolution.damageDealt;
+        final executionBellResolution = _applyExecutionBellAfterDesafioAttack(
+          owner: updatedAttacker,
+          target: updatedDefender,
+        );
+        updatedAttacker = executionBellResolution.owner;
+        updatedDefender = executionBellResolution.target;
         hits.add(
           _BattleAttackHitResolution(
             primaryCombatant: _BattleAttackHitCombatant.attacker,
@@ -1467,6 +1473,55 @@ class BattleController extends ChangeNotifier {
             damageDealt: challengeResolution.damageDealt,
           ),
         );
+      }
+
+      if (consumedDesafioValue > 0 &&
+          !desafioCounterPrevented &&
+          !updatedAttacker.isDefeated &&
+          !updatedDefender.isDefeated) {
+        final counterDamage =
+            max(0, consumedDesafioValue ~/ 2 + challengeCounterattackBonus);
+        if (counterDamage > 0) {
+          final counterBeforeAttacker = updatedAttacker;
+          final counterBeforeDefender = updatedDefender;
+          final counterResolution = _resolveDirectDamageOnly(
+            source: updatedDefender,
+            target: updatedAttacker,
+            damage: counterDamage,
+            kind: DamageKind.desafioCounter,
+          );
+          updatedDefender = counterResolution.source;
+          updatedAttacker = counterResolution.target;
+          hits.add(
+            _BattleAttackHitResolution(
+              primaryCombatant: _BattleAttackHitCombatant.defender,
+              motionAsset: BattleCombatMotionAsset.fist,
+              attackerBefore: counterBeforeAttacker,
+              defenderBefore: counterBeforeDefender,
+              attackerAfter: updatedAttacker,
+              defenderAfter: updatedDefender,
+              damageDealt: counterResolution.damageDealt,
+            ),
+          );
+
+          if (!updatedAttacker.isDefeated) {
+            updatedAttacker =
+                _applySeguroRotoAfterDesafioCounter(updatedAttacker);
+            updatedAttacker =
+                _applyAceleradorRetoAfterSurvivingCounter(updatedAttacker);
+          }
+
+          if (!updatedAttacker.isDefeated && !updatedDefender.isDefeated) {
+            final ultimaPalabraResolution = _resolveUltimaPalabraAfterCounter(
+              owner: updatedAttacker,
+              target: updatedDefender,
+            );
+            updatedAttacker = ultimaPalabraResolution.owner;
+            updatedDefender = ultimaPalabraResolution.target;
+            totalDamageDealt += ultimaPalabraResolution.damageDealt;
+            hits.addAll(ultimaPalabraResolution.hits);
+          }
+        }
       }
 
       if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
@@ -1518,49 +1573,6 @@ class BattleController extends ChangeNotifier {
           updatedDefender.isDefeated) {
         continue;
       }
-
-      final counterBeforeAttacker = updatedAttacker;
-      final counterBeforeDefender = updatedDefender;
-      final counterDamage = (max(1, (consumedDesafioValue + 1) ~/ 2) +
-              max(0, challengeCounterattackBonus))
-          .toInt();
-      final counterResolution = _resolveDirectDamageOnly(
-        source: updatedDefender,
-        target: updatedAttacker,
-        damage: counterDamage,
-      );
-      updatedDefender = counterResolution.source;
-      updatedAttacker = counterResolution.target;
-      hits.add(
-        _BattleAttackHitResolution(
-          primaryCombatant: _BattleAttackHitCombatant.defender,
-          motionAsset: BattleCombatMotionAsset.fist,
-          attackerBefore: counterBeforeAttacker,
-          defenderBefore: counterBeforeDefender,
-          attackerAfter: updatedAttacker,
-          defenderAfter: updatedDefender,
-          damageDealt: counterResolution.damageDealt,
-        ),
-      );
-
-      if (!updatedAttacker.isDefeated) {
-        updatedAttacker = _applySeguroRotoAfterDesafioCounter(updatedAttacker);
-        updatedAttacker =
-            _applyAceleradorRetoAfterSurvivingCounter(updatedAttacker);
-      }
-
-      if (updatedAttacker.isDefeated || updatedDefender.isDefeated) {
-        continue;
-      }
-
-      final ultimaPalabraResolution = _resolveUltimaPalabraAfterCounter(
-        owner: updatedAttacker,
-        target: updatedDefender,
-      );
-      updatedAttacker = ultimaPalabraResolution.owner;
-      updatedDefender = ultimaPalabraResolution.target;
-      totalDamageDealt += ultimaPalabraResolution.damageDealt;
-      hits.addAll(ultimaPalabraResolution.hits);
     }
 
     return _BattleAttackActionResolution(
@@ -1573,6 +1585,139 @@ class BattleController extends ChangeNotifier {
       followUpItemActions:
           List<ItemFollowUpAction>.unmodifiable(followUpItemActions),
     );
+  }
+
+  _BattleAttackActionResolution _resolveDesafioOnlyAction({
+    required Battler attacker,
+    required Battler defender,
+    int challengeCounterattackBonus = 0,
+  }) {
+    final attackerBefore = attacker.removeCombatFlag(
+      Battler.pendingBasicAttackFollowUpFlag,
+    );
+    final defenderBefore = defender;
+    var updatedAttacker = attackerBefore;
+    var updatedDefender = defender;
+    var totalDamageDealt = 0;
+    final hits = <_BattleAttackHitResolution>[];
+
+    final challengeConsumption = _consumeDesafioIfPresent(updatedAttacker);
+    final consumedDesafioValue = challengeConsumption.value;
+    updatedAttacker = challengeConsumption.owner;
+    if (consumedDesafioValue <= 0) {
+      return _BattleAttackActionResolution(
+        attacker: updatedAttacker,
+        defender: updatedDefender,
+        damageDealt: 0,
+        hits: const <_BattleAttackHitResolution>[],
+      );
+    }
+
+    final challengeResolution = _resolveDirectDamageOnly(
+      source: updatedAttacker,
+      target: updatedDefender,
+      damage: consumedDesafioValue,
+      barrierIgnore: _desafioBarrierIgnoreFor(updatedAttacker),
+    );
+    updatedAttacker = challengeResolution.source;
+    updatedDefender = challengeResolution.target;
+    totalDamageDealt += challengeResolution.damageDealt;
+    final executionBellResolution = _applyExecutionBellAfterDesafioAttack(
+      owner: updatedAttacker,
+      target: updatedDefender,
+    );
+    updatedAttacker = executionBellResolution.owner;
+    updatedDefender = executionBellResolution.target;
+    hits.add(
+      _BattleAttackHitResolution(
+        primaryCombatant: _BattleAttackHitCombatant.attacker,
+        motionAsset: BattleCombatMotionAsset.fist,
+        attackerBefore: attackerBefore,
+        defenderBefore: defenderBefore,
+        attackerAfter: updatedAttacker,
+        defenderAfter: updatedDefender,
+        damageDealt: challengeResolution.damageDealt,
+      ),
+    );
+
+    if (!challengeConsumption.preventsCounterattack &&
+        !updatedAttacker.isDefeated &&
+        !updatedDefender.isDefeated) {
+      final counterDamage =
+          max(0, consumedDesafioValue ~/ 2 + challengeCounterattackBonus);
+      if (counterDamage > 0) {
+        final counterBeforeAttacker = updatedAttacker;
+        final counterBeforeDefender = updatedDefender;
+        final counterResolution = _resolveDirectDamageOnly(
+          source: updatedDefender,
+          target: updatedAttacker,
+          damage: counterDamage,
+          kind: DamageKind.desafioCounter,
+        );
+        updatedDefender = counterResolution.source;
+        updatedAttacker = counterResolution.target;
+        hits.add(
+          _BattleAttackHitResolution(
+            primaryCombatant: _BattleAttackHitCombatant.defender,
+            motionAsset: BattleCombatMotionAsset.fist,
+            attackerBefore: counterBeforeAttacker,
+            defenderBefore: counterBeforeDefender,
+            attackerAfter: updatedAttacker,
+            defenderAfter: updatedDefender,
+            damageDealt: counterResolution.damageDealt,
+          ),
+        );
+
+        if (!updatedAttacker.isDefeated) {
+          updatedAttacker =
+              _applySeguroRotoAfterDesafioCounter(updatedAttacker);
+          updatedAttacker =
+              _applyAceleradorRetoAfterSurvivingCounter(updatedAttacker);
+        }
+      }
+    }
+
+    return _BattleAttackActionResolution(
+      attacker: updatedAttacker,
+      defender: updatedDefender,
+      damageDealt: totalDamageDealt,
+      hits: List<_BattleAttackHitResolution>.unmodifiable(hits),
+    );
+  }
+
+  ({Battler owner, Battler target}) _applyExecutionBellAfterDesafioAttack({
+    required Battler owner,
+    required Battler target,
+  }) {
+    var updatedOwner = owner;
+    var updatedTarget = target;
+
+    for (final item in updatedOwner.equippedItems) {
+      for (final effect in item.passiveEffects.where(
+        (effect) =>
+            effect.effectKey == ItemEffectKeys.executionBellCounterRevenge,
+      )) {
+        if (updatedOwner.itemCombatFlagUseCount(
+              item: item,
+              kind: effect.effectKey,
+            ) >=
+            effect.value) {
+          continue;
+        }
+
+        final burnResolution = updatedTarget.applyStatusFromSourceResolved(
+          const QuemaduraStatus(remainingTurns: 5),
+          source: updatedOwner,
+        );
+        updatedOwner = burnResolution.source.addItemCombatFlagUse(
+          item: item,
+          kind: effect.effectKey,
+        );
+        updatedTarget = burnResolution.owner;
+      }
+    }
+
+    return (owner: updatedOwner, target: updatedTarget);
   }
 
   Battler _applyPreAttackDesafioGains(Battler owner) {
@@ -1624,6 +1769,7 @@ class BattleController extends ChangeNotifier {
     required Battler source,
     required Battler target,
     required int damage,
+    DamageKind kind = DamageKind.direct,
     int barrierIgnore = 0,
   }) {
     final safeDamage = max(0, damage);
@@ -1651,7 +1797,7 @@ class BattleController extends ChangeNotifier {
       owner: target,
       source: source,
       damage: incomingItemModifiedDamage,
-      kind: DamageKind.direct,
+      kind: kind,
     );
     final damageDealt = incomingEffectResolution.damage;
     var updatedTarget = _receiveDamageWithBarrierIgnore(
@@ -1671,9 +1817,13 @@ class BattleController extends ChangeNotifier {
       owner: updatedTarget,
       source: updatedSource,
       damageTaken: damageDealt,
+      damageKind: kind,
     );
     updatedTarget = receiveItemResolution.owner;
     updatedSource = receiveItemResolution.opponent;
+    if (damageDealt > 0) {
+      updatedTarget = updatedTarget.recordDamageTakenThisRound(damageDealt);
+    }
 
     final statusLossResolution = _effectPipeline.applyStatusLossBarrierTriggers(
       ownerBefore: source,
@@ -2014,6 +2164,10 @@ class BattleController extends ChangeNotifier {
     _player = nextPlayer;
     _enemy = nextEnemy;
 
+    if (await _resolveTurnStartDesafio(nextTurn)) {
+      return;
+    }
+
     final autoBlockFinish = _turnEngine.finishFor(
       player: _player,
       enemy: _enemy,
@@ -2056,6 +2210,9 @@ class BattleController extends ChangeNotifier {
 
     _player = resolution.player;
     _enemy = resolution.enemy;
+    _resolveTurnStartDesafioWithoutAnimation(nextTurn);
+    if (isCombatFinished) return;
+
     final autoBlockFinish = _turnEngine.finishFor(
       player: _player,
       enemy: _enemy,
@@ -2070,6 +2227,76 @@ class BattleController extends ChangeNotifier {
 
     if (notify) {
       notifyListeners();
+    }
+  }
+
+  Future<bool> _resolveTurnStartDesafio(BattleTurnState activeTurn) async {
+    final isPlayerTurn = activeTurn == BattleTurnState.player;
+    final attacker = isPlayerTurn ? _player : _enemy;
+    if (attacker.desafioValue <= 0) return false;
+
+    final playerBefore = _player;
+    final enemyBefore = _enemy;
+    final resolution = _resolveDesafioOnlyAction(
+      attacker: attacker,
+      defender: isPlayerTurn ? _enemy : _player,
+    );
+    await _playAttackActionAnimations(
+      attackerSide: isPlayerTurn
+          ? BattleCombatantSide.player
+          : BattleCombatantSide.enemy,
+      attackerBefore: attacker,
+      defenderBefore: isPlayerTurn ? _enemy : _player,
+      resolution: resolution,
+    );
+    if (_isDisposed) return true;
+
+    if (isPlayerTurn) {
+      _player = resolution.attacker;
+      _enemy = resolution.defender;
+    } else {
+      _enemy = resolution.attacker;
+      _player = resolution.defender;
+    }
+
+    final finish = _turnEngine.finishFor(player: _player, enemy: _enemy);
+    if (finish != null) {
+      _finishCombat(
+        resultType: finish.resultType,
+        resultText: finish.resultText,
+      );
+      return true;
+    }
+
+    if (playerBefore != _player || enemyBefore != _enemy) {
+      notifyListeners();
+    }
+    return false;
+  }
+
+  void _resolveTurnStartDesafioWithoutAnimation(BattleTurnState activeTurn) {
+    final isPlayerTurn = activeTurn == BattleTurnState.player;
+    final attacker = isPlayerTurn ? _player : _enemy;
+    if (attacker.desafioValue <= 0) return;
+
+    final resolution = _resolveDesafioOnlyAction(
+      attacker: attacker,
+      defender: isPlayerTurn ? _enemy : _player,
+    );
+    if (isPlayerTurn) {
+      _player = resolution.attacker;
+      _enemy = resolution.defender;
+    } else {
+      _enemy = resolution.attacker;
+      _player = resolution.defender;
+    }
+
+    final finish = _turnEngine.finishFor(player: _player, enemy: _enemy);
+    if (finish != null) {
+      _finishCombat(
+        resultType: finish.resultType,
+        resultText: finish.resultText,
+      );
     }
   }
 

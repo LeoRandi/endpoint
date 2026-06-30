@@ -7,66 +7,29 @@ enum OperativePatternRequirementKind {
   lastPoint,
   rightAngle,
   straightAngle,
-  exactShape,
-}
-
-enum OperativePatternShapeKind {
-  literal,
-  square,
-  diamond,
-  hourglass,
-  zigzag,
 }
 
 class OperativePatternRequirement {
-  static const int maxExactShapePoints = 12;
-
   final OperativePatternRequirementKind kind;
-  final List<OperativePatternPoint> shapePoints;
-  final OperativePatternShapeKind shapeKind;
 
   /// Requiere que el item este en el primer punto del trazo normalizado.
   const OperativePatternRequirement.first()
-      : kind = OperativePatternRequirementKind.firstPoint,
-        shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal;
+      : kind = OperativePatternRequirementKind.firstPoint;
 
   /// Requiere que el item ocupe el punto central del recorrido.
   const OperativePatternRequirement.middle()
-      : kind = OperativePatternRequirementKind.middlePoint,
-        shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal;
+      : kind = OperativePatternRequirementKind.middlePoint;
 
   /// Requiere que el item este en el ultimo punto antes del cierre.
   const OperativePatternRequirement.last()
-      : kind = OperativePatternRequirementKind.lastPoint,
-        shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal;
+      : kind = OperativePatternRequirementKind.lastPoint;
 
   /// Requiere que el item sea vertice de un angulo recto dentro del trazo.
   const OperativePatternRequirement.rightAngle()
-      : kind = OperativePatternRequirementKind.rightAngle,
-        shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal;
+      : kind = OperativePatternRequirementKind.rightAngle;
 
   const OperativePatternRequirement.straightAngle()
-      : kind = OperativePatternRequirementKind.straightAngle,
-        shapePoints = const <OperativePatternPoint>[],
-        shapeKind = OperativePatternShapeKind.literal;
-
-  /// Requiere que el patron cerrado coincida con una figura concreta.
-  ///
-  /// La comparacion acepta cualquier rotacion ciclica del punto inicial y
-  /// tambien la figura invertida, porque el jugador puede empezar y recorrer la
-  /// misma silueta desde distintos puntos. Mantener las figuras por debajo de
-  /// [maxExactShapePoints] evita patrones demasiado costosos para la UI.
-  const OperativePatternRequirement.exactShape({
-    this.shapePoints = const <OperativePatternPoint>[],
-    this.shapeKind = OperativePatternShapeKind.literal,
-    // Kept temporarily for source compatibility with older callers. Display
-    // copy is derived from [shapeKind] by the presentation layer.
-    String? labelOverride,
-  }) : kind = OperativePatternRequirementKind.exactShape;
+      : kind = OperativePatternRequirementKind.straightAngle;
 
   /// Comprueba si [itemPoint] satisface este requisito dentro del trazo actual.
   ///
@@ -89,10 +52,6 @@ class OperativePatternRequirement {
         _isRightAngleVertex(sequence, itemPoint),
       OperativePatternRequirementKind.straightAngle =>
         _isStraightAngleVertex(sequence, itemPoint),
-      OperativePatternRequirementKind.exactShape =>
-        isClosedPattern(patternPoints) &&
-            _matchesExactShape(sequence) &&
-            sequence.contains(itemPoint),
     };
   }
 
@@ -122,216 +81,6 @@ class OperativePatternRequirement {
   /// Cuenta vertices distintos ignorando el punto de cierre duplicado.
   static int distinctPointCount(List<OperativePatternPoint> patternPoints) {
     return normalizedSequence(patternPoints).toSet().length;
-  }
-
-  /// Comprueba la figura exacta en sentido directo e inverso.
-  bool _matchesExactShape(List<OperativePatternPoint> sequence) {
-    return switch (shapeKind) {
-      OperativePatternShapeKind.square ||
-      OperativePatternShapeKind.diamond =>
-        _matchesSquareLike(sequence),
-      OperativePatternShapeKind.hourglass => _matchesHourglassLike(sequence),
-      OperativePatternShapeKind.zigzag => _matchesZigzagLike(sequence),
-      OperativePatternShapeKind.literal => _matchesLiteralExactShape(sequence),
-    };
-  }
-
-  /// Compara contra la silueta declarada sin reinterpretar su geometria.
-  bool _matchesLiteralExactShape(List<OperativePatternPoint> sequence) {
-    if (sequence.length != shapePoints.length) return false;
-
-    return _matchesCyclicShape(sequence, shapePoints) ||
-        _matchesCyclicShape(
-          sequence,
-          shapePoints.reversed.toList(growable: false),
-        );
-  }
-
-  /// Compara [sequence] contra [candidateShape] aceptando cualquier punto inicial.
-  bool _matchesCyclicShape(
-    List<OperativePatternPoint> sequence,
-    List<OperativePatternPoint> candidateShape,
-  ) {
-    for (var startIndex = 0; startIndex < candidateShape.length; startIndex++) {
-      var didMatch = true;
-      for (var index = 0; index < sequence.length; index++) {
-        final candidateIndex = (startIndex + index) % candidateShape.length;
-        if (sequence[index] != candidateShape[candidateIndex]) {
-          didMatch = false;
-          break;
-        }
-      }
-      if (didMatch) return true;
-    }
-
-    return false;
-  }
-
-  /// Valida figuras cuadradas o romboides por lados iguales y angulos rectos.
-  bool _matchesSquareLike(List<OperativePatternPoint> sequence) {
-    final corners = _compressedClosedCorners(sequence);
-    if (corners.length != 4) return false;
-
-    final vectors = _closedEdgeVectors(corners);
-    if (vectors.any(_isZeroVector)) return false;
-
-    final sideLength = _lengthSquared(vectors.first);
-    if (sideLength <= 0) return false;
-    if (vectors.any((vector) => _lengthSquared(vector) != sideLength)) {
-      return false;
-    }
-
-    for (var index = 0; index < vectors.length; index++) {
-      final nextIndex = (index + 1) % vectors.length;
-      if (_dot(vectors[index], vectors[nextIndex]) != 0) return false;
-    }
-
-    return true;
-  }
-
-  /// Valida una figura tipo reloj de arena por bases paralelas y cruce central.
-  bool _matchesHourglassLike(List<OperativePatternPoint> sequence) {
-    final corners = _compressedClosedCorners(sequence);
-    if (corners.length != 4) return false;
-
-    final firstTop = _vectorBetween(corners[0], corners[1]);
-    final secondBase = _vectorBetween(corners[2], corners[3]);
-    if (_isZeroVector(firstTop) || _isZeroVector(secondBase)) return false;
-    if (_cross(firstTop, secondBase) != 0) return false;
-    if (_lengthSquared(firstTop) != _lengthSquared(secondBase)) return false;
-
-    return _segmentsIntersect(
-      corners[1],
-      corners[2],
-      corners[3],
-      corners[0],
-    );
-  }
-
-  /// Valida trazos con giros alternos. El segmento de cierre se ignora para
-  /// que el jugador pueda cerrar el Patron sin romper la silueta zigzag.
-  bool _matchesZigzagLike(List<OperativePatternPoint> sequence) {
-    final points = _removeConsecutiveDuplicates(sequence);
-    if (points.length < 4) return false;
-
-    final turnSigns = <int>[];
-    for (var index = 1; index < points.length - 1; index++) {
-      final incoming = _vectorBetween(points[index - 1], points[index]);
-      final outgoing = _vectorBetween(points[index], points[index + 1]);
-      if (_isZeroVector(incoming) || _isZeroVector(outgoing)) return false;
-
-      final turn = _cross(incoming, outgoing);
-      if (turn == 0) return false;
-      turnSigns.add(turn.sign);
-    }
-
-    if (turnSigns.length < 2) return false;
-    for (var index = 1; index < turnSigns.length; index++) {
-      if (turnSigns[index] == turnSigns[index - 1]) return false;
-    }
-    return true;
-  }
-
-  /// Reduce un trazo cerrado a sus vertices significativos.
-  ///
-  /// Los puntos colineales que avanzan en la misma direccion no cambian la
-  /// silueta, asi que se descartan antes de validar figuras exactas genericas.
-  List<OperativePatternPoint> _compressedClosedCorners(
-    List<OperativePatternPoint> sequence,
-  ) {
-    final deduped = _removeConsecutiveDuplicates(sequence);
-    if (deduped.length <= 2) return deduped;
-
-    final corners = <OperativePatternPoint>[];
-    for (var index = 0; index < deduped.length; index++) {
-      final previous = deduped[(index - 1 + deduped.length) % deduped.length];
-      final current = deduped[index];
-      final next = deduped[(index + 1) % deduped.length];
-      final incoming = _vectorBetween(previous, current);
-      final outgoing = _vectorBetween(current, next);
-      if (_isZeroVector(incoming) || _isZeroVector(outgoing)) continue;
-      if (_cross(incoming, outgoing) == 0 && _dot(incoming, outgoing) > 0) {
-        continue;
-      }
-      corners.add(current);
-    }
-
-    return List<OperativePatternPoint>.unmodifiable(corners);
-  }
-
-  /// Elimina repeticiones consecutivas que no aportan movimiento al trazo.
-  List<OperativePatternPoint> _removeConsecutiveDuplicates(
-    List<OperativePatternPoint> points,
-  ) {
-    final deduped = <OperativePatternPoint>[];
-    for (final point in points) {
-      if (deduped.isNotEmpty && deduped.last == point) continue;
-      deduped.add(point);
-    }
-    return List<OperativePatternPoint>.unmodifiable(deduped);
-  }
-
-  /// Convierte vertices cerrados en los vectores de cada lado consecutivo.
-  List<OperativePatternPoint> _closedEdgeVectors(
-    List<OperativePatternPoint> points,
-  ) {
-    return List<OperativePatternPoint>.unmodifiable([
-      for (var index = 0; index < points.length; index++)
-        _vectorBetween(points[index], points[(index + 1) % points.length]),
-    ]);
-  }
-
-  /// Devuelve el vector entero que va desde [from] hasta [to].
-  OperativePatternPoint _vectorBetween(
-    OperativePatternPoint from,
-    OperativePatternPoint to,
-  ) {
-    return OperativePatternPoint(
-      x: to.x - from.x,
-      y: to.y - from.y,
-    );
-  }
-
-  /// Indica si un vector no representa movimiento.
-  bool _isZeroVector(OperativePatternPoint vector) {
-    return vector.x == 0 && vector.y == 0;
-  }
-
-  /// Calcula el producto escalar para detectar paralelismo perpendicular.
-  int _dot(OperativePatternPoint a, OperativePatternPoint b) {
-    return a.x * b.x + a.y * b.y;
-  }
-
-  /// Calcula el producto cruzado para detectar giro y colinealidad.
-  int _cross(OperativePatternPoint a, OperativePatternPoint b) {
-    return a.x * b.y - a.y * b.x;
-  }
-
-  /// Calcula longitud al cuadrado para comparar lados sin usar raices.
-  int _lengthSquared(OperativePatternPoint vector) {
-    return vector.x * vector.x + vector.y * vector.y;
-  }
-
-  /// Indica si dos segmentos se cruzan en su interior.
-  bool _segmentsIntersect(
-    OperativePatternPoint a,
-    OperativePatternPoint b,
-    OperativePatternPoint c,
-    OperativePatternPoint d,
-  ) {
-    final ab = _vectorBetween(a, b);
-    final ac = _vectorBetween(a, c);
-    final ad = _vectorBetween(a, d);
-    final cd = _vectorBetween(c, d);
-    final ca = _vectorBetween(c, a);
-    final cb = _vectorBetween(c, b);
-    final firstSide = _cross(ab, ac);
-    final secondSide = _cross(ab, ad);
-    final thirdSide = _cross(cd, ca);
-    final fourthSide = _cross(cd, cb);
-
-    return firstSide.sign != secondSide.sign &&
-        thirdSide.sign != fourthSide.sign;
   }
 
   /// Comprueba si el punto ocupa una posicion central del trazo normalizado.

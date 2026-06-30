@@ -33,9 +33,14 @@ abstract final class ItemEffectDispatcher {
   static final Map<String, ItemCustomActionHandler> _customActions = {
     ItemEffectKeys.sunglasses: _resolveSunglasses,
     ItemEffectKeys.sHarpEner: _resolveSHarpEner,
+    ItemEffectKeys.duelistChalkGainDesafio: _resolveDuelistChalkGainDesafio,
     ItemEffectKeys.kindlingAxeBurnBoth: _resolveKindlingAxeBurnBoth,
+    ItemEffectKeys.ashEaterMaskSelfBurnHeal:
+        _resolveAshEaterMaskSelfBurnHeal,
     ItemEffectKeys.furnaceHeartRightAngleTrigger:
         _resolveFurnaceHeartRightAngleTrigger,
+    ItemEffectKeys.challengeBrandRightAngleDesafio:
+        _resolveChallengeBrandRightAngleDesafio,
     ItemEffectKeys.crownOfTheBlackSunFinisher:
         _resolveCrownOfTheBlackSunFinisher,
     ItemEffectKeys.rampartRamFinisher: _resolveRampartRamFinisher,
@@ -62,6 +67,11 @@ abstract final class ItemEffectDispatcher {
         _resolveWhitewallStandardBuffStacking,
     ItemEffectKeys.furnaceHeartAdjacentWeapons:
         _resolveFurnaceHeartAdjacentWeapons,
+    ItemEffectKeys.spiteHookRevengeStrike: _resolveSpiteHookRevengeStrike,
+    ItemEffectKeys.ashEaterMaskBurnPotencia:
+        _resolveAshEaterMaskBurnPotencia,
+    ItemEffectKeys.challengeBrandCounterBurn:
+        _resolveChallengeBrandCounterBurn,
     ItemEffectKeys.bloodflameGauntletBurnRevenge:
         _resolveBloodflameGauntletBurnRevenge,
     ItemEffectKeys.crownOfTheBlackSunNoDeathOnce:
@@ -74,6 +84,7 @@ abstract final class ItemEffectDispatcher {
         _resolveVenomMetronomeRepeatedActionPoison,
     ItemEffectKeys.leechwireCoilHealFromDebuffs:
         _resolveLeechwireCoilHealFromDebuffs,
+    ItemEffectKeys.executionBellCounterRevenge: _resolvePassiveNoop,
     ItemEffectKeys.thousandCutHaloActionScaling:
         _resolveThousandCutHaloActionScaling,
     ItemEffectKeys.thousandCutHaloStatusEcho: _resolveThousandCutHaloStatusEcho,
@@ -258,6 +269,20 @@ abstract final class ItemEffectDispatcher {
     return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
   }
 
+  static ItemEffectResolution _resolveDuelistChalkGainDesafio({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.gainDesafio(effect.totalValue),
+      opponent: opponent,
+    );
+  }
+
   static Set<String> _adjacentPointKeys(OperativePatternPoint sourcePoint) {
     final pointKeys = <String>{};
     for (final offset in const [
@@ -404,6 +429,75 @@ abstract final class ItemEffectDispatcher {
     );
   }
 
+  static ItemEffectResolution _resolveSpiteHookRevengeStrike({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (sourceItem != item || owner.damageTakenThisRound <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.gainDesafio(effect.value),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveAshEaterMaskBurnPotencia({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (!isOwnerTurn || _burnValue(owner) <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _gainPotencia(owner, effect.value),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveAshEaterMaskSelfBurnHeal({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final burnedOwner = _applyBurnToOwner(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.totalValue,
+    );
+    return ItemEffectResolution(
+      owner: burnedOwner.health * 2 < burnedOwner.maxHealth
+          ? burnedOwner.heal(effect.totalValue)
+          : burnedOwner,
+      opponent: opponent,
+    );
+  }
+
   static ItemEffectResolution _resolveFurnaceHeartAdjacentWeapons({
     required Battler owner,
     required Battler opponent,
@@ -465,6 +559,57 @@ abstract final class ItemEffectDispatcher {
       owner: burnedOwner,
       opponent: opponent,
       followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static ItemEffectResolution _resolveChallengeBrandCounterBurn({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (damageKind != DamageKind.desafioCounter || damageTaken <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final opponentBurn = _applyBurnToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.value,
+    );
+    final ownerBurn = _applyBurnToOwner(
+      owner: opponentBurn.owner,
+      opponent: opponentBurn.opponent,
+      amount: effect.value,
+    );
+    return ItemEffectResolution(
+      owner: ownerBurn,
+      opponent: opponentBurn.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveChallengeBrandRightAngleDesafio({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final ownerWithDesafio = owner.gainDesafio(effect.totalValue);
+    return ItemEffectResolution(
+      owner: _burnValue(ownerWithDesafio) > 0
+          ? ownerWithDesafio.heal(effect.totalValue)
+          : ownerWithDesafio,
+      opponent: opponent,
     );
   }
 

@@ -580,10 +580,6 @@ Map<String, Object?> _serializePatternRequirement(
 ) {
   return {
     'kind': requirement.kind.name,
-    'shapeKind': requirement.shapeKind.name,
-    'shape': requirement.shapePoints
-        .map((point) => point.key)
-        .toList(growable: false),
   };
 }
 
@@ -607,28 +603,6 @@ OperativePatternRequirement? _deserializePatternRequirement(Object? rawValue) {
       return const OperativePatternRequirement.rightAngle();
     case OperativePatternRequirementKind.straightAngle:
       return const OperativePatternRequirement.straightAngle();
-    case OperativePatternRequirementKind.exactShape:
-      final shapePoints = _deserializePatternPointList(
-        json['shape'],
-      );
-      final shapeKind = EndpointJsonUtils.parseEnumByName(
-            OperativePatternShapeKind.values,
-            json['shapeKind'],
-          ) ??
-          OperativePatternShapeKind.literal;
-      if (shapePoints.length >
-          OperativePatternRequirement.maxExactShapePoints) {
-        return null;
-      }
-      if (shapeKind == OperativePatternShapeKind.literal &&
-          shapePoints.length < 3) {
-        return null;
-      }
-
-      return OperativePatternRequirement.exactShape(
-        shapePoints: shapePoints,
-        shapeKind: shapeKind,
-      );
   }
 }
 

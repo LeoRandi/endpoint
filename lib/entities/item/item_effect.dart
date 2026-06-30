@@ -14,15 +14,31 @@ abstract final class ItemEffectKeys {
   static const String sunglasses = 'sunglasses';
   static const String nanoBandageTurnStartHeal = 'nano_bandage_turn_start_heal';
   static const String sHarpEner = 's_harp_ener';
+  static const String duelistChalkGainDesafio =
+      'duelist_chalk_gain_desafio';
   static const String kindlingAxeBurnBoth = 'kindling_axe_burn_both';
+  static const String spiteHookRevengeStrike =
+      'spite_hook_revenge_strike';
+  static const String ashEaterMaskBurnPotencia =
+      'ash_eater_mask_burn_potencia';
+  static const String ashEaterMaskSelfBurnHeal =
+      'ash_eater_mask_self_burn_heal';
   static const String furnaceHeartAdjacentWeapons =
       'furnace_heart_adjacent_weapons';
   static const String furnaceHeartRightAngleTrigger =
       'furnace_heart_right_angle_trigger';
+  static const String challengeBrandCounterBurn =
+      'challenge_brand_counter_burn';
+  static const String challengeBrandRightAngleDesafio =
+      'challenge_brand_right_angle_desafio';
   static const String bloodflameGauntletLowHpDamage =
       'bloodflame_gauntlet_low_hp_damage';
   static const String bloodflameGauntletBurnRevenge =
       'bloodflame_gauntlet_burn_revenge';
+  static const String executionBellDesafioDamage =
+      'execution_bell_desafio_damage';
+  static const String executionBellCounterRevenge =
+      'execution_bell_counter_revenge';
   static const String crownOfTheBlackSunBurnScaling =
       'crown_of_the_black_sun_burn_scaling';
   static const String crownOfTheBlackSunNoDeathOnce =

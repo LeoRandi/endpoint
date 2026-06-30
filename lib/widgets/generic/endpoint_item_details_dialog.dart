@@ -1217,95 +1217,7 @@ class _PatternPreviewVariant {
             const OperativePatternPoint(x: 1, y: 1),
           ], const OperativePatternPoint(x: 0, y: 0)),
         ],
-      OperativePatternRequirementKind.exactShape =>
-        _exactShapeVariants(requirement),
     };
-  }
-
-  static List<_PatternPreviewVariant> _exactShapeVariants(
-    OperativePatternRequirement requirement,
-  ) {
-    return switch (requirement.shapeKind) {
-      OperativePatternShapeKind.square => [
-          _closedVariant([
-            const OperativePatternPoint(x: -1, y: 1),
-            const OperativePatternPoint(x: 1, y: 1),
-            const OperativePatternPoint(x: 1, y: -1),
-            const OperativePatternPoint(x: -1, y: -1),
-          ]),
-          _closedVariant([
-            const OperativePatternPoint(x: 0, y: 1),
-            const OperativePatternPoint(x: 1, y: 0),
-            const OperativePatternPoint(x: 0, y: -1),
-            const OperativePatternPoint(x: -1, y: 0),
-          ]),
-        ],
-      OperativePatternShapeKind.diamond => [
-          _closedVariant([
-            const OperativePatternPoint(x: 0, y: 1),
-            const OperativePatternPoint(x: 1, y: 0),
-            const OperativePatternPoint(x: 0, y: -1),
-            const OperativePatternPoint(x: -1, y: 0),
-          ]),
-          _closedVariant([
-            const OperativePatternPoint(x: -1, y: 1),
-            const OperativePatternPoint(x: 1, y: 1),
-            const OperativePatternPoint(x: 1, y: -1),
-            const OperativePatternPoint(x: -1, y: -1),
-          ]),
-        ],
-      OperativePatternShapeKind.hourglass => [
-          _closedVariant([
-            const OperativePatternPoint(x: -1, y: 1),
-            const OperativePatternPoint(x: 1, y: 1),
-            const OperativePatternPoint(x: -1, y: -1),
-            const OperativePatternPoint(x: 1, y: -1),
-          ]),
-          _closedVariant([
-            const OperativePatternPoint(x: -1, y: -1),
-            const OperativePatternPoint(x: -1, y: 1),
-            const OperativePatternPoint(x: 1, y: -1),
-            const OperativePatternPoint(x: 1, y: 1),
-          ]),
-        ],
-      OperativePatternShapeKind.zigzag => [
-          _closedVariant([
-            const OperativePatternPoint(x: -1, y: 1),
-            const OperativePatternPoint(x: 0, y: 0),
-            const OperativePatternPoint(x: -1, y: -1),
-            const OperativePatternPoint(x: 1, y: -1),
-          ]),
-          _closedVariant([
-            const OperativePatternPoint(x: 1, y: 1),
-            const OperativePatternPoint(x: 0, y: 0),
-            const OperativePatternPoint(x: 1, y: -1),
-            const OperativePatternPoint(x: -1, y: -1),
-          ]),
-        ],
-      OperativePatternShapeKind.literal => [
-          _closedVariant(requirement.shapePoints),
-          _closedVariant(_mirrorHorizontally(requirement.shapePoints)),
-        ],
-    };
-  }
-
-  static _PatternPreviewVariant _closedVariant(
-    List<OperativePatternPoint> points,
-  ) {
-    if (points.isEmpty) {
-      return const _PatternPreviewVariant(
-        path: <OperativePatternPoint>[],
-        itemPoint: OperativePatternPoint(x: 0, y: 0),
-      );
-    }
-
-    return _PatternPreviewVariant(
-      path: List<OperativePatternPoint>.unmodifiable([
-        ...points,
-        points.first,
-      ]),
-      itemPoint: points.first,
-    );
   }
 
   static _PatternPreviewVariant _variant(
@@ -1318,14 +1230,6 @@ class _PatternPreviewVariant {
     );
   }
 
-  static List<OperativePatternPoint> _mirrorHorizontally(
-    List<OperativePatternPoint> points,
-  ) {
-    return List<OperativePatternPoint>.unmodifiable([
-      for (final point in points)
-        OperativePatternPoint(x: -point.x, y: point.y),
-    ]);
-  }
 }
 
 class _PatternRequirementMiniMatrix extends StatelessWidget {

@@ -83,7 +83,7 @@ extension BattlerStatusManagement on Battler {
     final safeAmount = max(0, amount);
     if (safeAmount <= 0 || isDefeated) return this;
 
-    return applyStatus(
+    return recordDesafioGainedThisCombat(safeAmount).applyStatus(
       DesafioStatus(value: safeAmount),
       applyEquipmentModifiers: false,
     );
