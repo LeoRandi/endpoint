@@ -1045,14 +1045,18 @@ abstract final class ItemEffectDispatcher {
     required BattlerStatus? status,
     required BattlePatternMatchContext? pattern,
   }) {
-    if (action?.actionType != ItemActionType.attack ||
-        owner.itemAttackActionResolvedCountThisTurn <= 0 ||
-        owner.itemAttackActionResolvedCountThisTurn.isOdd) {
+    final attackActionCount = owner.itemAttackActionResolvedCountThisTurn;
+    if (attackActionCount <= 0 || attackActionCount.isOdd) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggerKey = '${effect.effectKey}:$attackActionCount';
+    if (owner.itemCombatRoundFlagUseCount(item: item, kind: triggerKey) > 0) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
     final poisonResolution = _applyPoisonToOpponent(
-      owner: owner,
+      owner: owner.addItemCombatRoundFlagUse(item: item, kind: triggerKey),
       opponent: opponent,
       amount: effect.value,
     );

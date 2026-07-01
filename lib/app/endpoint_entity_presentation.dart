@@ -168,8 +168,13 @@ const _statusIcons = <BattlerStatusId, IconData>{
   BattlerStatusId.deuda: Icons.receipt_long_rounded,
 };
 
+const _statusIconAssets = <BattlerStatusId, String>{
+  BattlerStatusId.quemadura: 'assets/sprites/status/quemadura.png',
+};
+
 extension BattlerStatusPresentation on BattlerStatus {
   IconData get icon => _statusIcons[id] ?? Icons.auto_awesome_rounded;
+  String? get iconAssetPath => _statusIconAssets[id];
 
   String localizedDescriptionFor(Battler owner) {
     if (this case CompensadorRutaStatus(:final stat, :final value)) {

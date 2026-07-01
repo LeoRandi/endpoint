@@ -48,7 +48,7 @@ extension ArchetypeIdItemAffinity on ArchetypeId {
 /// Immutable item definition.
 ///
 /// Each entry in [effects] pairs the effect at the current [tier] with the
-/// amount added to that effect's value whenever the item advances one tier.
+/// values it should use for this tier and every reachable higher tier.
 class Item {
   static int _nextInstanceSequence = 0;
   static final RegExp _ownedInstancePattern = RegExp(r'^item_(\d+)$');
@@ -57,11 +57,10 @@ class Item {
   final String description;
   final ItemArchetypeAffinity affinity;
   final RarityTier tier;
-  final int baseCost;
-  final int sellValue;
+  final int valueModifier;
   final List<EntityTag> tags;
   final String asset;
-  final Map<Effect, int> effects;
+  final Map<Effect, List<int>> effects;
   final String? instanceId;
   final bool isGhostly;
 
@@ -73,16 +72,18 @@ class Item {
     required this.description,
     required this.affinity,
     required this.tier,
-    required this.baseCost,
-    required this.sellValue,
+    this.valueModifier = 0,
     List<EntityTag> tags = const <EntityTag>[],
     String? asset,
     RandomSource? randomizer,
-    Map<Effect, int> effects = const <Effect, int>{},
+    Map<Effect, List<int>> effects = const <Effect, List<int>>{},
     this.instanceId,
     this.isGhostly = false,
   })  : tags = List<EntityTag>.unmodifiable(tags),
-        effects = Map<Effect, int>.unmodifiable(effects),
+        effects = Map<Effect, List<int>>.unmodifiable({
+          for (final entry in effects.entries)
+            entry.key: List<int>.unmodifiable(entry.value),
+        }),
         asset = _resolveAsset(asset, randomizer);
 
   /// Stable catalog identity. Item names are canonical data, not localized UI.
@@ -90,16 +91,16 @@ class Item {
 
   bool get canUpgrade => !tier.isMaxTier;
 
-  /// Advances the tier and applies each effect's configured upgrade value.
+  int get baseCost => tier.factor * 2;
+  int get sellValue => max(0, tier.factor + valueModifier);
+
+  /// Advances the tier and applies each effect's next configured tier value.
   Item upgraded() {
     if (!canUpgrade) return this;
 
     return copyWith(
       tier: tier.nextTier,
-      effects: <Effect, int>{
-        for (final entry in effects.entries)
-          entry.key.withValue(entry.key.value + entry.value): entry.value,
-      },
+      effects: _effectsAdvancedBy(1),
     );
   }
 
@@ -112,7 +113,7 @@ class Item {
     if (safeSourceKey.isEmpty) return this;
 
     return copyWith(
-      effects: <Effect, int>{
+      effects: <Effect, List<int>>{
         for (final entry in effects.entries)
           _effectWithActionBonus(
             effect: entry.key,
@@ -154,27 +155,58 @@ class Item {
     String? description,
     ItemArchetypeAffinity? affinity,
     RarityTier? tier,
-    int? baseCost,
-    int? sellValue,
+    int? valueModifier,
     List<EntityTag>? tags,
     String? asset,
-    Map<Effect, int>? effects,
+    Map<Effect, List<int>>? effects,
     String? instanceId,
     bool? isGhostly,
   }) {
+    final targetTier = tier ?? this.tier;
+    final tierStep = targetTier.index - this.tier.index;
+    final resolvedEffects =
+        effects ?? (tierStep > 0 ? _effectsAdvancedBy(tierStep) : this.effects);
+
     return Item(
       name: name ?? this.name,
       description: description ?? this.description,
       affinity: affinity ?? this.affinity,
-      tier: tier ?? this.tier,
-      baseCost: baseCost ?? this.baseCost,
-      sellValue: sellValue ?? this.sellValue,
+      tier: targetTier,
+      valueModifier: valueModifier ?? this.valueModifier,
       tags: tags ?? this.tags,
       asset: asset ?? this.asset,
-      effects: effects ?? this.effects,
+      effects: resolvedEffects,
       instanceId: instanceId ?? this.instanceId,
       isGhostly: isGhostly ?? this.isGhostly,
     );
+  }
+
+  Map<Effect, List<int>> _effectsAdvancedBy(int steps) {
+    if (steps <= 0) return effects;
+
+    return <Effect, List<int>>{
+      for (final entry in effects.entries)
+        _effectAtValueIndex(entry.key, entry.value, steps):
+            _remainingTierValues(entry.value, steps),
+    };
+  }
+
+  static Effect _effectAtValueIndex(
+    Effect effect,
+    List<int> values,
+    int index,
+  ) {
+    if (values.isEmpty) return effect;
+    return effect.withValue(values[min(index, values.length - 1)]);
+  }
+
+  static List<int> _remainingTierValues(List<int> values, int consumedCount) {
+    if (values.isEmpty) return const <int>[];
+    if (consumedCount <= 0) return List<int>.unmodifiable(values);
+    if (consumedCount >= values.length) {
+      return List<int>.unmodifiable(<int>[values.last]);
+    }
+    return List<int>.unmodifiable(values.skip(consumedCount));
   }
 
   static String _resolveAsset(String? asset, RandomSource? randomizer) {

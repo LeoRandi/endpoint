@@ -358,8 +358,8 @@ class _EndpointStatusBadge extends StatelessWidget {
                     ],
                   ),
                   child: Center(
-                    child: Icon(
-                      status.icon,
+                    child: _EndpointStatusIcon(
+                      status: status,
                       size: size * 0.56,
                       color: foreground,
                     ),
@@ -461,8 +461,8 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
                         color: accent.withAlpha(41),
                         border: Border.all(color: accent.withAlpha(179)),
                       ),
-                      child: Icon(
-                        status.icon,
+                      child: _EndpointStatusIcon(
+                        status: status,
                         size: 28,
                         color: foreground,
                       ),
@@ -528,6 +528,38 @@ class _EndpointStatusDetailsDialog extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _EndpointStatusIcon extends StatelessWidget {
+  final BattlerStatus status;
+  final double size;
+  final Color color;
+
+  const _EndpointStatusIcon({
+    required this.status,
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final assetPath = status.iconAssetPath;
+    if (assetPath != null) {
+      return Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.none,
+      );
+    }
+
+    return Icon(
+      status.icon,
+      size: size,
+      color: color,
     );
   }
 }

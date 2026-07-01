@@ -382,6 +382,7 @@ class BattleController extends ChangeNotifier {
           action: pendingAction.action,
         );
         didResolveAction = true;
+        _player = _player.recordResolvedItemAction(action);
         switch (action.actionType) {
           case ItemActionType.attack:
             final attackerBefore = _player;
@@ -584,8 +585,7 @@ class BattleController extends ChangeNotifier {
     required Item item,
     required BattlePatternMatchContext pattern,
   }) {
-    final playerWithActionCount = _player.recordResolvedItemAction(action);
-    return playerWithActionCount.applyEquippedItemActionResolvedEffects(
+    return _player.applyEquippedItemActionResolvedEffects(
       target: _enemy,
       action: action,
       sourceItem: item,
@@ -598,8 +598,7 @@ class BattleController extends ChangeNotifier {
     required Item item,
     required BattlePatternMatchContext pattern,
   }) {
-    final enemyWithActionCount = _enemy.recordResolvedItemAction(action);
-    return enemyWithActionCount.applyEquippedItemActionResolvedEffects(
+    return _enemy.applyEquippedItemActionResolvedEffects(
       target: _player,
       action: action,
       sourceItem: item,
@@ -821,6 +820,7 @@ class BattleController extends ChangeNotifier {
           action: pendingAction.action,
         );
         didResolveAction = true;
+        _enemy = _enemy.recordResolvedItemAction(action);
         switch (action.actionType) {
           case ItemActionType.attack:
             final enemyBefore = _enemy;
@@ -2594,6 +2594,12 @@ class BattleController extends ChangeNotifier {
     );
     final motions = <BattleCombatMotionCue>[];
     final followUps = <BattlePatternActionPileEntry>[];
+
+    if (isPlayer) {
+      _player = _player.recordResolvedItemAction(action);
+    } else {
+      _enemy = _enemy.recordResolvedItemAction(action);
+    }
 
     switch (action.actionType) {
       case ItemActionType.attack:

@@ -100,6 +100,7 @@ class IntoxicacionStatus extends BattlerStatus {
           hooks: const {
             BattlerStatusHook.turnEnd,
             BattlerStatusHook.combatEnd,
+            BattlerStatusHook.statusApplied,
           },
           description:
               'Al final del turno del objetivo, este estado inflige daño fijo igual a su value directamente a la vida (ignora Barrera) y renueva su duracion.',
@@ -118,6 +119,32 @@ class IntoxicacionStatus extends BattlerStatus {
   @override
   String descriptionFor(Battler owner) {
     return '$description Daño actual: ${currentDamage(owner)}';
+  }
+
+  @override
+  BattlerStatusApplicationResolution onStatusApplied({
+    required Battler owner,
+    required BattlerStatus appliedStatus,
+  }) {
+    if (appliedStatus.id != id) {
+      return BattlerStatusApplicationResolution(
+        owner: owner,
+        appliedStatus: appliedStatus,
+      );
+    }
+
+    final currentStatus = resolved(owner);
+    final incomingStatus = appliedStatus.resolved(owner);
+    return BattlerStatusApplicationResolution(
+      owner: owner.removeStatusInstance(this),
+      appliedStatus: copyWith(
+        remainingTurns: max(
+          currentStatus.remainingTurns,
+          incomingStatus.remainingTurns,
+        ),
+        value: max(0, currentStatus.value) + max(0, incomingStatus.value),
+      ),
+    );
   }
 
   /// Clona el estado manteniendo el tipo concreto de Intoxicacion.
@@ -146,9 +173,9 @@ class IntoxicacionStatus extends BattlerStatus {
     final renewedStatus = currentStatus.copyWith(
       remainingTurns: currentStatus.remainingTurns + 1,
     );
-    final ownerWithRenewedStatus = owner.applyStatus(
-      renewedStatus,
-      applyEquipmentModifiers: false,
+    final ownerWithRenewedStatus = owner.replaceStatusInstance(
+      currentStatus: this,
+      replacement: renewedStatus,
     );
     final incomingResolution =
         ownerWithRenewedStatus.runtimeApplyIncomingDamageEffects(

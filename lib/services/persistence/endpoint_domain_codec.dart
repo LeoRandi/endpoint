@@ -305,13 +305,19 @@ Item? _deserializeItem(Map<String, dynamic> json) {
   final name = EndpointJsonUtils.readString(json['name'], fallback: '').trim();
   if (name.isEmpty) return null;
 
-  final effects = <Effect, int>{};
+  final itemTier = EndpointJsonUtils.parseEnumByName(
+        RarityTier.values,
+        json['tier'],
+      ) ??
+      RarityTier.gray;
+  final effects = <Effect, List<int>>{};
   for (final effectJson in EndpointJsonUtils.readJsonMapList(json['effects'])) {
     final effect = _deserializeEffect(effectJson);
     if (effect == null) continue;
-    effects[effect] = EndpointJsonUtils.readInt(
-      effectJson['upgradeValue'],
-      fallback: 0,
+    effects[effect] = _deserializeEffectTierValues(
+      effectJson,
+      effect: effect,
+      itemTier: itemTier,
     );
   }
 
@@ -325,19 +331,20 @@ Item? _deserializeItem(Map<String, dynamic> json) {
           json['affinity'],
         ) ??
         ItemArchetypeAffinity.general,
-    tier: EndpointJsonUtils.parseEnumByName(
-          RarityTier.values,
-          json['tier'],
-        ) ??
-        RarityTier.gray,
-    baseCost: EndpointJsonUtils.readInt(json['baseCost'], fallback: 0),
-    sellValue: EndpointJsonUtils.readInt(json['sellValue'], fallback: 0),
+    tier: itemTier,
+    valueModifier: EndpointJsonUtils.readInt(
+      json['valueModifier'],
+      fallback: _legacyValueModifierFor(
+        tier: itemTier,
+        sellValue: EndpointJsonUtils.readNullableInt(json['sellValue']),
+      ),
+    ),
     tags: _deserializeItemTags(json['tags']),
     asset: EndpointJsonUtils.readString(
       json['asset'],
       fallback: itemAssetPool.first,
     ),
-    effects: Map<Effect, int>.unmodifiable(effects),
+    effects: Map<Effect, List<int>>.unmodifiable(effects),
     instanceId: instanceId,
     isGhostly: EndpointJsonUtils.readBool(
       json['isGhostly'],
@@ -456,8 +463,7 @@ Map<String, Object?> _serializeItem(Item item) {
     'description': item.description,
     'affinity': item.affinity.name,
     'tier': item.tier.name,
-    'baseCost': item.baseCost,
-    'sellValue': item.sellValue,
+    'valueModifier': item.valueModifier,
     'tags': item.tags.map((tag) => tag.name).toList(growable: false),
     'asset': item.asset,
     'effects': item.effects.entries
@@ -474,7 +480,7 @@ Map<String, Object?> _serializeItem(Item item) {
 
 Map<String, Object?>? _serializeEffectEntry(
   Effect effect,
-  int upgradeValue,
+  List<int> tierValues,
 ) {
   final serialized = switch (effect) {
     ActionEffect action => <String, Object?>{
@@ -496,8 +502,40 @@ Map<String, Object?>? _serializeEffectEntry(
   };
   return <String, Object?>{
     ...serialized,
-    'upgradeValue': upgradeValue,
+    'tierValues': tierValues,
   };
+}
+
+List<int> _deserializeEffectTierValues(
+  Map<String, dynamic> json, {
+  required Effect effect,
+  required RarityTier itemTier,
+}) {
+  final rawTierValues = json['tierValues'];
+  if (rawTierValues is List) {
+    final values = rawTierValues.whereType<int>().toList(growable: false);
+    if (values.isNotEmpty) return List<int>.unmodifiable(values);
+  }
+
+  final upgradeValue = EndpointJsonUtils.readNullableInt(json['upgradeValue']);
+  if (upgradeValue == null) {
+    return List<int>.unmodifiable(<int>[effect.value]);
+  }
+
+  final values = <int>[];
+  final reachableTierCount = RarityTier.values.length - itemTier.index;
+  for (var i = 0; i < reachableTierCount; i++) {
+    values.add(effect.value + (upgradeValue * i));
+  }
+  return List<int>.unmodifiable(values);
+}
+
+int _legacyValueModifierFor({
+  required RarityTier tier,
+  required int? sellValue,
+}) {
+  if (sellValue == null) return 0;
+  return sellValue - tier.factor;
 }
 
 Map<String, Object?> _serializeActionEffect(ActionEffect effect) {

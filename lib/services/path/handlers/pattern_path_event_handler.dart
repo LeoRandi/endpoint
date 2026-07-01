@@ -44,12 +44,12 @@ extension PatternPathEventHandler on PathEventService {
     final secondPatternEntries = secondItem.effects.entries
         .where((entry) => entry.key is PatternEffect)
         .toList(growable: false);
-    final updatedFirst = firstItem.copyWith(effects: <Effect, int>{
+    final updatedFirst = firstItem.copyWith(effects: <Effect, List<int>>{
       for (final entry in firstItem.effects.entries)
         if (entry.key is! PatternEffect) entry.key: entry.value,
       for (final entry in secondPatternEntries) entry.key: entry.value,
     });
-    final updatedSecond = secondItem.copyWith(effects: <Effect, int>{
+    final updatedSecond = secondItem.copyWith(effects: <Effect, List<int>>{
       for (final entry in secondItem.effects.entries)
         if (entry.key is! PatternEffect) entry.key: entry.value,
       for (final entry in firstPatternEntries) entry.key: entry.value,

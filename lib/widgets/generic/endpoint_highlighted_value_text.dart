@@ -74,7 +74,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
   );
   static const _burnMetadata = _HighlightTermMetadata(
     accent: _effectBurnAccent,
-    icon: _HighlightIconSpec.material(Icons.whatshot_rounded),
+    icon: _HighlightIconSpec.asset('assets/sprites/status/quemadura.png'),
     tooltip:
         'Quemadura: debuff. Hace daño al inicio del turno del portador segun su duracion restante, baja con los turnos y su daño pasa primero por Barrera.',
   );
@@ -169,16 +169,15 @@ class EndpointHighlightedValueText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = DefaultTextStyle.of(context).style.merge(style).copyWith(
+    final baseStyle = DefaultTextStyle.of(context).style
+        .merge(style)
+        .copyWith(
           decoration: TextDecoration.none,
           decorationColor: Colors.transparent,
         );
 
     return RichText(
-      text: TextSpan(
-        style: baseStyle,
-        children: _buildSpans(baseStyle),
-      ),
+      text: TextSpan(style: baseStyle, children: _buildSpans(baseStyle)),
       textAlign: textAlign ?? TextAlign.start,
       maxLines: maxLines,
       softWrap: softWrap ?? true,
@@ -215,8 +214,10 @@ class EndpointHighlightedValueText extends StatelessWidget {
         ),
       );
     }
-    for (final match
-        in RegExp(r'\bcontagio\b', caseSensitive: false).allMatches(data)) {
+    for (final match in RegExp(
+      r'\bcontagio\b',
+      caseSensitive: false,
+    ).allMatches(data)) {
       tokens.add(
         _HighlightedToken.term(
           start: match.start,
@@ -225,8 +226,22 @@ class EndpointHighlightedValueText extends StatelessWidget {
         ),
       );
     }
-    for (final match
-        in RegExp(r'\bmurallas?\b', caseSensitive: false).allMatches(data)) {
+    for (final match in RegExp(
+      r'\bmurallas?\b',
+      caseSensitive: false,
+    ).allMatches(data)) {
+      tokens.add(
+        _HighlightedToken.term(
+          start: match.start,
+          end: match.end,
+          metadata: _metadataForTerm(match.group(0) ?? ''),
+        ),
+      );
+    }
+    for (final match in RegExp(
+      r'\b(?:patterns?|points?|challenge|resonance|poison|poisons?|poisoned|burns?|burned|burning|contagion|power|warming|cycle|fragility|concussion|healing|barriers?|shields?|blocking|damage|damages|attacks?|attacking|hits?|economy|credits?)\b',
+      caseSensitive: false,
+    ).allMatches(data)) {
       tokens.add(
         _HighlightedToken.term(
           start: match.start,
@@ -255,21 +270,11 @@ class EndpointHighlightedValueText extends StatelessWidget {
       final highlightedStyle = baseStyle.copyWith(
         color: accent,
         fontWeight: FontWeight.w800,
-        shadows: [
-          Shadow(
-            color: accent.withValues(alpha: 0.34),
-            blurRadius: 8,
-          ),
-        ],
+        shadows: [Shadow(color: accent.withValues(alpha: 0.34), blurRadius: 8)],
       );
       final metadata = tokenMatch.metadata;
       if (metadata == null) {
-        spans.add(
-          TextSpan(
-            text: token,
-            style: highlightedStyle,
-          ),
-        );
+        spans.add(TextSpan(text: token, style: highlightedStyle));
       } else {
         spans.add(
           WidgetSpan(
@@ -297,22 +302,27 @@ class EndpointHighlightedValueText extends StatelessWidget {
   Color _accentForTerm(String token) {
     final normalizedToken = token.normalizedHighlightText;
 
-    if (normalizedToken.contains('resonancia')) {
+    if (normalizedToken.contains('resonancia') ||
+        normalizedToken.contains('resonance')) {
       return _effectResonanceAccent;
     }
     if (normalizedToken.contains('usarse')) {
       return EndpointPalette.infoAccent;
     }
-    if (normalizedToken.contains('desafio')) {
+    if (normalizedToken.contains('desafio') ||
+        normalizedToken.contains('challenge')) {
       return _effectChallengeAccent;
     }
-    if (normalizedToken.contains('contagio')) {
+    if (normalizedToken.contains('contagio') ||
+        normalizedToken.contains('contagion')) {
       return _effectContagionAccent;
     }
-    if (normalizedToken.contains('intoxicacion')) {
+    if (normalizedToken.contains('intoxicacion') ||
+        normalizedToken.startsWith('poison')) {
       return _effectPoisonAccent;
     }
-    if (normalizedToken.contains('quemadura')) {
+    if (normalizedToken.contains('quemadura') ||
+        normalizedToken.startsWith('burn')) {
       return _effectBurnAccent;
     }
     if (normalizedToken.contains('muralla')) {
@@ -333,13 +343,17 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (normalizedToken.contains('barrera') ||
         normalizedToken.startsWith('bloque') ||
         normalizedToken.startsWith('block') ||
-        normalizedToken == 'shield') {
+        normalizedToken.startsWith('barrier') ||
+        normalizedToken.startsWith('shield')) {
       return _effectBarrierAccent;
     }
     if (normalizedToken == 'atk' ||
         normalizedToken.startsWith('dano') ||
         normalizedToken.startsWith('atac') ||
-        normalizedToken.startsWith('golp')) {
+        normalizedToken.startsWith('attack') ||
+        normalizedToken.startsWith('damage') ||
+        normalizedToken.startsWith('golp') ||
+        normalizedToken.startsWith('hit')) {
       return _effectAttackAccent;
     }
 
@@ -349,56 +363,70 @@ class EndpointHighlightedValueText extends StatelessWidget {
   _HighlightTermMetadata _metadataForTerm(String token) {
     final normalizedToken = token.normalizedHighlightText;
 
-    if (normalizedToken.contains('resonancia')) {
+    if (normalizedToken.contains('resonancia') ||
+        normalizedToken.contains('resonance')) {
       return _resonanceMetadata;
     }
     if (normalizedToken.contains('usarse')) {
       return _usedMetadata;
     }
     if (normalizedToken.contains('patron') ||
+        normalizedToken.startsWith('pattern') ||
         normalizedToken.startsWith('punto') ||
+        normalizedToken.startsWith('point') ||
         normalizedToken == 'pp') {
       return _patternMetadata;
     }
-    if (normalizedToken.contains('desafio')) {
+    if (normalizedToken.contains('desafio') ||
+        normalizedToken.contains('challenge')) {
       return _challengeMetadata;
     }
-    if (normalizedToken.contains('contagio')) {
+    if (normalizedToken.contains('contagio') ||
+        normalizedToken.contains('contagion')) {
       return _contagionMetadata;
     }
-    if (normalizedToken.contains('intoxicacion')) {
+    if (normalizedToken.contains('intoxicacion') ||
+        normalizedToken.startsWith('poison')) {
       return _poisonMetadata;
     }
-    if (normalizedToken.contains('quemadura')) {
+    if (normalizedToken.contains('quemadura') ||
+        normalizedToken.startsWith('burn')) {
       return _burnMetadata;
     }
     if (normalizedToken.contains('muralla')) {
       return _wallMetadata;
     }
-    if (normalizedToken.contains('fragilidad')) {
+    if (normalizedToken.contains('fragilidad') ||
+        normalizedToken.contains('fragility')) {
       return _fragilityMetadata;
     }
-    if (normalizedToken.contains('conmocion')) {
+    if (normalizedToken.contains('conmocion') ||
+        normalizedToken.contains('concussion')) {
       return _concussionMetadata;
     }
     if (normalizedToken.startsWith('debuff')) {
       return _debuffMetadata;
     }
-    if (normalizedToken.contains('potencia')) {
+    if (normalizedToken.contains('potencia') ||
+        normalizedToken.contains('power')) {
       return _powerMetadata;
     }
-    if (normalizedToken.contains('calentando')) {
+    if (normalizedToken.contains('calentando') ||
+        normalizedToken.contains('warming')) {
       return _warmingMetadata;
     }
     if (normalizedToken.startsWith('buff')) {
       return _buffMetadata;
     }
-    if (normalizedToken.contains('ciclo')) {
+    if (normalizedToken.contains('ciclo') ||
+        normalizedToken.contains('cycle')) {
       return _cycleMetadata;
     }
     if (normalizedToken.contains('economia') ||
+        normalizedToken.contains('economy') ||
         normalizedToken == 'income' ||
-        normalizedToken.startsWith('credito')) {
+        normalizedToken.startsWith('credito') ||
+        normalizedToken.startsWith('credit')) {
       return _economyMetadata;
     }
     if (normalizedToken.startsWith('cur') ||
@@ -411,13 +439,17 @@ class EndpointHighlightedValueText extends StatelessWidget {
     if (normalizedToken.contains('barrera') ||
         normalizedToken.startsWith('bloque') ||
         normalizedToken.startsWith('block') ||
-        normalizedToken == 'shield') {
+        normalizedToken.startsWith('barrier') ||
+        normalizedToken.startsWith('shield')) {
       return _barrierMetadata;
     }
     if (normalizedToken == 'atk' ||
         normalizedToken.startsWith('dano') ||
         normalizedToken.startsWith('atac') ||
-        normalizedToken.startsWith('golp')) {
+        normalizedToken.startsWith('attack') ||
+        normalizedToken.startsWith('damage') ||
+        normalizedToken.startsWith('golp') ||
+        normalizedToken.startsWith('hit')) {
       return _attackMetadata;
     }
 
@@ -481,27 +513,37 @@ class EndpointHighlightedValueText extends StatelessWidget {
     final candidates = [
       const _ValueAccentCandidate(
         metadata: _patternMetadata,
-        patterns: ['patron', 'patrones', 'punto', 'puntos', 'pp'],
+        patterns: [
+          'patron',
+          'patrones',
+          'pattern',
+          'patterns',
+          'punto',
+          'puntos',
+          'point',
+          'points',
+          'pp',
+        ],
       ),
       const _ValueAccentCandidate(
         metadata: _resonanceMetadata,
-        patterns: ['resonancia'],
+        patterns: ['resonancia', 'resonance'],
       ),
       const _ValueAccentCandidate(
         metadata: _challengeMetadata,
-        patterns: ['desafio'],
+        patterns: ['desafio', 'challenge'],
       ),
       const _ValueAccentCandidate(
         metadata: _contagionMetadata,
-        patterns: ['contagio'],
+        patterns: ['contagio', 'contagion'],
       ),
       const _ValueAccentCandidate(
         metadata: _poisonMetadata,
-        patterns: ['intoxicacion'],
+        patterns: ['intoxicacion', 'poison', 'poisons'],
       ),
       const _ValueAccentCandidate(
         metadata: _burnMetadata,
-        patterns: ['quemadura'],
+        patterns: ['quemadura', 'quemaduras', 'burn', 'burns'],
       ),
       const _ValueAccentCandidate(
         metadata: _wallMetadata,
@@ -515,8 +557,12 @@ class EndpointHighlightedValueText extends StatelessWidget {
           'bloquea',
           'bloquear',
           'bloqueo',
+          'barrier',
+          'barriers',
           'block',
+          'blocks',
           'shield',
+          'shields',
         ],
       ),
       const _ValueAccentCandidate(
@@ -532,13 +578,17 @@ class EndpointHighlightedValueText extends StatelessWidget {
           'vida',
           'drena',
           'heal',
+          'heals',
+          'healing',
         ],
       ),
       const _ValueAccentCandidate(
         metadata: _buffMetadata,
         patterns: [
           'potencia',
+          'power',
           'calentando',
+          'warming',
           'buff',
           'reserva',
         ],
@@ -550,7 +600,9 @@ class EndpointHighlightedValueText extends StatelessWidget {
           'debuffs',
           'desventaja',
           'fragilidad',
+          'fragility',
           'conmocion',
+          'concussion',
         ],
       ),
       const _ValueAccentCandidate(
@@ -560,11 +612,18 @@ class EndpointHighlightedValueText extends StatelessWidget {
           'atk',
           'ataque',
           'ataques',
+          'attack',
+          'attacks',
+          'attacking',
           'ataca',
           'atacar',
           'atacas',
+          'damage',
+          'damages',
           'golpe',
           'golpes',
+          'hit',
+          'hits',
         ],
       ),
     ];
@@ -606,15 +665,15 @@ class _HighlightedToken {
     required this.end,
     required Color accent,
     this.metadata,
-  })  : _valueAccent = accent,
-        showIcon = metadata != null;
+  }) : _valueAccent = accent,
+       showIcon = metadata != null;
 
   const _HighlightedToken.term({
     required this.start,
     required this.end,
     required this.metadata,
-  })  : _valueAccent = null,
-        showIcon = false;
+  }) : _valueAccent = null,
+       showIcon = false;
 
   Color get accent =>
       metadata?.accent ?? _valueAccent ?? EndpointPalette.rewardAccent;
@@ -637,8 +696,9 @@ class _HighlightedTermToken extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconSize =
-        ((style.fontSize ?? 14) * 0.86).clamp(10.0, 15.0).toDouble();
+    final iconSize = ((style.fontSize ?? 14) * 0.86)
+        .clamp(10.0, 15.0)
+        .toDouble();
 
     return Tooltip(
       message: metadata.tooltip,
@@ -656,10 +716,7 @@ class _HighlightedTermToken extends StatelessWidget {
               ),
               const SizedBox(width: 2),
             ],
-            Text(
-              token,
-              style: style,
-            ),
+            Text(token, style: style),
           ],
         ),
       ),
@@ -691,11 +748,7 @@ class _HighlightIcon extends StatelessWidget {
       );
     }
 
-    return Icon(
-      spec.icon!,
-      color: color,
-      size: size,
-    );
+    return Icon(spec.icon!, color: color, size: size);
   }
 }
 
@@ -724,10 +777,7 @@ class _ValueAccentCandidate {
   final _HighlightTermMetadata metadata;
   final List<String> patterns;
 
-  const _ValueAccentCandidate({
-    required this.metadata,
-    required this.patterns,
-  });
+  const _ValueAccentCandidate({required this.metadata, required this.patterns});
 }
 
 extension _HighlightTextNormalization on String {
