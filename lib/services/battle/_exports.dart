@@ -13,6 +13,7 @@ export 'battle_controller.dart';
 export 'battle_enemy_ai_service.dart';
 export 'battle_flow_result.dart';
 export 'battle_pattern_block_plan_service.dart';
+export 'battle_pattern_action_pile.dart';
 export 'battle_purge_service.dart';
 export 'battle_resolver.dart';
 export 'battle_reward_service.dart';

@@ -280,6 +280,31 @@ class BattleAnimationCueProducer {
     }
 
     for (final side in BattleCombatantSide.values) {
+      final before =
+          side == BattleCombatantSide.player ? visualPlayer : visualEnemy;
+      final after = side == BattleCombatantSide.player
+          ? targetPlayerAfter
+          : targetEnemyAfter;
+      final desafioGain = after.desafioValue - before.desafioValue;
+      if (desafioGain <= 0) continue;
+
+      cues.add(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.desafioWarning,
+          primarySide: side,
+          secondarySide: side == BattleCombatantSide.player
+              ? BattleCombatantSide.enemy
+              : BattleCombatantSide.player,
+          playerBefore: visualPlayer,
+          enemyBefore: visualEnemy,
+          playerAfter: visualPlayer,
+          enemyAfter: visualEnemy,
+          effectCount: max(4, desafioGain),
+        ),
+      );
+    }
+
+    for (final side in BattleCombatantSide.values) {
       final fragilidadDamage = side == BattleCombatantSide.player
           ? playerFragilidadDamage
           : enemyFragilidadDamage;

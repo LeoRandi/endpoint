@@ -68,8 +68,16 @@ class MainMenuDebugToolsPage extends StatelessWidget {
                       label: 'pattern_item_actions_test',
                       icon: Icons.gesture_rounded,
                       tooltip:
-                          'Combate Patron contra un enemigo gris con los presets actuales',
+                          'Combate Patron con pilas de accion simultaneas contra un enemigo gris',
                       onPressed: () => _openPatternItemActionsTest(context),
+                    ),
+                    _DebugToolButton(
+                      label: 'simultaneous_action_piles_test',
+                      icon: Icons.sync_alt_rounded,
+                      tooltip:
+                          'Combate Patron con pilas de accion y equipamiento aleatorio',
+                      onPressed: () =>
+                          _openSimultaneousActionPilesTest(context),
                     ),
                   ],
                 ),
@@ -134,6 +142,86 @@ class MainMenuDebugToolsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _openSimultaneousActionPilesTest(BuildContext context) {
+    final random = Random(DateTime.now().microsecondsSinceEpoch);
+    final playerItems = _randomRuntimeItems(random, count: 4);
+    final enemyItems = _randomRuntimeItems(random, count: 4);
+    final rawPlayer = defaultPlayerBattler.copyWith(
+      name: 'ACTION PILE UNIT',
+      archetypeId: ArchetypeId.veloz,
+      health: 64,
+      equipmentCapacity: playerItems.length,
+      equippedItems: playerItems,
+      inventoryItems: const <Item>[],
+      patternItemPointKeys: const <String, String>{},
+      baseStats: const {
+        BattlerStat.health: 64,
+        BattlerStat.attack: 2,
+        BattlerStat.barrier: 2,
+      },
+    );
+    final rawEnemy = defaultEnemyBattler.copyWith(
+      name: 'TEST DUMMY',
+      health: 64,
+      equipmentCapacity: enemyItems.length,
+      equippedItems: enemyItems,
+      inventoryItems: const <Item>[],
+      patternItemPointKeys: const <String, String>{},
+      baseStats: const {
+        BattlerStat.health: 64,
+        BattlerStat.attack: 2,
+        BattlerStat.barrier: 2,
+      },
+    );
+    final playerLayout = OperativePatternLayoutService.resolveForPlayer(
+      player: rawPlayer,
+      random: random,
+    );
+    final enemyLayout = OperativePatternLayoutService.resolveForPlayer(
+      player: rawEnemy,
+      random: random,
+    );
+
+    Navigator.of(context).push(
+      buildEndpointSceneRoute<BattleFlowResult>(
+        BattlePage(
+          enemy: enemyLayout.player,
+          player: playerLayout.player,
+          randomizer: RunRandomizer(
+            seed: DateTime.now().microsecondsSinceEpoch,
+          ),
+          phase: RunHourPhase.day,
+          showTitle: 'SIMULTANEOUS ACTION PILES',
+          victoryMoneyFactor: 1,
+          enemyTier: 1,
+          returnResultToCaller: true,
+          gameModeOverride: EndpointGameMode.pattern,
+        ),
+      ),
+    );
+  }
+
+  List<Item> _randomRuntimeItems(Random random, {required int count}) {
+    final pool = itemPresets.toList(growable: false)..shuffle(random);
+    return pool.take(count).map((item) {
+      return item.toRuntimeInstance(forceNewInstance: true).copyWith(
+            tier: _randomDebugRarity(random),
+          );
+    }).toList(growable: false);
+  }
+
+  RarityTier _randomDebugRarity(Random random) {
+    const weighted = [
+      RarityTier.gray,
+      RarityTier.green,
+      RarityTier.green,
+      RarityTier.blue,
+      RarityTier.blue,
+      RarityTier.purple,
+    ];
+    return weighted[random.nextInt(weighted.length)];
   }
 }
 

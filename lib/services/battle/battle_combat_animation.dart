@@ -8,6 +8,9 @@ enum BattleCombatantSide {
 enum BattleCombatAnimationHook {
   attackMotion,
   blockMotion,
+  simultaneousMotions,
+  actionBuff,
+  desafioWarning,
   burnDamage,
   poisonDamage,
   damageTaken,
@@ -18,6 +21,22 @@ enum BattleCombatAnimationHook {
   fragilidadBurst,
   moneyChange,
   purgeDamage,
+}
+
+class BattleCombatMotionCue {
+  final BattleCombatAnimationHook hook;
+  final BattleCombatantSide primarySide;
+  final BattleCombatantSide? secondarySide;
+  final BattleCombatMotionAsset motionAsset;
+  final int effectCount;
+
+  const BattleCombatMotionCue({
+    required this.hook,
+    required this.primarySide,
+    this.secondarySide,
+    this.motionAsset = BattleCombatMotionAsset.sword,
+    this.effectCount = 1,
+  });
 }
 
 enum BattleCombatMotionAsset {
@@ -60,6 +79,7 @@ class BattleCombatAnimationCue {
   final Battler enemyAfter;
   final int effectCount;
   final BattleCombatMotionAsset motionAsset;
+  final List<BattleCombatMotionCue> simultaneousMotions;
   final List<BattleCombatFloatingNumberCue> floatingNumbers;
   final Map<BattleCombatantSide, List<BattleCombatFloatingNumberCue>>
       floatingNumbersBySide;
@@ -74,6 +94,7 @@ class BattleCombatAnimationCue {
     required this.enemyAfter,
     this.effectCount = 1,
     this.motionAsset = BattleCombatMotionAsset.sword,
+    this.simultaneousMotions = const <BattleCombatMotionCue>[],
     this.floatingNumbers = const <BattleCombatFloatingNumberCue>[],
     this.floatingNumbersBySide =
         const <BattleCombatantSide, List<BattleCombatFloatingNumberCue>>{},

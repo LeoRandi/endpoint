@@ -391,23 +391,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     });
 
     try {
-      while (mounted &&
-          _isPatternMode &&
-          _sceneController.canUseActions &&
-          !_sceneController.hasPendingVictoryRewards &&
-          !_sceneController.isCombatFinished) {
-        final didResolvePlayerTurn = await _presentPlayerPatternTurn();
-        if (!mounted || !didResolvePlayerTurn) return;
-
-        if (!_sceneController.canResolveEnemyPattern ||
-            _sceneController.hasPendingVictoryRewards ||
-            _sceneController.isCombatFinished) {
-          return;
-        }
-
-        final didResolveEnemyTurn = await _handleEnemyPatternMatchFlow();
-        if (!mounted || !didResolveEnemyTurn) return;
-      }
+      await _handleSimultaneousPatternMatchFlow();
     } finally {
       if (mounted) {
         setState(() {
@@ -419,6 +403,30 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             !_sceneController.isPresentingRewards) {
           unawaited(_handleOpenPendingRewards());
         }
+      }
+    }
+  }
+
+  Future<void> _handleSimultaneousPatternMatchFlow() async {
+    while (mounted &&
+        _isPatternMode &&
+        _sceneController.canUseActions &&
+        !_sceneController.hasPendingVictoryRewards &&
+        !_sceneController.isCombatFinished) {
+      final playerResult = await _presentPlayerPatternSelection();
+      if (!mounted || playerResult == null) return;
+
+      final enemyResult = await _presentEnemyPatternSelection();
+      if (!mounted || enemyResult == null) return;
+
+      await _presentActionPileResolution(
+        playerResult: playerResult,
+        enemyResult: enemyResult,
+      );
+      if (!mounted ||
+          _sceneController.hasPendingVictoryRewards ||
+          _sceneController.isCombatFinished) {
+        return;
       }
     }
   }
@@ -446,10 +454,23 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             motion: _animation.activeCombatIconMotion!,
           ),
         ),
+      for (final motion in _animation.activeCombatIconMotions)
+        Positioned.fill(
+          child: _BattleCombatIconAnimationLayer(
+            animation: _attackFlightController,
+            motion: motion,
+          ),
+        ),
       if (_animation.activeStatusEffectBurst != null)
         Positioned.fill(
           child: _BattleStatusEffectAnimationLayer(
             burst: _animation.activeStatusEffectBurst!,
+          ),
+        ),
+      for (final burst in _animation.activeStatusEffectBursts)
+        Positioned.fill(
+          child: _BattleStatusEffectAnimationLayer(
+            burst: burst,
           ),
         ),
       if (_animation.activeFloatingNumberBurst != null)
@@ -497,7 +518,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     _patternVisualBattlers.value = next;
   }
 
-  Future<bool> _presentPlayerPatternTurn() async {
+  Future<BattlePatternMatchResult?> _presentPlayerPatternSelection() async {
     final patternLayout = OperativePatternLayoutService.resolveForPlayer(
       player: _sceneController.player,
     );
@@ -562,20 +583,13 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
             if (didResolveTurn) return;
             didResolveTurn = true;
             _recordPatternMatchResult(matchResult);
-            await _sceneController.handlePlayerPatternMatch(
-              actionBonus: BattleActionBonus(
-                attackBonus: matchResult.attackBonus,
-                healAmount: matchResult.healthBonus,
-                immediateBarrierAmount: matchResult.barrierBonus,
-              ),
-              patternContext: matchResult.patternContext,
-              scheduleEnemyTurn: false,
-            );
           },
         ),
       ),
     );
-    return mounted && (didResolveTurn || matchResult != null);
+    return mounted && (didResolveTurn || matchResult != null)
+        ? matchResult
+        : null;
   }
 
   void _recordPatternMatchResult(BattlePatternMatchResult result) {
@@ -591,7 +605,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     );
   }
 
-  Future<bool> _handleEnemyPatternMatchFlow() async {
+  Future<EnemyBattlePatternMatchResult?> _presentEnemyPatternSelection() async {
     final patternLayout = OperativePatternLayoutService.resolveForPlayer(
       player: _sceneController.enemy,
     );
@@ -652,19 +666,78 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           onResolve: (matchResult) async {
             if (didResolveTurn) return;
             didResolveTurn = true;
-            await _sceneController.handleEnemyPatternMatch(
-              actionBonus: BattleActionBonus(
-                attackBonus: matchResult.attackBonus,
-                healAmount: matchResult.healthBonus,
-                immediateBarrierAmount: matchResult.barrierBonus,
+          },
+        ),
+      ),
+    );
+    return mounted && (didResolveTurn || matchResult != null)
+        ? matchResult
+        : null;
+  }
+
+  Future<void> _presentActionPileResolution({
+    required BattlePatternMatchResult playerResult,
+    required EnemyBattlePatternMatchResult enemyResult,
+  }) async {
+    await showEndpointOverlay<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: EndpointPalette.overlayScrimStrong,
+      transitionDuration: Duration.zero,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: BattlePatternActionPileOverlay(
+          player: _sceneController.player,
+          enemy: _sceneController.enemy,
+          playerActionPile: playerResult.actionPile,
+          enemyActionPile: enemyResult.actionPile,
+          combatRound: _sceneController.currentRound,
+          combatAnimationOverlay: _patternCombatAnimationOverlay,
+          visualBattlers: _patternVisualBattlers,
+          onAnimationTargetsChanged: _handlePatternAnimationTargetsChanged,
+          onPlayerItemPressed: (item) => _handleOpenEquippedItemDetails(
+            _sceneController.player,
+            item,
+            allowDuringPatternMatch: true,
+          ),
+          onEnemyItemPressed: (item) => _handleOpenEquippedItemDetails(
+            _sceneController.enemy,
+            item,
+            allowDuringPatternMatch: true,
+          ),
+          onPlayerAugmentPressed: (augment) => _handleOpenAugmentDetails(
+            augment,
+            owner: _sceneController.player,
+            allowDuringPatternMatch: true,
+          ),
+          onEnemyAugmentPressed: (augment) => _handleOpenAugmentDetails(
+            augment,
+            owner: _sceneController.enemy,
+            allowDuringPatternMatch: true,
+          ),
+          onResolve: (onStep, onPileUpdate) {
+            return _sceneController.handleSimultaneousPatternMatches(
+              playerActionBonus: BattleActionBonus(
+                attackBonus: playerResult.attackBonus,
+                healAmount: playerResult.healthBonus,
+                immediateBarrierAmount: playerResult.barrierBonus,
               ),
-              patternContext: matchResult.patternContext,
+              playerPatternContext: playerResult.patternContext,
+              enemyActionBonus: BattleActionBonus(
+                attackBonus: enemyResult.attackBonus,
+                healAmount: enemyResult.healthBonus,
+                immediateBarrierAmount: enemyResult.barrierBonus,
+              ),
+              enemyPatternContext: enemyResult.patternContext,
+              playerActionPile: playerResult.actionPile,
+              enemyActionPile: enemyResult.actionPile,
+              onActionPileStep: onStep,
+              onActionPileUpdate: onPileUpdate,
             );
           },
         ),
       ),
     );
-    return mounted && (didResolveTurn || matchResult != null);
   }
 
   void _handlePatternAnimationTargetsChanged(
@@ -705,6 +778,15 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       case BattleCombatAnimationHook.attackMotion:
       case BattleCombatAnimationHook.blockMotion:
         await _playCombatMotionCue(cue);
+        break;
+      case BattleCombatAnimationHook.simultaneousMotions:
+        await _playSimultaneousCombatMotionCue(cue);
+        break;
+      case BattleCombatAnimationHook.actionBuff:
+        await _playActionBuffCue(cue);
+        break;
+      case BattleCombatAnimationHook.desafioWarning:
+        await _playDesafioWarningCue(cue);
         break;
       case BattleCombatAnimationHook.burnDamage:
       case BattleCombatAnimationHook.poisonDamage:
@@ -802,6 +884,52 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     _animationPresenter.finishMotion();
   }
 
+  Future<void> _playSimultaneousCombatMotionCue(
+    BattleCombatAnimationCue cue,
+  ) async {
+    final motionCues = cue.simultaneousMotions;
+    if (motionCues.isEmpty) return;
+
+    final motions = <_BattleCombatIconMotion>[];
+    var totalDuration = Duration.zero;
+    for (final motionCue in motionCues) {
+      final start = _centerForSide(motionCue.primarySide);
+      final end = _motionEndForMotionCue(motionCue);
+      if (end == null) continue;
+
+      final effectCount = max(1, motionCue.effectCount);
+      final duration = motionCue.hook == BattleCombatAnimationHook.attackMotion
+          ? _battleAttackFlightDuration +
+              _battleAttackFollowUpStagger * (effectCount - 1)
+          : _battleAttackFlightDuration;
+      if (duration > totalDuration) totalDuration = duration;
+      motions.add(
+        _BattleCombatIconMotion(
+          hook: motionCue.hook,
+          start: start,
+          end: end,
+          primarySide: motionCue.primarySide,
+          assetPath: _assetPathForMotionIntent(motionCue),
+          effectCount: effectCount,
+          totalDuration: duration,
+        ),
+      );
+    }
+    if (motions.isEmpty) return;
+
+    _attackFlightController.duration = totalDuration;
+    _animationPresenter.startMotions(cue: cue, motions: motions);
+
+    try {
+      await _attackFlightController.forward(from: 0).orCancel;
+    } on TickerCanceled {
+      return;
+    }
+    if (!mounted) return;
+
+    _animationPresenter.finishMotion();
+  }
+
   String _assetPathForMotionCue(BattleCombatAnimationCue cue) {
     if (cue.hook == BattleCombatAnimationHook.blockMotion) {
       return _battleShieldAssetPath;
@@ -822,6 +950,22 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     }
   }
 
+  String _assetPathForMotionIntent(BattleCombatMotionCue cue) {
+    if (cue.hook == BattleCombatAnimationHook.blockMotion) {
+      return _battleShieldAssetPath;
+    }
+    if (cue.hook == BattleCombatAnimationHook.healthGain) {
+      return _battleHealthAssetPath;
+    }
+
+    return switch (cue.motionAsset) {
+      BattleCombatMotionAsset.fist => _battleFistAssetPath,
+      BattleCombatMotionAsset.health => _battleHealthAssetPath,
+      BattleCombatMotionAsset.shield => _battleShieldAssetPath,
+      BattleCombatMotionAsset.sword => _battleSwordAssetPath,
+    };
+  }
+
   Future<void> _playHealingCue(BattleCombatAnimationCue cue) async {
     await _playCombatMotionCue(cue);
     if (!mounted) return;
@@ -838,6 +982,91 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
     if (!mounted) return;
 
     _animationPresenter.clearStatusEffectIfCurrent(burst);
+  }
+
+  Future<void> _playActionBuffCue(BattleCombatAnimationCue cue) async {
+    final sides = <BattleCombatantSide>{
+      cue.primarySide,
+      if (cue.secondarySide != null) cue.secondarySide!,
+    };
+    final bursts = <_BattleStatusEffectBurst>[
+      for (final side in sides) _buildActionBuffBurst(cue, side),
+    ];
+    if (bursts.isEmpty) return;
+
+    _animationPresenter.startStatusEffects(cue: cue, bursts: bursts);
+
+    await Future<void>.delayed(_battleStatusEffectBurstDuration);
+    if (!mounted) return;
+
+    _animationPresenter.clearStatusEffects();
+  }
+
+  Future<void> _playDesafioWarningCue(BattleCombatAnimationCue cue) async {
+    final sides = <BattleCombatantSide>{
+      cue.primarySide,
+      if (cue.secondarySide != null) cue.secondarySide!,
+    };
+    final bursts = <_BattleStatusEffectBurst>[
+      for (final side in sides) _buildDesafioWarningBurst(cue, side),
+    ];
+    if (bursts.isEmpty) return;
+
+    _animationPresenter.startStatusEffects(cue: cue, bursts: bursts);
+
+    await Future<void>.delayed(_battleStatusEffectBurstDuration);
+    if (!mounted) return;
+
+    _animationPresenter.clearStatusEffects();
+  }
+
+  _BattleStatusEffectBurst _buildDesafioWarningBurst(
+    BattleCombatAnimationCue cue,
+    BattleCombatantSide side,
+  ) {
+    final sideRect = _rectForSide(side);
+    final isBearer = side == cue.primarySide;
+    final count = max(isBearer ? 5 : 4, cue.effectCount);
+    final particles = List<_BattleStatusEffectParticle>.generate(
+      count,
+      (_) => _buildStatusEffectParticle(sideRect),
+      growable: false,
+    );
+
+    return _BattleStatusEffectBurst(
+      id: ++_statusEffectBurstSequence,
+      rises: false,
+      icon: isBearer
+          ? Icons.local_activity_rounded
+          : Icons.keyboard_double_arrow_left_rounded,
+      accent: isBearer
+          ? EndpointPalette.warningAccent
+          : EndpointPalette.dangerAccent,
+      particles: List<_BattleStatusEffectParticle>.unmodifiable(particles),
+    );
+  }
+
+  _BattleStatusEffectBurst _buildActionBuffBurst(
+    BattleCombatAnimationCue cue,
+    BattleCombatantSide side,
+  ) {
+    final sideRect = _rectForSide(side);
+    final count = max(4, cue.effectCount);
+    final particles = List<_BattleStatusEffectParticle>.generate(
+      count,
+      (_) => _buildStatusEffectParticle(sideRect),
+      growable: false,
+    );
+
+    return _BattleStatusEffectBurst(
+      id: ++_statusEffectBurstSequence,
+      rises: true,
+      icon: Icons.keyboard_double_arrow_up_rounded,
+      accent: side == BattleCombatantSide.player
+          ? EndpointPalette.dangerAccent
+          : EndpointPalette.warningAccent,
+      particles: List<_BattleStatusEffectParticle>.unmodifiable(particles),
+    );
   }
 
   Future<void> _clearFloatingNumberBurstAfterDelay(
@@ -937,6 +1166,18 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
   }
 
   Offset? _motionEndForCue(BattleCombatAnimationCue cue) {
+    if (cue.hook == BattleCombatAnimationHook.blockMotion ||
+        cue.hook == BattleCombatAnimationHook.healthGain) {
+      return _centerOfBattleArea();
+    }
+
+    final secondarySide = cue.secondarySide;
+    if (secondarySide == null) return null;
+
+    return _centerForStatusBar(secondarySide);
+  }
+
+  Offset? _motionEndForMotionCue(BattleCombatMotionCue cue) {
     if (cue.hook == BattleCombatAnimationHook.blockMotion ||
         cue.hook == BattleCombatAnimationHook.healthGain) {
       return _centerOfBattleArea();
@@ -1460,9 +1701,15 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       activeCombatIconMotion: showBaseSceneAnimationLayers
           ? _animation.activeCombatIconMotion
           : null,
+      activeCombatIconMotions: showBaseSceneAnimationLayers
+          ? _animation.activeCombatIconMotions
+          : const <_BattleCombatIconMotion>[],
       activeStatusEffectBurst: showBaseSceneAnimationLayers
           ? _animation.activeStatusEffectBurst
           : null,
+      activeStatusEffectBursts: showBaseSceneAnimationLayers
+          ? _animation.activeStatusEffectBursts
+          : const <_BattleStatusEffectBurst>[],
       activeFloatingNumberBurst: showBaseSceneAnimationLayers
           ? _animation.activeFloatingNumberBurst
           : null,

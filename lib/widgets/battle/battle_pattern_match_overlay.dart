@@ -32,6 +32,7 @@ const _augmentPatternHintDrawDuration = Duration(milliseconds: 1400);
 const _augmentPatternHintHoldDuration = Duration(seconds: 1);
 const _augmentPatternHintFadeDuration = Duration(milliseconds: 600);
 const _augmentPatternHintGapDuration = Duration(seconds: 1);
+const _battleActionPileEntryFadeDuration = Duration(milliseconds: 320);
 
 enum _BattlePatternBlockPlacementMode {
   wall,
@@ -96,6 +97,7 @@ class BattlePatternMatchResult {
   final Set<String> playerBlockedPointKeys;
   final BattlePatternBlockMode blockMode;
   final BattlePatternMatchContext patternContext;
+  final List<BattlePatternActionPileEntry> actionPile;
 
   const BattlePatternMatchResult({
     required this.attackBonus,
@@ -108,12 +110,14 @@ class BattlePatternMatchResult {
     required this.playerBlockedPointKeys,
     required this.blockMode,
     required this.patternContext,
+    this.actionPile = const <BattlePatternActionPileEntry>[],
   });
 
   factory BattlePatternMatchResult.fromResolution(
     OperativePatternResolution resolution,
     BattlePatternBlockMode blockMode,
     BattlePatternMatchContext patternContext,
+    Map<String, Item> equippedItemsByPointKey,
     int blockingPointsAvailable,
     int enemyBlockingPointsRemaining,
     List<OperativePatternWallSegment> playerWallSegments,
@@ -142,6 +146,11 @@ class BattlePatternMatchResult {
       ),
       blockMode: blockMode,
       patternContext: patternContext,
+      actionPile: BattlePatternMatchPresenter.buildActionPile(
+        patternPoints: patternContext.patternPoints,
+        equippedItemsByPointKey: equippedItemsByPointKey,
+        resolution: resolution,
+      ),
     );
   }
 
@@ -157,6 +166,7 @@ class EnemyBattlePatternMatchResult {
   final Set<String> blockedPointKeys;
   final Set<String> activatedItemPointKeys;
   final BattlePatternMatchContext patternContext;
+  final List<BattlePatternActionPileEntry> actionPile;
 
   const EnemyBattlePatternMatchResult({
     required this.attackBonus,
@@ -167,11 +177,13 @@ class EnemyBattlePatternMatchResult {
     required this.blockedPointKeys,
     required this.activatedItemPointKeys,
     required this.patternContext,
+    this.actionPile = const <BattlePatternActionPileEntry>[],
   });
 
   factory EnemyBattlePatternMatchResult.fromResolution(
     OperativePatternResolution resolution,
     BattlePatternMatchContext patternContext,
+    Map<String, Item> equippedItemsByPointKey,
     int blockingPointsRemaining,
     List<OperativePatternWallSegment> wallSegments,
     Set<String> blockedPointKeys,
@@ -195,6 +207,11 @@ class EnemyBattlePatternMatchResult {
         activatedItemPointKeys,
       ),
       patternContext: patternContext,
+      actionPile: BattlePatternMatchPresenter.buildActionPile(
+        patternPoints: patternContext.patternPoints,
+        equippedItemsByPointKey: equippedItemsByPointKey,
+        resolution: resolution,
+      ),
     );
   }
 }
@@ -349,6 +366,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
         _currentResolution,
         _blockPlan.mode,
         _currentPatternContext(_currentResolution),
+        widget.equippedItemsByPointKey,
         _availableBlockingPoints,
         _enemyBlockingPointsRemaining,
         _wallSegments,
@@ -491,6 +509,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
       resolution,
       _blockPlan.mode,
       _currentPatternContext(resolution),
+      widget.equippedItemsByPointKey,
       _availableBlockingPoints,
       _enemyBlockingPointsRemaining,
       _wallSegments,
@@ -786,6 +805,7 @@ class _EnemyBattlePatternMatchOverlayState
       EnemyBattlePatternMatchResult.fromResolution(
         _currentResolution,
         _currentPatternContext(_currentResolution),
+        widget.equippedItemsByPointKey,
         _blockingPointsRemaining,
         _wallSegments,
         _blockedPointKeys,
@@ -1493,6 +1513,714 @@ class _EnemyBattlePatternMatchOverlayState
       playerSpriteKey: _playerSpriteKey,
       playerStatusKey: _playerStatusKey,
     );
+  }
+}
+
+class BattlePatternActionPileOverlay extends StatefulWidget {
+  final Battler player;
+  final Battler enemy;
+  final List<BattlePatternActionPileEntry> playerActionPile;
+  final List<BattlePatternActionPileEntry> enemyActionPile;
+  final Future<void> Function(
+    BattlePatternActionPileStepCallback onStep,
+    BattlePatternActionPileUpdateCallback onPileUpdate,
+  ) onResolve;
+  final int combatRound;
+  final ValueListenable<Widget?>? combatAnimationOverlay;
+  final ValueListenable<BattlePatternVisualBattlers>? visualBattlers;
+  final ValueChanged<BattlePatternAnimationTargets?>? onAnimationTargetsChanged;
+  final Future<void> Function(Item item)? onPlayerItemPressed;
+  final Future<void> Function(Item item)? onEnemyItemPressed;
+  final ValueChanged<Augment>? onPlayerAugmentPressed;
+  final ValueChanged<Augment>? onEnemyAugmentPressed;
+
+  const BattlePatternActionPileOverlay({
+    super.key,
+    required this.player,
+    required this.enemy,
+    required this.playerActionPile,
+    required this.enemyActionPile,
+    required this.onResolve,
+    required this.combatRound,
+    this.combatAnimationOverlay,
+    this.visualBattlers,
+    this.onAnimationTargetsChanged,
+    this.onPlayerItemPressed,
+    this.onEnemyItemPressed,
+    this.onPlayerAugmentPressed,
+    this.onEnemyAugmentPressed,
+  });
+
+  @override
+  State<BattlePatternActionPileOverlay> createState() =>
+      _BattlePatternActionPileOverlayState();
+}
+
+class _BattlePatternActionPileOverlayState
+    extends State<BattlePatternActionPileOverlay> {
+  final GlobalKey _matchStackKey = GlobalKey();
+  final GlobalKey _enemySpriteKey = GlobalKey();
+  final GlobalKey _enemyStatusKey = GlobalKey();
+  final GlobalKey _playerSpriteKey = GlobalKey();
+  final GlobalKey _playerStatusKey = GlobalKey();
+  late int _playerIndex;
+  late int _enemyIndex;
+  late List<BattlePatternActionPileEntry> _playerEntries;
+  late List<BattlePatternActionPileEntry> _enemyEntries;
+  Set<BattlePatternActionPileEntry> _playerEnteringEntries =
+      <BattlePatternActionPileEntry>{};
+  Set<BattlePatternActionPileEntry> _enemyEnteringEntries =
+      <BattlePatternActionPileEntry>{};
+  bool _playerActs = false;
+  bool _enemyActs = false;
+  bool _isResolving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _playerEntries =
+        List<BattlePatternActionPileEntry>.of(widget.playerActionPile);
+    _enemyEntries = List<BattlePatternActionPileEntry>.of(
+      widget.enemyActionPile,
+    );
+    _playerIndex = widget.playerActionPile.isEmpty ? -1 : 0;
+    _enemyIndex = widget.enemyActionPile.isEmpty ? -1 : 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_resolveAfterReveal());
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.onAnimationTargetsChanged?.call(null);
+    super.dispose();
+  }
+
+  Future<void> _resolveAfterReveal() async {
+    if (_isResolving) return;
+    _isResolving = true;
+    await Future<void>.delayed(const Duration(milliseconds: 620));
+    if (!mounted) return;
+    await widget.onResolve(_handleActionPileStep, _handleActionPileUpdate);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _handleActionPileStep(BattlePatternActionPileStep step) async {
+    if (!mounted) return;
+    setState(() {
+      _playerIndex = step.playerIndex;
+      _enemyIndex = step.enemyIndex;
+      _playerActs = step.playerActs;
+      _enemyActs = step.enemyActs;
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 420));
+  }
+
+  Future<void> _handleActionPileUpdate({
+    required bool isPlayer,
+    required List<BattlePatternActionPileEntry> entries,
+  }) async {
+    if (!mounted) return;
+    final currentEntries = isPlayer ? _playerEntries : _enemyEntries;
+    final enteringEntries = _newActionPileEntries(
+      currentEntries: currentEntries,
+      nextEntries: entries,
+    );
+    setState(() {
+      if (isPlayer) {
+        _playerEntries = List<BattlePatternActionPileEntry>.of(entries);
+        _playerEnteringEntries = enteringEntries;
+      } else {
+        _enemyEntries = List<BattlePatternActionPileEntry>.of(entries);
+        _enemyEnteringEntries = enteringEntries;
+      }
+    });
+    await Future<void>.delayed(_battleActionPileEntryFadeDuration);
+    if (!mounted) return;
+    setState(() {
+      if (isPlayer) {
+        _playerEnteringEntries = <BattlePatternActionPileEntry>{};
+      } else {
+        _enemyEnteringEntries = <BattlePatternActionPileEntry>{};
+      }
+    });
+  }
+
+  Set<BattlePatternActionPileEntry> _newActionPileEntries({
+    required List<BattlePatternActionPileEntry> currentEntries,
+    required List<BattlePatternActionPileEntry> nextEntries,
+  }) {
+    return <BattlePatternActionPileEntry>{
+      for (final nextEntry in nextEntries)
+        if (!currentEntries.any((entry) => identical(entry, nextEntry)))
+          nextEntry,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _BattlePatternCombatPage(
+      stackKey: _matchStackKey,
+      turnAccent: EndpointPalette.warningAccent,
+      top: _PatternVisualBattlerHeader(
+        visualBattlers: widget.visualBattlers,
+        fallbackBattler: widget.enemy,
+        side: BattleCombatantSide.enemy,
+        accent: EndpointPalette.dangerAccent,
+        spriteKey: _enemySpriteKey,
+        statusKey: _enemyStatusKey,
+        spriteOnLeft: true,
+      ),
+      topAugments: _PatternAugmentStrip(
+        augments: widget.enemy.augments,
+        accent: EndpointPalette.dangerAccent,
+        alignEnd: true,
+        items: widget.enemy.equippedItems,
+        onItemPressed: widget.onEnemyItemPressed,
+        onAugmentPressed: widget.onEnemyAugmentPressed,
+      ),
+      matrix: _PatternMatrixCard(
+        accent: EndpointPalette.warningAccent,
+        entryAccent: EndpointPalette.patternAccent,
+        summary: const _BattleActionPileSummary(),
+        cornerSwapKey: 'action-piles',
+        animateCornerSwap: false,
+        pointCount: _playerEntries.length,
+        maxPointCount: max(_playerEntries.length, 1),
+        blockingCount: _enemyEntries.length,
+        maxBlockingCount: max(_enemyEntries.length, 1),
+        rearPointCount: 0,
+        rearMaxPointCount: 1,
+        rearBlockingCount: 0,
+        rearMaxBlockingCount: 1,
+        round: widget.combatRound,
+        purgeDoctrine: widget.player.purgeDoctrine,
+        finishEnabled: false,
+        finishTooltip: 'Resolviendo pilas de accion.',
+        showBlockingCorners: false,
+        dimPatternPoints: false,
+        dimBlockPoints: false,
+        dimFinishButton: true,
+        isPatternCornerActive: true,
+        isBlockCornerActive: true,
+        isRearPatternCornerActive: false,
+        isRearBlockCornerActive: false,
+        onFinish: () {},
+        child: _BattleActionPileBoard(
+          enemyEntries: _enemyEntries,
+          playerEntries: _playerEntries,
+          enemyEnteringEntries: _enemyEnteringEntries,
+          playerEnteringEntries: _playerEnteringEntries,
+          enemyIndex: _enemyIndex,
+          playerIndex: _playerIndex,
+          enemyActs: _enemyActs,
+          playerActs: _playerActs,
+        ),
+      ),
+      bottomAugments: _PatternAugmentStrip(
+        augments: widget.player.augments,
+        accent: EndpointPalette.patternAccent,
+        items: widget.player.equippedItems,
+        onItemPressed: widget.onPlayerItemPressed,
+        onAugmentPressed: widget.onPlayerAugmentPressed,
+      ),
+      bottom: _PatternVisualBattlerHeader(
+        visualBattlers: widget.visualBattlers,
+        fallbackBattler: widget.player,
+        side: BattleCombatantSide.player,
+        accent: EndpointPalette.patternAccent,
+        spriteKey: _playerSpriteKey,
+        statusKey: _playerStatusKey,
+        spriteOnLeft: false,
+      ),
+      overlay: null,
+      combatAnimationOverlay: widget.combatAnimationOverlay,
+      onAnimationTargetsChanged: widget.onAnimationTargetsChanged,
+      enemySpriteKey: _enemySpriteKey,
+      enemyStatusKey: _enemyStatusKey,
+      playerSpriteKey: _playerSpriteKey,
+      playerStatusKey: _playerStatusKey,
+    );
+  }
+}
+
+class _BattleActionPileSummary extends StatelessWidget {
+  const _BattleActionPileSummary();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: EndpointPalette.warningAccent.withValues(alpha: 0.62),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.sync_alt_rounded,
+              size: 18,
+              color: EndpointPalette.warningAccent,
+            ),
+            const SizedBox(width: 7),
+            EndpointText(
+              'ACTION PILES',
+              style: textSmallBold.copyWith(
+                color: EndpointPalette.softForeground,
+                fontSize: 12,
+                letterSpacing: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleActionPileBoard extends StatelessWidget {
+  final List<BattlePatternActionPileEntry> enemyEntries;
+  final List<BattlePatternActionPileEntry> playerEntries;
+  final Set<BattlePatternActionPileEntry> enemyEnteringEntries;
+  final Set<BattlePatternActionPileEntry> playerEnteringEntries;
+  final int enemyIndex;
+  final int playerIndex;
+  final bool enemyActs;
+  final bool playerActs;
+
+  const _BattleActionPileBoard({
+    required this.enemyEntries,
+    required this.playerEntries,
+    required this.enemyEnteringEntries,
+    required this.playerEnteringEntries,
+    required this.enemyIndex,
+    required this.playerIndex,
+    required this.enemyActs,
+    required this.playerActs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Center(
+          child: Container(
+            height: 2,
+            margin: const EdgeInsets.symmetric(horizontal: 14),
+            color: EndpointPalette.softForeground.withAlpha(80),
+          ),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _BattleActionPileLine(
+              entries: enemyEntries,
+              accent: EndpointPalette.dangerAccent,
+              activeIndex: enemyIndex,
+              activeActs: enemyActs,
+              direction: -1,
+              enteringEntries: enemyEnteringEntries,
+            ),
+            const SizedBox(height: 30),
+            _BattleActionPileLine(
+              entries: playerEntries,
+              accent: EndpointPalette.patternAccent,
+              activeIndex: playerIndex,
+              activeActs: playerActs,
+              direction: 1,
+              enteringEntries: playerEnteringEntries,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _BattleActionPileLine extends StatelessWidget {
+  static const double _pipSize = 52;
+  static const double _stepSize = 82;
+
+  final List<BattlePatternActionPileEntry> entries;
+  final Color accent;
+  final int activeIndex;
+  final bool activeActs;
+  final int direction;
+  final Set<BattlePatternActionPileEntry> enteringEntries;
+
+  const _BattleActionPileLine({
+    required this.entries,
+    required this.accent,
+    required this.activeIndex,
+    required this.activeActs,
+    required this.direction,
+    required this.enteringEntries,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 76,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final centerX = constraints.maxWidth / 2;
+          if (entries.isEmpty) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: centerX - _pipSize / 2,
+                  top: 12,
+                  child: _BattleActionPileEmptyPip(accent: accent),
+                ),
+              ],
+            );
+          }
+
+          final modifiers = _BattleActionPileValueModifiers();
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (var index = 0; index < entries.length; index++)
+                AnimatedPositioned(
+                  key: ObjectKey(entries[index]),
+                  duration: const Duration(milliseconds: 380),
+                  curve: Curves.easeInOutCubic,
+                  left: centerX -
+                      _pipSize / 2 +
+                      direction * (index - activeIndex) * _stepSize,
+                  top: 10,
+                  width: _pipSize,
+                  height: _pipSize,
+                  child: _BattleActionPilePip(
+                    entry: entries[index],
+                    accent: accent,
+                    pulseDelay: index,
+                    isCentered: index == activeIndex,
+                    isActing: activeActs && index == activeIndex,
+                    fadeIn: enteringEntries.contains(entries[index]),
+                    displayValue: modifiers.displayValueBeforeApplying(
+                      entries[index],
+                    ),
+                  ),
+                ),
+              for (var index = 0; index < entries.length - 1; index++)
+                AnimatedPositioned(
+                  key: ValueKey(
+                    'separator:${identityHashCode(entries[index])}:'
+                    '${identityHashCode(entries[index + 1])}',
+                  ),
+                  duration: const Duration(milliseconds: 380),
+                  curve: Curves.easeInOutCubic,
+                  left: centerX -
+                      16 +
+                      direction * (index + 0.5 - activeIndex) * _stepSize,
+                  top: 29,
+                  width: 32,
+                  height: 20,
+                  child: _BattleActionPileSeparator(
+                    isChained:
+                        entries[index].chainKey == entries[index + 1].chainKey,
+                    direction: direction,
+                    accent: accent,
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BattleActionPileSeparator extends StatelessWidget {
+  final bool isChained;
+  final int direction;
+  final Color accent;
+
+  const _BattleActionPileSeparator({
+    required this.isChained,
+    required this.direction,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isChained) {
+      return Center(
+        child: Container(
+          width: 24,
+          height: 2,
+          color: accent.withAlpha(190),
+        ),
+      );
+    }
+
+    return Icon(
+      direction > 0 ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
+      color: accent.withAlpha(176),
+      size: 24,
+    );
+  }
+}
+
+class _BattleActionPileEmptyPip extends StatelessWidget {
+  final Color accent;
+
+  const _BattleActionPileEmptyPip({
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: _battleActionPilePipDecoration(accent.withAlpha(120)),
+      child: SizedBox.square(
+        dimension: 48,
+        child: Icon(
+          Icons.remove_rounded,
+          color: accent.withAlpha(180),
+          size: 22,
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleActionPilePip extends StatelessWidget {
+  final BattlePatternActionPileEntry entry;
+  final Color accent;
+  final int pulseDelay;
+  final bool isCentered;
+  final bool isActing;
+  final bool fadeIn;
+  final int displayValue;
+
+  const _BattleActionPilePip({
+    required this.entry,
+    required this.accent,
+    required this.pulseDelay,
+    required this.isCentered,
+    required this.isActing,
+    required this.fadeIn,
+    required this.displayValue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final actionAccent = endpointItemActionAccent(entry.actionType);
+    final pip = TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: Duration(milliseconds: 260 + pulseDelay * 25),
+      curve: Curves.easeOutBack,
+      builder: (context, progress, child) {
+        return Transform.scale(
+          scale: 0.84 + progress.clamp(0.0, 1.0) * 0.16,
+          child: child,
+        );
+      },
+      child: Tooltip(
+        message: entry.item?.displayName ?? 'Matrix bonus',
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            DecoratedBox(
+              decoration: _battleActionPilePipDecoration(
+                entry.kind == BattlePatternActionPileEntryKind.itemAction
+                    ? accent
+                    : actionAccent,
+                isCentered: isCentered,
+                isActing: isActing,
+              ),
+              child: SizedBox.square(
+                dimension: 48,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: _BattleActionPilePipIcon(entry: entry),
+                ),
+              ),
+            ),
+            Positioned(
+              right: -7,
+              top: -7,
+              child: _BattleActionPileValueBadge(
+                displayValue: displayValue,
+                actionType: entry.actionType,
+                isBonus:
+                    entry.kind == BattlePatternActionPileEntryKind.matrixBonus,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!fadeIn) return pip;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: _battleActionPileEntryFadeDuration,
+      curve: Curves.easeOutCubic,
+      builder: (context, opacity, child) {
+        return Opacity(
+          opacity: opacity.clamp(0.0, 1.0),
+          child: child,
+        );
+      },
+      child: pip,
+    );
+  }
+}
+
+BoxDecoration _battleActionPilePipDecoration(
+  Color accent, {
+  bool isCentered = false,
+  bool isActing = false,
+}) {
+  return BoxDecoration(
+    color: EndpointPalette.panelBackgroundBattleOpaque.withAlpha(
+      isCentered ? 250 : 218,
+    ),
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(
+      color: accent.withAlpha(isCentered ? 255 : 180),
+      width: isCentered ? 2.4 : 1.3,
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: accent.withAlpha(isActing ? 150 : 80),
+        blurRadius: isCentered ? 18 : 12,
+        spreadRadius: isCentered ? 2 : 1,
+      ),
+      BoxShadow(
+        color: Colors.black.withAlpha(150),
+        blurRadius: 9,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  );
+}
+
+class _BattleActionPilePipIcon extends StatelessWidget {
+  final BattlePatternActionPileEntry entry;
+
+  const _BattleActionPilePipIcon({
+    required this.entry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final item = entry.item;
+    if (item != null) {
+      return Image.asset(
+        item.asset,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.none,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(
+            Icons.inventory_2_rounded,
+            color: EndpointPalette.softForeground,
+            size: 28,
+          );
+        },
+      );
+    }
+
+    final asset = switch (entry.actionType) {
+      ItemActionType.attack => 'assets/images/icons/icon_sword.png',
+      ItemActionType.block => 'assets/images/icons/icon_shield.png',
+      ItemActionType.heal => 'assets/images/icons/icon_health.png',
+      ItemActionType.none => null,
+    };
+    if (asset != null) {
+      return Image.asset(
+        asset,
+        fit: BoxFit.contain,
+        color: endpointItemActionAccent(entry.actionType),
+        filterQuality: FilterQuality.none,
+      );
+    }
+
+    return const Icon(
+      Icons.auto_awesome_rounded,
+      color: EndpointPalette.warningAccent,
+      size: 26,
+    );
+  }
+}
+
+class _BattleActionPileValueBadge extends StatelessWidget {
+  final int displayValue;
+  final ItemActionType actionType;
+  final bool isBonus;
+
+  const _BattleActionPileValueBadge({
+    required this.displayValue,
+    required this.actionType,
+    required this.isBonus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = endpointItemActionAccent(actionType);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(232),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accent.withAlpha(220), width: 1),
+      ),
+      child: SizedBox(
+        width: 26,
+        height: 22,
+        child: Center(
+          child: EndpointText(
+            displayValue > 0 ? '${isBonus ? '+' : ''}$displayValue' : '*',
+            style: textSmallNumericBold.copyWith(
+              color: accent,
+              fontSize: 12,
+              letterSpacing: 0,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleActionPileValueModifiers {
+  int attack = 0;
+  int barrier = 0;
+  int heal = 0;
+
+  int displayValueBeforeApplying(BattlePatternActionPileEntry entry) {
+    final value = switch (entry.actionType) {
+      ItemActionType.attack => entry.value + attack,
+      ItemActionType.block => entry.value + barrier,
+      ItemActionType.heal => entry.value + heal,
+      ItemActionType.none => entry.value,
+    };
+    final bonus = entry.bonus;
+    if (bonus != null) {
+      switch (bonus.kind) {
+        case OperativePatternBonusKind.attack:
+          attack += bonus.amount;
+          break;
+        case OperativePatternBonusKind.barrier:
+          barrier += bonus.amount;
+          break;
+        case OperativePatternBonusKind.health:
+          heal += bonus.amount;
+          break;
+      }
+    }
+    return value;
   }
 }
 

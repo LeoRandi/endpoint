@@ -41,7 +41,9 @@ class _BattleSceneView extends StatelessWidget {
   final GlobalKey enemyStatusBarKey;
   final Animation<double> attackFlightAnimation;
   final _BattleCombatIconMotion? activeCombatIconMotion;
+  final List<_BattleCombatIconMotion> activeCombatIconMotions;
   final _BattleStatusEffectBurst? activeStatusEffectBurst;
+  final List<_BattleStatusEffectBurst> activeStatusEffectBursts;
   final _BattleFloatingNumberBurst? activeFloatingNumberBurst;
   final _BattleMoneyBurst? activeMoneyBurst;
   final _BattleFragilidadBurst? activeFragilidadBurst;
@@ -74,7 +76,9 @@ class _BattleSceneView extends StatelessWidget {
     required this.enemyStatusBarKey,
     required this.attackFlightAnimation,
     required this.activeCombatIconMotion,
+    required this.activeCombatIconMotions,
     required this.activeStatusEffectBurst,
+    required this.activeStatusEffectBursts,
     required this.activeFloatingNumberBurst,
     required this.activeMoneyBurst,
     required this.activeFragilidadBurst,
@@ -276,10 +280,23 @@ class _BattleSceneView extends StatelessWidget {
                             motion: activeCombatIconMotion!,
                           ),
                         ),
+                      for (final motion in activeCombatIconMotions)
+                        Positioned.fill(
+                          child: _BattleCombatIconAnimationLayer(
+                            animation: attackFlightAnimation,
+                            motion: motion,
+                          ),
+                        ),
                       if (activeStatusEffectBurst != null)
                         Positioned.fill(
                           child: _BattleStatusEffectAnimationLayer(
                             burst: activeStatusEffectBurst!,
+                          ),
+                        ),
+                      for (final burst in activeStatusEffectBursts)
+                        Positioned.fill(
+                          child: _BattleStatusEffectAnimationLayer(
+                            burst: burst,
                           ),
                         ),
                       if (activeFloatingNumberBurst != null)

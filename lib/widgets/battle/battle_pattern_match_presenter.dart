@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../../entities/_exports.dart';
+import '../../services/battle/_exports.dart';
 import '../../services/pattern/_exports.dart';
 import '../path/operative_pattern_overlay.dart';
 
@@ -150,6 +151,66 @@ abstract final class BattlePatternMatchPresenter {
         if (!equippedItemsByPointKey.containsKey(entry.key))
           entry.key: OperativePatternPointContent(bonus: entry.value),
     };
+  }
+
+  static List<BattlePatternActionPileEntry> buildActionPile({
+    required List<OperativePatternPoint> patternPoints,
+    required Map<String, Item> equippedItemsByPointKey,
+    required OperativePatternResolution resolution,
+  }) {
+    final entries = <BattlePatternActionPileEntry>[];
+    var bonusSequence = 0;
+    for (final point in OperativePatternRequirement.normalizedSequence(
+      patternPoints,
+    )) {
+      final pointKey = point.key;
+      final patternBonus =
+          resolution.activatedPatternBonusesByPointKey[pointKey];
+      if (patternBonus != null) {
+        entries.add(
+          BattlePatternActionPileEntry.matrixBonus(
+            pointKey: pointKey,
+            chainKey: 'bonus:$pointKey:${bonusSequence++}',
+            bonus: patternBonus,
+          ),
+        );
+      }
+
+      for (final adjacencyBonus
+          in resolution.activatedAdjacencyBonusesAt(pointKey)) {
+        entries.add(
+          BattlePatternActionPileEntry.matrixBonus(
+            pointKey: pointKey,
+            chainKey: 'bonus:$pointKey:${bonusSequence++}',
+            bonus: adjacencyBonus.bonus,
+          ),
+        );
+      }
+
+      final item = equippedItemsByPointKey[pointKey];
+      if (item == null) continue;
+      final itemPoint = point;
+      final actions = <ActionEffect>[
+        ...item.actionEffects,
+        ...item
+            .matchingPatternEffects(
+              patternPoints: patternPoints,
+              itemPoint: itemPoint,
+            )
+            .map((effect) => effect.actionEffect),
+      ];
+      for (final action in actions) {
+        entries.add(
+          BattlePatternActionPileEntry.itemAction(
+            pointKey: pointKey,
+            chainKey: 'item:$pointKey',
+            item: item,
+            action: action,
+          ),
+        );
+      }
+    }
+    return List<BattlePatternActionPileEntry>.unmodifiable(entries);
   }
 }
 

@@ -641,7 +641,7 @@ List<Item> itemPresets = <Item>[
       const ActionEffect(
         actionType: ItemActionType.none,
         description:
-            'If this is your third action this turn or later, use this item --value-- additional times.',
+            'If this is exactly your third action this turn, use this item --value-- additional times.',
         customEffectKey: ItemEffectKeys.needlewheelComboRepeat,
         value: 1,
       ): 1,
@@ -674,8 +674,7 @@ List<Item> itemPresets = <Item>[
         patternType: const OperativePatternRequirement.rightAngle(),
         actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
-          description:
-              'If used in a 90 degree turn, apply --value-- Conmocion',
+          description: 'If used in a 90 degree turn, apply --value-- Conmocion',
           customEffectKey: ItemEffectKeys.venotronomeZigzag,
           value: 3,
         ),

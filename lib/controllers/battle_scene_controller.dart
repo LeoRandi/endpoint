@@ -206,6 +206,28 @@ class BattleSceneController extends ChangeNotifier {
     );
   }
 
+  Future<void> handleSimultaneousPatternMatches({
+    required BattleActionBonus playerActionBonus,
+    required BattlePatternMatchContext playerPatternContext,
+    required BattleActionBonus enemyActionBonus,
+    required BattlePatternMatchContext enemyPatternContext,
+    required List<BattlePatternActionPileEntry> playerActionPile,
+    required List<BattlePatternActionPileEntry> enemyActionPile,
+    BattlePatternActionPileStepCallback? onActionPileStep,
+    BattlePatternActionPileUpdateCallback? onActionPileUpdate,
+  }) {
+    return _battleController.handleSimultaneousPatternMatches(
+      playerActionBonus: playerActionBonus,
+      playerPatternContext: playerPatternContext,
+      enemyActionBonus: enemyActionBonus,
+      enemyPatternContext: enemyPatternContext,
+      playerActionPile: playerActionPile,
+      enemyActionPile: enemyActionPile,
+      onActionPileStep: onActionPileStep,
+      onActionPileUpdate: onActionPileUpdate,
+    );
+  }
+
   /// Ejecuta la accion de bloqueo del jugador y termina su turno.
   Future<void> handlePlayerBlock({
     BattleActionBonus actionBonus = BattleActionBonus.empty,

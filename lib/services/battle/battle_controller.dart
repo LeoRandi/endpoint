@@ -2230,6 +2230,725 @@ class BattleController extends ChangeNotifier {
     }
   }
 
+  Future<void> handleSimultaneousPatternMatches({
+    required BattleActionBonus playerActionBonus,
+    required BattlePatternMatchContext playerPatternContext,
+    required BattleActionBonus enemyActionBonus,
+    required BattlePatternMatchContext enemyPatternContext,
+    required List<BattlePatternActionPileEntry> playerActionPile,
+    required List<BattlePatternActionPileEntry> enemyActionPile,
+    BattlePatternActionPileStepCallback? onActionPileStep,
+    BattlePatternActionPileUpdateCallback? onActionPileUpdate,
+  }) async {
+    if (!canUseActions) return;
+
+    var resolvedPlayerPatternContext =
+        playerPatternContext.withRandomSource(_randomizer);
+    var resolvedEnemyPatternContext =
+        enemyPatternContext.withRandomSource(_randomizer);
+    if (_isPatternBanned(
+          _playerUsedPatterns,
+          resolvedPlayerPatternContext.patternPoints,
+        ) ||
+        _isPatternBanned(
+          _enemyUsedPatterns,
+          resolvedEnemyPatternContext.patternPoints,
+        )) {
+      return;
+    }
+    _recordUsedPattern(
+      _playerUsedPatterns,
+      resolvedPlayerPatternContext.patternPoints,
+    );
+    _recordUsedPattern(
+      _enemyUsedPatterns,
+      resolvedEnemyPatternContext.patternPoints,
+    );
+
+    final playerModifiers = _ActionPileModifiers();
+    final enemyModifiers = _ActionPileModifiers();
+
+    final prepPlayerBefore = _player;
+    final prepEnemyBefore = _enemy;
+    _player = _player.applyAugmentPatternWeaponBoost(
+      pattern: resolvedPlayerPatternContext,
+    );
+    _enemy = _enemy.applyAugmentPatternWeaponBoost(
+      pattern: resolvedEnemyPatternContext,
+    );
+
+    final enemyPreAttackResolution = _resolveEnemyPreAttackState(
+      enemy: _enemy,
+      player: _player,
+    );
+    _enemy = enemyPreAttackResolution.enemy;
+    _player = enemyPreAttackResolution.player;
+
+    final playerPreAttackItemResolution =
+        _player.applyEquippedItemPrePatternAttackEffects(
+      opponent: _enemy,
+      pattern: resolvedPlayerPatternContext,
+    );
+    _player = playerPreAttackItemResolution.owner;
+    _enemy = playerPreAttackItemResolution.opponent;
+    playerModifiers.attack += playerPreAttackItemResolution.attackBonusDelta;
+    playerModifiers.barrier += playerPreAttackItemResolution.barrierBonusDelta;
+
+    final enemyPreAttackItemResolution =
+        _enemy.applyEquippedItemPrePatternAttackEffects(
+      opponent: _player,
+      pattern: resolvedEnemyPatternContext,
+    );
+    _enemy = enemyPreAttackItemResolution.owner;
+    _player = enemyPreAttackItemResolution.opponent;
+    enemyModifiers.attack += enemyPreAttackItemResolution.attackBonusDelta;
+    enemyModifiers.barrier += enemyPreAttackItemResolution.barrierBonusDelta;
+
+    final playerPatternUsedItemResolution =
+        _player.applyEquippedItemPatternUsedEffects(
+      opponent: _enemy,
+      pattern: resolvedPlayerPatternContext,
+    );
+    _player = playerPatternUsedItemResolution.owner;
+    _enemy = playerPatternUsedItemResolution.opponent;
+    playerModifiers.attack += playerPatternUsedItemResolution.attackBonusDelta;
+    playerModifiers.barrier +=
+        playerPatternUsedItemResolution.barrierBonusDelta;
+
+    final enemyPatternUsedItemResolution =
+        _enemy.applyEquippedItemPatternUsedEffects(
+      opponent: _player,
+      pattern: resolvedEnemyPatternContext,
+    );
+    _enemy = enemyPatternUsedItemResolution.owner;
+    _player = enemyPatternUsedItemResolution.opponent;
+    enemyModifiers.attack += enemyPatternUsedItemResolution.attackBonusDelta;
+    enemyModifiers.barrier += enemyPatternUsedItemResolution.barrierBonusDelta;
+
+    await _playCombatStateTransitionAnimations(
+      playerBefore: prepPlayerBefore,
+      enemyBefore: prepEnemyBefore,
+      playerAfter: _player,
+      enemyAfter: _enemy,
+    );
+    if (_isDisposed || !canUseActions) return;
+
+    final prepFinish = _turnEngine.finishFor(player: _player, enemy: _enemy);
+    if (prepFinish != null) {
+      _finishCombat(
+        resultType: prepFinish.resultType,
+        resultText: prepFinish.resultText,
+      );
+      return;
+    }
+
+    final didFinish = await _resolveSimultaneousPatternActionGroups(
+      playerPattern: resolvedPlayerPatternContext,
+      playerActionPile: playerActionPile,
+      playerModifiers: playerModifiers,
+      enemyPattern: resolvedEnemyPatternContext,
+      enemyActionPile: enemyActionPile,
+      enemyModifiers: enemyModifiers,
+      onActionPileStep: onActionPileStep,
+      onActionPileUpdate: onActionPileUpdate,
+    );
+    if (didFinish || _isDisposed || !canUseActions) return;
+
+    _enemyAi.registerResolvedAction(EnemyTurnAction.attack);
+    if (_finishImmediatelyIfPlayerIsDown()) {
+      return;
+    }
+
+    if (await _completeTurn(BattleTurnState.player)) {
+      return;
+    }
+    await _beginTurn(BattleTurnState.enemy);
+    if (_isDisposed || _turn != BattleTurnState.enemy) return;
+    if (await _completeTurn(BattleTurnState.enemy)) {
+      return;
+    }
+
+    _enemyNextAction = _rollEnemyTurnAction();
+    await _beginTurn(BattleTurnState.player);
+  }
+
+  Future<bool> _resolveSimultaneousPatternActionGroups({
+    required BattlePatternMatchContext playerPattern,
+    required List<BattlePatternActionPileEntry> playerActionPile,
+    required _ActionPileModifiers playerModifiers,
+    required BattlePatternMatchContext enemyPattern,
+    required List<BattlePatternActionPileEntry> enemyActionPile,
+    required _ActionPileModifiers enemyModifiers,
+    BattlePatternActionPileStepCallback? onActionPileStep,
+    BattlePatternActionPileUpdateCallback? onActionPileUpdate,
+  }) async {
+    final playerPile = List<BattlePatternActionPileEntry>.of(playerActionPile);
+    final enemyPile = List<BattlePatternActionPileEntry>.of(enemyActionPile);
+    final playerResolvedActions = <ActionEffect>[];
+    final enemyResolvedActions = <ActionEffect>[];
+    var playerIndex = 0;
+    var enemyIndex = 0;
+    var playerActs = playerPile.isNotEmpty;
+    var enemyActs = enemyPile.isNotEmpty;
+
+    while (playerActs || enemyActs) {
+      await onActionPileStep?.call(
+        BattlePatternActionPileStep(
+          playerIndex: _displayIndexForActionPile(
+            entries: playerPile,
+            index: playerIndex,
+          ),
+          enemyIndex: _displayIndexForActionPile(
+            entries: enemyPile,
+            index: enemyIndex,
+          ),
+          playerActs: playerActs,
+          enemyActs: enemyActs,
+        ),
+      );
+      if (_isDisposed || !canUseActions) return true;
+
+      final playerBeforeBeat = _player;
+      final enemyBeforeBeat = _enemy;
+      final motions = <BattleCombatMotionCue>[];
+      final buffSides = <BattleCombatantSide>{};
+
+      if (playerActs) {
+        final resolved = _resolveActionPileEntry(
+          side: BattleCombatantSide.player,
+          entry: playerPile[playerIndex],
+          pattern: playerPattern,
+          modifiers: playerModifiers,
+          resolvedActions: playerResolvedActions,
+        );
+        motions.addAll(resolved.motions);
+        if (resolved.didBuff) buffSides.add(BattleCombatantSide.player);
+        if (resolved.followUps.isNotEmpty) {
+          _insertActionPileFollowUps(
+            entries: playerPile,
+            currentIndex: playerIndex,
+            followUps: resolved.followUps,
+          );
+          await onActionPileUpdate?.call(
+            isPlayer: true,
+            entries: List<BattlePatternActionPileEntry>.unmodifiable(
+              playerPile,
+            ),
+          );
+        }
+      }
+      if (enemyActs) {
+        final resolved = _resolveActionPileEntry(
+          side: BattleCombatantSide.enemy,
+          entry: enemyPile[enemyIndex],
+          pattern: enemyPattern,
+          modifiers: enemyModifiers,
+          resolvedActions: enemyResolvedActions,
+        );
+        motions.addAll(resolved.motions);
+        if (resolved.didBuff) buffSides.add(BattleCombatantSide.enemy);
+        if (resolved.followUps.isNotEmpty) {
+          _insertActionPileFollowUps(
+            entries: enemyPile,
+            currentIndex: enemyIndex,
+            followUps: resolved.followUps,
+          );
+          await onActionPileUpdate?.call(
+            isPlayer: false,
+            entries: List<BattlePatternActionPileEntry>.unmodifiable(enemyPile),
+          );
+        }
+      }
+
+      await _playSimultaneousPatternActionBeatAnimations(
+        playerBefore: playerBeforeBeat,
+        enemyBefore: enemyBeforeBeat,
+        playerAfter: _player,
+        enemyAfter: _enemy,
+        motions: motions,
+        buffSides: buffSides,
+      );
+      if (_isDisposed || !canUseActions) return true;
+
+      final finish = _turnEngine.finishFor(player: _player, enemy: _enemy);
+      if (finish != null) {
+        _finishCombat(
+          resultType: finish.resultType,
+          resultText: finish.resultText,
+        );
+        return true;
+      }
+
+      final playerHasMoreInChain = playerActs &&
+          _hasNextChainedActionPileEntry(
+            entries: playerPile,
+            index: playerIndex,
+          );
+      final enemyHasMoreInChain = enemyActs &&
+          _hasNextChainedActionPileEntry(
+            entries: enemyPile,
+            index: enemyIndex,
+          );
+
+      if (playerHasMoreInChain && enemyHasMoreInChain) {
+        playerIndex++;
+        enemyIndex++;
+        playerActs = true;
+        enemyActs = true;
+      } else if (playerHasMoreInChain) {
+        playerIndex++;
+        playerActs = true;
+        enemyActs = false;
+      } else if (enemyHasMoreInChain) {
+        enemyIndex++;
+        playerActs = false;
+        enemyActs = true;
+      } else {
+        playerIndex++;
+        enemyIndex++;
+        playerActs = playerIndex < playerPile.length;
+        enemyActs = enemyIndex < enemyPile.length;
+      }
+    }
+
+    return false;
+  }
+
+  int _displayIndexForActionPile({
+    required List<BattlePatternActionPileEntry> entries,
+    required int index,
+  }) {
+    if (entries.isEmpty) return -1;
+    return index.clamp(0, entries.length - 1);
+  }
+
+  bool _hasNextChainedActionPileEntry({
+    required List<BattlePatternActionPileEntry> entries,
+    required int index,
+  }) {
+    if (index < 0 || index + 1 >= entries.length) return false;
+    return entries[index].chainKey == entries[index + 1].chainKey;
+  }
+
+  void _insertActionPileFollowUps({
+    required List<BattlePatternActionPileEntry> entries,
+    required int currentIndex,
+    required List<BattlePatternActionPileEntry> followUps,
+  }) {
+    if (followUps.isEmpty) return;
+
+    var insertIndex = currentIndex + 1;
+    while (insertIndex < entries.length &&
+        entries[insertIndex].chainKey == entries[currentIndex].chainKey) {
+      insertIndex++;
+    }
+    entries.insertAll(insertIndex, followUps);
+  }
+
+  ({
+    List<BattleCombatMotionCue> motions,
+    bool didBuff,
+    List<BattlePatternActionPileEntry> followUps,
+  }) _resolveActionPileEntry({
+    required BattleCombatantSide side,
+    required BattlePatternActionPileEntry entry,
+    required BattlePatternMatchContext pattern,
+    required _ActionPileModifiers modifiers,
+    required List<ActionEffect> resolvedActions,
+  }) {
+    final isPlayer = side == BattleCombatantSide.player;
+    final bonus = entry.bonus;
+    if (bonus != null) {
+      switch (bonus.kind) {
+        case OperativePatternBonusKind.attack:
+          modifiers.attack += bonus.amount;
+          break;
+        case OperativePatternBonusKind.barrier:
+          modifiers.barrier += bonus.amount;
+          break;
+        case OperativePatternBonusKind.health:
+          modifiers.heal += bonus.amount;
+          break;
+      }
+      return (
+        motions: const <BattleCombatMotionCue>[],
+        didBuff: true,
+        followUps: const <BattlePatternActionPileEntry>[],
+      );
+    }
+
+    final item = entry.item;
+    final entryAction = entry.action;
+    if (item == null || entryAction == null) {
+      return (
+        motions: const <BattleCombatMotionCue>[],
+        didBuff: false,
+        followUps: const <BattlePatternActionPileEntry>[],
+      );
+    }
+
+    final owner = isPlayer ? _player : _enemy;
+    final action = _actionWithItemActionScaling(
+      owner: owner,
+      action: entryAction,
+    );
+    final motions = <BattleCombatMotionCue>[];
+    final followUps = <BattlePatternActionPileEntry>[];
+
+    switch (action.actionType) {
+      case ItemActionType.attack:
+        final attackResolution = _resolveAttackAction(
+          attacker: isPlayer ? _player : _enemy,
+          defender: isPlayer ? _enemy : _player,
+          baseDamageOverride: max(0, action.totalValue + modifiers.attack),
+          sourceItem: item,
+        );
+        if (isPlayer) {
+          _player = attackResolution.attacker;
+          _enemy = attackResolution.defender;
+        } else {
+          _enemy = attackResolution.attacker;
+          _player = attackResolution.defender;
+        }
+        motions.add(
+          BattleCombatMotionCue(
+            hook: BattleCombatAnimationHook.attackMotion,
+            primarySide: side,
+            secondarySide: isPlayer
+                ? BattleCombatantSide.enemy
+                : BattleCombatantSide.player,
+            effectCount: max(1, attackResolution.hits.length),
+            motionAsset: attackResolution.hits.isEmpty
+                ? BattleCombatMotionAsset.sword
+                : attackResolution.hits.first.motionAsset,
+          ),
+        );
+        followUps.addAll(
+          _followUpEntriesForItemActions(
+            owner: isPlayer ? _player : _enemy,
+            pattern: pattern,
+            sourceChainKey: entry.chainKey,
+            followUps: attackResolution.followUpItemActions,
+          ),
+        );
+        break;
+      case ItemActionType.block:
+        if (isPlayer) {
+          _player = _applyBarrierGain(
+            _player,
+            max(0, action.totalValue + modifiers.barrier),
+          );
+        } else {
+          _enemy = _applyBarrierGain(
+            _enemy,
+            max(0, action.totalValue + modifiers.barrier),
+          );
+        }
+        motions.add(
+          BattleCombatMotionCue(
+            hook: BattleCombatAnimationHook.blockMotion,
+            primarySide: side,
+            secondarySide: isPlayer
+                ? BattleCombatantSide.enemy
+                : BattleCombatantSide.player,
+            motionAsset: BattleCombatMotionAsset.shield,
+          ),
+        );
+        break;
+      case ItemActionType.heal:
+        if (isPlayer) {
+          _player = _player.heal(action.totalValue + modifiers.heal);
+        } else {
+          _enemy = _enemy.heal(action.totalValue + modifiers.heal);
+        }
+        motions.add(
+          BattleCombatMotionCue(
+            hook: BattleCombatAnimationHook.healthGain,
+            primarySide: side,
+            motionAsset: BattleCombatMotionAsset.health,
+          ),
+        );
+        break;
+      case ItemActionType.none:
+        final resolution = ItemEffectDispatcher.resolveCustomAction(
+          owner: isPlayer ? _player : _enemy,
+          opponent: isPlayer ? _enemy : _player,
+          item: item,
+          effect: action,
+          pattern: pattern,
+          previousActions: List<ActionEffect>.unmodifiable(resolvedActions),
+        );
+        if (isPlayer) {
+          _player = resolution.owner;
+          _enemy = resolution.opponent;
+        } else {
+          _enemy = resolution.owner;
+          _player = resolution.opponent;
+        }
+        followUps.addAll(
+          _followUpEntriesForItemActions(
+            owner: isPlayer ? _player : _enemy,
+            pattern: pattern,
+            sourceChainKey: entry.chainKey,
+            followUps: resolution.followUpItemActions,
+          ),
+        );
+        followUps.addAll(
+          _followUpEntriesForActions(
+            sourceChainKey: entry.chainKey,
+            sourceItem: item,
+            actions: resolution.followUpActions,
+          ),
+        );
+        break;
+    }
+
+    final itemResolution = isPlayer
+        ? _applyPlayerItemActionResolvedEffects(
+            action: action,
+            item: item,
+            pattern: pattern,
+          )
+        : _applyEnemyItemActionResolvedEffects(
+            action: action,
+            item: item,
+            pattern: pattern,
+          );
+    if (isPlayer) {
+      _player = itemResolution.owner;
+      _enemy = itemResolution.opponent;
+    } else {
+      _enemy = itemResolution.owner;
+      _player = itemResolution.opponent;
+    }
+    followUps.addAll(
+      _followUpEntriesForItemActions(
+        owner: isPlayer ? _player : _enemy,
+        pattern: pattern,
+        sourceChainKey: entry.chainKey,
+        followUps: itemResolution.followUpItemActions,
+      ),
+    );
+    followUps.addAll(
+      _followUpEntriesForActions(
+        sourceChainKey: entry.chainKey,
+        sourceItem: item,
+        actions: itemResolution.followUpActions,
+      ),
+    );
+    resolvedActions.add(action);
+    return (
+      motions: List<BattleCombatMotionCue>.unmodifiable(motions),
+      didBuff: false,
+      followUps: List<BattlePatternActionPileEntry>.unmodifiable(followUps),
+    );
+  }
+
+  List<BattlePatternActionPileEntry> _followUpEntriesForActions({
+    required String sourceChainKey,
+    required Item sourceItem,
+    required List<ActionEffect> actions,
+  }) {
+    if (actions.isEmpty) return const <BattlePatternActionPileEntry>[];
+
+    return List<BattlePatternActionPileEntry>.unmodifiable([
+      for (var index = 0; index < actions.length; index++)
+        BattlePatternActionPileEntry.itemAction(
+          pointKey: 'followup:$sourceChainKey:$index',
+          chainKey: 'followup-action:$sourceChainKey',
+          item: sourceItem,
+          action: actions[index],
+        ),
+    ]);
+  }
+
+  List<BattlePatternActionPileEntry> _followUpEntriesForItemActions({
+    required Battler owner,
+    required BattlePatternMatchContext pattern,
+    required String sourceChainKey,
+    required List<ItemFollowUpAction> followUps,
+  }) {
+    if (followUps.isEmpty) return const <BattlePatternActionPileEntry>[];
+
+    final entries = <BattlePatternActionPileEntry>[];
+    var followUpUseIndex = 0;
+    var cursor = 0;
+    while (cursor < followUps.length) {
+      final item = followUps[cursor].item;
+      var runLength = 0;
+      while (cursor + runLength < followUps.length &&
+          followUps[cursor + runLength].item == item) {
+        runLength++;
+      }
+
+      final fullActionCount = max(
+        1,
+        _actionsForPatternItemUse(
+          item: owner.itemWithCombatActionBonuses(item),
+          pattern: pattern,
+          pointKey: OperativePatternLayoutService.pointKeyForItem(
+                player: owner,
+                item: item,
+              ) ??
+              '',
+        ).length,
+      );
+      final repeatCount = max(1, runLength ~/ fullActionCount);
+      final baseActions = item.actionEffects;
+      for (var repeat = 0; repeat < repeatCount; repeat++) {
+        final chainKey = 'followup-item:$sourceChainKey:${followUpUseIndex++}';
+        for (final action in baseActions) {
+          entries.add(
+            BattlePatternActionPileEntry.itemAction(
+              pointKey: 'followup:${item.instanceId ?? item.catalogKey}',
+              chainKey: chainKey,
+              item: item,
+              action: action,
+            ),
+          );
+        }
+      }
+      cursor += runLength;
+    }
+
+    return List<BattlePatternActionPileEntry>.unmodifiable(entries);
+  }
+
+  Future<void> _playSimultaneousPatternActionBeatAnimations({
+    required Battler playerBefore,
+    required Battler enemyBefore,
+    required Battler playerAfter,
+    required Battler enemyAfter,
+    required List<BattleCombatMotionCue> motions,
+    required Set<BattleCombatantSide> buffSides,
+  }) async {
+    if (motions.isNotEmpty) {
+      await _playCombatAnimation(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.simultaneousMotions,
+          primarySide: BattleCombatantSide.player,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerBefore,
+          enemyAfter: enemyBefore,
+          simultaneousMotions:
+              List<BattleCombatMotionCue>.unmodifiable(motions),
+        ),
+      );
+      if (_isDisposed) return;
+    }
+
+    if (buffSides.isNotEmpty) {
+      await _playCombatAnimation(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.actionBuff,
+          primarySide: buffSides.first,
+          secondarySide: buffSides.length > 1 ? buffSides.last : null,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerBefore,
+          enemyAfter: enemyBefore,
+          effectCount: 7,
+        ),
+      );
+      if (_isDisposed) return;
+    }
+
+    final desafioWarningCues = _desafioWarningCuesForStateTransition(
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+      playerAfter: playerAfter,
+      enemyAfter: enemyAfter,
+    );
+    for (final cue in desafioWarningCues) {
+      await _playCombatAnimation(cue);
+      if (_isDisposed) return;
+    }
+
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.purgeDamage,
+        primarySide: BattleCombatantSide.player,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: playerAfter,
+        enemyAfter: enemyAfter,
+        floatingNumbersBySide: <BattleCombatantSide,
+            List<BattleCombatFloatingNumberCue>>{
+          BattleCombatantSide.player: _floatingNumbersForActionBeat(
+            before: playerBefore,
+            after: playerAfter,
+          ),
+          BattleCombatantSide.enemy: _floatingNumbersForActionBeat(
+            before: enemyBefore,
+            after: enemyAfter,
+          ),
+        },
+      ),
+    );
+  }
+
+  List<BattleCombatAnimationCue> _desafioWarningCuesForStateTransition({
+    required Battler playerBefore,
+    required Battler enemyBefore,
+    required Battler playerAfter,
+    required Battler enemyAfter,
+  }) {
+    final cues = <BattleCombatAnimationCue>[];
+    final playerDesafioGain =
+        playerAfter.desafioValue - playerBefore.desafioValue;
+    if (playerDesafioGain > 0) {
+      cues.add(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.desafioWarning,
+          primarySide: BattleCombatantSide.player,
+          secondarySide: BattleCombatantSide.enemy,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerBefore,
+          enemyAfter: enemyBefore,
+          effectCount: max(4, playerDesafioGain),
+        ),
+      );
+    }
+
+    final enemyDesafioGain = enemyAfter.desafioValue - enemyBefore.desafioValue;
+    if (enemyDesafioGain > 0) {
+      cues.add(
+        BattleCombatAnimationCue(
+          hook: BattleCombatAnimationHook.desafioWarning,
+          primarySide: BattleCombatantSide.enemy,
+          secondarySide: BattleCombatantSide.player,
+          playerBefore: playerBefore,
+          enemyBefore: enemyBefore,
+          playerAfter: playerBefore,
+          enemyAfter: enemyBefore,
+          effectCount: max(4, enemyDesafioGain),
+        ),
+      );
+    }
+
+    return List<BattleCombatAnimationCue>.unmodifiable(cues);
+  }
+
+  List<BattleCombatFloatingNumberCue> _floatingNumbersForActionBeat({
+    required Battler before,
+    required Battler after,
+  }) {
+    return List<BattleCombatFloatingNumberCue>.unmodifiable([
+      ...BattleCombatAnimationCueFactory.lossFloatingNumbers(
+        before: before,
+        after: after,
+      ),
+      ...BattleCombatAnimationCueFactory.gainFloatingNumbers(
+        before: before,
+        after: after,
+        includeHealth: true,
+        includeBarrier: true,
+      ),
+    ]);
+  }
+
   Future<bool> _resolveTurnStartDesafio(BattleTurnState activeTurn) async {
     final isPlayerTurn = activeTurn == BattleTurnState.player;
     final attacker = isPlayerTurn ? _player : _enemy;
@@ -2241,10 +2960,17 @@ class BattleController extends ChangeNotifier {
       attacker: attacker,
       defender: isPlayerTurn ? _enemy : _player,
     );
+    await _playDesafioWarningAnimation(
+      bearerSide:
+          isPlayerTurn ? BattleCombatantSide.player : BattleCombatantSide.enemy,
+      playerBefore: playerBefore,
+      enemyBefore: enemyBefore,
+    );
+    if (_isDisposed) return true;
+
     await _playAttackActionAnimations(
-      attackerSide: isPlayerTurn
-          ? BattleCombatantSide.player
-          : BattleCombatantSide.enemy,
+      attackerSide:
+          isPlayerTurn ? BattleCombatantSide.player : BattleCombatantSide.enemy,
       attackerBefore: attacker,
       defenderBefore: isPlayerTurn ? _enemy : _player,
       resolution: resolution,
@@ -2272,6 +2998,27 @@ class BattleController extends ChangeNotifier {
       notifyListeners();
     }
     return false;
+  }
+
+  Future<void> _playDesafioWarningAnimation({
+    required BattleCombatantSide bearerSide,
+    required Battler playerBefore,
+    required Battler enemyBefore,
+  }) async {
+    await _playCombatAnimation(
+      BattleCombatAnimationCue(
+        hook: BattleCombatAnimationHook.desafioWarning,
+        primarySide: bearerSide,
+        secondarySide: bearerSide == BattleCombatantSide.player
+            ? BattleCombatantSide.enemy
+            : BattleCombatantSide.player,
+        playerBefore: playerBefore,
+        enemyBefore: enemyBefore,
+        playerAfter: playerBefore,
+        enemyAfter: enemyBefore,
+        effectCount: 6,
+      ),
+    );
   }
 
   void _resolveTurnStartDesafioWithoutAnimation(BattleTurnState activeTurn) {
@@ -2607,6 +3354,12 @@ class _BattleUsedPattern {
     required this.pointKeys,
     required this.usedRound,
   });
+}
+
+class _ActionPileModifiers {
+  int attack = 0;
+  int barrier = 0;
+  int heal = 0;
 }
 
 class _BattleAttackHitResolution {

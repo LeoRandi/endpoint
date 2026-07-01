@@ -35,8 +35,7 @@ abstract final class ItemEffectDispatcher {
     ItemEffectKeys.sHarpEner: _resolveSHarpEner,
     ItemEffectKeys.duelistChalkGainDesafio: _resolveDuelistChalkGainDesafio,
     ItemEffectKeys.kindlingAxeBurnBoth: _resolveKindlingAxeBurnBoth,
-    ItemEffectKeys.ashEaterMaskSelfBurnHeal:
-        _resolveAshEaterMaskSelfBurnHeal,
+    ItemEffectKeys.ashEaterMaskSelfBurnHeal: _resolveAshEaterMaskSelfBurnHeal,
     ItemEffectKeys.furnaceHeartRightAngleTrigger:
         _resolveFurnaceHeartRightAngleTrigger,
     ItemEffectKeys.challengeBrandRightAngleDesafio:
@@ -68,10 +67,8 @@ abstract final class ItemEffectDispatcher {
     ItemEffectKeys.furnaceHeartAdjacentWeapons:
         _resolveFurnaceHeartAdjacentWeapons,
     ItemEffectKeys.spiteHookRevengeStrike: _resolveSpiteHookRevengeStrike,
-    ItemEffectKeys.ashEaterMaskBurnPotencia:
-        _resolveAshEaterMaskBurnPotencia,
-    ItemEffectKeys.challengeBrandCounterBurn:
-        _resolveChallengeBrandCounterBurn,
+    ItemEffectKeys.ashEaterMaskBurnPotencia: _resolveAshEaterMaskBurnPotencia,
+    ItemEffectKeys.challengeBrandCounterBurn: _resolveChallengeBrandCounterBurn,
     ItemEffectKeys.bloodflameGauntletBurnRevenge:
         _resolveBloodflameGauntletBurnRevenge,
     ItemEffectKeys.crownOfTheBlackSunNoDeathOnce:
@@ -816,7 +813,8 @@ abstract final class ItemEffectDispatcher {
     required BattlePatternMatchContext pattern,
     required List<ActionEffect> previousActions,
   }) {
-    if (previousActions.length + 1 < 3 || effect.totalValue <= 0) {
+    final actionNumberThisTurn = previousActions.length + 1;
+    if (actionNumberThisTurn != 3 || effect.totalValue <= 0) {
       return ItemEffectResolution(owner: owner, opponent: opponent);
     }
 
@@ -1294,8 +1292,7 @@ abstract final class ItemEffectDispatcher {
     for (final catalogueItem in updatedOwner.equippedItems) {
       for (final effect in catalogueItem.passiveEffects.where(
         (effect) =>
-            effect.effectKey ==
-            ItemEffectKeys.contrabandCatalogueGoldSpendEcho,
+            effect.effectKey == ItemEffectKeys.contrabandCatalogueGoldSpendEcho,
       )) {
         final weakestItem = _weakestNonMercantePatternItem(
           owner: updatedOwner,
@@ -1309,7 +1306,8 @@ abstract final class ItemEffectDispatcher {
         );
         for (var repeat = 0; repeat < max(0, effect.value); repeat++) {
           for (final action in actions) {
-            followUps.add(ItemFollowUpAction(item: weakestItem, action: action));
+            followUps
+                .add(ItemFollowUpAction(item: weakestItem, action: action));
           }
         }
       }

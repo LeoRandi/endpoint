@@ -2,7 +2,9 @@ part of 'battle_page.dart';
 
 class _BattleAnimationSnapshot {
   final _BattleCombatIconMotion? activeCombatIconMotion;
+  final List<_BattleCombatIconMotion> activeCombatIconMotions;
   final _BattleStatusEffectBurst? activeStatusEffectBurst;
+  final List<_BattleStatusEffectBurst> activeStatusEffectBursts;
   final _BattleFloatingNumberBurst? activeFloatingNumberBurst;
   final _BattleMoneyBurst? activeMoneyBurst;
   final _BattleFragilidadBurst? activeFragilidadBurst;
@@ -17,7 +19,9 @@ class _BattleAnimationSnapshot {
 
   const _BattleAnimationSnapshot({
     this.activeCombatIconMotion,
+    this.activeCombatIconMotions = const <_BattleCombatIconMotion>[],
     this.activeStatusEffectBurst,
+    this.activeStatusEffectBursts = const <_BattleStatusEffectBurst>[],
     this.activeFloatingNumberBurst,
     this.activeMoneyBurst,
     this.activeFragilidadBurst,
@@ -33,8 +37,10 @@ class _BattleAnimationSnapshot {
 
   _BattleAnimationSnapshot copyWith({
     _BattleCombatIconMotion? activeCombatIconMotion,
+    List<_BattleCombatIconMotion>? activeCombatIconMotions,
     bool clearActiveCombatIconMotion = false,
     _BattleStatusEffectBurst? activeStatusEffectBurst,
+    List<_BattleStatusEffectBurst>? activeStatusEffectBursts,
     bool clearActiveStatusEffectBurst = false,
     _BattleFloatingNumberBurst? activeFloatingNumberBurst,
     bool clearActiveFloatingNumberBurst = false,
@@ -59,9 +65,15 @@ class _BattleAnimationSnapshot {
       activeCombatIconMotion: clearActiveCombatIconMotion
           ? null
           : activeCombatIconMotion ?? this.activeCombatIconMotion,
+      activeCombatIconMotions: clearActiveCombatIconMotion
+          ? const <_BattleCombatIconMotion>[]
+          : activeCombatIconMotions ?? this.activeCombatIconMotions,
       activeStatusEffectBurst: clearActiveStatusEffectBurst
           ? null
           : activeStatusEffectBurst ?? this.activeStatusEffectBurst,
+      activeStatusEffectBursts: clearActiveStatusEffectBurst
+          ? const <_BattleStatusEffectBurst>[]
+          : activeStatusEffectBursts ?? this.activeStatusEffectBursts,
       activeFloatingNumberBurst: clearActiveFloatingNumberBurst
           ? null
           : activeFloatingNumberBurst ?? this.activeFloatingNumberBurst,
@@ -145,6 +157,18 @@ class _BattleAnimationPresenter extends ChangeNotifier {
     );
   }
 
+  void startMotions({
+    required BattleCombatAnimationCue cue,
+    required List<_BattleCombatIconMotion> motions,
+  }) {
+    _setSnapshot(
+      _baseCueSnapshot(cue).copyWith(
+        activeCombatIconMotions:
+            List<_BattleCombatIconMotion>.unmodifiable(motions),
+      ),
+    );
+  }
+
   void finishMotion() {
     _setSnapshot(
       _snapshot.copyWith(
@@ -165,9 +189,30 @@ class _BattleAnimationPresenter extends ChangeNotifier {
     );
   }
 
+  void startStatusEffects({
+    required BattleCombatAnimationCue cue,
+    required List<_BattleStatusEffectBurst> bursts,
+  }) {
+    _setSnapshot(
+      _baseCueSnapshot(cue).copyWith(
+        activeStatusEffectBursts:
+            List<_BattleStatusEffectBurst>.unmodifiable(bursts),
+      ),
+    );
+  }
+
   void clearStatusEffectIfCurrent(_BattleStatusEffectBurst burst) {
     if (_snapshot.activeStatusEffectBurst?.id != burst.id) return;
 
+    _setSnapshot(
+      _snapshot.copyWith(
+        clearActiveStatusEffectBurst: true,
+        isPlayingBattleAnimation: false,
+      ),
+    );
+  }
+
+  void clearStatusEffects() {
     _setSnapshot(
       _snapshot.copyWith(
         clearActiveStatusEffectBurst: true,
