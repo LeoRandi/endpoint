@@ -118,6 +118,7 @@ class BattlePatternMatchResult {
     BattlePatternBlockMode blockMode,
     BattlePatternMatchContext patternContext,
     Map<String, Item> equippedItemsByPointKey,
+    Map<String, OperativePatternBonus> bonusesByPointKey,
     int blockingPointsAvailable,
     int enemyBlockingPointsRemaining,
     List<OperativePatternWallSegment> playerWallSegments,
@@ -149,6 +150,7 @@ class BattlePatternMatchResult {
       actionPile: BattlePatternMatchPresenter.buildActionPile(
         patternPoints: patternContext.patternPoints,
         equippedItemsByPointKey: equippedItemsByPointKey,
+        bonusesByPointKey: bonusesByPointKey,
         resolution: resolution,
       ),
     );
@@ -184,6 +186,7 @@ class EnemyBattlePatternMatchResult {
     OperativePatternResolution resolution,
     BattlePatternMatchContext patternContext,
     Map<String, Item> equippedItemsByPointKey,
+    Map<String, OperativePatternBonus> bonusesByPointKey,
     int blockingPointsRemaining,
     List<OperativePatternWallSegment> wallSegments,
     Set<String> blockedPointKeys,
@@ -210,6 +213,7 @@ class EnemyBattlePatternMatchResult {
       actionPile: BattlePatternMatchPresenter.buildActionPile(
         patternPoints: patternContext.patternPoints,
         equippedItemsByPointKey: equippedItemsByPointKey,
+        bonusesByPointKey: bonusesByPointKey,
         resolution: resolution,
       ),
     );
@@ -367,6 +371,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
         _blockPlan.mode,
         _currentPatternContext(_currentResolution),
         widget.equippedItemsByPointKey,
+        _bonusesByPointKey,
         _availableBlockingPoints,
         _enemyBlockingPointsRemaining,
         _wallSegments,
@@ -510,6 +515,7 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
       _blockPlan.mode,
       _currentPatternContext(resolution),
       widget.equippedItemsByPointKey,
+      _bonusesByPointKey,
       _availableBlockingPoints,
       _enemyBlockingPointsRemaining,
       _wallSegments,
@@ -806,6 +812,7 @@ class _EnemyBattlePatternMatchOverlayState
         _currentResolution,
         _currentPatternContext(_currentResolution),
         widget.equippedItemsByPointKey,
+        _bonusesByPointKey,
         _blockingPointsRemaining,
         _wallSegments,
         _blockedPointKeys,
@@ -1351,6 +1358,8 @@ class _EnemyBattlePatternMatchOverlayState
     final animatedWallSegmentKeys = _canMoveWall
         ? _wallSegments.map((wall) => wall.key).toSet()
         : const <String>{};
+    final isEnemyMatrixInputLocked =
+        _isSwappingCorners || _isPlayingEnemyPattern;
     final displayedBlockedPointKeys = _draggedBlockedPointKey == null
         ? _blockedPointKeys
         : Set<String>.unmodifiable(
@@ -1455,7 +1464,8 @@ class _EnemyBattlePatternMatchOverlayState
                     widthFactor: 0.79,
                     heightFactor: 0.79,
                     child: AbsorbPointer(
-                      absorbing: _canMovePlacedBlock,
+                      absorbing:
+                          isEnemyMatrixInputLocked || _canMovePlacedBlock,
                       child: Transform.rotate(
                         angle: pi / 4,
                         child: OperativePatternBoard(
@@ -1467,7 +1477,8 @@ class _EnemyBattlePatternMatchOverlayState
                               widget.enemy.reinforcedPatternPointKey,
                           displayedPatternPoints: _displayedEnemyPatternPoints,
                           keepLineAfterPointerUp: true,
-                          isPatternInputEnabled: !_canMovePlacedBlock,
+                          isPatternInputEnabled:
+                              !isEnemyMatrixInputLocked && !_canMovePlacedBlock,
                           maxPatternPoints: _enemyEffectiveMaxPatternPoints,
                           wallSegments: _wallSegments,
                           disabledWallSegmentKeys: disabledWallSegmentKeys,
@@ -1478,7 +1489,9 @@ class _EnemyBattlePatternMatchOverlayState
                           accent: EndpointPalette.dangerAccent,
                           longPressDuration:
                               operativePatternQuickInspectHoldDuration,
-                          onPointLongPressed: _handlePointLongPressed,
+                          onPointLongPressed: isEnemyMatrixInputLocked
+                              ? null
+                              : _handlePointLongPressed,
                         ),
                       ),
                     ),

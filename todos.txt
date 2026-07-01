@@ -3,7 +3,7 @@
 [--El equipamiento también va en 9 huecos como el patrón, dibujar encima hace que se active el objeto]
 [--Bonuses de adyacencia en 4 direcciones, dependiendo de la tag que tenga al lado activa efecto/da bonus]
 [--Bonus de patrón por el uso dentro del patrón(al principio/final, en ángulo recto, forma específica)]
---Asegurarse de que el bonus por patrón está funcionando en el nuevo sistema
+[--Asegurarse de que el bonus por patrón está funcionando en el nuevo sistema]
 
 [-Level up]
 --Modificar el sistema de level-ups
@@ -11,8 +11,9 @@
 -Tutorial
 --Rehacer por completo
 
-[-Economía]
+-Economía
 [--Bajar Income base a la mitad o algo]
+--Modificar el tema de costes para que vaya por tier. Dejar en el modelo de item solamente un "modificador" al coste natural de esa tier(+- valor, dependiendo)
 
 [-Diseño]
 [--Añadir color de tier para la card de cada item o habilidad]
@@ -24,11 +25,12 @@
 [--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.]
 [--Los arquetipos empiezan con un item aleatorio de su propio arquetipo + un item general. Se enseñan antes de elegir el arquetipo, se deben generar al empezar la run y guardarse aunque salgas de la app o cambies de página de arquetipo o lo que sea, para que sean siempre el mismo con la misma seed y tal.]
 
-[-Página de Selección de Camino]
+-Página de Selección de Camino
 [--Cambiar chance de aparición de monstruo de día para que sea igual que tienda. Evento solo un poco más raro. Bloquear que salgan enemigos tochos de día(de azul para arriba)]
 [--Barra de fase de día no está alineada verticalmente con los iconos en el stack]
 [--Aplicar el efecto día/noche a diferentes objetos y habilidades][Tag CICLO]
 [--Efecto de animación para bosses]
+--Rehacer diseño con uno en base de "tarta"(Tres opciones en un mismo círculo, cada una tomando una tercera parte del círculo)
 
 [-Combate]
 [--Que intoxicación pase a través de la barrera]
@@ -55,7 +57,7 @@
 [--Meter en el loot]
 [--Eliminar los de tests de los arquetipos actuales]
 [--Mostrar brevemente durante el combate el patrón de un augment, e ir ciclando entre los disponibles.]
---Crear al menos 20 generales y 20 por arquetipo[general: 1, veloz: 0, inamovible: 0, imparable: 0, mercante: 0]
+--Crear al menos 5 generales y 5 por arquetipo[general: 1, veloz: 0, inamovible: 0, imparable: 0, mercante: 0]
 
 -Items
 [--Añadir Tags]
@@ -105,6 +107,7 @@
 
 ////
 ARREGLAR:
+-No aparecen los pips de bonuses antes de las acciones en la pila. 
 
 ////
 PROBAR:

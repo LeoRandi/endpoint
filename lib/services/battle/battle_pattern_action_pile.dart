@@ -43,6 +43,9 @@ class BattlePatternActionPileEntry {
   }
 
   int get value => action?.totalValue ?? bonus?.amount ?? 0;
+
+  bool get countsAsItemAction =>
+      kind == BattlePatternActionPileEntryKind.itemAction;
 }
 
 class BattlePatternActionPileStep {

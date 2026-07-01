@@ -156,35 +156,39 @@ abstract final class BattlePatternMatchPresenter {
   static List<BattlePatternActionPileEntry> buildActionPile({
     required List<OperativePatternPoint> patternPoints,
     required Map<String, Item> equippedItemsByPointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
     required OperativePatternResolution resolution,
   }) {
     final entries = <BattlePatternActionPileEntry>[];
     var bonusSequence = 0;
+
+    void addMatrixBonus({
+      required String pointKey,
+      required OperativePatternBonus bonus,
+    }) {
+      entries.add(
+        BattlePatternActionPileEntry.matrixBonus(
+          pointKey: pointKey,
+          chainKey: 'bonus:$pointKey:${bonusSequence++}',
+          bonus: bonus,
+        ),
+      );
+    }
+
     for (final point in OperativePatternRequirement.normalizedSequence(
       patternPoints,
     )) {
       final pointKey = point.key;
       final patternBonus =
-          resolution.activatedPatternBonusesByPointKey[pointKey];
+          resolution.activatedPatternBonusesByPointKey[pointKey] ??
+              bonusesByPointKey[pointKey];
       if (patternBonus != null) {
-        entries.add(
-          BattlePatternActionPileEntry.matrixBonus(
-            pointKey: pointKey,
-            chainKey: 'bonus:$pointKey:${bonusSequence++}',
-            bonus: patternBonus,
-          ),
-        );
+        addMatrixBonus(pointKey: pointKey, bonus: patternBonus);
       }
 
       for (final adjacencyBonus
           in resolution.activatedAdjacencyBonusesAt(pointKey)) {
-        entries.add(
-          BattlePatternActionPileEntry.matrixBonus(
-            pointKey: pointKey,
-            chainKey: 'bonus:$pointKey:${bonusSequence++}',
-            bonus: adjacencyBonus.bonus,
-          ),
-        );
+        addMatrixBonus(pointKey: pointKey, bonus: adjacencyBonus.bonus);
       }
 
       final item = equippedItemsByPointKey[pointKey];

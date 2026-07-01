@@ -2736,7 +2736,9 @@ class BattleController extends ChangeNotifier {
         actions: itemResolution.followUpActions,
       ),
     );
-    resolvedActions.add(action);
+    if (entry.countsAsItemAction) {
+      resolvedActions.add(action);
+    }
     return (
       motions: List<BattleCombatMotionCue>.unmodifiable(motions),
       didBuff: false,
