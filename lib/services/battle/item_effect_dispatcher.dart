@@ -46,7 +46,7 @@ abstract final class ItemEffectDispatcher {
     ItemEffectKeys.rampartRamFinisher: _resolveRampartRamFinisher,
     ItemEffectKeys.citadelCoreSquareFortress: _resolveCitadelCoreSquareFortress,
     ItemEffectKeys.needlewheelComboRepeat: _resolveNeedlewheelComboRepeat,
-    ItemEffectKeys.venomMetronomeZigzag: _resolveVenomMetronomeZigzag,
+    ItemEffectKeys.venotronomeZigzag: _resolveVenomMetronomeZigzag,
     ItemEffectKeys.leechwireCoilMiddleContagio:
         _resolveLeechwireCoilMiddleContagio,
     ItemEffectKeys.thousandCutHaloFinisher: _resolveThousandCutHaloFinisher,
@@ -80,7 +80,7 @@ abstract final class ItemEffectDispatcher {
         _resolveCitadelCoreFortressScaling,
     ItemEffectKeys.citadelCoreUnbrokenRetaliation:
         _resolveCitadelCoreUnbrokenRetaliation,
-    ItemEffectKeys.venomMetronomeRepeatedActionPoison:
+    ItemEffectKeys.venotronomeRepeatedActionPoison:
         _resolveVenomMetronomeRepeatedActionPoison,
     ItemEffectKeys.leechwireCoilHealFromDebuffs:
         _resolveLeechwireCoilHealFromDebuffs,

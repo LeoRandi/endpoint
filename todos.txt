@@ -61,7 +61,7 @@
 [--Añadir Tags]
 [--Añadir formas que de cada equipamiento]
 [--Añadir Tags de Arquetipo, y filtrar items específicos de cada Arquetipo]
---Meter al menos 40 generales y 60 por arquetipo(40 para mercante)[General: 5, Veloz: 5, Inamovible: 10, Imparable: 5, Mercante:5]
+--Meter al menos 40 generales y 60 por arquetipo(40 para mercante)[General: 5, Veloz: 5, Inamovible: 5, Imparable: 10, Mercante:5]
 --Repartirlos bien en eventos/enemigos/tiendas
 [--Venta de items del jugador en tiendas, o descarte en el inventario]
 [--Cambiar sistema de equipamiento]
@@ -122,29 +122,3 @@ IDEAS:
 --EnanArena: Arena de gladiadores robóticos diminutos, eliges entre 1 de los 3 loadouts que te enseñan(visualmente como elegir arquetipo), y luego la CPU se enfrenta con el loadout elegido en 1 v 1 contra un enemigo tocho. Te llevas recompensas si lo derrota. Si se muere pierdes algo de dinero.
 
 ////////////////////////////////
-
-Id: 1
-"Augment M"
-"An augment for M-like patterns"
-blue tier
-"/assets/sprites/augments/augment_m.png"
-general affinity
-Attacl tag
-AugmentEffects:
- Map(
-  [
-    [-1, 1], [0, 0], [1, 1]
-  ] : an effect that applies +10 damage to every attack in the pattern,
-  [
-    [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0]
-  ] : an effect that applies +15 damage to every attack in the pattern,
-  [
-    [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0]
-  ] : an effect that applies +20 damage to every attack in the pattern,
-  [
-    [-1, -1], [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0], [1, -1]
-  ] : an effect that applies +30 damage to every attack in the pattern,
-  [
-    [-1, -1], [-1, 0], [-1, 1], [0, 0], [1, 1], [1, 0], [1, -1]
-  ] : an effect that applies +50 damage to every attack in the pattern
- )

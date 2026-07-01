@@ -60,9 +60,9 @@ abstract final class ItemEffectKeys {
   static const String citadelCoreSquareFortress =
       'citadel_core_square_fortress';
   static const String needlewheelComboRepeat = 'needlewheel_combo_repeat';
-  static const String venomMetronomeRepeatedActionPoison =
+  static const String venotronomeRepeatedActionPoison =
       'venom_metronome_repeated_action_poison';
-  static const String venomMetronomeZigzag = 'venom_metronome_zigzag';
+  static const String venotronomeZigzag = 'venom_metronome_zigzag';
   static const String leechwireCoilHealFromDebuffs =
       'leechwire_coil_heal_from_debuffs';
   static const String leechwireCoilDebuffDamage =

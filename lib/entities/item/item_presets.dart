@@ -139,7 +139,7 @@ List<Item> itemPresets = <Item>[
     ],
     asset: 'assets/sprites/items/DuelistChalk.png',
     effects: <Effect, int>{
-      ActionEffect(
+      const ActionEffect(
         actionType: ItemActionType.none,
         description: 'Gain --value-- Desafio.',
         customEffectKey: ItemEffectKeys.duelistChalkGainDesafio,
@@ -228,7 +228,7 @@ List<Item> itemPresets = <Item>[
         value: 1,
         hook: ItemEffectHook.turnStart,
       ): 1,
-      ActionEffect(
+      const ActionEffect(
         actionType: ItemActionType.none,
         description:
             'Apply --value-- Burn to yourself. If you are below half HP, heal --value-- HP.',
@@ -302,7 +302,7 @@ List<Item> itemPresets = <Item>[
       ): 1,
       PatternEffect(
         patternType: const OperativePatternRequirement.first(),
-        actionEffect: ActionEffect(
+        actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
               'If this starts the pattern, gain --value-- Desafio. If you have Burn, also heal --value-- HP.',
@@ -648,7 +648,7 @@ List<Item> itemPresets = <Item>[
     },
   ),
 
-  /// Venom Metronome
+  /// Venotronome
   Item(
     affinity: ItemArchetypeAffinity.veloz,
     name: 'Venotronome',
@@ -661,10 +661,10 @@ List<Item> itemPresets = <Item>[
       EntityTag.debuff,
       EntityTag.intoxicacion,
     ],
-    asset: 'assets/sprites/items/VenomMetronome.png',
+    asset: 'assets/sprites/items/Venotronome.png',
     effects: <Effect, int>{
       const PassiveEffect(
-        effectKey: ItemEffectKeys.venomMetronomeRepeatedActionPoison,
+        effectKey: ItemEffectKeys.venotronomeRepeatedActionPoison,
         description:
             'Every two attacking actions, apply --value-- Intoxicacion.',
         value: 1,
@@ -675,11 +675,11 @@ List<Item> itemPresets = <Item>[
         actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
-              'If used in a 90 degree turn, apply --value-- Conmocion and use your first weapon on the pattern again.',
-          customEffectKey: ItemEffectKeys.venomMetronomeZigzag,
-          value: 5,
+              'If used in a 90 degree turn, apply --value-- Conmocion',
+          customEffectKey: ItemEffectKeys.venotronomeZigzag,
+          value: 3,
         ),
-      ): 5,
+      ): 3,
     },
   ),
 
@@ -814,7 +814,7 @@ List<Item> itemPresets = <Item>[
     asset: 'assets/sprites/items/Lanzamonedas.png',
     effects: <Effect, int>{
       ActionEffect.attack(value: 5): 5,
-      ActionEffect(
+      const ActionEffect(
         actionType: ItemActionType.none,
         description:
             'Spend 2 Gold to deal --value-- extra true damage. If you cannot pay, this effect does nothing.',
@@ -856,7 +856,7 @@ List<Item> itemPresets = <Item>[
       ): 1,
       PatternEffect(
         patternType: const OperativePatternRequirement.first(),
-        actionEffect: ActionEffect(
+        actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description: 'If this starts the pattern, gain --value-- Gold.',
           customEffectKey: ItemEffectKeys.cashbackBadgeOpeningDiscount,
@@ -898,7 +898,7 @@ List<Item> itemPresets = <Item>[
       ): 1,
       PatternEffect(
         patternType: const OperativePatternRequirement.middle(),
-        actionEffect: ActionEffect(
+        actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
               'If this is used in the middle of a pattern, gain --value-- Gold for each different item affinity used in this pattern.',
@@ -921,9 +921,7 @@ List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.accesorio,
       EntityTag.economia,
-      EntityTag.buff,
       EntityTag.ataque,
-      EntityTag.resonancia,
     ],
     asset: 'assets/sprites/items/GoldenGodfather.png',
     effects: <Effect, int>{
@@ -939,7 +937,7 @@ List<Item> itemPresets = <Item>[
       ): 1,
       PatternEffect(
         patternType: const OperativePatternRequirement.last(),
-        actionEffect: ActionEffect(
+        actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
               'If this ends the pattern, gain --value-- Gold for each different action type used in this pattern.',
