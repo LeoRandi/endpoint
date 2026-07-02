@@ -44,11 +44,20 @@ abstract final class ItemEffectDispatcher {
         _resolveCrownOfTheBlackSunFinisher,
     ItemEffectKeys.rampartRamFinisher: _resolveRampartRamFinisher,
     ItemEffectKeys.citadelCoreSquareFortress: _resolveCitadelCoreSquareFortress,
+    ItemEffectKeys.splinterDartFragilidad: _resolveSplinterDartFragilidad,
     ItemEffectKeys.needlewheelComboRepeat: _resolveNeedlewheelComboRepeat,
+    ItemEffectKeys.tripwireKnivesDebuffRepeat:
+        _resolveTripwireKnivesDebuffRepeat,
     ItemEffectKeys.venotronomeZigzag: _resolveVenomMetronomeZigzag,
+    ItemEffectKeys.afterimageMotorRightAngleRepeat:
+        _resolveAfterimageMotorRightAngleRepeat,
+    ItemEffectKeys.pulseStitcherFinisherCleanse:
+        _resolvePulseStitcherFinisherCleanse,
     ItemEffectKeys.leechwireCoilMiddleContagio:
         _resolveLeechwireCoilMiddleContagio,
     ItemEffectKeys.thousandCutHaloFinisher: _resolveThousandCutHaloFinisher,
+    ItemEffectKeys.laCuentaSpendGoldPotencia:
+        _resolveLaCuentaSpendGoldPotencia,
     ItemEffectKeys.lanzamonedasSpendGoldDamage:
         _resolveLanzamonedasSpendGoldDamage,
     ItemEffectKeys.cashbackBadgeOpeningDiscount:
@@ -79,8 +88,12 @@ abstract final class ItemEffectDispatcher {
         _resolveCitadelCoreUnbrokenRetaliation,
     ItemEffectKeys.venotronomeRepeatedActionPoison:
         _resolveVenomMetronomeRepeatedActionPoison,
+    ItemEffectKeys.pulseStitcherComboHeal:
+        _resolvePulseStitcherComboHeal,
     ItemEffectKeys.leechwireCoilHealFromDebuffs:
         _resolveLeechwireCoilHealFromDebuffs,
+    ItemEffectKeys.blindspotMantlePuntoCiegoLimit:
+        _resolveBlindspotMantlePuntoCiegoLimit,
     ItemEffectKeys.executionBellCounterRevenge: _resolvePassiveNoop,
     ItemEffectKeys.thousandCutHaloActionScaling:
         _resolveThousandCutHaloActionScaling,
@@ -834,6 +847,99 @@ abstract final class ItemEffectDispatcher {
     );
   }
 
+  static ItemEffectResolution _resolveTripwireKnivesDebuffRepeat({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    if (effect.totalValue <= 0 ||
+        previousActions.isEmpty ||
+        !_actionAppliesDebuff(previousActions.last)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final followUps = <ItemFollowUpAction>[
+      for (var repeat = 0; repeat < effect.totalValue; repeat++)
+        for (final action in _attackActionsForFollowUpWeapon(
+          owner: owner,
+          weapon: item,
+        ))
+          ItemFollowUpAction(item: item, action: action),
+    ];
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent,
+      followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static ItemEffectResolution _resolveSplinterDartFragilidad({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final resolution = _applyStatusToOpponent(
+      owner: owner,
+      opponent: opponent,
+      status: FragilidadStatus(value: effect.totalValue),
+    );
+    return ItemEffectResolution(
+      owner: resolution.owner,
+      opponent: resolution.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveAfterimageMotorRightAngleRepeat({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    if (effect.totalValue <= 0 || previousActions.isEmpty) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final actionToRepeat = previousActions.last;
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent,
+      followUpActions: List<ActionEffect>.unmodifiable([
+        for (var repeat = 0; repeat < effect.totalValue; repeat++)
+          actionToRepeat,
+      ]),
+    );
+  }
+
+  static ItemEffectResolution _resolvePulseStitcherFinisherCleanse({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final actionNumberThisTurn = previousActions.length + 1;
+    if (actionNumberThisTurn < 4) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _cleanseDebuffs(owner: owner, maxCount: 1).heal(
+        effect.totalValue,
+      ),
+      opponent: opponent,
+    );
+  }
+
   static ItemEffectResolution _resolveVenomMetronomeZigzag({
     required Battler owner,
     required Battler opponent,
@@ -915,6 +1021,32 @@ abstract final class ItemEffectDispatcher {
       owner: owner,
       opponent: opponent,
       followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static ItemEffectResolution _resolveLaCuentaSpendGoldPotencia({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final goldCost = max(0, effect.totalValue);
+    if (goldCost <= 0 || !owner.canAfford(goldCost)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final spendResolution = _spendGoldThroughItemEffect(
+      owner: owner,
+      opponent: opponent,
+      amount: goldCost,
+      pattern: pattern,
+    );
+    return ItemEffectResolution(
+      owner: _gainPotencia(spendResolution.owner, 1),
+      opponent: spendResolution.opponent,
+      followUpItemActions: spendResolution.followUpItemActions,
     );
   }
 
@@ -1066,6 +1198,40 @@ abstract final class ItemEffectDispatcher {
     );
   }
 
+  static ItemEffectResolution _resolvePulseStitcherComboHeal({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    final interval = max(1, effect.value);
+    final actionCount = owner.itemActionResolvedCountThisTurn;
+    if (actionCount <= 0 || actionCount % interval != 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final triggerKey = '${effect.effectKey}:$actionCount';
+    if (owner.itemCombatRoundFlagUseCount(item: item, kind: triggerKey) > 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.heal(3).addItemCombatRoundFlagUse(
+            item: item,
+            kind: triggerKey,
+          ),
+      opponent: opponent,
+    );
+  }
+
   static ItemEffectResolution _resolveLeechwireCoilHealFromDebuffs({
     required Battler owner,
     required Battler opponent,
@@ -1106,6 +1272,40 @@ abstract final class ItemEffectDispatcher {
           .addItemCombatRoundFlagUse(item: item, kind: effect.effectKey),
       opponent: opponent,
       status: status,
+    );
+  }
+
+  static ItemEffectResolution _resolveBlindspotMantlePuntoCiegoLimit({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (owner.itemActionResolvedCountThisTurn < 6) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final usesThisCombat = owner.itemCombatFlagUseCount(
+      item: item,
+      kind: effect.effectKey,
+    );
+    if (usesThisCombat >= max(0, effect.value)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner
+          .applyStatus(const PuntoCiegoStatus())
+          .addItemCombatFlagUse(item: item, kind: effect.effectKey),
+      opponent: opponent,
     );
   }
 
@@ -1537,6 +1737,16 @@ abstract final class ItemEffectDispatcher {
         .map((status) => status.id)
         .toSet()
         .length;
+  }
+
+  static bool _actionAppliesDebuff(ActionEffect action) {
+    return switch (action.customEffectKey) {
+      ItemEffectKeys.kindlingAxeBurnBoth ||
+      ItemEffectKeys.splinterDartFragilidad ||
+      ItemEffectKeys.venotronomeZigzag ||
+      ItemEffectKeys.leechwireCoilMiddleContagio => true,
+      _ => false,
+    };
   }
 
   static Battler _dealDamageToOpponent({

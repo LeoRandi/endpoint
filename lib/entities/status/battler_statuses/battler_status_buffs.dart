@@ -76,6 +76,10 @@ class CalentandoStatus extends BattlerStatus {
     required Battler target,
     required int damageDealt,
   }) {
+    if (owner.hasPendingBurstStatusFollowUp) {
+      return owner;
+    }
+
     return owner.removeStatusInstance(this);
   }
 

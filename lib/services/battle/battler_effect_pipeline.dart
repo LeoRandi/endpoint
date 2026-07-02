@@ -349,7 +349,16 @@ class BattlerEffectPipeline {
       for (final effect in item.passiveEffects.where(
         (effect) => effect.hook == ItemEffectHook.incomingDamageModifier,
       )) {
-        updatedDamage -= effect.value;
+        switch (effect.effectKey) {
+          case ItemEffectKeys.blindspotMantleDebuffEvasion:
+            if (_differentDebuffCount(source) >= 3) {
+              updatedDamage -= effect.value;
+            }
+            break;
+          default:
+            updatedDamage -= effect.value;
+            break;
+        }
       }
     }
 

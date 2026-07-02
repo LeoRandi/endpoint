@@ -1419,11 +1419,17 @@ class BattleController extends ChangeNotifier {
     int? baseDamageOverride,
     int challengeCounterattackBonus = 0,
     bool triggerAttackResolvedEffects = true,
+    bool hasPendingActionChainFollowUp = false,
     Item? sourceItem,
   }) {
     var updatedAttacker = attacker.removeCombatFlag(
       Battler.pendingBasicAttackFollowUpFlag,
     );
+    updatedAttacker = hasPendingActionChainFollowUp
+        ? updatedAttacker.addCombatFlag(Battler.pendingActionChainFollowUpFlag)
+        : updatedAttacker.removeCombatFlag(
+            Battler.pendingActionChainFollowUpFlag,
+          );
     var updatedDefender = defender;
     var totalDamageDealt = 0;
     final attackCount = attacker.basicAttackCount;
@@ -1578,7 +1584,7 @@ class BattleController extends ChangeNotifier {
     return _BattleAttackActionResolution(
       attacker: updatedAttacker.removeCombatFlag(
         Battler.pendingBasicAttackFollowUpFlag,
-      ),
+      ).removeCombatFlag(Battler.pendingActionChainFollowUpFlag),
       defender: updatedDefender,
       damageDealt: totalDamageDealt,
       hits: List<_BattleAttackHitResolution>.unmodifiable(hits),
@@ -2420,6 +2426,10 @@ class BattleController extends ChangeNotifier {
           pattern: playerPattern,
           modifiers: playerModifiers,
           resolvedActions: playerResolvedActions,
+          hasPendingActionChainFollowUp: _hasNextChainedActionPileEntry(
+            entries: playerPile,
+            index: playerIndex,
+          ),
         );
         motions.addAll(resolved.motions);
         if (resolved.didBuff) buffSides.add(BattleCombatantSide.player);
@@ -2444,6 +2454,10 @@ class BattleController extends ChangeNotifier {
           pattern: enemyPattern,
           modifiers: enemyModifiers,
           resolvedActions: enemyResolvedActions,
+          hasPendingActionChainFollowUp: _hasNextChainedActionPileEntry(
+            entries: enemyPile,
+            index: enemyIndex,
+          ),
         );
         motions.addAll(resolved.motions);
         if (resolved.didBuff) buffSides.add(BattleCombatantSide.enemy);
@@ -2555,6 +2569,7 @@ class BattleController extends ChangeNotifier {
     required BattlePatternMatchContext pattern,
     required _ActionPileModifiers modifiers,
     required List<ActionEffect> resolvedActions,
+    required bool hasPendingActionChainFollowUp,
   }) {
     final isPlayer = side == BattleCombatantSide.player;
     final bonus = entry.bonus;
@@ -2607,6 +2622,7 @@ class BattleController extends ChangeNotifier {
           attacker: isPlayer ? _player : _enemy,
           defender: isPlayer ? _enemy : _player,
           baseDamageOverride: max(0, action.totalValue + modifiers.attack),
+          hasPendingActionChainFollowUp: hasPendingActionChainFollowUp,
           sourceItem: item,
         );
         if (isPlayer) {

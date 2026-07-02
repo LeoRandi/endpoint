@@ -85,6 +85,7 @@ class BattlerLevelRewardOffer {
 enum BattlerCombatFlag {
   combatActive,
   pendingBasicAttackFollowUp,
+  pendingActionChainFollowUp,
   cycleDayContext,
   cycleNightContext,
   currentRoundMarker,
@@ -362,6 +363,9 @@ class Battler {
   );
   static const pendingBasicAttackFollowUpFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.pendingBasicAttackFollowUp,
+  );
+  static const pendingActionChainFollowUpFlag = CombatRuntimeFlag.battler(
+    BattlerCombatFlag.pendingActionChainFollowUp,
   );
   static const cycleDayContextFlag = CombatRuntimeFlag.battler(
     BattlerCombatFlag.cycleDayContext,

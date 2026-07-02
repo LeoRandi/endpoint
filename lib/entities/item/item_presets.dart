@@ -582,6 +582,30 @@ List<Item> itemPresets = <Item>[
     },
   ),
 
+  /// Splinter Dart
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Splinter Dart',
+    description:
+        'A tiny dart that barely hurts, but will distract your opponent.',
+    tier: RarityTier.gray,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/SplinterDart.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 2): const <int>[2, 4, 6, 8, 10],
+      ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Apply --value-- Fragilidad.',
+        customEffectKey: ItemEffectKeys.splinterDartFragilidad,
+        value: 2,
+      ): const <int>[2, 4, 6, 8, 10],
+    },
+  ),
+
   /// Needlewheel
   Item(
     affinity: ItemArchetypeAffinity.veloz,
@@ -607,6 +631,31 @@ List<Item> itemPresets = <Item>[
     },
   ),
 
+  /// Tripwire Knives
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Tripwire Knives',
+    description:
+        'A set of wired blades that punish enemies already stumbling through your setup.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/TripwireKnives.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 3): const <int>[3, 6, 9, 12],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'If your previous action applied a debuff, use this item --value-- additional time.',
+        customEffectKey: ItemEffectKeys.tripwireKnivesDebuffRepeat,
+        value: 1,
+      ): const <int>[1, 1, 2, 2],
+    },
+  ),
+
   /// Venotronome
   Item(
     affinity: ItemArchetypeAffinity.veloz,
@@ -616,7 +665,6 @@ List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.accesorio,
       EntityTag.debuff,
-      EntityTag.intoxicacion,
     ],
     asset: 'assets/sprites/items/Venotronome.png',
     effects: <Effect, List<int>>{
@@ -636,6 +684,64 @@ List<Item> itemPresets = <Item>[
           value: 3,
         ),
       ): const <int>[3, 6, 9],
+    },
+  ),
+
+  /// Afterimage Motor
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Afterimage Motor',
+    description:
+        'A humming engine that records your movements and plays back the sharpest ones.',
+    tier: RarityTier.blue,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.ataque,
+    ],
+    asset: 'assets/sprites/items/AfterimageMotor.png',
+    effects: <Effect, List<int>>{
+      PatternEffect(
+        patternType: const OperativePatternRequirement.rightAngle(),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If used in a 90 degree turn, repeat the previous action in the pattern --value-- times.',
+          customEffectKey: ItemEffectKeys.afterimageMotorRightAngleRepeat,
+          value: 1,
+        ),
+      ): const <int>[1, 2, 3],
+    },
+  ),
+
+  /// Pulse Stitcher
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Pulse Stitcher',
+    description:
+        'A twitching medical thread that closes wounds only when your hands are moving too fast to see.',
+    tier: RarityTier.blue,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.cura,
+    ],
+    asset: 'assets/sprites/items/PulseStitcher.png',
+    effects: <Effect, List<int>>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.pulseStitcherComboHeal,
+        description: 'Every --value-- actions this turn, heal 3 HP.',
+        value: 4,
+        hook: ItemEffectHook.actionResolved,
+      ): const <int>[4, 3, 2],
+      PatternEffect(
+        patternType: const OperativePatternRequirement.last(),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this ends the pattern and you used 4 or more actions this turn, cleanse 1 negative status and heal --value-- HP.',
+          customEffectKey: ItemEffectKeys.pulseStitcherFinisherCleanse,
+          value: 4,
+        ),
+      ): const <int>[4, 8, 12],
     },
   ),
 
@@ -677,6 +783,37 @@ List<Item> itemPresets = <Item>[
           customEffectKey: ItemEffectKeys.leechwireCoilMiddleContagio,
           value: 2,
         ),
+      ): const <int>[2, 4],
+    },
+  ),
+
+  /// Blindspot Mantle
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Blindspot Mantle',
+    description:
+        'A shifting mantle that is only visible when its wearer stops moving, which they rarely do.',
+    tier: RarityTier.purple,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.buff,
+      EntityTag.ciclo,
+    ],
+    asset: 'assets/sprites/items/BlindspotMantle.png',
+    effects: <Effect, List<int>>{
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.blindspotMantlePuntoCiegoLimit,
+        description:
+            'The first --value-- times each combat you use 6 or more actions in a turn, gain 1 Punto Ciego.',
+        value: 1,
+        hook: ItemEffectHook.turnEnd,
+      ): const <int>[2, 3],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.blindspotMantleDebuffEvasion,
+        description:
+            'While the enemy has 3 or more different debuffs, reduce incoming damage by --value--.',
+        value: 2,
+        hook: ItemEffectHook.incomingDamageModifier,
       ): const <int>[2, 4],
     },
   ),
@@ -724,6 +861,28 @@ List<Item> itemPresets = <Item>[
   ),
 
   /////////////////////////////---Mercante---///////////////////////////////////////
+
+  /// La Cuenta
+  Item(
+    affinity: ItemArchetypeAffinity.mercante,
+    name: 'La Cuenta',
+    description: 'A ticket from an expensive dinner. It hurts to look at it',
+    tier: RarityTier.gray,
+    tags: <EntityTag>[
+      EntityTag.economia,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/LaCuenta.png',
+    effects: <Effect, List<int>>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Spend 2 credits to gain --value-- Potencia. If you cannot pay, this effect does nothing.',
+        customEffectKey: ItemEffectKeys.laCuentaSpendGoldPotencia,
+        value: 2,
+      ): [1, 2, 3, 4, 5],
+    },
+  ),
 
   /// Brass Multitool
   Item(

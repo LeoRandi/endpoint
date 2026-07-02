@@ -437,7 +437,9 @@ class FragilidadStatus extends BattlerStatus {
     if (damageTaken <= 0) return owner;
     if (resolved(owner).value < maxValue) return owner;
 
-    final ownerWithoutFragility = owner.removeStatus(statusId);
+    final ownerWithoutFragility = source.hasPendingBurstStatusFollowUp
+        ? owner
+        : owner.removeStatus(statusId);
     final visibleDamage = min(triggerDamage, ownerWithoutFragility.health);
     final damagedOwner = ownerWithoutFragility
         .copyWith(
@@ -515,7 +517,7 @@ class ConmocionStatus extends BattlerStatus {
     required Battler target,
     required int damageDealt,
   }) {
-    if (owner.hasPendingBasicAttackFollowUp) {
+    if (owner.hasPendingBurstStatusFollowUp) {
       return owner;
     }
 

@@ -47,6 +47,16 @@ extension BattlerCombatRuntime on Battler {
     return hasCombatFlag(Battler.pendingBasicAttackFollowUpFlag);
   }
 
+  /// Indica si la accion actual forma parte de una cadena de item aun abierta.
+  bool get hasPendingActionChainFollowUp {
+    return hasCombatFlag(Battler.pendingActionChainFollowUpFlag);
+  }
+
+  /// Mantiene activos los estados explosivos hasta el cierre del golpe encadenado.
+  bool get hasPendingBurstStatusFollowUp {
+    return hasPendingBasicAttackFollowUp || hasPendingActionChainFollowUp;
+  }
+
   int combatAttackBonusForItem(Item item) {
     return _combatItemFlagValue(
       item: item,

@@ -13,7 +13,7 @@
 
 -Economía
 [--Bajar Income base a la mitad o algo]
---Modificar el tema de costes para que vaya por tier. Dejar en el modelo de item solamente un "modificador" al coste natural de esa tier(+- valor, dependiendo)
+[--Modificar el tema de costes para que vaya por tier. Dejar en el modelo de item solamente un "modificador" al coste natural de esa tier(+- valor, dependiendo)]
 
 [-Diseño]
 [--Añadir color de tier para la card de cada item o habilidad]
@@ -107,7 +107,6 @@
 
 ////
 ARREGLAR:
--No aparecen los pips de bonuses antes de las acciones en la pila. 
 
 ////
 PROBAR:

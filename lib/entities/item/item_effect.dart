@@ -59,21 +59,36 @@ abstract final class ItemEffectKeys {
       'citadel_core_unbroken_retaliation';
   static const String citadelCoreSquareFortress =
       'citadel_core_square_fortress';
+  static const String splinterDartFragilidad = 'splinter_dart_fragilidad';
   static const String needlewheelComboRepeat = 'needlewheel_combo_repeat';
+  static const String tripwireKnivesDebuffRepeat =
+      'tripwire_knives_debuff_repeat';
   static const String venotronomeRepeatedActionPoison =
       'venom_metronome_repeated_action_poison';
   static const String venotronomeZigzag = 'venom_metronome_zigzag';
+  static const String afterimageMotorRightAngleRepeat =
+      'afterimage_motor_right_angle_repeat';
+  static const String pulseStitcherComboHeal =
+      'pulse_stitcher_combo_heal';
+  static const String pulseStitcherFinisherCleanse =
+      'pulse_stitcher_finisher_cleanse';
   static const String leechwireCoilHealFromDebuffs =
       'leechwire_coil_heal_from_debuffs';
   static const String leechwireCoilDebuffDamage =
       'leechwire_coil_debuff_damage';
   static const String leechwireCoilMiddleContagio =
       'leechwire_coil_middle_contagio';
+  static const String blindspotMantlePuntoCiegoLimit =
+      'blindspot_mantle_punto_ciego_limit';
+  static const String blindspotMantleDebuffEvasion =
+      'blindspot_mantle_debuff_evasion';
   static const String thousandCutHaloActionScaling =
       'thousand_cut_halo_action_scaling';
   static const String thousandCutHaloStatusEcho =
       'thousand_cut_halo_status_echo';
   static const String thousandCutHaloFinisher = 'thousand_cut_halo_finisher';
+  static const String laCuentaSpendGoldPotencia =
+      'la_cuenta_spend_gold_potencia';
   static const String lanzamonedasSpendGoldDamage =
       'lanzamonedas_spend_gold_damage';
   static const String cashbackBadgeRefund = 'cashback_badge_refund';
