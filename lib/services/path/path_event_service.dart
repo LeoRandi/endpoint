@@ -1291,8 +1291,7 @@ bool _canAppearForPitonisaQuitapenas(
     return true;
   }
 
-  return service.buildPitonisaPurgeableDebuffs(player).isNotEmpty ||
-      service.buildPitonisaItemOfferings(player).isNotEmpty;
+  return service.buildPitonisaPurgeableDebuffs(player).isNotEmpty;
 }
 
 bool _canAppearForVeloz(

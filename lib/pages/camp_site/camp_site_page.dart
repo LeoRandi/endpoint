@@ -46,7 +46,7 @@ class _CampSitePageState extends State<CampSitePage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _closeCamp();
       },
@@ -68,7 +68,7 @@ class _CampSitePageState extends State<CampSitePage> {
               textAlign: TextAlign.center,
               maxLines: null,
               style: textMedium.copyWith(
-                color: EndpointPalette.softForeground.withOpacity(0.84),
+                color: EndpointPalette.softForeground.withValues(alpha: 0.84),
               ),
             ),
             const SizedBox(height: 12),
@@ -92,7 +92,8 @@ class _CampSitePageState extends State<CampSitePage> {
                     textAlign: TextAlign.center,
                     maxLines: null,
                     style: textMedium.copyWith(
-                      color: EndpointPalette.softForeground.withOpacity(0.76),
+                      color:
+                          EndpointPalette.softForeground.withValues(alpha: 0.76),
                     ),
                   ),
                   if (widget.recoveryService.removeRandomDebuff) ...[
@@ -104,7 +105,8 @@ class _CampSitePageState extends State<CampSitePage> {
                       textAlign: TextAlign.center,
                       maxLines: null,
                       style: textMedium.copyWith(
-                        color: EndpointPalette.softForeground.withOpacity(0.76),
+                        color: EndpointPalette.softForeground
+                            .withValues(alpha: 0.76),
                       ),
                     ),
                   ],
@@ -137,10 +139,10 @@ class _CampBackdropPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = EndpointPalette.primaryAccent.withOpacity(0.07)
+      ..color = EndpointPalette.primaryAccent.withValues(alpha: 0.07)
       ..strokeWidth = 1;
     final ringPaint = Paint()
-      ..color = EndpointPalette.primaryAccent.withOpacity(0.1)
+      ..color = EndpointPalette.primaryAccent.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 

@@ -52,6 +52,8 @@ enum EndpointTextKey {
   settingsCustomAvatarSelectionCaption,
   settingsCustomAvatarSelectionButton,
   settingsGameModeTitle,
+  settingsRunRulesModeTitle,
+  settingsRunRulesModeCaption,
   settingsLanguageTitle,
   settingsLanguageCaption,
   settingsEnabled,
@@ -59,6 +61,8 @@ enum EndpointTextKey {
   settingsDisabledTooltip,
   settingsGameModeClassic,
   settingsGameModePattern,
+  settingsRunRulesModeFullHeal,
+  settingsRunRulesModeHard,
   settingsLanguageSpanish,
   settingsLanguageEnglish,
 }
@@ -142,6 +146,9 @@ abstract final class EndpointStrings {
           'Visible, pero bloqueado por ahora.',
       EndpointTextKey.settingsCustomAvatarSelectionButton: 'Seleccionar',
       EndpointTextKey.settingsGameModeTitle: 'Modo de juego',
+      EndpointTextKey.settingsRunRulesModeTitle: 'Reglas de la run',
+      EndpointTextKey.settingsRunRulesModeCaption:
+          'Cambia como se resuelven derrotas, curacion y nodos de descanso.',
       EndpointTextKey.settingsLanguageTitle: 'Idioma',
       EndpointTextKey.settingsLanguageCaption:
           'Cambia el texto de las pantallas migradas.',
@@ -150,6 +157,8 @@ abstract final class EndpointStrings {
       EndpointTextKey.settingsDisabledTooltip: 'Opcion desactivada',
       EndpointTextKey.settingsGameModeClassic: 'Clásico',
       EndpointTextKey.settingsGameModePattern: 'Patrón',
+      EndpointTextKey.settingsRunRulesModeFullHeal: 'Full heal',
+      EndpointTextKey.settingsRunRulesModeHard: 'Hard mode',
       EndpointTextKey.settingsLanguageSpanish: 'Espanol',
       EndpointTextKey.settingsLanguageEnglish: 'English',
     },
@@ -208,6 +217,9 @@ abstract final class EndpointStrings {
           'Visible, but locked for now.',
       EndpointTextKey.settingsCustomAvatarSelectionButton: 'Select',
       EndpointTextKey.settingsGameModeTitle: 'Game mode',
+      EndpointTextKey.settingsRunRulesModeTitle: 'Run rules',
+      EndpointTextKey.settingsRunRulesModeCaption:
+          'Changes how defeats, healing, and rest nodes are resolved.',
       EndpointTextKey.settingsLanguageTitle: 'Language',
       EndpointTextKey.settingsLanguageCaption:
           'Changes text on migrated screens.',
@@ -216,6 +228,8 @@ abstract final class EndpointStrings {
       EndpointTextKey.settingsDisabledTooltip: 'Option disabled',
       EndpointTextKey.settingsGameModeClassic: 'Classic',
       EndpointTextKey.settingsGameModePattern: 'Pattern',
+      EndpointTextKey.settingsRunRulesModeFullHeal: 'Full heal',
+      EndpointTextKey.settingsRunRulesModeHard: 'Hard mode',
       EndpointTextKey.settingsLanguageSpanish: 'Espanol',
       EndpointTextKey.settingsLanguageEnglish: 'English',
     },
@@ -242,6 +256,14 @@ abstract final class EndpointStrings {
     return switch (gameMode) {
       EndpointGameMode.classic => EndpointTextKey.settingsGameModeClassic,
       EndpointGameMode.pattern => EndpointTextKey.settingsGameModePattern,
+    };
+  }
+
+  static EndpointTextKey runRulesModeKey(EndpointRunRulesMode mode) {
+    return switch (mode) {
+      EndpointRunRulesMode.fullHeal =>
+        EndpointTextKey.settingsRunRulesModeFullHeal,
+      EndpointRunRulesMode.hard => EndpointTextKey.settingsRunRulesModeHard,
     };
   }
 

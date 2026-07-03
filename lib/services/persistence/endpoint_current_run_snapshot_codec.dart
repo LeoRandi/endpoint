@@ -44,6 +44,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
         'currentDaySummary': state.currentDaySummary.toJson(),
         'pendingDaySummary': state.pendingDaySummary?.toJson(),
         'shownShopNodeIds': state.shownShopNodeIds,
+        'shownEventNodeIds': state.shownEventNodeIds,
         'shopRarityDayOffset': state.shopRarityDayOffset,
         'eventRarityDayOffset': state.eventRarityDayOffset,
         'ghostItemLease': state.ghostItemLease?.toJson(),
@@ -193,6 +194,7 @@ abstract final class EndpointCurrentRunSnapshotCodec {
           ),
       pendingDaySummary: pendingDaySummary,
       shownShopNodeIds: _readStringList(runJson['shownShopNodeIds']),
+      shownEventNodeIds: _readStringList(runJson['shownEventNodeIds']),
       shopRarityDayOffset: EndpointJsonUtils.readInt(
         runJson['shopRarityDayOffset'],
         fallback: 0,

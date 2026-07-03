@@ -20,14 +20,11 @@ class PitonisaQuitapenasEventPage extends StatefulWidget {
 enum _PitonisaEventStage {
   options,
   purge,
-  offering,
 }
 
 class _PitonisaQuitapenasEventPageState
     extends State<PitonisaQuitapenasEventPage> {
   late final List<BattlerStatus> _debuffs;
-  late final List<Item> _items;
-  Item? _selectedItem;
   _PitonisaEventStage _stage = _PitonisaEventStage.options;
   int _flavorPageIndex = 0;
   bool _isResolving = false;
@@ -43,7 +40,6 @@ class _PitonisaQuitapenasEventPageState
     _debuffs = widget.eventService.buildPitonisaPurgeableDebuffs(
       widget.player,
     );
-    _items = widget.eventService.buildPitonisaItemOfferings(widget.player);
   }
 
   void _close() {
@@ -74,12 +70,6 @@ class _PitonisaQuitapenasEventPageState
     });
   }
 
-  void _selectItem(Item item) {
-    setState(() {
-      _selectedItem = item;
-    });
-  }
-
   void _resolve(PathEventVisitResult result) {
     if (_isResolving) return;
     setState(() {
@@ -92,18 +82,6 @@ class _PitonisaQuitapenasEventPageState
     _resolve(
       widget.eventService.resolvePitonisaDebuffPurge(
         player: widget.player,
-      ),
-    );
-  }
-
-  void _offerItem() {
-    final item = _selectedItem;
-    if (item == null) return;
-
-    _resolve(
-      widget.eventService.resolvePitonisaItemHealing(
-        player: widget.player,
-        selectedItem: item,
       ),
     );
   }
@@ -229,14 +207,11 @@ class _PitonisaQuitapenasEventPageState
         return _buildOptionsStage();
       case _PitonisaEventStage.purge:
         return _buildPurgeStage();
-      case _PitonisaEventStage.offering:
-        return _buildOfferingStage();
     }
   }
 
   Widget _buildOptionsStage() {
     final hasDebuffs = _debuffs.isNotEmpty;
-    final hasItems = _items.isNotEmpty;
 
     return Column(
       key: const ValueKey<String>('pitonisa-options'),
@@ -252,18 +227,6 @@ class _PitonisaQuitapenasEventPageState
           onPressed: _isResolving || !hasDebuffs
               ? null
               : () => _chooseStage(_PitonisaEventStage.purge),
-        ),
-        const SizedBox(height: 8),
-        _PitonisaOptionCard(
-          title: 'OFRENDA',
-          icon: Icons.inventory_2_rounded,
-          accent: widget.node.accent,
-          body: hasItems
-              ? 'Entrega un objeto y recupera toda tu vida.'
-              : 'No tienes objetos disponibles como ofrenda.',
-          onPressed: _isResolving || !hasItems
-              ? null
-              : () => _chooseStage(_PitonisaEventStage.offering),
         ),
       ],
     );
@@ -306,78 +269,6 @@ class _PitonisaQuitapenasEventPageState
     );
   }
 
-  Widget _buildOfferingStage() {
-    final selectedItem = _selectedItem;
-
-    return Column(
-      key: const ValueKey<String>('pitonisa-offering'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _PitonisaStageHeader(
-          title: 'OFRENDA',
-          icon: Icons.inventory_2_rounded,
-          accent: selectedItem?.rarity.accent ?? widget.node.accent,
-          onBack: _backToOptions,
-        ),
-        const SizedBox(height: 10),
-        _buildItemPicker(),
-        if (selectedItem != null) ...[
-          const SizedBox(height: 8),
-          EndpointText(
-            '${selectedItem.displayName}: curar al maximo',
-            textAlign: TextAlign.center,
-            maxLines: null,
-            style: textSmallBold.copyWith(
-              color: EndpointPalette.softForeground.withAlpha(214),
-              fontSize: 11,
-            ),
-          ),
-        ],
-        const SizedBox(height: 10),
-        EndpointActionButton(
-          label: selectedItem == null ? 'Elige un objeto' : 'Entregar',
-          icon: Icons.favorite_rounded,
-          onPressed: _isResolving || selectedItem == null ? null : _offerItem,
-          tooltip: 'Entregar ofrenda',
-          accent: selectedItem?.rarity.accent ?? widget.node.accent,
-          backgroundColor: EndpointPalette.panelBackgroundMuted,
-          foregroundColor: EndpointPalette.soften(
-            selectedItem?.rarity.accent ?? widget.node.accent,
-          ),
-          expands: true,
-          useMarquee: false,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItemPicker() {
-    final selectedItem = _selectedItem;
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      children: [
-        for (final item in _items)
-          SizedBox(
-            width: 82,
-            height: 92,
-            child: EndpointInventoryItemTile(
-              item: item,
-              onPressed: () => _selectItem(item),
-              backgroundColor: EndpointPalette.blend(
-                EndpointPalette.panelBackgroundMuted,
-                item.rarity.accent,
-                selectedItem == item ? 0.22 : 0.04,
-              ),
-              borderRadius: 12,
-              glowOpacity: selectedItem == item ? 0.18 : 0.08,
-            ),
-          ),
-      ],
-    );
-  }
 }
 class _PitonisaOptionCard extends StatelessWidget {
   final String title;

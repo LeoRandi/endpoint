@@ -17,6 +17,7 @@ class RunState {
   final RunDaySummary currentDaySummary;
   final RunDaySummary? pendingDaySummary;
   final List<String> shownShopNodeIds;
+  final List<String> shownEventNodeIds;
   final int shopRarityDayOffset;
   final int eventRarityDayOffset;
   final GhostItemLease? ghostItemLease;
@@ -34,6 +35,7 @@ class RunState {
     this.currentDaySummary = const RunDaySummary.empty(),
     this.pendingDaySummary,
     this.shownShopNodeIds = const <String>[],
+    this.shownEventNodeIds = const <String>[],
     this.shopRarityDayOffset = 0,
     this.eventRarityDayOffset = 0,
     this.ghostItemLease,
@@ -52,6 +54,7 @@ class RunState {
     RunDaySummary? currentDaySummary,
     Object? pendingDaySummary = _copySentinel,
     List<String>? shownShopNodeIds,
+    List<String>? shownEventNodeIds,
     int? shopRarityDayOffset,
     int? eventRarityDayOffset,
     Object? ghostItemLease = _copySentinel,
@@ -72,6 +75,7 @@ class RunState {
           ? this.pendingDaySummary
           : pendingDaySummary as RunDaySummary?,
       shownShopNodeIds: shownShopNodeIds ?? this.shownShopNodeIds,
+      shownEventNodeIds: shownEventNodeIds ?? this.shownEventNodeIds,
       shopRarityDayOffset: shopRarityDayOffset ?? this.shopRarityDayOffset,
       eventRarityDayOffset: eventRarityDayOffset ?? this.eventRarityDayOffset,
       ghostItemLease: identical(ghostItemLease, _copySentinel)

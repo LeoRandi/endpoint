@@ -372,6 +372,35 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             const SizedBox(height: 12),
                             _SettingsOptionCard(
+                              title: context.tr(
+                                EndpointTextKey.settingsRunRulesModeTitle,
+                              ),
+                              caption: context.tr(
+                                EndpointTextKey.settingsRunRulesModeCaption,
+                              ),
+                              child: EndpointSceneActionWrap(
+                                children: [
+                                  for (final mode
+                                      in EndpointRunRulesMode.values)
+                                    _SettingsChoiceButton(
+                                      label: context.tr(
+                                        EndpointStrings.runRulesModeKey(mode),
+                                      ),
+                                      selected:
+                                          _settings.runRulesMode == mode,
+                                      onPressed: () {
+                                        _applySettings(
+                                          _settings.copyWith(
+                                            runRulesMode: mode,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SettingsOptionCard(
                               title: 'Codex',
                               caption: 'Herramientas de prueba.',
                               child: EndpointSceneActionWrap(

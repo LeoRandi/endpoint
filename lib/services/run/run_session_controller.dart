@@ -2,10 +2,13 @@ import '_imports.dart';
 import '../persistence/endpoint_preferences_models.dart';
 
 class RunSessionController extends ChangeNotifier {
+  static const int _ordinaryDefeatRewardMoney = 3;
+
   final RunRandomizer _randomizer;
   final PathNodeService _pathNodeService;
   final List<PathNode>? _availableNodesOverride;
   final Map<int, List<PathNode>>? _scriptedNodesByStage;
+  final EndpointRunRulesMode _runRulesMode;
   final int _nodeCount;
   final bool _persistRun;
   final RunSnapshotRepository _snapshotRepository;
@@ -21,6 +24,7 @@ class RunSessionController extends ChangeNotifier {
     Map<int, List<PathNode>>? scriptedNodesByStage,
     int nodeCount = 3,
     int? randomSeed,
+    EndpointRunRulesMode runRulesMode = EndpointRunRulesMode.fullHeal,
     bool persistRun = true,
     RunSnapshotRepository snapshotRepository =
         const NoopRunSnapshotRepository(),
@@ -31,6 +35,7 @@ class RunSessionController extends ChangeNotifier {
           availableNodes: availableNodes,
           scriptedNodesByStage: scriptedNodesByStage,
           nodeCount: nodeCount,
+          runRulesMode: runRulesMode,
           randomizer: RunRandomizer(seed: randomSeed),
           persistRun: persistRun,
           snapshotRepository: snapshotRepository,
@@ -38,6 +43,7 @@ class RunSessionController extends ChangeNotifier {
 
   RunSessionController.resume({
     required EndpointCurrentRunSnapshot snapshot,
+    EndpointRunRulesMode runRulesMode = EndpointRunRulesMode.fullHeal,
     bool persistRun = true,
     RunSnapshotRepository snapshotRepository =
         const NoopRunSnapshotRepository(),
@@ -61,6 +67,7 @@ class RunSessionController extends ChangeNotifier {
             currentDaySummary: snapshot.currentDaySummary,
             pendingDaySummary: snapshot.pendingDaySummary,
             shownShopNodeIds: snapshot.shownShopNodeIds,
+            shownEventNodeIds: snapshot.shownEventNodeIds,
             shopRarityDayOffset: snapshot.shopRarityDayOffset,
             eventRarityDayOffset: snapshot.eventRarityDayOffset,
             ghostItemLease: snapshot.ghostItemLease,
@@ -69,6 +76,7 @@ class RunSessionController extends ChangeNotifier {
           ),
           initialIsResolvingNode: snapshot.isResolvingNode,
           initialActiveNode: snapshot.activeNode,
+          runRulesMode: runRulesMode,
           persistRun: persistRun,
           snapshotRepository: snapshotRepository,
         );
@@ -81,6 +89,7 @@ class RunSessionController extends ChangeNotifier {
     List<PathNode>? availableNodes,
     Map<int, List<PathNode>>? scriptedNodesByStage,
     int nodeCount = 3,
+    EndpointRunRulesMode runRulesMode = EndpointRunRulesMode.fullHeal,
     RunState? restoredState,
     bool initialIsResolvingNode = false,
     PathNode? initialActiveNode,
@@ -99,6 +108,7 @@ class RunSessionController extends ChangeNotifier {
                 for (final entry in scriptedNodesByStage.entries)
                   entry.key: List<PathNode>.unmodifiable(entry.value),
               }),
+        _runRulesMode = runRulesMode,
         _nodeCount = max(1, nodeCount),
         _persistRun = persistRun,
         _snapshotRepository = snapshotRepository,
@@ -134,6 +144,7 @@ class RunSessionController extends ChangeNotifier {
   PathNode? get activeNode => _activeNode;
   bool get isResolvingNode => _isResolvingNode;
   bool get isRunComplete => _state.isRunComplete;
+  bool get _isFullHealMode => _runRulesMode == EndpointRunRulesMode.fullHeal;
   RunCompletionType? get completionType => _state.completionType;
   RunDaySummary get currentDaySummary => _state.currentDaySummary;
   RunDaySummary get runSummary => _state.runSummary;
@@ -244,6 +255,8 @@ class RunSessionController extends ChangeNotifier {
       availableNodes:
           _scriptedNodesForStage(_state.stageIndex) ?? _availableNodesOverride,
       shownShopNodeIds: _state.shownShopNodeIds,
+      shownEventNodeIds: _state.shownEventNodeIds,
+      includeHealingFreeValueNodes: !_isFullHealMode,
       nodeCount: _nodeCount,
       shopRarityDayOffset: _state.shopRarityDayOffset,
       eventRarityDayOffset: _state.eventRarityDayOffset,
@@ -256,6 +269,10 @@ class RunSessionController extends ChangeNotifier {
         previousShownShopNodeIds: _state.shownShopNodeIds,
         hour: currentHour,
         player: _state.player,
+      ),
+      shownEventNodeIds: _updatedShownEventNodeIds(
+        previousShownEventNodeIds: _state.shownEventNodeIds,
+        hour: currentHour,
       ),
     );
     notifyListeners();
@@ -274,6 +291,8 @@ class RunSessionController extends ChangeNotifier {
         isRunComplete: true,
         completionType: RunCompletionType.victory,
         pendingDaySummary: null,
+        shownShopNodeIds: const <String>[],
+        shownEventNodeIds: const <String>[],
         shopRarityDayOffset: 0,
         eventRarityDayOffset: 0,
       );
@@ -312,6 +331,7 @@ class RunSessionController extends ChangeNotifier {
       currentDaySummary: nextDaySummary,
       pendingDaySummary: null,
       shownShopNodeIds: nextRunStep.shownShopNodeIds,
+      shownEventNodeIds: nextRunStep.shownEventNodeIds,
       shopRarityDayOffset: 0,
       eventRarityDayOffset: 0,
     );
@@ -337,20 +357,38 @@ class RunSessionController extends ChangeNotifier {
     required BattleFlowResult result,
     required CombatPathNode node,
   }) {
-    var updatedPlayer = result.type == BattleFlowResultType.victory
+    final isVictory = result.type == BattleFlowResultType.victory;
+    final isFinalBossDefeat =
+        result.type == BattleFlowResultType.defeat && _isFinalBossNode(node);
+    final doesDefeatEndRun =
+        result.type == BattleFlowResultType.defeat &&
+            (!_isFullHealMode || isFinalBossDefeat);
+    final hasSurvivedCombat =
+        result.type != BattleFlowResultType.retreated && !doesDefeatEndRun;
+    var updatedPlayer = isVictory
         ? _applyEncounterExperience(
             player: result.player,
             node: node,
             isDailyBoss: PathNodeService.isDailyBossStage(_state.stageIndex),
           )
         : result.player;
-    final updatedGhostLease = result.type == BattleFlowResultType.victory
+    if (_isFullHealMode &&
+        result.type == BattleFlowResultType.defeat &&
+        !isFinalBossDefeat) {
+      updatedPlayer = updatedPlayer.earnMoney(_ordinaryDefeatRewardMoney);
+    }
+    if (_isFullHealMode && hasSurvivedCombat) {
+      updatedPlayer = _healPlayerToFull(updatedPlayer);
+    }
+    final updatedGhostLease = hasSurvivedCombat
         ? _advanceGhostItemLeaseAfterCombat(updatedPlayer)
         : _state.ghostItemLease;
     _completeScene(
       updatedPlayer: updatedPlayer,
-      forcedCompletionType: _completionTypeForBattleResult(result.type),
-      defeatedEnemy: result.type == BattleFlowResultType.victory,
+      forcedCompletionType: doesDefeatEndRun
+          ? RunCompletionType.defeat
+          : _completionTypeForBattleResult(result.type),
+      defeatedEnemy: isVictory,
       defeatedEnemyBattler: node.enemy,
       defeatedEnemyRarity: node.tier.rarity,
       ghostItemLease: updatedGhostLease,
@@ -362,15 +400,26 @@ class RunSessionController extends ChangeNotifier {
   }
 
   void completeEventVisit(PathEventVisitResult result) {
+    final didLoseEventCombat = result.player.isDefeated;
+    var updatedPlayer = _isFullHealMode && didLoseEventCombat
+        ? result.player.earnMoney(_ordinaryDefeatRewardMoney)
+        : result.player;
+    if (_isFullHealMode && (result.defeatedEnemy || didLoseEventCombat)) {
+      updatedPlayer = _healPlayerToFull(updatedPlayer);
+    }
+    final updatedGhostLease =
+        _isFullHealMode && (result.defeatedEnemy || didLoseEventCombat)
+        ? _advanceGhostItemLeaseAfterCombat(updatedPlayer)
+        : result.ghostItemLease;
     _completeScene(
-      updatedPlayer: result.player,
+      updatedPlayer: updatedPlayer,
       guaranteedNextNode: result.guaranteedNextNode,
       nextShopRarityDayOffset: result.nextShopRarityDayOffset,
       nextEventRarityDayOffset: result.nextEventRarityDayOffset,
       defeatedEnemy: result.defeatedEnemy,
       defeatedEnemyBattler: result.defeatedEnemyBattler,
       defeatedEnemyRarity: result.defeatedEnemyRarity,
-      ghostItemLease: result.ghostItemLease,
+      ghostItemLease: updatedGhostLease,
     );
   }
 
@@ -388,7 +437,9 @@ class RunSessionController extends ChangeNotifier {
       return;
     }
 
-    final price = PathEventService().tintoreriaFantasmaPriceFor(ghostItem);
+    final price = const PathEventService().tintoreriaFantasmaPriceFor(
+      ghostItem,
+    );
     final updatedPlayer = keepItem && _state.player.canAfford(price)
         ? _state.player.spendMoney(price).replaceOwnedItem(
               currentItem: ghostItem,
@@ -461,6 +512,8 @@ class RunSessionController extends ChangeNotifier {
         completionType: resolvedCompletionType,
         pendingDaySummary: null,
         ghostItemLease: null,
+        shownShopNodeIds: const <String>[],
+        shownEventNodeIds: const <String>[],
         shopRarityDayOffset: 0,
         eventRarityDayOffset: 0,
       );
@@ -482,6 +535,8 @@ class RunSessionController extends ChangeNotifier {
         isRunComplete: true,
         completionType: RunCompletionType.victory,
         ghostItemLease: null,
+        shownShopNodeIds: const <String>[],
+        shownEventNodeIds: const <String>[],
         shopRarityDayOffset: 0,
         eventRarityDayOffset: 0,
       );
@@ -500,6 +555,8 @@ class RunSessionController extends ChangeNotifier {
         pendingDaySummary: updatedDaySummary,
         visibleNodes: const <PathNode>[],
         ghostItemLease: ghostItemLease ?? _state.ghostItemLease,
+        shownShopNodeIds: const <String>[],
+        shownEventNodeIds: const <String>[],
         shopRarityDayOffset: 0,
         eventRarityDayOffset: 0,
       );
@@ -542,6 +599,7 @@ class RunSessionController extends ChangeNotifier {
       runSummary: nextRunSummary,
       currentDaySummary: nextDaySummary,
       shownShopNodeIds: nextRunStep.shownShopNodeIds,
+      shownEventNodeIds: nextRunStep.shownEventNodeIds,
       shopRarityDayOffset: activeShopRarityDayOffset,
       eventRarityDayOffset: activeEventRarityDayOffset,
       ghostItemLease: ghostItemLease ?? _state.ghostItemLease,
@@ -606,6 +664,8 @@ class RunSessionController extends ChangeNotifier {
       availableNodes:
           _scriptedNodesForStage(stageIndex) ?? _availableNodesOverride,
       shownShopNodeIds: _state.shownShopNodeIds,
+      shownEventNodeIds: _state.shownEventNodeIds,
+      includeHealingFreeValueNodes: !_isFullHealMode,
       nodeCount: _nodeCount,
       shopRarityDayOffset: activeShopRarityDayOffset,
       eventRarityDayOffset: activeEventRarityDayOffset,
@@ -622,6 +682,10 @@ class RunSessionController extends ChangeNotifier {
         previousShownShopNodeIds: _state.shownShopNodeIds,
         hour: nextHour,
         player: nextPlayer,
+      ),
+      shownEventNodeIds: _updatedShownEventNodeIds(
+        previousShownEventNodeIds: _state.shownEventNodeIds,
+        hour: nextHour,
       ),
     );
   }
@@ -670,6 +734,15 @@ class RunSessionController extends ChangeNotifier {
     return player.gainExperience(awardedExperience);
   }
 
+  bool _isFinalBossNode(CombatPathNode node) {
+    return PathNodeService.isFinalBossStage(_state.stageIndex) &&
+        node.nodeId == yellowCombatNode.nodeId;
+  }
+
+  Battler _healPlayerToFull(Battler player) {
+    return player.copyWith(health: player.maxHealth);
+  }
+
   /// Convierte el resultado bruto del combate en un cierre de run forzado cuando procede.
   RunCompletionType? _completionTypeForBattleResult(
     BattleFlowResultType resultType,
@@ -678,7 +751,7 @@ class RunSessionController extends ChangeNotifier {
       case BattleFlowResultType.victory:
         return null;
       case BattleFlowResultType.defeat:
-        return RunCompletionType.defeat;
+        return _isFullHealMode ? null : RunCompletionType.defeat;
       case BattleFlowResultType.retreated:
         return RunCompletionType.retreated;
     }
@@ -691,7 +764,7 @@ class RunSessionController extends ChangeNotifier {
   RunCompletionType? _resolveCompletionType({
     required Battler updatedPlayer,
   }) {
-    if (updatedPlayer.isDefeated) {
+    if (!_isFullHealMode && updatedPlayer.isDefeated) {
       return RunCompletionType.defeat;
     }
 
@@ -711,18 +784,30 @@ class RunSessionController extends ChangeNotifier {
       return previousShownShopNodeIds;
     }
 
-    final eligibleShopNodeIds = _pathNodeService.eligibleShopNodeIdsFor(
-      stageIndex: hour.stageIndex,
-      player: player,
-    );
     final previousShownSet = previousShownShopNodeIds.toSet();
-    final hasCompletedCycle = eligibleShopNodeIds.isNotEmpty &&
-        eligibleShopNodeIds.every(previousShownSet.contains);
-    final updatedShownSet =
-        hasCompletedCycle ? <String>{} : Set<String>.from(previousShownSet);
+    final updatedShownSet = Set<String>.from(previousShownSet);
     updatedShownSet.addAll(visibleShopNodeIds);
 
     return List<String>.unmodifiable(updatedShownSet);
+  }
+
+  List<String> _updatedShownEventNodeIds({
+    required List<String> previousShownEventNodeIds,
+    required RunHourSnapshot hour,
+  }) {
+    final visibleEventNodeIds = hour.nodes
+        .whereType<EventPathNode>()
+        .where((node) => !freeValuePathEventIds.contains(node.id))
+        .map((node) => node.nodeId)
+        .toList(growable: false);
+    if (visibleEventNodeIds.isEmpty) {
+      return previousShownEventNodeIds;
+    }
+
+    return List<String>.unmodifiable({
+      ...previousShownEventNodeIds,
+      ...visibleEventNodeIds,
+    });
   }
 
   Future<void> _persistCurrentRun({
@@ -761,10 +846,12 @@ class _RunStep {
   final Battler player;
   final RunHourSnapshot hour;
   final List<String> shownShopNodeIds;
+  final List<String> shownEventNodeIds;
 
   const _RunStep({
     required this.player,
     required this.hour,
     required this.shownShopNodeIds,
+    required this.shownEventNodeIds,
   });
 }

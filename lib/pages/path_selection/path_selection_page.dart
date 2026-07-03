@@ -89,11 +89,13 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
             scriptedNodesByStage: widget.scriptedNodesByStage,
             nodeCount: widget.nodeCount,
             randomSeed: widget.randomSeed,
+            runRulesMode: widget.initialSettings.runRulesMode,
             persistRun: widget.persistRun,
             snapshotRepository: const PreferencesRunSnapshotRepository(),
           )
         : RunSessionController.resume(
             snapshot: widget.restoredRun!,
+            runRulesMode: widget.initialSettings.runRulesMode,
             snapshotRepository: const PreferencesRunSnapshotRepository(),
           );
 

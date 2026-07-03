@@ -11,6 +11,11 @@ enum EndpointGameMode {
   pattern,
 }
 
+enum EndpointRunRulesMode {
+  fullHeal,
+  hard,
+}
+
 enum EndpointLanguage {
   spanish('es'),
   english('en');
@@ -37,6 +42,7 @@ class EndpointSettingsSnapshot {
   final bool customAvatarEnabled;
   final bool customAvatarSelectionEnabled;
   final EndpointGameMode gameMode;
+  final EndpointRunRulesMode runRulesMode;
   final EndpointLanguage language;
 
   const EndpointSettingsSnapshot({
@@ -46,6 +52,7 @@ class EndpointSettingsSnapshot {
     required this.customAvatarEnabled,
     required this.customAvatarSelectionEnabled,
     required this.gameMode,
+    required this.runRulesMode,
     required this.language,
   });
 
@@ -56,6 +63,7 @@ class EndpointSettingsSnapshot {
         customAvatarEnabled = false,
         customAvatarSelectionEnabled = false,
         gameMode = EndpointGameMode.pattern,
+        runRulesMode = EndpointRunRulesMode.fullHeal,
         language = EndpointLanguage.spanish;
 
   EndpointSettingsSnapshot copyWith({
@@ -65,6 +73,7 @@ class EndpointSettingsSnapshot {
     bool? customAvatarEnabled,
     bool? customAvatarSelectionEnabled,
     EndpointGameMode? gameMode,
+    EndpointRunRulesMode? runRulesMode,
     EndpointLanguage? language,
   }) {
     return EndpointSettingsSnapshot(
@@ -75,6 +84,7 @@ class EndpointSettingsSnapshot {
       customAvatarSelectionEnabled:
           customAvatarSelectionEnabled ?? this.customAvatarSelectionEnabled,
       gameMode: gameMode ?? this.gameMode,
+      runRulesMode: runRulesMode ?? this.runRulesMode,
       language: language ?? this.language,
     );
   }
@@ -87,6 +97,7 @@ class EndpointSettingsSnapshot {
       'customAvatarEnabled': customAvatarEnabled,
       'customAvatarSelectionEnabled': customAvatarSelectionEnabled,
       'gameMode': gameMode.name,
+      'runRulesMode': runRulesMode.name,
       'language': language.code,
     };
   }
@@ -115,6 +126,11 @@ class EndpointSettingsSnapshot {
             (mode) => mode?.name == json['gameMode'],
             orElse: () => defaultSettings.gameMode,
           )!,
+      runRulesMode:
+          EndpointRunRulesMode.values.cast<EndpointRunRulesMode?>().firstWhere(
+                (mode) => mode?.name == json['runRulesMode'],
+                orElse: () => defaultSettings.runRulesMode,
+              )!,
       language: EndpointLanguage.fromJsonValue(json['language']),
     );
   }
@@ -128,6 +144,7 @@ class EndpointSettingsSnapshot {
         other.customAvatarEnabled == customAvatarEnabled &&
         other.customAvatarSelectionEnabled == customAvatarSelectionEnabled &&
         other.gameMode == gameMode &&
+        other.runRulesMode == runRulesMode &&
         other.language == language;
   }
 
@@ -139,6 +156,7 @@ class EndpointSettingsSnapshot {
         customAvatarEnabled,
         customAvatarSelectionEnabled,
         gameMode,
+        runRulesMode,
         language,
       );
 }
@@ -160,6 +178,7 @@ class EndpointCurrentRunSnapshot {
   final RunDaySummary currentDaySummary;
   final RunDaySummary? pendingDaySummary;
   final List<String> shownShopNodeIds;
+  final List<String> shownEventNodeIds;
   final int shopRarityDayOffset;
   final int eventRarityDayOffset;
   final GhostItemLease? ghostItemLease;
@@ -182,6 +201,7 @@ class EndpointCurrentRunSnapshot {
     this.currentDaySummary = const RunDaySummary.empty(),
     this.pendingDaySummary,
     this.shownShopNodeIds = const <String>[],
+    this.shownEventNodeIds = const <String>[],
     this.shopRarityDayOffset = 0,
     this.eventRarityDayOffset = 0,
     this.ghostItemLease,

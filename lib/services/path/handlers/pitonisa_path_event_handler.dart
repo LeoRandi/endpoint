@@ -2,13 +2,6 @@ part of '../path_event_service.dart';
 
 /// Use cases owned by the Pitonisa Quitapenas event family.
 extension PitonisaPathEventHandler on PathEventService {
-  List<Item> buildPitonisaItemOfferings(Battler player) {
-    return List<Item>.unmodifiable([
-      ...player.equippedItems,
-      ...player.inventoryItems,
-    ]);
-  }
-
   List<BattlerStatus> buildPitonisaPurgeableDebuffs(Battler player) {
     return List<BattlerStatus>.unmodifiable(
       player.statuses.where(
@@ -39,24 +32,4 @@ extension PitonisaPathEventHandler on PathEventService {
       outcomeText: 'La pitonisa elimina ${debuffs.length} debuffs activos.',
     );
   }
-
-  PathEventVisitResult resolvePitonisaItemHealing({
-    required Battler player,
-    required Item selectedItem,
-  }) {
-    if (!_ownsItem(player, selectedItem)) {
-      return PathEventVisitResult(
-        player: player,
-        outcomeText: 'Ese objeto ya no esta disponible como ofrenda.',
-      );
-    }
-
-    final updatedPlayer = player.removeItem(selectedItem);
-    return PathEventVisitResult(
-      player: updatedPlayer.copyWith(health: updatedPlayer.maxHealth),
-      outcomeText:
-          'La pitonisa acepta ${selectedItem.displayName} y restaura toda tu vida.',
-    );
-  }
-
 }

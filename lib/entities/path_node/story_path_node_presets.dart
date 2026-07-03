@@ -527,6 +527,17 @@ const lostCacheNode = EventPathNode(
   ],
 );
 
+/// Eventos que ocupan el hueco de valor gratuito de cada hora normal.
+const Set<PathEventId> freeValuePathEventIds = {
+  PathEventId.strandedTrash,
+  PathEventId.lostCache,
+};
+
+final List<EventPathNode> freeValueEventNodes = List.unmodifiable([
+  strandedTrashNode,
+  lostCacheNode,
+]);
+
 /// Evento verde diurno preparado para futuras mejoras temporales.
 const shadyTechnosurgeonNode = EventPathNode(
   id: PathEventId.shadyTechnosurgeon,
@@ -628,20 +639,20 @@ const suBastaYaNode = EventPathNode(
   ],
 );
 
-/// Evento ritual que elimina debuffs, cura con ofrendas o reduce cooldowns.
+/// Evento ritual que elimina debuffs purgables.
 const pitonisaQuitapenasNode = EventPathNode(
   id: PathEventId.pitonisaQuitapenas,
   nodeId: 'event_pitonisa_quitapenas',
   label: 'Pitonisa Quitapenas',
-  tooltip: 'Purga debuffs, cura con una ofrenda o paga por reducir un cooldown',
+  tooltip: 'Purga todos tus debuffs activos',
   iconEmoji: '\u{1F52E}',
   rarity: RarityTier.purple,
   badgeLabel: 'RITUAL',
   showTitle: 'Has encontrado a la Pitonisa Quitapenas',
   eventTitle: 'PITONISA QUITAPENAS',
   description:
-      'La cabina huele a incienso quemado y plastico caliente. La pitonisa promete quitarte una pena, pero cada alivio exige una decision o creditos.',
-  outcomeText: 'Elige que pena quieres dejar atras.',
+      'La cabina huele a incienso quemado y plastico caliente. La pitonisa promete quitarte penas activas si todavia llevas alguna encima.',
+  outcomeText: 'Purga todos tus debuffs activos.',
   flavorTexts: [
     'La cortina se cierra sola a tu espalda. Una voz suave enumera tus fallos con una precision bastante incomoda.',
     'Sobre la mesa hay cartas, cables y un lector de cooldowns. La pitonisa no pregunta que te duele; ya lo sabe.',

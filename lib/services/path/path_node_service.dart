@@ -18,8 +18,6 @@ class PathNodeService {
   static const _openingArchetypeCount = 3;
   static const _centerShopPremiumChance = 0.78;
   static const _centerShopPremiumMultiplier = 1.2;
-  static const _dayEventRelativeWeight = 0.82;
-  static const _nightEventRelativeWeight = 0.5;
 
   final RunRandomizer _randomizer;
   final PathEventService _pathEventService;
@@ -103,6 +101,8 @@ class PathNodeService {
     Battler? player,
     List<PathNode>? availableNodes,
     Iterable<String> shownShopNodeIds = const <String>[],
+    Iterable<String> shownEventNodeIds = const <String>[],
+    bool includeHealingFreeValueNodes = false,
     int nodeCount = 3,
     int shopRarityDayOffset = 0,
     int eventRarityDayOffset = 0,
@@ -118,6 +118,8 @@ class PathNodeService {
       clampedStageIndex,
       player,
       shownShopNodeIds: shownShopNodeIds,
+      shownEventNodeIds: shownEventNodeIds,
+      includeHealingFreeValueNodes: includeHealingFreeValueNodes,
       shopRarityDayOffset: shopRarityDayOffset,
       eventRarityDayOffset: eventRarityDayOffset,
     );
@@ -175,6 +177,8 @@ class PathNodeService {
     int stageIndex,
     Battler? player, {
     Iterable<String> shownShopNodeIds = const <String>[],
+    Iterable<String> shownEventNodeIds = const <String>[],
+    bool includeHealingFreeValueNodes = false,
     int shopRarityDayOffset = 0,
     int eventRarityDayOffset = 0,
   }) {
@@ -198,6 +202,8 @@ class PathNodeService {
           dayNumber,
           player,
           shownShopNodeIds: shownShopNodeIds,
+          shownEventNodeIds: shownEventNodeIds,
+          includeHealingFreeValueNodes: includeHealingFreeValueNodes,
           shopRarityDayOffset: shopRarityDayOffset,
           eventRarityDayOffset: eventRarityDayOffset,
         ),
@@ -222,8 +228,9 @@ class PathNodeService {
         nodes: _buildNightNodes(
           dayNumber,
           player,
-          guaranteedCamp: stageOffset == dailyBossStageOffset - 1,
           shownShopNodeIds: shownShopNodeIds,
+          shownEventNodeIds: shownEventNodeIds,
+          includeHealingFreeValueNodes: includeHealingFreeValueNodes,
           shopRarityDayOffset: shopRarityDayOffset,
           eventRarityDayOffset: eventRarityDayOffset,
         ),
@@ -263,6 +270,8 @@ class PathNodeService {
     int dayNumber,
     Battler? player, {
     Iterable<String> shownShopNodeIds = const <String>[],
+    Iterable<String> shownEventNodeIds = const <String>[],
+    bool includeHealingFreeValueNodes = false,
     int shopRarityDayOffset = 0,
     int eventRarityDayOffset = 0,
   }) {
@@ -274,23 +283,30 @@ class PathNodeService {
       rarityDayOffset: shopRarityDayOffset,
     );
 
-    return _buildUniqueHourNodes(
-      sideCandidates: _buildSideCandidates(
+    return _buildStructuredHourNodes(
+      eventCandidates: _buildNormalEventCandidates(
         dayNumber: dayNumber,
         phase: RunHourPhase.day,
         player: player,
-        shopCandidates: shopCandidates,
+        shownEventNodeIds: shownEventNodeIds,
         eventRarityDayOffset: eventRarityDayOffset,
       ),
       shopCandidates: shopCandidates,
+      freeValueCandidates: _buildFreeValueCandidates(
+        dayNumber: dayNumber,
+        player: player,
+        includeHealingNodes: includeHealingFreeValueNodes,
+        eventRarityDayOffset: eventRarityDayOffset,
+      ),
     );
   }
 
   List<PathNode> _buildNightNodes(
     int dayNumber,
     Battler? player, {
-    bool guaranteedCamp = false,
     Iterable<String> shownShopNodeIds = const <String>[],
+    Iterable<String> shownEventNodeIds = const <String>[],
+    bool includeHealingFreeValueNodes = false,
     int shopRarityDayOffset = 0,
     int eventRarityDayOffset = 0,
   }) {
@@ -302,17 +318,21 @@ class PathNodeService {
       rarityDayOffset: shopRarityDayOffset,
     );
 
-    return _buildUniqueHourNodes(
-      sideCandidates: _buildSideCandidates(
+    return _buildStructuredHourNodes(
+      eventCandidates: _buildNormalEventCandidates(
         dayNumber: dayNumber,
         phase: RunHourPhase.night,
         player: player,
-        shopCandidates: shopCandidates,
+        shownEventNodeIds: shownEventNodeIds,
         eventRarityDayOffset: eventRarityDayOffset,
       ),
       shopCandidates: shopCandidates,
-      guaranteedCampCandidates:
-          guaranteedCamp ? _campCandidatesForDay(dayNumber) : const [],
+      freeValueCandidates: _buildFreeValueCandidates(
+        dayNumber: dayNumber,
+        player: player,
+        includeHealingNodes: includeHealingFreeValueNodes,
+        eventRarityDayOffset: eventRarityDayOffset,
+      ),
     );
   }
 
@@ -413,30 +433,48 @@ class PathNodeService {
     ).map((candidate) => candidate.node.nodeId).toSet();
   }
 
-  List<_WeightedPathNode> _buildSideCandidates({
+  List<_WeightedPathNode> _buildNormalEventCandidates({
     required int dayNumber,
     required RunHourPhase phase,
     required Battler? player,
-    required List<_WeightedPathNode> shopCandidates,
+    required Iterable<String> shownEventNodeIds,
     int eventRarityDayOffset = 0,
   }) {
-    final shopTotalWeight = _totalWeight(shopCandidates);
-    final eventRelativeWeight = phase == RunHourPhase.day
-        ? _dayEventRelativeWeight
-        : _nightEventRelativeWeight;
     final eventPool =
         phase == RunHourPhase.day ? dayEventNodes : nightEventNodes;
-    final eventCandidates = _scaleWeightedNodes(
-      _weightedEventCandidatesFor(
-        dayNumber: dayNumber,
-        nodes: _filterEventNodes(eventPool, player),
-        rarityDayOffset: eventRarityDayOffset,
+    final shownIds = shownEventNodeIds.toSet();
+    final candidates = _weightedEventCandidatesFor(
+      dayNumber: dayNumber,
+      nodes: _filterEventNodes(
+        eventPool.where(
+          (node) => !freeValuePathEventIds.contains(node.id),
+        ),
+        player,
       ),
-      targetTotalWeight: shopTotalWeight * eventRelativeWeight,
+      rarityDayOffset: eventRarityDayOffset,
     );
+    if (shownIds.isEmpty) return candidates;
+
+    final unshownCandidates = candidates
+        .where((candidate) => !shownIds.contains(candidate.node.nodeId))
+        .toList(growable: false);
+    return unshownCandidates;
+  }
+
+  List<_WeightedPathNode> _buildFreeValueCandidates({
+    required int dayNumber,
+    required Battler? player,
+    required bool includeHealingNodes,
+    int eventRarityDayOffset = 0,
+  }) {
+    final eventCandidates = _weightedEventCandidatesFor(
+      dayNumber: dayNumber,
+      nodes: _filterEventNodes(freeValueEventNodes, player),
+      rarityDayOffset: eventRarityDayOffset,
+    );
+    if (!includeHealingNodes) return eventCandidates;
 
     return [
-      ...shopCandidates,
       ...eventCandidates,
       ..._campCandidatesForDay(dayNumber),
     ];
@@ -538,45 +576,21 @@ class PathNodeService {
         .toList(growable: false);
   }
 
-  List<PathNode> _buildUniqueHourNodes({
-    required List<_WeightedPathNode> sideCandidates,
+  List<PathNode> _buildStructuredHourNodes({
+    required List<_WeightedPathNode> eventCandidates,
     required List<_WeightedPathNode> shopCandidates,
-    List<_WeightedPathNode> guaranteedCampCandidates = const [],
+    required List<_WeightedPathNode> freeValueCandidates,
   }) {
-    final nonShopSideCandidates = sideCandidates
-        .where((candidate) => candidate.node is! ShopPathNode)
-        .toList(growable: false);
-    if (shopCandidates.isEmpty) {
-      return _ensureCampNode(
-        nodes: _pickDistinctWeightedNodes(
-          nonShopSideCandidates,
-          count: 3,
-        ),
-        campCandidates: guaranteedCampCandidates,
-      );
-    }
-
-    final centerNode = _buildCenterShopNode(shopCandidates);
-    final sideNodes = _ensureCampNode(
-      nodes: _pickDistinctWeightedNodes(
-        nonShopSideCandidates,
-        count: 2,
-        excludedKeys: {_nodeKey(centerNode)},
-      ),
-      campCandidates: guaranteedCampCandidates,
-    );
-
-    if (sideNodes.length < 2) {
-      return [
-        ...sideNodes,
-        centerNode,
-      ];
-    }
+    final eventNode = _pickWeightedNodeOrNull(eventCandidates);
+    final shopNode = shopCandidates.isEmpty
+        ? null
+        : _buildCenterShopNode(shopCandidates);
+    final freeValueNode = _pickWeightedNodeOrNull(freeValueCandidates);
 
     return [
-      sideNodes.first,
-      centerNode,
-      sideNodes.last,
+      if (eventNode != null) eventNode,
+      if (shopNode != null) shopNode,
+      if (freeValueNode != null) freeValueNode,
     ];
   }
 
@@ -589,30 +603,6 @@ class PathNodeService {
     if (!shouldApplyPremium) return baseNode;
 
     return baseNode.withPriceMultiplier(_centerShopPremiumMultiplier);
-  }
-
-  List<PathNode> _ensureCampNode({
-    required List<PathNode> nodes,
-    required List<_WeightedPathNode> campCandidates,
-  }) {
-    if (campCandidates.isEmpty ||
-        nodes.any((node) => node is CampSitePathNode)) {
-      return nodes;
-    }
-
-    final campNode = _pickWeightedNode(campCandidates);
-    final updatedNodes = List<PathNode>.from(nodes);
-    if (updatedNodes.isEmpty) return [campNode];
-
-    final replacementIndex = updatedNodes.indexWhere(
-      (node) => node is! ShopPathNode,
-    );
-    if (replacementIndex < 0) {
-      updatedNodes[updatedNodes.length - 1] = campNode;
-    } else {
-      updatedNodes[replacementIndex] = campNode;
-    }
-    return updatedNodes;
   }
 
   List<_WeightedPathNode> _weightedShopCandidatesFor({
@@ -634,7 +624,7 @@ class PathNodeService {
     final unshownCandidates = candidates
         .where((candidate) => !shownIds.contains(candidate.node.nodeId))
         .toList(growable: false);
-    return unshownCandidates.isEmpty ? candidates : unshownCandidates;
+    return unshownCandidates;
   }
 
   List<_WeightedPathNode> _baseWeightedShopCandidatesFor({
@@ -825,67 +815,6 @@ class PathNodeService {
         .toList(growable: false);
   }
 
-  List<_WeightedPathNode> _scaleWeightedNodes(
-    List<_WeightedPathNode> candidates, {
-    required double targetTotalWeight,
-  }) {
-    if (candidates.isEmpty || targetTotalWeight <= 0) {
-      return const <_WeightedPathNode>[];
-    }
-
-    final currentTotalWeight = _totalWeight(candidates);
-    if (currentTotalWeight <= 0) {
-      final distributedWeight = targetTotalWeight / candidates.length;
-      return candidates
-          .map(
-            (candidate) => _WeightedPathNode(
-              node: candidate.node,
-              weight: distributedWeight,
-            ),
-          )
-          .toList(growable: false);
-    }
-
-    final scaleFactor = targetTotalWeight / currentTotalWeight;
-    return candidates
-        .map(
-          (candidate) => _WeightedPathNode(
-            node: candidate.node,
-            weight: candidate.weight * scaleFactor,
-          ),
-        )
-        .toList(growable: false);
-  }
-
-  double _totalWeight(Iterable<_WeightedPathNode> candidates) {
-    return candidates.fold<double>(
-      0,
-      (sum, candidate) => sum + candidate.weight,
-    );
-  }
-
-  List<PathNode> _pickDistinctWeightedNodes(
-    List<_WeightedPathNode> candidates, {
-    required int count,
-    Set<String> excludedKeys = const {},
-  }) {
-    final remainingCandidates = candidates
-        .where((candidate) => !excludedKeys.contains(_nodeKey(candidate.node)))
-        .toList(growable: true);
-    final selectedNodes = <PathNode>[];
-
-    while (selectedNodes.length < count && remainingCandidates.isNotEmpty) {
-      final pickedNode = _pickWeightedNode(remainingCandidates);
-      final pickedKey = _nodeKey(pickedNode);
-      selectedNodes.add(pickedNode);
-      remainingCandidates.removeWhere(
-        (candidate) => _nodeKey(candidate.node) == pickedKey,
-      );
-    }
-
-    return selectedNodes;
-  }
-
   List<PathNode> _limitShopNodes(
     List<PathNode> nodes, {
     required int nodeCount,
@@ -905,10 +834,6 @@ class PathNodeService {
     return selectedNodes;
   }
 
-  String _nodeKey(PathNode node) {
-    return node.nodeId;
-  }
-
   PathNode _pickWeightedNode(List<_WeightedPathNode> candidates) {
     if (candidates.isEmpty) {
       throw StateError('Cannot pick from an empty weighted node list.');
@@ -926,6 +851,12 @@ class PathNodeService {
     }
 
     return candidates.last.node;
+  }
+
+  PathNode? _pickWeightedNodeOrNull(List<_WeightedPathNode> candidates) {
+    if (candidates.isEmpty) return null;
+
+    return _pickWeightedNode(candidates);
   }
 
   List<ShopPathNode> _deduplicateShopNodes(Iterable<ShopPathNode> nodes) {
