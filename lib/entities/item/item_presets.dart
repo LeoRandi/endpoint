@@ -130,8 +130,8 @@ List<Item> itemPresets = <Item>[
         actionType: ItemActionType.none,
         description: 'Gain --value-- Desafio.',
         customEffectKey: ItemEffectKeys.duelistChalkGainDesafio,
-        value: 4,
-      ): const <int>[4, 8, 12, 16, 20],
+        value: 2,
+      ): const <int>[2, 4, 8, 16, 32],
     },
   ),
 
@@ -150,7 +150,7 @@ List<Item> itemPresets = <Item>[
     ],
     asset: 'assets/sprites/items/KindlingAxe.png',
     effects: <Effect, List<int>>{
-      ActionEffect.attack(value: 10): const <int>[10, 20, 30, 40],
+      ActionEffect.attack(value: 6): const <int>[6, 12, 18, 24],
       const ActionEffect(
         actionType: ItemActionType.none,
         description:

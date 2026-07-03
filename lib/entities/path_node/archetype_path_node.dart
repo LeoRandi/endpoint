@@ -2,6 +2,8 @@ import '_imports.dart';
 
 /// Describe un arquetipo inicial que altera stats, economia, items y aumentos del jugador.
 class ArchetypePathNode extends PathNode {
+  static const int startingExperienceBonus = 2;
+
   final ArchetypeId archetypeId;
   final String playerIconEmoji;
   final List<Item> startingItems;
@@ -53,7 +55,6 @@ class ArchetypePathNode extends PathNode {
       rarity: rarity,
       playerIconEmoji: playerIconEmoji,
       startingItems: List<Item>.unmodifiable(items),
-      startingItemsBuilder: startingItemsBuilder,
       startingAugments: startingAugments,
       baseStatModifiers: baseStatModifiers,
       moneyModifier: moneyModifier,
@@ -61,12 +62,17 @@ class ArchetypePathNode extends PathNode {
     );
   }
 
-  /// Genera el item verde propio y el item gris general para arquetipos sin builder propio.
+  /// Materializa los items iniciales aleatorios para esta run.
   ///
-  /// El metodo devuelve `this` si el arquetipo ya trae items fijos o un builder
-  /// propio, evitando que la ruta vuelva a tirar loot cuando no corresponde.
+  /// Si el arquetipo trae un builder propio, lo resuelve una sola vez y guarda
+  /// el resultado como loadout fijo para la run.
   ArchetypePathNode materializeRunStartingItems(RandomSource randomizer) {
-    if (startingItemsBuilder != null || startingItems.isNotEmpty) return this;
+    if (startingItems.isNotEmpty) return this;
+
+    final builder = startingItemsBuilder;
+    if (builder != null) {
+      return withStartingItems(builder(randomizer));
+    }
 
     final archetypeItem = _pickRandomStartingItem(
       _startingItemCandidatesForAffinity(
@@ -126,6 +132,7 @@ class ArchetypePathNode extends PathNode {
       iconEmoji: playerIconEmoji,
       money: player.money + moneyModifier,
       income: player.baseIncome + incomeModifier,
+      experience: player.experience + startingExperienceBonus,
       baseStats: Map<BattlerStat, int>.unmodifiable(updatedBaseStats),
     );
 

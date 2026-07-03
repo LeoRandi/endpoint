@@ -172,7 +172,7 @@ abstract final class EndpointDomainCodec {
       }
     }
 
-    if (node is ArchetypePathNode && node.startingItemsBuilder == null) {
+    if (node is ArchetypePathNode) {
       final startingItems = EndpointJsonUtils.readJsonMapList(
         json['startingItems'],
       ).map<Item?>(_deserializeItem).whereType<Item>().toList(growable: false);
@@ -199,7 +199,7 @@ abstract final class EndpointDomainCodec {
     if (node is ShopPathNode) {
       payload['priceMultiplier'] = node.priceMultiplier;
     }
-    if (node is ArchetypePathNode && node.startingItemsBuilder == null) {
+    if (node is ArchetypePathNode && node.startingItems.isNotEmpty) {
       payload['startingItems'] = node.startingItems
           .map<Map<String, Object?>>(_serializeItem)
           .toList(growable: false);

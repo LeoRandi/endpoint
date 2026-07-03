@@ -153,14 +153,12 @@ final cinderClawEnemyBattler = Battler(
     'Challenge Brand',
     'Furnace Heart',
     'Kindling Axe',
-    'Spite Hook',
     'Ash-Eater Mask',
   ]),
   patternItemPointKeys: {
     'Challenge Brand': '-1,1',
     'Furnace Heart': '0,0',
     'Kindling Axe': '1,0',
-    'Spite Hook': '0,1',
     'Ash-Eater Mask': '-1,0',
   },
 );

@@ -6,7 +6,7 @@ final velozArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_veloz',
   label: 'Veloz',
   tooltip:
-      'Perfil agil de doble golpe que castiga objetivos debilitados. Empieza con 8C y 4 income.',
+      'Perfil agil de doble golpe que castiga objetivos debilitados. Empieza con 13C y 4 income.',
   iconEmoji: '\u26A1',
   playerIconEmoji: '\u26A1',
   rarity: RarityTier.blue,
@@ -14,7 +14,7 @@ final velozArchetypeNode = ArchetypePathNode(
     BattlerStat.attack: 1,
     BattlerStat.barrier: 1,
   },
-  moneyModifier: 8,
+  moneyModifier: 13,
   incomeModifier: 4,
   startingItems: const [],
   startingAugments: [
@@ -28,7 +28,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_inamovible',
   label: 'Inamovible',
   tooltip:
-      'Perfil resistente con regeneracion pasiva y barrera sostenida. Empieza con 12C y 3 income.',
+      'Perfil resistente con regeneracion pasiva y barrera sostenida. Empieza con 17C y 3 income.',
   iconEmoji: '\u{1F6E1}',
   playerIconEmoji: '\u{1F6E1}',
   rarity: RarityTier.green,
@@ -36,7 +36,7 @@ final inamovibleArchetypeNode = ArchetypePathNode(
     BattlerStat.health: 5,
     BattlerStat.barrier: 2,
   },
-  moneyModifier: 12,
+  moneyModifier: 17,
   incomeModifier: 3,
   startingItems: const [],
   startingAugments: [
@@ -50,7 +50,7 @@ final imparableArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_imparable',
   label: 'Imparable',
   tooltip:
-      'Perfil ofensivo con mas pegada base y daño extra al pelear herido. Empieza con 8C y 3 income.',
+      'Perfil ofensivo con mas pegada base y daño extra al pelear herido. Empieza con 13C y 3 income.',
   iconEmoji: '\u2694',
   playerIconEmoji: '\u2694',
   rarity: RarityTier.yellow,
@@ -58,7 +58,7 @@ final imparableArchetypeNode = ArchetypePathNode(
     BattlerStat.health: 5,
     BattlerStat.attack: 2,
   },
-  moneyModifier: 8,
+  moneyModifier: 13,
   incomeModifier: 3,
   startingItems: const [],
   startingAugments: [
@@ -66,9 +66,52 @@ final imparableArchetypeNode = ArchetypePathNode(
   ],
 );
 
-/// Returns no starting items while the item catalog is being rebuilt.
 List<Item> _buildMerchantStartingItems(RandomSource randomizer) {
-  return const <Item>[];
+  final greenItem = _pickRandomItemByRarity(
+    randomizer: randomizer,
+    rarity: RarityTier.green,
+  );
+  final grayItems = _pickDistinctRandomItemsByRarity(
+    randomizer: randomizer,
+    rarity: RarityTier.gray,
+    count: 2,
+  );
+
+  return List<Item>.unmodifiable([
+    if (greenItem != null) greenItem.toRuntimeInstance(),
+    for (final item in grayItems) item.toRuntimeInstance(),
+  ]);
+}
+
+Item? _pickRandomItemByRarity({
+  required RandomSource randomizer,
+  required RarityTier rarity,
+}) {
+  final candidates = [
+    for (final item in itemPresets)
+      if (item.rarity == rarity) item,
+  ];
+  if (candidates.isEmpty) return null;
+
+  return candidates[randomizer.nextInt(candidates.length)];
+}
+
+List<Item> _pickDistinctRandomItemsByRarity({
+  required RandomSource randomizer,
+  required RarityTier rarity,
+  required int count,
+}) {
+  final candidates = [
+    for (final item in itemPresets)
+      if (item.rarity == rarity) item,
+  ];
+  final pickedItems = <Item>[];
+
+  while (pickedItems.length < count && candidates.isNotEmpty) {
+    pickedItems.add(candidates.removeAt(randomizer.nextInt(candidates.length)));
+  }
+
+  return List<Item>.unmodifiable(pickedItems);
 }
 
 /// Arquetipo economico flexible centrado en caja e income.
@@ -77,14 +120,14 @@ final mercanteArchetypeNode = ArchetypePathNode(
   nodeId: 'archetype_mercante',
   label: 'Mercante',
   tooltip:
-      'Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 13C, 5 income y Flujo de Caja.',
+      'Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 18C, 5 income y Flujo de Caja.',
   iconEmoji: '\u{1F4B0}',
   playerIconEmoji: '\u{1F4B3}',
   rarity: RarityTier.blue,
   baseStatModifiers: const {
     BattlerStat.health: 10,
   },
-  moneyModifier: 13,
+  moneyModifier: 18,
   incomeModifier: 5,
   startingItems: const [],
   startingItemsBuilder: _buildMerchantStartingItems,
