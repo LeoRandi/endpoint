@@ -269,12 +269,31 @@ abstract final class BattlePatternEnemyPlanner {
       return bScore.compareTo(aScore);
     });
 
+    final itemPointKeysByPriority = candidates
+        .where((point) => equippedItemsByPointKey.containsKey(point.key))
+        .toList(growable: false)
+      ..sort((a, b) {
+        final aScore = pointPriority(equippedItemsByPointKey[a.key]);
+        final bScore = pointPriority(equippedItemsByPointKey[b.key]);
+        return bScore.compareTo(aScore);
+      });
+
     for (var targetLength = min(maxDistinctPoints, candidates.length);
         targetLength >= 3;
         targetLength--) {
+      final requiredItemPointKeys = itemPointKeysByPriority
+          .take(targetLength)
+          .map((point) => point.key)
+          .toSet();
+      final bonusPrefixLength = max(
+        0,
+        targetLength - requiredItemPointKeys.length,
+      );
       final selected = _bestClosedPattern(
         candidates: candidates,
         targetLength: targetLength,
+        requiredItemPointKeys: requiredItemPointKeys,
+        bonusPrefixLength: bonusPrefixLength,
         equippedItemsByPointKey: equippedItemsByPointKey,
         bonusesByPointKey: bonusesByPointKey,
         activeWalls: activeWalls,
@@ -294,6 +313,8 @@ abstract final class BattlePatternEnemyPlanner {
   static List<OperativePatternPoint>? _bestClosedPattern({
     required List<OperativePatternPoint> candidates,
     required int targetLength,
+    required Set<String> requiredItemPointKeys,
+    required int bonusPrefixLength,
     required Map<String, Item> equippedItemsByPointKey,
     required Map<String, OperativePatternBonus> bonusesByPointKey,
     required Iterable<OperativePatternWallSegment> activeWalls,
@@ -323,6 +344,17 @@ abstract final class BattlePatternEnemyPlanner {
         )) {
           return;
         }
+        if (!_containsRequiredItemPoints(path, requiredItemPointKeys)) {
+          return;
+        }
+        if (!_usesBonusPrefix(
+          path: path,
+          bonusPrefixLength: bonusPrefixLength,
+          equippedItemsByPointKey: equippedItemsByPointKey,
+          bonusesByPointKey: bonusesByPointKey,
+        )) {
+          return;
+        }
         final closedPattern = <OperativePatternPoint>[
           ...path,
           path.first,
@@ -341,6 +373,15 @@ abstract final class BattlePatternEnemyPlanner {
 
       for (final point in candidates) {
         if (usedKeys.contains(point.key)) continue;
+        if (!_canUsePointAtEnemyPatternIndex(
+          point: point,
+          index: path.length,
+          bonusPrefixLength: bonusPrefixLength,
+          equippedItemsByPointKey: equippedItemsByPointKey,
+          bonusesByPointKey: bonusesByPointKey,
+        )) {
+          continue;
+        }
         if (path.isNotEmpty &&
             isSegmentBlocked(
               from: path.last,
@@ -361,6 +402,53 @@ abstract final class BattlePatternEnemyPlanner {
       visit(<OperativePatternPoint>[point], <String>{point.key});
     }
     return bestPattern;
+  }
+
+  static bool _canUsePointAtEnemyPatternIndex({
+    required OperativePatternPoint point,
+    required int index,
+    required int bonusPrefixLength,
+    required Map<String, Item> equippedItemsByPointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
+  }) {
+    final pointKey = point.key;
+    if (index < bonusPrefixLength) {
+      return equippedItemsByPointKey[pointKey] == null &&
+          bonusesByPointKey[pointKey] != null;
+    }
+    return equippedItemsByPointKey[pointKey] != null;
+  }
+
+  static bool _containsRequiredItemPoints(
+    List<OperativePatternPoint> path,
+    Set<String> requiredItemPointKeys,
+  ) {
+    if (requiredItemPointKeys.isEmpty) return true;
+
+    final usedPointKeys = path.map((point) => point.key).toSet();
+    return requiredItemPointKeys.every(usedPointKeys.contains);
+  }
+
+  static bool _usesBonusPrefix({
+    required List<OperativePatternPoint> path,
+    required int bonusPrefixLength,
+    required Map<String, Item> equippedItemsByPointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
+  }) {
+    if (bonusPrefixLength <= 0) return true;
+    if (path.length < bonusPrefixLength) return false;
+
+    for (var index = 0; index < path.length; index++) {
+      final pointKey = path[index].key;
+      final item = equippedItemsByPointKey[pointKey];
+      final bonus = bonusesByPointKey[pointKey];
+      if (index < bonusPrefixLength) {
+        if (item != null || bonus == null) return false;
+      } else if (item == null) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static bool isSegmentBlocked({
