@@ -611,10 +611,13 @@ class _BattleFragilidadBurstAnimationLayer extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        status.icon,
-                        color: accent,
-                        size: size * 0.58,
+                      child: Center(
+                        child: _BattleIconOrAssetGlyph(
+                          icon: status.icon,
+                          assetPath: status.iconAssetPath,
+                          color: accent,
+                          size: size * 0.58,
+                        ),
                       ),
                     ),
                   ),
@@ -651,9 +654,9 @@ class _BattleFloatingNumberParticleView extends StatelessWidget {
     final opacity = _opacityForFloatingNumberProgress(localProgress);
 
     return Positioned(
-      left: particle.start.dx - 44,
+      left: particle.start.dx - 52,
       top: particle.start.dy - 20,
-      width: 88,
+      width: 104,
       height: 40,
       child: Opacity(
         opacity: opacity,
@@ -664,6 +667,7 @@ class _BattleFloatingNumberParticleView extends StatelessWidget {
             child: _BattleOutlinedFloatingNumberText(
               label: particle.label,
               color: particle.color,
+              assetPath: particle.assetPath,
             ),
           ),
         ),
@@ -686,10 +690,12 @@ class _BattleFloatingNumberParticleView extends StatelessWidget {
 class _BattleOutlinedFloatingNumberText extends StatelessWidget {
   final String label;
   final Color color;
+  final String? assetPath;
 
   const _BattleOutlinedFloatingNumberText({
     required this.label,
     required this.color,
+    this.assetPath,
   });
 
   @override
@@ -704,10 +710,11 @@ class _BattleOutlinedFloatingNumberText extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: baseStyle.copyWith(
+        _BattleFloatingNumberContent(
+          label: label,
+          assetPath: assetPath,
+          iconColor: Colors.black.withAlpha(230),
+          textStyle: baseStyle.copyWith(
             foreground: Paint()
               ..style = PaintingStyle.stroke
               ..strokeWidth = 3.2
@@ -720,10 +727,11 @@ class _BattleOutlinedFloatingNumberText extends StatelessWidget {
             ],
           ),
         ),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: baseStyle.copyWith(
+        _BattleFloatingNumberContent(
+          label: label,
+          assetPath: assetPath,
+          iconColor: color,
+          textStyle: baseStyle.copyWith(
             color: color,
             shadows: [
               Shadow(
@@ -734,6 +742,80 @@ class _BattleOutlinedFloatingNumberText extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BattleFloatingNumberContent extends StatelessWidget {
+  final String label;
+  final String? assetPath;
+  final Color iconColor;
+  final TextStyle textStyle;
+
+  const _BattleFloatingNumberContent({
+    required this.label,
+    required this.assetPath,
+    required this.iconColor,
+    required this.textStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconAssetPath = assetPath;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (iconAssetPath != null) ...[
+          Image.asset(
+            iconAssetPath,
+            width: 18,
+            height: 18,
+            color: iconColor,
+            filterQuality: FilterQuality.none,
+          ),
+          const SizedBox(width: 2),
+        ],
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: textStyle,
+        ),
+      ],
+    );
+  }
+}
+
+class _BattleIconOrAssetGlyph extends StatelessWidget {
+  final IconData icon;
+  final String? assetPath;
+  final Color color;
+  final double size;
+
+  const _BattleIconOrAssetGlyph({
+    required this.icon,
+    required this.assetPath,
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconAssetPath = assetPath;
+    if (iconAssetPath != null) {
+      return Image.asset(
+        iconAssetPath,
+        width: size,
+        height: size,
+        color: color,
+        filterQuality: FilterQuality.none,
+      );
+    }
+
+    return Icon(
+      icon,
+      color: color,
+      size: size,
     );
   }
 }
@@ -881,8 +963,9 @@ class _BattleStatusEffectGlyph extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(
-        burst.icon,
+      child: _BattleIconOrAssetGlyph(
+        icon: burst.icon ?? Icons.auto_awesome_rounded,
+        assetPath: burst.assetPath,
         color: burst.accent,
         size: size * 0.72,
       ),

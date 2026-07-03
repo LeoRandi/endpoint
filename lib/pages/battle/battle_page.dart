@@ -14,9 +14,11 @@ const _battleFloatingNumberDuration = Duration(milliseconds: 520);
 const _battleStatusEffectBurstDuration = Duration(milliseconds: 500);
 const _battleFragilidadBurstDuration = Duration(milliseconds: 620);
 const _battleSwordAssetPath = 'assets/images/icons/icon_sword.png';
-const _battleShieldAssetPath = 'assets/images/icons/icon_shield.png';
+const _battleDamageAssetPath = 'assets/sprites/status/daño.png';
+const _battleShieldAssetPath = 'assets/sprites/status/escudo.png';
 const _battleFistAssetPath = 'assets/images/icons/icon_unarmed.png';
-const _battleHealthAssetPath = 'assets/images/icons/icon_health.png';
+const _battleHealthAssetPath = 'assets/sprites/status/vida.png';
+const _battlePoisonAssetPath = 'assets/sprites/status/intox.png';
 const _battleSwordAnimationSize = 46.0;
 
 class _BattleCombatIconMotion {
@@ -60,6 +62,7 @@ class _BattleStatusEffectBurst {
   final bool rises;
   final String? symbol;
   final IconData? icon;
+  final String? assetPath;
   final Color accent;
   final List<_BattleStatusEffectParticle> particles;
 
@@ -68,20 +71,23 @@ class _BattleStatusEffectBurst {
     required this.rises,
     this.symbol,
     this.icon,
+    this.assetPath,
     required this.accent,
     required this.particles,
-  }) : assert(symbol != null || icon != null);
+  }) : assert(symbol != null || icon != null || assetPath != null);
 }
 
 class _BattleFloatingNumberParticle {
   final String label;
   final Color color;
+  final String? assetPath;
   final Offset start;
   final double delay;
 
   const _BattleFloatingNumberParticle({
     required this.label,
     required this.color,
+    this.assetPath,
     required this.start,
     required this.delay,
   });
@@ -134,9 +140,9 @@ class BattlePage extends StatefulWidget {
   final bool returnResultToCaller;
   final EndpointGameMode? gameModeOverride;
 
-  const BattlePage({
+  BattlePage({
     super.key,
-    this.enemy = defaultEnemyBattler,
+    Battler? enemy,
     this.player = defaultPlayerBattler,
     this.randomizer,
     this.phase = RunHourPhase.day,
@@ -147,7 +153,7 @@ class BattlePage extends StatefulWidget {
     this.combatEndDelay = const Duration(seconds: 2),
     this.returnResultToCaller = false,
     this.gameModeOverride,
-  });
+  }) : enemy = enemy ?? defaultEnemyBattler;
 
   @override
   State<BattlePage> createState() => _BattlePageState();
@@ -1095,7 +1101,8 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       id: ++_statusEffectBurstSequence,
       rises: isBurn,
       symbol: isBurn ? '\u{1F525}' : null,
-      icon: isBurn ? null : poisonStatus.icon,
+      icon: null,
+      assetPath: isBurn ? null : poisonStatus.iconAssetPath,
       accent: isBurn ? const Color(0xFFFF9B3D) : poisonStatus.type.foreground,
       particles: List<_BattleStatusEffectParticle>.unmodifiable(particles),
     );
@@ -1341,6 +1348,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
         _BattleFloatingNumberParticle(
           label: _floatingNumberLabelFor(floatingNumber),
           color: _floatingNumberColorFor(floatingNumber.tone),
+          assetPath: _floatingNumberAssetPathFor(floatingNumber.tone),
           start: Offset(
             center.dx + centeredIndex * spacing,
             center.dy + statusBarRect.height * 0.08,
@@ -1374,6 +1382,7 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
           _BattleFloatingNumberParticle(
             label: _floatingNumberLabelFor(floatingNumber),
             color: _floatingNumberColorFor(floatingNumber.tone),
+            assetPath: _floatingNumberAssetPathFor(floatingNumber.tone),
             start: Offset(
               center.dx + centeredIndex * spacing,
               center.dy + statusBarRect.height * 0.08,
@@ -1470,6 +1479,21 @@ class _BattlePageState extends State<BattlePage> with TickerProviderStateMixin {
       BattleCombatFloatingNumberTone.moneyLoss => EndpointPalette.dangerAccent,
       BattleCombatFloatingNumberTone.purgeDamage => const Color(0xFFFFEA70),
       BattleCombatFloatingNumberTone.healing => EndpointPalette.healthAccent,
+    };
+  }
+
+  String? _floatingNumberAssetPathFor(BattleCombatFloatingNumberTone tone) {
+    return switch (tone) {
+      BattleCombatFloatingNumberTone.healing => _battleHealthAssetPath,
+      BattleCombatFloatingNumberTone.barrierDamage ||
+      BattleCombatFloatingNumberTone.barrierGain =>
+        _battleShieldAssetPath,
+      BattleCombatFloatingNumberTone.poisonDamage => _battlePoisonAssetPath,
+      BattleCombatFloatingNumberTone.healthDamage ||
+      BattleCombatFloatingNumberTone.fragilidadDamage ||
+      BattleCombatFloatingNumberTone.purgeDamage =>
+        _battleDamageAssetPath,
+      _ => null,
     };
   }
 

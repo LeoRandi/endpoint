@@ -419,6 +419,16 @@ class _LevelUpChoiceLead extends StatelessWidget {
   Widget _buildLead() {
     final statReward = choice.statReward;
     if (statReward != null) {
+      final assetPath = _statAssetPath(statReward);
+      if (assetPath != null) {
+        return Image.asset(
+          assetPath,
+          width: 24,
+          height: 24,
+          color: accent,
+          filterQuality: FilterQuality.none,
+        );
+      }
       return Icon(_statIcon(statReward), color: accent, size: 22);
     }
 
@@ -450,6 +460,13 @@ class _LevelUpChoiceLead extends StatelessWidget {
       case BattlerLevelReward.health:
         return Icons.favorite_rounded;
     }
+  }
+
+  String? _statAssetPath(BattlerLevelReward reward) {
+    return switch (reward) {
+      BattlerLevelReward.health => 'assets/sprites/status/vida.png',
+      _ => null,
+    };
   }
 }
 

@@ -597,8 +597,8 @@ class _PatternEffectRow extends StatelessWidget {
 
   String _effectIconAsset(ItemActionType actionType) => switch (actionType) {
         ItemActionType.attack => 'assets/images/icons/icon_sword.png',
-        ItemActionType.block => 'assets/images/icons/icon_shield.png',
-        ItemActionType.heal => 'assets/images/icons/icon_health.png',
+        ItemActionType.block => 'assets/sprites/status/escudo.png',
+        ItemActionType.heal => 'assets/sprites/status/vida.png',
         ItemActionType.none => 'assets/images/icons/icon_pattern.png',
       };
 }
@@ -1029,9 +1029,8 @@ class _ItemPatternBonusSectionState extends State<_ItemPatternBonusSection> {
   String _bonusIconAssetPath(OperativePatternBonusKind kind) {
     return switch (kind) {
       OperativePatternBonusKind.attack => 'assets/images/icons/icon_sword.png',
-      OperativePatternBonusKind.barrier =>
-        'assets/images/icons/icon_shield.png',
-      OperativePatternBonusKind.health => 'assets/images/icons/icon_health.png',
+      OperativePatternBonusKind.barrier => 'assets/sprites/status/escudo.png',
+      OperativePatternBonusKind.health => 'assets/sprites/status/vida.png',
     };
   }
 }

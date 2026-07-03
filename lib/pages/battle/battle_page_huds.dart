@@ -405,6 +405,7 @@ class _ActionIntentEffectChip extends StatelessWidget {
       case PlayerActionEffectIntentKind.heal:
         return _ActionIntentIconChip(
           icon: Icons.favorite_rounded,
+          assetPath: 'assets/sprites/status/vida.png',
           accent: BattlerStatusType.buff.accent,
           valueLabel: '${max(0, effect.amount)}',
         );
@@ -414,6 +415,7 @@ class _ActionIntentEffectChip extends StatelessWidget {
         if (status == null) return const SizedBox.shrink();
         return _ActionIntentIconChip(
           icon: status.icon,
+          assetPath: status.iconAssetPath,
           accent: status.type.accent,
           valueLabel: _statusAmountLabel(status, effect.amount),
         );
@@ -430,11 +432,13 @@ class _ActionIntentEffectChip extends StatelessWidget {
 
 class _ActionIntentIconChip extends StatelessWidget {
   final IconData icon;
+  final String? assetPath;
   final Color accent;
   final String? valueLabel;
 
   const _ActionIntentIconChip({
     required this.icon,
+    this.assetPath,
     required this.accent,
     this.valueLabel,
   });
@@ -455,11 +459,20 @@ class _ActionIntentIconChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 12,
-              color: accent,
-            ),
+            if (assetPath != null)
+              Image.asset(
+                assetPath!,
+                width: 12,
+                height: 12,
+                color: accent,
+                filterQuality: FilterQuality.none,
+              )
+            else
+              Icon(
+                icon,
+                size: 12,
+                color: accent,
+              ),
             if (valueLabel != null) ...[
               const SizedBox(width: 2),
               EndpointText(

@@ -1315,6 +1315,7 @@ class _EnemyBattlePatternMatchOverlayState
       maxPatternPoints: _enemyEffectiveMaxPatternPoints,
       blockedPointKeys: _blockedPointKeys,
       equippedItemsByPointKey: widget.equippedItemsByPointKey,
+      bonusesByPointKey: _bonusesByPointKey,
       activeWalls: _activeWallSegmentsForEnemyPattern,
       bannedPatternPointKeys: widget.bannedPatternPointKeys,
     );
@@ -2147,8 +2148,8 @@ class _BattleActionPilePipIcon extends StatelessWidget {
 
     final asset = switch (entry.actionType) {
       ItemActionType.attack => 'assets/images/icons/icon_sword.png',
-      ItemActionType.block => 'assets/images/icons/icon_shield.png',
-      ItemActionType.heal => 'assets/images/icons/icon_health.png',
+      ItemActionType.block => 'assets/sprites/status/escudo.png',
+      ItemActionType.heal => 'assets/sprites/status/vida.png',
       ItemActionType.none => null,
     };
     if (asset != null) {
@@ -2305,7 +2306,7 @@ class _BattlePatternLiveSummary extends StatelessWidget {
               width: 48,
               child: _BattlePatternAnimatedMetric(
                 label: '+B',
-                iconAssetPath: 'assets/images/icons/icon_shield.png',
+                iconAssetPath: 'assets/sprites/status/escudo.png',
                 value: barrierBonus,
                 accent: BattlerStat.barrier.accent,
                 pulseKey: pointCount,
@@ -2316,7 +2317,7 @@ class _BattlePatternLiveSummary extends StatelessWidget {
               width: 48,
               child: _BattlePatternAnimatedMetric(
                 label: '+H',
-                iconAssetPath: 'assets/images/icons/icon_health.png',
+                iconAssetPath: 'assets/sprites/status/vida.png',
                 value: healthBonus,
                 accent: endpointItemActionAccent(ItemActionType.heal),
                 pulseKey: pointCount,
@@ -2411,6 +2412,12 @@ class _BattlePatternEffectChip extends StatelessWidget {
       PlayerActionEffectIntentKind.debuff =>
         effect.status?.icon ?? Icons.auto_awesome_rounded,
     };
+    final iconAssetPath = switch (effect.kind) {
+      PlayerActionEffectIntentKind.heal => 'assets/sprites/status/vida.png',
+      PlayerActionEffectIntentKind.buff ||
+      PlayerActionEffectIntentKind.debuff =>
+        effect.status?.iconAssetPath,
+    };
     final accent = switch (effect.kind) {
       PlayerActionEffectIntentKind.heal => BattlerStatusType.buff.accent,
       PlayerActionEffectIntentKind.buff ||
@@ -2435,11 +2442,20 @@ class _BattlePatternEffectChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 12,
-              color: accent,
-            ),
+            if (iconAssetPath != null)
+              Image.asset(
+                iconAssetPath,
+                width: 12,
+                height: 12,
+                color: accent,
+                filterQuality: FilterQuality.none,
+              )
+            else
+              Icon(
+                icon,
+                size: 12,
+                color: accent,
+              ),
             if (valueLabel != null) ...[
               const SizedBox(width: 2),
               EndpointText(

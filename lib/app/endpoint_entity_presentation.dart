@@ -54,6 +54,13 @@ extension EntityTagPresentation on EntityTag {
         EntityTag.accesorio => const Color(0xFF9EA7B3),
         EntityTag.cura => const Color(0xFF5AF78E),
       };
+
+  String? get iconAssetPath => switch (this) {
+        EntityTag.intoxicacion => 'assets/sprites/status/intox.png',
+        EntityTag.vida || EntityTag.cura => 'assets/sprites/status/vida.png',
+        EntityTag.barrera => 'assets/sprites/status/escudo.png',
+        _ => null,
+      };
 }
 
 extension RarityTierPresentation on RarityTier {
@@ -91,6 +98,12 @@ extension BattlerStatPresentation on BattlerStat {
         BattlerStat.health => EndpointPalette.healthAccent,
         BattlerStat.attack => const Color(0xFFF3D35C),
         BattlerStat.barrier => const Color(0xFF59B7FF),
+      };
+
+  String? get iconAssetPath => switch (this) {
+        BattlerStat.health => 'assets/sprites/status/vida.png',
+        BattlerStat.barrier => 'assets/sprites/status/escudo.png',
+        _ => null,
       };
 }
 
@@ -170,6 +183,7 @@ const _statusIcons = <BattlerStatusId, IconData>{
 
 const _statusIconAssets = <BattlerStatusId, String>{
   BattlerStatusId.quemadura: 'assets/sprites/status/quemadura.png',
+  BattlerStatusId.intoxicacion: 'assets/sprites/status/intox.png',
 };
 
 extension BattlerStatusPresentation on BattlerStatus {

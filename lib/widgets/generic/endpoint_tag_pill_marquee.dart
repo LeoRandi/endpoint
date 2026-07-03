@@ -295,8 +295,8 @@ class _EndpointTagPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              _iconForTag(tag),
+            _EndpointTagIcon(
+              tag: tag,
               color: foregroundColor,
               size: iconSizeFor(style),
             ),
@@ -312,27 +312,6 @@ class _EndpointTagPill extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _iconForTag(EntityTag tag) {
-    return switch (tag) {
-      EntityTag.debuff => Icons.warning_amber_rounded,
-      EntityTag.buff => Icons.auto_awesome_rounded,
-      EntityTag.contagio => Icons.coronavirus_rounded,
-      EntityTag.quemadura => Icons.whatshot_rounded,
-      EntityTag.intoxicacion => Icons.science_rounded,
-      EntityTag.ciclo => Icons.brightness_medium_rounded,
-      EntityTag.vida => Icons.favorite_rounded,
-      EntityTag.ataque => Icons.sports_mma_rounded,
-      EntityTag.barrera => Icons.shield_rounded,
-      EntityTag.resonancia => Icons.graphic_eq_rounded,
-      EntityTag.desafio => Icons.local_activity_rounded,
-      EntityTag.economia => Icons.account_balance_wallet_rounded,
-      EntityTag.arma => Icons.hardware_rounded,
-      EntityTag.accesorio => Icons.category_rounded,
-      EntityTag.muralla => Icons.fort_rounded,
-      EntityTag.cura => Icons.healing_rounded,
-    };
   }
 
   String _tooltipForTag(EntityTag tag) {
@@ -369,6 +348,59 @@ class _EndpointTagPill extends StatelessWidget {
         'Muralla: Bloqueo en patrón que impide el paso del dibujo.',
       EntityTag.cura =>
         'Cura: efecto que restaura vida al usuario',
+    };
+  }
+}
+
+class _EndpointTagIcon extends StatelessWidget {
+  final EntityTag tag;
+  final Color color;
+  final double size;
+
+  const _EndpointTagIcon({
+    required this.tag,
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final assetPath = tag.iconAssetPath;
+    if (assetPath != null) {
+      return Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        color: color,
+        filterQuality: FilterQuality.none,
+      );
+    }
+
+    return Icon(
+      _iconForTag(tag),
+      color: color,
+      size: size,
+    );
+  }
+
+  IconData _iconForTag(EntityTag tag) {
+    return switch (tag) {
+      EntityTag.debuff => Icons.warning_amber_rounded,
+      EntityTag.buff => Icons.auto_awesome_rounded,
+      EntityTag.contagio => Icons.coronavirus_rounded,
+      EntityTag.quemadura => Icons.whatshot_rounded,
+      EntityTag.intoxicacion => Icons.science_rounded,
+      EntityTag.ciclo => Icons.brightness_medium_rounded,
+      EntityTag.vida => Icons.favorite_rounded,
+      EntityTag.ataque => Icons.sports_mma_rounded,
+      EntityTag.barrera => Icons.shield_rounded,
+      EntityTag.resonancia => Icons.graphic_eq_rounded,
+      EntityTag.desafio => Icons.local_activity_rounded,
+      EntityTag.economia => Icons.account_balance_wallet_rounded,
+      EntityTag.arma => Icons.hardware_rounded,
+      EntityTag.accesorio => Icons.category_rounded,
+      EntityTag.muralla => Icons.fort_rounded,
+      EntityTag.cura => Icons.healing_rounded,
     };
   }
 }

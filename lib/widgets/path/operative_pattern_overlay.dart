@@ -24,9 +24,8 @@ extension _OperativePatternBonusVisualTokens on OperativePatternBonus {
   String get iconAssetPath {
     return switch (kind) {
       OperativePatternBonusKind.attack => 'assets/images/icons/icon_sword.png',
-      OperativePatternBonusKind.barrier =>
-        'assets/images/icons/icon_shield.png',
-      OperativePatternBonusKind.health => 'assets/images/icons/icon_health.png',
+      OperativePatternBonusKind.barrier => 'assets/sprites/status/escudo.png',
+      OperativePatternBonusKind.health => 'assets/sprites/status/vida.png',
     };
   }
 }

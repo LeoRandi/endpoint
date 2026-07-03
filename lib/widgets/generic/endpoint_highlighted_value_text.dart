@@ -68,7 +68,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
   );
   static const _poisonMetadata = _HighlightTermMetadata(
     accent: _effectPoisonAccent,
-    icon: _HighlightIconSpec.material(Icons.science_rounded),
+    icon: _HighlightIconSpec.asset('assets/sprites/status/intox.png'),
     tooltip:
         'Intoxicacion: debuff. Hace daño al final del turno segun su valor, no baja por si solo, atraviesa Barrera y se limpia al terminar el combate.',
   );
@@ -133,21 +133,27 @@ class EndpointHighlightedValueText extends StatelessWidget {
   );
   static const _healingMetadata = _HighlightTermMetadata(
     accent: _effectHealingAccent,
-    icon: _HighlightIconSpec.asset('assets/images/icons/icon_health.png'),
+    icon: _HighlightIconSpec.asset('assets/sprites/status/vida.png'),
     tooltip:
         'Vida: salud del combatiente. Si llega a 0, el combatiente cae derrotado.',
   );
   static const _barrierMetadata = _HighlightTermMetadata(
     accent: _effectBarrierAccent,
-    icon: _HighlightIconSpec.asset('assets/images/icons/icon_shield.png'),
+    icon: _HighlightIconSpec.asset('assets/sprites/status/escudo.png'),
     tooltip:
         'Barrera: escudo que protege de la mayoria del daño. Se consume antes de la vida.',
+  );
+  static const _damageMetadata = _HighlightTermMetadata(
+    accent: _effectAttackAccent,
+    icon: _HighlightIconSpec.asset('assets/sprites/status/daño.png'),
+    tooltip:
+        'DaÃ±o: cantidad que intenta quitar Barrera o vida al objetivo.',
   );
   static const _attackMetadata = _HighlightTermMetadata(
     accent: _effectAttackAccent,
     icon: _HighlightIconSpec.asset('assets/images/icons/icon_sword.png'),
     tooltip:
-        'Ataque/daño: cantidad ofensiva que intenta quitar Barrera o vida al objetivo.',
+        'Ataque: accion ofensiva que puede producir daño al objetivo.',
   );
 
   const EndpointHighlightedValueText(
@@ -443,11 +449,13 @@ class EndpointHighlightedValueText extends StatelessWidget {
         normalizedToken.startsWith('shield')) {
       return _barrierMetadata;
     }
+    if (normalizedToken.startsWith('dano') ||
+        normalizedToken.startsWith('damage')) {
+      return _damageMetadata;
+    }
     if (normalizedToken == 'atk' ||
-        normalizedToken.startsWith('dano') ||
         normalizedToken.startsWith('atac') ||
         normalizedToken.startsWith('attack') ||
-        normalizedToken.startsWith('damage') ||
         normalizedToken.startsWith('golp') ||
         normalizedToken.startsWith('hit')) {
       return _attackMetadata;
@@ -606,9 +614,16 @@ class EndpointHighlightedValueText extends StatelessWidget {
         ],
       ),
       const _ValueAccentCandidate(
-        metadata: _attackMetadata,
+        metadata: _damageMetadata,
         patterns: [
           'dano',
+          'damage',
+          'damages',
+        ],
+      ),
+      const _ValueAccentCandidate(
+        metadata: _attackMetadata,
+        patterns: [
           'atk',
           'ataque',
           'ataques',
@@ -618,8 +633,6 @@ class EndpointHighlightedValueText extends StatelessWidget {
           'ataca',
           'atacar',
           'atacas',
-          'damage',
-          'damages',
           'golpe',
           'golpes',
           'hit',

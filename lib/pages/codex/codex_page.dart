@@ -1394,10 +1394,12 @@ class _CodexStatusDetailsDialog extends StatelessWidget {
                   color: EndpointPalette.panelBackground,
                   border: Border.all(color: accent),
                 ),
-                child: Icon(
-                  status.icon,
-                  size: 36,
-                  color: foreground,
+                child: Center(
+                  child: _CodexStatusIcon(
+                    status: status,
+                    size: 36,
+                    color: foreground,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1459,6 +1461,37 @@ class _CodexStatusDetailsDialog extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CodexStatusIcon extends StatelessWidget {
+  final BattlerStatus status;
+  final double size;
+  final Color color;
+
+  const _CodexStatusIcon({
+    required this.status,
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final assetPath = status.iconAssetPath;
+    if (assetPath != null) {
+      return Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        filterQuality: FilterQuality.none,
+      );
+    }
+
+    return Icon(
+      status.icon,
+      size: size,
+      color: color,
     );
   }
 }

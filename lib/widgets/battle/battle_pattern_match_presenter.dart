@@ -223,20 +223,20 @@ abstract final class BattlePatternEnemyPlanner {
     required int maxPatternPoints,
     required Set<String> blockedPointKeys,
     required Map<String, Item> equippedItemsByPointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
     required Iterable<OperativePatternWallSegment> activeWalls,
     List<List<String>> bannedPatternPointKeys = const <List<String>>[],
   }) {
-    for (var attempt = 0; attempt < 3; attempt++) {
-      final pattern = buildPattern(
-        maxPatternPoints: maxPatternPoints,
-        blockedPointKeys: blockedPointKeys,
-        equippedItemsByPointKey: equippedItemsByPointKey,
-        activeWalls: activeWalls,
-        bannedPatternPointKeys: bannedPatternPointKeys,
-      );
-      if (OperativePatternRequirement.isClosedPattern(pattern)) {
-        return pattern;
-      }
+    final pattern = buildPattern(
+      maxPatternPoints: maxPatternPoints,
+      blockedPointKeys: blockedPointKeys,
+      equippedItemsByPointKey: equippedItemsByPointKey,
+      bonusesByPointKey: bonusesByPointKey,
+      activeWalls: activeWalls,
+      bannedPatternPointKeys: bannedPatternPointKeys,
+    );
+    if (OperativePatternRequirement.isClosedPattern(pattern)) {
+      return pattern;
     }
 
     return const <OperativePatternPoint>[];
@@ -246,6 +246,7 @@ abstract final class BattlePatternEnemyPlanner {
     required int maxPatternPoints,
     required Set<String> blockedPointKeys,
     required Map<String, Item> equippedItemsByPointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
     required Iterable<OperativePatternWallSegment> activeWalls,
     List<List<String>> bannedPatternPointKeys = const <List<String>>[],
   }) {
@@ -257,8 +258,14 @@ abstract final class BattlePatternEnemyPlanner {
     if (candidates.length < 3) return const <OperativePatternPoint>[];
 
     candidates.sort((a, b) {
-      final aScore = pointPriority(equippedItemsByPointKey[a.key]);
-      final bScore = pointPriority(equippedItemsByPointKey[b.key]);
+      final aScore = _pointStaticPriority(
+        item: equippedItemsByPointKey[a.key],
+        bonus: bonusesByPointKey[a.key],
+      );
+      final bScore = _pointStaticPriority(
+        item: equippedItemsByPointKey[b.key],
+        bonus: bonusesByPointKey[b.key],
+      );
       return bScore.compareTo(aScore);
     });
 
@@ -269,6 +276,7 @@ abstract final class BattlePatternEnemyPlanner {
         candidates: candidates,
         targetLength: targetLength,
         equippedItemsByPointKey: equippedItemsByPointKey,
+        bonusesByPointKey: bonusesByPointKey,
         activeWalls: activeWalls,
         bannedPatternPointKeys: bannedPatternPointKeys,
       );
@@ -287,11 +295,12 @@ abstract final class BattlePatternEnemyPlanner {
     required List<OperativePatternPoint> candidates,
     required int targetLength,
     required Map<String, Item> equippedItemsByPointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
     required Iterable<OperativePatternWallSegment> activeWalls,
     required List<List<String>> bannedPatternPointKeys,
   }) {
     List<OperativePatternPoint>? bestPattern;
-    var bestScore = -1;
+    var bestScore = _EnemyPatternScore.minimum;
 
     void visit(
       List<OperativePatternPoint> path,
@@ -314,12 +323,16 @@ abstract final class BattlePatternEnemyPlanner {
         )) {
           return;
         }
-        final score = path.fold<int>(
-          0,
-          (sum, point) =>
-              sum + pointPriority(equippedItemsByPointKey[point.key]),
+        final closedPattern = <OperativePatternPoint>[
+          ...path,
+          path.first,
+        ];
+        final score = _scoreClosedPattern(
+          patternPoints: closedPattern,
+          equippedItemsByPointKey: equippedItemsByPointKey,
+          bonusesByPointKey: bonusesByPointKey,
         );
-        if (score > bestScore) {
+        if (score.compareTo(bestScore) > 0) {
           bestScore = score;
           bestPattern = List<OperativePatternPoint>.unmodifiable(path);
         }
@@ -413,5 +426,157 @@ abstract final class BattlePatternEnemyPlanner {
       };
     }
     return score;
+  }
+
+  static int _pointStaticPriority({
+    required Item? item,
+    required OperativePatternBonus? bonus,
+  }) {
+    final resolvedItem = item;
+    if (resolvedItem != null) {
+      var score = pointPriority(resolvedItem);
+      score += resolvedItem.patternEffects.length * 120;
+      score += resolvedItem.passiveEffects.where((effect) {
+        return effect.hook == ItemEffectHook.patternUsed ||
+            effect.hook == ItemEffectHook.prePatternAttack;
+      }).length * 80;
+      return score;
+    }
+
+    final resolvedBonus = bonus;
+    if (resolvedBonus == null) return 0;
+    return 24 + _bonusKindWeight(resolvedBonus.kind) + resolvedBonus.amount;
+  }
+
+  static _EnemyPatternScore _scoreClosedPattern({
+    required List<OperativePatternPoint> patternPoints,
+    required Map<String, Item> equippedItemsByPointKey,
+    required Map<String, OperativePatternBonus> bonusesByPointKey,
+  }) {
+    final sequence = OperativePatternRequirement.normalizedSequence(
+      patternPoints,
+    );
+    var itemActionStarted = false;
+    var preActionBonusCount = 0;
+    var lateBonusPenalty = 0;
+    var itemActionScore = 0;
+    var patternActionScore = 0;
+    var missedPatternActionPenalty = 0;
+    var actionPointCount = 0;
+
+    for (final point in sequence) {
+      final pointKey = point.key;
+      final item = equippedItemsByPointKey[pointKey];
+      if (item == null) {
+        final bonus = bonusesByPointKey[pointKey];
+        if (bonus == null) continue;
+
+        if (itemActionStarted) {
+          lateBonusPenalty += 1 + bonus.amount;
+        } else {
+          preActionBonusCount++;
+          itemActionScore +=
+              30 + _bonusKindWeight(bonus.kind) + (bonus.amount * 4);
+        }
+        continue;
+      }
+
+      itemActionStarted = true;
+      actionPointCount++;
+      itemActionScore += pointPriority(item);
+
+      final matchedEffects = item.matchingPatternEffects(
+        patternPoints: patternPoints,
+        itemPoint: point,
+      );
+      for (final effect in matchedEffects) {
+        patternActionScore += 1;
+        itemActionScore += 260 + _actionScore(effect.actionEffect);
+      }
+
+      final missedPatternEffects =
+          max(0, item.patternEffects.length - matchedEffects.length);
+      missedPatternActionPenalty += missedPatternEffects;
+
+      if (item.passiveEffects.any(
+        (effect) =>
+            effect.hook == ItemEffectHook.patternUsed ||
+            effect.hook == ItemEffectHook.prePatternAttack,
+      )) {
+        itemActionScore += 110;
+      }
+    }
+
+    return _EnemyPatternScore(
+      patternActionScore: patternActionScore,
+      preActionBonusCount: preActionBonusCount,
+      actionPointCount: actionPointCount,
+      itemActionScore: itemActionScore,
+      missedPatternActionPenalty: missedPatternActionPenalty,
+      lateBonusPenalty: lateBonusPenalty,
+    );
+  }
+
+  static int _actionScore(ActionEffect effect) {
+    return switch (effect.actionType) {
+      ItemActionType.attack => effect.totalValue * 8,
+      ItemActionType.block => effect.totalValue * 5,
+      ItemActionType.heal => effect.totalValue * 3,
+      ItemActionType.none => max(1, effect.totalValue) * 6,
+    };
+  }
+
+  static int _bonusKindWeight(OperativePatternBonusKind kind) {
+    return switch (kind) {
+      OperativePatternBonusKind.attack => 18,
+      OperativePatternBonusKind.barrier => 12,
+      OperativePatternBonusKind.health => 8,
+    };
+  }
+}
+
+class _EnemyPatternScore implements Comparable<_EnemyPatternScore> {
+  static const minimum = _EnemyPatternScore(
+    patternActionScore: -1,
+    preActionBonusCount: -1,
+    actionPointCount: -1,
+    itemActionScore: -1,
+    missedPatternActionPenalty: 999999,
+    lateBonusPenalty: 999999,
+  );
+
+  final int patternActionScore;
+  final int preActionBonusCount;
+  final int actionPointCount;
+  final int itemActionScore;
+  final int missedPatternActionPenalty;
+  final int lateBonusPenalty;
+
+  const _EnemyPatternScore({
+    required this.patternActionScore,
+    required this.preActionBonusCount,
+    required this.actionPointCount,
+    required this.itemActionScore,
+    required this.missedPatternActionPenalty,
+    required this.lateBonusPenalty,
+  });
+
+  @override
+  int compareTo(_EnemyPatternScore other) {
+    final comparisons = <int>[
+      (-lateBonusPenalty).compareTo(-other.lateBonusPenalty),
+      preActionBonusCount.compareTo(other.preActionBonusCount),
+      patternActionScore.compareTo(other.patternActionScore),
+      (-missedPatternActionPenalty).compareTo(
+        -other.missedPatternActionPenalty,
+      ),
+      actionPointCount.compareTo(other.actionPointCount),
+      itemActionScore.compareTo(other.itemActionScore),
+    ];
+
+    for (final comparison in comparisons) {
+      if (comparison != 0) return comparison;
+    }
+    return 0;
   }
 }
