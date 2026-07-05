@@ -531,6 +531,7 @@ class _PatternEffectRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final action = effect.actionEffect;
     final effectAccent = endpointItemActionAccent(action.actionType);
+    final iconAssetPath = _effectIconAsset(action.actionType);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -557,9 +558,9 @@ class _PatternEffectRow extends StatelessWidget {
               const SizedBox(height: 7),
               Row(
                 children: [
-                  if (action.actionType != ItemActionType.none)
+                  if (iconAssetPath != null)
                     Image.asset(
-                      _effectIconAsset(action.actionType),
+                      iconAssetPath,
                       width: 18,
                       height: 18,
                       filterQuality: FilterQuality.none,
@@ -595,11 +596,11 @@ class _PatternEffectRow extends StatelessWidget {
   String _effectDescription(PatternEffect effect) =>
       _itemActionDescription(effect.actionEffect);
 
-  String _effectIconAsset(ItemActionType actionType) => switch (actionType) {
+  String? _effectIconAsset(ItemActionType actionType) => switch (actionType) {
         ItemActionType.attack => 'assets/images/icons/icon_sword.png',
         ItemActionType.block => 'assets/sprites/status/escudo.png',
         ItemActionType.heal => 'assets/sprites/status/vida.png',
-        ItemActionType.none => 'assets/images/icons/icon_pattern.png',
+        ItemActionType.none => null,
       };
 }
 
@@ -1228,7 +1229,6 @@ class _PatternPreviewVariant {
       itemPoint: itemPoint,
     );
   }
-
 }
 
 class _PatternRequirementMiniMatrix extends StatelessWidget {

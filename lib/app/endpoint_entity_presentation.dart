@@ -56,7 +56,9 @@ extension EntityTagPresentation on EntityTag {
       };
 
   String? get iconAssetPath => switch (this) {
+        EntityTag.quemadura => 'assets/sprites/status/quemadura.png',
         EntityTag.intoxicacion => 'assets/sprites/status/intox.png',
+        EntityTag.contagio => 'assets/sprites/status/contagion.png',
         EntityTag.vida || EntityTag.cura => 'assets/sprites/status/vida.png',
         EntityTag.barrera => 'assets/sprites/status/escudo.png',
         _ => null,
@@ -182,8 +184,12 @@ const _statusIcons = <BattlerStatusId, IconData>{
 };
 
 const _statusIconAssets = <BattlerStatusId, String>{
+  BattlerStatusId.potencia: 'assets/sprites/status/potencia.png',
+  BattlerStatusId.puntoCiego: 'assets/sprites/status/puntociego.png',
   BattlerStatusId.quemadura: 'assets/sprites/status/quemadura.png',
   BattlerStatusId.intoxicacion: 'assets/sprites/status/intox.png',
+  BattlerStatusId.contagio: 'assets/sprites/status/contagion.png',
+  BattlerStatusId.fragilidad: 'assets/sprites/status/fragilidad.png',
 };
 
 extension BattlerStatusPresentation on BattlerStatus {

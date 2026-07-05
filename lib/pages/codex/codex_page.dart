@@ -845,17 +845,17 @@ class _CodexEntryTile extends StatelessWidget {
                       ),
                       size: 30,
                     )
-                  : entry.emojiIcon != null
-                      ? entry.imageAsset != null
-                          ? Padding(
-                              padding: const EdgeInsets.all(7),
-                              child: Image.asset(
-                                entry.imageAsset!,
-                                fit: BoxFit.contain,
-                                filterQuality: FilterQuality.none,
-                              ),
-                            )
-                          : EndpointText(
+                  : entry.imageAsset != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(7),
+                          child: Image.asset(
+                            entry.imageAsset!,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.none,
+                          ),
+                        )
+                      : entry.emojiIcon != null
+                          ? EndpointText(
                               entry.emojiIcon!,
                               style: const TextStyle(
                                 fontSize: 25,
@@ -863,11 +863,11 @@ class _CodexEntryTile extends StatelessWidget {
                                 decoration: TextDecoration.none,
                               ),
                             )
-                      : Icon(
-                          entry.icon,
-                          color: EndpointPalette.soften(accent),
-                          size: 28,
-                        ),
+                          : Icon(
+                              entry.icon,
+                              color: EndpointPalette.soften(accent),
+                              size: 28,
+                            ),
             ),
           ),
         ),
@@ -1664,12 +1664,13 @@ class _CodexEntry {
     switch (kind) {
       case _CodexEntryKind.enemy:
         return enemy!.imageAsset;
+      case _CodexEntryKind.status:
+        return status!.iconAssetPath;
       case _CodexEntryKind.archetype:
       case _CodexEntryKind.item:
       case _CodexEntryKind.augment:
       case _CodexEntryKind.shop:
       case _CodexEntryKind.event:
-      case _CodexEntryKind.status:
         return null;
     }
   }

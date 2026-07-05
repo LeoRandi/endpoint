@@ -50,7 +50,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
   );
   static const _patternMetadata = _HighlightTermMetadata(
     accent: EndpointPalette.patternAccent,
-    icon: _HighlightIconSpec.asset('assets/images/icons/icon_pattern.png'),
+    icon: _HighlightIconSpec.material(Icons.gesture_rounded),
     tooltip:
         'Patron: dibujo que trazas en la matriz durante tu turno. Sus puntos y orden pueden activar efectos.',
   );
@@ -62,7 +62,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
   );
   static const _contagionMetadata = _HighlightTermMetadata(
     accent: _effectContagionAccent,
-    icon: _HighlightIconSpec.material(Icons.coronavirus_rounded),
+    icon: _HighlightIconSpec.asset('assets/sprites/status/contagion.png'),
     tooltip:
         'Contagio: debuff permanente durante el combate. Cuando otro debuff se aplica al portador, aumenta ese debuff por su valor y Contagio baja en 1.',
   );
@@ -86,7 +86,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
   );
   static const _fragilityMetadata = _HighlightTermMetadata(
     accent: _effectDebuffAccent,
-    icon: _HighlightIconSpec.material(Icons.flash_on_outlined),
+    icon: _HighlightIconSpec.asset('assets/sprites/status/fragilidad.png'),
     tooltip:
         'Fragilidad: debuff. Se acumula hasta 10. Si el objetivo recibe un ataque con 10, se limpia e inflige 10 daño directo que ignora Barrera.',
   );
@@ -104,9 +104,15 @@ class EndpointHighlightedValueText extends StatelessWidget {
   );
   static const _powerMetadata = _HighlightTermMetadata(
     accent: _effectBuffAccent,
-    icon: _HighlightIconSpec.material(Icons.bolt_rounded),
+    icon: _HighlightIconSpec.asset('assets/sprites/status/potencia.png'),
     tooltip:
         'Potencia: buff. Aumenta el daño de tus golpes durante este combate.',
+  );
+  static const _blindSpotMetadata = _HighlightTermMetadata(
+    accent: _effectBuffAccent,
+    icon: _HighlightIconSpec.asset('assets/sprites/status/puntociego.png'),
+    tooltip:
+        'Punto Ciego: buff que hace fallar los ataques enemigos contra el portador mientras permanezca activo.',
   );
   static const _warmingMetadata = _HighlightTermMetadata(
     accent: _effectBuffAccent,
@@ -146,14 +152,12 @@ class EndpointHighlightedValueText extends StatelessWidget {
   static const _damageMetadata = _HighlightTermMetadata(
     accent: _effectAttackAccent,
     icon: _HighlightIconSpec.asset('assets/sprites/status/daño.png'),
-    tooltip:
-        'DaÃ±o: cantidad que intenta quitar Barrera o vida al objetivo.',
+    tooltip: 'DaÃ±o: cantidad que intenta quitar Barrera o vida al objetivo.',
   );
   static const _attackMetadata = _HighlightTermMetadata(
     accent: _effectAttackAccent,
     icon: _HighlightIconSpec.asset('assets/images/icons/icon_sword.png'),
-    tooltip:
-        'Ataque: accion ofensiva que puede producir daño al objetivo.',
+    tooltip: 'Ataque: accion ofensiva que puede producir daño al objetivo.',
   );
 
   const EndpointHighlightedValueText(
@@ -175,9 +179,7 @@ class EndpointHighlightedValueText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = DefaultTextStyle.of(context).style
-        .merge(style)
-        .copyWith(
+    final baseStyle = DefaultTextStyle.of(context).style.merge(style).copyWith(
           decoration: TextDecoration.none,
           decorationColor: Colors.transparent,
         );
@@ -222,6 +224,18 @@ class EndpointHighlightedValueText extends StatelessWidget {
     }
     for (final match in RegExp(
       r'\bcontagio\b',
+      caseSensitive: false,
+    ).allMatches(data)) {
+      tokens.add(
+        _HighlightedToken.term(
+          start: match.start,
+          end: match.end,
+          metadata: _metadataForTerm(match.group(0) ?? ''),
+        ),
+      );
+    }
+    for (final match in RegExp(
+      r'\b(?:punto ciego|blind spots?|blindspot)\b',
       caseSensitive: false,
     ).allMatches(data)) {
       tokens.add(
@@ -323,6 +337,11 @@ class EndpointHighlightedValueText extends StatelessWidget {
         normalizedToken.contains('contagion')) {
       return _effectContagionAccent;
     }
+    if (normalizedToken.contains('punto ciego') ||
+        normalizedToken.contains('blind spot') ||
+        normalizedToken.contains('blindspot')) {
+      return _effectBuffAccent;
+    }
     if (normalizedToken.contains('intoxicacion') ||
         normalizedToken.startsWith('poison')) {
       return _effectPoisonAccent;
@@ -375,6 +394,11 @@ class EndpointHighlightedValueText extends StatelessWidget {
     }
     if (normalizedToken.contains('usarse')) {
       return _usedMetadata;
+    }
+    if (normalizedToken.contains('punto ciego') ||
+        normalizedToken.contains('blind spot') ||
+        normalizedToken.contains('blindspot')) {
+      return _blindSpotMetadata;
     }
     if (normalizedToken.contains('patron') ||
         normalizedToken.startsWith('pattern') ||
@@ -518,6 +542,20 @@ class EndpointHighlightedValueText extends StatelessWidget {
     final lowerData = data.normalizedHighlightText;
     const maxDistance = 56.0;
     final midpoint = (start + end) / 2;
+    const blindSpotPatterns = ['punto ciego', 'blind spot', 'blindspot'];
+    for (final pattern in blindSpotPatterns) {
+      var searchFrom = 0;
+      while (searchFrom < lowerData.length) {
+        final index = lowerData.indexOf(pattern, searchFrom);
+        if (index < 0) break;
+
+        final patternMidpoint = index + (pattern.length / 2);
+        if ((midpoint - patternMidpoint).abs() <= maxDistance) {
+          return _blindSpotMetadata;
+        }
+        searchFrom = index + pattern.length;
+      }
+    }
     final candidates = [
       const _ValueAccentCandidate(
         metadata: _patternMetadata,
@@ -591,10 +629,16 @@ class EndpointHighlightedValueText extends StatelessWidget {
         ],
       ),
       const _ValueAccentCandidate(
+        metadata: _powerMetadata,
+        patterns: ['potencia', 'power'],
+      ),
+      const _ValueAccentCandidate(
+        metadata: _fragilityMetadata,
+        patterns: ['fragilidad', 'fragility'],
+      ),
+      const _ValueAccentCandidate(
         metadata: _buffMetadata,
         patterns: [
-          'potencia',
-          'power',
           'calentando',
           'warming',
           'buff',
@@ -607,8 +651,6 @@ class EndpointHighlightedValueText extends StatelessWidget {
           'debuff',
           'debuffs',
           'desventaja',
-          'fragilidad',
-          'fragility',
           'conmocion',
           'concussion',
         ],
@@ -673,20 +715,20 @@ class _HighlightedToken {
   final _HighlightTermMetadata? metadata;
   final bool showIcon;
 
-  const _HighlightedToken({
+  _HighlightedToken({
     required this.start,
     required this.end,
     required Color accent,
     this.metadata,
-  }) : _valueAccent = accent,
-       showIcon = metadata != null;
+  })  : _valueAccent = accent,
+        showIcon = metadata != null;
 
-  const _HighlightedToken.term({
+  _HighlightedToken.term({
     required this.start,
     required this.end,
     required this.metadata,
-  }) : _valueAccent = null,
-       showIcon = false;
+  })  : _valueAccent = null,
+        showIcon = metadata?.icon.assetPath != null;
 
   Color get accent =>
       metadata?.accent ?? _valueAccent ?? EndpointPalette.rewardAccent;
@@ -709,9 +751,8 @@ class _HighlightedTermToken extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = ((style.fontSize ?? 14) * 0.86)
-        .clamp(10.0, 15.0)
-        .toDouble();
+    final iconSize =
+        ((style.fontSize ?? 14) * 0.86).clamp(10.0, 15.0).toDouble();
 
     return Tooltip(
       message: metadata.tooltip,
@@ -758,6 +799,10 @@ class _HighlightIcon extends StatelessWidget {
         height: size,
         color: color,
         filterQuality: FilterQuality.none,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.image_not_supported_rounded,
+              color: color, size: size);
+        },
       );
     }
 
