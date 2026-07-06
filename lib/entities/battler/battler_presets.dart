@@ -90,6 +90,7 @@ final duelistHopperEnemyBattler = Battler(
 /// Enemigo gris defensivo con mucha barrera y poca presion directa.
 final signalStagEnemyBattler = Battler(
   name: 'SIGNAL STAG',
+  imageAsset: 'assets/sprites/monsters/Signal stag.png',
   health: 24,
   money: 0,
   income: 0,
