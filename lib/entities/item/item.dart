@@ -163,7 +163,7 @@ class Item {
     bool? isGhostly,
   }) {
     final targetTier = tier ?? this.tier;
-    final tierStep = targetTier.index - this.tier.index;
+    final tierStep = this.tier.distanceTo(targetTier);
     final resolvedEffects =
         effects ?? (tierStep > 0 ? _effectsAdvancedBy(tierStep) : this.effects);
 

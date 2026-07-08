@@ -67,6 +67,104 @@ enum EndpointTextKey {
   settingsLanguageEnglish,
 }
 
+/// Groups localized keys by the feature surface that owns their copy.
+///
+/// This keeps the current single registry easy to split later without forcing
+/// callers to know where each translation map physically lives.
+enum EndpointTextGroup {
+  common,
+  mainMenu,
+  settings,
+}
+
+/// Describes a missing translation discovered in the localized registry.
+class EndpointMissingText {
+  final EndpointLanguage language;
+  final EndpointTextKey key;
+  final EndpointTextGroup group;
+
+  /// Creates a missing-translation report for [key] in [language].
+  const EndpointMissingText({
+    required this.language,
+    required this.key,
+    required this.group,
+  });
+
+  @override
+  String toString() {
+    return '${language.name}.${group.name}.${key.name}';
+  }
+}
+
+extension EndpointTextKeyPresentation on EndpointTextKey {
+  /// Returns the owning feature group for this text key.
+  EndpointTextGroup get group {
+    return switch (this) {
+      EndpointTextKey.appTitle ||
+      EndpointTextKey.continueRun ||
+      EndpointTextKey.start ||
+      EndpointTextKey.codex ||
+      EndpointTextKey.settings ||
+      EndpointTextKey.backToRoute ||
+      EndpointTextKey.noItems ||
+      EndpointTextKey.noAugments ||
+      EndpointTextKey.routeTimelineDescription ||
+      EndpointTextKey.codexUnavailable ||
+      EndpointTextKey.settingsUnavailable =>
+        EndpointTextGroup.common,
+      EndpointTextKey.mainMenuTitle ||
+      EndpointTextKey.mainMenuTutorialHelpTooltip ||
+      EndpointTextKey.mainMenuShowcaseSkip ||
+      EndpointTextKey.mainMenuShowcaseNext ||
+      EndpointTextKey.mainMenuContinueTitle ||
+      EndpointTextKey.mainMenuContinueDescription ||
+      EndpointTextKey.mainMenuNoRunTooltip ||
+      EndpointTextKey.mainMenuContinueRunTooltip ||
+      EndpointTextKey.mainMenuStartTitle ||
+      EndpointTextKey.mainMenuStartDescription ||
+      EndpointTextKey.mainMenuStartTooltip ||
+      EndpointTextKey.mainMenuTutorialButton ||
+      EndpointTextKey.mainMenuTutorialTooltip ||
+      EndpointTextKey.mainMenuTutorialBarrierLabel ||
+      EndpointTextKey.mainMenuTutorialPromptTitle ||
+      EndpointTextKey.mainMenuTutorialPromptQuestion ||
+      EndpointTextKey.mainMenuTutorialCancel ||
+      EndpointTextKey.mainMenuTutorialConfirm ||
+      EndpointTextKey.mainMenuCodexTitle ||
+      EndpointTextKey.mainMenuCodexDescription ||
+      EndpointTextKey.mainMenuSettingsTitle ||
+      EndpointTextKey.mainMenuSettingsDescription ||
+      EndpointTextKey.mainMenuSettingsTooltip =>
+        EndpointTextGroup.mainMenu,
+      EndpointTextKey.settingsCloseTooltip ||
+      EndpointTextKey.settingsHeaderTitle ||
+      EndpointTextKey.settingsHeaderDescription ||
+      EndpointTextKey.settingsSoundTitle ||
+      EndpointTextKey.settingsVibrationTitle ||
+      EndpointTextKey.settingsAnimationsTitle ||
+      EndpointTextKey.settingsCustomAvatarTitle ||
+      EndpointTextKey.settingsCustomAvatarSelectionTitle ||
+      EndpointTextKey.settingsCustomAvatarSelectionCaption ||
+      EndpointTextKey.settingsCustomAvatarSelectionButton ||
+      EndpointTextKey.settingsGameModeTitle ||
+      EndpointTextKey.settingsRunRulesModeTitle ||
+      EndpointTextKey.settingsRunRulesModeCaption ||
+      EndpointTextKey.settingsLanguageTitle ||
+      EndpointTextKey.settingsLanguageCaption ||
+      EndpointTextKey.settingsEnabled ||
+      EndpointTextKey.settingsDisabled ||
+      EndpointTextKey.settingsDisabledTooltip ||
+      EndpointTextKey.settingsGameModeClassic ||
+      EndpointTextKey.settingsGameModePattern ||
+      EndpointTextKey.settingsRunRulesModeFullHeal ||
+      EndpointTextKey.settingsRunRulesModeHard ||
+      EndpointTextKey.settingsLanguageSpanish ||
+      EndpointTextKey.settingsLanguageEnglish =>
+        EndpointTextGroup.settings,
+    };
+  }
+}
+
 /// App-level string registry and localization helpers.
 ///
 /// The project is midway through migrating UI copy from direct Spanish strings
@@ -266,6 +364,44 @@ abstract final class EndpointStrings {
       EndpointRunRulesMode.hard => EndpointTextKey.settingsRunRulesModeHard,
     };
   }
+
+  /// Lists every text key owned by [group].
+  static List<EndpointTextKey> keysForGroup(EndpointTextGroup group) {
+    return EndpointTextKey.values
+        .where((key) => key.group == group)
+        .toList(growable: false);
+  }
+
+  /// Reports translations missing from each language bundle.
+  ///
+  /// This is intentionally a pure helper so debug screens and future checks can
+  /// surface incomplete localization work without making widgets crash.
+  static List<EndpointMissingText> missingTranslations({
+    Iterable<EndpointLanguage>? languages,
+  }) {
+    final checkedLanguages = languages ?? EndpointLanguage.values;
+    final missing = <EndpointMissingText>[];
+
+    for (final language in checkedLanguages) {
+      final bundle = _localized[language] ?? const <EndpointTextKey, String>{};
+      for (final key in EndpointTextKey.values) {
+        if (bundle.containsKey(key)) continue;
+
+        missing.add(
+          EndpointMissingText(
+            language: language,
+            key: key,
+            group: key.group,
+          ),
+        );
+      }
+    }
+
+    return List<EndpointMissingText>.unmodifiable(missing);
+  }
+
+  /// Returns true when every configured language has every text key.
+  static bool get hasCompleteTranslations => missingTranslations().isEmpty;
 
   /// Resolves [key] into localized copy for [language].
   ///

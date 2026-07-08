@@ -2,21 +2,21 @@ import '_imports.dart';
 
 Route<T> buildEndpointSceneRoute<T>(Widget page) {
   return PageRouteBuilder<T>(
-    transitionDuration: const Duration(milliseconds: 420),
-    reverseTransitionDuration: const Duration(milliseconds: 360),
+    transitionDuration: EndpointMotion.sceneTransition,
+    reverseTransitionDuration: EndpointMotion.sceneReverseTransition,
     pageBuilder: (context, animation, secondaryAnimation) {
       return page;
     },
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curved = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeInOutCubic,
-        reverseCurve: Curves.easeInOutCubic,
+      final curved = EndpointMotion.curved(
+        animation,
+        curve: EndpointMotion.sceneCurve,
+        reverseCurve: EndpointMotion.sceneCurve,
       );
-      final incomingMotion = Tween<Offset>(
-        begin: const Offset(0, 0.015),
-        end: Offset.zero,
-      ).animate(curved);
+      final incomingMotion = EndpointMotion.slideIn(
+        curved,
+        begin: EndpointMotion.sceneRouteOffset,
+      );
       final blackoutOpacity = TweenSequence<double>([
         TweenSequenceItem(
           tween: Tween<double>(begin: 0, end: 1),

@@ -274,7 +274,7 @@ class PathEventService {
     return List<Item>.unmodifiable(
       buildOwnedItems(player).where(
         (item) =>
-            item.rarity.index < RarityTier.purple.index &&
+            item.rarity.isBelow(RarityTier.purple) &&
             item.canUpgrade &&
             (item.hasTag(EntityTag.contagio) ||
                 item.hasTag(EntityTag.debuff) ||
@@ -695,7 +695,7 @@ class PathEventService {
       return _runtimeService.runtimeAugment(ownedAugment);
     }
 
-    final targetRarity = _rollWeightedRarity(
+    final targetRarity = RarityProgressionService.rollWeightedAtLeast(
       minimumRarity: catalogEntry.rarity,
       randomizer: randomizer,
     );
@@ -718,7 +718,7 @@ class PathEventService {
         .where(
           (augment) =>
               augment.id != selectedAugment.id &&
-              augment.rarity.index >= selectedAugment.rarity.index &&
+              augment.rarity.isAtLeast(selectedAugment.rarity) &&
               !ownedAugmentIds.contains(augment.id),
         )
         .toList(growable: false);
@@ -744,37 +744,13 @@ class PathEventService {
     );
   }
 
-  RarityTier _rollWeightedRarity({
-    required RarityTier minimumRarity,
-    required RunRandomizer randomizer,
-  }) {
-    final allowedTiers = RarityTier.values
-        .where((tier) => tier.index >= minimumRarity.index)
-        .toList(growable: false);
-    final totalWeight = allowedTiers.fold<double>(
-      0,
-      (sum, tier) => sum + tier.rollWeight,
-    );
-    if (totalWeight <= 0) {
-      return allowedTiers[randomizer.nextInt(allowedTiers.length)];
-    }
-
-    var roll = randomizer.nextDouble() * totalWeight;
-    for (final tier in allowedTiers) {
-      roll -= tier.rollWeight;
-      if (roll <= 0) return tier;
-    }
-
-    return allowedTiers.last;
-  }
-
   RarityTier _technosurgeonTargetRarity({
     required EventPathNode node,
     required Augment selectedAugment,
   }) {
     final nextTier = selectedAugment.rarity.nextTier;
     if (node.id != PathEventId.afterHoursTechnosurgeon ||
-        nextTier.index >= RarityTier.purple.index) {
+        nextTier.isAtLeast(RarityTier.purple)) {
       return nextTier;
     }
 
@@ -932,14 +908,14 @@ class PathEventService {
     required Item selectedItem,
     required RarityTier targetRarity,
   }) {
-    if (selectedItem.rarity.index >= targetRarity.index) return null;
+    if (selectedItem.rarity.isAtLeast(targetRarity)) return null;
 
     var resolution = _upgradeOwnedItem(
       player: player,
       selectedItem: selectedItem,
     );
     while (resolution != null &&
-        resolution.upgradedItem.rarity.index < targetRarity.index &&
+        resolution.upgradedItem.rarity.isBelow(targetRarity) &&
         resolution.upgradedItem.canUpgrade) {
       resolution = _upgradeOwnedItem(
         player: resolution.updatedPlayer,
@@ -979,7 +955,9 @@ class PathEventService {
       randomizer: randomizer,
       dayNumber: dayNumber,
     );
-    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+    for (final rarity in RarityProgressionService.fallbackTiersFrom(
+      targetRarity,
+    )) {
       final augment = _rollAugmentFromPoolForExactRarity(
         pool: augmentCatalogForArchetype(archetypeId),
         player: player,
@@ -1107,15 +1085,6 @@ class PathEventService {
       if (roll <= 0) return entry.key;
     }
     return weights.keys.last;
-  }
-
-  List<RarityTier> _rarityFallbacksFrom(RarityTier targetRarity) {
-    return List<RarityTier>.unmodifiable(
-      RarityTier.values
-          .where((rarity) => rarity.index <= targetRarity.index)
-          .toList(growable: false)
-          .reversed,
-    );
   }
 
   _SobreKarDebuffRoll _rollSobreKarDebuff(RunRandomizer randomizer) {

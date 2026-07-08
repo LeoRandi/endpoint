@@ -7,6 +7,13 @@ import '../services/_exports.dart';
 import '../widgets/generic/_exports.dart';
 import 'package:flutter/material.dart';
 
+typedef _RunNodeHandler = Future<void> Function({
+  required BuildContext context,
+  required PathNode node,
+  required RunSessionController session,
+  required bool isTutorialRun,
+});
+
 /// Coordinates route-node selection into the scene that resolves that node.
 ///
 /// Path selection owns input and session state; pages own visual interactions;
@@ -28,63 +35,150 @@ class RunNodeFlowCoordinator {
     required RunSessionController session,
     bool isTutorialRun = false,
   }) async {
-    switch (node.type) {
-      case PathNodeType.encounter:
-        final encounterNode = node as CombatPathNode;
-        unawaited(
-          CodexDiscoveryService.markIndexed(
-            CodexDiscoveryService.enemyKey(encounterNode.nodeId),
-          ),
-        );
-        await _openEncounterNode(
-          context: context,
-          node: encounterNode,
-          session: session,
-        );
-        return;
-      case PathNodeType.archetype:
-        final archetypeNode = node as ArchetypePathNode;
-        await _openArchetypeNode(
-          context: context,
-          node: archetypeNode,
-          session: session,
-          isTutorialRun: isTutorialRun,
-        );
-        return;
-      case PathNodeType.shop:
-        final shopNode = node as ShopPathNode;
-        unawaited(
-          CodexDiscoveryService.markIndexed(
-            CodexDiscoveryService.shopKey(shopNode.nodeId),
-          ),
-        );
-        await _openShopNode(
-          context: context,
-          node: shopNode,
-          session: session,
-        );
-        return;
-      case PathNodeType.campSite:
-        await _openCampSiteNode(
-          context: context,
-          node: node,
-          session: session,
-        );
-        return;
-      case PathNodeType.event:
-        final eventNode = node as EventPathNode;
-        unawaited(
-          CodexDiscoveryService.markIndexed(
-            CodexDiscoveryService.eventKey(eventNode.id),
-          ),
-        );
-        await _openEventNode(
-          context: context,
-          node: eventNode,
-          session: session,
-        );
-        return;
+    final handler = _nodeHandlers[node.type];
+    if (handler == null) {
+      _cancelUnsupportedNode(session, node, expectedType: node.type.name);
+      return;
     }
+
+    await handler(
+      context: context,
+      node: node,
+      session: session,
+      isTutorialRun: isTutorialRun,
+    );
+  }
+
+  Map<PathNodeType, _RunNodeHandler> get _nodeHandlers => {
+        PathNodeType.encounter: _handleEncounterSelection,
+        PathNodeType.archetype: _handleArchetypeSelection,
+        PathNodeType.shop: _handleShopSelection,
+        PathNodeType.campSite: _handleCampSiteSelection,
+        PathNodeType.event: _handleEventSelection,
+      };
+
+  Future<void> _handleEncounterSelection({
+    required BuildContext context,
+    required PathNode node,
+    required RunSessionController session,
+    required bool isTutorialRun,
+  }) async {
+    final encounterNode = node is CombatPathNode ? node : null;
+    if (encounterNode == null) {
+      _cancelUnsupportedNode(session, node, expectedType: 'CombatPathNode');
+      return;
+    }
+
+    _markCodexIndexed(CodexDiscoveryService.enemyKey(encounterNode.nodeId));
+    await _openEncounterNode(
+      context: context,
+      node: encounterNode,
+      session: session,
+    );
+  }
+
+  Future<void> _handleArchetypeSelection({
+    required BuildContext context,
+    required PathNode node,
+    required RunSessionController session,
+    required bool isTutorialRun,
+  }) async {
+    final archetypeNode = node is ArchetypePathNode ? node : null;
+    if (archetypeNode == null) {
+      _cancelUnsupportedNode(session, node, expectedType: 'ArchetypePathNode');
+      return;
+    }
+
+    await _openArchetypeNode(
+      context: context,
+      node: archetypeNode,
+      session: session,
+      isTutorialRun: isTutorialRun,
+    );
+  }
+
+  Future<void> _handleShopSelection({
+    required BuildContext context,
+    required PathNode node,
+    required RunSessionController session,
+    required bool isTutorialRun,
+  }) async {
+    final shopNode = _shopNodeFor(node);
+    _markCodexIndexed(CodexDiscoveryService.shopKey(shopNode.nodeId));
+    await _openShopNode(
+      context: context,
+      node: shopNode,
+      session: session,
+    );
+  }
+
+  Future<void> _handleCampSiteSelection({
+    required BuildContext context,
+    required PathNode node,
+    required RunSessionController session,
+    required bool isTutorialRun,
+  }) {
+    return _openCampSiteNode(
+      context: context,
+      node: node,
+      session: session,
+    );
+  }
+
+  Future<void> _handleEventSelection({
+    required BuildContext context,
+    required PathNode node,
+    required RunSessionController session,
+    required bool isTutorialRun,
+  }) async {
+    final eventNode = node is EventPathNode ? node : null;
+    if (eventNode == null) {
+      _cancelUnsupportedNode(session, node, expectedType: 'EventPathNode');
+      return;
+    }
+
+    _markCodexIndexed(CodexDiscoveryService.eventKey(eventNode.id));
+    await _openEventNode(
+      context: context,
+      node: eventNode,
+      session: session,
+    );
+  }
+
+  void _markCodexIndexed(String key) {
+    unawaited(CodexDiscoveryService.markIndexed(key));
+  }
+
+  void _cancelUnsupportedNode(
+    RunSessionController session,
+    PathNode node, {
+    required String expectedType,
+  }) {
+    assert(() {
+      debugPrint(
+        'RunNodeFlowCoordinator expected $expectedType for '
+        '${node.type.name} node ${node.nodeId}.',
+      );
+      return true;
+    }());
+    session.cancelNodeResolution();
+  }
+
+  ShopPathNode _shopNodeFor(PathNode node) {
+    if (node is ShopPathNode) return node;
+
+    return ShopPathNode(
+      nodeId: node.nodeId,
+      label: node.label,
+      tooltip: node.tooltip,
+      iconEmoji: node.iconEmoji,
+      rarity: node.rarity,
+      badgeLabel: node.badgeLabel,
+      showTitle: node.label,
+      shopTitle: node.label.toUpperCase(),
+      shopSubtitle: node.tooltip,
+      stockCriterion: grayShopCriterion,
+    );
   }
 
   /// Opens a combat scene and forwards the battle result to the active run.

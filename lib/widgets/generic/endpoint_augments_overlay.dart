@@ -44,7 +44,7 @@ class EndpointAugmentsOverlay extends StatelessWidget {
                 emptyText,
                 textAlign: TextAlign.center,
                 style: textSmallBold.copyWith(
-                  color: Colors.white.withOpacity(0.72),
+                  color: Colors.white.withValues(alpha: 0.72),
                 ),
               ),
             )
@@ -68,7 +68,8 @@ class EndpointAugmentsOverlay extends StatelessWidget {
     );
   }
 
-  Future<void> _openAugmentDetails(BuildContext context, Augment augment) async {
+  Future<void> _openAugmentDetails(
+      BuildContext context, Augment augment) async {
     await showEndpointDialog<void>(
       context: context,
       barrierLabel: 'Detalle de aumento',

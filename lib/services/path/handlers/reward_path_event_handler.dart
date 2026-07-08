@@ -112,7 +112,9 @@ extension RewardPathEventHandler on PathEventService {
     );
     final selectedItems = <Item>[];
     final selectedItemIds = <String>{};
-    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+    for (final rarity in RarityProgressionService.fallbackTiersFrom(
+      targetRarity,
+    )) {
       final candidates = pool
           .where(
             (item) =>

@@ -21,7 +21,7 @@ class BattleActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = onPressed == null
-        ? EndpointPalette.softForeground.withOpacity(0.42)
+        ? EndpointPalette.softForeground.withValues(alpha: 0.42)
         : EndpointPalette.softForeground;
 
     return EndpointActionButton(

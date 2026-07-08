@@ -66,7 +66,7 @@ class EndpointInventoryOverlay extends StatelessWidget {
                 emptyText,
                 textAlign: TextAlign.center,
                 style: textSmallBold.copyWith(
-                  color: Colors.white.withOpacity(0.72),
+                  color: Colors.white.withValues(alpha: 0.72),
                 ),
               ),
             )

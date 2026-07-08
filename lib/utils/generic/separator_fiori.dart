@@ -4,6 +4,62 @@ import '_imports.dart';
 
 const _baseSeparatorHeight = 25.0;
 
+/// Public spacing scale shared by gaps, padding helpers, and future layout code.
+enum EndpointSpacingSize {
+  quarter,
+  half,
+  threeQuarter,
+  normal,
+  oneHalf,
+  double,
+}
+
+/// Converts a symbolic spacing size into a multiplier on the shared base unit.
+extension EndpointSpacingSizeValue on EndpointSpacingSize {
+  double get multiplier {
+    switch (this) {
+      case EndpointSpacingSize.quarter:
+        return 0.25;
+      case EndpointSpacingSize.half:
+        return 0.5;
+      case EndpointSpacingSize.threeQuarter:
+        return 0.75;
+      case EndpointSpacingSize.normal:
+        return 1;
+      case EndpointSpacingSize.oneHalf:
+        return 1.5;
+      case EndpointSpacingSize.double:
+        return 2;
+    }
+  }
+
+  double get height => EndpointSpacing.height(this);
+}
+
+/// Named helpers for the app spacing system.
+abstract final class EndpointSpacing {
+  static const base = _baseSeparatorHeight;
+
+  static double height(EndpointSpacingSize size) => base * size.multiplier;
+
+  static EdgeInsets vertical(
+    EndpointSpacingSize size, {
+    bool top = true,
+    bool bottom = true,
+  }) {
+    final value = height(size);
+
+    return EdgeInsets.only(
+      top: top ? value : 0,
+      bottom: bottom ? value : 0,
+    );
+  }
+
+  static SizedBox verticalGap(EndpointSpacingSize size) {
+    return SizedBox(height: height(size));
+  }
+}
+
 /// Multipliers supported by the legacy spacing helpers.
 enum _SeparatorType {
   quarter,
@@ -16,26 +72,26 @@ enum _SeparatorType {
 
 /// Converts a symbolic spacing size into an actual vertical logical pixel value.
 extension _SeparatorTypeHeight on _SeparatorType {
-  /// Returns the height multiplier applied to [_baseSeparatorHeight].
-  double get multiplier {
+  /// Returns the public spacing size represented by this legacy value.
+  EndpointSpacingSize get size {
     switch (this) {
       case _SeparatorType.quarter:
-        return 0.25;
+        return EndpointSpacingSize.quarter;
       case _SeparatorType.half:
-        return 0.5;
+        return EndpointSpacingSize.half;
       case _SeparatorType.oneHalf:
-        return 1.5;
+        return EndpointSpacingSize.oneHalf;
       case _SeparatorType.third:
-        return 0.75;
+        return EndpointSpacingSize.threeQuarter;
       case _SeparatorType.normal:
-        return 1;
+        return EndpointSpacingSize.normal;
       case _SeparatorType.double:
-        return 2;
+        return EndpointSpacingSize.double;
     }
   }
 
   /// Returns the final spacing height used by separators and vertical padding.
-  double get height => _baseSeparatorHeight * multiplier;
+  double get height => size.height;
 }
 
 /// Renders a vertical gap using the shared spacing scale.
@@ -143,23 +199,28 @@ class PaddingVerticalCustom extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isOnlyMobile) return child;
 
-    final height = _separator.height;
     if (isOnlyTop) {
       return Padding(
-        padding: EdgeInsets.only(top: height),
+        padding: EndpointSpacing.vertical(
+          _separator.size,
+          bottom: false,
+        ),
         child: child,
       );
     }
 
     if (isOnlyBottom) {
       return Padding(
-        padding: EdgeInsets.only(bottom: height),
+        padding: EndpointSpacing.vertical(
+          _separator.size,
+          top: false,
+        ),
         child: child,
       );
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: height),
+      padding: EndpointSpacing.vertical(_separator.size),
       child: child,
     );
   }

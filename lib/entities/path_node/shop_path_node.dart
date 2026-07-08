@@ -30,7 +30,7 @@ class ShopInventoryCriterion {
         assert(
           minimumRarity == null ||
               maximumRarity == null ||
-              minimumRarity.index <= maximumRarity.index,
+              minimumRarity.isAtMost(maximumRarity!),
         );
 
   /// Comprueba si un objeto concreto cumple todas las reglas del criterio.
@@ -41,10 +41,10 @@ class ShopInventoryCriterion {
     if (exactRarity != null && item.rarity != exactRarity) {
       return false;
     }
-    if (minimumRarity != null && item.rarity.index < minimumRarity!.index) {
+    if (minimumRarity != null && item.rarity.isBelow(minimumRarity!)) {
       return false;
     }
-    if (maximumRarity != null && item.rarity.index > maximumRarity!.index) {
+    if (maximumRarity != null && item.rarity.isAbove(maximumRarity!)) {
       return false;
     }
     if (requiredTags.isNotEmpty) {

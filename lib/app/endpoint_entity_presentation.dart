@@ -298,6 +298,40 @@ extension PathNodePresentation on PathNode {
       };
 }
 
+extension PathNodeTypePresentation on PathNodeType {
+  String get label => switch (this) {
+        PathNodeType.archetype => 'Arquetipo',
+        PathNodeType.encounter => 'Combate',
+        PathNodeType.shop => 'Tienda',
+        PathNodeType.campSite => 'Descanso',
+        PathNodeType.event => 'Evento',
+      };
+
+  String get badgeLabel => switch (this) {
+        PathNodeType.archetype => 'ARQUETIPO',
+        PathNodeType.encounter => 'COMBATE',
+        PathNodeType.shop => 'TIENDA',
+        PathNodeType.campSite => 'DESCANSO',
+        PathNodeType.event => 'EVENTO',
+      };
+
+  String get defaultIconEmoji => switch (this) {
+        PathNodeType.archetype => '\u{1F9EC}',
+        PathNodeType.encounter => '\u{1F47E}',
+        PathNodeType.shop => '\u{2694}',
+        PathNodeType.campSite => '\u{1F6CF}',
+        PathNodeType.event => '\u{2726}',
+      };
+
+  Color get accent => switch (this) {
+        PathNodeType.archetype => EndpointPalette.infoAccent,
+        PathNodeType.encounter => EndpointPalette.dangerAccent,
+        PathNodeType.shop => EndpointPalette.shopAccent,
+        PathNodeType.campSite => EndpointPalette.healthAccent,
+        PathNodeType.event => EndpointPalette.patternAccent,
+      };
+}
+
 extension CombatNodeTierPresentation on CombatNodeTier {
   Color get accent => rarity.accent;
   String get badgeLabel => rarity.label;

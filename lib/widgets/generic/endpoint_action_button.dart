@@ -229,7 +229,7 @@ class EndpointUpgradeBackdrop extends StatefulWidget {
     this.spacing = 6,
     this.horizontalInset = 2,
     this.borderRadius,
-    this.duration = const Duration(milliseconds: 1150),
+    this.duration = EndpointMotion.upgradeSweep,
   });
 
   @override

@@ -10,7 +10,7 @@ Item _enemyItem(String name) {
 
 Item _enemyItemAtTier(String name, RarityTier tier) {
   final item = _enemyItem(name);
-  if (item.tier.index >= tier.index) return item;
+  if (item.tier.isAtLeast(tier)) return item;
   return item.copyWith(tier: tier);
 }
 

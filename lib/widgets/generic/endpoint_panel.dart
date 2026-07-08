@@ -32,10 +32,11 @@ class EndpointPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: border ?? Border.all(color: accent.withOpacity(borderOpacity)),
+        border: border ??
+            Border.all(color: accent.withValues(alpha: borderOpacity)),
         boxShadow: [
           BoxShadow(
-            color: accent.withOpacity(glowOpacity),
+            color: accent.withValues(alpha: glowOpacity),
             blurRadius: blurRadius,
             spreadRadius: spreadRadius,
           ),

@@ -85,7 +85,8 @@ class EndpointOverlayScaffold extends StatelessWidget {
                                   EndpointText(
                                     subtitle,
                                     style: textSmallBold.copyWith(
-                                      color: Colors.white.withOpacity(0.72),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.72),
                                       letterSpacing: 1,
                                     ),
                                   ),
@@ -116,7 +117,7 @@ class EndpointOverlayScaffold extends StatelessWidget {
                         EndpointText(
                           sectionValue,
                           style: textSmallBold.copyWith(
-                            color: Colors.white.withOpacity(0.76),
+                            color: Colors.white.withValues(alpha: 0.76),
                           ),
                         ),
                       ],

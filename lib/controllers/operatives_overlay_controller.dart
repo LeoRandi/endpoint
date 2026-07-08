@@ -61,7 +61,15 @@ class OperativesOverlayController extends ChangeNotifier {
 
   /// Devuelve la accion primaria visible para un item del jugador dentro del overlay.
   String? actionLabelFor(Item item) {
-    return ControllerUiText.itemToggleActionLabel(owner: _player, item: item);
+    return actionPresentationFor(item).actionLabel;
+  }
+
+  /// Devuelve todas las decisiones visibles de la accion primaria del item.
+  ControllerItemActionPresentation actionPresentationFor(Item item) {
+    return ControllerUiText.itemToggleActionPresentation(
+      owner: _player,
+      item: item,
+    );
   }
 
   /// Devuelve la accion de venta rapida disponible durante la seleccion de nodo.
@@ -75,30 +83,17 @@ class OperativesOverlayController extends ChangeNotifier {
 
   /// Indica si la accion primaria del dialogo del jugador esta disponible.
   bool isActionEnabled(Item item) {
-    if (_player.equippedItems.contains(item)) return _player.hasInventorySpace;
-    if (_player.inventoryItems.contains(item)) {
-      return _player.canEquipItem(item);
-    }
-
-    return false;
+    return actionPresentationFor(item).isActionEnabled;
   }
 
   /// Explica la accion primaria disponible para un item del jugador.
   String enabledActionTooltipFor(Item item) {
-    if (_player.equippedItems.contains(item)) {
-      if (!_player.hasInventorySpace) {
-        return 'Inventario lleno (${Battler.maxInventoryItems}/${Battler.maxInventoryItems})';
-      }
-      return 'Quitar objeto del equipo activo';
-    }
-    final nextCost = _player.equippedItemCost + 1;
-    return 'Equipar objeto al jugador ($nextCost/${_player.equipmentCapacity})';
+    return actionPresentationFor(item).enabledActionTooltip;
   }
 
   /// Explica por que un item del jugador no admite accion primaria.
   String disabledActionTooltipFor(Item item) {
-    return _player.equipItemBlockReason(item) ??
-        ControllerUiText.itemUnavailableTooltip;
+    return actionPresentationFor(item).disabledActionTooltip;
   }
 
   /// Devuelve la etiqueta del boton de quitar cuando el item equipado puede volver al inventario.
@@ -107,10 +102,20 @@ class OperativesOverlayController extends ChangeNotifier {
     Item item,
     bool canUnequip,
   ) {
-    if (!canUnequip) return null;
-    if (!owner.hasInventorySpace) return null;
-    if (owner.equippedItems.contains(item)) return 'Quitar';
-    return null;
+    return unequipActionPresentationFor(owner, item, canUnequip).actionLabel;
+  }
+
+  /// Devuelve las decisiones visibles de quitar un item equipado.
+  ControllerItemActionPresentation unequipActionPresentationFor(
+    Battler owner,
+    Item item,
+    bool canUnequip,
+  ) {
+    return ControllerUiText.equippedItemActionPresentation(
+      owner: owner,
+      item: item,
+      canUnequip: canUnequip,
+    );
   }
 
   /// Indica si un item equipado puede quitarse desde el dialogo actual.
@@ -119,9 +124,11 @@ class OperativesOverlayController extends ChangeNotifier {
     Item item,
     bool canUnequip,
   ) {
-    return canUnequip &&
-        owner.hasInventorySpace &&
-        owner.equippedItems.contains(item);
+    return unequipActionPresentationFor(
+      owner,
+      item,
+      canUnequip,
+    ).isActionEnabled;
   }
 
   /// Alterna equipar o quitar un item del jugador y propaga el cambio al consumidor externo.

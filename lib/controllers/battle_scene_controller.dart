@@ -15,15 +15,62 @@ class BattleSceneExitRequest {
   });
 }
 
+/// Names the current scene-level exit phase.
+enum BattleSceneExitPhase {
+  active,
+  rewardPending,
+  rewardPresenting,
+  immediateExitPending,
+}
+
+/// Immutable state for pending battle exits and reward presentation.
+class BattleSceneExitState {
+  final BattleSceneExitPhase phase;
+  final BattleSceneExitRequest? rewardRequest;
+  final BattleFlowResult? immediateExitResult;
+
+  const BattleSceneExitState._({
+    required this.phase,
+    this.rewardRequest,
+    this.immediateExitResult,
+  });
+
+  /// No scene-level exit is waiting to be handled.
+  const BattleSceneExitState.active()
+      : this._(phase: BattleSceneExitPhase.active);
+
+  /// A victory has rewards that must be presented before leaving the scene.
+  const BattleSceneExitState.rewardPending(BattleSceneExitRequest request)
+      : this._(
+          phase: BattleSceneExitPhase.rewardPending,
+          rewardRequest: request,
+        );
+
+  /// Rewards are already being presented and should not be opened twice.
+  const BattleSceneExitState.rewardPresenting(BattleSceneExitRequest request)
+      : this._(
+          phase: BattleSceneExitPhase.rewardPresenting,
+          rewardRequest: request,
+        );
+
+  /// The scene can leave immediately with [result].
+  const BattleSceneExitState.immediateExit(BattleFlowResult result)
+      : this._(
+          phase: BattleSceneExitPhase.immediateExitPending,
+          immediateExitResult: result,
+        );
+
+  bool get hasPendingVictoryRewards => rewardRequest != null;
+  bool get isPresentingRewards => phase == BattleSceneExitPhase.rewardPresenting;
+}
+
 /// Orquesta el estado de escena alrededor de `BattleController`, incluyendo botin y acciones de UI.
 class BattleSceneController extends ChangeNotifier {
   final BattleRewardService _rewardService;
   final RunRandomizer _randomizer;
   final BattleController _battleController;
 
-  BattleSceneExitRequest? _pendingRewardExitRequest;
-  BattleFlowResult? _pendingImmediateExitResult;
-  bool _isPresentingRewards = false;
+  BattleSceneExitState _exitState = const BattleSceneExitState.active();
 
   /// Crea el controlador de escena de combate y enlaza la salida del motor principal a la UI.
   BattleSceneController({
@@ -151,14 +198,17 @@ class BattleSceneController extends ChangeNotifier {
       _battleController.playerActionIntentPreview;
 
   /// Indica si la escena tiene una salida en victoria pendiente de pasar por el overlay de botin.
-  bool get hasPendingVictoryRewards => _pendingRewardExitRequest != null;
+  bool get hasPendingVictoryRewards => _exitState.hasPendingVictoryRewards;
 
   /// Expone la peticion de salida pendiente cuando la escena debe abrir el overlay de recompensas.
   BattleSceneExitRequest? get pendingRewardExitRequest =>
-      _pendingRewardExitRequest;
+      _exitState.rewardRequest;
 
   /// Indica si ya se esta presentando el overlay de recompensas para evitar aperturas dobles.
-  bool get isPresentingRewards => _isPresentingRewards;
+  bool get isPresentingRewards => _exitState.isPresentingRewards;
+
+  /// Expone el estado agrupado de salida para vistas nuevas.
+  BattleSceneExitState get exitState => _exitState;
 
   /// Sustituye el jugador vivo del combate tras cambios externos como overlays.
   void replacePlayer(Battler player) {
@@ -249,23 +299,24 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Marca que el overlay de recompensas ya se esta presentando para evitar una segunda apertura.
   void beginRewardPresentation() {
-    if (_pendingRewardExitRequest == null || _isPresentingRewards) return;
+    final request = _exitState.rewardRequest;
+    if (request == null || _exitState.isPresentingRewards) return;
 
-    _isPresentingRewards = true;
+    _exitState = BattleSceneExitState.rewardPresenting(request);
     notifyListeners();
   }
 
   /// Convierte la recompensa elegida por el usuario en una salida inmediata ya saneada.
   void completeRewardPresentation(Battler? rewardedPlayer) {
-    final request = _pendingRewardExitRequest;
+    final request = _exitState.rewardRequest;
     if (request == null) return;
 
-    _pendingRewardExitRequest = null;
-    _isPresentingRewards = false;
-    _pendingImmediateExitResult = _rewardService.sanitizeExitResult(
-      BattleFlowResult(
-        type: request.exitResult.type,
-        player: rewardedPlayer ?? request.exitResult.player,
+    _exitState = BattleSceneExitState.immediateExit(
+      _rewardService.sanitizeExitResult(
+        BattleFlowResult(
+          type: request.exitResult.type,
+          player: rewardedPlayer ?? request.exitResult.player,
+        ),
       ),
     );
     notifyListeners();
@@ -273,8 +324,10 @@ class BattleSceneController extends ChangeNotifier {
 
   /// Devuelve y consume la siguiente salida inmediata que la escena debe materializar con navegación.
   BattleFlowResult? consumeImmediateExitResult() {
-    final result = _pendingImmediateExitResult;
-    _pendingImmediateExitResult = null;
+    final result = _exitState.immediateExitResult;
+    if (result != null) {
+      _exitState = const BattleSceneExitState.active();
+    }
     return result;
   }
 
@@ -296,8 +349,9 @@ class BattleSceneController extends ChangeNotifier {
     }
 
     if (exitResult.type != BattleFlowResultType.victory) {
-      _pendingImmediateExitResult =
-          _rewardService.sanitizeExitResult(exitResult);
+      _exitState = BattleSceneExitState.immediateExit(
+        _rewardService.sanitizeExitResult(exitResult),
+      );
       notifyListeners();
       return;
     }
@@ -309,15 +363,18 @@ class BattleSceneController extends ChangeNotifier {
       randomizer: _randomizer,
     );
     if (!rewards.hasRewards) {
-      _pendingImmediateExitResult =
-          _rewardService.sanitizeExitResult(exitResult);
+      _exitState = BattleSceneExitState.immediateExit(
+        _rewardService.sanitizeExitResult(exitResult),
+      );
       notifyListeners();
       return;
     }
 
-    _pendingRewardExitRequest = BattleSceneExitRequest(
-      exitResult: exitResult,
-      rewards: rewards,
+    _exitState = BattleSceneExitState.rewardPending(
+      BattleSceneExitRequest(
+        exitResult: exitResult,
+        rewards: rewards,
+      ),
     );
     notifyListeners();
   }

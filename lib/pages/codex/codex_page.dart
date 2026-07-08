@@ -84,43 +84,29 @@ extension _CodexOrderModePresentation on _CodexOrderMode {
   }
 }
 
-class CodexPage extends StatefulWidget {
-  const CodexPage({super.key});
-
-  @override
-  State<CodexPage> createState() => _CodexPageState();
-}
-
-class _CodexPageState extends State<CodexPage> {
-  _CodexCategory _selectedCategory = _CodexCategory.archetypes;
-  Set<String> _indexedKeys = <String>{};
-  final Map<_CodexCategory, _CodexOrderMode> _orderModes = {
-    for (final category in _CodexCategory.values)
-      category: _CodexOrderMode.nameAsc,
-  };
-
-  static final List<ArchetypePathNode> _archetypes = List.unmodifiable([
+class _CodexCatalog {
+  static final List<ArchetypePathNode> archetypes = List.unmodifiable([
     velozArchetypeNode,
     inamovibleArchetypeNode,
     imparableArchetypeNode,
     mercanteArchetypeNode,
   ]);
 
-  static final List<CombatPathNode> _enemyNodes = List.unmodifiable([
+  static final List<CombatPathNode> enemyNodes = List.unmodifiable([
     for (final node in combatPathNodeExamples) node,
   ]);
 
-  static final List<ShopPathNode> _shopNodes = _deduplicateShopNodes([
+  static final List<ShopPathNode> shopNodes = _deduplicateShopNodes([
     ...dayShopNodes,
     ...nightShopNodes,
   ]);
 
-  static final List<EventPathNode> _eventNodes = _deduplicateEventNodes([
+  static final List<EventPathNode> eventNodes = _deduplicateEventNodes([
     ...dayEventNodes,
     ...nightEventNodes,
   ]);
 
-  static const List<BattlerStatus> _statusPresets = [
+  static const List<BattlerStatus> statusPresets = [
     calentandoStatus,
     potenciaStatus,
     cicloEclipseStatus,
@@ -137,73 +123,51 @@ class _CodexPageState extends State<CodexPage> {
     deudaStatus,
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadIndexedKeys());
-  }
-
-  Future<void> _loadIndexedKeys() async {
-    final indexedKeys = await CodexDiscoveryService.loadIndexedKeys();
-    if (!mounted) return;
-
-    setState(() {
-      _indexedKeys = indexedKeys;
-    });
-  }
-
-  List<_CodexEntry> get _selectedEntries {
-    switch (_selectedCategory) {
-      case _CodexCategory.archetypes:
-        return [
-          for (final archetype in _archetypes) _CodexEntry.archetype(archetype),
-        ];
-      case _CodexCategory.items:
-        return [
-          for (final item in itemPresets) _CodexEntry.item(item),
-        ];
-      case _CodexCategory.augments:
-        return [
-          for (final augment in augmentCatalog) _CodexEntry.augment(augment),
-        ];
-      case _CodexCategory.enemies:
-        return [
-          for (final node in _enemyNodes) _CodexEntry.enemy(node),
-        ];
-      case _CodexCategory.shops:
-        return [
-          for (final node in _shopNodes) _CodexEntry.shop(node),
-        ];
-      case _CodexCategory.events:
-        return [
-          for (final node in _eventNodes) _CodexEntry.event(node),
-        ];
-      case _CodexCategory.buffs:
-        return [
-          for (final status in _statusPresets)
-            if (status.type == BattlerStatusType.buff)
-              _CodexEntry.status(status),
-        ];
-      case _CodexCategory.debuffs:
-        return [
-          for (final status in _statusPresets)
-            if (status.type == BattlerStatusType.debuff)
-              _CodexEntry.status(status),
-        ];
+  static List<ShopPathNode> _deduplicateShopNodes(
+    Iterable<ShopPathNode> nodes,
+  ) {
+    final seen = <String>{};
+    final result = <ShopPathNode>[];
+    for (final node in nodes) {
+      if (!seen.add(node.nodeId)) continue;
+      result.add(node);
     }
+    return List<ShopPathNode>.unmodifiable(result);
   }
 
-  _CodexOrderMode get _selectedOrderMode =>
-      _orderModes[_selectedCategory] ?? _CodexOrderMode.nameAsc;
+  static List<EventPathNode> _deduplicateEventNodes(
+    Iterable<EventPathNode> nodes,
+  ) {
+    final seen = <PathEventId>{};
+    final result = <EventPathNode>[];
+    for (final node in nodes) {
+      if (!seen.add(node.id)) continue;
+      result.add(node);
+    }
+    return List<EventPathNode>.unmodifiable(result);
+  }
+}
 
-  List<_CodexSection> get _selectedSections {
-    final entries = _sortedEntries(_selectedEntries, _selectedOrderMode);
-    if (!_selectedCategory.supportsArchetypeSections) {
+class _CodexPresenter {
+  final _CodexCategory category;
+  final _CodexOrderMode orderMode;
+  final Set<String> indexedKeys;
+
+  const _CodexPresenter({
+    required this.category,
+    required this.orderMode,
+    required this.indexedKeys,
+  });
+
+  List<_CodexSection> buildSections(List<_CodexEntry> entries) {
+    final sortedEntries = _sortedEntries(entries);
+    if (!category.supportsArchetypeSections) {
+      final categoryData = _CodexCategoryData.forCategory(category);
       return [
         _CodexSection(
-          title: _CodexCategoryData.forCategory(_selectedCategory).title,
-          accent: _CodexCategoryData.forCategory(_selectedCategory).accent,
-          entries: entries,
+          title: categoryData.title,
+          accent: categoryData.accent,
+          entries: sortedEntries,
         ),
       ];
     }
@@ -212,7 +176,7 @@ class _CodexPageState extends State<CodexPage> {
       for (final key in _CodexArchetypeSectionKey.values) key: <_CodexEntry>[],
     };
 
-    for (final entry in entries) {
+    for (final entry in sortedEntries) {
       sectionEntries[entry.sectionKey]!.add(entry);
     }
 
@@ -227,10 +191,7 @@ class _CodexPageState extends State<CodexPage> {
     ];
   }
 
-  List<_CodexEntry> _sortedEntries(
-    List<_CodexEntry> entries,
-    _CodexOrderMode orderMode,
-  ) {
+  List<_CodexEntry> _sortedEntries(List<_CodexEntry> entries) {
     final sortedEntries = [...entries];
     sortedEntries.sort((a, b) {
       final comparison = switch (orderMode) {
@@ -262,7 +223,93 @@ class _CodexPageState extends State<CodexPage> {
     return List<_CodexEntry>.unmodifiable(sortedEntries);
   }
 
-  bool _isIndexed(_CodexEntry entry) => _indexedKeys.contains(entry.codexKey);
+  bool _isIndexed(_CodexEntry entry) => indexedKeys.contains(entry.codexKey);
+}
+
+class CodexPage extends StatefulWidget {
+  const CodexPage({super.key});
+
+  @override
+  State<CodexPage> createState() => _CodexPageState();
+}
+
+class _CodexPageState extends State<CodexPage> {
+  _CodexCategory _selectedCategory = _CodexCategory.archetypes;
+  Set<String> _indexedKeys = <String>{};
+  final Map<_CodexCategory, _CodexOrderMode> _orderModes = {
+    for (final category in _CodexCategory.values)
+      category: _CodexOrderMode.nameAsc,
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadIndexedKeys());
+  }
+
+  Future<void> _loadIndexedKeys() async {
+    final indexedKeys = await CodexDiscoveryService.loadIndexedKeys();
+    if (!mounted) return;
+
+    setState(() {
+      _indexedKeys = indexedKeys;
+    });
+  }
+
+  List<_CodexEntry> get _selectedEntries {
+    switch (_selectedCategory) {
+      case _CodexCategory.archetypes:
+        return [
+          for (final archetype in _CodexCatalog.archetypes)
+            _CodexEntry.archetype(archetype),
+        ];
+      case _CodexCategory.items:
+        return [
+          for (final item in itemPresets) _CodexEntry.item(item),
+        ];
+      case _CodexCategory.augments:
+        return [
+          for (final augment in augmentCatalog) _CodexEntry.augment(augment),
+        ];
+      case _CodexCategory.enemies:
+        return [
+          for (final node in _CodexCatalog.enemyNodes) _CodexEntry.enemy(node),
+        ];
+      case _CodexCategory.shops:
+        return [
+          for (final node in _CodexCatalog.shopNodes) _CodexEntry.shop(node),
+        ];
+      case _CodexCategory.events:
+        return [
+          for (final node in _CodexCatalog.eventNodes) _CodexEntry.event(node),
+        ];
+      case _CodexCategory.buffs:
+        return [
+          for (final status in _CodexCatalog.statusPresets)
+            if (status.type == BattlerStatusType.buff)
+              _CodexEntry.status(status),
+        ];
+      case _CodexCategory.debuffs:
+        return [
+          for (final status in _CodexCatalog.statusPresets)
+            if (status.type == BattlerStatusType.debuff)
+              _CodexEntry.status(status),
+        ];
+    }
+  }
+
+  _CodexOrderMode get _selectedOrderMode =>
+      _orderModes[_selectedCategory] ?? _CodexOrderMode.nameAsc;
+
+  _CodexPresenter get _presenter => _CodexPresenter(
+        category: _selectedCategory,
+        orderMode: _selectedOrderMode,
+        indexedKeys: _indexedKeys,
+      );
+
+  List<_CodexSection> get _selectedSections {
+    return _presenter.buildSections(_selectedEntries);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -398,29 +445,6 @@ class _CodexPageState extends State<CodexPage> {
     }
   }
 
-  static List<ShopPathNode> _deduplicateShopNodes(
-    Iterable<ShopPathNode> nodes,
-  ) {
-    final seen = <String>{};
-    final result = <ShopPathNode>[];
-    for (final node in nodes) {
-      if (!seen.add(node.nodeId)) continue;
-      result.add(node);
-    }
-    return List<ShopPathNode>.unmodifiable(result);
-  }
-
-  static List<EventPathNode> _deduplicateEventNodes(
-    Iterable<EventPathNode> nodes,
-  ) {
-    final seen = <PathEventId>{};
-    final result = <EventPathNode>[];
-    for (final node in nodes) {
-      if (!seen.add(node.id)) continue;
-      result.add(node);
-    }
-    return List<EventPathNode>.unmodifiable(result);
-  }
 }
 
 class _CodexSidebar extends StatelessWidget {
@@ -1699,17 +1723,17 @@ class _CodexEntry {
   int get raritySortIndex {
     switch (kind) {
       case _CodexEntryKind.archetype:
-        return archetype!.rarity.index;
+        return archetype!.rarity.factor;
       case _CodexEntryKind.item:
-        return item!.rarity.index;
+        return item!.rarity.factor;
       case _CodexEntryKind.augment:
-        return augment!.rarity.index;
+        return augment!.rarity.factor;
       case _CodexEntryKind.enemy:
-        return enemyTier!.rarity.index;
+        return enemyTier!.rarity.factor;
       case _CodexEntryKind.shop:
-        return shop!.rarity.index;
+        return shop!.rarity.factor;
       case _CodexEntryKind.event:
-        return event!.rarity.index;
+        return event!.rarity.factor;
       case _CodexEntryKind.status:
         return 0;
     }

@@ -92,7 +92,7 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
     }
     final items = byId.values.toList(growable: false);
     items.sort((a, b) {
-      final rarityOrder = b.rarity.index.compareTo(a.rarity.index);
+      final rarityOrder = b.rarity.compareToTier(a.rarity);
       if (rarityOrder != 0) return rarityOrder;
       return a.displayName.compareTo(b.displayName);
     });
@@ -111,7 +111,7 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
     }
     final augments = byId.values.toList(growable: false);
     augments.sort((a, b) {
-      final rarityOrder = b.rarity.index.compareTo(a.rarity.index);
+      final rarityOrder = b.rarity.compareToTier(a.rarity);
       if (rarityOrder != 0) return rarityOrder;
       return a.displayName.compareTo(b.displayName);
     });
@@ -120,7 +120,7 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
 
   void _keepBestItem(Map<String, Item> byId, Item item) {
     final current = byId[item.catalogKey];
-    if (current == null || item.rarity.index > current.rarity.index) {
+    if (current == null || item.rarity.isAbove(current.rarity)) {
       byId[item.catalogKey] = item;
     }
   }
@@ -130,7 +130,7 @@ class _RunOutcomePageState extends State<RunOutcomePage> {
     Augment augment,
   ) {
     final current = byId[augment.id];
-    if (current == null || augment.rarity.index > current.rarity.index) {
+    if (current == null || augment.rarity.isAbove(current.rarity)) {
       byId[augment.id] = augment;
     }
   }

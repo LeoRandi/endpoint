@@ -41,10 +41,10 @@ class CatalogRuntimeService {
 
   /// Promociona un item hasta una rareza exacta; devuelve null si no puede llegar.
   Item? promoteItemToExactRarity(Item template, RarityTier targetRarity) {
-    if (template.rarity.index > targetRarity.index) return null;
+    if (template.rarity.isAbove(targetRarity)) return null;
 
     var promotedItem = template;
-    while (promotedItem.rarity.index < targetRarity.index &&
+    while (promotedItem.rarity.isBelow(targetRarity) &&
         promotedItem.canUpgrade) {
       promotedItem = promotedItem.upgraded();
     }
@@ -58,10 +58,10 @@ class CatalogRuntimeService {
     Augment template,
     RarityTier targetRarity,
   ) {
-    if (template.rarity.index > targetRarity.index) return null;
+    if (template.rarity.isAbove(targetRarity)) return null;
 
     var promotedAugment = runtimeAugment(template);
-    while (promotedAugment.rarity.index < targetRarity.index &&
+    while (promotedAugment.rarity.isBelow(targetRarity) &&
         promotedAugment.canUpgrade) {
       promotedAugment = promotedAugment.upgraded();
     }
@@ -76,11 +76,11 @@ class CatalogRuntimeService {
     RarityTier targetRarity,
   ) {
     var promotedAugment = runtimeAugment(template);
-    while (promotedAugment.rarity.index < targetRarity.index &&
+    while (promotedAugment.rarity.isBelow(targetRarity) &&
         promotedAugment.canUpgrade) {
       promotedAugment = promotedAugment.upgraded();
     }
-    if (promotedAugment.rarity.index >= targetRarity.index) {
+    if (promotedAugment.rarity.isAtLeast(targetRarity)) {
       return runtimeAugment(promotedAugment);
     }
 

@@ -42,7 +42,7 @@ class WeaponShopStockService {
     final availableItemIds = <String>{};
 
     for (final rarity in RarityTier.values) {
-      if (rarity.index > maximumRarity.index) continue;
+      if (rarity.isAbove(maximumRarity)) continue;
 
       final candidates = _stockCandidatesForExactRarity(
         items: itemPool,
@@ -148,7 +148,7 @@ class WeaponShopStockService {
     final availableRarities = <RarityTier>[];
 
     for (final rarity in RarityTier.values) {
-      if (rarity.index > maximumRarity.index) continue;
+      if (rarity.isAbove(maximumRarity)) continue;
 
       final candidates = _stockCandidatesForExactRarity(
         items: items,

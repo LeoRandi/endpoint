@@ -102,7 +102,9 @@ class LevelUpRewardService {
     required int count,
   }) {
     final pickedAugments = <Augment>[];
-    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+    for (final rarity in RarityProgressionService.fallbackTiersFrom(
+      targetRarity,
+    )) {
       final scopedCandidates = _augmentCandidatesForRarity(
         augmentCatalogForArchetype(player.archetypeId),
         player: player,
@@ -137,7 +139,9 @@ class LevelUpRewardService {
     required int count,
   }) {
     final pickedItems = <Item>[];
-    for (final rarity in _rarityFallbacksFrom(targetRarity)) {
+    for (final rarity in RarityProgressionService.fallbackTiersFrom(
+      targetRarity,
+    )) {
       final scopedCandidates = _itemCandidatesForRarity(
         itemPoolForArchetype(player.archetypeId),
         targetRarity: rarity,
@@ -208,15 +212,6 @@ class LevelUpRewardService {
     }
 
     return List<Item>.unmodifiable(candidatesById.values);
-  }
-
-  List<RarityTier> _rarityFallbacksFrom(RarityTier targetRarity) {
-    return List<RarityTier>.unmodifiable(
-      RarityTier.values
-          .where((rarity) => rarity.index <= targetRarity.index)
-          .toList(growable: false)
-          .reversed,
-    );
   }
 
   List<T> _pickPreferredThenFallback<T>({

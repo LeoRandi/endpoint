@@ -11,7 +11,7 @@ Future<T?> showEndpointDialog<T>({
   String barrierLabel = 'Cerrar',
   bool barrierDismissible = true,
   Color barrierColor = EndpointPalette.overlayScrim,
-  Duration transitionDuration = const Duration(milliseconds: 260),
+  Duration transitionDuration = EndpointMotion.dialogTransition,
   EndpointDialogTransition transition = EndpointDialogTransition.scale,
 }) {
   return showGeneralDialog<T>(
@@ -22,24 +22,20 @@ Future<T?> showEndpointDialog<T>({
     transitionDuration: transitionDuration,
     pageBuilder: (context, animation, secondaryAnimation) => builder(context),
     transitionBuilder: (context, animation, secondaryAnimation, child) {
-      final curved = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
+      final curved = EndpointMotion.curved(
+        animation,
+        reverseCurve: EndpointMotion.standardReverseCurve,
       );
 
       return FadeTransition(
         opacity: curved,
         child: switch (transition) {
           EndpointDialogTransition.scale => ScaleTransition(
-              scale: Tween<double>(begin: 0.94, end: 1).animate(curved),
+              scale: EndpointMotion.scaleIn(curved),
               child: child,
             ),
           EndpointDialogTransition.slideUp => SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.06),
-                end: Offset.zero,
-              ).animate(curved),
+              position: EndpointMotion.slideIn(curved),
               child: child,
             ),
         },

@@ -27,12 +27,9 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: EndpointMotion.nodeSceneIntro,
     )..forward();
-    final curved = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
+    final curved = EndpointMotion.curved(_controller);
     _titleOpacity = TweenSequence<double>([
       TweenSequenceItem(
         tween: Tween<double>(begin: 0, end: 1),
@@ -61,14 +58,12 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
         weight: 50,
       ),
     ]).animate(curved);
-    _titleScale = Tween<double>(
-      begin: 0.92,
-      end: 1,
-    ).animate(curved);
-    _titleOffsetY = Tween<double>(
+    _titleScale = EndpointMotion.scaleIn(curved, begin: 0.92);
+    _titleOffsetY = EndpointMotion.doubleTween(
+      curved,
       begin: 18,
       end: 0,
-    ).animate(curved);
+    );
   }
 
   @override
@@ -115,7 +110,7 @@ class _NodeSceneWrapperState extends State<NodeSceneWrapper>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withValues(alpha: 0.2),
                                   blurRadius: 20,
                                   spreadRadius: 2,
                                 ),

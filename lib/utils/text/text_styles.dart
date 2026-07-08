@@ -116,3 +116,27 @@ const textLargeNumericBold = TextStyle(
   decoration: TextDecoration.none,
   decorationColor: Colors.transparent,
 );
+
+/// Named accessors for the shared endpoint typography scale.
+abstract final class EndpointTextStyles {
+  static const fontFamilyBody = _fontFamilyBody;
+  static const fontFamilyDisplay = _fontFamilyDisplay;
+  static const fontFamilyNumeric = _fontFamilyNumeric;
+
+  static const small = textSmall;
+  static const medium = textMedium;
+  static const large = textLarge;
+  static const extraLarge = textExtraLarge;
+
+  static const smallBold = textSmallBold;
+  static const mediumBold = textMediumBold;
+  static const largeBold = textLargeBold;
+  static const extraLargeBold = textExtraLargeBold;
+
+  static const titleSmallBold = textTitleSmallBold;
+  static const titleMediumBold = textTitleMediumBold;
+
+  static const numericSmallBold = textSmallNumericBold;
+  static const numericMediumBold = textMediumNumericBold;
+  static const numericLargeBold = textLargeNumericBold;
+}

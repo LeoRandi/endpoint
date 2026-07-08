@@ -35,6 +35,38 @@ enum RarityTier {
   /// Indica si esta rareza ya esta en el tope y no debe subir mas.
   bool get isMaxTier => this == RarityTier.yellow;
 
+  /// Compara esta rareza con [other] usando el orden canonico de tiers.
+  int compareToTier(RarityTier other) {
+    return index.compareTo(other.index);
+  }
+
+  /// Indica si esta rareza es estrictamente superior a [other].
+  bool isAbove(RarityTier other) {
+    return compareToTier(other) > 0;
+  }
+
+  /// Indica si esta rareza es estrictamente inferior a [other].
+  bool isBelow(RarityTier other) {
+    return compareToTier(other) < 0;
+  }
+
+  /// Indica si esta rareza es igual o superior a [other].
+  bool isAtLeast(RarityTier other) {
+    return compareToTier(other) >= 0;
+  }
+
+  /// Indica si esta rareza es igual o inferior a [other].
+  bool isAtMost(RarityTier other) {
+    return compareToTier(other) <= 0;
+  }
+
+  /// Devuelve cuantos pasos separan esta rareza de [other].
+  ///
+  /// Un valor positivo significa que [other] esta por encima de esta rareza.
+  int distanceTo(RarityTier other) {
+    return other.index - index;
+  }
+
   /// Devuelve la siguiente rareza disponible sin sobrepasar amarillo.
   RarityTier get nextTier {
     if (isMaxTier) return this;

@@ -347,7 +347,7 @@ class RunDaySummary {
       final beforeRarity = beforeBestRarity[item.catalogKey];
       final isNewCopy = afterCount > beforeCount;
       final isUpgrade =
-          beforeRarity != null && item.rarity.index > beforeRarity.index;
+          beforeRarity != null && item.rarity.isAbove(beforeRarity);
       if (!isNewCopy && !isUpgrade) continue;
 
       awardedItemIds.add(item.catalogKey);
@@ -373,7 +373,7 @@ class RunDaySummary {
       final previousAugment = beforeAugments[augment.id];
       final isNew = previousAugment == null;
       final isUpgrade = previousAugment != null &&
-          augment.rarity.index > previousAugment.rarity.index;
+          augment.rarity.isAbove(previousAugment.rarity);
       if (!isNew && !isUpgrade) continue;
 
       awardedAugmentIds.add(augment.id);
@@ -395,7 +395,7 @@ class RunDaySummary {
     final rarities = <String, RarityTier>{};
     for (final item in items) {
       final currentRarity = rarities[item.catalogKey];
-      if (currentRarity != null && currentRarity.index >= item.rarity.index) {
+      if (currentRarity != null && currentRarity.isAtLeast(item.rarity)) {
         continue;
       }
       rarities[item.catalogKey] = item.rarity;
