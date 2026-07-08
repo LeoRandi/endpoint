@@ -27,6 +27,32 @@ List<Item> itemPresets = <Item>[
     },
   ),
 
+    /// Maqueta
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Maqueta pájaro',
+    description:
+        '',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.quemadura,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/HomemadeFlame.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 6): const <int>[6, 12, 18, 24],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Apply --value-- Burn to the enemy and 1 Burn to yourself.',
+        customEffectKey: ItemEffectKeys.homemadeFlameBurnBoth,
+        value: 2,
+      ): const <int>[2, 4, 6, 8],
+    },
+  ),
+
   /// Flyswatter
   Item(
     affinity: ItemArchetypeAffinity.inamovible,
@@ -246,7 +272,7 @@ List<Item> itemPresets = <Item>[
       const ActionEffect(
         actionType: ItemActionType.none,
         description:
-            'Lose up to --value-- Barrier to deal that much true damage.',
+            'Lose up to --value-- Barrier to gain that much Calentando',
         customEffectKey: ItemEffectKeys.moltSacrificeBarrierDamage,
         value: 8,
       ): const <int>[8, 16, 32],
@@ -283,7 +309,7 @@ List<Item> itemPresets = <Item>[
     name: 'Flower Crown',
     description:
         'A delicate crown of flowers. Somehow, standing your ground feels easier while wearing it.',
-    tier: RarityTier.green,
+    tier: RarityTier.blue,
     tags: <EntityTag>[
       EntityTag.accesorio,
       EntityTag.barrera,
@@ -291,13 +317,13 @@ List<Item> itemPresets = <Item>[
     ],
     asset: 'assets/sprites/items/FlowerCrown.png',
     effects: <Effect, List<int>>{
-      ActionEffect.block(value: 4): const <int>[4, 8, 12, 16],
+      ActionEffect.block(value: 8): const <int>[8, 12, 16],
       const ActionEffect(
         actionType: ItemActionType.none,
         description: 'Gain --value-- Potencia.',
         customEffectKey: ItemEffectKeys.flowerCrownGainCalentando,
         value: 1,
-      ): const <int>[1, 2, 3, 4],
+      ): const <int>[1, 2, 3],
     },
   ),
 
@@ -321,6 +347,30 @@ List<Item> itemPresets = <Item>[
         customEffectKey: ItemEffectKeys.hazardSprayIntoxicacion,
         value: 3,
       ): const <int>[3, 6, 9, 12],
+    },
+  ),
+
+  /// Hazard Spray
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Zapatilla',
+    description:
+        'Estoy cansado',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/Zapatilla.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 5): const <int>[5, 10, 15, 20],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'If the enemy has a debuff, deal extra --value-- true damage.',
+        customEffectKey: ItemEffectKeys.zapatillaExtraDamage,
+        value: 5,
+      ): const <int>[5, 10, 15, 20],
     },
   ),
 
@@ -348,7 +398,7 @@ List<Item> itemPresets = <Item>[
         actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
-              'If this starts the pattern, the next weapon used applies 1 Conmocion.',
+              'If this starts the pattern, the next weapon used applies --value-- Conmocion.',
           customEffectKey: ItemEffectKeys.repellerOpeningWave,
           value: 2,
         ),
@@ -364,13 +414,10 @@ List<Item> itemPresets = <Item>[
         'A crude cannon loaded with common webbing. It makes every movement feel like a mistake.',
     tier: RarityTier.blue,
     tags: <EntityTag>[
-      EntityTag.arma,
-      EntityTag.ataque,
       EntityTag.debuff,
     ],
     asset: 'assets/sprites/items/WebCannon.png',
     effects: <Effect, List<int>>{
-      ActionEffect.attack(value: 5): const <int>[5, 10, 15],
       const ActionEffect(
         actionType: ItemActionType.none,
         description: 'Apply --value-- Fragilidad.',
@@ -408,7 +455,7 @@ List<Item> itemPresets = <Item>[
       const PassiveEffect(
         effectKey: ItemEffectKeys.electricNetDefensiveShock,
         description:
-            'Whenever you apply barrier to yourself, apply --value-- Conmocion.',
+            'Whenever you apply barrier to yourself, apply --value-- Fragilidad.',
         value: 2,
         hook: ItemEffectHook.defendResolved,
       ): const <int>[2, 4],
