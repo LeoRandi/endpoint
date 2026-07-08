@@ -559,12 +559,9 @@ class _BattlePatternMatchOverlayState extends State<BattlePatternMatchOverlay> {
       matrix: _PatternMatrixCard(
         accent: EndpointPalette.patternAccent,
         entryAccent: EndpointPalette.dangerAccent,
-        summary: _BattlePatternLiveSummary(
-          attackBonus: result.attackBonus,
-          barrierBonus: result.barrierBonus,
-          healthBonus: result.healthBonus,
-          effects: widget.actionEffects,
-          pointCount: resolution.distinctPointCount,
+        summary: _BattleActionPilePreview(
+          entries: result.actionPile,
+          accent: EndpointPalette.patternAccent,
         ),
         cornerSwapKey: isPlayerCornerFront ? 'player-front' : 'enemy-front',
         animateCornerSwap: isPlayerCornerFront,
@@ -1334,7 +1331,6 @@ class _EnemyBattlePatternMatchOverlayState
   @override
   Widget build(BuildContext context) {
     final resolution = _currentResolution;
-    final result = _currentResult;
     final enemyBlockingPoints =
         OperativePatternCombatRules.maxBlockingPointsFor(
       widget.enemy,
@@ -1391,13 +1387,7 @@ class _EnemyBattlePatternMatchOverlayState
       matrix: _PatternMatrixCard(
         accent: EndpointPalette.dangerAccent,
         entryAccent: EndpointPalette.patternAccent,
-        summary: _BattlePatternLiveSummary(
-          attackBonus: result.attackBonus,
-          barrierBonus: result.barrierBonus,
-          healthBonus: result.healthBonus,
-          effects: const <PlayerActionEffectIntent>[],
-          pointCount: resolution.distinctPointCount,
-        ),
+        summary: null,
         cornerSwapKey: isEnemyCornerFront ? 'enemy-front' : 'player-front',
         animateCornerSwap: isEnemyCornerFront,
         pointCount: isEnemyCornerFront ? resolution.distinctPointCount : 0,
@@ -1697,7 +1687,7 @@ class _BattlePatternActionPileOverlayState
       matrix: _PatternMatrixCard(
         accent: EndpointPalette.warningAccent,
         entryAccent: EndpointPalette.patternAccent,
-        summary: const _BattleActionPileSummary(),
+        summary: null,
         cornerSwapKey: 'action-piles',
         animateCornerSwap: false,
         pointCount: _playerEntries.length,
@@ -1720,6 +1710,7 @@ class _BattlePatternActionPileOverlayState
         isBlockCornerActive: true,
         isRearPatternCornerActive: false,
         isRearBlockCornerActive: false,
+        showCornerWidgets: false,
         onFinish: () {},
         child: _BattleActionPileBoard(
           enemyEntries: _enemyEntries,
@@ -1759,39 +1750,383 @@ class _BattlePatternActionPileOverlayState
   }
 }
 
-class _BattleActionPileSummary extends StatelessWidget {
-  const _BattleActionPileSummary();
+class _BattleActionPilePreview extends StatefulWidget {
+  final List<BattlePatternActionPileEntry> entries;
+  final Color accent;
+
+  const _BattleActionPilePreview({
+    required this.entries,
+    required this.accent,
+  });
+
+  @override
+  State<_BattleActionPilePreview> createState() =>
+      _BattleActionPilePreviewState();
+}
+
+class _BattleActionPilePreviewState extends State<_BattleActionPilePreview> {
+  final Set<String> _pendingRemovalKeys = <String>{};
+  List<_BattleActionPilePreviewItem> _items =
+      const <_BattleActionPilePreviewItem>[];
+  int _generation = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncItems(shouldSetState: false);
+  }
+
+  @override
+  void didUpdateWidget(covariant _BattleActionPilePreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.entries.isNotEmpty && widget.entries.isEmpty) {
+      _generation++;
+    }
+    _syncItems();
+  }
+
+  @override
+  void dispose() {
+    _pendingRemovalKeys.clear();
+    super.dispose();
+  }
+
+  void _syncItems({bool shouldSetState = true}) {
+    final nextItems = <_BattleActionPilePreviewItem>[
+      for (var index = 0; index < widget.entries.length; index++)
+        _BattleActionPilePreviewItem(
+          key: _entryKey(widget.entries[index], index),
+          entry: widget.entries[index],
+        ),
+    ];
+    final nextByKey = <String, _BattleActionPilePreviewItem>{
+      for (final item in nextItems) item.key: item,
+    };
+    final handledKeys = <String>{};
+    final updatedItems = <_BattleActionPilePreviewItem>[];
+
+    for (final item in _items) {
+      final nextItem = nextByKey[item.key];
+      if (nextItem != null) {
+        updatedItems.add(nextItem);
+        handledKeys.add(item.key);
+        continue;
+      }
+
+      final removingItem = item.copyWith(isRemoving: true);
+      updatedItems.add(removingItem);
+      _scheduleRemoval(removingItem.key);
+    }
+
+    for (final item in nextItems) {
+      if (handledKeys.contains(item.key)) continue;
+      updatedItems.add(item);
+    }
+
+    if (shouldSetState) {
+      setState(() {
+        _items = List<_BattleActionPilePreviewItem>.unmodifiable(updatedItems);
+      });
+    } else {
+      _items = List<_BattleActionPilePreviewItem>.unmodifiable(updatedItems);
+    }
+  }
+
+  void _scheduleRemoval(String key) {
+    if (!_pendingRemovalKeys.add(key)) return;
+    Future<void>.delayed(_battleActionPileEntryFadeDuration, () {
+      if (!mounted) return;
+      _pendingRemovalKeys.remove(key);
+      setState(() {
+        _items = List<_BattleActionPilePreviewItem>.unmodifiable(
+          _items.where((item) => item.key != key || !item.isRemoving),
+        );
+      });
+    });
+  }
+
+  String _entryKey(BattlePatternActionPileEntry entry, int index) {
+    final item = entry.item;
+    final itemKey = item?.instanceId ?? item?.catalogKey ?? 'matrix';
+    final effectKey = entry.action?.customEffectKey ??
+        entry.action?.description ??
+        entry.bonus?.kind.name ??
+        'effect';
+    return '$_generation:$index:${entry.kind.name}:${entry.pointKey}:'
+        '${entry.chainKey}:$itemKey:${entry.actionType.name}:'
+        '${entry.value}:$effectKey';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final modifiers = _BattleActionPileValueModifiers();
+    final displayValuesByKey = <String, int>{};
+    for (final item in _items.where((item) => !item.isRemoving)) {
+      displayValuesByKey[item.key] = modifiers.displayValueBeforeApplying(
+        item.entry,
+      );
+    }
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: EndpointPalette.warningAccent.withValues(alpha: 0.62),
+          color: widget.accent.withValues(alpha: 0.62),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: widget.accent.withValues(alpha: 0.14),
+            blurRadius: 16,
+          ),
+        ],
+      ),
+      child: SizedBox(
+        height: 56,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.playlist_add_rounded,
+                size: 18,
+                color: widget.accent,
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: ClipRect(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const NeverScrollableScrollPhysics(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: _items.isEmpty
+                          ? <Widget>[
+                              _BattleActionPilePreviewEmpty(
+                                accent: widget.accent,
+                              ),
+                            ]
+                          : <Widget>[
+                              for (var index = 0;
+                                  index < _items.length;
+                                  index++) ...[
+                                if (index > 0) const SizedBox(width: 7),
+                                _BattleActionPilePreviewItemView(
+                                  key: ValueKey<String>(_items[index].key),
+                                  item: _items[index],
+                                  accent: widget.accent,
+                                  displayValue:
+                                      displayValuesByKey[_items[index].key] ??
+                                          _items[index].entry.value,
+                                ),
+                              ],
+                            ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.sync_alt_rounded,
-              size: 18,
-              color: EndpointPalette.warningAccent,
+    );
+  }
+}
+
+class _BattleActionPilePreviewItem {
+  final String key;
+  final BattlePatternActionPileEntry entry;
+  final bool isRemoving;
+
+  const _BattleActionPilePreviewItem({
+    required this.key,
+    required this.entry,
+    this.isRemoving = false,
+  });
+
+  _BattleActionPilePreviewItem copyWith({
+    BattlePatternActionPileEntry? entry,
+    bool? isRemoving,
+  }) {
+    return _BattleActionPilePreviewItem(
+      key: key,
+      entry: entry ?? this.entry,
+      isRemoving: isRemoving ?? this.isRemoving,
+    );
+  }
+}
+
+class _BattleActionPilePreviewItemView extends StatefulWidget {
+  final _BattleActionPilePreviewItem item;
+  final Color accent;
+  final int displayValue;
+
+  const _BattleActionPilePreviewItemView({
+    super.key,
+    required this.item,
+    required this.accent,
+    required this.displayValue,
+  });
+
+  @override
+  State<_BattleActionPilePreviewItemView> createState() =>
+      _BattleActionPilePreviewItemViewState();
+}
+
+class _BattleActionPilePreviewItemViewState
+    extends State<_BattleActionPilePreviewItemView> {
+  bool _isVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || widget.item.isRemoving) return;
+      setState(() {
+        _isVisible = true;
+      });
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _BattleActionPilePreviewItemView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final nextVisible = !widget.item.isRemoving;
+    if (_isVisible == nextVisible) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _isVisible = nextVisible;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: _battleActionPileEntryFadeDuration,
+      curve: Curves.easeOutCubic,
+      opacity: _isVisible ? 1 : 0,
+      child: AnimatedScale(
+        duration: _battleActionPileEntryFadeDuration,
+        curve: Curves.easeOutBack,
+        scale: _isVisible ? 1 : 0.86,
+        child: _BattleActionPilePreviewPip(
+          entry: widget.item.entry,
+          accent: widget.accent,
+          displayValue: widget.displayValue,
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleActionPilePreviewEmpty extends StatelessWidget {
+  final Color accent;
+
+  const _BattleActionPilePreviewEmpty({
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: _battleActionPilePipDecoration(accent.withAlpha(96)),
+      child: SizedBox.square(
+        dimension: 34,
+        child: Icon(
+          Icons.remove_rounded,
+          color: accent.withAlpha(160),
+          size: 18,
+        ),
+      ),
+    );
+  }
+}
+
+class _BattleActionPilePreviewPip extends StatelessWidget {
+  final BattlePatternActionPileEntry entry;
+  final Color accent;
+  final int displayValue;
+
+  const _BattleActionPilePreviewPip({
+    required this.entry,
+    required this.accent,
+    required this.displayValue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final actionAccent = endpointItemActionAccent(entry.actionType);
+    return Tooltip(
+      message: entry.item?.displayName ?? 'Matrix bonus',
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          DecoratedBox(
+            decoration: _battleActionPilePipDecoration(
+              entry.kind == BattlePatternActionPileEntryKind.itemAction
+                  ? accent
+                  : actionAccent,
             ),
-            const SizedBox(width: 7),
-            EndpointText(
-              'ACTION PILES',
-              style: textSmallBold.copyWith(
-                color: EndpointPalette.softForeground,
-                fontSize: 12,
-                letterSpacing: 1.4,
+            child: SizedBox.square(
+              dimension: 34,
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: _BattleActionPilePipIcon(entry: entry),
               ),
             ),
-          ],
+          ),
+          Positioned(
+            right: -7,
+            top: -7,
+            child: _BattleActionPilePreviewValueBadge(
+              displayValue: displayValue,
+              actionType: entry.actionType,
+              isBonus:
+                  entry.kind == BattlePatternActionPileEntryKind.matrixBonus,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BattleActionPilePreviewValueBadge extends StatelessWidget {
+  final int displayValue;
+  final ItemActionType actionType;
+  final bool isBonus;
+
+  const _BattleActionPilePreviewValueBadge({
+    required this.displayValue,
+    required this.actionType,
+    required this.isBonus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = endpointItemActionAccent(actionType);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(232),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accent.withAlpha(220), width: 1),
+      ),
+      child: SizedBox(
+        width: 24,
+        height: 18,
+        child: Center(
+          child: EndpointText(
+            displayValue > 0 ? '${isBonus ? '+' : ''}$displayValue' : '*',
+            style: textSmallNumericBold.copyWith(
+              color: accent,
+              fontSize: 10,
+              letterSpacing: 0,
+              height: 1,
+            ),
+          ),
         ),
       ),
     );
@@ -2258,344 +2593,6 @@ Set<OperativePatternBonusKind> _availableActionBonusKinds(Battler battler) {
     }
   }
   return kinds;
-}
-
-class _BattlePatternLiveSummary extends StatelessWidget {
-  final int attackBonus;
-  final int barrierBonus;
-  final int healthBonus;
-  final List<PlayerActionEffectIntent> effects;
-  final int pointCount;
-
-  const _BattlePatternLiveSummary({
-    required this.attackBonus,
-    required this.barrierBonus,
-    required this.healthBonus,
-    required this.effects,
-    required this.pointCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.panelBackgroundOpaque.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: EndpointPalette.patternAccent.withValues(alpha: 0.62),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: EndpointPalette.patternAccent.withValues(alpha: 0.16),
-            blurRadius: 18,
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-        child: Row(
-          children: [
-            Expanded(
-              child: _BattlePatternDamageFormula(
-                attackBonus: attackBonus,
-                pointCount: pointCount,
-              ),
-            ),
-            const SizedBox(width: 6),
-            SizedBox(
-              width: 48,
-              child: _BattlePatternAnimatedMetric(
-                label: '+B',
-                iconAssetPath: 'assets/sprites/status/escudo.png',
-                value: barrierBonus,
-                accent: BattlerStat.barrier.accent,
-                pulseKey: pointCount,
-              ),
-            ),
-            const SizedBox(width: 6),
-            SizedBox(
-              width: 48,
-              child: _BattlePatternAnimatedMetric(
-                label: '+H',
-                iconAssetPath: 'assets/sprites/status/vida.png',
-                value: healthBonus,
-                accent: endpointItemActionAccent(ItemActionType.heal),
-                pulseKey: pointCount,
-              ),
-            ),
-            const SizedBox(width: 6),
-            SizedBox(
-              width: 42,
-              child: _BattlePatternEffectsCard(effects: effects),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BattlePatternDamageFormula extends StatelessWidget {
-  final int attackBonus;
-  final int pointCount;
-
-  const _BattlePatternDamageFormula({
-    required this.attackBonus,
-    required this.pointCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _BattlePatternAnimatedMetric(
-      label: '+A/ACCION',
-      iconAssetPath: 'assets/images/icons/icon_sword.png',
-      value: attackBonus,
-      accent: EndpointPalette.warningAccent,
-      pulseKey: pointCount,
-    );
-  }
-}
-
-class _BattlePatternEffectsCard extends StatelessWidget {
-  final List<PlayerActionEffectIntent> effects;
-
-  const _BattlePatternEffectsCard({
-    required this.effects,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.controlBackground,
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(
-          color: EndpointPalette.neutralAccent.withValues(alpha: 0.46),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
-        child: Center(
-          child: effects.isEmpty
-              ? Icon(
-                  Icons.remove_rounded,
-                  size: 15,
-                  color: EndpointPalette.softForeground.withAlpha(150),
-                )
-              : Wrap(
-                  spacing: 3,
-                  runSpacing: 3,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    for (final effect in effects)
-                      _BattlePatternEffectChip(effect: effect),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BattlePatternEffectChip extends StatelessWidget {
-  final PlayerActionEffectIntent effect;
-
-  const _BattlePatternEffectChip({
-    required this.effect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = switch (effect.kind) {
-      PlayerActionEffectIntentKind.heal => Icons.favorite_rounded,
-      PlayerActionEffectIntentKind.buff ||
-      PlayerActionEffectIntentKind.debuff =>
-        effect.status?.icon ?? Icons.auto_awesome_rounded,
-    };
-    final iconAssetPath = switch (effect.kind) {
-      PlayerActionEffectIntentKind.heal => 'assets/sprites/status/vida.png',
-      PlayerActionEffectIntentKind.buff ||
-      PlayerActionEffectIntentKind.debuff =>
-        effect.status?.iconAssetPath,
-    };
-    final accent = switch (effect.kind) {
-      PlayerActionEffectIntentKind.heal => BattlerStatusType.buff.accent,
-      PlayerActionEffectIntentKind.buff ||
-      PlayerActionEffectIntentKind.debuff =>
-        effect.status?.type.accent ?? EndpointPalette.neutralAccent,
-    };
-    final valueLabel = switch (effect.kind) {
-      PlayerActionEffectIntentKind.heal => '${max(0, effect.amount)}',
-      PlayerActionEffectIntentKind.buff ||
-      PlayerActionEffectIntentKind.debuff =>
-        effect.amount > 0 ? '${max(0, effect.amount)}' : null,
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.panelBackgroundBattleOpaque,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withAlpha(145)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (iconAssetPath != null)
-              Image.asset(
-                iconAssetPath,
-                width: 12,
-                height: 12,
-                color: accent,
-                filterQuality: FilterQuality.none,
-              )
-            else
-              Icon(
-                icon,
-                size: 12,
-                color: accent,
-              ),
-            if (valueLabel != null) ...[
-              const SizedBox(width: 2),
-              EndpointText(
-                valueLabel,
-                style: textSmallNumericBold.copyWith(
-                  color: accent,
-                  fontSize: 10,
-                  letterSpacing: 0.2,
-                  height: 1,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BattlePatternAnimatedMetric extends StatelessWidget {
-  final String label;
-  final String iconAssetPath;
-  final int value;
-  final Color accent;
-  final int pulseKey;
-
-  const _BattlePatternAnimatedMetric({
-    required this.label,
-    required this.iconAssetPath,
-    required this.value,
-    required this.accent,
-    required this.pulseKey,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final safeValue = max(0, value);
-
-    return TweenAnimationBuilder<double>(
-      key: ValueKey('$label:$safeValue:$pulseKey'),
-      tween: Tween<double>(
-        begin: 0,
-        end: safeValue.toDouble(),
-      ),
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
-      builder: (context, animatedValue, child) {
-        final progress = safeValue <= 0 ? 1.0 : animatedValue / safeValue;
-        return Transform.scale(
-          scale: 1 + ((1 - progress.clamp(0.0, 1.0)) * 0.08),
-          child: _BattlePatternMetricShell(
-            label: label,
-            iconAssetPath: iconAssetPath,
-            valueLabel: '+${animatedValue.round()}',
-            accent: accent,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _BattlePatternMetricShell extends StatelessWidget {
-  final String label;
-  final String? iconAssetPath;
-  final IconData? icon;
-  final String valueLabel;
-  final Color accent;
-
-  const _BattlePatternMetricShell({
-    required this.label,
-    this.iconAssetPath,
-    this.icon,
-    required this.valueLabel,
-    required this.accent,
-  }) : assert(iconAssetPath != null || icon != null);
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: EndpointPalette.controlBackground,
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: accent.withValues(alpha: 0.46)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            if (iconAssetPath != null)
-              Image.asset(
-                iconAssetPath!,
-                width: 13,
-                height: 13,
-                filterQuality: FilterQuality.none,
-                color: accent,
-              )
-            else
-              Icon(
-                icon,
-                size: 13,
-                color: accent,
-              ),
-            const SizedBox(width: 3),
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  EndpointText(
-                    label,
-                    overflow: TextOverflow.clip,
-                    softWrap: false,
-                    style: textSmallBold.copyWith(
-                      color: accent.withValues(alpha: 0.82),
-                      fontSize: 7,
-                      letterSpacing: 0.2,
-                      height: 1,
-                    ),
-                  ),
-                  EndpointText(
-                    valueLabel,
-                    overflow: TextOverflow.clip,
-                    softWrap: false,
-                    style: textSmallNumericBold.copyWith(
-                      color: accent,
-                      fontSize: 12,
-                      letterSpacing: 0,
-                      height: 1.05,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _BattlePatternCombatPage extends StatelessWidget {
@@ -3640,7 +3637,7 @@ class _PatternMatrixCard extends StatelessWidget {
 
   final Color accent;
   final Color entryAccent;
-  final Widget summary;
+  final Widget? summary;
   final Widget child;
   final Object cornerSwapKey;
   final bool animateCornerSwap;
@@ -3664,6 +3661,7 @@ class _PatternMatrixCard extends StatelessWidget {
   final bool isBlockCornerActive;
   final bool isRearPatternCornerActive;
   final bool isRearBlockCornerActive;
+  final bool showCornerWidgets;
   final Color? blockCornerWallAccent;
   final _BattlePatternBlockPlacementMode blockPlacementMode;
   final bool blockCornerWallEnabled;
@@ -3704,6 +3702,7 @@ class _PatternMatrixCard extends StatelessWidget {
     required this.isBlockCornerActive,
     required this.isRearPatternCornerActive,
     required this.isRearBlockCornerActive,
+    this.showCornerWidgets = true,
     this.blockCornerWallAccent,
     this.blockPlacementMode = _BattlePatternBlockPlacementMode.wall,
     this.blockCornerWallEnabled = true,
@@ -3747,8 +3746,10 @@ class _PatternMatrixCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
             child: Column(
               children: [
-                summary,
-                const SizedBox(height: 8),
+                if (summary != null) ...[
+                  summary!,
+                  const SizedBox(height: 8),
+                ],
                 Expanded(
                   child: animateCornerSwap
                       ? TweenAnimationBuilder<double>(
@@ -3783,21 +3784,22 @@ class _PatternMatrixCard extends StatelessWidget {
             child: child,
           ),
         ),
-        _PatternFloatingCorner(
-          alignment: Alignment.topLeft,
-          progress: swapProgress,
-          isRear: true,
-          child: _PatternCornerTriangle(
+        if (showCornerWidgets)
+          _PatternFloatingCorner(
             alignment: Alignment.topLeft,
-            color: _patternPointColor,
-            label: '$rearPointCount/$rearMaxPointCount',
-            tooltip: 'Inactive battler pattern points this turn.',
-            textColor: Colors.black,
-            opacityScale: _rearCornerOpacity,
-            hasAura: isRearPatternCornerActive,
+            progress: swapProgress,
+            isRear: true,
+            child: _PatternCornerTriangle(
+              alignment: Alignment.topLeft,
+              color: _patternPointColor,
+              label: '$rearPointCount/$rearMaxPointCount',
+              tooltip: 'Inactive battler pattern points this turn.',
+              textColor: Colors.black,
+              opacityScale: _rearCornerOpacity,
+              hasAura: isRearPatternCornerActive,
+            ),
           ),
-        ),
-        if (showBlockingCorners)
+        if (showCornerWidgets && showBlockingCorners)
           _PatternFloatingCorner(
             alignment: Alignment.topRight,
             progress: swapProgress,
@@ -3811,20 +3813,21 @@ class _PatternMatrixCard extends StatelessWidget {
               hasAura: isRearBlockCornerActive,
             ),
           ),
-        _PatternFloatingCorner(
-          alignment: Alignment.topLeft,
-          progress: swapProgress,
-          child: _PatternCornerTriangle(
+        if (showCornerWidgets)
+          _PatternFloatingCorner(
             alignment: Alignment.topLeft,
-            color: _patternPointColor,
-            label: '$pointCount/$maxPointCount',
-            tooltip: 'Pattern points used and available this turn.',
-            textColor: Colors.black,
-            isDimmed: dimPatternPoints,
-            hasAura: isPatternCornerActive,
+            progress: swapProgress,
+            child: _PatternCornerTriangle(
+              alignment: Alignment.topLeft,
+              color: _patternPointColor,
+              label: '$pointCount/$maxPointCount',
+              tooltip: 'Pattern points used and available this turn.',
+              textColor: Colors.black,
+              isDimmed: dimPatternPoints,
+              hasAura: isPatternCornerActive,
+            ),
           ),
-        ),
-        if (showBlockingCorners)
+        if (showCornerWidgets && showBlockingCorners)
           _PatternFloatingCorner(
             alignment: Alignment.topRight,
             progress: swapProgress,
@@ -3851,31 +3854,33 @@ class _PatternMatrixCard extends StatelessWidget {
               ),
             ),
           ),
-        Align(
-          alignment: Alignment.bottomLeft,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: _PatternCornerTriangle(
-              alignment: Alignment.bottomLeft,
-              color: _roundCornerColor,
-              label: _roundCornerLabel,
-              tooltip: _roundCornerTooltip,
-              textColor: _roundCornerTextColor,
+        if (showCornerWidgets)
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: _PatternCornerTriangle(
+                alignment: Alignment.bottomLeft,
+                color: _roundCornerColor,
+                label: _roundCornerLabel,
+                tooltip: _roundCornerTooltip,
+                textColor: _roundCornerTextColor,
+              ),
             ),
           ),
-        ),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: _PatternFinishCorner(
-              enabled: finishEnabled,
-              isDimmed: dimFinishButton,
-              tooltip: finishTooltip,
-              onPressed: onFinish,
+        if (showCornerWidgets)
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: _PatternFinishCorner(
+                enabled: finishEnabled,
+                isDimmed: dimFinishButton,
+                tooltip: finishTooltip,
+                onPressed: onFinish,
+              ),
             ),
           ),
-        ),
       ],
     );
   }

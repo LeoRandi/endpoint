@@ -1,6 +1,472 @@
 import '_imports.dart';
 
 List<Item> itemPresets = <Item>[
+    /// Homemade Flame
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Homemade Flame',
+    description:
+        'A spray that fills the air with uncontrollable fire. It burns the enemy, burns the wielder, and solves most problems by making them worse first.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.quemadura,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/HomemadeFlame.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 6): const <int>[6, 12, 18, 24],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Apply --value-- Burn to the enemy and 1 Burn to yourself.',
+        customEffectKey: ItemEffectKeys.homemadeFlameBurnBoth,
+        value: 2,
+      ): const <int>[2, 4, 6, 8],
+    },
+  ),
+
+  /// Flyswatter
+  Item(
+    affinity: ItemArchetypeAffinity.inamovible,
+    name: 'Flyswatter',
+    description:
+        'A simple but lethal weapon. Hits harder when it is the only weapon used this turn.',
+    tier: RarityTier.gray,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+    ],
+    asset: 'assets/sprites/items/Flyswatter.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 4): const <int>[4, 8, 12, 16, 20],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.flyswatterSoloWeaponBonus,
+        description:
+            'If this is the only weapon used this turn, this attack deals +--value-- damage.',
+        value: 4,
+        hook: ItemEffectHook.outgoingDamageModifier,
+      ): const <int>[4, 8, 12, 16, 20],
+    },
+  ),
+
+  /// Broom Brush
+  Item(
+    affinity: ItemArchetypeAffinity.general,
+    name: 'Broom Brush',
+    description:
+        'An adjustable broom head made to fit onto a wooden stick. Not elegant, but surprisingly disruptive.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/BroomBrush.png',
+    effects: <Effect, List<int>>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Cleanse up to --value-- positive status from the enemy. If Wooden Stick is equipped, also apply --value-- Conmocion.',
+        customEffectKey: ItemEffectKeys.homemadeFlameBurnBoth,
+        value: 2,
+      ): const <int>[2, 4, 6, 8],
+    },
+  ),
+
+  /// Poison Stinger
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Poison Stinger',
+    description:
+        'A razor-sharp wasp stinger. Small enough to miss, venomous enough to matter.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.intoxicacion,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/PoisonStinger.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 3): const <int>[3, 6, 9, 12],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Apply --value-- Intoxicacion.',
+        customEffectKey: ItemEffectKeys.poisonStingerIntoxicacion,
+        value: 2,
+      ): const <int>[2, 4, 6, 8],
+    },
+  ),
+
+  /// Mantis Blade
+  Item(
+    affinity: ItemArchetypeAffinity.imparable,
+    name: 'Mantis Blade',
+    description:
+        'A sharpened mantis claw. It cuts forward, daring the enemy to answer.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.desafio,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/MantisBlade.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 3): const <int>[3, 6, 12, 24],
+      ActionEffect.attack(value: 3): const <int>[3, 6, 12, 24],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Gain --value-- Desafio.',
+        customEffectKey: ItemEffectKeys.mantisBladeGainDesafio,
+        value: 2,
+      ): const <int>[2, 4, 8, 16],
+    },
+  ),
+
+  /// Bug-Zapper Racket
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Bug-Zapper Racket',
+    description:
+        'An electric racket that leaves enemies twitching and exposed.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/BugZapperRacket.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 4): const <int>[4, 8, 12, 16],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Apply --value-- Fragilidad.',
+        customEffectKey: ItemEffectKeys.bugZapperRacketFragilidad,
+        value: 2,
+      ): const <int>[2, 4, 6, 8],
+    },
+  ),
+
+  /// Artificial Carapace
+  Item(
+    affinity: ItemArchetypeAffinity.inamovible,
+    name: 'Artificial Carapace',
+    description:
+        'Armor built from discarded plastic and metal scraps. Ugly, stiff, and hard to break.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.barrera,
+    ],
+    asset: 'assets/sprites/items/ArtificialCarapace.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.block(value: 9): const <int>[9, 18, 27, 36],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.artificialCarapaceDamageReduction,
+        description:
+            'If you only use one weapon in your turn, reduce by --value-- the first damage you receive that turn.',
+        value: 1,
+        hook: ItemEffectHook.incomingDamageModifier,
+      ): const <int>[1, 2, 3, 4],
+    },
+  ),
+
+  /// Camouflage Leaves
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Camouflage Leaves',
+    description:
+        'A simple cover of leaves that makes the wearer vanish at exactly the wrong moment.',
+    tier: RarityTier.purple,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/CamouflageLeaves.png',
+    effects: <Effect, List<int>>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Gain 1 Punto Ciego.'
+        customEffectKey: ItemEffectKeys.camouflageLeavesPuntoCiego,
+        value: 1,
+      ): const <int>[1, 1],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.camouflageLeavesBlocking,
+        description:
+            'After using this item --value-- times in a single combat, block this point',
+        value: 1,
+        hook: ???,
+      ): const <int>[1, 2],
+    },
+  ),
+
+  /// Blood Reserves
+  Item(
+    affinity: ItemArchetypeAffinity.general,
+    name: 'Blood Reserves',
+    description:
+        'Drops of blood collected by mosquitoes. Disgusting, but restorative.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.cura,
+      EntityTag.vida,
+    ],
+    asset: 'assets/sprites/items/BloodReserves.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.heal(value: 6): const <int>[6, 12, 18, 24],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.bloodReservesEmergencyHeal,
+        description:
+            'The first time each combat you fall below half HP, heal --value-- HP.',
+        value: 4,
+        hook: ItemEffectHook.receiveDamageResolved,
+      ): const <int>[4, 8, 12, 16],
+    },
+  ),
+
+  /// Molt
+  Item(
+    affinity: ItemArchetypeAffinity.inamovible,
+    name: 'Molt',
+    description:
+        'An abandoned exoskeleton. Break your old protection and turn it into force.',
+    tier: RarityTier.blue,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.barrera,
+      EntityTag.ataque,
+    ],
+    asset: 'assets/sprites/items/Molt.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.block(value: 10): const <int>[10, 15, 20],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Lose up to --value-- Barrier to deal that much true damage.',
+        customEffectKey: ItemEffectKeys.moltSacrificeBarrierDamage,
+        value: 8,
+      ): const <int>[8, 16, 32],
+    },
+  ),
+
+  /// Oniscidea Shield
+  Item(
+    affinity: ItemArchetypeAffinity.inamovible,
+    name: 'Oniscidea Shield',
+    description:
+        'A shield made from a curled-up pill bug. It looks ridiculous until something fails to break it.',
+    tier: RarityTier.blue,
+    tags: <EntityTag>[
+      EntityTag.barrera,
+      EntityTag.accesorio,
+    ],
+    asset: 'assets/sprites/items/OniscideaShield.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.block(value: 12): const <int>[12, 18, 24],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.oniscideaShieldCurlUp,
+        description:
+            'If you only use one weapon in your turn, gain --value-- Barrier at the start of each turn.',
+        value: 5,
+        hook: ItemEffectHook.calculatedStatModifier,
+      ): const <int>[5, 10, 15],
+    },
+  ),
+
+  /// Flower Crown
+  Item(
+    affinity: ItemArchetypeAffinity.inamovible,
+    name: 'Flower Crown',
+    description:
+        'A delicate crown of flowers. Somehow, standing your ground feels easier while wearing it.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.barrera,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/FlowerCrown.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.block(value: 4): const <int>[4, 8, 12, 16],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Gain --value-- Potencia.',
+        customEffectKey: ItemEffectKeys.flowerCrownGainCalentando,
+        value: 1,
+      ): const <int>[1, 2, 3, 4],
+    },
+  ),
+
+  /// Hazard Spray
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Hazard Spray',
+    description:
+        'A can with a warning label. Whatever is inside should probably not be inhaled.',
+    tier: RarityTier.green,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.debuff,
+      EntityTag.intoxicacion,
+    ],
+    asset: 'assets/sprites/items/HazardSpray.png',
+    effects: <Effect, List<int>>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Apply --value-- Intoxicacion.',
+        customEffectKey: ItemEffectKeys.hazardSprayIntoxicacion,
+        value: 3,
+      ): const <int>[3, 6, 9, 12],
+    },
+  ),
+
+  /// Repeller
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Repeller',
+    description:
+        'An electronic device that sends out painful waves. It does not hurt much, but it ruins coordination.',
+    tier: RarityTier.blue,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/Repeller.png',
+    effects: <Effect, List<int>>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Apply --value-- Conmocion.',
+        customEffectKey: ItemEffectKeys.repellerConmocion,
+        value: 4,
+      ): const <int>[4, 8, 12],
+      PatternEffect(
+        patternType: const OperativePatternRequirement.first(),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this starts the pattern, the next weapon used applies 1 Conmocion.',
+          customEffectKey: ItemEffectKeys.repellerOpeningWave,
+          value: 2,
+        ),
+      ): const <int>[2, 4, 6],
+    },
+  ),
+
+  /// Web Cannon
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Web Cannon',
+    description:
+        'A crude cannon loaded with common webbing. It makes every movement feel like a mistake.',
+    tier: RarityTier.blue,
+    tags: <EntityTag>[
+      EntityTag.arma,
+      EntityTag.ataque,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/WebCannon.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.attack(value: 5): const <int>[5, 10, 15],
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Apply --value-- Fragilidad.',
+        customEffectKey: ItemEffectKeys.webCannonFragilidad,
+        value: 3,
+      ): const <int>[3, 6, 9],
+      PatternEffect(
+        patternType: const OperativePatternRequirement.last(),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If this ends the pattern, repeat your weakest weapon once if the enemy has Fragilidad.',
+          customEffectKey: ItemEffectKeys.webCannonFragileRepeat,
+          value: 1,
+        ),
+      ): const <int>[1, 1, 1],
+    },
+  ),
+
+  /// Electric Net
+  Item(
+    affinity: ItemArchetypeAffinity.inamovible,
+    name: 'Electric Net',
+    description:
+        'An electrified mosquito net. Safe from the inside, very educational from the outside.',
+    tier: RarityTier.purple,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.barrera,
+      EntityTag.debuff,
+    ],
+    asset: 'assets/sprites/items/ElectricNet.png',
+    effects: <Effect, List<int>>{
+      ActionEffect.block(value: 10): const <int>[10, 20],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.electricNetDefensiveShock,
+        description:
+            'Whenever you apply barrier to yourself, apply --value-- Conmocion.',
+        value: 2,
+        hook: ItemEffectHook.defendResolved,
+      ): const <int>[2, 4],
+      PatternEffect(
+        patternType: const OperativePatternRequirement.exactShape(
+          shapeKind: OperativePatternShapeKind.square,
+        ),
+        actionEffect: const ActionEffect(
+          actionType: ItemActionType.none,
+          description:
+              'If used in a square pattern, gain --value-- Barrier and apply 2 Fragilidad.',
+          customEffectKey: ItemEffectKeys.electricNetSquareTrap,
+          value: 8,
+        ),
+      ): const <int>[8, 16],
+    },
+  ),
+
+  /// Campfire
+  Item(
+    affinity: ItemArchetypeAffinity.veloz,
+    name: 'Campfire',
+    description:
+        'A regular campfire that insects cannot resist. It burns the enemy while hiding the carrier behind smoke and sparks.',
+    tier: RarityTier.yellow,
+    valueModifier: 12,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.quemadura,
+      EntityTag.debuff,
+      EntityTag.buff,
+    ],
+    asset: 'assets/sprites/items/Campfire.png',
+    effects: <Effect, List<int>>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description:
+            'Apply --value-- Burn to the enemy and gain 1 Punto Ciego.',
+        customEffectKey: ItemEffectKeys.campfireBurnAndPuntoCiego,
+        value: 8,
+      ): const <int>[8],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.campfireBurnAttraction,
+        description:
+            'At the start of combat, apply --value-- Burn to the enemy.',
+        value: 8,
+        hook: ItemEffectHook.combatStart,
+      ): const <int>[8],
+      const PassiveEffect(
+        effectKey: ItemEffectKeys.campfireBurnBlocking,
+        description:
+            'After using this item --value times, block this point.',
+        value: 3,
+        hook: ItemEffectHook.combatStart,
+      ): const <int>[3],
+    },
+  ),
+
   /// Wooden Stick
   Item(
     affinity: ItemArchetypeAffinity.general,
@@ -132,32 +598,6 @@ List<Item> itemPresets = <Item>[
         customEffectKey: ItemEffectKeys.duelistChalkGainDesafio,
         value: 2,
       ): const <int>[2, 4, 8, 16, 32],
-    },
-  ),
-
-  /// Kindling Axe
-  Item(
-    affinity: ItemArchetypeAffinity.imparable,
-    name: 'Kindling Axe',
-    description:
-        'A brutal axe with a smoldering edge. It burns the enemy, burns the wielder, and solves most problems by making them worse first.',
-    tier: RarityTier.green,
-    tags: <EntityTag>[
-      EntityTag.arma,
-      EntityTag.ataque,
-      EntityTag.quemadura,
-      EntityTag.debuff
-    ],
-    asset: 'assets/sprites/items/KindlingAxe.png',
-    effects: <Effect, List<int>>{
-      ActionEffect.attack(value: 6): const <int>[6, 12, 18, 24],
-      const ActionEffect(
-        actionType: ItemActionType.none,
-        description:
-            'Apply --value-- Burn to the enemy and 2 Burn to yourself.',
-        customEffectKey: ItemEffectKeys.kindlingAxeBurnBoth,
-        value: 2,
-      ): const <int>[2, 4, 6, 8],
     },
   ),
 

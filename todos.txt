@@ -20,8 +20,8 @@
 --finalizar los diseños que se requieren en ideas.txt
 --Crear un tile set específico para usarlo en la UI general de la app
 
--Arquetipos
---Añadir más arquetipos, unos 7 en total[4/7]
+[-Arquetipos]
+[--Añadir más arquetipos, unos 4 en total][4/4]
 [--Añadir pantalla de selección de arquetipo, que muestre la información desglosada del arquetipo antes de elegirlo.]
 [--Los arquetipos empiezan con un item aleatorio de su propio arquetipo + un item general. Se enseñan antes de elegir el arquetipo, se deben generar al empezar la run y guardarse aunque salgas de la app o cambies de página de arquetipo o lo que sea, para que sean siempre el mismo con la misma seed y tal.]
 
@@ -86,7 +86,7 @@
 -Enemigos
 --Crear Presets(al menos 100 distintos)[7/100]
 --Equipar adecuadamente
---Modificar IA en torno al modo Patrón
+[--Modificar IA en torno al modo Patrón]
 
 -Codex
 [--Códice con todos los items, enemigos, habilidades y eventos descubiertos por el jugador]
