@@ -82,7 +82,7 @@ final pathEventDefinitionById =
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.clinicaReflejos: const PathEventDefinition(
-    canAppear: _canAppearForVeloz,
+    canAppear: _canAppearForCrepitans,
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.viktorOperations: const PathEventDefinition(
@@ -90,7 +90,7 @@ final pathEventDefinitionById =
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.arquitecbrosSl: const PathEventDefinition(
-    canAppear: _canAppearForInamovible,
+    canAppear: _canAppearForDiabolicus,
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.barreraLibre: const PathEventDefinition(
@@ -102,7 +102,7 @@ final pathEventDefinitionById =
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.contratontos: const PathEventDefinition(
-    canAppear: _canAppearForImparable,
+    canAppear: _canAppearForHercules,
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.hornoJuramentos: const PathEventDefinition(
@@ -110,11 +110,11 @@ final pathEventDefinitionById =
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.auditoriaCreativa: const PathEventDefinition(
-    canAppear: _canAppearForMercante,
+    canAppear: _canAppearForSacer,
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.mercadoFuturos: const PathEventDefinition(
-    canAppear: _canAppearForMercante,
+    canAppear: _canAppearForSacer,
     visit: _visitDefaultPathEvent,
   ),
   PathEventId.thePurgame: const PathEventDefinition(
@@ -298,14 +298,14 @@ class PathEventService {
   }) {
     final augment = _rollAugmentForArchetypeAndDay(
       player: player,
-      archetypeId: ArchetypeId.veloz,
+      archetypeId: ArchetypeId.crepitans,
       randomizer: randomizer,
       dayNumber: dayNumber,
     );
     if (augment == null) {
       return PathEventVisitResult(
         player: player,
-        outcomeText: 'La clinica no encuentra ningun aumento Veloz compatible.',
+        outcomeText: 'La clinica no encuentra ningun aumento Crepitans compatible.',
       );
     }
 
@@ -491,7 +491,7 @@ class PathEventService {
     required RunRandomizer randomizer,
   }) {
     final augment = _rollAugmentFromPoolForExactRarity(
-      pool: augmentCatalogForArchetype(ArchetypeId.imparable),
+      pool: augmentCatalogForArchetype(ArchetypeId.hercules),
       player: player,
       targetRarity: RarityTier.blue,
       randomizer: randomizer,
@@ -510,7 +510,7 @@ class PathEventService {
     return PathEventVisitResult(
       player: updatedPlayer,
       outcomeText:
-          'Aceptas el entrenamiento de holo-arena: 8 Quemadura y un aumento Imparable azul.',
+          'Aceptas el entrenamiento de holo-arena: 8 Quemadura y un aumento Hercules azul.',
       gainedAugment: gainedAugment,
     );
   }
@@ -1263,20 +1263,20 @@ bool _canAppearForPitonisaQuitapenas(
   return service.buildPitonisaPurgeableDebuffs(player).isNotEmpty;
 }
 
-bool _canAppearForVeloz(
+bool _canAppearForCrepitans(
   PathEventService service, {
   required EventPathNode node,
   required Battler? player,
 }) {
-  return player?.archetypeId == ArchetypeId.veloz;
+  return player?.archetypeId == ArchetypeId.crepitans;
 }
 
-bool _canAppearForInamovible(
+bool _canAppearForDiabolicus(
   PathEventService service, {
   required EventPathNode node,
   required Battler? player,
 }) {
-  return player?.archetypeId == ArchetypeId.inamovible;
+  return player?.archetypeId == ArchetypeId.diabolicus;
 }
 
 bool _canAppearForBarreraLibre(
@@ -1288,20 +1288,20 @@ bool _canAppearForBarreraLibre(
   return player.reinforcedPatternPointKey == null;
 }
 
-bool _canAppearForImparable(
+bool _canAppearForHercules(
   PathEventService service, {
   required EventPathNode node,
   required Battler? player,
 }) {
-  return player?.archetypeId == ArchetypeId.imparable;
+  return player?.archetypeId == ArchetypeId.hercules;
 }
 
-bool _canAppearForMercante(
+bool _canAppearForSacer(
   PathEventService service, {
   required EventPathNode node,
   required Battler? player,
 }) {
-  return player?.archetypeId == ArchetypeId.mercante;
+  return player?.archetypeId == ArchetypeId.sacer;
 }
 
 bool _canAppearForThePurgame(
@@ -1318,7 +1318,7 @@ bool _canAppearForViktorOperations(
   required EventPathNode node,
   required Battler? player,
 }) {
-  if (player?.archetypeId != ArchetypeId.veloz) return false;
+  if (player?.archetypeId != ArchetypeId.crepitans) return false;
   return service.buildViktorOperationsEligibleItems(player!).isNotEmpty;
 }
 
@@ -1327,7 +1327,7 @@ bool _canAppearForCapillaStShieladurn(
   required EventPathNode node,
   required Battler? player,
 }) {
-  if (player?.archetypeId != ArchetypeId.inamovible) return false;
+  if (player?.archetypeId != ArchetypeId.diabolicus) return false;
   return service.buildOwnedItems(player!).isNotEmpty;
 }
 
@@ -1336,7 +1336,7 @@ bool _canAppearForHornoJuramentos(
   required EventPathNode node,
   required Battler? player,
 }) {
-  if (player?.archetypeId != ArchetypeId.imparable) return false;
+  if (player?.archetypeId != ArchetypeId.hercules) return false;
   return service.buildHornoJuramentosEligibleItems(player!).isNotEmpty;
 }
 

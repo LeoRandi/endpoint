@@ -110,7 +110,7 @@ class MainMenuDebugToolsPage extends StatelessWidget {
         .toList(growable: false);
     final rawPlayer = defaultPlayerBattler.copyWith(
       name: 'ACTION TEST UNIT',
-      archetypeId: ArchetypeId.veloz,
+      archetypeId: ArchetypeId.crepitans,
       health: 45,
       equipmentCapacity: equippedItems.length,
       equippedItems: equippedItems,
@@ -150,7 +150,7 @@ class MainMenuDebugToolsPage extends StatelessWidget {
     final enemyItems = _randomRuntimeItems(random, count: 4);
     final rawPlayer = defaultPlayerBattler.copyWith(
       name: 'ACTION PILE UNIT',
-      archetypeId: ArchetypeId.veloz,
+      archetypeId: ArchetypeId.crepitans,
       health: 64,
       equipmentCapacity: playerItems.length,
       equippedItems: playerItems,

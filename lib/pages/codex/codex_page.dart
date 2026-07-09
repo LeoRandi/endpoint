@@ -86,10 +86,10 @@ extension _CodexOrderModePresentation on _CodexOrderMode {
 
 class _CodexCatalog {
   static final List<ArchetypePathNode> archetypes = List.unmodifiable([
-    velozArchetypeNode,
-    inamovibleArchetypeNode,
-    imparableArchetypeNode,
-    mercanteArchetypeNode,
+    crepitansArchetypeNode,
+    diabolicusArchetypeNode,
+    herculesArchetypeNode,
+    sacerArchetypeNode,
   ]);
 
   static final List<CombatPathNode> enemyNodes = List.unmodifiable([
@@ -1798,23 +1798,23 @@ class _CodexSection {
 
 enum _CodexArchetypeSectionKey {
   general,
-  veloz,
-  inamovible,
-  imparable,
-  mercante;
+  crepitans,
+  diabolicus,
+  hercules,
+  sacer;
 
   String get label {
     switch (this) {
       case _CodexArchetypeSectionKey.general:
         return 'General';
-      case _CodexArchetypeSectionKey.veloz:
-        return ArchetypeId.veloz.label;
-      case _CodexArchetypeSectionKey.inamovible:
-        return ArchetypeId.inamovible.label;
-      case _CodexArchetypeSectionKey.imparable:
-        return ArchetypeId.imparable.label;
-      case _CodexArchetypeSectionKey.mercante:
-        return ArchetypeId.mercante.label;
+      case _CodexArchetypeSectionKey.crepitans:
+        return ArchetypeId.crepitans.label;
+      case _CodexArchetypeSectionKey.diabolicus:
+        return ArchetypeId.diabolicus.label;
+      case _CodexArchetypeSectionKey.hercules:
+        return ArchetypeId.hercules.label;
+      case _CodexArchetypeSectionKey.sacer:
+        return ArchetypeId.sacer.label;
     }
   }
 
@@ -1822,27 +1822,27 @@ enum _CodexArchetypeSectionKey {
     switch (this) {
       case _CodexArchetypeSectionKey.general:
         return EndpointPalette.neutralAccent;
-      case _CodexArchetypeSectionKey.veloz:
-        return const Color(0xFF59B7FF);
-      case _CodexArchetypeSectionKey.inamovible:
+      case _CodexArchetypeSectionKey.crepitans:
         return const Color(0xFF5AF78E);
-      case _CodexArchetypeSectionKey.imparable:
+      case _CodexArchetypeSectionKey.diabolicus:
+        return const Color(0xFF59B7FF);
+      case _CodexArchetypeSectionKey.hercules:
         return const Color(0xFFFF5A5F);
-      case _CodexArchetypeSectionKey.mercante:
+      case _CodexArchetypeSectionKey.sacer:
         return const Color(0xFFEBCB5A);
     }
   }
 
   static _CodexArchetypeSectionKey fromArchetypeId(ArchetypeId archetypeId) {
     switch (archetypeId) {
-      case ArchetypeId.veloz:
-        return _CodexArchetypeSectionKey.veloz;
-      case ArchetypeId.inamovible:
-        return _CodexArchetypeSectionKey.inamovible;
-      case ArchetypeId.imparable:
-        return _CodexArchetypeSectionKey.imparable;
-      case ArchetypeId.mercante:
-        return _CodexArchetypeSectionKey.mercante;
+      case ArchetypeId.crepitans:
+        return _CodexArchetypeSectionKey.crepitans;
+      case ArchetypeId.diabolicus:
+        return _CodexArchetypeSectionKey.diabolicus;
+      case ArchetypeId.hercules:
+        return _CodexArchetypeSectionKey.hercules;
+      case ArchetypeId.sacer:
+        return _CodexArchetypeSectionKey.sacer;
     }
   }
 
@@ -1894,8 +1894,8 @@ class _CodexCategoryData {
       case _CodexCategory.archetypes:
         return _CodexCategoryData(
           title: 'Arquetipos',
-          accent: imparableArchetypeNode.accent,
-          emojiIcon: imparableArchetypeNode.iconEmoji,
+          accent: herculesArchetypeNode.accent,
+          emojiIcon: herculesArchetypeNode.iconEmoji,
         );
       case _CodexCategory.items:
         return const _CodexCategoryData(

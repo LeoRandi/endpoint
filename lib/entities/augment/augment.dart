@@ -7,10 +7,10 @@ const String augmentAssetDirectory = 'assets/sprites/augments/';
 
 enum AugmentAffinity {
   general,
-  veloz,
-  inamovible,
-  imparable,
-  mercante,
+  crepitans,
+  diabolicus,
+  hercules,
+  sacer,
 }
 
 extension AugmentAffinityMapping on AugmentAffinity {
@@ -18,36 +18,43 @@ extension AugmentAffinityMapping on AugmentAffinity {
 
   ArchetypeId? get archetypeId => switch (this) {
         AugmentAffinity.general => null,
-        AugmentAffinity.veloz => ArchetypeId.veloz,
-        AugmentAffinity.inamovible => ArchetypeId.inamovible,
-        AugmentAffinity.imparable => ArchetypeId.imparable,
-        AugmentAffinity.mercante => ArchetypeId.mercante,
+        AugmentAffinity.crepitans => ArchetypeId.crepitans,
+        AugmentAffinity.diabolicus => ArchetypeId.diabolicus,
+        AugmentAffinity.hercules => ArchetypeId.hercules,
+        AugmentAffinity.sacer => ArchetypeId.sacer,
       };
 }
 
 extension ArchetypeIdAugmentAffinity on ArchetypeId {
   AugmentAffinity get augmentAffinity => switch (this) {
-        ArchetypeId.veloz => AugmentAffinity.veloz,
-        ArchetypeId.inamovible => AugmentAffinity.inamovible,
-        ArchetypeId.imparable => AugmentAffinity.imparable,
-        ArchetypeId.mercante => AugmentAffinity.mercante,
+        ArchetypeId.crepitans => AugmentAffinity.crepitans,
+        ArchetypeId.diabolicus => AugmentAffinity.diabolicus,
+        ArchetypeId.hercules => AugmentAffinity.hercules,
+        ArchetypeId.sacer => AugmentAffinity.sacer,
       };
 }
 
 enum AugmentEffectType {
   patternWeaponCombatAttackBoost,
+  patternTargetWeaponPermanentAttackBoost,
 }
 
 class AugmentEffect {
   final AugmentEffectType type;
   final int value;
   final String description;
+  final OperativePatternPoint? targetPoint;
 
   const AugmentEffect({
     required this.type,
     required this.value,
     required this.description,
-  }) : assert(description != '');
+    this.targetPoint,
+  })  : assert(description != ''),
+        assert(
+          type != AugmentEffectType.patternTargetWeaponPermanentAttackBoost ||
+              targetPoint != null,
+        );
 
   const AugmentEffect.patternAttackDamageBonus({
     required int value,
@@ -58,11 +65,23 @@ class AugmentEffect {
           description: description,
         );
 
+  const AugmentEffect.patternTargetWeaponPermanentAttackDamageBonus({
+    required int value,
+    required String description,
+    required OperativePatternPoint targetPoint,
+  }) : this(
+          type: AugmentEffectType.patternTargetWeaponPermanentAttackBoost,
+          value: value,
+          description: description,
+          targetPoint: targetPoint,
+        );
+
   AugmentEffect withValue(int value) {
     return AugmentEffect(
       type: type,
       value: value,
       description: description,
+      targetPoint: targetPoint,
     );
   }
 }
@@ -135,12 +154,18 @@ class AugmentEffects {
 
 class AugmentPatternResolution {
   final int weaponAttackBonusDelta;
+  final int targetWeaponPermanentAttackBonusDelta;
+  final OperativePatternPoint? targetWeaponPermanentAttackBonusPoint;
 
   const AugmentPatternResolution({
     this.weaponAttackBonusDelta = 0,
+    this.targetWeaponPermanentAttackBonusDelta = 0,
+    this.targetWeaponPermanentAttackBonusPoint,
   });
 
-  bool get isEmpty => weaponAttackBonusDelta == 0;
+  bool get isEmpty =>
+      weaponAttackBonusDelta == 0 &&
+      targetWeaponPermanentAttackBonusDelta == 0;
 }
 
 class Augment {
@@ -214,6 +239,11 @@ class Augment {
     return switch (effect.type) {
       AugmentEffectType.patternWeaponCombatAttackBoost =>
         AugmentPatternResolution(weaponAttackBonusDelta: effect.value),
+      AugmentEffectType.patternTargetWeaponPermanentAttackBoost =>
+        AugmentPatternResolution(
+          targetWeaponPermanentAttackBonusDelta: effect.value,
+          targetWeaponPermanentAttackBonusPoint: effect.targetPoint,
+        ),
     };
   }
 

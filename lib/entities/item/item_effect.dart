@@ -11,16 +11,47 @@ String interpolateItemEffectValue(String template, Object value) {
 }
 
 abstract final class ItemEffectKeys {
+  static const String homemadeFlameBurnBoth = 'homemade_flame_burn_both';
+  static const String flyswatterSoloWeaponBonus =
+      'flyswatter_solo_weapon_bonus';
+  static const String broomBrushCleanseAndConmocion =
+      'broom_brush_cleanse_and_conmocion';
+  static const String poisonStingerIntoxicacion = 'poison_stinger_intoxicacion';
+  static const String mantisBladeGainDesafio = 'mantis_blade_gain_desafio';
+  static const String bugZapperRacketFragilidad =
+      'bug_zapper_racket_fragilidad';
+  static const String artificialCarapaceDamageReduction =
+      'artificial_carapace_damage_reduction';
+  static const String camouflageLeavesPuntoCiego =
+      'camouflage_leaves_punto_ciego';
+  static const String camouflageLeavesBlocking = 'camouflage_leaves_blocking';
+  static const String bloodReservesEmergencyHeal =
+      'blood_reserves_emergency_heal';
+  static const String moltSacrificeBarrierDamage =
+      'molt_sacrifice_barrier_damage';
+  static const String oniscideaShieldCurlUp = 'oniscidea_shield_curl_up';
+  static const String flowerCrownGainCalentando =
+      'flower_crown_gain_calentando';
+  static const String hazardSprayIntoxicacion = 'hazard_spray_intoxicacion';
+  static const String zapatillaExtraDamage = 'zapatilla_extra_damage';
+  static const String repellerConmocion = 'repeller_conmocion';
+  static const String repellerOpeningWave = 'repeller_opening_wave';
+  static const String webCannonFragilidad = 'web_cannon_fragilidad';
+  static const String webCannonFragileRepeat = 'web_cannon_fragile_repeat';
+  static const String electricNetDefensiveShock =
+      'electric_net_defensive_shock';
+  static const String electricNetSquareTrap = 'electric_net_square_trap';
+  static const String campfireBurnAndPuntoCiego =
+      'campfire_burn_and_punto_ciego';
+  static const String campfireBurnAttraction = 'campfire_burn_attraction';
+  static const String campfireBurnBlocking = 'campfire_burn_blocking';
   static const String sunglasses = 'sunglasses';
   static const String nanoBandageTurnStartHeal = 'nano_bandage_turn_start_heal';
   static const String sHarpEner = 's_harp_ener';
-  static const String duelistChalkGainDesafio =
-      'duelist_chalk_gain_desafio';
+  static const String duelistChalkGainDesafio = 'duelist_chalk_gain_desafio';
   static const String kindlingAxeBurnBoth = 'kindling_axe_burn_both';
-  static const String spiteHookRevengeStrike =
-      'spite_hook_revenge_strike';
-  static const String ashEaterMaskBurnPotencia =
-      'ash_eater_mask_burn_potencia';
+  static const String spiteHookRevengeStrike = 'spite_hook_revenge_strike';
+  static const String ashEaterMaskBurnPotencia = 'ash_eater_mask_burn_potencia';
   static const String ashEaterMaskSelfBurnHeal =
       'ash_eater_mask_self_burn_heal';
   static const String furnaceHeartAdjacentWeapons =
@@ -68,8 +99,7 @@ abstract final class ItemEffectKeys {
   static const String venotronomeZigzag = 'venom_metronome_zigzag';
   static const String afterimageMotorRightAngleRepeat =
       'afterimage_motor_right_angle_repeat';
-  static const String pulseStitcherComboHeal =
-      'pulse_stitcher_combo_heal';
+  static const String pulseStitcherComboHeal = 'pulse_stitcher_combo_heal';
   static const String pulseStitcherFinisherCleanse =
       'pulse_stitcher_finisher_cleanse';
   static const String leechwireCoilHealFromDebuffs =
@@ -104,8 +134,7 @@ abstract final class ItemEffectKeys {
       'contraband_catalogue_middle_profit';
   static const String goldenGodfatherRichScaling =
       'golden_godfather_rich_scaling';
-  static const String goldenGodfatherFinisher =
-      'golden_godfather_finisher';
+  static const String goldenGodfatherFinisher = 'golden_godfather_finisher';
 }
 
 /// Base value object for every effect an item can own.

@@ -54,7 +54,7 @@ abstract final class CodexDiscoveryService {
     final decoded = jsonDecode(rawValue);
     if (decoded is! List) return <String>{};
 
-    return decoded.whereType<String>().toSet();
+    return decoded.whereType<String>().map(_normalizeLegacyKey).toSet();
   }
 
   static Future<void> saveIndexedKeys(Set<String> keys) {
@@ -121,6 +121,16 @@ abstract final class CodexDiscoveryService {
     };
 
     return keys;
+  }
+
+  static String _normalizeLegacyKey(String key) {
+    return switch (key) {
+      'archetype:veloz' => archetypeKey(ArchetypeId.crepitans),
+      'archetype:inamovible' => archetypeKey(ArchetypeId.diabolicus),
+      'archetype:imparable' => archetypeKey(ArchetypeId.hercules),
+      'archetype:mercante' => archetypeKey(ArchetypeId.sacer),
+      _ => key,
+    };
   }
 
   static List<ShopPathNode> get _allShopNodes {

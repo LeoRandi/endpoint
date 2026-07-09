@@ -31,6 +31,25 @@ typedef ItemPassiveEffectHandler = ItemEffectResolution Function({
 /// serializable and does not depend on localized description text.
 abstract final class ItemEffectDispatcher {
   static final Map<String, ItemCustomActionHandler> _customActions = {
+    ItemEffectKeys.homemadeFlameBurnBoth: _resolveHomemadeFlameBurnBoth,
+    ItemEffectKeys.broomBrushCleanseAndConmocion:
+        _resolveBroomBrushCleanseAndConmocion,
+    ItemEffectKeys.poisonStingerIntoxicacion: _resolvePoisonStingerIntoxicacion,
+    ItemEffectKeys.mantisBladeGainDesafio: _resolveMantisBladeGainDesafio,
+    ItemEffectKeys.bugZapperRacketFragilidad: _resolveBugZapperRacketFragilidad,
+    ItemEffectKeys.camouflageLeavesPuntoCiego:
+        _resolveCamouflageLeavesPuntoCiego,
+    ItemEffectKeys.moltSacrificeBarrierDamage:
+        _resolveMoltSacrificeBarrierDamage,
+    ItemEffectKeys.flowerCrownGainCalentando: _resolveFlowerCrownGainCalentando,
+    ItemEffectKeys.hazardSprayIntoxicacion: _resolveHazardSprayIntoxicacion,
+    ItemEffectKeys.zapatillaExtraDamage: _resolveZapatillaExtraDamage,
+    ItemEffectKeys.repellerConmocion: _resolveRepellerConmocion,
+    ItemEffectKeys.repellerOpeningWave: _resolveRepellerOpeningWave,
+    ItemEffectKeys.webCannonFragilidad: _resolveWebCannonFragilidad,
+    ItemEffectKeys.webCannonFragileRepeat: _resolveWebCannonFragileRepeat,
+    ItemEffectKeys.electricNetSquareTrap: _resolveElectricNetSquareTrap,
+    ItemEffectKeys.campfireBurnAndPuntoCiego: _resolveCampfireBurnAndPuntoCiego,
     ItemEffectKeys.sunglasses: _resolveSunglasses,
     ItemEffectKeys.sHarpEner: _resolveSHarpEner,
     ItemEffectKeys.duelistChalkGainDesafio: _resolveDuelistChalkGainDesafio,
@@ -56,8 +75,7 @@ abstract final class ItemEffectDispatcher {
     ItemEffectKeys.leechwireCoilMiddleContagio:
         _resolveLeechwireCoilMiddleContagio,
     ItemEffectKeys.thousandCutHaloFinisher: _resolveThousandCutHaloFinisher,
-    ItemEffectKeys.laCuentaSpendGoldPotencia:
-        _resolveLaCuentaSpendGoldPotencia,
+    ItemEffectKeys.laCuentaSpendGoldPotencia: _resolveLaCuentaSpendGoldPotencia,
     ItemEffectKeys.lanzamonedasSpendGoldDamage:
         _resolveLanzamonedasSpendGoldDamage,
     ItemEffectKeys.cashbackBadgeOpeningDiscount:
@@ -67,6 +85,13 @@ abstract final class ItemEffectDispatcher {
     ItemEffectKeys.goldenGodfatherFinisher: _resolveGoldenGodfatherFinisher,
   };
   static final Map<String, ItemPassiveEffectHandler> _passiveHandlers = {
+    ItemEffectKeys.camouflageLeavesBlocking: _resolvePassiveNoop,
+    ItemEffectKeys.bloodReservesEmergencyHeal:
+        _resolveBloodReservesEmergencyHeal,
+    ItemEffectKeys.oniscideaShieldCurlUp: _resolveOniscideaShieldCurlUp,
+    ItemEffectKeys.electricNetDefensiveShock: _resolveElectricNetDefensiveShock,
+    ItemEffectKeys.campfireBurnAttraction: _resolveCampfireBurnAttraction,
+    ItemEffectKeys.campfireBurnBlocking: _resolvePassiveNoop,
     ItemEffectKeys.nanoBandageTurnStartHeal: _resolveNanoBandageTurnStartHeal,
     ItemEffectKeys.oathplateCleanse: _resolveOathplateCleanse,
     ItemEffectKeys.whitewallStandardBarrierBoost:
@@ -88,8 +113,7 @@ abstract final class ItemEffectDispatcher {
         _resolveCitadelCoreUnbrokenRetaliation,
     ItemEffectKeys.venotronomeRepeatedActionPoison:
         _resolveVenomMetronomeRepeatedActionPoison,
-    ItemEffectKeys.pulseStitcherComboHeal:
-        _resolvePulseStitcherComboHeal,
+    ItemEffectKeys.pulseStitcherComboHeal: _resolvePulseStitcherComboHeal,
     ItemEffectKeys.leechwireCoilHealFromDebuffs:
         _resolveLeechwireCoilHealFromDebuffs,
     ItemEffectKeys.blindspotMantlePuntoCiegoLimit:
@@ -279,6 +303,338 @@ abstract final class ItemEffectDispatcher {
     return ItemEffectResolution(owner: updatedOwner, opponent: opponent);
   }
 
+  static ItemEffectResolution _resolveHomemadeFlameBurnBoth({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final opponentBurn = _applyBurnToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.totalValue,
+    );
+    final burnedOwner = _applyBurnToOwner(
+      owner: opponentBurn.owner,
+      opponent: opponentBurn.opponent,
+      amount: 1,
+    );
+    return ItemEffectResolution(
+      owner: burnedOwner,
+      opponent: opponentBurn.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveBroomBrushCleanseAndConmocion({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    var cleansedCount = 0;
+    var updatedOpponent = opponent;
+    for (final status in opponent.statuses) {
+      if (cleansedCount >= effect.totalValue) break;
+      if (status.type != BattlerStatusType.buff || !status.isPurgeable) {
+        continue;
+      }
+      updatedOpponent = updatedOpponent.removeStatusInstance(status);
+      cleansedCount++;
+    }
+
+    var updatedOwner = owner;
+    if (owner.equippedItemOfType('Wooden Stick') != null) {
+      final resolution = _applyConmocionToOpponent(
+        owner: updatedOwner,
+        opponent: updatedOpponent,
+        amount: effect.totalValue,
+      );
+      updatedOwner = resolution.owner;
+      updatedOpponent = resolution.opponent;
+    }
+
+    return ItemEffectResolution(
+      owner: updatedOwner,
+      opponent: updatedOpponent,
+    );
+  }
+
+  static ItemEffectResolution _resolvePoisonStingerIntoxicacion({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final resolution = _applyPoisonToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.totalValue,
+    );
+    return ItemEffectResolution(
+      owner: resolution.owner,
+      opponent: resolution.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveMantisBladeGainDesafio({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.gainDesafio(effect.totalValue),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveBugZapperRacketFragilidad({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return _resolveFragilidadAction(
+      owner: owner,
+      opponent: opponent,
+      effect: effect,
+    );
+  }
+
+  static ItemEffectResolution _resolveCamouflageLeavesPuntoCiego({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return ItemEffectResolution(
+      owner: _gainPuntoCiegoAndMaybeBlockPoint(
+        owner: owner,
+        item: item,
+        blockEffectKey: ItemEffectKeys.camouflageLeavesBlocking,
+      ),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveMoltSacrificeBarrierDamage({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final consumedBarrier = min(owner.currentBarrier, effect.totalValue);
+    if (consumedBarrier <= 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: _gainCalentando(
+        owner.copyWith(currentBarrier: owner.currentBarrier - consumedBarrier),
+        consumedBarrier,
+      ),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveFlowerCrownGainCalentando({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return ItemEffectResolution(
+      owner: _gainPotencia(owner, effect.totalValue),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveHazardSprayIntoxicacion({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return _resolvePoisonStingerIntoxicacion(
+      owner: owner,
+      opponent: opponent,
+      item: item,
+      effect: effect,
+      pattern: pattern,
+      previousActions: previousActions,
+    );
+  }
+
+  static ItemEffectResolution _resolveZapatillaExtraDamage({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final hasDebuff = opponent.statuses.any(
+      (status) => status.type == BattlerStatusType.debuff,
+    );
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: hasDebuff
+          ? opponent.copyWith(
+              health: max(0, opponent.health - effect.totalValue),
+            )
+          : opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveRepellerConmocion({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final resolution = _applyConmocionToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.totalValue,
+    );
+    return ItemEffectResolution(
+      owner: resolution.owner,
+      opponent: resolution.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveRepellerOpeningWave({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return ItemEffectResolution(
+      owner: owner.addCombatFlag(
+        CombatRuntimeFlag.item(
+          itemEffectKey: ItemEffectKeys.repellerOpeningWave,
+          itemKey: item.catalogKey,
+          itemInstanceId: item.instanceId,
+          secondaryValue: effect.totalValue,
+        ),
+      ),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveWebCannonFragilidad({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    return _resolveFragilidadAction(
+      owner: owner,
+      opponent: opponent,
+      effect: effect,
+    );
+  }
+
+  static ItemEffectResolution _resolveWebCannonFragileRepeat({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    if (!opponent.hasStatus(FragilidadStatus.statusId)) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final weakestWeapon = _weakestWeapon(owner);
+    if (weakestWeapon == null) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    final followUps = <ItemFollowUpAction>[
+      for (var repeat = 0; repeat < max(0, effect.totalValue); repeat++)
+        for (final action in _attackActionsForFollowUpWeapon(
+          owner: owner,
+          weapon: weakestWeapon,
+        ))
+          ItemFollowUpAction(item: weakestWeapon, action: action),
+    ];
+
+    return ItemEffectResolution(
+      owner: owner,
+      opponent: opponent,
+      followUpItemActions: List<ItemFollowUpAction>.unmodifiable(followUps),
+    );
+  }
+
+  static ItemEffectResolution _resolveElectricNetSquareTrap({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final barrierOwner = owner.gainCombatBarrier(effect.totalValue);
+    final fragilityResolution = _applyStatusToOpponent(
+      owner: barrierOwner,
+      opponent: opponent,
+      status: const FragilidadStatus(value: 2),
+    );
+    return ItemEffectResolution(
+      owner: fragilityResolution.owner,
+      opponent: fragilityResolution.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveCampfireBurnAndPuntoCiego({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required ActionEffect effect,
+    required BattlePatternMatchContext pattern,
+    required List<ActionEffect> previousActions,
+  }) {
+    final burnResolution = _applyBurnToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.totalValue,
+    );
+    return ItemEffectResolution(
+      owner: _gainPuntoCiegoAndMaybeBlockPoint(
+        owner: burnResolution.owner,
+        item: item,
+        blockEffectKey: ItemEffectKeys.campfireBurnBlocking,
+      ),
+      opponent: burnResolution.opponent,
+    );
+  }
+
   static ItemEffectResolution _resolveDuelistChalkGainDesafio({
     required Battler owner,
     required Battler opponent,
@@ -327,6 +683,108 @@ abstract final class ItemEffectDispatcher {
     return ItemEffectResolution(
       owner: isOwnerTurn ? owner.heal(effect.value) : owner,
       opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveBloodReservesEmergencyHeal({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (damageTaken <= 0 ||
+        owner.health * 2 >= owner.maxHealth ||
+        owner.itemCombatFlagUseCount(item: item, kind: effect.effectKey) > 0) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner
+          .heal(effect.value)
+          .addItemCombatFlagUse(item: item, kind: effect.effectKey),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveOniscideaShieldCurlUp({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    if (!isOwnerTurn || owner.itemAttackActionResolvedCountThisTurn > 1) {
+      return ItemEffectResolution(owner: owner, opponent: opponent);
+    }
+
+    return ItemEffectResolution(
+      owner: owner.gainCombatBarrier(effect.value),
+      opponent: opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveElectricNetDefensiveShock({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    final resolution = _applyStatusToOpponent(
+      owner: owner,
+      opponent: opponent,
+      status: FragilidadStatus(value: effect.value),
+    );
+    return ItemEffectResolution(
+      owner: resolution.owner,
+      opponent: resolution.opponent,
+    );
+  }
+
+  static ItemEffectResolution _resolveCampfireBurnAttraction({
+    required Battler owner,
+    required Battler opponent,
+    required Item item,
+    required PassiveEffect effect,
+    required bool isOwnerTurn,
+    required int damageDealt,
+    required int damageTaken,
+    required DamageKind? damageKind,
+    required Item? sourceItem,
+    required ActionEffect? action,
+    required BattlerStatus? status,
+    required BattlePatternMatchContext? pattern,
+  }) {
+    final resolution = _applyBurnToOpponent(
+      owner: owner,
+      opponent: opponent,
+      amount: effect.value,
+    );
+    return ItemEffectResolution(
+      owner: resolution.owner,
+      opponent: resolution.opponent,
     );
   }
 
@@ -1110,7 +1568,7 @@ abstract final class ItemEffectDispatcher {
     required BattlePatternMatchContext? pattern,
   }) {
     final affinityCount = owner.equippedItems
-        .where((item) => item.affinity != ItemArchetypeAffinity.mercante)
+        .where((item) => item.affinity != ItemArchetypeAffinity.sacer)
         .map((item) => item.affinity)
         .toSet()
         .length;
@@ -1406,6 +1864,28 @@ abstract final class ItemEffectDispatcher {
       }
     }
 
+    if (sourceItem != null && sourceItem.isWeaponLike) {
+      for (final repeller in updatedOwner.equippedItems) {
+        final pendingConmocion = updatedOwner.itemCombatFlagValue(
+          item: repeller,
+          kind: ItemEffectKeys.repellerOpeningWave,
+        );
+        if (pendingConmocion == null || pendingConmocion <= 0) continue;
+
+        final shockResolution = _applyConmocionToOpponent(
+          owner: updatedOwner,
+          opponent: updatedOpponent,
+          amount: pendingConmocion,
+        );
+        updatedOwner = shockResolution.owner.removeItemCombatFlagsFor(
+          item: repeller,
+          kind: ItemEffectKeys.repellerOpeningWave,
+        );
+        updatedOpponent = shockResolution.opponent;
+        break;
+      }
+    }
+
     if (damageDealt > 0) {
       for (final item in updatedOwner.equippedItems.where(
         (item) => item.passiveEffects.any(
@@ -1498,7 +1978,7 @@ abstract final class ItemEffectDispatcher {
         (effect) =>
             effect.effectKey == ItemEffectKeys.contrabandCatalogueGoldSpendEcho,
       )) {
-        final weakestItem = _weakestNonMercantePatternItem(
+        final weakestItem = _weakestNonSacerPatternItem(
           owner: updatedOwner,
           pattern: pattern,
         );
@@ -1628,6 +2108,53 @@ abstract final class ItemEffectDispatcher {
     return (owner: resolution.source, opponent: resolution.owner);
   }
 
+  static ItemEffectResolution _resolveFragilidadAction({
+    required Battler owner,
+    required Battler opponent,
+    required ActionEffect effect,
+  }) {
+    final resolution = _applyStatusToOpponent(
+      owner: owner,
+      opponent: opponent,
+      status: FragilidadStatus(value: effect.totalValue),
+    );
+    return ItemEffectResolution(
+      owner: resolution.owner,
+      opponent: resolution.opponent,
+    );
+  }
+
+  static Battler _gainPuntoCiegoAndMaybeBlockPoint({
+    required Battler owner,
+    required Item item,
+    required String blockEffectKey,
+  }) {
+    var updatedOwner = owner.applyStatus(const PuntoCiegoStatus());
+    final blockEffect = item.passiveEffects.where(
+      (effect) => effect.effectKey == blockEffectKey,
+    );
+    if (blockEffect.isEmpty) return updatedOwner;
+
+    final threshold = max(1, blockEffect.first.value);
+    final previousUses = updatedOwner.itemCombatFlagUseCount(
+      item: item,
+      kind: blockEffectKey,
+    );
+    updatedOwner = updatedOwner.addItemCombatFlagUse(
+      item: item,
+      kind: blockEffectKey,
+    );
+    if (previousUses + 1 < threshold) return updatedOwner;
+
+    final pointKey = OperativePatternLayoutService.pointKeyForItem(
+      player: updatedOwner,
+      item: item,
+    );
+    if (pointKey == null) return updatedOwner;
+
+    return updatedOwner.addCombatBlockedPoints(<String>[pointKey]);
+  }
+
   static int _burnValue(Battler owner) {
     return owner.statusesById(QuemaduraStatus.statusId).fold<int>(
           0,
@@ -1741,10 +2268,20 @@ abstract final class ItemEffectDispatcher {
 
   static bool _actionAppliesDebuff(ActionEffect action) {
     return switch (action.customEffectKey) {
+      ItemEffectKeys.homemadeFlameBurnBoth ||
+      ItemEffectKeys.poisonStingerIntoxicacion ||
+      ItemEffectKeys.bugZapperRacketFragilidad ||
+      ItemEffectKeys.hazardSprayIntoxicacion ||
+      ItemEffectKeys.repellerConmocion ||
+      ItemEffectKeys.repellerOpeningWave ||
+      ItemEffectKeys.webCannonFragilidad ||
+      ItemEffectKeys.electricNetSquareTrap ||
+      ItemEffectKeys.campfireBurnAndPuntoCiego ||
       ItemEffectKeys.kindlingAxeBurnBoth ||
       ItemEffectKeys.splinterDartFragilidad ||
       ItemEffectKeys.venotronomeZigzag ||
-      ItemEffectKeys.leechwireCoilMiddleContagio => true,
+      ItemEffectKeys.leechwireCoilMiddleContagio =>
+        true,
       _ => false,
     };
   }
@@ -1799,14 +2336,14 @@ abstract final class ItemEffectDispatcher {
     return List<Item>.unmodifiable(items);
   }
 
-  static Item? _weakestNonMercantePatternItem({
+  static Item? _weakestNonSacerPatternItem({
     required Battler owner,
     required BattlePatternMatchContext pattern,
   }) {
     Item? weakest;
     var weakestValue = 0;
     for (final item in _usedPatternItems(owner: owner, pattern: pattern)) {
-      if (item.affinity == ItemArchetypeAffinity.mercante) continue;
+      if (item.affinity == ItemArchetypeAffinity.sacer) continue;
       final itemValue = _itemActionValue(
         owner: owner,
         item: item,

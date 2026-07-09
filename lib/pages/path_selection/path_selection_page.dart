@@ -247,7 +247,7 @@ class _PathSelectionPageState extends State<PathSelectionPage> {
 
     return _PathShowcaseStep(
       showcaseKey: _tutorialKeys.archetypeNode,
-      title: 'Elige Imparable',
+      title: 'Elige Hercules',
       description:
           'Para empezar la primera hora del tutorial, pulsa este arquetipo. El resto de la pantalla queda bloqueado hasta que lo elijas.',
       allowTargetInteraction: true,

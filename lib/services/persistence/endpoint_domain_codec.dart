@@ -56,10 +56,7 @@ abstract final class EndpointDomainCodec {
         fallback: defaultPlayerBattler.iconEmoji,
       ),
       imageAsset: EndpointJsonUtils.readNullableString(json['imageAsset']),
-      archetypeId: EndpointJsonUtils.parseEnumByName(
-        ArchetypeId.values,
-        json['archetypeId'],
-      ),
+      archetypeId: _deserializeArchetypeId(json['archetypeId']),
       health: EndpointJsonUtils.readInt(
         json['currentHealth'],
         fallback: defaultPlayerBattler.health,
@@ -209,6 +206,48 @@ abstract final class EndpointDomainCodec {
   }
 }
 
+ArchetypeId? _deserializeArchetypeId(Object? rawValue) {
+  return EndpointJsonUtils.parseEnumByName(
+        ArchetypeId.values,
+        rawValue,
+      ) ??
+      switch (rawValue) {
+        'veloz' => ArchetypeId.crepitans,
+        'inamovible' => ArchetypeId.diabolicus,
+        'imparable' => ArchetypeId.hercules,
+        'mercante' => ArchetypeId.sacer,
+        _ => null,
+      };
+}
+
+AugmentAffinity? _deserializeAugmentAffinity(Object? rawValue) {
+  return EndpointJsonUtils.parseEnumByName(
+        AugmentAffinity.values,
+        rawValue,
+      ) ??
+      switch (rawValue) {
+        'veloz' => AugmentAffinity.crepitans,
+        'inamovible' => AugmentAffinity.diabolicus,
+        'imparable' => AugmentAffinity.hercules,
+        'mercante' => AugmentAffinity.sacer,
+        _ => null,
+      };
+}
+
+ItemArchetypeAffinity? _deserializeItemArchetypeAffinity(Object? rawValue) {
+  return EndpointJsonUtils.parseEnumByName(
+        ItemArchetypeAffinity.values,
+        rawValue,
+      ) ??
+      switch (rawValue) {
+        'veloz' => ItemArchetypeAffinity.crepitans,
+        'inamovible' => ItemArchetypeAffinity.diabolicus,
+        'imparable' => ItemArchetypeAffinity.hercules,
+        'mercante' => ItemArchetypeAffinity.sacer,
+        _ => null,
+      };
+}
+
 Augment? _deserializeAugment(Map<String, dynamic> json) {
   final id = EndpointJsonUtils.readInt(json['id'], fallback: -1);
   final name = EndpointJsonUtils.readString(json['name'], fallback: '').trim();
@@ -251,10 +290,7 @@ Augment? _deserializeAugment(Map<String, dynamic> json) {
     description: description,
     tier: tier,
     assetPath: assetPath,
-    affinity: EndpointJsonUtils.parseEnumByName(
-          AugmentAffinity.values,
-          json['affinity'],
-        ) ??
+    affinity: _deserializeAugmentAffinity(json['affinity']) ??
         AugmentAffinity.general,
     tags: _deserializeEntityTags(json['tags']),
     effects: AugmentEffects(patternEffects: patternEffects),
@@ -326,10 +362,7 @@ Item? _deserializeItem(Map<String, dynamic> json) {
     name: name,
     description:
         EndpointJsonUtils.readString(json['description'], fallback: ''),
-    affinity: EndpointJsonUtils.parseEnumByName(
-          ItemArchetypeAffinity.values,
-          json['affinity'],
-        ) ??
+    affinity: _deserializeItemArchetypeAffinity(json['affinity']) ??
         ItemArchetypeAffinity.general,
     tier: itemTier,
     valueModifier: EndpointJsonUtils.readInt(
@@ -417,6 +450,7 @@ Map<String, Object?> _serializeAugmentEffect(AugmentEffect effect) {
     'type': effect.type.name,
     'value': effect.value,
     'description': effect.description,
+    if (effect.targetPoint != null) 'targetPoint': effect.targetPoint!.key,
   };
 }
 
@@ -430,11 +464,22 @@ AugmentEffect? _deserializeAugmentEffect(Map<String, dynamic> json) {
     fallback: '',
   ).trim();
   if (type == null || description.isEmpty) return null;
+  final targetPointKey = EndpointJsonUtils.readNullableString(
+    json['targetPoint'],
+  );
+  final targetPoint = targetPointKey == null
+      ? null
+      : operativePatternPointsByKey[targetPointKey];
+  if (type == AugmentEffectType.patternTargetWeaponPermanentAttackBoost &&
+      targetPoint == null) {
+    return null;
+  }
 
   return AugmentEffect(
     type: type,
     value: EndpointJsonUtils.readInt(json['value'], fallback: 0),
     description: description,
+    targetPoint: targetPoint,
   );
 }
 

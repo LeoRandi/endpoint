@@ -9,10 +9,10 @@ import 'endpoint_palette.dart';
 /// non-Flutter tools while preserving the existing widget-facing API.
 extension ArchetypeIdPresentation on ArchetypeId {
   String get label => switch (this) {
-        ArchetypeId.veloz => 'Veloz',
-        ArchetypeId.inamovible => 'Inamovible',
-        ArchetypeId.imparable => 'Imparable',
-        ArchetypeId.mercante => 'Mercante',
+        ArchetypeId.crepitans => 'Crepitans',
+        ArchetypeId.diabolicus => 'Diabolicus',
+        ArchetypeId.hercules => 'Hercules',
+        ArchetypeId.sacer => 'Sacer',
       };
 }
 
@@ -141,26 +141,26 @@ extension AugmentPresentation on Augment {
 extension AugmentAffinityPresentation on AugmentAffinity {
   String get label => switch (this) {
         AugmentAffinity.general => 'General',
-        AugmentAffinity.veloz => ArchetypeId.veloz.label,
-        AugmentAffinity.inamovible => ArchetypeId.inamovible.label,
-        AugmentAffinity.imparable => ArchetypeId.imparable.label,
-        AugmentAffinity.mercante => ArchetypeId.mercante.label,
+        AugmentAffinity.crepitans => ArchetypeId.crepitans.label,
+        AugmentAffinity.diabolicus => ArchetypeId.diabolicus.label,
+        AugmentAffinity.hercules => ArchetypeId.hercules.label,
+        AugmentAffinity.sacer => ArchetypeId.sacer.label,
       };
 
   IconData get icon => switch (this) {
         AugmentAffinity.general => Icons.all_inclusive_rounded,
-        AugmentAffinity.veloz => Icons.flash_on_rounded,
-        AugmentAffinity.inamovible => Icons.shield_rounded,
-        AugmentAffinity.imparable => Icons.local_fire_department_rounded,
-        AugmentAffinity.mercante => Icons.payments_rounded,
+        AugmentAffinity.crepitans => Icons.flash_on_rounded,
+        AugmentAffinity.diabolicus => Icons.shield_rounded,
+        AugmentAffinity.hercules => Icons.local_fire_department_rounded,
+        AugmentAffinity.sacer => Icons.payments_rounded,
       };
 
   Color get accent => switch (this) {
         AugmentAffinity.general => EndpointPalette.neutralAccent,
-        AugmentAffinity.veloz => const Color(0xFF59B7FF),
-        AugmentAffinity.inamovible => const Color(0xFF5AF78E),
-        AugmentAffinity.imparable => const Color(0xFFFF5A5F),
-        AugmentAffinity.mercante => const Color(0xFFEBCB5A),
+        AugmentAffinity.crepitans => const Color(0xFF59B7FF),
+        AugmentAffinity.diabolicus => const Color(0xFF5AF78E),
+        AugmentAffinity.hercules => const Color(0xFFFF5A5F),
+        AugmentAffinity.sacer => const Color(0xFFEBCB5A),
       };
 }
 
@@ -270,8 +270,8 @@ extension PathNodePresentation on PathNode {
       };
 
   Color get accent => switch (nodeId) {
-        'archetype_imparable' => const Color(0xFFFF5A5F),
-        'archetype_mercante' => const Color(0xFFEBCB5A),
+        'archetype_hercules' => const Color(0xFFFF5A5F),
+        'archetype_sacer' => const Color(0xFFEBCB5A),
         'shop_scrap_arsenal' => const Color(0xFFB8C0CC),
         'shop_first_aid_stand' => const Color(0xFFFF8BA7),
         'shop_imp_acts' => const Color(0xFFF3D35C),

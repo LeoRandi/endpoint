@@ -62,6 +62,55 @@ final List<Augment> augmentCatalog = List<Augment>.unmodifiable([
       },
     ),
   ),
+  Augment(
+    id: 2,
+    name: 'Spear Head Formation',
+    description:
+        'El arma en [-1, 1] gana dano permanente al completar la formacion.',
+    tier: RarityTier.gray,
+    assetPath: 'assets/sprites/unknown.png',
+    affinity: AugmentAffinity.hercules,
+    tags: const <EntityTag>[EntityTag.ataque, EntityTag.arma],
+    effects: AugmentEffects(
+      patternEffects: {
+        _points(const [(-1, 0), (-1, 1), (0, 1)]):
+            const AugmentEffect.patternTargetWeaponPermanentAttackDamageBonus(
+          value: 1,
+          description:
+              '+1 dano permanente al arma en [-1, 1] si es parte del patron.',
+          targetPoint: OperativePatternPoint(x: -1, y: 1),
+        ),
+        _points(const [(-1, 0), (-1, 1), (0, 1)]):
+            const AugmentEffect.patternTargetWeaponPermanentAttackDamageBonus(
+          value: 2,
+          description:
+              '+2 dano permanente al arma en [-1, 1] si es parte del patron.',
+          targetPoint: OperativePatternPoint(x: -1, y: 1),
+        ),
+        _points(const [(0, -1), (-1, 0), (-1, 1), (0, 1), (1, 0)]):
+            const AugmentEffect.patternTargetWeaponPermanentAttackDamageBonus(
+          value: 3,
+          description:
+              '+3 dano permanente al arma en [-1, 1] si es parte del patron.',
+          targetPoint: OperativePatternPoint(x: -1, y: 1),
+        ),
+        _points(const [(0, -1), (-1, 0), (-1, 1), (0, 1), (1, 0)]):
+            const AugmentEffect.patternTargetWeaponPermanentAttackDamageBonus(
+          value: 4,
+          description:
+              '+4 dano permanente al arma en [-1, 1] si es parte del patron.',
+          targetPoint: OperativePatternPoint(x: -1, y: 1),
+        ),
+        _points(const [(0, -1), (-1, 0), (-1, 1), (0, 1), (1, 0)]):
+            const AugmentEffect.patternTargetWeaponPermanentAttackDamageBonus(
+          value: 5,
+          description:
+              '+5 dano permanente al arma en [-1, 1] si es parte del patron.',
+          targetPoint: OperativePatternPoint(x: -1, y: 1),
+        ),
+      },
+    ),
+  ),
 ]);
 
 final Map<int, Augment> augmentCatalogById = Map<int, Augment>.unmodifiable({

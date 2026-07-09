@@ -1,10 +1,10 @@
 import '_imports.dart';
 
 /// Arquetipo agil orientado a ataque ligero y economia temprana.
-final velozArchetypeNode = ArchetypePathNode(
-  archetypeId: ArchetypeId.veloz,
-  nodeId: 'archetype_veloz',
-  label: 'Veloz',
+final crepitansArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.crepitans,
+  nodeId: 'archetype_crepitans',
+  label: 'Crepitans',
   tooltip:
       'Perfil agil de doble golpe que castiga objetivos debilitados. Empieza con 13C y 4 income.',
   iconEmoji: '\u26A1',
@@ -23,10 +23,10 @@ final velozArchetypeNode = ArchetypePathNode(
 );
 
 /// Arquetipo defensivo centrado en vida, barrera y estabilidad.
-final inamovibleArchetypeNode = ArchetypePathNode(
-  archetypeId: ArchetypeId.inamovible,
-  nodeId: 'archetype_inamovible',
-  label: 'Inamovible',
+final diabolicusArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.diabolicus,
+  nodeId: 'archetype_diabolicus',
+  label: 'Diabolicus',
   tooltip:
       'Perfil resistente con regeneracion pasiva y barrera sostenida. Empieza con 17C y 3 income.',
   iconEmoji: '\u{1F6E1}',
@@ -45,10 +45,10 @@ final inamovibleArchetypeNode = ArchetypePathNode(
 );
 
 /// Arquetipo ofensivo que arranca con mas presion de daño.
-final imparableArchetypeNode = ArchetypePathNode(
-  archetypeId: ArchetypeId.imparable,
-  nodeId: 'archetype_imparable',
-  label: 'Imparable',
+final herculesArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.hercules,
+  nodeId: 'archetype_hercules',
+  label: 'Hercules',
   tooltip:
       'Perfil ofensivo con mas pegada base y daño extra al pelear herido. Empieza con 13C y 3 income.',
   iconEmoji: '\u2694',
@@ -62,11 +62,11 @@ final imparableArchetypeNode = ArchetypePathNode(
   incomeModifier: 3,
   startingItems: const [],
   startingAugments: [
-    augmentCatalogById[1]!,
+    augmentCatalogById[2]!.copyWith(tier: RarityTier.gray),
   ],
 );
 
-List<Item> _buildMerchantStartingItems(RandomSource randomizer) {
+List<Item> _buildSacerStartingItems(RandomSource randomizer) {
   final greenItem = _pickRandomItemByRarity(
     randomizer: randomizer,
     rarity: RarityTier.green,
@@ -115,10 +115,10 @@ List<Item> _pickDistinctRandomItemsByRarity({
 }
 
 /// Arquetipo economico flexible centrado en caja e income.
-final mercanteArchetypeNode = ArchetypePathNode(
-  archetypeId: ArchetypeId.mercante,
-  nodeId: 'archetype_mercante',
-  label: 'Mercante',
+final sacerArchetypeNode = ArchetypePathNode(
+  archetypeId: ArchetypeId.sacer,
+  nodeId: 'archetype_sacer',
+  label: 'Sacer',
   tooltip:
       'Perfil de dinero, adaptacion y viraje a mitad de run. Empieza con 18C, 5 income y Flujo de Caja.',
   iconEmoji: '\u{1F4B0}',
@@ -130,7 +130,7 @@ final mercanteArchetypeNode = ArchetypePathNode(
   moneyModifier: 18,
   incomeModifier: 5,
   startingItems: const [],
-  startingItemsBuilder: _buildMerchantStartingItems,
+  startingItemsBuilder: _buildSacerStartingItems,
   startingAugments: [
     augmentCatalogById[1]!,
   ],
@@ -402,11 +402,11 @@ final greenItemVendorNode = ShopPathNode(
   stockCriterion: greenItemShopCriterion,
 );
 
-/// Tienda verde Mercante de economia.
+/// Tienda verde Sacer de economia.
 final cambientGoldSellerNode = ShopPathNode(
   nodeId: 'shop_cambient_gold_seller',
   label: 'Cambient Gold Seller',
-  tooltip: 'Mercado economico reservado para Mercante',
+  tooltip: 'Mercado economico reservado para Sacer',
   iconEmoji: '\u{1F4B1}',
   rarity: RarityTier.green,
   badgeLabel: 'ORO',
@@ -416,15 +416,15 @@ final cambientGoldSellerNode = ShopPathNode(
       'Comisiones abusivas, oportunidades reales y recibos imposibles.',
   stockCriterion: economyShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.mercante,
+    ArchetypeId.sacer,
   ],
 );
 
-/// Tienda verde Veloz de ciclo.
+/// Tienda verde Crepitans de ciclo.
 final routineMarketNode = ShopPathNode(
   nodeId: 'shop_routine_market',
   label: 'Routine Market',
-  tooltip: 'Piezas de ciclo reservadas para Veloz',
+  tooltip: 'Piezas de ciclo reservadas para Crepitans',
   iconEmoji: '\u{1F501}',
   rarity: RarityTier.green,
   badgeLabel: 'CICLO',
@@ -434,7 +434,7 @@ final routineMarketNode = ShopPathNode(
       'Maquinas repetitivas, relojes abiertos y piezas que vuelven solas.',
   stockCriterion: cycleShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.veloz,
+    ArchetypeId.crepitans,
   ],
 );
 
@@ -466,7 +466,7 @@ final emberFoundryNode = ShopPathNode(
   shopSubtitle: 'Brasa embotellada, metal caliente y contratos inflamables.',
   stockCriterion: burnShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.imparable,
+    ArchetypeId.hercules,
   ],
 );
 
@@ -483,7 +483,7 @@ final toxinLabNode = ShopPathNode(
   shopSubtitle: 'Quimica corrosiva, filtros dudosos y venenos rentables.',
   stockCriterion: poisonShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.veloz,
+    ArchetypeId.crepitans,
   ],
 );
 
@@ -663,14 +663,14 @@ const clinicaReflejosNode = EventPathNode(
   id: PathEventId.clinicaReflejos,
   nodeId: 'event_clinica_reflejos',
   label: 'Clinica de Reflejos',
-  tooltip: 'Aumento Veloz o 6 Quemadura por +1 ATK permanente',
+  tooltip: 'Aumento Crepitans o 6 Quemadura por +1 ATK permanente',
   iconEmoji: '\u{1F489}',
   rarity: RarityTier.green,
-  badgeLabel: 'VELOZ',
+  badgeLabel: 'CREPITANS',
   showTitle: 'Has encontrado la Clinica de Reflejos',
   eventTitle: 'CLINICA DE REFLEJOS',
   description:
-      'Una clinica de latencia mide tus parpadeos y ofrece acelerar tus protocolos. Puedes aceptar un aumento Veloz calibrado para esta fase de la run o una inyeccion ardiente por potencia permanente.',
+      'Una clinica de latencia mide tus parpadeos y ofrece acelerar tus protocolos. Puedes aceptar un aumento Crepitans calibrado para esta fase de la run o una inyeccion ardiente por potencia permanente.',
   outcomeText: 'Elige una intervencion.',
   flavorTexts: [
     'El visor de diagnostico sigue tus ojos antes de que termines de entrar.',
@@ -685,7 +685,7 @@ const viktorOperationsNode = EventPathNode(
   tooltip: 'Mejora a morado un item de Contagio, Debuff o Intoxicacion',
   iconEmoji: '\u{1F9EA}',
   rarity: RarityTier.purple,
-  badgeLabel: 'VELOZ',
+  badgeLabel: 'CREPITANS',
   showTitle: 'Viktor Operations abre la puerta',
   eventTitle: 'VIKTOR OPERATIONS',
   description:
@@ -759,7 +759,7 @@ const contratontosNode = EventPathNode(
   id: PathEventId.contratontos,
   nodeId: 'event_contratontos',
   label: 'Contratontos',
-  tooltip: 'Entrenamientos Imparables con costes brutales',
+  tooltip: 'Entrenamientos Hercules con costes brutales',
   iconEmoji: '\u{1F4AA}',
   rarity: RarityTier.green,
   badgeLabel: 'IMPAR',
@@ -955,7 +955,7 @@ final velvetArmoryNode = ShopPathNode(
   shopSubtitle: 'Blindaje elegante para quien espera volver con vida.',
   stockCriterion: barrierShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.inamovible,
+    ArchetypeId.diabolicus,
   ],
 );
 
@@ -1003,11 +1003,11 @@ final buffParlorNode = ShopPathNode(
   stockCriterion: buffShopCriterion,
 );
 
-/// Tienda azul Inamovible centrada en Resonancia.
+/// Tienda azul Diabolicus centrada en Resonancia.
 final resonanceBankNode = ShopPathNode(
   nodeId: 'shop_resonance_bank',
   label: 'Banco de Resonancia',
-  tooltip: 'Piezas de Resonancia reservadas para Inamovible',
+  tooltip: 'Piezas de Resonancia reservadas para Diabolicus',
   iconEmoji: '\u{1F3E6}',
   rarity: RarityTier.blue,
   badgeLabel: 'RESON',
@@ -1016,15 +1016,15 @@ final resonanceBankNode = ShopPathNode(
   shopSubtitle: 'Cada pieza vibra con algo que todavia no has equipado.',
   stockCriterion: resonanceShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.inamovible,
+    ArchetypeId.diabolicus,
   ],
 );
 
-/// Tienda azul Imparable centrada en Desafio.
+/// Tienda azul Hercules centrada en Desafio.
 final duelowPricesNode = ShopPathNode(
   nodeId: 'shop_duelow_prices',
   label: 'Duelow Prices',
-  tooltip: 'Piezas de Desafio reservadas para Imparable',
+  tooltip: 'Piezas de Desafio reservadas para Hercules',
   iconEmoji: '\u2694',
   rarity: RarityTier.blue,
   badgeLabel: 'DUELO',
@@ -1033,15 +1033,15 @@ final duelowPricesNode = ShopPathNode(
   shopSubtitle: 'Cuanto peor pinta la pelea, mas alto sube el descuento.',
   stockCriterion: challengeShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.imparable,
+    ArchetypeId.hercules,
   ],
 );
 
-/// Tienda azul Veloz centrada en Contagio.
+/// Tienda azul Crepitans centrada en Contagio.
 final contagionCompanyNode = ShopPathNode(
   nodeId: 'shop_contagion_company',
   label: 'The Contagion Company',
-  tooltip: 'Piezas de Contagio reservadas para Veloz',
+  tooltip: 'Piezas de Contagio reservadas para Crepitans',
   iconEmoji: '\u{1F9AB}',
   rarity: RarityTier.blue,
   badgeLabel: 'CONTAG',
@@ -1051,7 +1051,7 @@ final contagionCompanyNode = ShopPathNode(
       'Nada se queda en un solo objetivo si pagas al intermediario correcto.',
   stockCriterion: contagionShopCriterion,
   possibleArchetypes: const [
-    ArchetypeId.veloz,
+    ArchetypeId.crepitans,
   ],
 );
 
@@ -1156,10 +1156,10 @@ final List<ShopPathNode> dayShopNodes = List.unmodifiable([
 
 /// Pool completo de arquetipos que puede ofrecer la primera hora.
 final List<ArchetypePathNode> openingArchetypeNodes = List.unmodifiable([
-  velozArchetypeNode,
-  inamovibleArchetypeNode,
-  imparableArchetypeNode,
-  mercanteArchetypeNode,
+  crepitansArchetypeNode,
+  diabolicusArchetypeNode,
+  herculesArchetypeNode,
+  sacerArchetypeNode,
 ]);
 
 /// Eventos candidatos para el tramo diurno.
@@ -1257,27 +1257,32 @@ final List<CombatPathNode> sunriseCombatNodes = List.unmodifiable([
   yellowCombatNode,
 ]);
 
+final List<PathNode> _canonicalPathNodes = <PathNode>[
+  ...openingArchetypeNodes,
+  ...dayShopNodes,
+  ...dayEventNodes,
+  ...nightShopNodes,
+  ...nightEventNodes,
+  ...grayCombatNodes,
+  ...greenCombatNodes,
+  ...blueCombatNodes,
+  ...purpleCombatNodes,
+  ...sunriseCombatNodes,
+  restZoneCampNode,
+  severeMedicationCampNode,
+];
+
 /// Registro canonico de nodos por id para evitar identidades basadas en texto visible.
 final Map<String, PathNode> pathNodeRegistry =
     Map<String, PathNode>.unmodifiable({
-  for (final node in <PathNode>[
-    ...openingArchetypeNodes,
-    ...dayShopNodes,
-    ...dayEventNodes,
-    ...nightShopNodes,
-    ...nightEventNodes,
-    ...grayCombatNodes,
-    ...greenCombatNodes,
-    ...blueCombatNodes,
-    ...purpleCombatNodes,
-    ...sunriseCombatNodes,
-    restZoneCampNode,
-    severeMedicationCampNode,
-  ])
-    node.nodeId: node,
+  for (final node in _canonicalPathNodes) node.nodeId: node,
+  'archetype_veloz': crepitansArchetypeNode,
+  'archetype_inamovible': diabolicusArchetypeNode,
+  'archetype_imparable': herculesArchetypeNode,
+  'archetype_mercante': sacerArchetypeNode,
 });
 
 /// Vista lineal del registro canonico, util para tooling y futuros validadores.
 final List<PathNode> allPathNodes = List<PathNode>.unmodifiable(
-  pathNodeRegistry.values,
+  _canonicalPathNodes,
 );

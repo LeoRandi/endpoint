@@ -382,7 +382,10 @@ class BattleController extends ChangeNotifier {
           action: pendingAction.action,
         );
         didResolveAction = true;
-        _player = _player.recordResolvedItemAction(action);
+        _player = _player.recordResolvedItemActionFromItem(
+          action: action,
+          item: pendingAction.item,
+        );
         switch (action.actionType) {
           case ItemActionType.attack:
             final attackerBefore = _player;
@@ -395,6 +398,7 @@ class BattleController extends ChangeNotifier {
                 action.totalValue + attackModifier,
               ),
               sourceItem: pendingAction.item,
+              pattern: pattern,
             );
             await _playAttackActionAnimations(
               attackerSide: BattleCombatantSide.player,
@@ -820,7 +824,10 @@ class BattleController extends ChangeNotifier {
           action: pendingAction.action,
         );
         didResolveAction = true;
-        _enemy = _enemy.recordResolvedItemAction(action);
+        _enemy = _enemy.recordResolvedItemActionFromItem(
+          action: action,
+          item: pendingAction.item,
+        );
         switch (action.actionType) {
           case ItemActionType.attack:
             final enemyBefore = _enemy;
@@ -833,6 +840,7 @@ class BattleController extends ChangeNotifier {
                 action.totalValue + attackModifier,
               ),
               sourceItem: pendingAction.item,
+              pattern: pattern,
             );
             await _playAttackActionAnimations(
               attackerSide: BattleCombatantSide.enemy,
@@ -1421,6 +1429,7 @@ class BattleController extends ChangeNotifier {
     bool triggerAttackResolvedEffects = true,
     bool hasPendingActionChainFollowUp = false,
     Item? sourceItem,
+    BattlePatternMatchContext? pattern,
   }) {
     var updatedAttacker = attacker.removeCombatFlag(
       Battler.pendingBasicAttackFollowUpFlag,
@@ -1552,6 +1561,7 @@ class BattleController extends ChangeNotifier {
         baseDamageOverride: baseDamageOverride,
         triggerAttackResolvedEffects: triggerAttackResolvedEffects,
         sourceItem: sourceItem,
+        pattern: pattern,
       );
       updatedAttacker = resolution.attacker.removeCombatFlag(
         Battler.pendingBasicAttackFollowUpFlag,
@@ -1582,9 +1592,11 @@ class BattleController extends ChangeNotifier {
     }
 
     return _BattleAttackActionResolution(
-      attacker: updatedAttacker.removeCombatFlag(
-        Battler.pendingBasicAttackFollowUpFlag,
-      ).removeCombatFlag(Battler.pendingActionChainFollowUpFlag),
+      attacker: updatedAttacker
+          .removeCombatFlag(
+            Battler.pendingBasicAttackFollowUpFlag,
+          )
+          .removeCombatFlag(Battler.pendingActionChainFollowUpFlag),
       defender: updatedDefender,
       damageDealt: totalDamageDealt,
       hits: List<_BattleAttackHitResolution>.unmodifiable(hits),
@@ -2611,9 +2623,15 @@ class BattleController extends ChangeNotifier {
     final followUps = <BattlePatternActionPileEntry>[];
 
     if (isPlayer) {
-      _player = _player.recordResolvedItemAction(action);
+      _player = _player.recordResolvedItemActionFromItem(
+        action: action,
+        item: item,
+      );
     } else {
-      _enemy = _enemy.recordResolvedItemAction(action);
+      _enemy = _enemy.recordResolvedItemActionFromItem(
+        action: action,
+        item: item,
+      );
     }
 
     switch (action.actionType) {
@@ -2624,6 +2642,7 @@ class BattleController extends ChangeNotifier {
           baseDamageOverride: max(0, action.totalValue + modifiers.attack),
           hasPendingActionChainFollowUp: hasPendingActionChainFollowUp,
           sourceItem: item,
+          pattern: pattern,
         );
         if (isPlayer) {
           _player = attackResolution.attacker;

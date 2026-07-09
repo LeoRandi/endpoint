@@ -187,11 +187,15 @@ extension BattlerRuntimeService on Battler {
   int applyEquippedItemOutgoingDamageModifiers({
     required Battler target,
     required int damage,
+    Item? sourceItem,
+    BattlePatternMatchContext? pattern,
   }) {
     return _battlerEffectPipeline.applyEquippedItemOutgoingDamageModifiers(
       owner: this,
       target: target,
       damage: damage,
+      sourceItem: sourceItem,
+      pattern: pattern,
     );
   }
 

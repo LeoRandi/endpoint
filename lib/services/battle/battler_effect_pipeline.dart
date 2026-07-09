@@ -211,6 +211,8 @@ class BattlerEffectPipeline {
     required Battler owner,
     required Battler target,
     required int damage,
+    Item? sourceItem,
+    BattlePatternMatchContext? pattern,
   }) {
     var updatedDamage = damage;
 
@@ -220,6 +222,18 @@ class BattlerEffectPipeline {
         (effect) => effect.hook == ItemEffectHook.outgoingDamageModifier,
       )) {
         switch (effect.effectKey) {
+          case ItemEffectKeys.flyswatterSoloWeaponBonus:
+            final weapon = sourceItem;
+            if (weapon != null &&
+                weapon == item &&
+                _isOnlyWeaponUsedByOwner(
+                  owner: owner,
+                  sourceItem: weapon,
+                  pattern: pattern,
+                )) {
+              updatedDamage += effect.value;
+            }
+            break;
           case ItemEffectKeys.bloodflameGauntletLowHpDamage:
             if (owner.health * 2 < owner.maxHealth) {
               updatedDamage += effect.value * (_burnValue(owner) > 0 ? 2 : 1);
@@ -350,6 +364,12 @@ class BattlerEffectPipeline {
         (effect) => effect.hook == ItemEffectHook.incomingDamageModifier,
       )) {
         switch (effect.effectKey) {
+          case ItemEffectKeys.artificialCarapaceDamageReduction:
+            if (owner.damageTakenThisRound <= 0 &&
+                owner.weaponItemUseCountThisTurn == 1) {
+              updatedDamage -= effect.value;
+            }
+            break;
           case ItemEffectKeys.blindspotMantleDebuffEvasion:
             if (_differentDebuffCount(source) >= 3) {
               updatedDamage -= effect.value;
@@ -623,6 +643,32 @@ class BattlerEffectPipeline {
               activeStatus.value == target.value),
     );
   }
+}
+
+bool _isOnlyWeaponUsedByOwner({
+  required Battler owner,
+  required Item sourceItem,
+  required BattlePatternMatchContext? pattern,
+}) {
+  if (!sourceItem.isWeaponLike) return false;
+
+  if (pattern != null) {
+    final usedPointKeys = pattern.usedItemPointKeys.toSet();
+    final weaponKeys = <String>{};
+    for (final item in owner.equippedItems) {
+      if (!item.isWeaponLike) continue;
+      final pointKey = OperativePatternLayoutService.pointKeyForItem(
+        player: owner,
+        item: item,
+      );
+      if (pointKey == null || !usedPointKeys.contains(pointKey)) continue;
+      weaponKeys.add(item.instanceId ?? item.catalogKey);
+    }
+    return weaponKeys.length == 1 &&
+        weaponKeys.contains(sourceItem.instanceId ?? sourceItem.catalogKey);
+  }
+
+  return owner.weaponItemUseCountThisTurn == 1;
 }
 
 Battler _clearCombatItemAugments(Battler owner) {

@@ -8,7 +8,7 @@ abstract final class TutorialRunDefinition {
   static final Map<int, List<PathNode>> scriptedNodesByStage =
       Map<int, List<PathNode>>.unmodifiable({
     PathNodeService.startStageIndex: List<PathNode>.unmodifiable([
-      imparableArchetypeNode,
+      herculesArchetypeNode,
     ]),
     1: List<PathNode>.unmodifiable([scrapArsenalNode]),
     2: List<PathNode>.unmodifiable([grayCombatNode]),

@@ -10,10 +10,10 @@ const List<String> itemAssetPool = <String>[
 /// The run archetype whose item pool contains an item.
 enum ItemArchetypeAffinity {
   general,
-  veloz,
-  inamovible,
-  imparable,
-  mercante,
+  crepitans,
+  diabolicus,
+  hercules,
+  sacer,
 }
 
 /// The immediate action produced by an [ActionEffect].
@@ -29,19 +29,19 @@ extension ItemArchetypeAffinityMapping on ItemArchetypeAffinity {
 
   ArchetypeId? get archetypeId => switch (this) {
         ItemArchetypeAffinity.general => null,
-        ItemArchetypeAffinity.veloz => ArchetypeId.veloz,
-        ItemArchetypeAffinity.inamovible => ArchetypeId.inamovible,
-        ItemArchetypeAffinity.imparable => ArchetypeId.imparable,
-        ItemArchetypeAffinity.mercante => ArchetypeId.mercante,
+        ItemArchetypeAffinity.crepitans => ArchetypeId.crepitans,
+        ItemArchetypeAffinity.diabolicus => ArchetypeId.diabolicus,
+        ItemArchetypeAffinity.hercules => ArchetypeId.hercules,
+        ItemArchetypeAffinity.sacer => ArchetypeId.sacer,
       };
 }
 
 extension ArchetypeIdItemAffinity on ArchetypeId {
   ItemArchetypeAffinity get itemAffinity => switch (this) {
-        ArchetypeId.veloz => ItemArchetypeAffinity.veloz,
-        ArchetypeId.inamovible => ItemArchetypeAffinity.inamovible,
-        ArchetypeId.imparable => ItemArchetypeAffinity.imparable,
-        ArchetypeId.mercante => ItemArchetypeAffinity.mercante,
+        ArchetypeId.crepitans => ItemArchetypeAffinity.crepitans,
+        ArchetypeId.diabolicus => ItemArchetypeAffinity.diabolicus,
+        ArchetypeId.hercules => ItemArchetypeAffinity.hercules,
+        ArchetypeId.sacer => ItemArchetypeAffinity.sacer,
       };
 }
 

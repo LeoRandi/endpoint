@@ -30,7 +30,7 @@ class ShopInventoryCriterion {
         assert(
           minimumRarity == null ||
               maximumRarity == null ||
-              minimumRarity.isAtMost(maximumRarity!),
+              minimumRarity.isAtMost(maximumRarity),
         );
 
   /// Comprueba si un objeto concreto cumple todas las reglas del criterio.
@@ -101,10 +101,10 @@ class ShopPathNode extends PathNode {
 
   /// Indica si la tienda puede aparecer para el arquetipo actual.
   ///
-  /// Mercante ignora restricciones para preservar su fantasia de acceso
+  /// Sacer ignora restricciones para preservar su fantasia de acceso
   /// comercial, mientras que tiendas sin lista especifica son generalistas.
   bool canAppearForArchetype(ArchetypeId? archetypeId) {
-    if (archetypeId == ArchetypeId.mercante) return true;
+    if (archetypeId == ArchetypeId.sacer) return true;
     if (possibleArchetypes.isEmpty) return true;
     if (archetypeId == null) return false;
 

@@ -28,11 +28,11 @@ abstract final class OperativePatternCombatRules {
 
   static int _archetypePatternPointBonus(Battler player) {
     switch (player.archetypeId) {
-      case ArchetypeId.veloz:
+      case ArchetypeId.crepitans:
         return 2;
-      case ArchetypeId.imparable:
-      case ArchetypeId.inamovible:
-      case ArchetypeId.mercante:
+      case ArchetypeId.hercules:
+      case ArchetypeId.diabolicus:
+      case ArchetypeId.sacer:
         return 1;
       case null:
         return 0;

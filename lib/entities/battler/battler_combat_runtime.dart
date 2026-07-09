@@ -305,6 +305,17 @@ extension BattlerCombatRuntime on Battler {
     );
   }
 
+  int get weaponItemUseCountThisTurn {
+    final currentCombatRound = combatRound;
+    return combatFlags.where((flag) {
+      return _isCombatItemFlagKind(
+            flag,
+            BattlerCombatFlag.itemWeaponUsedThisRound,
+          ) &&
+          flag.secondaryValue == currentCombatRound;
+    }).length;
+  }
+
   /// Cuenta cuanto daÃ±o recibio este combatiente durante la ronda actual.
   int get damageTakenThisRound {
     return _secondaryValueForBattlerRoundFlag(
@@ -330,6 +341,25 @@ extension BattlerCombatRuntime on Battler {
       );
     }
     return updatedOwner;
+  }
+
+  Battler recordResolvedItemActionFromItem({
+    required ActionEffect action,
+    required Item item,
+  }) {
+    var updatedOwner = recordResolvedItemAction(action);
+    if (action.actionType != ItemActionType.attack || !item.isWeaponLike) {
+      return updatedOwner;
+    }
+
+    return updatedOwner.addCombatFlag(
+      CombatRuntimeFlag.item(
+        itemEffectKey: '${BattlerCombatFlag.itemWeaponUsedThisRound.name}:used',
+        itemKey: item.catalogKey,
+        itemInstanceId: item.instanceId,
+        secondaryValue: combatRound,
+      ),
+    );
   }
 
   /// Registra daÃ±o recibido en la ronda actual para efectos reactivos.

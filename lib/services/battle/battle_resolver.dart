@@ -28,6 +28,7 @@ class BattleResolver {
     int? baseDamageOverride,
     bool triggerAttackResolvedEffects = true,
     Item? sourceItem,
+    BattlePatternMatchContext? pattern,
   }) {
     if (defender.hasStatus(PuntoCiegoStatus.statusId)) {
       return _resolvePuntoCiegoMissedAttack(
@@ -53,6 +54,8 @@ class BattleResolver {
       owner: attacker,
       target: defender,
       damage: outgoingStatusModifiedDamage,
+      sourceItem: sourceItem,
+      pattern: pattern,
     );
     final incomingStatusModifiedDamage =
         _effectPipeline.applyIncomingDamageModifiers(

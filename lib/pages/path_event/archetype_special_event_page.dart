@@ -179,9 +179,9 @@ class _ArchetypeSpecialEventPageState extends State<ArchetypeSpecialEventPage>
         _ChoiceGrid(
           children: [
             _eventButton(
-              label: 'AUMENTO VELOZ',
+              label: 'AUMENTO CREPITANS',
               icon: Icons.flash_on_rounded,
-              tooltip: 'Recibir un aumento Veloz aleatorio segun el dia',
+              tooltip: 'Recibir un aumento Crepitans aleatorio segun el dia',
               onPressed: () => _resolve(
                 widget.eventService.resolveClinicaReflejosAugment(
                   player: widget.player,
@@ -256,7 +256,7 @@ class _ArchetypeSpecialEventPageState extends State<ArchetypeSpecialEventPage>
             _eventButton(
               label: '8 QUEMADURA / AZUL',
               icon: Icons.fitness_center_rounded,
-              tooltip: 'Recibir 8 Quemadura y un aumento Imparable azul',
+              tooltip: 'Recibir 8 Quemadura y un aumento Hercules azul',
               onPressed: () => _resolve(
                 widget.eventService.resolveContratontosBlueAugment(
                   player: widget.player,

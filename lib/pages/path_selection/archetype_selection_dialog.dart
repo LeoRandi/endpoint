@@ -352,7 +352,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
       key: _confirmShowcaseKey,
       scope: _tutorialShowcaseScope,
       title: 'Continuar',
-      description: 'Elijamos el arquetipo Imparable',
+      description: 'Elijamos el arquetipo Hercules',
       targetBorderRadius: BorderRadius.circular(12),
       targetPadding: const EdgeInsets.all(6),
       overlayColor: EndpointPalette.overlayScrimStrong,
@@ -382,7 +382,7 @@ class _ArchetypeSelectionDialogState extends State<ArchetypeSelectionDialog> {
     );
   }
 
-  // Mercante mantiene placeholders aqui; su stock real se resuelve al aceptar.
+  // Sacer mantiene placeholders aqui; su stock real se resuelve al aceptar.
   List<_ArchetypeImpactEntry> _buildImpactEntries() {
     final player = widget.player;
     final projectedPlayer = widget.projectedPlayer;

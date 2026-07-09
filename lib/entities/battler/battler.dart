@@ -102,6 +102,7 @@ enum BattlerCombatFlag {
   itemAttackActionResolved,
   augmentPatternWeaponAttackBoost,
   itemBarrierActionBoost,
+  itemWeaponUsedThisRound,
 }
 
 /// Identifica una flag runtime concreta sin depender de claves String concatenadas.

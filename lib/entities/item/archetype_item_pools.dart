@@ -6,39 +6,39 @@ final List<Item> generalItemPool = _itemsWithAffinity(
 );
 
 /// Objetos de Intoxicacion, debuffs y defensas ligeras para builds rapidas.
-final List<Item> velozItemPool = _itemsWithAffinity(
-  ItemArchetypeAffinity.veloz,
+final List<Item> crepitansItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.crepitans,
 );
 
 /// Objetos centrados en curacion, barrera y buffs defensivos.
-final List<Item> inamovibleItemPool = _itemsWithAffinity(
-  ItemArchetypeAffinity.inamovible,
+final List<Item> diabolicusItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.diabolicus,
 );
 
 /// Objetos con identidad ofensiva, Quemadura, Calentando o Desafio.
-final List<Item> imparableItemPool = _itemsWithAffinity(
-  ItemArchetypeAffinity.imparable,
+final List<Item> herculesItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.hercules,
 );
 
-/// Objetos economicos, curativos y defensivos ligados al Mercante.
-final List<Item> mercanteItemPool = _itemsWithAffinity(
-  ItemArchetypeAffinity.mercante,
+/// Objetos economicos, curativos y defensivos ligados al Sacer.
+final List<Item> sacerItemPool = _itemsWithAffinity(
+  ItemArchetypeAffinity.sacer,
 );
 
 /// Relaciona cada arquetipo jugable con su pool de objetos especifica.
 final Map<ArchetypeId, List<Item>> archetypeSpecificItemPools =
     Map<ArchetypeId, List<Item>>.unmodifiable({
-  ArchetypeId.veloz: velozItemPool,
-  ArchetypeId.inamovible: inamovibleItemPool,
-  ArchetypeId.imparable: imparableItemPool,
-  ArchetypeId.mercante: mercanteItemPool,
+  ArchetypeId.crepitans: crepitansItemPool,
+  ArchetypeId.diabolicus: diabolicusItemPool,
+  ArchetypeId.hercules: herculesItemPool,
+  ArchetypeId.sacer: sacerItemPool,
 });
 
 /// Devuelve la pool de tienda combinando items generales y del arquetipo.
 ///
-/// El Mercante ignora el filtro y puede comprar cualquier objeto del juego.
+/// El Sacer ignora el filtro y puede comprar cualquier objeto del juego.
 List<Item> itemPoolForArchetype(ArchetypeId? archetypeId) {
-  if (archetypeId == ArchetypeId.mercante) {
+  if (archetypeId == ArchetypeId.sacer) {
     return List<Item>.unmodifiable(itemPresets);
   }
 

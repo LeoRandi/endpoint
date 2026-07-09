@@ -787,40 +787,40 @@ class _ItemArchetypeBadge extends StatelessWidget {
   String _archetypeLegend() {
     return [
       '${_emojiForAffinity(ItemArchetypeAffinity.general)} General',
-      '${_emojiForAffinity(ItemArchetypeAffinity.veloz)} Veloz',
-      '${_emojiForAffinity(ItemArchetypeAffinity.inamovible)} Inamovible',
-      '${_emojiForAffinity(ItemArchetypeAffinity.imparable)} Imparable',
-      '${_emojiForAffinity(ItemArchetypeAffinity.mercante)} Mercante',
+      '${_emojiForAffinity(ItemArchetypeAffinity.crepitans)} Crepitans',
+      '${_emojiForAffinity(ItemArchetypeAffinity.diabolicus)} Diabolicus',
+      '${_emojiForAffinity(ItemArchetypeAffinity.hercules)} Hercules',
+      '${_emojiForAffinity(ItemArchetypeAffinity.sacer)} Sacer',
     ].join(' | ');
   }
 
   String _labelForAffinity(ItemArchetypeAffinity affinity) {
     return switch (affinity) {
       ItemArchetypeAffinity.general => 'General',
-      ItemArchetypeAffinity.veloz => ArchetypeId.veloz.label,
-      ItemArchetypeAffinity.inamovible => ArchetypeId.inamovible.label,
-      ItemArchetypeAffinity.imparable => ArchetypeId.imparable.label,
-      ItemArchetypeAffinity.mercante => ArchetypeId.mercante.label,
+      ItemArchetypeAffinity.crepitans => ArchetypeId.crepitans.label,
+      ItemArchetypeAffinity.diabolicus => ArchetypeId.diabolicus.label,
+      ItemArchetypeAffinity.hercules => ArchetypeId.hercules.label,
+      ItemArchetypeAffinity.sacer => ArchetypeId.sacer.label,
     };
   }
 
   String _emojiForAffinity(ItemArchetypeAffinity affinity) {
     return switch (affinity) {
       ItemArchetypeAffinity.general => '\u{1FAB5}',
-      ItemArchetypeAffinity.veloz => '\u{26D3}',
-      ItemArchetypeAffinity.inamovible => '\u{1F6E1}',
-      ItemArchetypeAffinity.imparable => '\u2694',
-      ItemArchetypeAffinity.mercante => '\u{1F4B0}',
+      ItemArchetypeAffinity.crepitans => '\u{26D3}',
+      ItemArchetypeAffinity.diabolicus => '\u{1F6E1}',
+      ItemArchetypeAffinity.hercules => '\u2694',
+      ItemArchetypeAffinity.sacer => '\u{1F4B0}',
     };
   }
 
   Color _accentForAffinity(ItemArchetypeAffinity affinity) {
     return switch (affinity) {
       ItemArchetypeAffinity.general => EndpointPalette.softForeground,
-      ItemArchetypeAffinity.veloz => const Color(0xFF59B7FF),
-      ItemArchetypeAffinity.inamovible => const Color(0xFF5AF78E),
-      ItemArchetypeAffinity.imparable => const Color(0xFFFF5A5F),
-      ItemArchetypeAffinity.mercante => const Color(0xFFEBCB5A),
+      ItemArchetypeAffinity.crepitans => const Color(0xFF59B7FF),
+      ItemArchetypeAffinity.diabolicus => const Color(0xFF5AF78E),
+      ItemArchetypeAffinity.hercules => const Color(0xFFFF5A5F),
+      ItemArchetypeAffinity.sacer => const Color(0xFFEBCB5A),
     };
   }
 }
