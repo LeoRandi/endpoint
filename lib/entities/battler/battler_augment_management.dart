@@ -64,6 +64,8 @@ extension BattlerAugmentManagement on Battler {
     var weaponAttackBonusDelta = 0;
     var targetWeaponPermanentAttackBonusDelta = 0;
     OperativePatternPoint? targetWeaponPermanentAttackBonusPoint;
+    final opponentDebuffs = <AugmentDebuffApplication>[];
+    var ownerBarrierDelta = 0;
 
     for (final augment in augments) {
       final resolution = augment.resolvePattern(
@@ -74,6 +76,8 @@ extension BattlerAugmentManagement on Battler {
           resolution.targetWeaponPermanentAttackBonusDelta;
       targetWeaponPermanentAttackBonusPoint ??=
           resolution.targetWeaponPermanentAttackBonusPoint;
+      opponentDebuffs.addAll(resolution.opponentDebuffs);
+      ownerBarrierDelta += resolution.ownerBarrierDelta;
     }
 
     return AugmentPatternResolution(
@@ -82,14 +86,17 @@ extension BattlerAugmentManagement on Battler {
           targetWeaponPermanentAttackBonusDelta,
       targetWeaponPermanentAttackBonusPoint:
           targetWeaponPermanentAttackBonusPoint,
+      opponentDebuffs: List<AugmentDebuffApplication>.unmodifiable(
+        opponentDebuffs,
+      ),
+      ownerBarrierDelta: ownerBarrierDelta,
     );
   }
 
-  Battler applyAugmentPatternWeaponBoost({
+  ({Battler owner, List<BattlerStatus> opponentStatuses})
+      applyAugmentPatternEffects({
     required BattlePatternMatchContext pattern,
   }) {
-    if (pattern.usedItemPointKeys.isEmpty) return this;
-
     final usedPointKeys = pattern.usedItemPointKeys.toSet();
     final weapons = <Item>[];
     final seenItemKeys = <String>{};
@@ -105,15 +112,20 @@ extension BattlerAugmentManagement on Battler {
       weapons.add(item);
     }
 
-    if (weapons.isEmpty) return this;
-
     var updatedOwner = this;
+    final opponentStatuses = <BattlerStatus>[];
     for (final augment in augments) {
       final resolution = augment.resolvePattern(
         patternPoints: pattern.patternPoints,
       );
+      if (resolution.ownerBarrierDelta > 0) {
+        updatedOwner = updatedOwner.gainCombatBarrier(
+          resolution.ownerBarrierDelta,
+        );
+      }
+
       final amount = resolution.weaponAttackBonusDelta;
-      if (amount > 0) {
+      if (amount > 0 && weapons.isNotEmpty) {
         updatedOwner = updatedOwner.addCombatAttackBonusToWeapons(
           weapons: weapons,
           amount: amount,
@@ -144,8 +156,17 @@ extension BattlerAugmentManagement on Battler {
           bonusValue: currentBonus + permanentAmount,
         ),
       );
+
+      for (final debuff in resolution.opponentDebuffs) {
+        final status = _statusForAugmentDebuff(debuff);
+        if (status == null) continue;
+        opponentStatuses.add(status);
+      }
     }
-    return updatedOwner;
+    return (
+      owner: updatedOwner,
+      opponentStatuses: List<BattlerStatus>.unmodifiable(opponentStatuses),
+    );
   }
 
   Item? _equippedWeaponAtPatternPoint(OperativePatternPoint point) {
@@ -157,5 +178,18 @@ extension BattlerAugmentManagement on Battler {
       if (pointKey == point.key) return item;
     }
     return null;
+  }
+
+  BattlerStatus? _statusForAugmentDebuff(AugmentDebuffApplication debuff) {
+    if (debuff.value <= 0) return null;
+
+    return switch (debuff.type) {
+      AugmentDebuffType.fragilidad => FragilidadStatus(value: debuff.value),
+      AugmentDebuffType.conmocion => ConmocionStatus(value: debuff.value),
+      AugmentDebuffType.intoxicacion => IntoxicacionStatus(value: debuff.value),
+      AugmentDebuffType.quemadura => QuemaduraStatus(
+          remainingTurns: debuff.value,
+        ),
+    };
   }
 }

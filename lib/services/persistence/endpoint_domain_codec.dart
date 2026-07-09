@@ -451,6 +451,15 @@ Map<String, Object?> _serializeAugmentEffect(AugmentEffect effect) {
     'value': effect.value,
     'description': effect.description,
     if (effect.targetPoint != null) 'targetPoint': effect.targetPoint!.key,
+    if (effect.opponentDebuffs.isNotEmpty)
+      'opponentDebuffs': effect.opponentDebuffs
+          .map<Map<String, Object?>>(
+            (debuff) => {
+              'type': debuff.type.name,
+              'value': debuff.value,
+            },
+          )
+          .toList(growable: false),
   };
 }
 
@@ -474,12 +483,41 @@ AugmentEffect? _deserializeAugmentEffect(Map<String, dynamic> json) {
       targetPoint == null) {
     return null;
   }
+  final opponentDebuffs = EndpointJsonUtils.readJsonMapList(
+    json['opponentDebuffs'],
+  )
+      .map<AugmentDebuffApplication?>(_deserializeAugmentDebuffApplication)
+      .whereType<AugmentDebuffApplication>()
+      .toList(growable: false);
+  if (type == AugmentEffectType.patternOpponentDebuffs &&
+      opponentDebuffs.isEmpty) {
+    return null;
+  }
 
   return AugmentEffect(
     type: type,
     value: EndpointJsonUtils.readInt(json['value'], fallback: 0),
     description: description,
     targetPoint: targetPoint,
+    opponentDebuffs: List<AugmentDebuffApplication>.unmodifiable(
+      opponentDebuffs,
+    ),
+  );
+}
+
+AugmentDebuffApplication? _deserializeAugmentDebuffApplication(
+  Map<String, dynamic> json,
+) {
+  final type = EndpointJsonUtils.parseEnumByName(
+    AugmentDebuffType.values,
+    json['type'],
+  );
+  final value = EndpointJsonUtils.readInt(json['value'], fallback: 0);
+  if (type == null || value <= 0) return null;
+
+  return AugmentDebuffApplication(
+    type: type,
+    value: value,
   );
 }
 

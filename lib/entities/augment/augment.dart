@@ -37,6 +37,25 @@ extension ArchetypeIdAugmentAffinity on ArchetypeId {
 enum AugmentEffectType {
   patternWeaponCombatAttackBoost,
   patternTargetWeaponPermanentAttackBoost,
+  patternOpponentDebuffs,
+  patternOwnerBarrierBoost,
+}
+
+enum AugmentDebuffType {
+  fragilidad,
+  conmocion,
+  intoxicacion,
+  quemadura,
+}
+
+class AugmentDebuffApplication {
+  final AugmentDebuffType type;
+  final int value;
+
+  const AugmentDebuffApplication({
+    required this.type,
+    required this.value,
+  }) : assert(value > 0);
 }
 
 class AugmentEffect {
@@ -44,12 +63,14 @@ class AugmentEffect {
   final int value;
   final String description;
   final OperativePatternPoint? targetPoint;
+  final List<AugmentDebuffApplication> opponentDebuffs;
 
   const AugmentEffect({
     required this.type,
     required this.value,
     required this.description,
     this.targetPoint,
+    this.opponentDebuffs = const [],
   })  : assert(description != ''),
         assert(
           type != AugmentEffectType.patternTargetWeaponPermanentAttackBoost ||
@@ -76,12 +97,32 @@ class AugmentEffect {
           targetPoint: targetPoint,
         );
 
+  const AugmentEffect.patternOpponentDebuffs({
+    required String description,
+    required List<AugmentDebuffApplication> opponentDebuffs,
+  }) : this(
+          type: AugmentEffectType.patternOpponentDebuffs,
+          value: 0,
+          description: description,
+          opponentDebuffs: opponentDebuffs,
+        );
+
+  const AugmentEffect.patternOwnerBarrierBonus({
+    required int value,
+    required String description,
+  }) : this(
+          type: AugmentEffectType.patternOwnerBarrierBoost,
+          value: value,
+          description: description,
+        );
+
   AugmentEffect withValue(int value) {
     return AugmentEffect(
       type: type,
       value: value,
       description: description,
       targetPoint: targetPoint,
+      opponentDebuffs: opponentDebuffs,
     );
   }
 }
@@ -156,16 +197,22 @@ class AugmentPatternResolution {
   final int weaponAttackBonusDelta;
   final int targetWeaponPermanentAttackBonusDelta;
   final OperativePatternPoint? targetWeaponPermanentAttackBonusPoint;
+  final List<AugmentDebuffApplication> opponentDebuffs;
+  final int ownerBarrierDelta;
 
   const AugmentPatternResolution({
     this.weaponAttackBonusDelta = 0,
     this.targetWeaponPermanentAttackBonusDelta = 0,
     this.targetWeaponPermanentAttackBonusPoint,
+    this.opponentDebuffs = const [],
+    this.ownerBarrierDelta = 0,
   });
 
   bool get isEmpty =>
       weaponAttackBonusDelta == 0 &&
-      targetWeaponPermanentAttackBonusDelta == 0;
+      targetWeaponPermanentAttackBonusDelta == 0 &&
+      opponentDebuffs.isEmpty &&
+      ownerBarrierDelta == 0;
 }
 
 class Augment {
@@ -244,6 +291,11 @@ class Augment {
           targetWeaponPermanentAttackBonusDelta: effect.value,
           targetWeaponPermanentAttackBonusPoint: effect.targetPoint,
         ),
+      AugmentEffectType.patternOpponentDebuffs => AugmentPatternResolution(
+          opponentDebuffs: effect.opponentDebuffs,
+        ),
+      AugmentEffectType.patternOwnerBarrierBoost =>
+        AugmentPatternResolution(ownerBarrierDelta: effect.value),
     };
   }
 

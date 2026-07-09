@@ -252,9 +252,17 @@ class BattleController extends ChangeNotifier {
     final resolvedPatternContext =
         patternContext?.withRandomSource(_randomizer);
     if (resolvedPatternContext != null) {
-      _player = _player.applyAugmentPatternWeaponBoost(
+      final augmentResolution = _player.applyAugmentPatternEffects(
         pattern: resolvedPatternContext,
       );
+      _player = augmentResolution.owner;
+      final augmentStatusResolution = _applyAugmentOpponentStatuses(
+        owner: _player,
+        opponent: _enemy,
+        statuses: augmentResolution.opponentStatuses,
+      );
+      _player = augmentStatusResolution.owner;
+      _enemy = augmentStatusResolution.opponent;
 
       final playerBeforePreAttackItems = _player;
       final enemyBeforePreAttackItems = _enemy;
@@ -701,9 +709,17 @@ class BattleController extends ChangeNotifier {
     }
 
     if (resolvedPatternContext != null) {
-      _enemy = _enemy.applyAugmentPatternWeaponBoost(
+      final augmentResolution = _enemy.applyAugmentPatternEffects(
         pattern: resolvedPatternContext,
       );
+      _enemy = augmentResolution.owner;
+      final augmentStatusResolution = _applyAugmentOpponentStatuses(
+        owner: _enemy,
+        opponent: _player,
+        statuses: augmentResolution.opponentStatuses,
+      );
+      _enemy = augmentStatusResolution.owner;
+      _player = augmentStatusResolution.opponent;
 
       final enemyBeforePreAttackItems = _enemy;
       final playerBeforePreAttackItems = _player;
@@ -2288,12 +2304,28 @@ class BattleController extends ChangeNotifier {
 
     final prepPlayerBefore = _player;
     final prepEnemyBefore = _enemy;
-    _player = _player.applyAugmentPatternWeaponBoost(
+    final playerAugmentResolution = _player.applyAugmentPatternEffects(
       pattern: resolvedPlayerPatternContext,
     );
-    _enemy = _enemy.applyAugmentPatternWeaponBoost(
+    _player = playerAugmentResolution.owner;
+    final playerAugmentStatusResolution = _applyAugmentOpponentStatuses(
+      owner: _player,
+      opponent: _enemy,
+      statuses: playerAugmentResolution.opponentStatuses,
+    );
+    _player = playerAugmentStatusResolution.owner;
+    _enemy = playerAugmentStatusResolution.opponent;
+    final enemyAugmentResolution = _enemy.applyAugmentPatternEffects(
       pattern: resolvedEnemyPatternContext,
     );
+    _enemy = enemyAugmentResolution.owner;
+    final enemyAugmentStatusResolution = _applyAugmentOpponentStatuses(
+      owner: _enemy,
+      opponent: _player,
+      statuses: enemyAugmentResolution.opponentStatuses,
+    );
+    _enemy = enemyAugmentStatusResolution.owner;
+    _player = enemyAugmentStatusResolution.opponent;
 
     final enemyPreAttackResolution = _resolveEnemyPreAttackState(
       enemy: _enemy,
@@ -3367,6 +3399,24 @@ class BattleController extends ChangeNotifier {
 
   Battler _applyBarrierGain(Battler battler, int amount) {
     return _stateReducer.gainBarrier(battler, amount);
+  }
+
+  ({Battler owner, Battler opponent}) _applyAugmentOpponentStatuses({
+    required Battler owner,
+    required Battler opponent,
+    required List<BattlerStatus> statuses,
+  }) {
+    var updatedOwner = owner;
+    var updatedOpponent = opponent;
+    for (final status in statuses) {
+      final resolution = updatedOpponent.applyStatusFromSourceResolved(
+        status,
+        source: updatedOwner,
+      );
+      updatedOpponent = resolution.owner;
+      updatedOwner = resolution.source;
+    }
+    return (owner: updatedOwner, opponent: updatedOpponent);
   }
 
   int _playerCurrentBlockBarrierGain() {

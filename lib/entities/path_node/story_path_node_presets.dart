@@ -18,7 +18,7 @@ final crepitansArchetypeNode = ArchetypePathNode(
   incomeModifier: 4,
   startingItems: const [],
   startingAugments: [
-    augmentCatalogById[1]!,
+    augmentCatalogById[3]!.copyWith(tier: RarityTier.gray),
   ],
 );
 
