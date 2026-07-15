@@ -298,18 +298,6 @@ class _ArchetypeSpecialEventPageState extends State<ArchetypeSpecialEventPage>
                 ),
               ),
             ),
-            _eventButton(
-              label: 'DEUDA / AUMENTO VERDE',
-              icon: Icons.request_quote_rounded,
-              tooltip:
-                  'Recibir Deuda y un aumento verde de cualquier arquetipo',
-              onPressed: () => _resolve(
-                widget.eventService.resolveAuditoriaCreativaDebtAugment(
-                  player: widget.player,
-                  randomizer: widget.randomizer,
-                ),
-              ),
-            ),
           ],
         ),
       ],

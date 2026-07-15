@@ -1,5 +1,4 @@
 import 'battler/_exports.dart';
-import 'status/_exports.dart';
 
 /// Resume si los efectos de Ciclo deben contar como dia, noche o ambos.
 class CycleContext {
@@ -23,26 +22,15 @@ class CycleContext {
 }
 
 const CycleContext _inactiveCycleContext = CycleContext();
-const CycleContext _dualCycleContext = CycleContext(
-  isDay: true,
-  isNight: true,
-);
 
 /// Resuelve el contexto efectivo de Ciclo para items en combate.
 ///
-/// La prioridad es intencional: sin combate no hay ciclo; Ciclo Eclipse gana a
-/// todo; y por ultimo se respetan las flags genericas del battler.
+/// Sin combate no hay ciclo; durante el combate se respetan las flags
+/// genericas del battler.
 CycleContext cycleContextFor(Battler owner) {
   final isCombatActive = owner.combatFlags.contains(Battler.combatActiveFlag);
   if (!isCombatActive) {
     return _inactiveCycleContext;
-  }
-
-  final hasCycleEclipse = owner.statuses.any(
-    (status) => status.id == CicloEclipseStatus.statusId,
-  );
-  if (hasCycleEclipse) {
-    return _dualCycleContext;
   }
 
   final hasDayContext = owner.combatFlags.contains(Battler.cycleDayContextFlag);

@@ -270,18 +270,14 @@ class _CodexDiscoveryNoticeIcon extends StatelessWidget {
       final status = [
         calentandoStatus,
         potenciaStatus,
-        cicloEclipseStatus,
         puntoCiegoStatus,
         desafioStatus,
-        desafioExcitanteStatus,
         const ResonanciaStatus(),
         quemaduraStatus,
         intoxicacionStatus,
         contagioStatus,
-        catalisisCruelStatus,
         fragilidadStatus,
         conmocionStatus,
-        deudaStatus,
       ];
       for (final status in status) {
         if (status.id.name == statusName) return status.icon;

@@ -6,20 +6,11 @@ const calentandoStatus = CalentandoStatus();
 /// Preset rapido del buff Potencia con su bonus inicial.
 const potenciaStatus = PotenciaStatus();
 
-/// Preset rapido del buff de Eclipse Manual con su duracion base.
-const cicloEclipseStatus = CicloEclipseStatus();
-
 /// Preset rapido del buff Punto Ciego con su proteccion base.
 const puntoCiegoStatus = PuntoCiegoStatus();
 
 /// Preset rapido del buff Desafio con su golpe reservado base.
 const desafioStatus = DesafioStatus();
-
-/// Preset rapido del buff que mejora los siguientes Desafios.
-const desafioExcitanteStatus = DesafioExcitanteStatus();
-
-/// Preset rapido del debuff Catalisis Cruel con su multiplicador inicial.
-const catalisisCruelStatus = CatalisisCruelStatus();
 
 /// Preset rapido del debuff Contagio con su amplificacion inicial.
 const contagioStatus = ContagioStatus();
@@ -29,9 +20,6 @@ const fragilidadStatus = FragilidadStatus();
 
 /// Preset rapido de Conmocion con su penalizacion inicial.
 const conmocionStatus = ConmocionStatus();
-
-/// Preset rapido de Deuda con la cuota inicial estandar.
-const deudaStatus = DeudaStatus();
 
 /// Preset rapido de Quemadura con la duracion base.
 const quemaduraStatus = QuemaduraStatus();
@@ -61,14 +49,6 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       PotenciaStatus(value: value),
-  BattlerStatusId.cicloEclipse: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      CicloEclipseStatus(
-        remainingTurns: remainingTurns,
-        value: value,
-      ),
   BattlerStatusId.puntoCiego: ({
     required int remainingTurns,
     required int value,
@@ -82,11 +62,6 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       DesafioStatus(value: value),
-  BattlerStatusId.desafioExcitante: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      DesafioExcitanteStatus(value: value),
   BattlerStatusId.quemadura: ({
     required int remainingTurns,
     required int value,
@@ -108,11 +83,6 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       ContagioStatus(value: value),
-  BattlerStatusId.catalisisCruel: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      CatalisisCruelStatus(value: value),
   BattlerStatusId.fragilidad: ({
     required int remainingTurns,
     required int value,
@@ -139,9 +109,4 @@ final battlerStatusFactoryById =
     required int value,
   }) =>
       const MercadoFuturosStatus(),
-  BattlerStatusId.deuda: ({
-    required int remainingTurns,
-    required int value,
-  }) =>
-      DeudaStatus(value: value),
 });

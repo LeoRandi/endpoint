@@ -376,9 +376,7 @@ extension BattlerRuntimeService on Battler {
     }
     if (status is IntoxicacionStatus ||
         status is FragilidadStatus ||
-        status is ConmocionStatus ||
-        status is CatalisisCruelStatus ||
-        status is DeudaStatus) {
+        status is ConmocionStatus) {
       return status.copyWith(value: status.value + boost);
     }
 

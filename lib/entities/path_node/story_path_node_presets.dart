@@ -797,15 +797,15 @@ const auditoriaCreativaNode = EventPathNode(
   id: PathEventId.auditoriaCreativa,
   nodeId: 'event_auditoria_creativa',
   label: 'Auditoria Creativa',
-  tooltip: 'Pierde HP maximo por creditos o acepta Deuda por un aumento verde',
+  tooltip: 'Convierte salud maxima en creditos',
   iconEmoji: '\u{1F4CA}',
   rarity: RarityTier.blue,
   badgeLabel: 'MERC',
   showTitle: 'Auditoria Creativa revisa tus activos',
   eventTitle: 'AUDITORIA CREATIVA',
   description:
-      'Una auditora sonriente declara que tu futuro biologico esta infravalorado. Puede convertir salud maxima en liquidez inmediata o abrir deuda por un aumento verde.',
-  outcomeText: 'Elige una formula contable.',
+      'Una auditora sonriente declara que tu futuro biologico esta infravalorado y ofrece convertir salud maxima en liquidez inmediata.',
+  outcomeText: 'Acepta la formula contable.',
   flavorTexts: [
     'Su calculadora imprime humo y recibos con tu pulso cardiaco.',
     'Cada columna termina en beneficio. Ninguna parece tuya.',
@@ -1089,27 +1089,6 @@ const afterHoursTechnosurgeonNode = EventPathNode(
   ],
 );
 
-/// Evento azul condicionado por Deuda que intenta cobrar la cuota pendiente.
-const debtCollectionNode = EventPathNode(
-  id: PathEventId.debtCollection,
-  nodeId: 'event_debt_collection',
-  label: 'Oficina de Cobros',
-  tooltip: 'Un recaudador intenta cerrar tu deuda operativa',
-  iconEmoji: '\u{1F4B8}',
-  rarity: RarityTier.blue,
-  badgeLabel: 'DEUDA',
-  showTitle: 'La deuda te ha encontrado',
-  eventTitle: 'OFICINA DE COBROS',
-  description:
-      'Un recaudador y un bruto local interceptan tu ruta. O saldas la cuota pendiente o te cobran en carne y crédito.',
-  outcomeText:
-      'La cantidad exacta se resuelve al entrar según el saldo pendiente de tu Deuda.',
-  flavorTexts: [
-    'Te cortan el paso antes de cruzar la siguiente esquina. Dos sombras y una tablet con tu historial financiero.',
-    'El recaudador repite la cifra sin alzar la voz: o pagas ahora, o el pago se te descontará ...en vida.',
-  ],
-);
-
 /// Nodo de descanso completo que recupera toda la vida.
 const restZoneCampNode = CampSitePathNode(
   nodeId: 'camp_rest_zone',
@@ -1182,7 +1161,6 @@ final List<EventPathNode> dayEventNodes = List.unmodifiable([
   pasadizoSecretoNode,
   suBastaYaNode,
   pitonisaQuitapenasNode,
-  debtCollectionNode,
   tempografoNode,
   sWitchCabinNode,
   hackathonBoothNode,
@@ -1205,7 +1183,7 @@ final List<ShopPathNode> nightShopNodes = List.unmodifiable([
   buffParlorNode,
 ]);
 
-/// Eventos candidatos para la noche, incluida la deuda si aplica.
+/// Eventos candidatos para la noche.
 final List<EventPathNode> nightEventNodes = List.unmodifiable([
   afterHoursTechnosurgeonNode,
   clinicaReflejosNode,
@@ -1224,7 +1202,6 @@ final List<EventPathNode> nightEventNodes = List.unmodifiable([
   pasadizoSecretoNode,
   suBastaYaNode,
   pitonisaQuitapenasNode,
-  debtCollectionNode,
   tempografoNode,
   sWitchCabinNode,
   hackathonBoothNode,

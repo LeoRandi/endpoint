@@ -10,7 +10,6 @@ enum PathEventId {
   afterHoursTechnosurgeon,
   blackTechnoMarket,
   pasadizoSecreto,
-  debtCollection,
   sobreKar,
   suBastaYa,
   pitonisaQuitapenas,

@@ -46,7 +46,6 @@ final pathEventPageBuilderById =
   PathEventId.auditoriaCreativa: _buildArchetypeSpecialEventPage,
   PathEventId.mercadoFuturos: _buildArchetypeSpecialEventPage,
   PathEventId.thePurgame: _buildThePurgameEventPage,
-  PathEventId.debtCollection: _buildDefaultPathEventPage,
   PathEventId.tempografo: _buildTempografoEventPage,
   PathEventId.sWitchCabin: _buildSWitchCabinEventPage,
   PathEventId.hackathonBooth: _buildHackathonBoothEventPage,

@@ -173,42 +173,6 @@ class PotenciaStatus extends BattlerStatus {
   }
 }
 
-/// Buff temporal que hace que los efectos de Ciclo cuenten como dia y noche a la vez.
-class CicloEclipseStatus extends BattlerStatus {
-  static const statusId = BattlerStatusId.cicloEclipse;
-
-  /// Crea una instancia temporal para Eclipse Manual.
-  const CicloEclipseStatus({
-    int remainingTurns = 1,
-    int value = 1,
-  }) : super(
-          id: statusId,
-          name: 'Eclipse Manual',
-          type: BattlerStatusType.buff,
-          tags: _buffCicloStatusTags,
-          description:
-              'Tus efectos de Ciclo cuentan como dia y noche a la vez.',
-          remainingTurns: remainingTurns,
-          value: value,
-        );
-
-  /// Hace que Eclipse Manual se limpie al terminar el combate.
-  @override
-  bool get persistsOutsideCombat => false;
-
-  /// Clona el estado manteniendo duracion y valor de Eclipse Manual.
-  @override
-  BattlerStatus copyWith({
-    int? remainingTurns,
-    int? value,
-  }) {
-    return CicloEclipseStatus(
-      remainingTurns: remainingTurns ?? this.remainingTurns,
-      value: value ?? this.value,
-    );
-  }
-}
-
 /// Buff defensivo que hace fallar los ataques enemigos contra el portador.
 class PuntoCiegoStatus extends BattlerStatus {
   static const statusId = BattlerStatusId.puntoCiego;
@@ -325,90 +289,6 @@ class DesafioStatus extends BattlerStatus {
     int? value,
   }) {
     return DesafioStatus(
-      value: value ?? this.value,
-    );
-  }
-}
-
-/// Buff temporal que aumenta los Desafios ganados durante este combate.
-class DesafioExcitanteStatus extends BattlerStatus {
-  static const statusId = BattlerStatusId.desafioExcitante;
-
-  /// Crea una mejora acumulada para los siguientes Desafios del combate.
-  const DesafioExcitanteStatus({
-    int value = 1,
-  }) : super(
-          id: statusId,
-          name: 'Desafio Excitante',
-          type: BattlerStatusType.buff,
-          tags: _buffDesafioStatusTags,
-          hooks: const {
-            BattlerStatusHook.statusApplied,
-            BattlerStatusHook.combatEnd,
-          },
-          description:
-              'Durante este combate, cada nuevo Desafio gana value adicional.',
-          remainingTurns: 1,
-          value: value,
-        );
-
-  /// Hace que el bonus dure todo el combate hasta que se limpie explicitamente.
-  @override
-  bool get isIndefinite => true;
-
-  /// Limpia Desafio Excitante al terminar el combate.
-  @override
-  bool get persistsOutsideCombat => false;
-
-  /// Explica cuanto aumenta cada nuevo Desafio recibido.
-  @override
-  String descriptionFor(Battler owner) {
-    return '$description Bonus actual: +${resolved(owner).value}.';
-  }
-
-  /// Acumula consigo mismo o mejora los Desafios entrantes.
-  @override
-  BattlerStatusApplicationResolution onStatusApplied({
-    required Battler owner,
-    required BattlerStatus appliedStatus,
-  }) {
-    if (appliedStatus.id == id) {
-      return BattlerStatusApplicationResolution(
-        owner: owner.removeStatusInstance(this),
-        appliedStatus: copyWith(value: value + appliedStatus.value),
-      );
-    }
-
-    if (appliedStatus.id != DesafioStatus.statusId) {
-      return BattlerStatusApplicationResolution(
-        owner: owner,
-        appliedStatus: appliedStatus,
-      );
-    }
-
-    return BattlerStatusApplicationResolution(
-      owner: owner,
-      appliedStatus: appliedStatus.copyWith(
-        value: appliedStatus.value + value,
-      ),
-    );
-  }
-
-  /// Elimina el bonus temporal al cerrar combate.
-  @override
-  Battler onCombatEnd({
-    required Battler owner,
-  }) {
-    return owner.removeStatusInstance(this);
-  }
-
-  /// Clona el bonus manteniendo su acumulacion actual.
-  @override
-  BattlerStatus copyWith({
-    int? remainingTurns,
-    int? value,
-  }) {
-    return DesafioExcitanteStatus(
       value: value ?? this.value,
     );
   }

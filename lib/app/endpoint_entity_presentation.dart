@@ -33,6 +33,7 @@ extension EntityTagPresentation on EntityTag {
         EntityTag.muralla => 'Muralla',
         EntityTag.arma => 'Arma',
         EntityTag.accesorio => 'Accesorio',
+        EntityTag.indumentaria => 'Indumentaria',
         EntityTag.cura => 'Cura',
       };
 
@@ -52,6 +53,7 @@ extension EntityTagPresentation on EntityTag {
         EntityTag.muralla => const Color(0xFFB8C0CC),
         EntityTag.arma => const Color(0xFFF3D35C),
         EntityTag.accesorio => const Color(0xFF9EA7B3),
+        EntityTag.indumentaria => const Color(0xFF67C5B8),
         EntityTag.cura => const Color(0xFF5AF78E),
       };
 
@@ -167,20 +169,16 @@ extension AugmentAffinityPresentation on AugmentAffinity {
 const _statusIcons = <BattlerStatusId, IconData>{
   BattlerStatusId.calentando: Icons.local_fire_department_rounded,
   BattlerStatusId.potencia: Icons.bolt_rounded,
-  BattlerStatusId.cicloEclipse: Icons.brightness_medium_rounded,
   BattlerStatusId.puntoCiego: Icons.visibility_off_rounded,
   BattlerStatusId.desafio: Icons.sports_mma_rounded,
-  BattlerStatusId.desafioExcitante: Icons.local_activity_rounded,
   BattlerStatusId.resonancia: Icons.graphic_eq_rounded,
   BattlerStatusId.compensadorRuta: Icons.route_rounded,
   BattlerStatusId.mercadoFuturos: Icons.monetization_on_rounded,
   BattlerStatusId.quemadura: Icons.whatshot_rounded,
   BattlerStatusId.intoxicacion: Icons.science_rounded,
   BattlerStatusId.contagio: Icons.coronavirus_rounded,
-  BattlerStatusId.catalisisCruel: Icons.biotech_rounded,
   BattlerStatusId.fragilidad: Icons.flash_on_outlined,
   BattlerStatusId.conmocion: Icons.flash_off_rounded,
-  BattlerStatusId.deuda: Icons.receipt_long_rounded,
 };
 
 const _statusIconAssets = <BattlerStatusId, String>{

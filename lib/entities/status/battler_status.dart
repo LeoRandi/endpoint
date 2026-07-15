@@ -21,20 +21,16 @@ enum DamageKind {
 enum BattlerStatusId {
   calentando,
   potencia,
-  cicloEclipse,
   quemadura,
   intoxicacion,
   contagio,
-  catalisisCruel,
   fragilidad,
   conmocion,
   resonancia,
   puntoCiego,
   desafio,
-  desafioExcitante,
   compensadorRuta,
   mercadoFuturos,
-  deuda,
 }
 
 /// Enumera los puntos del ciclo de combate en los que un estado puede intervenir.
@@ -280,10 +276,6 @@ const _buffAtaqueStatusTags = <EntityTag>[
 const _buffStatusTags = <EntityTag>[
   EntityTag.buff,
 ];
-const _buffCicloStatusTags = <EntityTag>[
-  EntityTag.buff,
-  EntityTag.ciclo,
-];
 const _debuffQuemaduraStatusTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.quemadura,
@@ -310,8 +302,4 @@ const _buffDesafioStatusTags = <EntityTag>[
 const _debuffAtaqueStatusTags = <EntityTag>[
   EntityTag.debuff,
   EntityTag.ataque,
-];
-const _debuffEconomiaStatusTags = <EntityTag>[
-  EntityTag.debuff,
-  EntityTag.economia,
 ];

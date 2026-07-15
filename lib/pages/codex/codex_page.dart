@@ -41,6 +41,7 @@ extension _CodexCategoryPresentation on _CodexCategory {
         return false;
     }
   }
+
 }
 
 enum _CodexOrderMode {
@@ -109,18 +110,14 @@ class _CodexCatalog {
   static const List<BattlerStatus> statusPresets = [
     calentandoStatus,
     potenciaStatus,
-    cicloEclipseStatus,
     puntoCiegoStatus,
     desafioStatus,
-    desafioExcitanteStatus,
     ResonanciaStatus(),
     quemaduraStatus,
     intoxicacionStatus,
     contagioStatus,
-    catalisisCruelStatus,
     fragilidadStatus,
     conmocionStatus,
-    deudaStatus,
   ];
 
   static List<ShopPathNode> _deduplicateShopNodes(
@@ -444,7 +441,6 @@ class _CodexPageState extends State<CodexPage> {
         );
     }
   }
-
 }
 
 class _CodexSidebar extends StatelessWidget {

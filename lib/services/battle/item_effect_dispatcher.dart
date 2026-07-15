@@ -2559,17 +2559,11 @@ abstract final class ItemEffectDispatcher {
     if (source is ContagioStatus) {
       return ContagioStatus(value: safeAmount);
     }
-    if (source is CatalisisCruelStatus) {
-      return CatalisisCruelStatus(value: safeAmount);
-    }
     if (source is FragilidadStatus) {
       return FragilidadStatus(value: safeAmount);
     }
     if (source is ConmocionStatus) {
       return ConmocionStatus(value: safeAmount);
-    }
-    if (source is DeudaStatus) {
-      return DeudaStatus(value: safeAmount);
     }
     return source.copyWith(value: safeAmount);
   }

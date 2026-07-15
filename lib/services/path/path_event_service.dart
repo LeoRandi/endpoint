@@ -49,10 +49,6 @@ final pathEventDefinitionById =
     canAppear: _canAppearForArchetypeItemReward,
     visit: _visitArchetypeItemReward,
   ),
-  PathEventId.debtCollection: const PathEventDefinition(
-    canAppear: _canAppearForDebtCollection,
-    visit: _visitDebtCollection,
-  ),
   PathEventId.shadyTechnosurgeon: const PathEventDefinition(
     canAppear: _canAppearForTechnosurgeon,
     visit: _visitDefaultPathEvent,
@@ -561,35 +557,6 @@ class PathEventService {
     );
   }
 
-  PathEventVisitResult resolveAuditoriaCreativaDebtAugment({
-    required Battler player,
-    required RunRandomizer randomizer,
-  }) {
-    final augment = _rollAugmentFromPoolForExactRarity(
-      pool: augmentCatalog,
-      player: player,
-      targetRarity: RarityTier.green,
-      randomizer: randomizer,
-    );
-    var updatedPlayer = player.applyStatus(
-      const DeudaStatus(value: 20),
-      applyEquipmentModifiers: false,
-    );
-    Augment? gainedAugment;
-    if (augment != null) {
-      updatedPlayer =
-          updatedPlayer.addAugment(_runtimeService.runtimeAugment(augment));
-      gainedAugment = updatedPlayer.augmentById(augment.id) ?? augment;
-    }
-
-    return PathEventVisitResult(
-      player: updatedPlayer,
-      outcomeText:
-          'Firmas deuda operativa y recibes un aumento verde gratuito.',
-      gainedAugment: gainedAugment,
-    );
-  }
-
   PathEventVisitResult resolveMercadoFuturosCoin({
     required Battler player,
     required bool didWin,
@@ -609,41 +576,6 @@ class PathEventService {
       player: updatedPlayer,
       outcomeText:
           'La moneda obedece. Ganas +2 XP y +1 ATK/+1 Barrera en el proximo combate.',
-    );
-  }
-
-  PathEventVisitResult _resolveDebtCollection(Battler player) {
-    final debtStatus = player.statusById(DeudaStatus.statusId);
-    if (debtStatus is! DeudaStatus) {
-      return PathEventVisitResult(
-        player: player,
-        outcomeText: 'No habia deuda activa que reclamar.',
-      );
-    }
-
-    final debtAmount = max(0, debtStatus.value);
-    final payment = min(player.money, debtAmount);
-    var updatedPlayer = player.spendMoney(payment);
-    final remainingDebt = debtAmount - payment;
-
-    if (remainingDebt <= 0) {
-      updatedPlayer = updatedPlayer.removeStatusInstance(debtStatus);
-      return PathEventVisitResult(
-        player: updatedPlayer,
-        outcomeText:
-            'Has pagado ${payment}C y la deuda queda saldada. Tu income operativo vuelve a la normalidad.',
-      );
-    }
-
-    updatedPlayer = updatedPlayer.receiveDamage(10).replaceStatusInstance(
-          currentStatus: debtStatus,
-          replacement: debtStatus.registerPayment(payment),
-        );
-
-    return PathEventVisitResult(
-      player: updatedPlayer,
-      outcomeText:
-          'No te alcanzaba para cubrir la cuota. Entregas ${payment}C, recibes 10 de daño y aun debes ${remainingDebt}C.',
     );
   }
 
@@ -1138,14 +1070,6 @@ PathEventDefinition _definitionFor(PathEventId id) {
       'No existe definicion registrada para el evento ${id.name}.');
 }
 
-bool _canAppearForDebtCollection(
-  PathEventService service, {
-  required EventPathNode node,
-  required Battler? player,
-}) {
-  return player?.statusById(DeudaStatus.statusId) is DeudaStatus;
-}
-
 bool _canAppearAlways(
   PathEventService service, {
   required EventPathNode node,
@@ -1338,15 +1262,6 @@ bool _canAppearForHornoJuramentos(
 }) {
   if (player?.archetypeId != ArchetypeId.hercules) return false;
   return service.buildHornoJuramentosEligibleItems(player!).isNotEmpty;
-}
-
-PathEventVisitResult _visitDebtCollection(
-  PathEventService service, {
-  required EventPathNode node,
-  required Battler player,
-  required RunRandomizer randomizer,
-}) {
-  return service._resolveDebtCollection(player);
 }
 
 PathEventVisitResult _visitArchetypeItemReward(
