@@ -84,26 +84,6 @@ final List<Item> itemPresets = <Item>[
     },
   ),
 
-  /// S-Harp-Ener
-  Item(
-    affinity: ItemArchetypeAffinity.general,
-    name: 'S-Harp-Ener',
-    description:
-        'An ancient harp relic, said to amplify nearby blades and blasts, now a household commodity to sharpen your kitchen knives!',
-    tier: RarityTier.green,
-    valueModifier: 1,
-    tags: <EntityTag>[EntityTag.accesorio],
-    asset: 'assets/sprites/items/WoodenStick.png',
-    effects: <Effect, List<int>>{
-      const ActionEffect(
-        actionType: ItemActionType.none,
-        description: 'Give +--value-- permanent attack to adjacent weapons.',
-        customEffectKey: ItemEffectKeys.sHarpEner,
-        value: 1,
-      ): const <int>[1, 2, 3, 4],
-    },
-  ),
-
   /// Shield Lance
   Item(
     affinity: ItemArchetypeAffinity.general,
@@ -113,8 +93,8 @@ final List<Item> itemPresets = <Item>[
     tier: RarityTier.green,
     tags: <EntityTag>[
       EntityTag.arma,
-      EntityTag.barrera,
       EntityTag.ataque,
+      EntityTag.barrera,
     ],
     asset: 'assets/sprites/items/WoodenStick.png',
     effects: <Effect, List<int>>{
@@ -126,6 +106,27 @@ final List<Item> itemPresets = <Item>[
     },
   ),
 
+  /// S-Harp-Ener
+  Item(
+    affinity: ItemArchetypeAffinity.general,
+    name: 'S-Harp-Ener',
+    description:
+        'An ancient harp relic, said to amplify nearby blades and blasts, now a household commodity to sharpen your kitchen knives!',
+    tier: RarityTier.blue,
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+    ],
+    asset: 'assets/sprites/items/WoodenStick.png',
+    effects: <Effect, List<int>>{
+      const ActionEffect(
+        actionType: ItemActionType.none,
+        description: 'Give +--value-- permanent attack to adjacent weapons.',
+        customEffectKey: ItemEffectKeys.sHarpEner,
+        value: 1,
+      ): const <int>[1, 2, 3],
+    },
+  ),
+
   /// Sunglasses
   Item(
     affinity: ItemArchetypeAffinity.general,
@@ -133,7 +134,10 @@ final List<Item> itemPresets = <Item>[
     description:
         'A pair of stylish sunglasses. The cooler you look, the more stuff you do, its simple math.',
     tier: RarityTier.yellow,
-    tags: <EntityTag>[EntityTag.accesorio],
+    tags: <EntityTag>[
+      EntityTag.accesorio,
+      EntityTag.indumentaria,
+    ],
     asset: 'assets/sprites/items/wooden_stick.png',
     effects: <Effect, List<int>>{
       const ActionEffect(
@@ -155,8 +159,8 @@ final List<Item> itemPresets = <Item>[
         'A piece of red chalk used to draw ritualistic dueling circles. Cross it, and someone will bleed.',
     tier: RarityTier.gray,
     tags: <EntityTag>[
-      EntityTag.desafio,
       EntityTag.buff,
+      EntityTag.desafio,
     ],
     asset: 'assets/sprites/items/DuelistChalk.png',
     effects: <Effect, List<int>>{
@@ -194,8 +198,9 @@ final List<Item> itemPresets = <Item>[
     tier: RarityTier.green,
     tags: <EntityTag>[
       EntityTag.accesorio,
-      EntityTag.quemadura,
       EntityTag.buff,
+      EntityTag.indumentaria,
+      EntityTag.quemadura,
       EntityTag.vida,
     ],
     asset: 'assets/sprites/items/AshEaterMask.png',
@@ -317,7 +322,7 @@ final List<Item> itemPresets = <Item>[
             'If you received damage this turn before using this item, gain --value-- Desafio before your next action.',
         value: 4,
         hook: ItemEffectHook.actionResolved,
-      ): const <int>[4, 8, 12, 16],
+      ): const <int>[4, 8, 16, 32],
     },
   ),
 
@@ -329,11 +334,10 @@ final List<Item> itemPresets = <Item>[
         'A burning iron seal pressed into your own armor, sizzling each time your anger flares.',
     tier: RarityTier.blue,
     tags: <EntityTag>[
-      EntityTag.accesorio,
+      EntityTag.buff,
+      EntityTag.debuff,
       EntityTag.desafio,
       EntityTag.quemadura,
-      EntityTag.debuff,
-      EntityTag.buff,
     ],
     asset: 'assets/sprites/items/ChallengeBrand.png',
     effects: <Effect, List<int>>{
@@ -402,8 +406,9 @@ final List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.arma,
       EntityTag.ataque,
-      EntityTag.quemadura,
       EntityTag.debuff,
+      EntityTag.indumentaria,
+      EntityTag.quemadura,
       EntityTag.vida,
     ],
     asset: 'assets/sprites/items/BloodflameGauntlet.png',
@@ -436,10 +441,10 @@ final List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.arma,
       EntityTag.ataque,
-      EntityTag.desafio,
       EntityTag.buff,
-      EntityTag.quemadura,
       EntityTag.debuff,
+      EntityTag.desafio,
+      EntityTag.quemadura,
     ],
     asset: 'assets/sprites/items/ExecutionBell.png',
     effects: <Effect, List<int>>{
@@ -461,20 +466,21 @@ final List<Item> itemPresets = <Item>[
     },
   ),
 
-  /// Crown of the Last Ember
+  /// Crown of the Black Sun
   Item(
     affinity: ItemArchetypeAffinity.hercules,
     name: 'Crown of the Black Sun',
     description:
         'A cracked crown burning with the final flame of a dead king. It does not ask you to survive. It asks you to end the fight first.',
     tier: RarityTier.yellow,
-    valueModifier: 15,
     tags: <EntityTag>[
       EntityTag.accesorio,
-      EntityTag.quemadura,
-      EntityTag.buff,
       EntityTag.ataque,
+      EntityTag.buff,
+      EntityTag.debuff,
       EntityTag.desafio,
+      EntityTag.indumentaria,
+      EntityTag.quemadura,
     ],
     asset: 'assets/sprites/items/CrownOfTheBlackSun.png',
     effects: <Effect, List<int>>{
@@ -556,6 +562,7 @@ final List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.accesorio,
       EntityTag.barrera,
+      EntityTag.indumentaria,
     ],
     asset: 'assets/sprites/items/ArtificialCarapace.png',
     effects: <Effect, List<int>>{
@@ -580,6 +587,7 @@ final List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.barrera,
       EntityTag.accesorio,
+      EntityTag.indumentaria,
     ],
     asset: 'assets/sprites/items/Oathplate.png',
     effects: <Effect, List<int>>{
@@ -603,6 +611,7 @@ final List<Item> itemPresets = <Item>[
     tier: RarityTier.blue,
     tags: <EntityTag>[
       EntityTag.accesorio,
+      EntityTag.indumentaria,
       EntityTag.barrera,
       EntityTag.buff,
     ],
@@ -626,9 +635,8 @@ final List<Item> itemPresets = <Item>[
         'An abandoned exoskeleton. Break your old protection and turn it into force.',
     tier: RarityTier.blue,
     tags: <EntityTag>[
-      EntityTag.accesorio,
-      EntityTag.barrera,
       EntityTag.ataque,
+      EntityTag.barrera,
     ],
     asset: 'assets/sprites/items/Molt.png',
     effects: <Effect, List<int>>{
@@ -651,8 +659,8 @@ final List<Item> itemPresets = <Item>[
         'A shield made from a curled-up pill bug. It looks ridiculous until something fails to break it.',
     tier: RarityTier.blue,
     tags: <EntityTag>[
-      EntityTag.barrera,
       EntityTag.accesorio,
+      EntityTag.barrera,
     ],
     asset: 'assets/sprites/items/OniscideaShield.png',
     effects: <Effect, List<int>>{
@@ -797,9 +805,9 @@ final List<Item> itemPresets = <Item>[
         effectKey: ItemEffectKeys.citadelCoreFortressScaling,
         description:
             'At the start of your turn, if you have 20 or more Barrier, gain --value-- Calentando.',
-        value: 1,
+        value: 10,
         hook: ItemEffectHook.turnStart,
-      ): const <int>[1],
+      ): const <int>[10],
       const PassiveEffect(
         effectKey: ItemEffectKeys.citadelCoreUnbrokenRetaliation,
         description:
@@ -812,7 +820,7 @@ final List<Item> itemPresets = <Item>[
         actionEffect: const ActionEffect(
           actionType: ItemActionType.none,
           description:
-              'If used as the core(center) of a pattern, gain --value-- Barrier, cleanse 1 negative status, and deal damage equal to 25% of your current Barrier.',
+              'If used as the center of a pattern, gain --value-- Barrier, cleanse 1 negative status, and deal damage equal to 25% of your current Barrier.',
           customEffectKey: ItemEffectKeys.citadelCoreSquareFortress,
           value: 12,
         ),
@@ -946,8 +954,8 @@ final List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.arma,
       EntityTag.ataque,
-      EntityTag.intoxicacion,
       EntityTag.debuff,
+      EntityTag.intoxicacion,
     ],
     asset: 'assets/sprites/items/PoisonStinger.png',
     effects: <Effect, List<int>>{
@@ -996,6 +1004,7 @@ final List<Item> itemPresets = <Item>[
       EntityTag.arma,
       EntityTag.ataque,
       EntityTag.debuff,
+      EntityTag.indumentaria,
     ],
     asset: 'assets/sprites/items/Zapatilla.png',
     effects: <Effect, List<int>>{
@@ -1109,6 +1118,7 @@ final List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.accesorio,
       EntityTag.debuff,
+      EntityTag.intoxicacion,
     ],
     asset: 'assets/sprites/items/Venotronome.png',
     effects: <Effect, List<int>>{
@@ -1172,7 +1182,8 @@ final List<Item> itemPresets = <Item>[
     tags: <EntityTag>[
       EntityTag.accesorio,
       EntityTag.buff,
-      EntityTag.ciclo,
+      EntityTag.debuff,
+      EntityTag.indumentaria,
     ],
     asset: 'assets/sprites/items/BlindspotMantle.png',
     effects: <Effect, List<int>>{
@@ -1201,7 +1212,6 @@ final List<Item> itemPresets = <Item>[
         'A simple cover of leaves that makes the wearer vanish at exactly the wrong moment.',
     tier: RarityTier.purple,
     tags: <EntityTag>[
-      EntityTag.accesorio,
       EntityTag.buff,
     ],
     asset: 'assets/sprites/items/CamouflageLeaves.png',
@@ -1230,7 +1240,6 @@ final List<Item> itemPresets = <Item>[
         'A bundle of living wires. Specially akeen to exploiting weaknesses.',
     tier: RarityTier.purple,
     tags: <EntityTag>[
-      EntityTag.accesorio,
       EntityTag.debuff,
       EntityTag.cura,
       EntityTag.contagio,
@@ -1273,10 +1282,9 @@ final List<Item> itemPresets = <Item>[
     tier: RarityTier.yellow,
     valueModifier: 12,
     tags: <EntityTag>[
-      EntityTag.accesorio,
-      EntityTag.quemadura,
-      EntityTag.debuff,
       EntityTag.buff,
+      EntityTag.debuff,
+      EntityTag.quemadura,
     ],
     asset: 'assets/sprites/items/Campfire.png',
     effects: <Effect, List<int>>{
@@ -1312,9 +1320,9 @@ final List<Item> itemPresets = <Item>[
     tier: RarityTier.yellow,
     tags: <EntityTag>[
       EntityTag.accesorio,
-      EntityTag.arma,
       EntityTag.ataque,
       EntityTag.debuff,
+      EntityTag.indumentaria,
     ],
     asset: 'assets/sprites/items/ThousandCutHalo.png',
     effects: <Effect, List<int>>{
@@ -1464,7 +1472,6 @@ final List<Item> itemPresets = <Item>[
         'A forbidden catalogue full of things no honest shop should sell. Perfect for someone with flexible morals and enough money.',
     tier: RarityTier.purple,
     tags: <EntityTag>[
-      EntityTag.accesorio,
       EntityTag.economia,
       EntityTag.buff,
     ],
@@ -1505,7 +1512,6 @@ final List<Item> itemPresets = <Item>[
         'A grinning golden idol of impossible wealth. It does not fight for you. It simply pays reality to lose.',
     tier: RarityTier.yellow,
     tags: <EntityTag>[
-      EntityTag.accesorio,
       EntityTag.economia,
       EntityTag.ataque,
     ],

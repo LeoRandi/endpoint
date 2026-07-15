@@ -15,5 +15,6 @@ enum EntityTag {
   economia,
   muralla,
   arma,
-  accesorio;
+  accesorio,
+  indumentaria;
 }

@@ -103,12 +103,12 @@ final signalStagEnemyBattler = Battler(
   equippedItems: _enemyItems([
     'Slate Buckler',
     'Oathplate',
-    'Venotronome',
+    'Shield Lance'
   ]),
   patternItemPointKeys: {
     'Slate Buckler': '-1,1',
-    'Oathplate': '0,1',
-    'Venotronome': '0,0',
+    'Oathplate': '1,-1',
+    'Shield Lance': '0,0',
   },
 );
 
